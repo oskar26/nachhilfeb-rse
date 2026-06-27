@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
 import Feed from './pages/Feed';
@@ -29,12 +29,14 @@ import Nutzungsbedingungen from './pages/Nutzungsbedingungen';
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, profile, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) return <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-950">Lade...</div>;
   if (!user) return <Navigate to="/welcome" replace />;
 
-  // Enforce onboarding unless already on the profile page
-  if (profile && profile.onboarding_complete === false && window.location.pathname !== '/profile') {
+  // Enforce onboarding only if profile is explicitly incomplete and missing basic info
+  const isProfileIncomplete = profile && profile.onboarding_complete === false && !profile.first_name && !profile.display_name;
+  if (isProfileIncomplete && location.pathname !== '/profile') {
     return <Navigate to="/profile" replace />;
   }
 

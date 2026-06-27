@@ -15,39 +15,56 @@ import { RichTextEditor } from '../components/RichTextEditor';
 import { AvailabilityCalendar, emptyAvailability, type Availability } from '../components/AvailabilityCalendar';
 
 export default function Profile() {
-    const { user } = useAuth();
-    const [loading, setLoading] = useState(true);
+    const { user, profile: authProfile, refreshProfile } = useAuth();
+    const [loading, setLoading] = useState(!authProfile);
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [availability, setAvailability] = useState<Availability>(emptyAvailability());
     const [privacyCalendar, setPrivacyCalendar] = useState(true); // true = private (matching only)
 
-    const [profile, setProfile] = useState({
-        first_name: '',
-        last_name: '',
-        grade_level: '',
-        class_letter: '',
-        bio: '',
-        is_verified: false,
-        avatar_url: '',
+    const [profile, setProfile] = useState<{
+        first_name: string;
+        last_name: string;
+        grade_level: string;
+        class_letter: string;
+        bio: string;
+        is_verified: boolean;
+        avatar_url: string;
+        moodle_name: string;
+        phone_number: string;
+        contact_other: string;
+        email: string;
+        settings: {
+            email_visible: boolean;
+            phone_visible: boolean;
+            contact_links: { type: string; value: string }[];
+        };
+        offered_subjects: Subject[];
+    }>({
+        first_name: authProfile?.first_name || '',
+        last_name: authProfile?.last_name || '',
+        grade_level: authProfile?.grade_level || '',
+        class_letter: authProfile?.class_letter || '',
+        bio: authProfile?.bio || '',
+        is_verified: authProfile?.is_verified ?? false,
+        avatar_url: authProfile?.avatar_url || '',
 
         // Contact
-        // Contact
-        moodle_name: '',
-        phone_number: '',
-        contact_other: '',
-        email: '', 
+        moodle_name: authProfile?.moodle_name || '',
+        phone_number: authProfile?.phone_number || '',
+        contact_other: authProfile?.contact_other || '',
+        email: user?.email || '', 
 
         // Settings
-        settings: {
+        settings: (authProfile?.settings as any) || {
             email_visible: false,
             phone_visible: false,
-            contact_links: [] as { type: string, value: string }[]
+            contact_links: []
         },
 
         // Derived
-        offered_subjects: [] as Subject[]
+        offered_subjects: []
     });
 
     useEffect(() => {
@@ -56,7 +73,7 @@ export default function Profile() {
     }, [user]);
 
     async function fetchProfile() {
-        setLoading(true);
+        if (!authProfile) setLoading(true);
         // Fetch Profile
         const { data } = await supabase
             .from('profiles')
@@ -76,6 +93,7 @@ export default function Profile() {
         ads?.forEach(ad => ad.subjects?.forEach((s: Subject) => subjectsSet.add(s)));
 
         if (data) {
+            const userSettings = (data.settings as any) || {};
             setProfile({
                 first_name: data.first_name || '',
                 last_name: data.last_name || '',
@@ -88,7 +106,11 @@ export default function Profile() {
                 phone_number: data.phone_number || '',
                 contact_other: data.contact_other || '',
                 email: data.email || user?.email || '',
-                settings: data.settings || { email_visible: false, phone_visible: false, contact_links: [] },
+                settings: {
+                    email_visible: userSettings.email_visible ?? false,
+                    phone_visible: userSettings.phone_visible ?? false,
+                    contact_links: userSettings.contact_links || []
+                },
                 offered_subjects: Array.from(subjectsSet)
             });
             setAvailability(data.availability || emptyAvailability());
@@ -130,6 +152,7 @@ export default function Profile() {
         } else {
             toast.success("Profil gespeichert!");
             setIsEditing(false);
+            await refreshProfile();
         }
         setSaving(false);
     }
