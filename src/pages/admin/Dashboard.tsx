@@ -16,6 +16,8 @@ import AdminChat from './AdminChat';
 import AdminCodes from './AdminCodes';
 import AdminAuditLog from './AdminAuditLog';
 
+import AdminAnalytics from './AdminAnalytics';
+
 export default function SVDashboard() {
     const [searchParams, setSearchParams] = useSearchParams();
     const activeTab = searchParams.get('tab') || 'overview';
@@ -52,16 +54,7 @@ export default function SVDashboard() {
         case 'ads':
             return <AdManagement />;
         case 'analytics':
-            return (
-                <Card className="rounded-3xl border-none shadow-sm bg-white dark:bg-gray-900 py-16 text-center">
-                    <CardContent className="space-y-3 max-w-sm mx-auto">
-                        <div className="text-gray-400 text-lg font-bold">Analytics & Statistik</div>
-                        <p className="text-gray-500 text-xs">
-                            Hier findest du bald detaillierte Auswertungen über Nachhilfevermittlungen, Benutzeraktivitäten und Stufen-Wachstum.
-                        </p>
-                    </CardContent>
-                </Card>
-            );
+            return <AdminAnalytics />;
         default:
             return <AdminOverview />;
     }

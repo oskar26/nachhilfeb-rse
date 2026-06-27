@@ -217,7 +217,11 @@ export default function Profile() {
                         {profile.first_name ? `${profile.first_name} ${profile.last_name}` : 'Profil einrichten'}
                     </h1>
                     <p className="text-gray-500 font-medium">
-                        {profile.grade_level ? `Klasse ${profile.grade_level}${profile.class_letter}` : 'Keine Klasse'}
+                        {profile.grade_level 
+                            ? ['EF', 'Q1', 'Q2'].includes(profile.grade_level)
+                                ? `Jahrgangsstufe ${profile.grade_level}`
+                                : `Klasse ${profile.grade_level}${profile.class_letter}` 
+                            : 'Keine Klasse'}
                     </p>
 
                     <div className="flex justify-center mt-2 gap-2">

@@ -40,10 +40,10 @@ export default function Layout() {
         }`;
 
     return (
-        <div className="flex h-screen w-full bg-[#f8f9fa] dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans animate-in fade-in duration-500">
-
-            {/* Desktop Sidebar */}
-            <aside className="hidden md:flex w-72 flex-col m-4 rounded-[2rem] bg-white dark:bg-gray-900 shadow-soft border-none overflow-hidden h-[calc(100vh-2rem)] shrink-0">
+        <div className="h-screen w-full bg-[#f8f9fa] dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans animate-in fade-in duration-500 flex justify-center">
+            <div className="flex h-full w-full max-w-[1440px] relative overflow-hidden">
+                {/* Desktop Sidebar */}
+                <aside className="hidden md:flex w-72 flex-col m-4 rounded-[2rem] bg-white dark:bg-gray-900 shadow-soft border-none overflow-hidden h-[calc(100vh-2rem)] shrink-0">
                 <div className="p-8 pb-4 flex items-center justify-between">
                     <div>
                         <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Nachhilfebörse</h1>
@@ -165,6 +165,7 @@ export default function Layout() {
 
             {/* PWA Install banner prompt */}
             <InstallPrompt />
+            </div>
         </div>
     );
 }

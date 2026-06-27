@@ -37,7 +37,7 @@ export default function Feed() {
     const [ads, setAds] = useState<Ad[]>([]);
     const [loading, setLoading] = useState(true);
     const [showFilters, setShowFilters] = useState(false);
-    const [showBanners, setShowBanners] = useState(true);
+    const [showBanners, setShowBanners] = useState(() => localStorage.getItem('feed_show_banners') !== 'false');
     const [myAvailability, setMyAvailability] = useState<Availability>(emptyAvailability());
     const [filterByTime, setFilterByTime] = useState(false);
 
@@ -239,7 +239,7 @@ export default function Feed() {
                                 ? "bg-amber-100 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 hover:bg-amber-200" 
                                 : "bg-primary border-primary text-black hover:bg-primary/95"
                         )}
-                        onClick={() => setShowBanners(!showBanners)}
+                        onClick={() => { const next = !showBanners; setShowBanners(next); localStorage.setItem('feed_show_banners', String(next)); }}
                     >
                         {showBanners ? (
                             <><span>Infos ausblenden</span><ChevronUp size={14} /></>

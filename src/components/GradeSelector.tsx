@@ -6,7 +6,7 @@ interface GradeSelectorProps {
     className?: string;
 }
 
-const GRADES = ['5', '6', '7', '8', '9', '10', '11', '12', '13'];
+const GRADES = ['5', '6', '7', '8', '9', '10', 'EF', 'Q1', 'Q2'];
 
 export function GradeSelector({ selectedGrades, onChange, className }: GradeSelectorProps) {
     const toggleGrade = (grade: string) => {
@@ -26,9 +26,9 @@ export function GradeSelector({ selectedGrades, onChange, className }: GradeSele
                         key={grade}
                         onClick={() => toggleGrade(grade)}
                         className={cn(
-                            "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border transition-all",
+                            "px-3.5 h-10 min-w-[2.5rem] rounded-2xl flex items-center justify-center text-sm font-bold border transition-all",
                             isSelected
-                                ? "bg-primary text-primary-foreground border-primary scale-110 shadow-md" // Yellow when selected
+                                ? "bg-primary text-primary-foreground border-primary scale-105 shadow-md" // Yellow when selected
                                 : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-primary hover:text-primary"
                         )}
                         type="button"

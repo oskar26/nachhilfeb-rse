@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Heart, Plus, Folder, Share2, FolderHeart, ArrowRight, ExternalLink, MoreVertical } from 'lucide-react';
+import { Trash2, Heart, Plus, Folder, Share2, FolderHeart, ArrowRight, ExternalLink, MoreVertical, ChevronDown } from 'lucide-react';
 import { SubjectChip } from '../components/SubjectChip';
 import ShareDialog from '../components/ShareDialog';
 import { toast } from 'react-hot-toast';
@@ -227,9 +227,71 @@ export default function Favorites() {
     if (!user) return <div className="p-4 text-center py-20">Bitte logge dich ein, um deine Merkliste zu sehen.</div>;
 
     return (
-        <div className="p-4 max-w-4xl mx-auto pb-24 grid md:grid-cols-[250px_1fr] gap-6">
-            {/* Sidebar - Collections */}
-            <div className="space-y-4">
+        <div className="p-4 max-w-4xl mx-auto pb-24">
+            {/* Mobile: Collapsible Collections Panel */}
+            <div className="md:hidden mb-4">
+                <button
+                    onClick={() => setShowNewCollectionInput(!showNewCollectionInput)}
+                    className="w-full flex items-center justify-between bg-white dark:bg-gray-900 border dark:border-gray-800 p-4 rounded-2xl shadow-sm"
+                >
+                    <span className="font-bold text-sm">Sammlungen ({collections.length + 1})</span>
+                    <ChevronDown size={16} className="text-gray-400" />
+                </button>
+                {/* Mobile horizontal scroll for collections */}
+                <div className="flex gap-2 overflow-x-auto pb-2 mt-2 no-scrollbar">
+                    <button
+                        onClick={() => setActiveCollectionId('all')}
+                        className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 ${activeCollectionId === 'all' ? 'bg-primary text-black' : 'bg-white dark:bg-gray-900 border dark:border-gray-800 text-gray-600'}`}
+                    >
+                        <FolderHeart size={13} />
+                        Alle ({favorites.length})
+                    </button>
+                    {collections.map(c => (
+                        <button
+                            key={c.id}
+                            onClick={() => setActiveCollectionId(c.id)}
+                            className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 ${activeCollectionId === c.id ? 'bg-primary text-black' : 'bg-white dark:bg-gray-900 border dark:border-gray-800 text-gray-600'}`}
+                        >
+                            <Folder size={13} style={{ color: c.color }} />
+                            {c.name}
+                        </button>
+                    ))}
+                    <button
+                        onClick={() => setShowNewCollectionInput(!showNewCollectionInput)}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 shrink-0"
+                    >
+                        <Plus size={13} /> Neu
+                    </button>
+                </div>
+                {showNewCollectionInput && (
+                    <div className="bg-white dark:bg-gray-900 border dark:border-gray-800 p-3 rounded-2xl space-y-3 mt-2 animate-in slide-in-from-top-2">
+                        <Input
+                            placeholder="Sammlungsname..."
+                            value={newCollectionName}
+                            onChange={e => setNewCollectionName(e.target.value)}
+                            className="h-8 text-xs"
+                        />
+                        <div className="flex gap-1 justify-center">
+                            {colors.map(c => (
+                                <button
+                                    key={c}
+                                    className={`w-5 h-5 rounded-full border transition-transform ${selectedColor === c ? 'scale-125 border-black dark:border-white' : 'border-transparent'}`}
+                                    style={{ backgroundColor: c }}
+                                    onClick={() => setSelectedColor(c)}
+                                />
+                            ))}
+                        </div>
+                        <div className="flex gap-2">
+                            <Button size="sm" className="w-full text-xs h-7" onClick={handleCreateCollection}>Erstellen</Button>
+                            <Button size="sm" variant="ghost" className="w-full text-xs h-7" onClick={() => setShowNewCollectionInput(false)}>Abbrechen</Button>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            <div className="md:grid md:grid-cols-[240px_1fr] gap-6">
+            {/* Desktop Sidebar - Collections */}
+            <div className="hidden md:block space-y-4">
                 <div className="flex items-center justify-between">
                     <h2 className="font-bold text-sm uppercase tracking-wider text-gray-400">Sammlungen</h2>
                     <Button 
@@ -267,10 +329,10 @@ export default function Favorites() {
                     </div>
                 )}
 
-                <div className="flex flex-row md:flex-col gap-1 overflow-x-auto pb-2 md:pb-0 shrink-0">
+                <div className="flex flex-col gap-1">
                     <button
                         onClick={() => setActiveCollectionId('all')}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold transition-all shrink-0 w-full text-left ${activeCollectionId === 'all' ? 'bg-primary text-black' : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300'}`}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold transition-all w-full text-left ${activeCollectionId === 'all' ? 'bg-primary text-black' : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300'}`}
                     >
                         <FolderHeart size={16} />
                         <span>Alle Gespeicherten</span>
@@ -280,7 +342,7 @@ export default function Favorites() {
                     {collections.map(c => {
                         const count = favorites.filter(f => f.collection_id === c.id).length;
                         return (
-                            <div key={c.id} className="group flex items-center w-full justify-between shrink-0">
+                            <div key={c.id} className="group flex items-center w-full justify-between">
                                 <button
                                     onClick={() => setActiveCollectionId(c.id)}
                                     className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold transition-all text-left flex-1 ${activeCollectionId === c.id ? 'bg-primary text-black' : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300'}`}
@@ -291,7 +353,7 @@ export default function Favorites() {
                                 </button>
                                 <button 
                                     onClick={() => handleDeleteCollection(c.id, c.name)}
-                                    className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-600 p-1.5 transition-opacity hidden md:block"
+                                    className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-600 p-1.5 transition-opacity"
                                     title="Sammlung löschen"
                                 >
                                     <Trash2 size={14} />
@@ -441,8 +503,9 @@ export default function Favorites() {
                     </div>
                 )}
             </div>
+        </div>
 
-            {/* Share Dialog */}
+        {/* Share Dialog */}
             {sharingAd && (
                 <ShareDialog
                     adId={sharingAd.id}

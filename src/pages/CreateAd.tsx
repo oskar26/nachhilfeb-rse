@@ -234,27 +234,35 @@ export default function CreateAd() {
             <h1 className="text-2xl font-bold mb-6">Anzeige aufgeben</h1>
 
             {/* Stepper */}
-            <div className="flex items-center justify-between mb-8 overflow-x-auto relative">
-                {/* Connecting Line (behind) */}
-                <div className="absolute top-4 left-0 w-full h-0.5 bg-gray-200 dark:bg-gray-800 -z-10" />
-
-                {STEPS.map((step, index) => (
-                    <div key={index} className="flex flex-col items-center min-w-[60px] bg-white dark:bg-gray-950 px-1 z-0">
-                        <button 
-                            onClick={() => jumpToStep(index)}
-                            disabled={index > currentStep && !isStepValid()}
-                            className={cn(
-                                "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ring-4 ring-white dark:ring-gray-950 transition-all",
-                                index <= currentStep
-                                    ? "bg-primary text-primary-foreground hover:scale-110 cursor-pointer"
-                                    : "bg-gray-200 text-gray-500 dark:bg-gray-800 cursor-not-allowed opacity-50"
-                            )}
-                        >
-                            {index + 1}
-                        </button>
-                        <span className="text-[10px] mt-1 text-gray-500 font-medium">{step}</span>
-                    </div>
-                ))}
+            <div className="bg-white dark:bg-gray-900 p-4 rounded-3xl shadow-sm border dark:border-gray-800 mb-8 overflow-x-auto">
+                <div className="flex items-center justify-between min-w-[500px] relative px-4">
+                    {/* Connecting Line */}
+                    <div className="absolute top-4 left-8 right-8 h-0.5 bg-gray-100 dark:bg-gray-800 z-0" />
+                    
+                    {STEPS.map((step, index) => {
+                        const isCurrent = index === currentStep;
+                        const isCompleted = index < currentStep;
+                        return (
+                            <div key={index} className="flex flex-col items-center z-10">
+                                <button 
+                                    onClick={() => jumpToStep(index)}
+                                    disabled={index > currentStep && !isStepValid()}
+                                    className={cn(
+                                        "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ring-4 ring-white dark:ring-gray-900 transition-all",
+                                        isCurrent
+                                            ? "bg-primary text-black scale-110 shadow-md"
+                                            : isCompleted
+                                                ? "bg-green-500 text-white cursor-pointer"
+                                                : "bg-gray-100 text-gray-400 dark:bg-gray-800 cursor-not-allowed opacity-60"
+                                    )}
+                                >
+                                    {isCompleted ? <CheckCircle size={14} /> : index + 1}
+                                </button>
+                                <span className={cn("text-[10px] mt-1.5 font-medium transition-colors whitespace-nowrap", isCurrent ? "text-gray-900 dark:text-white font-bold" : "text-gray-400")}>{step}</span>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
 
             <Card>
