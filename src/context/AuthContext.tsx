@@ -35,11 +35,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const fetchProfile = async (userId: string) => {
         try {
-            const { data, error } = await supabase
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Profile fetch timeout')), 3000)
+            );
+
+            const fetchPromise = supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', userId)
                 .single();
+
+            const res: any = await Promise.race([fetchPromise, timeoutPromise]);
+            const { data, error } = res || {};
             
             if (error) {
                 console.error('Error fetching profile:', error);
@@ -60,37 +67,61 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     useEffect(() => {
-        // Get initial session
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session);
-            const currentUser = session?.user ?? null;
-            setUser(currentUser);
-            if (currentUser) {
-                fetchProfile(currentUser.id).finally(() => setLoading(false));
-            } else {
-                setProfile(null);
+        let isMounted = true;
+
+        // Safety timeout to guarantee loading never stays stuck forever
+        const safetyTimer = setTimeout(() => {
+            if (isMounted) {
                 setLoading(false);
             }
-        });
+        }, 2000);
+
+        const initAuth = async () => {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!isMounted) return;
+                
+                setSession(session);
+                const currentUser = session?.user ?? null;
+                setUser(currentUser);
+                if (currentUser) {
+                    await fetchProfile(currentUser.id);
+                } else {
+                    setProfile(null);
+                }
+            } catch (err) {
+                console.error('Auth initialization error:', err);
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                    clearTimeout(safetyTimer);
+                }
+            }
+        };
+
+        initAuth();
 
         // Listen for changes on auth state
         const {
             data: { subscription },
-        } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (!isMounted) return;
             setSession(session);
             const currentUser = session?.user ?? null;
             setUser(currentUser);
-            if (currentUser) {
-                setLoading(true);
+            if (currentUser && event !== 'INITIAL_SESSION') {
                 await fetchProfile(currentUser.id);
-                setLoading(false);
-            } else {
+            } else if (!currentUser) {
                 setProfile(null);
-                setLoading(false);
             }
+            setLoading(false);
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            isMounted = false;
+            clearTimeout(safetyTimer);
+            subscription.unsubscribe();
+        };
     }, []);
 
     const signOut = async () => {
