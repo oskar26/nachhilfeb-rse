@@ -48,7 +48,7 @@ export default function Landing() {
                 </motion.div>
 
                 <motion.h1
-                    className="text-5xl sm:text-7xl lg:text-8xl font-black tracking-tighter mb-8 leading-[1.1]"
+                    className="text-center text-5xl sm:text-7xl lg:text-8xl font-black tracking-tighter mb-8 leading-[1.1]"
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}
@@ -60,7 +60,7 @@ export default function Landing() {
                 </motion.h1>
 
                 <motion.p
-                    className="text-xl sm:text-2xl text-gray-600 dark:text-gray-400 max-w-2xl mb-12 leading-relaxed"
+                    className="text-center text-xl sm:text-2xl text-gray-600 dark:text-gray-400 max-w-2xl mb-12 leading-relaxed"
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}

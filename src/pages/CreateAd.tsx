@@ -37,6 +37,9 @@ export default function CreateAd() {
     const [loadingProfile, setLoadingProfile] = useState(true);
     const [promoCode, setPromoCode] = useState('');
 
+    const [children, setChildren] = useState<any[]>([]);
+    const [selectedChildId, setSelectedChildId] = useState<string>('');
+
     // Form Data
     const [formData, setFormData] = useState({
         type: 'offer' as 'offer' | 'search',
@@ -71,7 +74,21 @@ export default function CreateAd() {
         const { data } = await supabase.from('profiles').select('*').eq('id', user?.id).single();
         if (data) {
             setProfile(data);
-            setIsVerified(data.is_verified);
+            setIsVerified(data.role === 'parent' ? true : data.is_verified);
+
+            if (data.role === 'parent') {
+                const { data: links } = await supabase
+                    .from('parent_links')
+                    .select('*, child:child_id(id, display_name, first_name, last_name, grade_level)')
+                    .eq('parent_id', user?.id)
+                    .eq('status', 'active');
+                
+                if (links && links.length > 0) {
+                    const childList = links.map((l: any) => l.child).filter(c => c !== null);
+                    setChildren(childList);
+                    setSelectedChildId(childList[0].id);
+                }
+            }
         }
         setLoadingProfile(false);
     }
@@ -128,8 +145,10 @@ export default function CreateAd() {
         const isBoosted = promoCode.trim().toUpperCase() === 'BANANE';
         const boostedUntil = isBoosted ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() : null;
 
+        const effectiveUserId = profile?.role === 'parent' && selectedChildId ? selectedChildId : user.id;
+
         const { error } = await supabase.from('ads').insert({
-            user_id: user.id,
+            user_id: effectiveUserId,
             type: formData.type,
             subjects: formData.subjects,
             grade_levels: formData.grade_levels,
@@ -274,36 +293,71 @@ export default function CreateAd() {
                     {/* Step 0: Type & Title */}
                     {currentStep === 0 && (
                         <div className="space-y-6">
-                            <div className="flex gap-4">
-                                <button
-                                    onClick={() => setFormData({ ...formData, type: 'offer' })}
-                                    className={cn(
-                                        "flex-1 py-4 px-2 text-center rounded-xl border-2 transition-all font-semibold",
-                                        formData.type === 'offer' ? "border-primary bg-primary/10 text-primary-hover" : "border-gray-200 text-gray-500 hover:border-gray-300 dark:border-gray-700"
+                            {profile?.role === 'parent' && (
+                                <div className="bg-primary/10 border border-primary/20 p-5 rounded-2xl space-y-3">
+                                    <h4 className="font-bold text-sm text-primary-hover">Anzeige für Ihr Kind erstellen</h4>
+                                    {children.length === 0 ? (
+                                        <div className="space-y-2">
+                                            <p className="text-xs text-gray-500">Sie haben noch kein Schülerkonto mit Ihrem Eltern-Account verknüpft.</p>
+                                            <Button size="sm" onClick={() => navigate('/parent-dashboard')} className="rounded-xl font-bold">Kind jetzt verknüpfen</Button>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold uppercase text-gray-500 ml-1">Kind auswählen</label>
+                                            <select
+                                                value={selectedChildId}
+                                                onChange={e => setSelectedChildId(e.target.value)}
+                                                className="w-full h-10 px-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 font-semibold text-sm"
+                                            >
+                                                {children.map(c => (
+                                                    <option key={c.id} value={c.id}>
+                                                        {c.display_name || `${c.first_name} ${c.last_name}`} (Klasse/Stufe {c.grade_level})
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     )}
-                                >
-                                    Ich biete Nachhilfe 🎓
-                                </button>
-                                <button
-                                    onClick={() => setFormData({ ...formData, type: 'search' })}
-                                    className={cn(
-                                        "flex-1 py-4 px-2 text-center rounded-xl border-2 transition-all font-semibold",
-                                        formData.type === 'search' ? "border-secondary bg-secondary/10 text-secondary" : "border-gray-200 text-gray-500 hover:border-gray-300 dark:border-gray-700"
-                                    )}
-                                >
-                                    Ich suche Nachhilfe 🔍
-                                </button>
-                            </div>
-                            <div>
-                                <label className="text-sm font-medium mb-2 block">Titel der Anzeige</label>
-                                <Input
-                                    placeholder="z.B. Mathe Held für Unterstufe gesucht!"
-                                    value={formData.title}
-                                    onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                    autoFocus
-                                    className="text-lg py-6"
-                                />
-                            </div>
+                                </div>
+                            )}
+
+                            {profile?.role === 'parent' && children.length === 0 ? (
+                                <div className="text-center py-8 text-gray-400 text-sm font-semibold">
+                                    Bitte verknüpfen Sie ein Kind, um fortzufahren.
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="flex gap-4">
+                                        <button
+                                            onClick={() => setFormData({ ...formData, type: 'offer' })}
+                                            className={cn(
+                                                "flex-1 py-4 px-2 text-center rounded-xl border-2 transition-all font-semibold",
+                                                formData.type === 'offer' ? "border-primary bg-primary/10 text-primary-hover" : "border-gray-200 text-gray-500 hover:border-gray-300 dark:border-gray-700"
+                                            )}
+                                        >
+                                            Ich biete Nachhilfe 🎓
+                                        </button>
+                                        <button
+                                            onClick={() => setFormData({ ...formData, type: 'search' })}
+                                            className={cn(
+                                                "flex-1 py-4 px-2 text-center rounded-xl border-2 transition-all font-semibold",
+                                                formData.type === 'search' ? "border-secondary bg-secondary/10 text-secondary" : "border-gray-200 text-gray-500 hover:border-gray-300 dark:border-gray-700"
+                                            )}
+                                        >
+                                            Ich suche Nachhilfe 🔍
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium mb-2 block">Titel der Anzeige</label>
+                                        <Input
+                                            placeholder="z.B. Mathe Hilfe für Klasse 6 gesucht!"
+                                            value={formData.title}
+                                            onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                            autoFocus
+                                            className="text-lg py-6"
+                                        />
+                                    </div>
+                                </>
+                            )}
                         </div>
                     )}
 

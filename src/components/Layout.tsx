@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { Home, PlusCircle, User, LogOut, Settings, Inbox, Heart, Users, Bell, Zap } from 'lucide-react';
+import { Home, PlusCircle, User, LogOut, Settings, Users, MessageSquare, Inbox, Zap, Heart, Bell } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/Button';
 import { supabase } from '../lib/supabase';
@@ -28,22 +28,24 @@ export default function Layout() {
     };
 
     const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-        `flex items-center gap-3 rounded-full px-4 py-3 text-sm font-medium transition-all ${isActive
-            ? 'bg-gray-100 text-gray-900 shadow-sm dark:bg-gray-800 dark:text-gray-100 font-bold'
-            : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-800'
+        `flex items-center gap-3 rounded-full px-4 py-3 text-sm font-medium transition-all ${
+            isActive
+                ? 'bg-gray-100 text-gray-900 shadow-sm dark:bg-gray-800 dark:text-gray-100 font-bold'
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-800'
         }`;
 
     const mobileNavLinkClass = ({ isActive }: { isActive: boolean }) =>
-        `flex flex-col items-center justify-center w-full h-full gap-1 text-[10px] font-medium transition-colors ${isActive
-            ? 'text-primary'
-            : 'text-gray-500 dark:text-gray-400'
+        `flex flex-col items-center justify-center w-full h-full gap-0.5 text-[10px] font-semibold transition-colors ${
+            isActive
+                ? 'text-primary'
+                : 'text-gray-500 dark:text-gray-400'
         }`;
 
     return (
-        <div className="h-screen w-full bg-[#f8f9fa] dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans animate-in fade-in duration-500 flex justify-center">
-            <div className="flex h-full w-full max-w-[1440px] relative overflow-hidden">
-                {/* Desktop Sidebar */}
-                <aside className="hidden md:flex w-72 flex-col m-4 rounded-[2rem] bg-white dark:bg-gray-900 shadow-soft border-none overflow-hidden h-[calc(100vh-2rem)] shrink-0">
+        <div className="flex h-screen w-full bg-[#f8f9fa] dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans animate-in fade-in duration-500">
+
+            {/* Desktop Sidebar */}
+            <aside className="hidden md:flex w-72 flex-col m-4 rounded-[2rem] bg-white dark:bg-gray-900 shadow-soft border-none overflow-hidden h-[calc(100vh-2rem)] shrink-0">
                 <div className="p-8 pb-4 flex items-center justify-between">
                     <div>
                         <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Nachhilfebörse</h1>
@@ -134,38 +136,49 @@ export default function Layout() {
 
             {/* Mobile Bottom Navigation */}
             <div className="md:hidden fixed bottom-4 left-4 right-4 h-16 bg-white dark:bg-gray-900 rounded-full shadow-2xl flex items-center justify-around z-50 px-2 ring-1 ring-black/5">
-                <NavLink to="/" className={mobileNavLinkClass}>
-                    <Home size={22} />
+                <NavLink to="/" end className={mobileNavLinkClass} title="Entdecken">
+                    <Home size={20} />
+                    <span>Entdecken</span>
                 </NavLink>
-                <NavLink to="/requests" className={mobileNavLinkClass}>
-                    <Inbox size={22} />
-                </NavLink>
-                
+
                 {!isParent ? (
-                    <>
-                        <NavLink to="/create-ad" className={mobileNavLinkClass}>
-                            <div className="bg-primary text-white p-3 rounded-full -mt-6 shadow-lg border-4 border-white dark:border-gray-950">
-                                <PlusCircle size={28} />
-                            </div>
-                        </NavLink>
-                        <NavLink to="/matching" className={mobileNavLinkClass}>
-                            <Zap size={22} />
-                        </NavLink>
-                    </>
+                    <NavLink to="/social" className={mobileNavLinkClass} title="Social">
+                        <MessageSquare size={20} />
+                        <span>Social</span>
+                    </NavLink>
                 ) : (
-                    <NavLink to="/parent-dashboard" className={mobileNavLinkClass}>
-                        <Users size={22} />
+                    <NavLink to="/parent-dashboard" className={mobileNavLinkClass} title="Eltern">
+                        <Users size={20} />
+                        <span>Eltern</span>
                     </NavLink>
                 )}
-                
-                <NavLink to="/profile" className={mobileNavLinkClass}>
-                    <User size={22} />
+
+                {!isParent ? (
+                    <NavLink to="/create-ad" className={mobileNavLinkClass} title="Erstellen">
+                        <div className="bg-primary text-white p-3 rounded-full -mt-6 shadow-lg border-4 border-white dark:border-gray-950">
+                            <PlusCircle size={26} />
+                        </div>
+                    </NavLink>
+                ) : (
+                    <NavLink to="/create-ad" className={mobileNavLinkClass} title="Erstellen">
+                        <PlusCircle size={20} />
+                        <span>Anzeige</span>
+                    </NavLink>
+                )}
+
+                <NavLink to="/settings" className={mobileNavLinkClass} title="Einstellungen">
+                    <Settings size={20} />
+                    <span>Einstellungen</span>
+                </NavLink>
+
+                <NavLink to="/profile" className={mobileNavLinkClass} title="Profil">
+                    <User size={20} />
+                    <span>Profil</span>
                 </NavLink>
             </div>
 
             {/* PWA Install banner prompt */}
             <InstallPrompt />
-            </div>
         </div>
     );
 }

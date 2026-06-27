@@ -15,6 +15,7 @@ import Requests from './pages/Requests';
 import Favorites from './pages/Favorites';
 import Landing from './pages/Landing';
 import Chat from './pages/Chat';
+import Social from './pages/Social';
 import { ThemeProvider } from './components/ThemeProvider';
 import { Toaster } from 'react-hot-toast';
 import { CookieBanner } from './components/CookieBanner';
@@ -78,11 +79,12 @@ function App() {
                 <Route index element={<SVDashboard />} />
               </Route>
               <Route path="parent-dashboard" element={<ParentDashboard />} />
-              <Route path="matching" element={<Matching />} />
+              <Route path="social" element={<Social />} />
+              <Route path="matching" element={<Navigate to="/social?tab=matches" replace />} />
               <Route path="settings" element={<Settings />} />
-              <Route path="requests" element={<Requests />} />
+              <Route path="requests" element={<Navigate to="/social?tab=requests" replace />} />
               <Route path="chat/:requestId" element={<Chat />} />
-              <Route path="favorites" element={<Favorites />} />
+              <Route path="favorites" element={<Navigate to="/social?tab=watchlist" replace />} />
             </Route>
 
             <Route path="/impressum" element={<Impressum />} />
