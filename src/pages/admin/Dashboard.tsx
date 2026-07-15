@@ -15,6 +15,7 @@ import AdminReports from './AdminReports';
 import AdminChat from './AdminChat';
 import AdminCodes from './AdminCodes';
 import AdminAuditLog from './AdminAuditLog';
+import AdminNews from './AdminNews';
 
 import AdminAnalytics from './AdminAnalytics';
 
@@ -51,6 +52,8 @@ export default function SVDashboard() {
             return <AdminCodes />;
         case 'auditlog':
             return <AdminAuditLog />;
+        case 'news':
+            return <AdminNews />;
         case 'ads':
             return <AdManagement />;
         case 'analytics':

@@ -297,6 +297,7 @@ BEGIN
   END IF;
 
   -- Temporarily bypass profile protection triggers
+  PERFORM set_config('app.allow_role_change', 'true', true);
   PERFORM set_config('app.bypass_rls', 'true', true);
 
   -- Update profile
@@ -430,3 +431,50 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE TRIGGER on_ad_created_or_updated
   AFTER INSERT OR UPDATE OF subjects, grade_levels, locations, is_active, is_hidden ON public.ads
   FOR EACH ROW EXECUTE PROCEDURE public.trigger_calculate_matches();
+
+-- 15. UPDATE handle_new_user TO RESPECT METADATA ROLE
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+DECLARE
+  raw_name text;
+  derived_name text;
+  raw_role text;
+BEGIN
+  raw_name := new.raw_user_meta_data->>'full_name';
+  IF raw_name IS NULL OR raw_name = '' THEN
+    derived_name := split_part(new.email, '@', 1);
+  ELSE
+    derived_name := raw_name;
+  END IF;
+
+  raw_role := new.raw_user_meta_data->>'role';
+  IF raw_role IS NULL OR raw_role = '' OR raw_role NOT IN ('student', 'parent', 'sv_admin') THEN
+    raw_role := 'student';
+  END IF;
+
+  INSERT INTO public.profiles (id, full_name, display_name, email, role)
+  VALUES (new.id, derived_name, derived_name, new.email, raw_role)
+  ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email;
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 16. ANNOUNCEMENTS / NEWS TABLE
+CREATE TABLE IF NOT EXISTS public.announcements (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  title text NOT NULL,
+  body text NOT NULL,
+  icon text DEFAULT '📢',
+  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- RLS
+ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can view announcements" ON public.announcements;
+CREATE POLICY "Anyone can view announcements" ON public.announcements FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Admins can manage announcements" ON public.announcements;
+CREATE POLICY "Admins can manage announcements" ON public.announcements FOR ALL USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'sv_admin')
+);

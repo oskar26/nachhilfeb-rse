@@ -16,12 +16,14 @@ import {
     ChevronRight,
     Menu,
     X,
+    Megaphone,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
     { label: 'Übersicht', value: 'overview', icon: LayoutDashboard },
     { label: 'Nutzer', value: 'users', icon: Users },
     { label: 'Anzeigen', value: 'ads', icon: FileText },
+    { label: 'News / Infos', value: 'news', icon: Megaphone },
     { label: 'Meldungen', value: 'reports', icon: AlertTriangle },
     { label: 'Chat', value: 'chat', icon: MessageSquare },
     { label: 'Codes', value: 'codes', icon: Key },
@@ -33,6 +35,7 @@ const TAB_LABELS: Record<string, string> = {
     overview: 'Übersicht',
     users: 'Nutzer',
     ads: 'Anzeigen',
+    news: 'News / Infos',
     reports: 'Meldungen',
     chat: 'Chat',
     codes: 'Codes',

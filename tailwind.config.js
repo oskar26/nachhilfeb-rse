@@ -9,10 +9,17 @@ export default {
         extend: {
             colors: {
                 gray: {
-                    700: '#262626', // Input Field Background Dark
-                    800: '#333333', // Borders & Dividers Dark
-                    900: '#1E1E1E', // Surface Dark
-                    950: '#121212', // Background Main Dark
+                    50: '#fafafa',
+                    100: '#f4f4f5',
+                    200: '#e4e4e7',
+                    300: '#d4d4d8',
+                    400: '#a1a1aa',
+                    500: '#71717a',
+                    600: '#52525b',
+                    700: '#27272a', // zinc-700 for input hover / elements
+                    800: '#1f1f22', // zinc-800-like for borders & cards
+                    900: '#121214', // obsidian dark for cards / surfaces
+                    950: '#09090b', // deep rich black for backgrounds
                 },
                 warning: {
                     DEFAULT: '#F59E0B',

@@ -13,13 +13,42 @@ import {
     GraduationCap,
     ChevronDown,
     ChevronUp,
+    Users,
 } from 'lucide-react';
 import { Card } from '../components/ui/Card';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 export default function Landing() {
     const navigate = useNavigate();
     const [infoOpen, setInfoOpen] = useState(true);
+    const [announcements, setAnnouncements] = useState<any[]>([]);
+    const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
+
+    useEffect(() => {
+        async function fetchAnnouncements() {
+            try {
+                const { data, error } = await supabase
+                    .from('announcements')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    throw error;
+                }
+                setAnnouncements(data || []);
+            } catch (err) {
+                console.warn('Could not fetch announcements from database, using fallback:', err);
+                setAnnouncements([
+                    { id: '1', title: 'SV-Nachhilfebörse v2 ist live!', body: 'Neue Features: Merkliste mit Sammlungen, verbessertes Meldesystem, personalisiertes Matching und vieles mehr!', icon: '📢', created_at: '2026-06-20T12:00:00Z' },
+                    { id: '2', title: 'Neue Fächer verfügbar', body: 'Ab sofort können Angebote und Suchen für die Fächer Chemie und Informatik erstellt werden.', icon: '🧪', created_at: '2026-06-18T12:00:00Z' }
+                ]);
+            } finally {
+                setLoadingAnnouncements(false);
+            }
+        }
+        fetchAnnouncements();
+    }, []);
 
     return (
         <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 font-sans selection:bg-primary selection:text-primary-foreground overflow-x-hidden">
@@ -108,33 +137,37 @@ export default function Landing() {
                         className="overflow-hidden"
                     >
                         <div className="px-5 pb-5 pt-1 divide-y dark:divide-gray-800/60 space-y-4">
-                            <div className="pt-3 first:pt-0 flex items-start gap-3">
-                                <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary-hover text-xs shrink-0 mt-0.5">📢</div>
-                                <div className="min-w-0 flex-1">
-                                    <h4 className="font-bold text-sm text-gray-900 dark:text-white">SV-Nachhilfebörse v2 ist live!</h4>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">
-                                        Neue Features: Merkliste mit Sammlungen, verbessertes Meldesystem, personalisiertes Matching und vieles mehr!
-                                    </p>
-                                    <span className="text-[9px] text-gray-400 block mt-1 font-semibold">20. Juni 2026</span>
-                                </div>
-                            </div>
-                            <div className="pt-4 flex items-start gap-3">
-                                <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary-hover text-xs shrink-0 mt-0.5">🧪</div>
-                                <div className="min-w-0 flex-1">
-                                    <h4 className="font-bold text-sm text-gray-900 dark:text-white">Neue Fächer verfügbar</h4>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">
-                                        Ab sofort können Angebote und Suchen für die Fächer Chemie und Informatik erstellt werden.
-                                    </p>
-                                    <span className="text-[9px] text-gray-400 block mt-1 font-semibold">18. Juni 2026</span>
-                                </div>
-                            </div>
+                            {announcements.length === 0 ? (
+                                <p className="text-xs text-gray-400 py-3 text-center">Keine aktuellen Neuigkeiten vorhanden.</p>
+                            ) : (
+                                announcements.map((item) => (
+                                    <div key={item.id} className="pt-4 first:pt-2 flex items-start gap-3">
+                                        <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary-hover text-xs shrink-0 mt-0.5">
+                                            {item.icon || '📢'}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <h4 className="font-bold text-sm text-gray-900 dark:text-white">{item.title}</h4>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">
+                                                {item.body}
+                                            </p>
+                                            <span className="text-[9px] text-gray-400 block mt-1 font-semibold">
+                                                {new Date(item.created_at).toLocaleDateString('de-DE', {
+                                                    day: '2-digit',
+                                                    month: 'long',
+                                                    year: 'numeric'
+                                                })}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </motion.div>
                 </Card>
             </section>
 
-            {/* Suchen vs Bieten */}
-            <section className="px-6 py-12 max-w-5xl mx-auto grid md:grid-cols-2 gap-8 z-10 relative">
+            {/* Suchen vs Bieten vs Eltern */}
+            <section className="px-6 py-12 max-w-6xl mx-auto grid md:grid-cols-3 gap-8 z-10 relative">
                 <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-8 rounded-3xl shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
                     <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center mb-6">
                         <Search size={24} />
@@ -162,6 +195,21 @@ export default function Landing() {
                         <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500"/> Eigene Preise & Bedingungen setzen</li>
                         <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500"/> Flexible Termine ausmachen</li>
                         <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500"/> Bewertungen sammeln & Profilstatur</li>
+                    </ul>
+                </div>
+
+                <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-8 rounded-3xl shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                    <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 rounded-2xl flex items-center justify-center mb-6">
+                        <Users size={24} />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-3">Für Eltern</h3>
+                    <p className="text-gray-500 dark:text-gray-400 mb-6">
+                        Behalten Sie die Aktivitäten Ihrer Kinder im Blick. Verknüpfen Sie Ihren Eltern-Account, um Anzeigen aufzugeben und Benachrichtigungen zu erhalten.
+                    </p>
+                    <ul className="space-y-2 text-sm font-medium">
+                        <li className="flex items-center gap-2"><CheckCircle size={16} className="text-purple-500"/> Anzeigen für Kinder erstellen</li>
+                        <li className="flex items-center gap-2"><CheckCircle size={16} className="text-purple-500"/> Lernfortschritte & Matches einsehen</li>
+                        <li className="flex items-center gap-2"><CheckCircle size={16} className="text-purple-500"/> Volle Kontrolle & Benachrichtigungen</li>
                     </ul>
                 </div>
             </section>

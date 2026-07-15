@@ -9,6 +9,7 @@ import { useTheme } from '../components/ThemeProvider';
 import { Sun, Moon, GraduationCap, CheckCircle, ShieldAlert } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefinedGradeSelector } from '../components/RefinedGradeSelector';
+import { cn } from '../lib/utils';
 
 const RATE_LIMIT_KEY = 'fwg_auth_attempts';
 const MAX_ATTEMPTS = 5;
@@ -38,6 +39,7 @@ export default function Login() {
     const [letter, setLetter] = useState('');
     const [birthDate, setBirthDate] = useState('');
     const [inviteCode, setInviteCode] = useState('');
+    const [role, setRole] = useState<'student' | 'parent'>('student');
 
     // Rate Limiting State
     const [isBlocked, setIsBlocked] = useState(false);
@@ -180,6 +182,7 @@ export default function Login() {
                 options: {
                     data: {
                         full_name: `${firstName} ${lastName}`,
+                        role: role,
                     }
                 }
             });
@@ -204,8 +207,8 @@ export default function Login() {
                         first_name: firstName,
                         last_name: lastName,
                         display_name: displayName,
-                        grade_level: grade || null,
-                        class_letter: letter || null,
+                        grade_level: role === 'student' ? (grade || null) : null,
+                        class_letter: role === 'student' ? (letter || null) : null,
                         birth_date: birthDate,
                         onboarding_complete: true // Set to true since we fill it here
                     })
@@ -397,6 +400,36 @@ export default function Login() {
                             <form onSubmit={handleAuth} className="space-y-4">
                                 {mode === 'register' && (
                                     <div className="space-y-4">
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold uppercase text-gray-500 ml-1">Ich bin *</label>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setRole('student')}
+                                                    className={cn(
+                                                        "flex-1 py-2 text-center rounded-xl border text-xs font-bold transition-all",
+                                                        role === 'student'
+                                                            ? "border-primary bg-primary/10 text-primary-hover font-extrabold"
+                                                            : "border-gray-200 text-gray-500 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800"
+                                                    )}
+                                                >
+                                                    🎓 Schüler/in
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setRole('parent')}
+                                                    className={cn(
+                                                        "flex-1 py-2 text-center rounded-xl border text-xs font-bold transition-all",
+                                                        role === 'parent'
+                                                            ? "border-primary bg-primary/10 text-primary-hover font-extrabold"
+                                                            : "border-gray-200 text-gray-500 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800"
+                                                    )}
+                                                >
+                                                    👪 Elternteil
+                                                </button>
+                                            </div>
+                                        </div>
+
                                         <div className="grid grid-cols-2 gap-3">
                                             <div className="space-y-1">
                                                 <label className="text-xs font-bold uppercase text-gray-500 ml-1">Vorname *</label>
@@ -420,15 +453,17 @@ export default function Login() {
                                             </div>
                                         </div>
 
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-bold uppercase text-gray-500 ml-1">Klasse/Stufe</label>
-                                            <RefinedGradeSelector
-                                                grade={grade}
-                                                letter={letter}
-                                                onChange={(g, l) => { setGrade(g); setLetter(l); }}
-                                                className="mt-1"
-                                            />
-                                        </div>
+                                        {role === 'student' && (
+                                            <div className="space-y-1">
+                                                <label className="text-xs font-bold uppercase text-gray-500 ml-1">Klasse/Stufe</label>
+                                                <RefinedGradeSelector
+                                                    grade={grade}
+                                                    letter={letter}
+                                                    onChange={(g, l) => { setGrade(g); setLetter(l); }}
+                                                    className="mt-1"
+                                                />
+                                            </div>
+                                        )}
 
                                         <div className="space-y-1">
                                             <label className="text-xs font-bold uppercase text-gray-500 ml-1">Geburtsdatum *</label>

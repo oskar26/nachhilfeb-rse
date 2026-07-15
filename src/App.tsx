@@ -94,8 +94,8 @@ function App() {
             <Route path="/nutzungsbedingungen" element={<Nutzungsbedingungen />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          <CookieBanner />
         </BrowserRouter>
-        <CookieBanner />
       </AuthProvider>
     </ThemeProvider>
   );
