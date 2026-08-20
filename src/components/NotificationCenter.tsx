@@ -209,9 +209,12 @@ export default function NotificationCenter({ onCountChange }: Props) {
                 <div
                     ref={panelRef}
                     className={cn(
-                        'fixed right-4 top-16 w-[calc(100vw-2rem)] max-w-[380px] max-h-[70vh] overflow-hidden',
-                        'sm:absolute sm:right-0 sm:top-full sm:mt-2 sm:w-[380px] sm:max-h-[560px]',
-                        'bg-white/95 dark:bg-gray-900/95 backdrop-blur-2xl',
+                        // Mobile: fixed, centered below the header bar, full-width minus margin
+                        'fixed left-3 right-3 top-[4.5rem]',
+                        // Tablet+: absolute, anchored to the button, standard dropdown
+                        'sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[380px]',
+                        'max-h-[70vh] sm:max-h-[560px] overflow-hidden',
+                        'bg-white/97 dark:bg-gray-900/97 backdrop-blur-2xl',
                         'rounded-3xl shadow-2xl ring-1 ring-black/10 dark:ring-white/10',
                         'flex flex-col z-[9999]',
                         'animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-200'

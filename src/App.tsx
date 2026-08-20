@@ -27,16 +27,32 @@ import UpdatePassword from './pages/UpdatePassword';
 import ParentGuide from './pages/ParentGuide';
 import Nutzungsbedingungen from './pages/Nutzungsbedingungen';
 
+// Branded loading spinner
+function AppLoader() {
+  return (
+    <div className="flex flex-col items-center justify-center h-screen bg-gray-50 dark:bg-gray-950 gap-4">
+      <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center font-black text-black text-xl shadow-lg animate-pulse">N</div>
+      <div className="w-6 h-6 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
+
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, profile, loading } = useAuth();
   const location = useLocation();
 
-  if (loading) return <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-950">Lade...</div>;
+  if (loading) return <AppLoader />;
   if (!user) return <Navigate to="/welcome" replace />;
 
-  // Enforce onboarding only if profile is explicitly incomplete and missing basic info
-  const isProfileIncomplete = profile && profile.onboarding_complete === false && !profile.first_name && !profile.display_name;
+  // Only redirect to profile if onboarding_complete is explicitly false AND has no name at all
+  // Never redirect if already on /profile to avoid redirect loops
+  const isProfileIncomplete =
+    profile !== null &&
+    profile.onboarding_complete === false &&
+    !profile.first_name &&
+    !profile.display_name;
+
   if (isProfileIncomplete && location.pathname !== '/profile') {
     return <Navigate to="/profile" replace />;
   }
@@ -48,7 +64,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAdmin, loading } = useAuth();
 
-  if (loading) return <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-950">Lade...</div>;
+  if (loading) return <AppLoader />;
   if (!isAdmin) return <Navigate to="/" replace />;
 
   return <>{children}</>;

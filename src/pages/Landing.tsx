@@ -21,9 +21,17 @@ import { supabase } from '../lib/supabase';
 
 export default function Landing() {
     const navigate = useNavigate();
-    const [infoOpen, setInfoOpen] = useState(true);
+    const [infoOpen, setInfoOpen] = useState<boolean>(() => {
+        const stored = localStorage.getItem('landing_infoOpen');
+        return stored === null ? true : stored === 'true';
+    });
     const [announcements, setAnnouncements] = useState<any[]>([]);
     const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
+
+    const toggleInfo = (val: boolean) => {
+        setInfoOpen(val);
+        localStorage.setItem('landing_infoOpen', String(val));
+    };
 
     useEffect(() => {
         async function fetchAnnouncements() {
@@ -65,19 +73,20 @@ export default function Landing() {
             </nav>
 
             {/* Hero Section */}
-            <section className="pt-40 pb-12 px-6 flex flex-col items-center text-center max-w-5xl mx-auto">
+            <section className="pt-36 pb-12 px-6 flex flex-col items-center text-center max-w-5xl mx-auto w-full">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, ease: "easeOut" }}
+                    className="w-full flex justify-center"
                 >
-                    <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 text-xs font-bold tracking-widest uppercase bg-primary/10 text-primary-hover dark:text-primary rounded-full border border-primary/20">
-                        <span className="w-2 h-2 rounded-full bg-primary animate-pulse" /> Schülervertretung Friedrich-Wilhelms-Gymnasium Köln
+                    <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 text-xs font-bold tracking-widest uppercase bg-primary/10 text-primary-hover dark:text-primary rounded-full border border-primary/20 text-center">
+                        <span className="w-2 h-2 rounded-full bg-primary animate-pulse shrink-0" /> Schülervertretung Friedrich-Wilhelms-Gymnasium Köln
                     </div>
                 </motion.div>
 
                 <motion.h1
-                    className="text-center text-5xl sm:text-7xl lg:text-8xl font-black tracking-tighter mb-8 leading-[1.1]"
+                    className="text-center w-full text-4xl sm:text-6xl lg:text-8xl font-black tracking-tighter mb-8 leading-[1.1]"
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}
@@ -89,7 +98,7 @@ export default function Landing() {
                 </motion.h1>
 
                 <motion.p
-                    className="text-center text-xl sm:text-2xl text-gray-600 dark:text-gray-400 max-w-2xl mb-12 leading-relaxed"
+                    className="text-center text-lg sm:text-2xl text-gray-600 dark:text-gray-400 max-w-2xl mb-12 leading-relaxed"
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
@@ -105,7 +114,7 @@ export default function Landing() {
                 >
                     <Button
                         size="lg"
-                        className="rounded-full text-xl px-10 py-7 shadow-2xl hover:scale-105 transition-transform bg-primary text-black font-bold"
+                        className="rounded-full text-lg sm:text-xl px-8 sm:px-10 py-6 sm:py-7 shadow-2xl hover:scale-105 transition-transform bg-primary text-black font-bold"
                         onClick={() => navigate('/login')}
                     >
                         Jetzt loslegen
@@ -117,7 +126,7 @@ export default function Landing() {
             <section className="px-6 py-4 max-w-4xl mx-auto">
                 <Card className="rounded-3xl border border-amber-200/60 dark:border-amber-900/30 bg-amber-50/20 dark:bg-amber-950/10 shadow-sm overflow-hidden">
                     <button
-                        onClick={() => setInfoOpen(!infoOpen)}
+                        onClick={() => toggleInfo(!infoOpen)}
                         className="w-full flex items-center justify-between p-5 font-bold text-gray-800 dark:text-gray-200 text-sm focus:outline-none"
                     >
                         <div className="flex items-center gap-2">

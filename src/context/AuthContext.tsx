@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             if (isMounted) {
                 setLoading(false);
             }
-        }, 2000);
+        }, 5000);
 
         const initAuth = async () => {
             try {
@@ -109,11 +109,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setSession(session);
             const currentUser = session?.user ?? null;
             setUser(currentUser);
-            if (currentUser && event !== 'INITIAL_SESSION') {
+
+            if (currentUser && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED')) {
                 await fetchProfile(currentUser.id);
             } else if (!currentUser) {
                 setProfile(null);
             }
+            // For INITIAL_SESSION, profile was already fetched in initAuth above
             setLoading(false);
         });
 

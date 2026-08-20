@@ -262,6 +262,7 @@ CREATE POLICY "Own notifications" ON public.notifications FOR ALL USING (
 -- 22. MESSAGES RLS FOR SV ADMIN (RESTRICTED CHAT READING)
 -- Drop old admin view policy if any
 DROP POLICY IF EXISTS "SV Admin can view all messages" ON public.messages;
+DROP POLICY IF EXISTS "Restricted admin view messages" ON public.messages;
 
 -- Create new restricted admin view policy: admins can read messages ONLY if there is an active report chat access grant
 CREATE POLICY "Restricted admin view messages" ON public.messages FOR SELECT USING (
