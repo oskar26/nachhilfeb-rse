@@ -154,7 +154,7 @@ export default function AdminNews() {
     }
 
     return (
-        <div className="p-6 space-y-8">
+        <div className="space-y-8 animate-in fade-in duration-300">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <Megaphone className="text-primary-hover" size={24} />
@@ -195,8 +195,8 @@ export default function AdminNews() {
                                 />
                             </div>
 
-                            <div className="space-y-1">
-                                <label className="text-xs font-bold uppercase text-gray-500 ml-1 block mb-1">Icon auswählen</label>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase text-gray-500 ml-1 block">Icon / Custom Emoji auswählen</label>
                                 <div className="flex flex-wrap gap-2">
                                     {icons.map(item => (
                                         <button
@@ -212,6 +212,18 @@ export default function AdminNews() {
                                             {item}
                                         </button>
                                     ))}
+                                </div>
+                                <div className="pt-1 flex items-center gap-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Oder eigenes Emoji eintippen (z.B. 🔥, 🎓, 🎁)..."
+                                        value={icon}
+                                        onChange={e => setIcon(e.target.value)}
+                                        className="w-full h-10 px-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                    />
+                                    <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xl shrink-0">
+                                        {icon || '📢'}
+                                    </div>
                                 </div>
                             </div>
 

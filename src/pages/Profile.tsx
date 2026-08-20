@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
-import { User, Shield, BadgeCheck, Loader2, Mail, Phone, MessageSquare, Settings as SettingsIcon, Pen, Trash2, CalendarDays } from 'lucide-react';
+import { User, Shield, BadgeCheck, Loader2, Mail, Phone, MessageSquare, Settings as SettingsIcon, Pen, Trash2, CalendarDays, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
@@ -13,6 +13,8 @@ import { cn } from '../lib/utils';
 import { compressImage } from '../lib/image';
 import { RichTextEditor } from '../components/RichTextEditor';
 import { AvailabilityCalendar, emptyAvailability, type Availability } from '../components/AvailabilityCalendar';
+import { sanitizeHtml } from '../lib/sanitize';
+import ChildLinkModal from '../components/ChildLinkModal';
 
 export default function Profile() {
     const { user, profile: authProfile, refreshProfile } = useAuth();
@@ -22,6 +24,7 @@ export default function Profile() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [availability, setAvailability] = useState<Availability>(emptyAvailability());
     const [privacyCalendar, setPrivacyCalendar] = useState(true); // true = private (matching only)
+    const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
 
     const [profile, setProfile] = useState<{
         first_name: string;
@@ -237,6 +240,14 @@ export default function Profile() {
                         <Link to="/settings" className="flex items-center text-gray-500 text-xs gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full hover:bg-gray-200">
                             <SettingsIcon size={12} /> Einstellungen
                         </Link>
+                        {authProfile?.role === 'student' && (
+                            <button
+                                onClick={() => setIsLinkModalOpen(true)}
+                                className="flex items-center text-primary-hover text-xs gap-1 bg-primary/20 font-semibold px-2 py-1 rounded-full hover:bg-primary/30 transition-colors"
+                            >
+                                <Users size={12} /> Eltern verknüpfen
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -309,7 +320,7 @@ export default function Profile() {
                                 placeholder="Schreib kurz was über dich..."
                             />
                         ) : (
-                            <div className="text-sm text-gray-600 dark:text-gray-300 prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: profile.bio || "<i>Keine Beschreibung</i>" }} />
+                            <div className="text-sm text-gray-600 dark:text-gray-300 prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: sanitizeHtml(profile.bio || "<i>Keine Beschreibung</i>") }} />
                         )}
                     </div>
 
@@ -476,6 +487,8 @@ export default function Profile() {
                     />
                 </CardContent>
             </Card>
+
+            <ChildLinkModal isOpen={isLinkModalOpen} onClose={() => setIsLinkModalOpen(false)} />
         </div>
     );
 }

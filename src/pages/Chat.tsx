@@ -4,10 +4,12 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { ChevronLeft, Send, Trash2, Check, CheckCheck, Pencil, MoreVertical, ShieldAlert, Ban } from 'lucide-react';
+import { ChevronLeft, Send, Trash2, Check, CheckCheck, Pencil, MoreVertical, ShieldAlert, Ban, Calendar, CalendarDays, Download } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { cn } from '../lib/utils';
 import ReportWizard from '../components/ReportWizard';
+import { downloadICSFile } from '../lib/calendar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/Dialog';
 
 interface Message {
     id: string;
@@ -52,6 +54,32 @@ export default function Chat() {
     // Report/Block state
     const [reportOpen, setReportOpen] = useState(false);
     const [otherUserId, setOtherUserId] = useState<string | null>(null);
+
+    // Appointment booking state
+    const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
+    const [appSubject, setAppSubject] = useState('Mathematik');
+    const [appDate, setAppDate] = useState('');
+    const [appTime, setAppTime] = useState('14:00');
+
+    const handleCreateAppointment = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!appDate || !appTime || !user || !requestId) return;
+
+        const formattedContent = `📅 TERMIN-VEREINBARUNG\nFach: ${appSubject}\nDatum: ${appDate}\nUhrzeit: ${appTime} Uhr (45 Min)\nOrt: FWG Bibliothek / Schulgelände`;
+
+        const { error } = await supabase.from('messages').insert({
+            request_id: requestId,
+            sender_id: user.id,
+            content: formattedContent
+        });
+
+        if (error) {
+            toast.error('Fehler beim Termin-Vorschlagen.');
+        } else {
+            toast.success('Terminvorschlag im Chat gesendet!');
+            setAppointmentModalOpen(false);
+        }
+    };
 
     useEffect(() => {
         if (!user || !requestId) return;
@@ -240,6 +268,15 @@ export default function Chat() {
                     </div>
                     <div className="font-semibold text-[17px] leading-tight truncate">{otherUser?.display_name || 'Unbekannt'}</div>
                 </div>
+
+                <button
+                    onClick={() => setAppointmentModalOpen(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary-hover dark:text-primary rounded-full text-xs font-bold transition-all border border-primary/20 shrink-0"
+                    title="Termin für Nachhilfestunde vereinbaren"
+                >
+                    <Calendar size={14} />
+                    <span className="hidden sm:inline">Termin vereinbaren</span>
+                </button>
                 
                 {/* 3-dot menu */}
                 <div className="relative" ref={menuRef}>
@@ -290,7 +327,7 @@ export default function Chat() {
             <div className="flex-1 overflow-y-auto p-4 space-y-1.5 bg-[#efeae2] dark:bg-[#0b141a]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%239C92AC\' fill-opacity=\'0.03\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }}>
                 {messages.length === 0 ? (
                     <div className="text-center p-4 bg-[#fcf4cb]/90 dark:bg-[#1d2e2f] text-[#54656f] dark:text-[#8696a0] text-xs rounded-lg max-w-sm mx-auto shadow-sm">
-                        Hier beginnt euer Chat. Die Nachrichten sind sicher verschlüsselt. Bitte achte auf unsere <a href="/nutzungsbedingungen" className="underline">Nutzungsbedingungen</a>.
+                        Hier beginnt euer Chat. Deine Nachrichten werden über eine verschlüsselte Verbindung (HTTPS) übertragen und sicher in der EU gespeichert. Bitte achte auf unsere <a href="/nutzungsbedingungen" className="underline">Nutzungsbedingungen</a>.
                     </div>
                 ) : (
                     messages.map((msg, idx) => {
@@ -349,7 +386,30 @@ export default function Chat() {
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="whitespace-pre-wrap">{msg.content}</div>
+                                            <div>
+                                                <div className="whitespace-pre-wrap">{msg.content}</div>
+                                                {msg.content.includes('📅 TERMIN-VEREINBARUNG') && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const lines = msg.content.split('\n');
+                                                            const subject = lines[1]?.replace('Fach: ', '') || 'Nachhilfe';
+                                                            const dateStr = lines[2]?.replace('Datum: ', '') || new Date().toISOString().slice(0, 10);
+                                                            const timeStr = lines[3]?.replace('Uhrzeit: ', '').slice(0, 5) || '14:00';
+                                                            const start = new Date(`${dateStr}T${timeStr}:00`);
+                                                            downloadICSFile({
+                                                                title: `FWG Nachhilfe: ${subject}`,
+                                                                description: `Nachhilfetermin mit ${otherUser?.display_name || 'Partner'}`,
+                                                                startDate: isNaN(start.getTime()) ? new Date() : start,
+                                                                durationMinutes: 45
+                                                            });
+                                                        }}
+                                                        className="mt-2 text-xs font-bold bg-[#00a884] text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm hover:bg-[#008f72] transition-colors"
+                                                    >
+                                                        <Download size={13} /> 📆 In Kalender speichern (.ics)
+                                                    </button>
+                                                )}
+                                            </div>
                                         )}
                                         
                                         {!isEditing && (
@@ -422,6 +482,70 @@ export default function Chat() {
                 </form>
             </div>
         </div>
+
+        {/* Appointment Booking Modal */}
+        <Dialog open={appointmentModalOpen} onOpenChange={setAppointmentModalOpen}>
+            <DialogContent className="rounded-3xl max-w-md">
+                <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                        <CalendarDays className="text-primary-hover" size={20} />
+                        Nachhilfetermin vereinbaren
+                    </DialogTitle>
+                    <DialogDescription>
+                        Schlage {otherUser?.display_name || 'deinem Lernpartner'} einen festen Nachhilfetermin vor.
+                    </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleCreateAppointment} className="space-y-4 py-3">
+                    <div className="space-y-1">
+                        <label className="text-xs font-bold uppercase text-gray-500">Fach</label>
+                        <select
+                            value={appSubject}
+                            onChange={e => setAppSubject(e.target.value)}
+                            className="w-full h-11 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-3 text-sm font-semibold"
+                        >
+                            <option value="Mathematik">Mathematik</option>
+                            <option value="Englisch">Englisch</option>
+                            <option value="Deutsch">Deutsch</option>
+                            <option value="Französisch">Französisch</option>
+                            <option value="Latein">Latein</option>
+                            <option value="Physik">Physik</option>
+                            <option value="Chemie">Chemie</option>
+                            <option value="Biologie">Biologie</option>
+                            <option value="Informatik">Informatik</option>
+                            <option value="Geschichte">Geschichte</option>
+                        </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold uppercase text-gray-500">Datum</label>
+                            <Input
+                                type="date"
+                                value={appDate}
+                                onChange={e => setAppDate(e.target.value)}
+                                required
+                                className="h-11 rounded-xl"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold uppercase text-gray-500">Uhrzeit</label>
+                            <Input
+                                type="time"
+                                value={appTime}
+                                onChange={e => setAppTime(e.target.value)}
+                                required
+                                className="h-11 rounded-xl"
+                            />
+                        </div>
+                    </div>
+
+                    <DialogFooter className="pt-2">
+                        <Button type="button" variant="ghost" onClick={() => setAppointmentModalOpen(false)} className="rounded-xl">Abbrechen</Button>
+                        <Button type="submit" className="rounded-xl bg-primary text-black font-extrabold">Termin vorschlagen</Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
 
         {/* Report Wizard Modal */}
         {otherUserId && (

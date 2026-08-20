@@ -1,12 +1,13 @@
 import { useTheme } from '../components/ThemeProvider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/Card';
-import { Moon, Sun, Monitor, ChevronLeft, Shield, Users, Copy, Check, Trash2 } from 'lucide-react';
+import { Moon, Sun, Monitor, ChevronLeft, Shield, Users, Copy, Check, Trash2, Download, AlertTriangle } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
+import ChildLinkModal from '../components/ChildLinkModal';
 import { cn } from '../lib/utils';
 
 export default function Settings() {
@@ -24,6 +25,7 @@ export default function Settings() {
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
     const [parentLinks, setParentLinks] = useState<any[]>([]);
     const [copiedCode, setCopiedCode] = useState(false);
+    const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
 
     useEffect(() => {
         if ('Notification' in window) {
@@ -90,6 +92,68 @@ export default function Settings() {
         const { error } = await supabase.from('profiles').update({ settings: newSettings }).eq('id', user?.id);
         if (error) toast.error("Fehler beim Speichern");
         else toast.success("Einstellung gespeichert!");
+    };
+
+    const handleExportData = async () => {
+        if (!user) return;
+        toast.loading("Exportiere deine Daten...", { id: "exportData" });
+        try {
+            const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+            const { data: ads } = await supabase.from('ads').select('*').eq('user_id', user.id);
+            const { data: reviews } = await supabase.from('reviews').select('*').eq('author_id', user.id);
+            const { data: favorites } = await supabase.from('favorites').select('*').eq('user_id', user.id);
+            const { data: requests } = await supabase.from('ad_requests').select('*').or(`requester_id.eq.${user.id},owner_id.eq.${user.id}`);
+
+            const exportObj = {
+                export_datum: new Date().toISOString(),
+                profil: profile,
+                meine_anzeigen: ads || [],
+                meine_bewertungen: reviews || [],
+                favoriten: favorites || [],
+                anfragen: requests || []
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `fwg_nachhilfe_datenexport_${user.id.slice(0, 8)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+
+            toast.success("Datenexport erfolgreich heruntergeladen!", { id: "exportData" });
+        } catch (err: any) {
+            console.error("Export error:", err);
+            toast.error("Fehler beim Datenexport: " + err.message, { id: "exportData" });
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        if (!user) return;
+        const confirm1 = confirm("Bist du sicher, dass du deinen Account löschen möchtest? Alle deine Anzeigen werden deaktiviert.");
+        if (!confirm1) return;
+
+        const confirm2 = prompt("Gib 'LÖSCHEN' ein, um deinen Account endgültig zur Löschung vorzumerken:");
+        if (confirm2 !== 'LÖSCHEN') {
+            toast.error("Löschung abgebrochen.");
+            return;
+        }
+
+        try {
+            const { error } = await supabase.rpc('request_account_deletion');
+            if (error) {
+                // Fallback if RPC isn't deployed yet
+                await supabase.from('ads').update({ is_active: false }).eq('user_id', user.id);
+                await supabase.from('profiles').update({ deletion_requested_at: new Date().toISOString() }).eq('id', user.id);
+            }
+            toast.success("Dein Account wurde zur Löschung vorgemerkt. Du wirst abgemeldet.");
+            setTimeout(async () => {
+                await supabase.auth.signOut();
+                navigate('/login');
+            }, 2000);
+        } catch (err: any) {
+            toast.error("Fehler bei der Account-Löschung: " + err.message);
+        }
     };
 
     const childCode = user?.id ? user.id.slice(0, 6).toUpperCase() : '';
@@ -176,24 +240,33 @@ export default function Settings() {
                     <CardDescription>Teile diesen Code mit deinen Eltern, damit sie dein Profil einsehen können.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-800/50 p-3 rounded-2xl border dark:border-gray-800">
+                    <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-800/50 p-4 rounded-2xl border dark:border-gray-800">
                         <div>
                             <span className="text-[10px] font-bold text-gray-400 uppercase block">Dein Freigabe-Code</span>
-                            <span className="font-mono font-bold text-lg tracking-wider">{childCode}</span>
+                            <span className="font-mono font-bold text-xl tracking-wider text-primary-hover">{childCode}</span>
                         </div>
-                        <Button
-                            onClick={() => {
-                                navigator.clipboard.writeText(childCode);
-                                setCopiedCode(true);
-                                toast.success("Code kopiert!");
-                                setTimeout(() => setCopiedCode(false), 2000);
-                            }}
-                            variant="outline"
-                            size="sm"
-                            className="rounded-xl h-9"
-                        >
-                            {copiedCode ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
-                        </Button>
+                        <div className="flex gap-2">
+                            <Button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(childCode);
+                                    setCopiedCode(true);
+                                    toast.success("Code kopiert!");
+                                    setTimeout(() => setCopiedCode(false), 2000);
+                                }}
+                                variant="outline"
+                                size="sm"
+                                className="rounded-xl h-9"
+                            >
+                                {copiedCode ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
+                            </Button>
+                            <Button
+                                onClick={() => setIsLinkModalOpen(true)}
+                                size="sm"
+                                className="rounded-xl h-9 bg-primary text-black font-bold gap-1 text-xs"
+                            >
+                                <Users size={14} /> Teilen & QR
+                            </Button>
+                        </div>
                     </div>
 
                     <div className="space-y-3 pt-2">
@@ -224,6 +297,51 @@ export default function Settings() {
                 </CardContent>
             </Card>
 
+            {/* DSGVO Data Protection & User Rights Card */}
+            <Card className="rounded-3xl border-none shadow-sm bg-white dark:bg-gray-900">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
+                        <Shield size={20} className="text-primary" /> Datenschutz & Ihre Rechte (DSGVO)
+                    </CardTitle>
+                    <CardDescription>
+                        Gemäß DSGVO hast du das Recht auf Auskunft, Datenübertragbarkeit und Löschung deiner Daten.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border dark:border-gray-800">
+                        <div>
+                            <h4 className="font-bold text-xs text-gray-900 dark:text-white">Datenübertragbarkeit (Art. 20 DSGVO)</h4>
+                            <p className="text-[11px] text-gray-500">Lade eine Kopie all deiner gespeicherten Daten als JSON herunter.</p>
+                        </div>
+                        <Button
+                            onClick={handleExportData}
+                            variant="outline"
+                            size="sm"
+                            className="rounded-xl h-9 font-bold gap-1 text-xs shrink-0"
+                        >
+                            <Download size={14} /> Daten exportieren
+                        </Button>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-red-50/50 dark:bg-red-950/20 rounded-2xl border border-red-100 dark:border-red-900/30">
+                        <div>
+                            <h4 className="font-bold text-xs text-red-900 dark:text-red-300 flex items-center gap-1.5">
+                                <AlertTriangle size={14} /> Recht auf Löschung (Art. 17 DSGVO)
+                            </h4>
+                            <p className="text-[11px] text-red-700 dark:text-red-400">Account und Daten zur Löschung vormerken (30 Tage Frist).</p>
+                        </div>
+                        <Button
+                            onClick={handleDeleteAccount}
+                            variant="ghost"
+                            size="sm"
+                            className="rounded-xl h-9 font-bold gap-1 text-xs text-red-600 hover:bg-red-100 dark:hover:bg-red-900/40 shrink-0"
+                        >
+                            <Trash2 size={14} /> Account löschen
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+
             <Card className="rounded-3xl border-none shadow-sm bg-white dark:bg-gray-900">
                 <CardHeader>
                     <CardTitle 
@@ -246,12 +364,12 @@ export default function Settings() {
 
                     {showSecretInput && (
                         <div className="pt-4 border-t border-gray-100 dark:border-gray-800 space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Code-Aktivierung</label>
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">SV-Code Einlösen</label>
                             <div className="flex gap-2">
                                 <input 
-                                    type="password" 
-                                    placeholder="Geheimcode eingeben..." 
-                                    className="flex-1 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                                    type="text" 
+                                    placeholder="SV-Einladungscode eingeben..." 
+                                    className="flex-1 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none font-mono uppercase"
                                     id="secretCodeInput"
                                     onKeyDown={async (e) => {
                                         if(e.key === 'Enter') {
@@ -260,28 +378,29 @@ export default function Settings() {
                                             const { data, error } = await supabase.rpc('redeem_code', { secret_code: val });
                                             if(error) {
                                                 console.error(error);
-                                                toast.error('Fehler beim Aktivieren. Wurde die Migration ausgeführt?');
+                                                toast.error('Fehler beim Einlösen des Codes.');
                                             } else if (data === 'admin') {
-                                                toast.success('Admin-Rechte aktiviert! Lade die Seite neu.');
+                                                toast.success('Admin-Rechte freigeschaltet! Lade die Seite neu.');
                                                 (e.target as HTMLInputElement).value = '';
+                                                setTimeout(() => window.location.reload(), 1200);
                                             } else if (data === 'verified') {
-                                                toast.success('Account verifiziert! Lade die Seite neu.');
+                                                toast.success('Account erfolgreich verifiziert! Lade die Seite neu.');
                                                 (e.target as HTMLInputElement).value = '';
-                                            } else if (data === 'dev') {
-                                                toast.success('Entwickler-Features freigeschaltet! (Beta)');
-                                                (e.target as HTMLInputElement).value = '';
+                                                setTimeout(() => window.location.reload(), 1200);
                                             } else {
-                                                toast.error('Code ungültig.');
+                                                toast.error('Code ungültig oder bereits eingelöst.');
                                             }
                                         }
                                     }}
                                 />
                             </div>
-                            <p className="text-[10px] text-gray-400">Bestätige mit Enter.</p>
+                            <p className="text-[10px] text-gray-400">Gib hier deinen offiziellen SV-Einladungscode ein und bestätige mit Enter.</p>
                         </div>
                     )}
                 </CardContent>
             </Card>
+
+            <ChildLinkModal isOpen={isLinkModalOpen} onClose={() => setIsLinkModalOpen(false)} />
         </div>
     );
 }

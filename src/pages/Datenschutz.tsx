@@ -1,4 +1,4 @@
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, ShieldCheck, Lock, Heart, CheckCircle2 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
 
@@ -9,49 +9,90 @@ export default function Datenschutz() {
             <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-6 pl-0">
                 <ChevronLeft className="mr-2" size={20} /> Zurück
             </Button>
-            <h1 className="text-4xl font-black mb-8 tracking-tight">Datenschutzerklärung</h1>
+            <h1 className="text-4xl font-black mb-8 tracking-tight">Datenschutz</h1>
+            
             <div className="space-y-8 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900 p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm">
+                
+                {/* Highlights Banner */}
+                <div className="bg-primary/10 border border-primary/20 p-5 rounded-2xl space-y-3">
+                    <h2 className="font-bold text-gray-900 dark:text-white flex items-center gap-2 text-base">
+                        <ShieldCheck className="text-primary-hover" size={22} /> Das Wichtigste auf einen Blick
+                    </h2>
+                    <ul className="space-y-2 text-xs text-gray-700 dark:text-gray-300">
+                        <li className="flex items-center gap-2">
+                            <CheckCircle2 size={15} className="text-green-600 shrink-0" />
+                            <strong>Schulintern & geschützt:</strong> Nur für FWG-Schülerinnen, -Schüler & Eltern.
+                        </li>
+                        <li className="flex items-center gap-2">
+                            <CheckCircle2 size={15} className="text-green-600 shrink-0" />
+                            <strong>Kein Tracking & keine Werbung:</strong> Wir verkaufen keine Daten und nutzen keine Analytics.
+                        </li>
+                        <li className="flex items-center gap-2">
+                            <CheckCircle2 size={15} className="text-green-600 shrink-0" />
+                            <strong>Reiner Serverstandort Deutschland:</strong> Hosting bei ALL-INKL in Dresden.
+                        </li>
+                        <li className="flex items-center gap-2">
+                            <CheckCircle2 size={15} className="text-green-600 shrink-0" />
+                            <strong>Volle Kontrolle:</strong> Du kannst deine Daten jederzeit exportieren oder löschen.
+                        </li>
+                    </ul>
+                </div>
+
                 <section>
-                    <h2 className="text-2xl font-bold mb-3 text-black dark:text-white">1. Datenschutz auf einen Blick</h2>
+                    <h2 className="text-2xl font-bold mb-3 text-black dark:text-white">1. Wer betreibt die Plattform?</h2>
                     <p className="leading-relaxed">
-                        Diese Anwendung ist ein schulinternes Projekt für das Friedrich-Wilhelms-Gymnasium Köln. Wir nehmen den Schutz deiner persönlichen Daten sehr ernst. Wir behandeln deine personenbezogenen Daten vertraulich und entsprechend der gesetzlichen Datenschutzvorschriften sowie dieser Datenschutzerklärung.
+                        Diese Anwendung ist ein ehrenamtliches Projekt der Schülervertretung (SV) des Friedrich-Wilhelms-Gymnasiums Köln. Wir behandeln alle Daten streng vertraulich und nach den Vorgaben der Datenschutz-Grundverordnung (DSGVO).
                     </p>
                 </section>
+
                 <section>
-                    <h2 className="text-2xl font-bold mb-3 text-black dark:text-white">2. Datenerfassung auf dieser Website</h2>
-                    <h3 className="text-lg font-bold mt-4 mb-2 text-black dark:text-white">Wer ist verantwortlich für die Datenerfassung?</h3>
-                    <p className="leading-relaxed">
-                        Die Datenverarbeitung auf dieser Website erfolgt durch die Schülervertretung des FWG Köln. Die Kontaktdaten können dem Impressum entnommen werden.
+                    <h2 className="text-2xl font-bold mb-3 text-black dark:text-white">2. Welche Daten erfassen wir & wofür?</h2>
+                    <p className="leading-relaxed mb-3">
+                        Wir erheben nur Daten, die für das Vermitteln von Nachhilfe wirklich notwendig sind:
                     </p>
-                    <h3 className="text-lg font-bold mt-4 mb-2 text-black dark:text-white">Welche Daten erfassen wir?</h3>
-                    <ul className="list-disc pl-5 mt-2 space-y-2 leading-relaxed">
-                        <li><strong>Account-Daten:</strong> E-Mail-Adresse und ein verschlüsseltes Passwort bei der Registrierung.</li>
-                        <li><strong>Profil-Informationen:</strong> Freiwillige Angaben wie dein Vor- und Nachname, Klasse, Telefonnummer, Moodle-Name oder andere Kontaktmöglichkeiten (z.B. Discord).</li>
-                        <li><strong>Anzeigen & Chat:</strong> Inhalte deiner erstellten Nachhilfe-Angebote oder Gesuche sowie Nachrichten, die du über die App versendest.</li>
-                        <li><strong>Technische Daten:</strong> Automatisch durch Supabase erfasste Server-Logfiles (z.B. IP-Adresse anonymisiert, Zugriffszeit, Browsertyp) zur Aufrechterhaltung der Sicherheit.</li>
+                    <ul className="list-disc pl-5 space-y-2 leading-relaxed text-sm">
+                        <li><strong>Konto & Profil:</strong> E-Mail-Adresse, Vor- und Nachname, Klasse/Stufe, evtl. Moodle-Name oder Telefonnummer (freiwillig).</li>
+                        <li><strong>Anzeigen & Chat:</strong> Inhalte deiner Nachhilfe-Gesuche/Angebote und Chat-Nachrichten zur Absprache der Stunden.</li>
+                        <li><strong>Elterneinwilligung:</strong> Bei Nutzern unter 16 Jahren wird im Registrierungsprozess die Zustimmung der Erziehungsberechtigten festgehalten.</li>
                     </ul>
                 </section>
+
                 <section>
-                    <h2 className="text-2xl font-bold mb-3 text-black dark:text-white">3. Sichtbarkeit & Zugriffsrechte</h2>
+                    <h2 className="text-2xl font-bold mb-3 text-black dark:text-white">3. Sichtbarkeit deiner Daten</h2>
                     <p className="leading-relaxed">
-                        Deine Kontaktdaten sind standardmäßig <strong>unsichtbar</strong> für alle anderen Nutzer. Erst wenn du in den Einstellungen die Sichtbarkeit aktivierst oder eine Anfrage akzeptierst, werden die Daten für den jeweiligen Kontaktpartner sichtbar. Das SV-Admin-Team hat Zugriff auf Profile und Anzeigen (inklusive Meldungen), um die Sicherheit der Community zu gewährleisten und bei Missbrauch eingreifen zu können.
+                        Deine Kontaktdaten (wie Telefonnummer) sind <strong>standardmäßig geschützt</strong>. Sie werden anderen Nutzern erst gezeigt, wenn du eine Nachhilfe-Anfrage annimmst oder die Sichtbarkeit in deinen Einstellungen bewusst aktivierst. Das SV-Admin-Team hat Moderationsrechte, um die Plattform sicher zu halten und bei Verstößen eingreifen zu können.
                     </p>
                 </section>
+
                 <section>
-                    <h2 className="text-2xl font-bold mb-3 text-black dark:text-white">4. Hosting & Backend</h2>
+                    <h2 className="text-2xl font-bold mb-3 text-black dark:text-white">4. Hosting & Sicherheit</h2>
                     <p className="leading-relaxed">
-                        Diese Anwendung nutzt <strong>Supabase</strong> als Backend-as-a-Service (BaaS) für Datenbank, Authentifizierung und Storage. Die Daten werden sicher in Rechenzentren innerhalb der Europäischen Union (Hosting in Deutschland, z.B. über AWS Frankfurt) gespeichert. Mit dem Anbieter wurde ein Vertrag zur Auftragsverarbeitung (AVV) gemäß Art. 28 DSGVO geschlossen, um den Schutz deiner Daten sicherzustellen.
+                        Die Anwendung, Domain und Datenbank werden bei dem deutschen Webhosting-Anbieter <strong>ALL-INKL.COM (Neue Medien Münnich)</strong> in eigenen Rechenzentren am Standort <strong>Dresden (Deutschland)</strong> gehostet. Ein rechtlich vorgeschriebener Vertrag zur Auftragsverarbeitung (AVV) gemäß Art. 28 DSGVO liegt vor. Alle Daten verbleiben somit zu 100 % in Deutschland. Die Übertragung erfolgt stets verschlüsselt (HTTPS/TLS). Wir verwenden keine externen Tracking-Cookies oder Analytics. Auch Schriftarten werden lokal von unseren eigenen Servern geladen (Self-Hosted).
                     </p>
                 </section>
+
                 <section>
-                    <h2 className="text-2xl font-bold mb-3 text-black dark:text-white">5. Deine Rechte (Auskunft, Löschung, Sperrung)</h2>
+                    <h2 className="text-2xl font-bold mb-3 text-black dark:text-white">5. Deine Rechte (Auskunft, Export & Löschung)</h2>
+                    <p className="leading-relaxed mb-3">
+                        Du hast jederzeit die volle Kontrolle über deine Daten:
+                    </p>
+                    <ul className="list-disc pl-5 space-y-2 leading-relaxed text-sm">
+                        <li><strong>Datenexport (Art. 20 DSGVO):</strong> In den Einstellungen kannst du mit einem Klick eine Kopie all deiner Daten als JSON-Datei herunterladen.</li>
+                        <li><strong>Konto löschen (Art. 17 DSGVO):</strong> Du kannst deinen Account in den Einstellungen jederzeit zur Löschung vormerken. Alle deine Anzeigen werden sofort deaktiviert.</li>
+                        <li><strong>Korrektur:</strong> Du kannst dein Profil in den Einstellungen jederzeit selbst anpassen.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2 className="text-2xl font-bold mb-3 text-black dark:text-white">6. Fragen zum Datenschutz?</h2>
                     <p className="leading-relaxed">
-                        Du hast im Rahmen der geltenden gesetzlichen Bestimmungen jederzeit das Recht auf unentgeltliche Auskunft über deine gespeicherten personenbezogenen Daten, deren Herkunft und Empfänger und den Zweck der Datenverarbeitung und ggf. ein Recht auf Berichtigung, Sperrung oder Löschung dieser Daten. Hierzu sowie zu weiteren Fragen zum Thema Datenschutz kannst du dich jederzeit über die im Impressum angegebene Adresse an uns wenden. Alternativ kannst du die Löschung deines Accounts auch direkt im SV-Panel beantragen.
+                        Wenn du oder deine Eltern Fragen zum Datenschutz haben, wende dich einfach direkt an das SV-Team unter <a href="mailto:sv@fwg-koeln.de" className="text-primary font-bold hover:underline">sv@fwg-koeln.de</a> oder an das Schulsekretariat.
                     </p>
                 </section>
             </div>
+
             <div className="mt-12 text-sm text-gray-500 text-center font-medium">
-                &copy; {new Date().getFullYear()} Schülervertretung Friedrich-Wilhelms-Gymnasium Köln.
+                Schülervertretung Friedrich-Wilhelms-Gymnasium Köln
             </div>
         </div>
     );

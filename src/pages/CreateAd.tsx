@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../components/ui/Card';
 import { SubjectChip, SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
 import { GradeSelector } from '../components/GradeSelector';
 import { RichTextEditor } from '../components/RichTextEditor';
-import { ChevronLeft, ChevronRight, CheckCircle, Plus, X, Link as LinkIcon, AlertCircle, Lock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle, Plus, X, Link as LinkIcon, AlertCircle, Lock, Sparkles } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
+import { sanitizeHtml } from '../lib/sanitize';
+import AiListingAssistant from '../components/AiListingAssistant';
 
 const STEPS = [
     'Typ & Titel',
@@ -29,6 +31,7 @@ const DURATIONS = [0, 15, 30, 45, 60, 90, 120, 180];
 
 export default function CreateAd() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { user } = useAuth();
     const [currentStep, setCurrentStep] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,6 +39,7 @@ export default function CreateAd() {
     const [isVerified, setIsVerified] = useState(false);
     const [loadingProfile, setLoadingProfile] = useState(true);
     const [promoCode, setPromoCode] = useState('');
+    const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false);
 
     const [children, setChildren] = useState<any[]>([]);
     const [selectedChildId, setSelectedChildId] = useState<string>('');
@@ -63,6 +67,30 @@ export default function CreateAd() {
         image_urls: [] as string[],
         new_image_url: ''
     });
+
+    useEffect(() => {
+        if (location.state?.duplicateAd) {
+            const d = location.state.duplicateAd;
+            setFormData({
+                type: d.type || 'offer',
+                title: d.short_description || '',
+                subjects: d.subjects || [],
+                grade_levels: d.grade_levels || [],
+                locations: d.locations || [],
+                custom_location: '',
+                duration_minutes: d.duration_minutes || [],
+                custom_duration: '',
+                price_mode: d.price_details?.mode || 'fixed',
+                price_value: d.price_details?.value ?? '',
+                price_unit: d.price_details?.unit || '45min',
+                short_description: d.short_description || '',
+                long_description: d.long_description || '',
+                image_urls: d.image_urls || [],
+                new_image_url: ''
+            });
+            toast.success("Daten aus Vorlage/Duplikat übernommen!");
+        }
+    }, [location.state]);
 
     useEffect(() => {
         if (user) {
@@ -142,9 +170,35 @@ export default function CreateAd() {
             finalLocations.push(formData.custom_location);
         }
 
-        const isBoosted = promoCode.trim().toUpperCase() === 'BANANE';
-        const boostedUntil = isBoosted ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() : null;
+        let isBoosted = false;
+        let boostDays = 14;
+        const codeTrimmed = promoCode.trim().toUpperCase();
 
+        if (codeTrimmed) {
+            // Check promo code in DB
+            try {
+                const { data: redeemRes } = await supabase.rpc('redeem_promo_code', { code_val: codeTrimmed });
+                if (redeemRes && redeemRes.success) {
+                    isBoosted = true;
+                    boostDays = redeemRes.boost_days || 14;
+                    toast.success(`Promo-Code '${codeTrimmed}' erfolgreich aktiviert (${boostDays} Tage Boost)!`);
+                } else if (codeTrimmed === 'BANANE') {
+                    isBoosted = true;
+                    boostDays = 14;
+                    toast.success("Promo-Code 'BANANE' aktiviert!");
+                } else {
+                    toast.error(redeemRes?.message || "Ungültiger oder abgelaufener Promo-Code.");
+                }
+            } catch (e) {
+                // Fallback for hardcoded BANANE
+                if (codeTrimmed === 'BANANE') {
+                    isBoosted = true;
+                    toast.success("Promo-Code 'BANANE' aktiviert!");
+                }
+            }
+        }
+
+        const boostedUntil = isBoosted ? new Date(Date.now() + boostDays * 24 * 60 * 60 * 1000).toISOString() : null;
         const effectiveUserId = profile?.role === 'parent' && selectedChildId ? selectedChildId : user.id;
 
         const { error } = await supabase.from('ads').insert({
@@ -161,7 +215,7 @@ export default function CreateAd() {
             is_active: true,
             boosted: isBoosted,
             boosted_until: boostedUntil,
-            promo_code_used: isBoosted ? 'BANANE' : null
+            promo_code_used: isBoosted ? codeTrimmed : null
         });
 
         setIsSubmitting(false);
@@ -346,6 +400,27 @@ export default function CreateAd() {
                                             Ich suche Nachhilfe 🔍
                                         </button>
                                     </div>
+                                    
+                                    {/* Group session selection */}
+                                    <div className="bg-gray-50 dark:bg-gray-800/40 p-3 rounded-2xl border dark:border-gray-800 flex items-center justify-between">
+                                        <div>
+                                            <span className="text-xs font-bold text-gray-900 dark:text-white block">Unterrichts-Format</span>
+                                            <span className="text-[11px] text-gray-500 block">Einzelnachhilfe oder Kleingruppe (2-4 Schüler)?</span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, short_description: formData.short_description.includes('[Kleingruppe]') ? formData.short_description.replace('[Kleingruppe] ', '') : `[Kleingruppe] ${formData.short_description}` })}
+                                            className={cn(
+                                                "px-3 py-1.5 rounded-xl text-xs font-bold transition-all border",
+                                                formData.short_description.includes('[Kleingruppe]')
+                                                    ? "bg-purple-100 border-purple-300 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300"
+                                                    : "bg-white dark:bg-gray-900 border-gray-200 text-gray-600"
+                                            )}
+                                        >
+                                            👥 {formData.short_description.includes('[Kleingruppe]') ? 'Kleingruppe (2-4 Schüler)' : 'Einzelunterricht'}
+                                        </button>
+                                    </div>
+
                                     <div>
                                         <label className="text-sm font-medium mb-2 block">Titel der Anzeige</label>
                                         <Input
@@ -532,6 +607,16 @@ export default function CreateAd() {
                     {/* Step 4: Details */}
                     {currentStep === 4 && (
                         <div className="space-y-6">
+                            {/* KI-Assistent Button */}
+                            <button
+                                type="button"
+                                onClick={() => setIsAiAssistantOpen(true)}
+                                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl border-2 border-dashed border-indigo-200 dark:border-indigo-800 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20 text-indigo-700 dark:text-indigo-300 font-bold text-sm hover:border-indigo-400 hover:shadow-lg hover:shadow-indigo-500/10 transition-all group"
+                            >
+                                <Sparkles size={16} className="group-hover:animate-pulse" />
+                                KI-Entwurf erstellen lassen
+                            </button>
+
                             <div>
                                 <label className="text-sm font-medium mb-2 block">Kurzbeschreibung (für den Feed)</label>
                                 <Input
@@ -608,7 +693,7 @@ export default function CreateAd() {
                                     <p className="text-gray-600 dark:text-gray-300">{formData.short_description}</p>
                                 </div>
                                 <div className="p-6 prose dark:prose-invert max-w-none">
-                                    <div dangerouslySetInnerHTML={{ __html: formData.long_description || '<p class="text-gray-400 italic">Keine Beschreibung</p>' }} />
+                                    <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(formData.long_description || '<p class="text-gray-400 italic">Keine Beschreibung</p>') }} />
 
                                     {formData.image_urls.length > 0 && (
                                         <div className="grid grid-cols-2 gap-4 mt-6">
@@ -649,6 +734,23 @@ export default function CreateAd() {
                     )}
                 </CardFooter>
             </Card>
+
+            {/* KI Listing Assistant Modal */}
+            <AiListingAssistant
+                isOpen={isAiAssistantOpen}
+                onClose={() => setIsAiAssistantOpen(false)}
+                currentType={formData.type}
+                currentSubjects={formData.subjects}
+                currentGrades={formData.grade_levels}
+                onApplyDraft={(draft) => {
+                    setFormData(prev => ({
+                        ...prev,
+                        title: draft.title || prev.title,
+                        short_description: draft.description ? draft.description.substring(0, 100) : prev.short_description,
+                        long_description: draft.description || prev.long_description,
+                    }));
+                }}
+            />
         </div>
     );
 }

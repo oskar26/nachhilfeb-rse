@@ -31,7 +31,8 @@ export default function ParentGuide() {
                             Die Nachhilfebörse ist ein geschützter Raum. Nur Schülerinnen und Schüler des Friedrich-Wilhelms-Gymnasiums haben Zugang.
                         </p>
                         <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400 list-disc pl-4">
-                            <li>Jeder Account muss persönlich im SV-Raum per Schülerausweis verifiziert werden, bevor Anzeigen erstellt werden können.</li>
+                            <li>Jeder Account muss persönlich im SV-Raum per Schülerausweis oder SV-Code verifiziert werden, bevor Anzeigen erstellt werden können.</li>
+                            <li><strong>Spam-Schutz & Frist:</strong> Konten, die nach der Registrierung nicht innerhalb von 7 Tagen verifiziert werden, werden vom System automatisch gelöscht.</li>
                             <li>Die Plattform ist nicht für schulfremde Personen zugänglich.</li>
                             <li>Nachhilfe-Treffen finden meist direkt in der Schule statt (z.B. Bibliothek, Mensa).</li>
                         </ul>

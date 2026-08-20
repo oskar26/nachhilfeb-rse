@@ -5,12 +5,13 @@ import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 import { SubjectChip } from '../components/SubjectChip';
 import { toast } from 'react-hot-toast';
-import { ChevronLeft, MapPin, Clock, Heart, Send, CheckCircle, Phone, Mail, CalendarDays, Share2, Folder, X } from 'lucide-react';
+import { ChevronLeft, MapPin, Clock, Heart, Send, CheckCircle, Phone, Mail, CalendarDays, Share2, Folder, X, Copy } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import ReportWizard from '../components/ReportWizard';
 import ShareDialog from '../components/ShareDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/Dialog';
 import { AvailabilityCalendar, emptyAvailability, countMatches, type Availability } from '../components/AvailabilityCalendar';
+import { sanitizeHtml } from '../lib/sanitize';
 
 export default function AdDetails() {
     const { id } = useParams();
@@ -153,6 +154,9 @@ export default function AdDetails() {
                     <ChevronLeft className="mr-2" /> Zurück
                 </Button>
                 <div className="flex gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => navigate('/create-ad', { state: { duplicateAd: ad } })} className="text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-full gap-1 text-xs">
+                        <Copy size={16} /> Duplizieren
+                    </Button>
                     <Button variant="ghost" size="icon" onClick={() => setIsShareOpen(true)} className="text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-full">
                         <Share2 size={20} />
                     </Button>
@@ -202,7 +206,7 @@ export default function AdDetails() {
                             <h3 className="font-bold mb-2 text-lg">Beschreibung</h3>
                             <div
                                 className="prose dark:prose-invert max-w-none"
-                                dangerouslySetInnerHTML={{ __html: ad.long_description || ad.short_description || 'Keine Beschreibung' }}
+                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(ad.long_description || ad.short_description || 'Keine Beschreibung') }}
                             />
                         </div>
 

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { Card, CardContent } from '../../components/ui/Card';
+import { Button } from '../../components/ui/Button';
+import { toast } from 'react-hot-toast';
 import {
     Users,
     FileText,
@@ -11,6 +13,7 @@ import {
     ShieldCheck,
     Clock,
     UserPlus,
+    Trash2,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -133,12 +136,70 @@ export default function AdminOverview() {
 
     const navTo = (tab: string) => navigate(`?tab=${tab}`);
 
+    const [oldUnverifiedCount, setOldUnverifiedCount] = useState(0);
+
+    const handleCleanupUnverified = async () => {
+        if (!confirm('Möchtest du alle Konten, die sich seit mehr als 7 Tagen nicht verifiziert haben, jetzt unwiderruflich bereinigen?')) return;
+        try {
+            const { data, error } = await supabase.rpc('cleanup_unverified_users');
+            if (error) {
+                // Manual fallback query if procedure doesn't exist
+                const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+                const { error: delErr } = await supabase
+                    .from('profiles')
+                    .delete()
+                    .eq('is_verified', false)
+                    .lt('created_at', sevenDaysAgo);
+                if (delErr) throw delErr;
+            }
+            toast.success("Automatische 7-Tage-Bereinigung abgeschlossen!");
+            fetchAll();
+        } catch (e: any) {
+            toast.error("Bereinigung fehlgeschlagen: " + e.message);
+        }
+    };
+
+    const handleAdvanceGradeLevels = async () => {
+        if (!confirm('Möchtest du den automatischen Stufenwechsel zum Schuljahreswechsel (z.B. 5->6, 10->EF, Q2->Ehemalige) für alle Nutzer durchführen?')) return;
+        try {
+            const { error } = await supabase.rpc('auto_advance_grade_levels');
+            if (error) throw error;
+            toast.success("Schuljahreswechsel erfolgreich durchgeführt! Alle Klassenstufen wurden hochgestuft.");
+            fetchAll();
+        } catch (e: any) {
+            toast.error("Stufenwechsel fehlgeschlagen: " + e.message);
+        }
+    };
+
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
-            {/* Page title */}
-            <div>
-                <h1 className="text-2xl font-bold tracking-tight">Übersicht</h1>
-                <p className="text-gray-500 text-sm mt-1">Zusammenfassung des aktuellen Systemstatus</p>
+            {/* Page title & Anti-Spam Cleanup Action */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight">Übersicht</h1>
+                    <p className="text-gray-500 text-sm mt-1">Zusammenfassung des aktuellen Systemstatus</p>
+                </div>
+                
+                <div className="flex flex-wrap gap-2 items-center">
+                    <Button
+                        onClick={handleAdvanceGradeLevels}
+                        variant="outline"
+                        className="rounded-2xl border-blue-300 dark:border-blue-800 text-blue-800 dark:text-blue-300 bg-blue-50/50 dark:bg-blue-950/20 hover:bg-blue-100 text-xs font-bold gap-2 shrink-0"
+                        title="Stuft am 1. August alle Schüler in die nächste Jahrgangsstufe hoch"
+                    >
+                        <UserPlus size={15} className="text-blue-600" />
+                        Stufenwechsel (1. August)
+                    </Button>
+                    <Button
+                        onClick={handleCleanupUnverified}
+                        variant="outline"
+                        className="rounded-2xl border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 bg-amber-50/50 dark:bg-amber-950/20 hover:bg-amber-100 text-xs font-bold gap-2 shrink-0"
+                        title="Entfernt alle nicht-verifizierten Konten, die älter als 7 Tage sind"
+                    >
+                        <Trash2 size={15} className="text-amber-600" />
+                        Unverifizierte Accounts (&gt;7 Tage) bereinigen
+                    </Button>
+                </div>
             </div>
 
             {/* Stat cards */}
@@ -182,9 +243,9 @@ export default function AdminOverview() {
                 <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Schnellzugriff</h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {[
+                        { label: 'Codes & Verifikation', icon: <ShieldCheck size={18} />, tab: 'codes', color: 'green' },
                         { label: 'Nutzerverwaltung', icon: <Users size={18} />, tab: 'users', color: 'blue' },
                         { label: 'Meldungen prüfen', icon: <AlertTriangle size={18} />, tab: 'reports', color: 'amber' },
-                        { label: 'Codes verwalten', icon: <ShieldCheck size={18} />, tab: 'codes', color: 'green' },
                         { label: 'Audit Log', icon: <Clock size={18} />, tab: 'auditlog', color: 'gray' },
                     ].map(({ label, icon, tab, color }) => (
                         <button

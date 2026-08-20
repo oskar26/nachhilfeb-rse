@@ -318,6 +318,43 @@ export default function AdminUsers() {
         return matchesSearch && matchesRole && matchesStatus;
     });
 
+    const handleBatchVerifyPage = async () => {
+        const unverifiedOnPage = filteredUsers.filter(u => !u.is_verified && !u.is_banned);
+        if (unverifiedOnPage.length === 0) {
+            toast.error('Keine unverifizierten Nutzer auf dieser Ansicht.');
+            return;
+        }
+
+        if (!confirm(`${unverifiedOnPage.length} Nutzer in dieser Ansicht auf einmal verifizieren?`)) return;
+
+        try {
+            const ids = unverifiedOnPage.map(u => u.id);
+            const { error } = await supabase
+                .from('profiles')
+                .update({ is_verified: true })
+                .in('id', ids);
+
+            if (error) throw error;
+
+            toast.success(`${unverifiedOnPage.length} Nutzer erfolgreich verifiziert!`);
+            fetchUsers();
+
+            // Audit Log
+            await supabase.from('admin_audit_log').insert({
+                admin_id: (await supabase.auth.getUser()).data.user?.id,
+                action: 'verify_user',
+                target_type: 'batch_profiles',
+                details: { count: unverifiedOnPage.length, ids }
+            });
+        } catch (err: any) {
+            toast.error('Fehler bei der Stapelverifizierung: ' + err.message);
+        }
+    };
+
+    const unverifiedCount = users.filter(u => !u.is_verified && !u.is_banned).length;
+    const parentCount = users.filter(u => u.role === 'parent').length;
+    const bannedCount = users.filter(u => u.is_banned).length;
+
     return (
         <div className="space-y-6 animate-in fade-in duration-300">
             {/* Header controls */}
@@ -356,6 +393,17 @@ export default function AdminUsers() {
                         <option value="unverified">Nicht verifiziert</option>
                         <option value="banned">Gesperrt</option>
                     </select>
+
+                    {/* Batch verify action */}
+                    {unverifiedCount > 0 && (
+                        <Button
+                            onClick={handleBatchVerifyPage}
+                            className="h-11 rounded-2xl gap-1.5 text-xs font-bold bg-green-600 hover:bg-green-700 text-white shadow-sm"
+                            title="Alle gefilterten unverifizierten Schüler freischalten"
+                        >
+                            <ShieldCheck size={16} /> Alle verifizieren ({unverifiedCount})
+                        </Button>
+                    )}
 
                     {/* Actions */}
                     <Button onClick={exportToCSV} variant="outline" className="h-11 rounded-2xl gap-2 text-sm font-semibold">

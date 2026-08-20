@@ -11,6 +11,7 @@ import {
 import { SubjectChip } from '../components/SubjectChip';
 import type { Subject } from '../components/SubjectChip';
 import { cn } from '../lib/utils';
+import { sanitizeHtml } from '../lib/sanitize';
 
 export default function PublicProfile() {
     const { id } = useParams();
@@ -99,7 +100,7 @@ export default function PublicProfile() {
                                     <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-2">Über mich</h3>
                                     <div 
                                         className="prose dark:prose-invert max-w-none text-sm leading-relaxed"
-                                        dangerouslySetInnerHTML={{ __html: profile.bio || '<p class="text-gray-400 italic">Keine Biografie angegeben.</p>' }}
+                                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(profile.bio || '<p class="text-gray-400 italic">Keine Biografie angegeben.</p>') }}
                                     />
                                 </div>
                             </div>

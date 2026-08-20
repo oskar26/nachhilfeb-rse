@@ -59,7 +59,7 @@ export function CookieBanner() {
                         className="flex-1 sm:flex-none font-bold shadow-lg text-xs rounded-full"
                         onClick={accept}
                     >
-                        Verstanden ✓
+                        Alle akzeptieren ✓
                     </Button>
                 </div>
             </div>

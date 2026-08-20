@@ -20,25 +20,25 @@ import {
 } from 'lucide-react';
 
 const NAV_ITEMS = [
+    { label: 'Codes & Verifikation', value: 'codes', icon: Key },
     { label: 'Übersicht', value: 'overview', icon: LayoutDashboard },
     { label: 'Nutzer', value: 'users', icon: Users },
     { label: 'Anzeigen', value: 'ads', icon: FileText },
     { label: 'News / Infos', value: 'news', icon: Megaphone },
     { label: 'Meldungen', value: 'reports', icon: AlertTriangle },
     { label: 'Chat', value: 'chat', icon: MessageSquare },
-    { label: 'Codes', value: 'codes', icon: Key },
     { label: 'Analytics', value: 'analytics', icon: BarChart2 },
     { label: 'Audit Log', value: 'auditlog', icon: ClipboardList },
 ];
 
 const TAB_LABELS: Record<string, string> = {
+    codes: 'Codes & Verifikation',
     overview: 'Übersicht',
     users: 'Nutzer',
     ads: 'Anzeigen',
     news: 'News / Infos',
     reports: 'Meldungen',
     chat: 'Chat',
-    codes: 'Codes',
     analytics: 'Analytics',
     auditlog: 'Audit Log',
 };
@@ -50,10 +50,10 @@ export default function AdminLayout() {
     const [openReports, setOpenReports] = useState(0);
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    // Determine active tab from hash or query param
+    // Determine active tab from hash or query param - Defaults to 'codes' as first item
     const hash = location.hash.replace('#', '');
     const params = new URLSearchParams(location.search);
-    const activeTab = params.get('tab') || hash || 'overview';
+    const activeTab = params.get('tab') || hash || 'codes';
 
     useEffect(() => {
         if (!isAdmin) {

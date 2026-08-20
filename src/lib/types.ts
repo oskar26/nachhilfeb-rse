@@ -29,6 +29,7 @@ export interface Database {
                     sv_code_used: string | null
                     is_banned?: boolean
                     average_rating?: number
+                    parent_link_code?: string | null
                     onboarding_complete: boolean
                     birth_date: string | null
                     created_at: string

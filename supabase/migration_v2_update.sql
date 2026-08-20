@@ -159,17 +159,14 @@ ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
 -- 12. INVITE CODES RLS (FIXING SECURITY HOLE)
--- Only SV Admins can see all invite codes.
+-- Only SV Admins can view or manage all invite codes.
+-- Non-admin redemption occurs strictly via SECURITY DEFINER functions (redeem_invite_code).
 DROP POLICY IF EXISTS "Admins manage invite codes" ON public.invite_codes;
 CREATE POLICY "Admins manage invite codes" ON public.invite_codes FOR ALL USING (
   exists (select 1 from public.profiles where id = auth.uid() and role = 'sv_admin')
 );
 
--- Users can select a code ONLY if they supply its exact code value (for registration/redeem check)
 DROP POLICY IF EXISTS "Public check invite codes" ON public.invite_codes;
-CREATE POLICY "Public check invite codes" ON public.invite_codes FOR SELECT USING (
-  code IS NOT NULL
-);
 
 -- 13. PARENT LINKS RLS
 DROP POLICY IF EXISTS "Users view own parent links" ON public.parent_links;
@@ -282,6 +279,17 @@ CREATE POLICY "Restricted admin view messages" ON public.messages FOR SELECT USI
 -- ==========================================
 -- DATABASE FUNCTIONS / TRIGGERS FOR v2
 -- ==========================================
+
+-- Function to pre-check invite code validity without exposing table SELECT RLS
+CREATE OR REPLACE FUNCTION public.check_invite_code(code_val text)
+RETURNS boolean AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.invite_codes
+    WHERE code = code_val AND is_used = false AND (expires_at IS NULL OR expires_at > now())
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to redeem invite code on signup
 CREATE OR REPLACE FUNCTION public.redeem_invite_code(code_val text, target_user_id uuid)

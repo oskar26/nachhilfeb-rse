@@ -166,17 +166,10 @@ export default function Layout() {
                     </NavLink>
                 )}
 
-                {!isParent ? (
-                    <NavLink to="/social?tab=watchlist" className={mobileNavLinkClass} title="Merkliste">
-                        <Heart size={20} />
-                        <span>Merkliste</span>
-                    </NavLink>
-                ) : (
-                    <NavLink to="/settings" className={mobileNavLinkClass} title="Einstellungen">
-                        <Settings size={20} />
-                        <span>Einstellungen</span>
-                    </NavLink>
-                )}
+                <NavLink to="/settings" className={mobileNavLinkClass} title="Einstellungen">
+                    <Settings size={20} />
+                    <span>Einstellungen</span>
+                </NavLink>
 
                 <NavLink to="/profile" className={mobileNavLinkClass} title="Profil">
                     <User size={20} />

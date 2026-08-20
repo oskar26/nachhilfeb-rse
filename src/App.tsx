@@ -37,6 +37,15 @@ function AppLoader() {
   );
 }
 
+import { useAnalyticsTracker } from './lib/analytics';
+
+function AnalyticsTracker() {
+  useAnalyticsTracker();
+  return null;
+}
+
+import { NewsPopupModal } from './components/NewsPopupModal';
+
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, profile, loading } = useAuth();
@@ -76,6 +85,7 @@ function App() {
       <AuthProvider>
         <Toaster position="top-right" toastOptions={{ style: { background: '#333', color: '#fff' } }} />
         <BrowserRouter>
+          <AnalyticsTracker />
           <Routes>
             <Route path="/welcome" element={<Landing />} />
             <Route path="/login" element={<Login />} />
@@ -111,6 +121,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           <CookieBanner />
+          <NewsPopupModal />
         </BrowserRouter>
       </AuthProvider>
     </ThemeProvider>

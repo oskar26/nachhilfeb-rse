@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
 import { Button } from '../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -120,59 +121,9 @@ export default function Landing() {
                         Jetzt loslegen
                     </Button>
                 </motion.div>
-            </section>
-
-            {/* Collapsible News & Announcements Section */}
+            </section>            {/* Collapsible News & Announcements Section */}
             <section className="px-6 py-4 max-w-4xl mx-auto">
-                <Card className="rounded-3xl border border-amber-200/60 dark:border-amber-900/30 bg-amber-50/20 dark:bg-amber-950/10 shadow-sm overflow-hidden">
-                    <button
-                        onClick={() => toggleInfo(!infoOpen)}
-                        className="w-full flex items-center justify-between p-5 font-bold text-gray-800 dark:text-gray-200 text-sm focus:outline-none"
-                    >
-                        <div className="flex items-center gap-2">
-                            <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                            </span>
-                            <span className="text-[10px] bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full uppercase tracking-wider font-extrabold">Neu</span>
-                            <span>Aktuelle Infos & Neuigkeiten</span>
-                        </div>
-                        {infoOpen ? <ChevronUp size={18} className="text-gray-400" /> : <ChevronDown size={18} className="text-gray-400" />}
-                    </button>
-                    
-                    <motion.div
-                        initial={false}
-                        animate={{ height: infoOpen ? 'auto' : 0 }}
-                        className="overflow-hidden"
-                    >
-                        <div className="px-5 pb-5 pt-1 divide-y dark:divide-gray-800/60 space-y-4">
-                            {announcements.length === 0 ? (
-                                <p className="text-xs text-gray-400 py-3 text-center">Keine aktuellen Neuigkeiten vorhanden.</p>
-                            ) : (
-                                announcements.map((item) => (
-                                    <div key={item.id} className="pt-4 first:pt-2 flex items-start gap-3">
-                                        <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary-hover text-xs shrink-0 mt-0.5">
-                                            {item.icon || '📢'}
-                                        </div>
-                                        <div className="min-w-0 flex-1">
-                                            <h4 className="font-bold text-sm text-gray-900 dark:text-white">{item.title}</h4>
-                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">
-                                                {item.body}
-                                            </p>
-                                            <span className="text-[9px] text-gray-400 block mt-1 font-semibold">
-                                                {new Date(item.created_at).toLocaleDateString('de-DE', {
-                                                    day: '2-digit',
-                                                    month: 'long',
-                                                    year: 'numeric'
-                                                })}
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </motion.div>
-                </Card>
+                <CollapsedNewsWidget />
             </section>
 
             {/* Suchen vs Bieten vs Eltern */}

@@ -36,11 +36,15 @@ const ACTION_LABELS: Record<string, string> = {
     unverify_user: 'Verifizierung entzogen',
     change_role: 'Rolle geändert',
     delete_ad: 'Anzeige gelöscht',
+    show_ad: 'Anzeige eingeblendet',
+    hide_ad: 'Anzeige ausgeblendet',
     resolve_report: 'Meldung gelöst',
     dismiss_report: 'Meldung abgewiesen',
     generate_invite_codes: 'Codes generiert',
     delete_invite_code: 'Code gelöscht',
     edit_user: 'Nutzerdaten editiert',
+    create_announcement: 'News erstellt',
+    delete_announcement: 'News gelöscht',
 };
 
 export default function AdminAuditLog() {

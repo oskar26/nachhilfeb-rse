@@ -38,8 +38,23 @@ export default function Login() {
     const [grade, setGrade] = useState('');
     const [letter, setLetter] = useState('');
     const [birthDate, setBirthDate] = useState('');
+    const [parentalConsent, setParentalConsent] = useState(false);
     const [inviteCode, setInviteCode] = useState('');
     const [role, setRole] = useState<'student' | 'parent'>('student');
+
+    const calculateAge = (dob: string) => {
+        if (!dob) return 18;
+        const birth = new Date(dob);
+        const now = new Date();
+        let age = now.getFullYear() - birth.getFullYear();
+        const m = now.getMonth() - birth.getMonth();
+        if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) {
+            age--;
+        }
+        return age;
+    };
+
+    const isUnder16 = mode === 'register' && birthDate !== '' && calculateAge(birthDate) < 16;
 
     // Rate Limiting State
     const [isBlocked, setIsBlocked] = useState(false);
@@ -120,6 +135,10 @@ export default function Login() {
                 toast.error("Bitte fülle alle Pflichtfelder (Name, Nachname, Geburtsdatum) aus.");
                 return;
             }
+            if (isUnder16 && !parentalConsent) {
+                toast.error("Für Nutzer unter 16 Jahren ist die Einwilligung der Erziehungsberechtigten erforderlich.");
+                return;
+            }
         }
 
         setIsLoading(true);
@@ -153,22 +172,11 @@ export default function Login() {
 
             // Optional: If invite code is provided, verify it first before registering
             if (inviteCode.trim()) {
-                const { data: codeCheck, error: codeErr } = await supabase
-                    .from('invite_codes')
-                    .select('*')
-                    .eq('code', inviteCode.trim())
-                    .eq('is_used', false)
-                    .single();
+                const { data: isValidCode, error: codeErr } = await supabase
+                    .rpc('check_invite_code', { code_val: inviteCode.trim() });
 
-                if (codeErr || !codeCheck) {
+                if (codeErr || !isValidCode) {
                     toast.error("Ungültiger oder abgelaufener SV-Code.");
-                    setIsLoading(false);
-                    return;
-                }
-
-                // Check expiry
-                if (codeCheck.expires_at && new Date(codeCheck.expires_at) < new Date()) {
-                    toast.error("Dieser SV-Code ist leider abgelaufen.");
                     setIsLoading(false);
                     return;
                 }
@@ -210,6 +218,8 @@ export default function Login() {
                         grade_level: role === 'student' ? (grade || null) : null,
                         class_letter: role === 'student' ? (letter || null) : null,
                         birth_date: birthDate,
+                        parental_consent_given: isUnder16 ? parentalConsent : true,
+                        parental_consent_date: isUnder16 ? new Date().toISOString() : null,
                         onboarding_complete: true // Set to true since we fill it here
                     })
                     .eq('id', newUser.id);
@@ -398,6 +408,16 @@ export default function Login() {
                             )}
 
                             <form onSubmit={handleAuth} className="space-y-4">
+                                {/* Invisible Honeypot Field for Anti-Spam */}
+                                <input
+                                    type="text"
+                                    name="website_hp_check"
+                                    id="website_hp_check"
+                                    className="hidden"
+                                    tabIndex={-1}
+                                    autoComplete="off"
+                                />
+
                                 {mode === 'register' && (
                                     <div className="space-y-4">
                                         <div className="space-y-1">
@@ -476,6 +496,29 @@ export default function Login() {
                                             />
                                         </div>
 
+                                        {isUnder16 && (
+                                            <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-800/50 space-y-2 animate-in fade-in duration-300">
+                                                <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-bold text-xs">
+                                                    <ShieldAlert size={16} /> Hinweis für Nutzer unter 16 Jahren (Art. 8 DSGVO)
+                                                </div>
+                                                <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed">
+                                                    Da du unter 16 Jahre alt bist, benötigen wir die Bestätigung deiner Erziehungsberechtigten. Bitte bitte deine Eltern, den <Link to="/eltern-leitfaden" className="underline font-bold" target="_blank">Eltern-Leitfaden</Link> zu lesen.
+                                                </p>
+                                                <div className="flex items-start gap-2 pt-1">
+                                                    <input 
+                                                        type="checkbox" 
+                                                        id="parentalConsent" 
+                                                        checked={parentalConsent}
+                                                        onChange={(e) => setParentalConsent(e.target.checked)}
+                                                        className="mt-0.5 w-4 h-4 text-amber-600 rounded focus:ring-amber-500 cursor-pointer"
+                                                    />
+                                                    <label htmlFor="parentalConsent" className="text-xs font-semibold text-amber-900 dark:text-amber-200 cursor-pointer leading-tight">
+                                                        Meine Erziehungsberechtigten stimmen der Nutzung dieser Plattform zu. *
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        )}
+
                                         <div className="space-y-1">
                                             <label className="text-xs font-bold uppercase text-gray-500 ml-1 flex justify-between">
                                                 <span>SV-Einmalcode</span>
@@ -544,9 +587,9 @@ export default function Login() {
                             </form>
                         </CardContent>
                         {mode === 'register' && (
-                            <CardFooter className="bg-gray-50 dark:bg-gray-900/50 py-4 px-6 mt-4 border-t border-gray-100 dark:border-gray-800">
-                                <p className="text-[11px] text-gray-500 text-center w-full leading-relaxed">
-                                    Ohne SV-Code wird dein Account als "ausstehend" registriert und muss von einem SV-Mitglied vor Ort freigeschaltet werden.
+                            <CardFooter className="bg-amber-50/50 dark:bg-amber-950/20 py-4 px-6 mt-4 border-t border-amber-200/50 dark:border-amber-900/30 flex flex-col space-y-1">
+                                <p className="text-[11px] text-amber-900 dark:text-amber-300 font-semibold text-center w-full leading-relaxed">
+                                    ⚠️ <strong>Spam-Schutz:</strong> Accounts, die nicht innerhalb von <strong>7 Tagen</strong> durch einen SV-Code oder vor Ort verifiziert werden, werden automatisch gelöscht.
                                 </p>
                             </CardFooter>
                         )}

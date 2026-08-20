@@ -146,20 +146,19 @@ create or replace function public.redeem_code(secret_code text)
 returns text as $$
 declare
   uid uuid;
+  res text;
 begin
   uid := auth.uid();
-  if uid is null then
+  if uid is null or secret_code is null or trim(secret_code) = '' then
     return 'invalid';
   end if;
 
-  -- Set session variable for the current transaction to bypass protection trigger
-  perform set_config('app.allow_role_change', 'true', true);
+  -- Redeem via invite code database table
+  select public.redeem_invite_code(trim(secret_code), uid) into res;
 
-  if secret_code = 'SV_FWG_ADMIN_2026' then
-    update public.profiles set role = 'sv_admin', is_verified = true where id = uid;
+  if res = 'sv_admin' then
     return 'admin';
-  elsif secret_code = 'VERIFY_ME_NOW' then
-    update public.profiles set is_verified = true where id = uid;
+  elsif res is not null and res != 'invalid' then
     return 'verified';
   end if;
 

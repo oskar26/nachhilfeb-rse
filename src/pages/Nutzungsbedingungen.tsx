@@ -21,7 +21,7 @@ export default function Nutzungsbedingungen() {
 
                     <h2 className="text-xl font-bold mt-8 mb-4 text-gray-900 dark:text-white">1. Geltungsbereich und Zielgruppe</h2>
                     <p>
-                        Diese Plattform richtet sich ausschließlich an Schülerinnen und Schüler des Friedrich-Wilhelms-Gymnasiums (FWG) Köln. Die Nutzung durch schulfremde Personen ist untersagt. Die Plattform dient der Vermittlung von Nachhilfe und Lerncoaching.
+                        Diese Plattform richtet sich ausschließlich an Schülerinnen und Schüler des Friedrich-Wilhelms-Gymnasiums (FWG) Köln. Auch Eltern und Erziehungsberechtigte sind willkommen, sich als "Eltern-Account" zu registrieren, um im Namen ihrer Kinder Nachhilfe zu organisieren. Die Nutzung durch schulfremde Personen ist untersagt. Die Plattform dient der Vermittlung von Nachhilfe und Lerncoaching.
                     </p>
 
                     <h2 className="text-xl font-bold mt-8 mb-4 text-gray-900 dark:text-white">2. Registrierung und Verifizierung</h2>
@@ -29,6 +29,7 @@ export default function Nutzungsbedingungen() {
                         Um Anzeigen zu erstellen oder Anfragen zu versenden, ist ein Account erforderlich. 
                         Nach der Registrierung muss der Account durch das SV-Team verifiziert werden (entweder durch persönliches Erscheinen im SV-Raum oder durch Angabe der korrekten Klasse/Moodle-Identifikation). 
                         Du verpflichtest dich, bei der Registrierung wahrheitsgemäße Angaben zu machen.
+                        Nutzer unter 16 Jahren benötigen die Einwilligung ihrer Erziehungsberechtigten zur Nutzung der Plattform gemäß Art. 8 DSGVO. Diese Einwilligung wird im Rahmen der Registrierung digital eingeholt.
                     </p>
 
                     <h2 className="text-xl font-bold mt-8 mb-4 text-gray-900 dark:text-white">3. Verhaltensregeln und Chat-Nutzung</h2>
@@ -46,16 +47,26 @@ export default function Nutzungsbedingungen() {
                         Absprachen (inkl. Bezahlung bei "VB") finden ausschließlich zwischen den Nutzern bzw. deren Erziehungsberechtigten statt.
                     </p>
 
-                    <h2 className="text-xl font-bold mt-8 mb-4 text-gray-900 dark:text-white">5. Datenschutz</h2>
+                    <h2 className="text-xl font-bold mt-8 mb-4 text-gray-900 dark:text-white">5. Verantwortung der Erziehungsberechtigten</h2>
                     <p>
-                        Der Schutz deiner Daten ist uns wichtig. Details zur Erhebung und Verarbeitung deiner Daten findest du in unserer <a href="/datenschutz" className="text-primary hover:underline">Datenschutzerklärung</a>. 
-                        Bitte sei sparsam mit privaten Kontaktdaten (Telefonnummer) und teile diese erst, wenn du dem Gegenüber vertraust.
+                        Eltern und Erziehungsberechtigte sind für finanzielle Vereinbarungen zwischen den Schülerinnen und Schülern verantwortlich. Die SV und die Plattform sind keine Vertragspartei bei Zahlungsvereinbarungen oder Vergütungen.
                     </p>
 
-                    <h2 className="text-xl font-bold mt-8 mb-4 text-gray-900 dark:text-white">6. Sperrung und Löschung von Accounts</h2>
+                    <h2 className="text-xl font-bold mt-8 mb-4 text-gray-900 dark:text-white">6. Datenschutz</h2>
+                    <p>
+                        Der Schutz deiner Daten ist uns wichtig. Details zur Erhebung und Verarbeitung deiner Daten findest du in unserer <a href="/datenschutz" className="text-primary hover:underline">Datenschutzerklärung</a>. 
+                        Bitte sei sparsam mit privaten Kontaktdaten (Telefonnummer) und teile diese erst, wenn du dem Gegenüber vertraust. Du hast gemäß Art. 17 DSGVO das Recht auf Löschung; Nutzer können ihren Account jederzeit in den Einstellungen selbst löschen.
+                    </p>
+
+                    <h2 className="text-xl font-bold mt-8 mb-4 text-gray-900 dark:text-white">7. Sperrung und Löschung von Accounts</h2>
                     <p>
                         Das Administrations-Team behält sich vor, Accounts, die gegen diese Nutzungsbedingungen verstoßen, ohne Vorwarnung temporär oder permanent zu sperren. 
-                        Nutzer können jederzeit die Löschung ihres Accounts beantragen.
+                        Nutzer können jederzeit die Löschung ihres Accounts beantragen. Im Falle einer permanenten Sperrung werden die Daten des Nutzers innerhalb von 30 Tagen anonymisiert.
+                    </p>
+
+                    <h2 className="text-xl font-bold mt-8 mb-4 text-gray-900 dark:text-white">8. Haftungsbeschränkung</h2>
+                    <p>
+                        Die SV und die Schule haften nicht für die Qualität der Nachhilfe, finanzielle Streitigkeiten oder Handlungen, die außerhalb der Plattform stattfinden. Die Plattform dient lediglich als Vermittlungsstelle, um den Kontakt zwischen Suchenden und Anbietenden herzustellen.
                     </p>
                     
                     <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-800 text-sm text-gray-500">

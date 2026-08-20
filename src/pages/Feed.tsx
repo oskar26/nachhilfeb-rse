@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
 import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/Card';
 import { SubjectChip, SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
 import { GraduationCap, MapPin, Clock, Filter, Search, CalendarDays, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
@@ -10,6 +11,7 @@ import { Input } from '../components/ui/Input';
 import { PriceRangeSlider } from '../components/PriceRangeSlider';
 import { useAuth } from '../context/AuthContext';
 import { emptyAvailability, countMatches, type Availability } from '../components/AvailabilityCalendar';
+import { toast } from 'react-hot-toast';
 import { cn } from '../lib/utils';
 
 interface Ad {
@@ -138,9 +140,10 @@ export default function Feed() {
         }
     });
 
-
     return (
         <div className="p-4 space-y-4 max-w-3xl mx-auto pb-24">
+            {/* Eingeklappte News-Sektion auf der Startseite */}
+            <CollapsedNewsWidget />
             <div className="flex flex-col gap-4 mb-6">
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold">Aktuelle Anzeigen</h1>
@@ -162,6 +165,18 @@ export default function Feed() {
                         <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
                             <Filter size={16} className="mr-2" /> Filter
                         </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                                localStorage.setItem('fwg_saved_search', JSON.stringify({ query: searchQuery, time: filterByTime }));
+                                toast.success("Suche gespeichert! Du wirst bei neuen passenden Anzeigen benachrichtigt.");
+                            }}
+                            className="text-xs text-primary-hover dark:text-primary font-bold rounded-full border border-primary/20 bg-primary/10 hover:bg-primary/20"
+                            title="Aktuelle Suche speichern und bei neuen Anzeigen benachrichtigt werden"
+                        >
+                            🔔 Suche merken
+                        </Button>
                     </div>
                 </div>
 
@@ -173,6 +188,36 @@ export default function Feed() {
                         onChange={e => setSearchQuery(e.target.value)}
                         className="pl-9"
                     />
+                </div>
+
+                {/* Quick Subject Filter Chips */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
+                    <span className="text-gray-400 font-bold shrink-0 text-[10px] uppercase mr-1">Beliebt:</span>
+                    {(['mathe', 'deutsch', 'englisch', 'physik', 'latein', 'französisch', 'chemie', 'informatik'] as Subject[]).map((subj) => (
+                        <button
+                            key={subj}
+                            onClick={() => {
+                                setFilterSubject(filterSubject === subj ? null : subj);
+                                if ('vibrate' in navigator) navigator.vibrate([15]);
+                            }}
+                            className={cn(
+                                "px-3 py-1 rounded-full border transition-all shrink-0 capitalize font-medium",
+                                filterSubject === subj
+                                    ? "bg-primary text-black font-bold border-primary shadow-sm"
+                                    : "bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-800 hover:border-gray-300"
+                            )}
+                        >
+                            {subj}
+                        </button>
+                    ))}
+                    {filterSubject && (
+                        <button
+                            onClick={() => setFilterSubject(null)}
+                            className="px-2.5 py-1 rounded-full bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400 text-xs font-bold shrink-0"
+                        >
+                            ✕ Filter zurücksetzen
+                        </button>
+                    )}
                 </div>
 
                 {showFilters && (
@@ -433,7 +478,7 @@ export default function Feed() {
                             )}>
                                 <div className="flex gap-3">
                                     {ad.locations && ad.locations[0] && (
-                                        <span className="flex items-center gap-1"><MapPin size={12} /> {ad.locations[0]} {ad.locations.length > 1 && `+${ad.locations.length - 1}`}</span>
+                                        <span className="flex items-center gap-1"><MapPin size={12} /> {ad.locations[0]} {ad.locations.length > 1 ? `+${ad.locations.length - 1}` : ''}</span>
                                     )}
                                     <span className="flex items-center gap-1"><Clock size={12} /> Flexibel</span>
                                 </div>
