@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
 import Feed from './pages/Feed';
@@ -84,7 +84,7 @@ function App() {
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
       <AuthProvider>
         <Toaster position="top-right" toastOptions={{ style: { background: '#333', color: '#fff' } }} />
-        <BrowserRouter>
+        <HashRouter>
           <AnalyticsTracker />
           <Routes>
             <Route path="/welcome" element={<Landing />} />
@@ -122,7 +122,7 @@ function App() {
           </Routes>
           <CookieBanner />
           <NewsPopupModal />
-        </BrowserRouter>
+        </HashRouter>
       </AuthProvider>
     </ThemeProvider>
   );
