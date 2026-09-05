@@ -1,19 +1,50 @@
 import * as React from 'react';
+import { motion } from 'framer-motion';
 import { cn } from '../../lib/utils';
+import { triggerHaptic } from '../../lib/haptics';
 
-const Card = React.forwardRef<
-    HTMLDivElement,
-    React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-    <div
-        ref={ref}
-        className={cn(
-            'rounded-[var(--radius)] border-none bg-white shadow-soft text-gray-950 dark:bg-gray-900/50 dark:border dark:border-gray-800 dark:text-gray-50',
-            className
-        )}
-        {...props}
-    />
-));
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+    interactive?: boolean;
+    haptic?: boolean;
+}
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+    ({ className, interactive, haptic = true, onClick, ...props }, ref) => {
+        const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+            if (interactive && haptic) {
+                triggerHaptic('light');
+            }
+            if (onClick) onClick(e);
+        };
+
+        const cardContent = (
+            <div
+                ref={ref}
+                className={cn(
+                    'rounded-2xl border border-gray-100 bg-white/90 shadow-soft text-gray-950 transition-all dark:bg-gray-900/70 dark:border-gray-800/80 dark:text-gray-50 dark:shadow-none',
+                    interactive && 'cursor-pointer hover:shadow-lg hover:border-gray-200 dark:hover:border-gray-700/80',
+                    className
+                )}
+                onClick={handleClick}
+                {...props}
+            />
+        );
+
+        if (interactive) {
+            return (
+                <motion.div
+                    whileHover={{ y: -3, transition: { duration: 0.2, ease: "easeOut" } }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                >
+                    {cardContent}
+                </motion.div>
+            );
+        }
+
+        return cardContent;
+    }
+);
 Card.displayName = 'Card';
 
 const CardHeader = React.forwardRef<
@@ -35,7 +66,7 @@ const CardTitle = React.forwardRef<
     <h3
         ref={ref}
         className={cn(
-            'text-xl font-bold leading-none tracking-tight',
+            'text-xl font-bold leading-tight tracking-tight text-gray-900 dark:text-gray-100',
             className
         )}
         {...props}
@@ -49,7 +80,7 @@ const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
     <p
         ref={ref}
-        className={cn('text-sm text-gray-500 dark:text-gray-400', className)}
+        className={cn('text-sm text-gray-500 dark:text-gray-400 leading-relaxed', className)}
         {...props}
     />
 ));

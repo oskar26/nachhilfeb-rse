@@ -3,6 +3,7 @@ import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { cn } from '../../lib/utils';
+import { Logo } from '../../components/ui/Logo';
 import {
     ShieldCheck,
     LayoutDashboard,
@@ -17,11 +18,13 @@ import {
     Menu,
     X,
     Megaphone,
+    LifeBuoy,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
     { label: 'Codes & Verifikation', value: 'codes', icon: Key },
     { label: 'Übersicht', value: 'overview', icon: LayoutDashboard },
+    { label: 'Support & Feedback', value: 'support', icon: LifeBuoy },
     { label: 'Nutzer', value: 'users', icon: Users },
     { label: 'Anzeigen', value: 'ads', icon: FileText },
     { label: 'News / Infos', value: 'news', icon: Megaphone },
@@ -34,6 +37,7 @@ const NAV_ITEMS = [
 const TAB_LABELS: Record<string, string> = {
     codes: 'Codes & Verifikation',
     overview: 'Übersicht',
+    support: 'Support & Feedback',
     users: 'Nutzer',
     ads: 'Anzeigen',
     news: 'News / Infos',
@@ -48,6 +52,7 @@ export default function AdminLayout() {
     const navigate = useNavigate();
     const location = useLocation();
     const [openReports, setOpenReports] = useState(0);
+    const [openTickets, setOpenTickets] = useState(0);
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     // Determine active tab from hash or query param - Defaults to 'codes' as first item
@@ -62,14 +67,24 @@ export default function AdminLayout() {
     }, [isAdmin, navigate]);
 
     useEffect(() => {
-        const fetchOpenReports = async () => {
-            const { count } = await supabase
-                .from('reports')
-                .select('*', { count: 'exact', head: true })
-                .eq('status', 'open');
-            setOpenReports(count || 0);
+        const fetchCounts = async () => {
+            try {
+                const { count } = await supabase
+                    .from('reports')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('status', 'open');
+                setOpenReports(count || 0);
+            } catch (e) {}
+
+            try {
+                const { count: ticketCount } = await supabase
+                    .from('support_tickets')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('status', 'open');
+                setOpenTickets(ticketCount || 0);
+            } catch (e) {}
         };
-        fetchOpenReports();
+        fetchCounts();
     }, []);
 
     if (!isAdmin) return null;
@@ -100,10 +115,8 @@ export default function AdminLayout() {
             >
                 {/* Sidebar header */}
                 <div className="h-16 flex items-center gap-3 px-6 border-b dark:border-gray-800 shrink-0">
-                    <div className="w-8 h-8 rounded-xl bg-primary/20 flex items-center justify-center text-primary-hover">
-                        <ShieldCheck size={18} />
-                    </div>
-                    <span className="font-bold text-base tracking-tight">SV Admin Panel</span>
+                    <Logo className="w-7 h-7 text-black dark:text-white shrink-0" />
+                    <span className="font-extrabold text-base tracking-tight text-gray-900 dark:text-white">SV Admin Panel</span>
                     <button
                         className="ml-auto md:hidden text-gray-400 hover:text-gray-600"
                         onClick={() => setSidebarOpen(false)}
@@ -132,6 +145,11 @@ export default function AdminLayout() {
                                 {value === 'reports' && openReports > 0 && (
                                     <span className="w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-black">
                                         {openReports > 9 ? '9+' : openReports}
+                                    </span>
+                                )}
+                                {value === 'support' && openTickets > 0 && (
+                                    <span className="w-5 h-5 bg-blue-500 text-white text-[10px] rounded-full flex items-center justify-center font-black">
+                                        {openTickets > 9 ? '9+' : openTickets}
                                     </span>
                                 )}
                             </button>

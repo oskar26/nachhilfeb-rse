@@ -3,10 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
+import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { SubjectChip } from '../components/SubjectChip';
 import { toast } from 'react-hot-toast';
-import { ChevronLeft, MapPin, Clock, Heart, Send, CheckCircle, Phone, Mail, CalendarDays, Share2, Folder, X, Copy } from 'lucide-react';
-import { Card, CardContent, CardHeader } from '../components/ui/Card';
+import { ChevronLeft, MapPin, Clock, Heart, Send, CheckCircle, Phone, Mail, CalendarDays, Share2, X, Copy } from 'lucide-react';
 import ReportWizard from '../components/ReportWizard';
 import ShareDialog from '../components/ShareDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/Dialog';
@@ -21,13 +21,8 @@ export default function AdDetails() {
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState<any>(null);
     const [isFavorite, setIsFavorite] = useState(false);
-    const [favoriteRecordId, setFavoriteRecordId] = useState<string | null>(null);
     const [theirAvailability, setTheirAvailability] = useState<Availability>(emptyAvailability());
     const [myAvailability, setMyAvailability] = useState<Availability>(emptyAvailability());
-
-    // Collections states
-    const [collections, setCollections] = useState<any[]>([]);
-    const [showCollectionSelector, setShowCollectionSelector] = useState(false);
 
     // Request State
     const [requestStatus, setRequestStatus] = useState<'none' | 'pending' | 'accepted' | 'rejected' | 'completed'>('none');
@@ -56,14 +51,8 @@ export default function AdDetails() {
                 // Load my own availability for matching
                 const { data: myProf } = await supabase.from('profiles').select('availability').eq('id', user.id).single();
                 setMyAvailability(myProf?.availability || emptyAvailability());
-
-                const { data: fav } = await supabase.from('favorites').select('*').eq('user_id', user.id).eq('ad_id', id).single();
+                const { data: fav } = await supabase.from('favorites').select('ad_id').eq('user_id', user.id).eq('ad_id', id).maybeSingle();
                 setIsFavorite(!!fav);
-                if (fav) setFavoriteRecordId(fav.id);
-
-                // Fetch collections
-                const { data: cols } = await supabase.from('favorite_collections').select('*').eq('user_id', user.id).order('name');
-                if (cols) setCollections(cols);
 
                 const { data: req } = await supabase.from('ad_requests')
                     .select('*')
@@ -89,31 +78,16 @@ export default function AdDetails() {
                 toast.error("Konnte nicht von der Merkliste entfernt werden.");
             } else {
                 setIsFavorite(false);
-                setFavoriteRecordId(null);
                 toast.success("Aus Merkliste entfernt");
             }
         } else {
-            const { data, error } = await supabase.from('favorites').insert({ user_id: user.id, ad_id: ad.id }).select().single();
+            const { error } = await supabase.from('favorites').insert({ user_id: user.id, ad_id: ad.id });
             if (error) {
                 console.error("Error adding favorite:", error);
                 toast.error("Konnte nicht zur Merkliste hinzugefügt werden.");
             } else {
                 setIsFavorite(true);
-                if (data) setFavoriteRecordId(data.id);
-                toast.success((t) => (
-                    <div className="flex items-center gap-2">
-                        <span>Anzeige gespeichert!</span>
-                        <button 
-                            className="text-xs text-primary font-bold underline"
-                            onClick={() => {
-                                toast.dismiss(t.id);
-                                setShowCollectionSelector(true);
-                            }}
-                        >
-                            Verschieben
-                        </button>
-                    </div>
-                ), { duration: 4000 });
+                toast.success("In Merkliste gespeichert!");
             }
         }
     };
@@ -352,60 +326,6 @@ export default function AdDetails() {
                 isOpen={isShareOpen}
                 onClose={() => setIsShareOpen(false)}
             />
-
-            {/* Collection Selection Dialog */}
-            <Dialog open={showCollectionSelector}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader className="relative">
-                        <DialogTitle>In Sammlung verschieben</DialogTitle>
-                        <DialogDescription>
-                            Wähle eine Sammlung, in die du diese Anzeige verschieben möchtest.
-                        </DialogDescription>
-                        <button 
-                            onClick={() => setShowCollectionSelector(false)} 
-                            className="absolute right-0 top-0 text-gray-400 hover:text-gray-600 transition-colors"
-                        >
-                            <X size={18} />
-                        </button>
-                    </DialogHeader>
-                    <div className="flex flex-col gap-2 py-4">
-                        <button
-                            className="w-full text-left text-sm px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 font-semibold flex items-center gap-2 border dark:border-gray-850 bg-gray-50 dark:bg-gray-950"
-                            onClick={async () => {
-                                if (favoriteRecordId) {
-                                    await supabase.from('favorites').update({ collection_id: null }).eq('id', favoriteRecordId);
-                                    toast.success("In Hauptliste verschoben");
-                                    setShowCollectionSelector(false);
-                                }
-                            }}
-                        >
-                            <Folder size={16} /> <span>Hauptliste</span>
-                        </button>
-                        {collections.map(c => (
-                            <button
-                                key={c.id}
-                                className="w-full text-left text-sm px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 font-semibold flex items-center gap-2 border dark:border-gray-850 bg-gray-50 dark:bg-gray-950"
-                                onClick={async () => {
-                                    if (favoriteRecordId) {
-                                        const { error } = await supabase.from('favorites').update({ collection_id: c.id }).eq('id', favoriteRecordId);
-                                        if (!error) {
-                                            toast.success(`In "${c.name}" verschoben`);
-                                        } else {
-                                            toast.error("Fehler beim Verschieben.");
-                                        }
-                                        setShowCollectionSelector(false);
-                                    }
-                                }}
-                            >
-                                <Folder size={16} style={{ color: c.color }} /> <span>{c.name}</span>
-                            </button>
-                        ))}
-                    </div>
-                    <div className="flex justify-end border-t pt-3">
-                        <Button size="sm" variant="ghost" onClick={() => setShowCollectionSelector(false)}>Schließen</Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
         </div>
     );
 }

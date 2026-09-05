@@ -1,5 +1,7 @@
 import * as React from "react"
+import { motion } from "framer-motion"
 import { cn } from "../../lib/utils"
+import { triggerHaptic } from "../../lib/haptics"
 
 const TabsContext = React.createContext<{
     value: string;
@@ -12,9 +14,12 @@ const Tabs = React.forwardRef<
 >(({ className, defaultValue, value: controlledValue, onValueChange, children, ...props }, ref) => {
     const [localValue, setLocalValue] = React.useState(defaultValue || "")
     const isControlled = controlledValue !== undefined
-    const activeValue = isControlled ? controlledValue : localValue
+    const activeValue = isControlled ? controlledValue! : localValue
 
     const handleValueChange = (newValue: string) => {
+        if (newValue !== activeValue) {
+            triggerHaptic('selection');
+        }
         if (!isControlled) {
             setLocalValue(newValue)
         }
@@ -23,7 +28,7 @@ const Tabs = React.forwardRef<
 
     return (
         <TabsContext.Provider value={{ value: activeValue, onValueChange: handleValueChange }}>
-            <div ref={ref} className={cn("", className)} {...props}>
+            <div ref={ref} className={cn("w-full", className)} {...props}>
                 {children}
             </div>
         </TabsContext.Provider>
@@ -38,7 +43,7 @@ const TabsList = React.forwardRef<
     <div
         ref={ref}
         className={cn(
-            "inline-flex h-10 items-center justify-center rounded-md bg-gray-100 p-1 text-gray-500 dark:bg-gray-800 dark:text-gray-400",
+            "inline-flex h-11 items-center justify-center rounded-2xl bg-gray-100/90 p-1 text-gray-500 dark:bg-gray-800/80 dark:text-gray-400 border border-gray-200/50 dark:border-gray-700/50",
             className
         )}
         {...props}
@@ -49,18 +54,19 @@ TabsList.displayName = "TabsList"
 const TabsTrigger = React.forwardRef<
     HTMLButtonElement,
     React.ButtonHTMLAttributes<HTMLButtonElement> & { value: string }
->(({ className, value, onClick, ...props }, ref) => {
+>(({ className, value, onClick, children, ...props }, ref) => {
     const context = React.useContext(TabsContext)
     const isActive = context?.value === value
 
     return (
         <button
             ref={ref}
+            type="button"
             className={cn(
-                "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+                "relative inline-flex items-center justify-center whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 select-none cursor-pointer z-10",
                 isActive
-                    ? "bg-white text-gray-950 shadow-sm dark:bg-gray-950 dark:text-gray-50"
-                    : "hover:bg-gray-200/50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-gray-50",
+                    ? "text-gray-950 dark:text-white font-bold"
+                    : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white",
                 className
             )}
             onClick={(e) => {
@@ -68,7 +74,16 @@ const TabsTrigger = React.forwardRef<
                 if (onClick) onClick(e)
             }}
             {...props}
-        />
+        >
+            {isActive && (
+                <motion.div
+                    layoutId="activeTabIndicator"
+                    className="absolute inset-0 bg-white shadow-sm rounded-xl dark:bg-gray-900 border border-black/5 dark:border-white/10 -z-10"
+                    transition={{ type: "spring", stiffness: 450, damping: 30 }}
+                />
+            )}
+            {children}
+        </button>
     )
 })
 TabsTrigger.displayName = "TabsTrigger"
@@ -76,19 +91,25 @@ TabsTrigger.displayName = "TabsTrigger"
 const TabsContent = React.forwardRef<
     HTMLDivElement,
     React.HTMLAttributes<HTMLDivElement> & { value: string }
->(({ className, value, ...props }, ref) => {
+>(({ className, value, children, ...props }, ref) => {
     const context = React.useContext(TabsContext)
     if (context?.value !== value) return null
 
     return (
-        <div
+        <motion.div
             ref={ref}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
             className={cn(
-                "mt-2 ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 dark:ring-offset-gray-950 dark:focus-visible:ring-gray-300 animate-in fade-in slide-in-from-top-1 duration-200",
+                "mt-3 ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                 className
             )}
-            {...props}
-        />
+            {...(props as any)}
+        >
+            {children}
+        </motion.div>
     )
 })
 TabsContent.displayName = "TabsContent"

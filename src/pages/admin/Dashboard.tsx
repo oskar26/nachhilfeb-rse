@@ -18,6 +18,7 @@ import AdminAuditLog from './AdminAuditLog';
 import AdminNews from './AdminNews';
 
 import AdminAnalytics from './AdminAnalytics';
+import AdminSupport from './AdminSupport';
 
 export default function SVDashboard() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -35,6 +36,8 @@ export default function SVDashboard() {
     switch (activeTab) {
         case 'overview':
             return <AdminOverview />;
+        case 'support':
+            return <AdminSupport />;
         case 'users':
             return <AdminUsers />;
         case 'reports':

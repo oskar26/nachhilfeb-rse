@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
 import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/Card';
 import { SubjectChip, SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
-import { GraduationCap, MapPin, Clock, Filter, Search, CalendarDays, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
+import { GraduationCap, MapPin, Clock, Filter, Search, CalendarDays, ShieldCheck, ChevronDown, ChevronUp, Share2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
@@ -12,7 +13,9 @@ import { PriceRangeSlider } from '../components/PriceRangeSlider';
 import { useAuth } from '../context/AuthContext';
 import { emptyAvailability, countMatches, type Availability } from '../components/AvailabilityCalendar';
 import { toast } from 'react-hot-toast';
+import ShareDialog from '../components/ShareDialog';
 import { cn } from '../lib/utils';
+import { triggerHaptic } from '../lib/haptics';
 
 interface Ad {
     id: string;
@@ -42,6 +45,7 @@ export default function Feed() {
     const [showBanners, setShowBanners] = useState(() => localStorage.getItem('feed_show_banners') !== 'false');
     const [myAvailability, setMyAvailability] = useState<Availability>(emptyAvailability());
     const [filterByTime, setFilterByTime] = useState(false);
+    const [shareAd, setShareAd] = useState<{ id: string; title: string } | null>(null);
 
     // Filter State
     const [filterSubject, setFilterSubject] = useState<Subject | null>(null);
@@ -145,37 +149,38 @@ export default function Feed() {
             {/* Eingeklappte News-Sektion auf der Startseite */}
             <CollapsedNewsWidget />
             <div className="flex flex-col gap-4 mb-6">
-                <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold">Aktuelle Anzeigen</h1>
-                    <div className="flex gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-2.5">
+                    <h1 className="text-xl sm:text-2xl font-black tracking-tight">Aktuelle Anzeigen</h1>
+                    <div className="flex items-center gap-1.5 flex-wrap">
                         {user && (
                             <button
-                                onClick={() => { setFilterByTime(!filterByTime); if ('vibrate' in navigator) navigator.vibrate([20]); }}
-                                className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border font-semibold transition-all ${
+                                onClick={() => { setFilterByTime(!filterByTime); triggerHaptic('selection'); }}
+                                className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-full border font-semibold transition-all cursor-pointer ${
                                     filterByTime
                                         ? 'bg-green-100 border-green-400 text-green-700'
-                                        : 'bg-white dark:bg-gray-900 border-gray-200 text-gray-500'
+                                        : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-500'
                                 }`}
                                 title="Passende Zeiten oben anzeigen"
                             >
-                                <CalendarDays size={14} />
+                                <CalendarDays size={13} />
                                 <span className="hidden sm:inline">Zeitlich passend</span>
                             </button>
                         )}
-                        <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
-                            <Filter size={16} className="mr-2" /> Filter
+                        <Button variant="outline" size="sm" className="h-8 px-3 rounded-full text-xs font-bold gap-1 border-gray-200 dark:border-gray-800 shadow-2xs" onClick={() => setShowFilters(!showFilters)}>
+                            <Filter size={13} /> Filter
                         </Button>
                         <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => {
+                                triggerHaptic('light');
                                 localStorage.setItem('fwg_saved_search', JSON.stringify({ query: searchQuery, time: filterByTime }));
                                 toast.success("Suche gespeichert! Du wirst bei neuen passenden Anzeigen benachrichtigt.");
                             }}
-                            className="text-xs text-primary-hover dark:text-primary font-bold rounded-full border border-primary/20 bg-primary/10 hover:bg-primary/20"
+                            className="h-8 px-2.5 text-xs text-primary-hover dark:text-primary font-bold rounded-full border border-primary/20 bg-primary/10 hover:bg-primary/20 shadow-2xs"
                             title="Aktuelle Suche speichern und bei neuen Anzeigen benachrichtigt werden"
                         >
-                            🔔 Suche merken
+                            🔔 Merken
                         </Button>
                     </div>
                 </div>
@@ -220,55 +225,63 @@ export default function Feed() {
                     )}
                 </div>
 
-                {showFilters && (
-                    <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border shadow-sm space-y-6 animate-in slide-in-from-top-2">
+                <AnimatePresence>
+                    {showFilters && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0, overflow: 'hidden' }}
+                            animate={{ opacity: 1, height: 'auto', overflow: 'visible' }}
+                            exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
+                            transition={{ duration: 0.25, ease: 'easeOut' }}
+                            className="bg-white dark:bg-gray-900 p-5 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft space-y-6"
+                        >
 
-                        {/* Type & Price */}
-                        <div className="grid md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="text-xs font-bold uppercase text-gray-500 mb-2 block">Typ</label>
-                                <div className="flex gap-2">
-                                    <button onClick={() => setFilterType('all')} className={`px-3 py-1 rounded-full text-sm ${filterType === 'all' ? 'bg-black text-white dark:bg-white dark:text-black' : 'bg-gray-100 dark:bg-gray-800'}`}>Alle</button>
-                                    <button onClick={() => setFilterType('offer')} className={`px-3 py-1 rounded-full text-sm ${filterType === 'offer' ? 'bg-primary text-black' : 'bg-gray-100 dark:bg-gray-800'}`}>Angebote</button>
-                                    <button onClick={() => setFilterType('search')} className={`px-3 py-1 rounded-full text-sm ${filterType === 'search' ? 'bg-secondary text-white' : 'bg-gray-100 dark:bg-gray-800'}`}>Gesuche</button>
+                            {/* Type & Price */}
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-2 block">Typ</label>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => { triggerHaptic('selection'); setFilterType('all'); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${filterType === 'all' ? 'bg-black text-white dark:bg-white dark:text-black shadow-sm' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>Alle</button>
+                                        <button onClick={() => { triggerHaptic('selection'); setFilterType('offer'); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${filterType === 'offer' ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>Angebote</button>
+                                        <button onClick={() => { triggerHaptic('selection'); setFilterType('search'); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${filterType === 'search' ? 'bg-blue-500 text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>Gesuche</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-2 block">Preis (€)</label>
+                                    <PriceRangeSlider min={0} max={100} onChange={(min, max) => { setMinPrice(min); setMaxPrice(max); }} />
                                 </div>
                             </div>
+
+                            {/* Grade */}
                             <div>
-                                <label className="text-xs font-bold uppercase text-gray-500 mb-2 block">Preis (€)</label>
-                                <PriceRangeSlider min={0} max={100} onChange={(min, max) => { setMinPrice(min); setMaxPrice(max); }} />
+                                <label className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-2 block">Klassenstufe</label>
+                                <GradeSelector selectedGrades={filterGrade} onChange={setFilterGrade} className="justify-start" />
                             </div>
-                        </div>
 
-                        {/* Grade */}
-                        <div>
-                            <label className="text-xs font-bold uppercase text-gray-500 mb-2 block">Klassenstufe</label>
-                            <GradeSelector selectedGrades={filterGrade} onChange={setFilterGrade} className="justify-start" />
-                        </div>
-
-                        {/* Subjects */}
-                        <div>
-                            <label className="text-xs font-bold uppercase text-gray-500 mb-2 block">Fach</label>
-                            <div className="flex flex-col gap-4 max-h-64 overflow-y-auto pr-2">
-                                {SUBJECT_CATEGORIES.map(category => (
-                                    <div key={category.title}>
-                                        <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-2">{category.title}</h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            {category.subjects.map((s: Subject) => (
-                                                <SubjectChip
-                                                    key={s}
-                                                    subject={s}
-                                                    selected={filterSubject === s}
-                                                    onClick={() => setFilterSubject(filterSubject === s ? null : s)}
-                                                    className="cursor-pointer"
-                                                />
-                                            ))}
+                            {/* Subjects */}
+                            <div>
+                                <label className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-2 block">Fach</label>
+                                <div className="flex flex-col gap-4 max-h-64 overflow-y-auto pr-2">
+                                    {SUBJECT_CATEGORIES.map(category => (
+                                        <div key={category.title}>
+                                            <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-2">{category.title}</h4>
+                                            <div className="flex flex-wrap gap-2">
+                                                {category.subjects.map((s: Subject) => (
+                                                    <SubjectChip
+                                                        key={s}
+                                                        subject={s}
+                                                        selected={filterSubject === s}
+                                                        onClick={() => setFilterSubject(filterSubject === s ? null : s)}
+                                                        className="cursor-pointer"
+                                                    />
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                )}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
             {/* Banner Section */}
@@ -482,17 +495,42 @@ export default function Feed() {
                                     )}
                                     <span className="flex items-center gap-1"><Clock size={12} /> Flexibel</span>
                                 </div>
-                                {boosted && (
-                                    <span className="text-yellow-600 dark:text-yellow-500 font-semibold text-[10px] flex items-center gap-0.5">
-                                        ✨ Empfohlen
-                                    </span>
-                                )}
+                                <div className="flex items-center gap-2">
+                                    {boosted && (
+                                        <span className="text-yellow-600 dark:text-yellow-500 font-semibold text-[10px] flex items-center gap-0.5">
+                                            ✨ Empfohlen
+                                        </span>
+                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            triggerHaptic('light');
+                                            setShareAd({ id: ad.id, title: `${ad.subjects?.[0]?.toUpperCase() || 'Nachhilfe'}: ${ad.profiles?.display_name || ''}` });
+                                        }}
+                                        className="p-1.5 rounded-lg hover:bg-gray-200/60 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                                        title="Anzeige teilen"
+                                    >
+                                        <Share2 size={13} />
+                                    </button>
+                                </div>
                             </CardFooter>
                         </Card>
                         );
                     })
                 )}
             </div>
+
+            {/* Share Dialog */}
+            {shareAd && (
+                <ShareDialog
+                    type="ad"
+                    adId={shareAd.id}
+                    title={shareAd.title}
+                    isOpen={shareAd !== null}
+                    onClose={() => setShareAd(null)}
+                />
+            )}
         </div>
     );
 }

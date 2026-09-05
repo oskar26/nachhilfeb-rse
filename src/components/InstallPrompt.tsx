@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { X, Download, Share } from 'lucide-react';
+import { Logo, LogoBadge } from './ui/Logo';
 
 interface BeforeInstallPromptEvent extends Event {
     readonly platforms: string[];
@@ -90,9 +91,7 @@ export default function InstallPrompt() {
                     </button>
 
                     <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                            N
-                        </div>
+                        <Logo className="w-10 h-10 text-black dark:text-white shrink-0" />
                         <div className="flex-1 min-w-0">
                             <p className="font-semibold text-sm text-gray-900 dark:text-white">
                                 Nachhilfebörse als App installieren
@@ -122,9 +121,7 @@ export default function InstallPrompt() {
                 <div className="w-10 h-1 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto mb-5" />
 
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center text-white font-bold text-2xl shadow-lg flex-shrink-0">
-                        N
-                    </div>
+                    <Logo className="w-12 h-12 text-black dark:text-white shrink-0" />
                     <div>
                         <p className="font-bold text-base text-gray-900 dark:text-white leading-tight">
                             Nachhilfebörse als App installieren

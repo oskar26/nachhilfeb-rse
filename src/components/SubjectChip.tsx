@@ -1,10 +1,6 @@
+import { motion } from 'framer-motion';
 import { cn } from '../lib/utils';
-
-// Mapping local simplified names to Tailwind config token keys or hex values
-// Ideally we utilize the tailwind config classes like 'bg-subject-deutsch'.
-// But for dynamic mapping, we might need a lookup or explicit class strings if they are not safe-listed.
-// Since Tailwind scans files, constructing "bg-subject-${subject}" works only if the full string exists somewhere.
-// Safest is a map object.
+import { triggerHaptic } from '../lib/haptics';
 
 export type Subject =
     | 'deutsch' | 'englisch' | 'franzoesisch' | 'kunst' | 'griechisch' | 'latein' | 'musik' | 'literatur' | 'kultur'
@@ -14,37 +10,37 @@ export type Subject =
 
 const subjectColorMap: Record<Subject, string> = {
     // Aufgabenfeld 1
-    deutsch: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200 border border-yellow-200 dark:border-yellow-800/50',
-    englisch: 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200 border border-blue-200 dark:border-blue-800/50',
-    franzoesisch: 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200 border border-blue-200 dark:border-blue-800/50',
-    kunst: 'bg-gradient-to-r from-pink-100 to-purple-100 text-pink-800 dark:from-pink-900/50 dark:to-purple-900/50 dark:text-pink-200 border border-pink-200 dark:border-pink-800/50',
-    griechisch: 'bg-pink-100 text-pink-800 dark:bg-pink-900/50 dark:text-pink-200 border border-pink-200 dark:border-pink-800/50',
-    latein: 'bg-pink-100 text-pink-800 dark:bg-pink-900/50 dark:text-pink-200 border border-pink-200 dark:border-pink-800/50',
-    musik: 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-200 border border-purple-200 dark:border-purple-800/50',
-    literatur: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-200 border border-indigo-200 dark:border-indigo-800/50',
-    kultur: 'bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900/50 dark:text-fuchsia-200 border border-fuchsia-200 dark:border-fuchsia-800/50',
+    deutsch: 'bg-yellow-100/90 text-yellow-900 dark:bg-yellow-950/60 dark:text-yellow-200 border border-yellow-200/80 dark:border-yellow-800/50',
+    englisch: 'bg-blue-100/90 text-blue-900 dark:bg-blue-950/60 dark:text-blue-200 border border-blue-200/80 dark:border-blue-800/50',
+    franzoesisch: 'bg-blue-100/90 text-blue-900 dark:bg-blue-950/60 dark:text-blue-200 border border-blue-200/80 dark:border-blue-800/50',
+    kunst: 'bg-gradient-to-r from-pink-100 to-purple-100 text-pink-900 dark:from-pink-950/60 dark:to-purple-950/60 dark:text-pink-200 border border-pink-200/80 dark:border-pink-800/50',
+    griechisch: 'bg-pink-100/90 text-pink-900 dark:bg-pink-950/60 dark:text-pink-200 border border-pink-200/80 dark:border-pink-800/50',
+    latein: 'bg-pink-100/90 text-pink-900 dark:bg-pink-950/60 dark:text-pink-200 border border-pink-200/80 dark:border-pink-800/50',
+    musik: 'bg-purple-100/90 text-purple-900 dark:bg-purple-950/60 dark:text-purple-200 border border-purple-200/80 dark:border-purple-800/50',
+    literatur: 'bg-indigo-100/90 text-indigo-900 dark:bg-indigo-950/60 dark:text-indigo-200 border border-indigo-200/80 dark:border-indigo-800/50',
+    kultur: 'bg-fuchsia-100/90 text-fuchsia-900 dark:bg-fuchsia-950/60 dark:text-fuchsia-200 border border-fuchsia-200/80 dark:border-fuchsia-800/50',
 
     // Aufgabenfeld 2
-    geschichte: 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200 border border-amber-200 dark:border-amber-800/50',
-    paedagogik: 'bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-200 border border-orange-200 dark:border-orange-800/50',
-    erdkunde: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800/50',
-    philosophie: 'bg-violet-100 text-violet-800 dark:bg-violet-900/50 dark:text-violet-200 border border-violet-200 dark:border-violet-800/50',
-    sowi: 'bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-200 border border-rose-200 dark:border-rose-800/50',
-    wirtschaft_gesell: 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200 border border-red-200 dark:border-red-800/50',
-    wirtschaft_politik: 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200 border border-red-200 dark:border-red-800/50',
+    geschichte: 'bg-amber-100/90 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200 border border-amber-200/80 dark:border-amber-800/50',
+    paedagogik: 'bg-orange-100/90 text-orange-900 dark:bg-orange-950/60 dark:text-orange-200 border border-orange-200/80 dark:border-orange-800/50',
+    erdkunde: 'bg-emerald-100/90 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200 border border-emerald-200/80 dark:border-emerald-800/50',
+    philosophie: 'bg-violet-100/90 text-violet-900 dark:bg-violet-950/60 dark:text-violet-200 border border-violet-200/80 dark:border-violet-800/50',
+    sowi: 'bg-rose-100/90 text-rose-900 dark:bg-rose-950/60 dark:text-rose-200 border border-rose-200/80 dark:border-rose-800/50',
+    wirtschaft_gesell: 'bg-red-100/90 text-red-900 dark:bg-red-950/60 dark:text-red-200 border border-red-200/80 dark:border-red-800/50',
+    wirtschaft_politik: 'bg-red-100/90 text-red-900 dark:bg-red-950/60 dark:text-red-200 border border-red-200/80 dark:border-red-800/50',
 
     // Aufgabenfeld 3
-    biologie: 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200 border border-green-200 dark:border-green-800/50',
-    chemie: 'bg-teal-100 text-teal-800 dark:bg-teal-900/50 dark:text-teal-200 border border-teal-200 dark:border-teal-800/50',
-    informatik: 'bg-slate-100 text-slate-800 dark:bg-slate-800/50 dark:text-slate-200 border border-slate-300 dark:border-slate-700/50',
-    mathematik: 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200 border border-green-200 dark:border-green-800/50',
-    physik: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/50 dark:text-cyan-200 border border-cyan-200 dark:border-cyan-800/50',
-    blauer_planet: 'bg-gradient-to-r from-cyan-100 to-blue-100 text-blue-800 dark:from-cyan-900/50 dark:to-blue-900/50 dark:text-blue-200 border border-blue-200 dark:border-blue-800/50',
+    biologie: 'bg-green-100/90 text-green-900 dark:bg-green-950/60 dark:text-green-200 border border-green-200/80 dark:border-green-800/50',
+    chemie: 'bg-teal-100/90 text-teal-900 dark:bg-teal-950/60 dark:text-teal-200 border border-teal-200/80 dark:border-teal-800/50',
+    informatik: 'bg-slate-100/90 text-slate-900 dark:bg-slate-800/60 dark:text-slate-200 border border-slate-300/80 dark:border-slate-700/50',
+    mathematik: 'bg-green-100/90 text-green-900 dark:bg-green-950/60 dark:text-green-200 border border-green-200/80 dark:border-green-800/50',
+    physik: 'bg-cyan-100/90 text-cyan-900 dark:bg-cyan-950/60 dark:text-cyan-200 border border-cyan-200/80 dark:border-cyan-800/50',
+    blauer_planet: 'bg-gradient-to-r from-cyan-100 to-blue-100 text-blue-900 dark:from-cyan-950/60 dark:to-blue-950/60 dark:text-blue-200 border border-blue-200/80 dark:border-blue-800/50',
 
     // Aufgabenfeld 4
-    prakt_philosophie: 'bg-violet-100 text-violet-800 dark:bg-violet-900/50 dark:text-violet-200 border border-violet-200 dark:border-violet-800/50',
-    religion: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200 border border-yellow-200 dark:border-yellow-800/50',
-    sport: 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800/50 dark:text-zinc-200 border border-zinc-300 dark:border-zinc-700/50',
+    prakt_philosophie: 'bg-violet-100/90 text-violet-900 dark:bg-violet-950/60 dark:text-violet-200 border border-violet-200/80 dark:border-violet-800/50',
+    religion: 'bg-yellow-100/90 text-yellow-900 dark:bg-yellow-950/60 dark:text-yellow-200 border border-yellow-200/80 dark:border-yellow-800/50',
+    sport: 'bg-zinc-100/90 text-zinc-900 dark:bg-zinc-800/60 dark:text-zinc-200 border border-zinc-300/80 dark:border-zinc-700/50',
 };
 
 // Human readable labels
@@ -99,7 +95,6 @@ export const SUBJECT_CATEGORIES = [
     }
 ];
 
-
 interface SubjectChipProps {
     subject: Subject;
     className?: string;
@@ -108,17 +103,25 @@ interface SubjectChipProps {
 }
 
 export function SubjectChip({ subject, className, onClick, selected }: SubjectChipProps) {
+    const handleClick = () => {
+        triggerHaptic('light');
+        if (onClick) onClick();
+    };
+
     return (
-        <button
-            onClick={onClick}
+        <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.94 }}
+            transition={{ type: "spring", stiffness: 450, damping: 25 }}
+            onClick={handleClick}
             className={cn(
-                "px-3 py-1 rounded-full text-xs font-semibold shadow-sm transition-transform hover:scale-105 active:scale-95",
+                "inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold shadow-xs transition-colors cursor-pointer select-none",
                 subjectColorMap[subject],
-                selected && "ring-2 ring-offset-2 ring-gray-900 dark:ring-gray-100",
+                selected && "ring-2 ring-offset-1 ring-primary shadow-md dark:ring-offset-gray-950 font-extrabold",
                 className
             )}
         >
             {subjectLabelMap[subject]}
-        </button>
+        </motion.button>
     );
 }

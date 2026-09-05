@@ -1,17 +1,62 @@
 import * as React from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "../../lib/utils"
+import { triggerHaptic } from "../../lib/haptics"
 
-const Dialog = ({ children, open }: any) => {
-    if (!open) return null;
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="relative">
-                {/* Click outside to close could go here on the wrapper */}
-                {children}
-            </div>
-        </div>
-    )
+export interface DialogProps {
+    children: React.ReactNode;
+    open?: boolean;
+    onClose?: () => void;
+    onOpenChange?: (open: boolean) => void;
 }
+
+const Dialog = ({ children, open, onClose, onOpenChange }: DialogProps) => {
+    const handleClose = () => {
+        if (onClose) onClose();
+        if (onOpenChange) onOpenChange(false);
+    };
+
+    React.useEffect(() => {
+        if (open) {
+            triggerHaptic('medium');
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [open]);
+
+    return (
+        <AnimatePresence>
+            {open && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+                    {/* Backdrop */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-md"
+                        onClick={handleClose}
+                    />
+
+                    {/* Dialog Container */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.94, y: 16 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.96, y: 10 }}
+                        transition={{ type: "spring", stiffness: 350, damping: 26 }}
+                        className="relative z-10 w-full max-w-lg my-auto"
+                    >
+                        {children}
+                    </motion.div>
+                </div>
+            )}
+        </AnimatePresence>
+    );
+};
 
 const DialogContent = React.forwardRef<
     HTMLDivElement,
@@ -20,7 +65,7 @@ const DialogContent = React.forwardRef<
     <div
         ref={ref}
         className={cn(
-            "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-white p-6 shadow-lg duration-200 sm:rounded-lg dark:bg-gray-950 dark:border-gray-800",
+            "relative w-full overflow-hidden rounded-3xl border border-gray-100/80 bg-white p-6 shadow-2xl dark:bg-gray-900 dark:border-gray-800/80 dark:text-gray-100",
             className
         )}
         {...props}
@@ -36,7 +81,7 @@ const DialogHeader = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
     <div
         className={cn(
-            "flex flex-col space-y-1.5 text-center sm:text-left",
+            "flex flex-col space-y-1.5 text-center sm:text-left mb-4",
             className
         )}
         {...props}
@@ -50,7 +95,7 @@ const DialogFooter = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
     <div
         className={cn(
-            "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
+            "flex flex-col-reverse sm:flex-row sm:justify-end gap-2 mt-6",
             className
         )}
         {...props}
@@ -65,7 +110,7 @@ const DialogTitle = React.forwardRef<
     <h2
         ref={ref}
         className={cn(
-            "text-lg font-semibold leading-none tracking-tight",
+            "text-xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white",
             className
         )}
         {...props}
@@ -79,7 +124,7 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
     <p
         ref={ref}
-        className={cn("text-sm text-gray-500 dark:text-gray-400", className)}
+        className={cn("text-sm text-gray-500 dark:text-gray-400 leading-relaxed mt-1", className)}
         {...props}
     />
 ))

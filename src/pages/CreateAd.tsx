@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../components/ui/Card';
@@ -12,7 +13,7 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
 import { sanitizeHtml } from '../lib/sanitize';
-import AiListingAssistant from '../components/AiListingAssistant';
+import { triggerHaptic } from '../lib/haptics';
 
 const STEPS = [
     'Typ & Titel',
@@ -39,7 +40,6 @@ export default function CreateAd() {
     const [isVerified, setIsVerified] = useState(false);
     const [loadingProfile, setLoadingProfile] = useState(true);
     const [promoCode, setPromoCode] = useState('');
-    const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false);
 
     const [children, setChildren] = useState<any[]>([]);
     const [selectedChildId, setSelectedChildId] = useState<string>('');
@@ -130,12 +130,12 @@ export default function CreateAd() {
 
 
     const handleNext = () => {
-        if ('vibrate' in navigator) navigator.vibrate([20]);
+        triggerHaptic('selection');
         if (currentStep < STEPS.length - 1) setCurrentStep(prev => prev + 1);
     };
 
     const handleBack = () => {
-        if ('vibrate' in navigator) navigator.vibrate([20]);
+        triggerHaptic('selection');
         if (currentStep > 0) setCurrentStep(prev => prev - 1);
     };
 
@@ -607,16 +607,6 @@ export default function CreateAd() {
                     {/* Step 4: Details */}
                     {currentStep === 4 && (
                         <div className="space-y-6">
-                            {/* KI-Assistent Button */}
-                            <button
-                                type="button"
-                                onClick={() => setIsAiAssistantOpen(true)}
-                                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl border-2 border-dashed border-indigo-200 dark:border-indigo-800 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20 text-indigo-700 dark:text-indigo-300 font-bold text-sm hover:border-indigo-400 hover:shadow-lg hover:shadow-indigo-500/10 transition-all group"
-                            >
-                                <Sparkles size={16} className="group-hover:animate-pulse" />
-                                KI-Entwurf erstellen lassen
-                            </button>
-
                             <div>
                                 <label className="text-sm font-medium mb-2 block">Kurzbeschreibung (für den Feed)</label>
                                 <Input
@@ -734,23 +724,6 @@ export default function CreateAd() {
                     )}
                 </CardFooter>
             </Card>
-
-            {/* KI Listing Assistant Modal */}
-            <AiListingAssistant
-                isOpen={isAiAssistantOpen}
-                onClose={() => setIsAiAssistantOpen(false)}
-                currentType={formData.type}
-                currentSubjects={formData.subjects}
-                currentGrades={formData.grade_levels}
-                onApplyDraft={(draft) => {
-                    setFormData(prev => ({
-                        ...prev,
-                        title: draft.title || prev.title,
-                        short_description: draft.description ? draft.description.substring(0, 100) : prev.short_description,
-                        long_description: draft.description || prev.long_description,
-                    }));
-                }}
-            />
         </div>
     );
 }

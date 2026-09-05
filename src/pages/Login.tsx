@@ -9,6 +9,7 @@ import { useTheme } from '../components/ThemeProvider';
 import { Sun, Moon, GraduationCap, CheckCircle, ShieldAlert } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefinedGradeSelector } from '../components/RefinedGradeSelector';
+import { Logo, LogoBadge } from '../components/ui/Logo';
 import { cn } from '../lib/utils';
 
 const RATE_LIMIT_KEY = 'fwg_auth_attempts';
@@ -296,11 +297,9 @@ export default function Login() {
                     <motion.div 
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="flex items-center gap-3 text-gray-900 font-bold text-2xl tracking-tight"
+                        className="flex items-center gap-3.5 text-gray-900 font-black text-3xl tracking-tight"
                     >
-                        <div className="bg-gray-900 text-primary p-2 rounded-xl">
-                            <GraduationCap size={28} />
-                        </div>
+                        <Logo className="w-12 h-12 text-gray-900 shrink-0" />
                         Nachhilfebörse
                     </motion.div>
                 </div>
@@ -356,11 +355,9 @@ export default function Login() {
                     className="w-full max-w-md my-auto relative z-10"
                 >
                     <div className="lg:hidden flex flex-col items-center mb-6 text-center">
-                        <div className="bg-primary text-gray-900 p-3 rounded-2xl mb-2 shadow-lg shadow-primary/20">
-                            <GraduationCap size={32} />
-                        </div>
-                        <h1 className="text-3xl font-bold tracking-tight">Nachhilfebörse</h1>
-                        <p className="text-gray-500 mt-1">Friedrich-Wilhelms-Gymnasium</p>
+                        <Logo className="w-16 h-16 text-black dark:text-white mb-2 shrink-0 drop-shadow-md" />
+                        <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">Nachhilfebörse</h1>
+                        <p className="text-gray-500 mt-1 font-medium text-sm">Friedrich-Wilhelms-Gymnasium Köln</p>
                     </div>
 
                     <Card className="border-0 shadow-2xl shadow-black/5 dark:shadow-black/20 ring-1 ring-gray-200/50 dark:ring-gray-800/50 backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 overflow-hidden">

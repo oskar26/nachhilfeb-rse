@@ -28,6 +28,11 @@ export interface Database {
                     is_verified: boolean
                     sv_code_used: string | null
                     is_banned?: boolean
+                    ban_type?: 'temporary' | 'permanent' | null
+                    ban_reason?: string | null
+                    banned_until?: string | null
+                    banner_color?: string | null
+                    avatar_type?: string | null
                     average_rating?: number
                     parent_link_code?: string | null
                     onboarding_complete: boolean

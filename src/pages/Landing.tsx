@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion';
 import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
-import { Button } from '../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '../components/ui/Button';
+import { Logo, LogoBadge } from '../components/ui/Logo';
+import { useAuth } from '../context/AuthContext';
 import {
     Search,
     Shield,
@@ -22,6 +24,7 @@ import { supabase } from '../lib/supabase';
 
 export default function Landing() {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [infoOpen, setInfoOpen] = useState<boolean>(() => {
         const stored = localStorage.getItem('landing_infoOpen');
         return stored === null ? true : stored === 'true';
@@ -63,25 +66,42 @@ export default function Landing() {
         <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 font-sans selection:bg-primary selection:text-primary-foreground overflow-x-hidden">
             {/* Navbar */}
             <nav className="fixed top-0 left-0 right-0 px-6 py-4 flex justify-between items-center z-50 backdrop-blur-xl bg-white/70 dark:bg-gray-950/70 border-b border-gray-200/50 dark:border-gray-800/50">
-                <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center font-bold text-primary-foreground shadow-lg">N</div>
-                    <span className="text-xl font-bold tracking-tight">Nachhilfebörse</span>
+                <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate(user ? '/' : '/welcome')}>
+                    <Logo className="w-9 h-9 text-black dark:text-white shrink-0 hover:scale-105 transition-transform" />
+                    <span className="text-xl font-extrabold tracking-tight text-gray-900 dark:text-white">Nachhilfebörse</span>
                 </div>
                 <div className="flex gap-4">
-                    <Button variant="ghost" className="font-medium hidden sm:inline-flex" onClick={() => navigate('/login')}>Anmelden</Button>
-                    <Button className="rounded-full px-6 shadow-soft font-bold" onClick={() => navigate('/login')}>Registrieren</Button>
+                    {user ? (
+                        <Button className="rounded-full px-6 shadow-soft font-bold bg-primary text-black hover:bg-primary-hover" onClick={() => navigate('/')}>
+                            Zur Plattform
+                        </Button>
+                    ) : (
+                        <>
+                            <Button variant="ghost" className="font-medium hidden sm:inline-flex" onClick={() => navigate('/login')}>Anmelden</Button>
+                            <Button className="rounded-full px-6 shadow-soft font-bold bg-primary text-black hover:bg-primary-hover" onClick={() => navigate('/login')}>Registrieren</Button>
+                        </>
+                    )}
                 </div>
             </nav>
 
             {/* Hero Section */}
             <section className="pt-36 pb-12 px-6 flex flex-col items-center text-center max-w-5xl mx-auto w-full">
                 <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    className="flex justify-center mb-8"
+                >
+                    <Logo className="w-24 h-24 sm:w-32 sm:h-32 text-black dark:text-white shrink-0 drop-shadow-md transition-transform hover:scale-105" />
+                </motion.div>
+
+                <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, ease: "easeOut" }}
                     className="w-full flex justify-center"
                 >
-                    <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 text-xs font-bold tracking-widest uppercase bg-primary/10 text-primary-hover dark:text-primary rounded-full border border-primary/20 text-center">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 text-xs font-bold tracking-widest uppercase bg-primary/10 text-gray-900 dark:text-primary rounded-full border border-primary/20 text-center">
                         <span className="w-2 h-2 rounded-full bg-primary animate-pulse shrink-0" /> Schülervertretung Friedrich-Wilhelms-Gymnasium Köln
                     </div>
                 </motion.div>
@@ -116,9 +136,9 @@ export default function Landing() {
                     <Button
                         size="lg"
                         className="rounded-full text-lg sm:text-xl px-8 sm:px-10 py-6 sm:py-7 shadow-2xl hover:scale-105 transition-transform bg-primary text-black font-bold"
-                        onClick={() => navigate('/login')}
+                        onClick={() => navigate(user ? '/' : '/login')}
                     >
-                        Jetzt loslegen
+                        {user ? 'Zur Plattform' : 'Jetzt loslegen'}
                     </Button>
                 </motion.div>
             </section>            {/* Collapsible News & Announcements Section */}
@@ -360,9 +380,12 @@ export default function Landing() {
             {/* Footer / Legal */}
             <footer className="bg-gray-100 dark:bg-gray-900 pt-20 pb-10 px-6 border-t border-gray-200 dark:border-gray-800/50 mt-10">
                 <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div>
-                        <div className="text-2xl font-black mb-2">Nachhilfebörse</div>
-                        <p className="text-gray-500 text-sm">Die clevere Art, am FWG zu lernen.</p>
+                    <div className="flex items-center gap-3">
+                        <Logo className="w-9 h-9 text-black dark:text-white shrink-0" />
+                        <div>
+                            <div className="text-xl font-black leading-tight text-gray-900 dark:text-white">Nachhilfebörse</div>
+                            <p className="text-gray-500 text-xs mt-0.5 font-medium">Die clevere Art, am FWG zu lernen.</p>
+                        </div>
                     </div>
                     <div className="flex gap-6 text-sm font-medium text-gray-600 dark:text-gray-400 flex-wrap">
                         <button onClick={() => navigate('/impressum')} className="hover:text-black dark:hover:text-white transition-colors">Impressum</button>

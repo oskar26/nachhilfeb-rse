@@ -26,13 +26,19 @@ import Cookies from './pages/Cookies';
 import UpdatePassword from './pages/UpdatePassword';
 import ParentGuide from './pages/ParentGuide';
 import Nutzungsbedingungen from './pages/Nutzungsbedingungen';
+import { Logo } from './components/ui/Logo';
 
 // Branded loading spinner
 function AppLoader() {
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-50 dark:bg-gray-950 gap-4">
-      <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center font-black text-black text-xl shadow-lg animate-pulse">N</div>
-      <div className="w-6 h-6 border-[3px] border-primary border-t-transparent rounded-full animate-spin" />
+    <div className="flex flex-col items-center justify-center h-screen bg-gray-50 dark:bg-gray-950 gap-5 animate-in fade-in duration-300">
+      <div className="relative flex items-center justify-center">
+        <Logo className="w-20 h-20 text-black dark:text-white shrink-0 animate-bounce drop-shadow-lg" />
+      </div>
+      <div className="flex items-center gap-2.5 text-sm font-extrabold text-gray-900 dark:text-white tracking-wide mt-2">
+        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <span>Nachhilfebörse lädt...</span>
+      </div>
     </div>
   );
 }
@@ -45,6 +51,7 @@ function AnalyticsTracker() {
 }
 
 import { NewsPopupModal } from './components/NewsPopupModal';
+import BannedScreen from './components/BannedScreen';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -53,6 +60,21 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (loading) return <AppLoader />;
   if (!user) return <Navigate to="/welcome" replace />;
+
+  // Check if user is banned
+  if (profile?.is_banned) {
+    const isTemp = profile.ban_type === 'temporary';
+    const isExpired = isTemp && profile.banned_until && new Date(profile.banned_until).getTime() <= Date.now();
+    if (!isExpired) {
+      return (
+        <BannedScreen
+          banReason={profile.ban_reason}
+          banType={profile.ban_type}
+          bannedUntil={profile.banned_until}
+        />
+      );
+    }
+  }
 
   // Only redirect to profile if onboarding_complete is explicitly false AND has no name at all
   // Never redirect if already on /profile to avoid redirect loops
@@ -88,6 +110,7 @@ function App() {
           <AnalyticsTracker />
           <Routes>
             <Route path="/welcome" element={<Landing />} />
+            <Route path="/landing" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/update-password" element={<UpdatePassword />} />
 

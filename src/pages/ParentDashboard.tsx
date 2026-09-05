@@ -17,13 +17,11 @@ import {
     Trash2,
     Calendar,
     ArrowUpRight,
-    Brain,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { cn } from '../lib/utils';
 import ParentLinkFlow from '../components/ParentLinkFlow';
 import ParentConsentModal from '../components/ParentConsentModal';
-import AiParentBriefing from '../components/AiParentBriefing';
 
 interface ChildData {
     link_id: string;
@@ -61,7 +59,6 @@ export default function ParentDashboard() {
     const [isLinkFlowOpen, setIsLinkFlowOpen] = useState(false);
     const [selectedLinkToDelete, setSelectedLinkToDelete] = useState<{ id: string; name: string } | null>(null);
     const [selectedConsentChild, setSelectedConsentChild] = useState<ChildData | null>(null);
-    const [selectedBriefingChild, setSelectedBriefingChild] = useState<ChildData | null>(null);
 
     useEffect(() => {
         if (user) {
@@ -391,14 +388,6 @@ export default function ParentDashboard() {
                                     {/* Action buttons */}
                                     <div className="space-y-2 pt-2">
                                         <Button
-                                            onClick={() => setSelectedBriefingChild(child)}
-                                            variant="outline"
-                                            className="w-full rounded-2xl gap-2 text-xs font-bold border-teal-200 dark:border-teal-900 text-teal-700 dark:text-teal-300 bg-teal-50/50 dark:bg-teal-950/20 hover:bg-teal-100 dark:hover:bg-teal-900/30"
-                                        >
-                                            <Brain size={14} className="text-teal-600" /> ✨ KI-Eltern-Briefing
-                                        </Button>
-
-                                        <Button
                                             onClick={() => setSelectedConsentChild(child)}
                                             variant="outline"
                                             className="w-full rounded-2xl gap-2 text-xs font-bold border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800"
@@ -499,13 +488,6 @@ export default function ParentDashboard() {
                 childName={selectedConsentChild?.profile.display_name || 'Kind'}
                 parentName={profile?.display_name || profile?.first_name ? `${profile?.first_name} ${profile?.last_name}` : 'Elternteil'}
                 gradeLevel={selectedConsentChild?.profile.grade_level}
-            />
-
-            {/* KI-Eltern-Briefing Modal */}
-            <AiParentBriefing
-                isOpen={!!selectedBriefingChild}
-                onClose={() => setSelectedBriefingChild(null)}
-                childName={selectedBriefingChild?.profile.display_name || ''}
             />
         </div>
     );

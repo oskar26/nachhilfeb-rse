@@ -180,23 +180,37 @@ export default function AdminUsers() {
 
         try {
             const expiresAt = banType === 'temporary' 
-                ? new Date(Date.now() + parseInt(banDurationDays) * 24 * 60 * 60 * 1000).toISOString()
+                ? new Date(Date.now() + parseFloat(banDurationDays) * 24 * 60 * 60 * 1000).toISOString()
                 : null;
 
-            // 1. Insert into user_bans
-            const { error: banError } = await supabase
-                .from('user_bans')
-                .insert({
-                    user_id: banUserObj.id,
-                    banned_by: (await supabase.auth.getUser()).data.user?.id,
-                    reason: banReason,
+            // 1. Insert into user_bans (if table exists)
+            try {
+                await supabase
+                    .from('user_bans')
+                    .insert({
+                        user_id: banUserObj.id,
+                        banned_by: (await supabase.auth.getUser()).data.user?.id,
+                        reason: banReason,
+                        ban_type: banType,
+                        expires_at: expiresAt
+                    });
+            } catch (e) {
+                console.warn('user_bans table write error, updating profile directly:', e);
+            }
+
+            // 2. Directly update profiles table
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .update({
+                    is_banned: true,
                     ban_type: banType,
-                    expires_at: expiresAt
-                });
+                    ban_reason: banReason,
+                    banned_until: expiresAt
+                })
+                .eq('id', banUserObj.id);
 
-            if (banError) throw banError;
+            if (profileError) throw profileError;
 
-            // Function trigger applies the ban, but update local state
             toast.success(`Nutzer ${banUserObj.display_name} wurde gesperrt`);
             setBanUserObj(null);
             setBanReason('');
@@ -225,14 +239,25 @@ export default function AdminUsers() {
 
             if (type === 'unban') {
                 // Delete ban records for the user
-                const { error } = await supabase
-                    .from('user_bans')
-                    .delete()
-                    .eq('user_id', user.id);
-                if (error) throw error;
+                try {
+                    await supabase
+                        .from('user_bans')
+                        .delete()
+                        .eq('user_id', user.id);
+                } catch (e) {}
                 
-                // Also manually ensure is_banned is false in case trigger did not run
-                await supabase.from('profiles').update({ is_banned: false }).eq('id', user.id);
+                // Directly clear ban in profiles
+                const { error: unbanError } = await supabase
+                    .from('profiles')
+                    .update({ 
+                        is_banned: false,
+                        ban_type: null,
+                        ban_reason: null,
+                        banned_until: null
+                    })
+                    .eq('id', user.id);
+
+                if (unbanError) throw unbanError;
 
                 toast.success('Nutzer entsperrt');
                 logAction = 'unban_user';
@@ -705,17 +730,21 @@ export default function AdminUsers() {
 
                         {banType === 'temporary' && (
                             <div className="space-y-1">
-                                <label className="text-[10px] font-bold uppercase text-gray-400">Dauer (in Tagen)</label>
+                                <label className="text-[10px] font-bold uppercase text-gray-400">Dauer der Sperre</label>
                                 <select
                                     value={banDurationDays}
                                     onChange={e => setBanDurationDays(e.target.value)}
                                     className="w-full mt-1 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 text-sm focus:outline-none"
                                 >
+                                    <option value="0.04167">1 Stunde (Test / Verwarnung)</option>
+                                    <option value="0.25">6 Stunden</option>
+                                    <option value="0.5">12 Stunden</option>
                                     <option value="1">1 Tag</option>
                                     <option value="3">3 Tage</option>
-                                    <option value="7">7 Tage</option>
-                                    <option value="14">14 Tage</option>
-                                    <option value="30">30 Tage</option>
+                                    <option value="7">7 Tage (1 Woche)</option>
+                                    <option value="14">14 Tage (2 Wochen)</option>
+                                    <option value="30">30 Tage (1 Monat)</option>
+                                    <option value="90">90 Tage (3 Monate)</option>
                                 </select>
                             </div>
                         )}
