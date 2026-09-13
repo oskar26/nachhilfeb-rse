@@ -1,4 +1,4 @@
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { MessageSquare, Heart, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Favorites from './Favorites';
@@ -7,9 +7,16 @@ import Matching from './Matching';
 import { cn } from '../lib/utils';
 import { triggerHaptic } from '../lib/haptics';
 
-export default function Social() {
+export default function Social({ initialTab }: { initialTab?: 'requests' | 'matches' | 'watchlist' }) {
     const [searchParams, setSearchParams] = useSearchParams();
-    const activeTab = searchParams.get('tab') || 'requests';
+    const location = useLocation();
+
+    const pathTab = location.pathname.includes('matches') || location.pathname.includes('matching') ? 'matches'
+        : location.pathname.includes('favorites') || location.pathname.includes('watchlist') ? 'watchlist'
+        : location.pathname.includes('requests') ? 'requests'
+        : null;
+
+    const activeTab = searchParams.get('tab') || pathTab || initialTab || 'requests';
 
     const tabs = [
         {

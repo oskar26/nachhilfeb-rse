@@ -131,11 +131,12 @@ function App() {
               </Route>
               <Route path="parent-dashboard" element={<ParentDashboard />} />
               <Route path="social" element={<Social />} />
-              <Route path="matching" element={<Navigate to="/social?tab=matches" replace />} />
+              <Route path="requests" element={<Social initialTab="requests" />} />
+              <Route path="matches" element={<Social initialTab="matches" />} />
+              <Route path="matching" element={<Social initialTab="matches" />} />
+              <Route path="favorites" element={<Social initialTab="watchlist" />} />
               <Route path="settings" element={<Settings />} />
-              <Route path="requests" element={<Navigate to="/social?tab=requests" replace />} />
               <Route path="chat/:requestId" element={<Chat />} />
-              <Route path="favorites" element={<Navigate to="/social?tab=watchlist" replace />} />
             </Route>
 
             <Route path="/impressum" element={<Impressum />} />

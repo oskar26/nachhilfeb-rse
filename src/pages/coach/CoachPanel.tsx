@@ -16,7 +16,6 @@ import {
     RefreshCw,
     Plus,
     History,
-    Activity,
     GraduationCap,
     Users,
     Key
@@ -47,9 +46,6 @@ export default function CoachPanel() {
     const [loadingLogs, setLoadingLogs] = useState(false);
 
     // SV Activity state
-    const [svLogs, setSvLogs] = useState<any[]>([]);
-    const [loadingSvLogs, setLoadingSvLogs] = useState(false);
-
     useEffect(() => {
         loadStudents();
     }, []);
@@ -57,7 +53,6 @@ export default function CoachPanel() {
     useEffect(() => {
         if (activeTab === 'codes') loadCodes();
         if (activeTab === 'logs') loadLogs();
-        if (activeTab === 'sv_activity') loadSvActivity();
     }, [activeTab]);
 
     const loadStudents = async () => {
@@ -94,20 +89,6 @@ export default function CoachPanel() {
             console.error(e);
         } finally {
             setLoadingLogs(false);
-        }
-    };
-
-    const loadSvActivity = async () => {
-        setLoadingSvLogs(true);
-        try {
-            const res = await api.admin.overview();
-            if (res.data?.audit_log) {
-                setSvLogs(res.data.audit_log);
-            }
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setLoadingSvLogs(false);
         }
     };
 
@@ -231,16 +212,6 @@ export default function CoachPanel() {
                 >
                     <History size={16} />
                     <span>Mein Protokoll</span>
-                </button>
-                <button
-                    onClick={() => { triggerHaptic('selection'); setActiveTab('sv_activity'); }}
-                    className={cn(
-                        "flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
-                        activeTab === 'sv_activity' ? "bg-amber-400 text-amber-950 shadow-xs font-extrabold" : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
-                    )}
-                >
-                    <Activity size={16} />
-                    <span>SV-Aktivitäten</span>
                 </button>
             </div>
 
@@ -450,53 +421,6 @@ export default function CoachPanel() {
                                         </div>
                                         <p className="text-gray-500">
                                             Durchgeführt von: <span className="font-semibold">{log.admin_name || 'Leitung'}</span>
-                                        </p>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-            )}
-
-            {/* TAB 4: SV ACTIVITY MONITOR */}
-            {activeTab === 'sv_activity' && (
-                <Card className="rounded-3xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden shadow-xs">
-                    <CardContent className="p-0">
-                        <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/30">
-                            <div>
-                                <span className="text-xs font-bold text-gray-700 dark:text-gray-300 block">
-                                    SV-Aktivitäten-Monitor (Übersicht)
-                                </span>
-                                <span className="text-[11px] text-gray-400">
-                                    Mitverfolgung allgemeiner Moderationsschritte der Schülervertretung
-                                </span>
-                            </div>
-                            <Button onClick={loadSvActivity} variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-lg">
-                                <RefreshCw size={14} className={cn(loadingSvLogs && "animate-spin")} />
-                            </Button>
-                        </div>
-
-                        {loadingSvLogs ? (
-                            <div className="py-12 text-center text-xs text-gray-400 font-bold uppercase">Lade Aktivitäten...</div>
-                        ) : svLogs.length === 0 ? (
-                            <div className="p-8 text-center text-gray-400 text-xs italic">
-                                Keine aktuellen SV-Aktivitäten protokolliert.
-                            </div>
-                        ) : (
-                            <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                                {svLogs.map((log: any) => (
-                                    <div key={log.id} className="p-4 text-xs space-y-1">
-                                        <div className="flex items-center justify-between">
-                                            <span className="font-bold text-gray-800 dark:text-gray-200">
-                                                Aktion: {log.action}
-                                            </span>
-                                            <span className="text-gray-400 text-[11px]">
-                                                {new Date(log.created_at).toLocaleString('de-DE')}
-                                            </span>
-                                        </div>
-                                        <p className="text-gray-500">
-                                            SV-Administrator: <span className="font-semibold">{log.admin_name || 'SV'}</span>
                                         </p>
                                     </div>
                                 ))}

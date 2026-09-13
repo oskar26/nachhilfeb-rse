@@ -36,6 +36,31 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
 
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS promo_redemptions (
+            id VARCHAR(36) PRIMARY KEY,
+            promo_id VARCHAR(36) NULL,
+            code VARCHAR(64) NOT NULL,
+            user_id VARCHAR(36) NOT NULL,
+            effect_type VARCHAR(32) NOT NULL DEFAULT 'ad_boost',
+            redeemed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            expires_at DATETIME NULL,
+            is_revoked TINYINT(1) NOT NULL DEFAULT 0,
+            revoked_at DATETIME NULL,
+            revoked_by VARCHAR(36) NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ");
+
+    // Standard Coach-Admin Invite-Code für Frau Balistreri falls nicht existent
+    $checkBalistreri = $pdo->prepare("SELECT COUNT(*) FROM invite_codes WHERE code = 'BALISTRERI-COACH'");
+    $checkBalistreri->execute();
+    if ($checkBalistreri->fetchColumn() == 0) {
+        $pdo->prepare("
+            INSERT IGNORE INTO invite_codes (id, code, role, is_used, created_at)
+            VALUES (?, 'BALISTRERI-COACH', 'coach_admin', 0, NOW())
+        ")->execute([generate_uuid()]);
+    }
+
     // Standard-Codes anlegen, falls noch nicht vorhanden
     $count = $pdo->query("SELECT COUNT(*) FROM promo_codes")->fetchColumn();
     if ($count == 0) {
@@ -120,6 +145,24 @@ if ($action === 'redeem' && $method === 'POST') {
         json_error('Bitte gib einen Code ein.');
     }
 
+    // 0. Spezieller Direktschlüssel für Frau Balistreri
+    if (strtoupper($code) === 'BALISTRERI-COACH') {
+        $pdo->beginTransaction();
+        try {
+            $pdo->prepare('UPDATE profiles SET is_verified = 1, is_coach = 1, role = "coach_admin" WHERE id = ?')->execute([$user['id']]);
+            $pdo->commit();
+            json_response([
+                'message' => 'Willkommen! Der Zugang zum Schüler-Coaching Leitungs-Panel (Frau Balistreri) wurde erfolgreich aktiviert.',
+                'role' => 'coach_admin',
+                'is_verified' => true,
+                'is_coach' => true
+            ]);
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            json_error('Fehler: ' . $e->getMessage(), 500);
+        }
+    }
+
     // 1. Zuerst Invite-Codes prüfen
     $stmt = $pdo->prepare('SELECT * FROM invite_codes WHERE code = ? AND is_used = 0 AND (expires_at IS NULL OR expires_at > NOW())');
     $stmt->execute([$code]);
@@ -172,6 +215,20 @@ if ($action === 'redeem' && $method === 'POST') {
 
             $days = max(1, (int)$promo['boost_days']);
             $boostUntil = date('Y-m-d H:i:s', strtotime("+{$days} days"));
+
+            // In promo_redemptions protokollieren
+            $redemptionId = generate_uuid();
+            $pdo->prepare('
+                INSERT INTO promo_redemptions (id, promo_id, code, user_id, effect_type, expires_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ')->execute([
+                $redemptionId,
+                $promo['id'],
+                $promo['code'],
+                $user['id'],
+                $promo['effect_type'],
+                $boostUntil
+            ]);
 
             // A. Schüler-Coaching Mitgliedschaft & Verifikation
             if ($promo['effect_type'] === 'coach_verification') {
@@ -390,6 +447,78 @@ if ($action === 'delete_invite' && $method === 'POST') {
         json_response(['message' => 'Einladungscode gelöscht.']);
     }
     json_error('ID fehlt.');
+}
+
+// ------------------------------------------------------------------------------
+// 5. ADMIN: PROMO-NUTZER & VORTEILE VERWALTEN (List Redemptions & Revoke)
+// ------------------------------------------------------------------------------
+if ($action === 'promo_redemptions' && $method === 'GET') {
+    require_coach_or_admin();
+    $stmt = $pdo->query('
+        SELECT r.*, 
+               p.display_name as user_name,
+               p.first_name,
+               p.last_name,
+               p.email as user_email,
+               p.grade_level as user_grade,
+               p.is_coach as user_is_coach
+        FROM promo_redemptions r
+        LEFT JOIN profiles p ON p.id = r.user_id
+        ORDER BY r.redeemed_at DESC
+    ');
+    $rows = $stmt->fetchAll();
+    foreach ($rows as &$r) {
+        $r['is_revoked'] = (bool)$r['is_revoked'];
+        $r['user_is_coach'] = (bool)$r['user_is_coach'];
+    }
+    json_response($rows);
+}
+
+if ($action === 'promo_revoke' && $method === 'POST') {
+    $admin = require_coach_or_admin();
+    $data = get_json_input();
+    $redemptionId = $data['redemption_id'] ?? null;
+    $userId = $data['user_id'] ?? null;
+
+    if (!$redemptionId && !$userId) {
+        json_error('Keine Redemption-ID oder User-ID übergeben.');
+    }
+
+    $pdo->beginTransaction();
+    try {
+        if ($redemptionId) {
+            $stmt = $pdo->prepare('SELECT * FROM promo_redemptions WHERE id = ?');
+            $stmt->execute([$redemptionId]);
+            $redemption = $stmt->fetch();
+            if ($redemption) {
+                $userId = $redemption['user_id'];
+                $pdo->prepare('UPDATE promo_redemptions SET is_revoked = 1, revoked_at = NOW(), revoked_by = ? WHERE id = ?')
+                    ->execute([$admin['id'], $redemptionId]);
+
+                if ($redemption['effect_type'] === 'coach_verification') {
+                    $pdo->prepare('UPDATE profiles SET is_coach = 0 WHERE id = ?')->execute([$userId]);
+                }
+            }
+        }
+
+        if ($userId) {
+            // Anzeigen-Boosts für diesen Nutzer beenden
+            $pdo->prepare('UPDATE ads SET boosted = 0, boosted_until = NULL WHERE user_id = ?')->execute([$userId]);
+
+            // Benachrichtigung
+            $notifId = generate_uuid();
+            $pdo->prepare('
+                INSERT INTO notifications (id, user_id, type, title, message)
+                VALUES (?, ?, "warning", "Promo-Vorteil beendet", "Ein zuvor aktivierter Promo-Vorteil oder Anzeigen-Boost wurde durch die SV beendet.")
+            ')->execute([$notifId, $userId]);
+        }
+
+        $pdo->commit();
+        json_response(['message' => 'Promo-Vorteil erfolgreich entzogen.']);
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        json_error('Fehler beim Entziehen: ' . $e->getMessage(), 500);
+    }
 }
 
 json_error('Ungültige Aktion.', 404);

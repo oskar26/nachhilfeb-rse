@@ -28,12 +28,22 @@ export default function Layout() {
 
     const currentTab = new URLSearchParams(location.search).get('tab') || 'requests';
 
+    const isTabActive = (tab: string) => {
+        if (location.pathname === '/social') {
+            return currentTab === tab;
+        }
+        if (tab === 'requests') return location.pathname === '/requests';
+        if (tab === 'matches') return location.pathname === '/matches' || location.pathname === '/matching';
+        if (tab === 'watchlist') return location.pathname === '/favorites';
+        return false;
+    };
+
     const getDesktopNavLinkClass = (type: 'path' | 'social_tab', target: string, isStaticActive?: boolean) => {
         let active = false;
         if (type === 'path') {
             active = !!isStaticActive;
         } else if (type === 'social_tab') {
-            active = location.pathname === '/social' && currentTab === target;
+            active = isTabActive(target);
         }
 
         return `relative flex items-center gap-3 rounded-2xl px-4 py-2.5 text-sm font-semibold transition-all ${
@@ -79,16 +89,16 @@ export default function Layout() {
                     <NavLink to="/" end onClick={handleNavClick} className={({ isActive }) => getDesktopNavLinkClass('path', '/', isActive)}>
                         <Home size={20} /> Entdecken
                     </NavLink>
-                    <NavLink to="/social?tab=requests" onClick={handleNavClick} className={() => getDesktopNavLinkClass('social_tab', 'requests')}>
+                    <NavLink to="/requests" onClick={handleNavClick} className={() => getDesktopNavLinkClass('social_tab', 'requests')}>
                         <Inbox size={20} /> Anfragen
                     </NavLink>
                     
                     {!isParent ? (
                         <>
-                            <NavLink to="/social?tab=matches" onClick={handleNavClick} className={() => getDesktopNavLinkClass('social_tab', 'matches')}>
+                            <NavLink to="/matches" onClick={handleNavClick} className={() => getDesktopNavLinkClass('social_tab', 'matches')}>
                                 <Zap size={20} /> Matches
                             </NavLink>
-                            <NavLink to="/social?tab=watchlist" onClick={handleNavClick} className={() => getDesktopNavLinkClass('social_tab', 'watchlist')}>
+                            <NavLink to="/favorites" onClick={handleNavClick} className={() => getDesktopNavLinkClass('social_tab', 'watchlist')}>
                                 <Heart size={20} /> Merkliste
                             </NavLink>
                         </>
@@ -158,20 +168,9 @@ export default function Layout() {
                     <NotificationCenter unreadCount={unreadCount} onCountChange={setUnreadCount} />
                 </div>
 
-                {/* Main View Wrapper with Smooth Page Transition (No vertical jumping) */}
+                {/* Main View Wrapper with Fast, Native-feeling Rendering (No stutter/freeze) */}
                 <div className="flex-1 w-full md:rounded-3xl md:bg-white/80 md:dark:bg-gray-900/80 md:backdrop-blur-md md:border md:border-gray-100/80 md:dark:border-gray-800/60 md:shadow-soft flex flex-col min-h-0 overflow-y-auto overflow-x-hidden">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={location.pathname}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.12 }}
-                            className="flex-1 w-full min-h-0"
-                        >
-                            <Outlet />
-                        </motion.div>
-                    </AnimatePresence>
+                    <Outlet />
                     {/* Spacer for bottom nav on mobile */}
                     <div className="h-[calc(6.5rem+env(safe-area-inset-bottom,0px))] md:hidden shrink-0" />
                 </div>

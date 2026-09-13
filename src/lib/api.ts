@@ -347,6 +347,17 @@ export const api = {
                 method: 'POST',
                 body: JSON.stringify({ id })
             });
+        },
+
+        async listRedemptions() {
+            return apiRequest('/codes.php?action=promo_redemptions');
+        },
+
+        async revoke(data: { redemption_id?: string; user_id?: string }) {
+            return apiRequest('/codes.php?action=promo_revoke', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
         }
     },
 

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
-import { User, Shield, BadgeCheck, Loader2, Mail, Phone, MessageSquare, Settings as SettingsIcon, Pen, Trash2, Users, Sparkles, Check, CalendarDays, Award, Shuffle } from 'lucide-react';
+import { User, Shield, BadgeCheck, Loader2, Mail, Phone, MessageSquare, Settings as SettingsIcon, Pen, Trash2, Users, Sparkles, Check, CalendarDays, Award, Shuffle, Palette, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
@@ -250,14 +250,20 @@ export default function Profile() {
             <motion.div variants={itemVariants} className="relative rounded-3xl overflow-hidden shadow-soft border border-gray-100 dark:border-gray-800 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md">
                 {/* Banner */}
                 <div className="h-36 transition-all duration-700 shadow-inner relative flex justify-between items-start p-3.5 gap-2" style={{ background: bannerGradient }}>
-                    <div className="flex items-center gap-1.5 flex-wrap">
+                    <div className="flex items-center gap-1.5 flex-wrap relative z-10">
                         <button
                             type="button"
                             onClick={() => setShowColorPicker(!showColorPicker)}
-                            className="px-3 py-1.5 rounded-full text-xs font-bold bg-black/40 hover:bg-black/60 text-white backdrop-blur-md transition-all flex items-center gap-1.5 shadow-sm cursor-pointer border border-white/20"
+                            className={cn(
+                                "px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer border",
+                                showColorPicker
+                                    ? "bg-white text-black border-white"
+                                    : "bg-black/40 hover:bg-black/60 text-white backdrop-blur-md border-white/20"
+                            )}
                             title="Banner-Farbe anpassen"
                         >
-                            🎨 Farbe {showColorPicker ? '▲' : '▼'}
+                            <Palette size={13} />
+                            <span>Farbe</span>
                         </button>
                         {profile.avatar_url && (
                             <button
@@ -287,56 +293,68 @@ export default function Profile() {
                             if (user) await supabase.from('profiles').update({ banner_color: newGrad }).eq('id', user.id);
                             toast.success("Zufällige Farbe gewählt!");
                         }}
-                        className="px-2.5 py-1.5 rounded-full text-xs font-bold bg-black/40 hover:bg-black/60 text-white backdrop-blur-md transition-all flex items-center gap-1 shadow-sm cursor-pointer"
+                        className="px-2.5 py-1.5 rounded-full text-xs font-bold bg-black/40 hover:bg-black/60 text-white backdrop-blur-md transition-all flex items-center gap-1 shadow-sm cursor-pointer relative z-10"
                         title="Zufällige Farbe"
                     >
                         <Shuffle size={13} />
                         <span>Zufall</span>
                     </button>
-                </div>
 
-                {/* Color Selection Palette: Presets first, then Color Picker */}
-                {showColorPicker && (
-                    <div className="p-3.5 bg-gray-50 dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 flex flex-wrap items-center justify-between gap-3 animate-in slide-in-from-top-2">
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Presets:</span>
-                            {PRESET_GRADIENTS.map((p) => (
+                    {/* Floating Color Selection Overlay (Never collides with Avatar) */}
+                    {showColorPicker && (
+                        <div className="absolute top-12 left-3 right-3 z-30 p-3 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-gray-200/80 dark:border-gray-800 rounded-2xl shadow-xl animate-in fade-in slide-in-from-top-2 flex flex-col gap-2.5">
+                            <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-1.5">
+                                <span className="text-[11px] font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">Banner-Farbe wählen</span>
                                 <button
-                                    key={p.name}
                                     type="button"
-                                    onClick={async () => {
-                                        triggerHaptic('selection');
-                                        setBannerGradient(p.gradient);
-                                        if (user) await supabase.from('profiles').update({ banner_color: p.gradient }).eq('id', user.id);
-                                        toast.success(`${p.name} ausgewählt!`);
-                                    }}
-                                    className={cn(
-                                        "w-7 h-7 rounded-full transition-transform hover:scale-120 shadow-xs border border-white/80 dark:border-gray-800 cursor-pointer relative",
-                                        bannerGradient === p.gradient && "ring-2 ring-primary ring-offset-2 scale-110"
-                                    )}
-                                    style={{ background: p.gradient }}
-                                    title={p.name}
-                                />
-                            ))}
+                                    onClick={() => setShowColorPicker(false)}
+                                    className="p-1 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                                >
+                                    <X size={14} />
+                                </button>
+                            </div>
+                            <div className="flex flex-wrap items-center justify-between gap-2.5">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase">Presets:</span>
+                                    {PRESET_GRADIENTS.map((p) => (
+                                        <button
+                                            key={p.name}
+                                            type="button"
+                                            onClick={async () => {
+                                                triggerHaptic('selection');
+                                                setBannerGradient(p.gradient);
+                                                if (user) await supabase.from('profiles').update({ banner_color: p.gradient }).eq('id', user.id);
+                                                toast.success(`${p.name} ausgewählt!`);
+                                            }}
+                                            className={cn(
+                                                "w-6 h-6 rounded-full transition-transform hover:scale-125 shadow-xs border border-white/80 dark:border-gray-800 cursor-pointer relative",
+                                                bannerGradient === p.gradient && "ring-2 ring-primary ring-offset-2 scale-110"
+                                            )}
+                                            style={{ background: p.gradient }}
+                                            title={p.name}
+                                        />
+                                    ))}
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase">Eigene:</span>
+                                    <input
+                                        type="color"
+                                        value={customColor}
+                                        onChange={async (e) => {
+                                            const c = e.target.value;
+                                            setCustomColor(c);
+                                            const grad = `linear-gradient(135deg, ${c} 0%, ${c}dd 100%)`;
+                                            setBannerGradient(grad);
+                                            if (user) await supabase.from('profiles').update({ banner_color: grad }).eq('id', user.id);
+                                        }}
+                                        className="w-7 h-7 p-0 border-0 rounded-lg cursor-pointer shadow-sm"
+                                        title="Color Picker für eigene Farbe"
+                                    />
+                                </div>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Eigene Farbe:</span>
-                            <input
-                                type="color"
-                                value={customColor}
-                                onChange={async (e) => {
-                                    const c = e.target.value;
-                                    setCustomColor(c);
-                                    const grad = `linear-gradient(135deg, ${c} 0%, ${c}dd 100%)`;
-                                    setBannerGradient(grad);
-                                    if (user) await supabase.from('profiles').update({ banner_color: grad }).eq('id', user.id);
-                                }}
-                                className="w-8 h-8 p-0 border-0 rounded-lg cursor-pointer shadow-sm"
-                                title="Color Picker für eigene Farbe"
-                            />
-                        </div>
-                    </div>
-                )}
+                    )}
+                </div>
 
                 {/* Avatar & User Info */}
                 <div className="flex flex-col items-center text-center px-6 pb-6 -mt-16">

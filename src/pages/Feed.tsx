@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
 import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/Card';
 import { SubjectChip, SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
-import { GraduationCap, MapPin, Clock, Filter, Search, CalendarDays, ShieldCheck, ChevronDown, ChevronUp, Share2, Sparkles } from 'lucide-react';
+import { GraduationCap, MapPin, Clock, Filter, Search, CalendarDays, ShieldCheck, ChevronDown, ChevronUp, Share2, Sparkles, Zap, Heart, Award } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
@@ -30,7 +30,7 @@ interface Ad {
     created_at: string;
     boosted?: boolean;
     boosted_until?: string | null;
-    profiles?: { display_name: string; is_verified: boolean; grade_level: string };
+    profiles?: { display_name: string; is_verified: boolean; grade_level: string; is_coach?: boolean };
     profiles_avail?: Availability;
 }
 
@@ -54,6 +54,7 @@ export default function Feed() {
     const [searchQuery, setSearchQuery] = useState('');
     const [minPrice, setMinPrice] = useState(0);
     const [maxPrice, setMaxPrice] = useState(100);
+    const [filterOnlyCoaches, setFilterOnlyCoaches] = useState(false);
 
     useEffect(() => {
         fetchAds();
@@ -79,7 +80,7 @@ export default function Feed() {
             console.error('Error fetching ads', error);
         } else if (adsData) {
             const userIds = Array.from(new Set(adsData.map(a => a.user_id)));
-            const { data: profiles } = await supabase.from('profiles').select('id, display_name, is_verified, grade_level, availability').in('id', userIds);
+            const { data: profiles } = await supabase.from('profiles').select('id, display_name, is_verified, grade_level, availability, is_coach').in('id', userIds);
 
             const profileMap = new Map(profiles?.map(p => [p.id, p]));
 
@@ -120,6 +121,9 @@ export default function Feed() {
         // Free logic (included if minPrice is 0)
         if (ad.price_details?.mode === 'free' && minPrice > 0) return false;
 
+        // Coach filter
+        if (filterOnlyCoaches && !ad.profiles?.is_coach) return false;
+
         return true;
     });
 
@@ -127,7 +131,7 @@ export default function Feed() {
         return ad.boosted && ad.boosted_until && new Date(ad.boosted_until) > new Date();
     };
 
-    // Sort: Boosted ads always on top, then sort by matching score or created date
+    // Sort: Boosted ads always on top, then mild boost for coaches (+ fair ranking), then by matching score or created date
     const sortedAds = [...filteredAds].sort((a, b) => {
         const aBoost = isAdBoosted(a);
         const bBoost = isAdBoosted(b);
@@ -138,9 +142,17 @@ export default function Feed() {
         if (filterByTime) {
             const scoreA = countMatches(myAvailability, a.profiles_avail || emptyAvailability());
             const scoreB = countMatches(myAvailability, b.profiles_avail || emptyAvailability());
-            return scoreB - scoreA;
+            const coachA = a.profiles?.is_coach ? 0.5 : 0;
+            const coachB = b.profiles?.is_coach ? 0.5 : 0;
+            return (scoreB + coachB) - (scoreA + coachA);
         } else {
-            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            // Fair soft ranking: Coaches receive a gentle 24h freshness bonus in the feed
+            // so their ads stay visible slightly longer, but fresh ads from other students can still take the lead
+            const coachBonusA = a.profiles?.is_coach ? 24 * 60 * 60 * 1000 : 0;
+            const coachBonusB = b.profiles?.is_coach ? 24 * 60 * 60 * 1000 : 0;
+            const timeA = new Date(a.created_at).getTime() + coachBonusA;
+            const timeB = new Date(b.created_at).getTime() + coachBonusB;
+            return timeB - timeA;
         }
     });
 
@@ -166,6 +178,19 @@ export default function Feed() {
                                 <span className="hidden sm:inline">Zeitlich passend</span>
                             </button>
                         )}
+                        <button
+                            onClick={() => { setFilterOnlyCoaches(!filterOnlyCoaches); triggerHaptic('selection'); }}
+                            className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-full border font-semibold transition-all cursor-pointer ${
+                                filterOnlyCoaches
+                                    ? 'bg-amber-100 border-amber-400 text-amber-800 dark:bg-amber-950/40 dark:border-amber-700 dark:text-amber-300'
+                                    : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-500'
+                            }`}
+                            title="Nur Schüler-Coaches der AG anzeigen"
+                        >
+                            <Award size={13} className={filterOnlyCoaches ? 'text-amber-600 dark:text-amber-400' : 'text-gray-400'} />
+                            <span className="hidden sm:inline">Schüler-Coaches</span>
+                            <span className="sm:hidden">Coaches</span>
+                        </button>
                         <Button variant="outline" size="sm" className="h-8 px-3 rounded-full text-xs font-bold gap-1 border-gray-200 dark:border-gray-800 shadow-2xs" onClick={() => setShowFilters(!showFilters)}>
                             <Filter size={13} /> Filter
                         </Button>
@@ -456,6 +481,12 @@ export default function Feed() {
                                         {ad.profiles?.is_verified && (
                                             <span className="bg-green-100 text-green-700 text-[10px] px-1.5 py-0.5 rounded-full border border-green-200">Verifiziert</span>
                                         )}
+                                        {ad.profiles?.is_coach && (
+                                            <span className="bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-[10px] px-2 py-0.5 rounded-full border border-amber-300 dark:border-amber-700 font-semibold flex items-center gap-1" title="Mitglied der Schüler-Coaching AG">
+                                                <Award size={11} className="text-amber-600 dark:text-amber-400" />
+                                                Coach
+                                            </span>
+                                        )}
                                     </div>
                                     <div className="text-sm text-gray-500 flex items-center gap-1 mt-1">
                                         <GraduationCap size={14} /> {ad.profiles?.grade_level || '?'}
@@ -496,6 +527,11 @@ export default function Feed() {
                                     <span className="flex items-center gap-1"><Clock size={12} /> Flexibel</span>
                                 </div>
                                 <div className="flex items-center gap-2">
+                                    {ad.profiles?.is_coach && (
+                                        <span className="text-amber-700 dark:text-amber-400 font-semibold text-[10px] flex items-center gap-0.5 bg-amber-50 dark:bg-amber-950/30 px-1.5 py-0.5 rounded border border-amber-200/60 dark:border-amber-800/40">
+                                            <Award size={10} /> Schüler-Coach AG
+                                        </span>
+                                    )}
                                     {boosted && (
                                         <span className="text-yellow-600 dark:text-yellow-500 font-semibold text-[10px] flex items-center gap-0.5">
                                             <Sparkles size={10} /> Empfohlen

@@ -16,10 +16,13 @@ import {
     ToggleRight,
     Edit2,
     Save,
-    X
+    X,
+    Users,
+    UserMinus
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { cn } from '../../lib/utils';
+import { api } from '../../lib/api';
 
 interface InviteCode {
     id: string;
@@ -76,10 +79,38 @@ export default function AdminCodes() {
     const [description, setDescription] = useState<string>('');
     const [expiryDays, setExpiryDays] = useState<string>('30');
 
+    // Promo Redemptions (User perks)
+    const [redemptions, setRedemptions] = useState<any[]>([]);
+    const [loadingRedemptions, setLoadingRedemptions] = useState(false);
+
     useEffect(() => {
         fetchInviteCodes();
         fetchPromoCodes();
+        fetchRedemptions();
     }, []);
+
+    const fetchRedemptions = async () => {
+        setLoadingRedemptions(true);
+        try {
+            const res = await api.promo_codes.listRedemptions();
+            if (res.data) setRedemptions(res.data);
+        } catch (e: any) {
+            console.error('Error fetching redemptions', e);
+        } finally {
+            setLoadingRedemptions(false);
+        }
+    };
+
+    const handleRevoke = async (redemptionId: string, userName: string, codeName: string) => {
+        if (!confirm(`Möchtest du ${userName} den Vorteil für Code "${codeName}" wirklich entziehen?`)) return;
+        try {
+            await api.promo_codes.revoke({ redemption_id: redemptionId });
+            toast.success(`Promo-Vorteil für ${userName} wurde entzogen.`);
+            fetchRedemptions();
+        } catch (e: any) {
+            toast.error('Fehler: ' + e.message);
+        }
+    };
 
     const fetchInviteCodes = async () => {
         setLoadingInvite(true);
@@ -469,27 +500,73 @@ export default function AdminCodes() {
                             </CardContent>
                         </Card>
 
-                        {/* Info card */}
-                        <Card className="rounded-3xl border-none shadow-sm bg-gradient-to-br from-amber-50 to-orange-50/50 dark:from-amber-950/20 dark:to-transparent border dark:border-amber-900/30">
-                            <CardContent className="p-6 space-y-3">
-                                <h3 className="font-bold text-sm text-amber-800 dark:text-amber-400 flex items-center gap-1.5">
-                                    <Zap size={18} />
-                                    Promo-Code Steuerung
-                                </h3>
-                                <p className="text-xs text-amber-900/80 dark:text-amber-300/80 leading-relaxed">
-                                    Aktionscodes ermöglichen es Nutzern, ihre Nachhilfeanzeigen hervorzuheben oder exklusive Vorteile freizuschalten.
-                                </p>
-                                <div className="p-3 bg-white/80 dark:bg-gray-900/60 rounded-2xl border border-amber-200/60 dark:border-amber-900/30 text-xs space-y-1">
-                                    <span className="font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
-                                        <Zap size={13} /> Konfigurierbare Parameter:
+                        {/* Active Promo Users & Perk Revocation */}
+                        <Card className="rounded-3xl border-none shadow-sm bg-white dark:bg-gray-900 flex flex-col overflow-hidden">
+                            <div className="p-4 border-b dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 flex justify-between items-center">
+                                <div className="flex items-center gap-2">
+                                    <Users size={16} className="text-amber-500" />
+                                    <span className="font-bold text-xs text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+                                        Promo-Nutzer ({redemptions.length})
                                     </span>
-                                    <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
-                                        • Frei wählbarer Push-Grad (Standard, Super, Ultra)<br />
-                                        • Zielgruppen-Filterung (z.B. Coaching AG)<br />
-                                        • Status jederzeit per Klick umschaltbar oder löschbar<br />
-                                        • Automatische Limits & Verfallsdaten
-                                    </p>
                                 </div>
+                                <Button onClick={fetchRedemptions} variant="ghost" className="h-7 w-7 p-0 rounded-lg" title="Aktualisieren">
+                                    <RefreshCw size={13} className={cn(loadingRedemptions && 'animate-spin')} />
+                                </Button>
+                            </div>
+                            <CardContent className="p-0 flex-1 overflow-y-auto max-h-[380px]">
+                                {loadingRedemptions ? (
+                                    <div className="py-12 text-center text-xs text-gray-400">Lade Nutzer...</div>
+                                ) : redemptions.length === 0 ? (
+                                    <div className="p-6 text-center text-gray-400 text-xs italic">
+                                        Noch keine eingelösten Promo-Codes vorhanden.
+                                    </div>
+                                ) : (
+                                    <div className="divide-y dark:divide-gray-800">
+                                        {redemptions.map((r) => (
+                                            <div key={r.id} className="p-3.5 flex items-center justify-between gap-2 hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                                        <span className="font-bold text-xs text-gray-900 dark:text-white truncate">
+                                                            {r.user_name || r.user_email || 'Nutzer'}
+                                                        </span>
+                                                        {r.user_grade && (
+                                                            <span className="text-[10px] px-1.5 py-0.2 bg-gray-100 dark:bg-gray-800 rounded font-semibold text-gray-500">
+                                                                Kl. {r.user_grade}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5 mt-0.5">
+                                                        <span className="font-mono text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-1.5 py-0.5 rounded">
+                                                            {r.code}
+                                                        </span>
+                                                        <span className="text-[10px] text-gray-400">
+                                                            {new Date(r.redeemed_at).toLocaleDateString('de-DE')}
+                                                        </span>
+                                                        {r.is_revoked && (
+                                                            <span className="text-[9px] font-bold text-red-500 bg-red-50 dark:bg-red-950/40 px-1 rounded">
+                                                                Entzogen
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                {!r.is_revoked ? (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        onClick={() => handleRevoke(r.id, r.user_name || 'diesem Nutzer', r.code)}
+                                                        className="h-8 px-2.5 rounded-xl text-xs font-bold text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 shrink-0 cursor-pointer"
+                                                        title="Promo-Vorteil entziehen"
+                                                    >
+                                                        <UserMinus size={13} className="mr-1" />
+                                                        Entziehen
+                                                    </Button>
+                                                ) : (
+                                                    <span className="text-[10px] text-gray-400 font-semibold px-2 py-1">Inaktiv</span>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </div>
