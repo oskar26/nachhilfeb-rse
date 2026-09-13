@@ -21,12 +21,26 @@ interface RichTextEditorProps {
     className?: string;
 }
 
+const COLOR_PRESETS = [
+    { name: 'Standard', color: '#111827' },
+    { name: 'Grau', color: '#6b7280' },
+    { name: 'Rot', color: '#ef4444' },
+    { name: 'Gold / FWG', color: '#d97706' },
+    { name: 'Grün', color: '#10b981' },
+    { name: 'Blau', color: '#2563eb' },
+    { name: 'Lila', color: '#7c3aed' },
+];
+
 export function RichTextEditor({ value, onChange, placeholder, className }: RichTextEditorProps) {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const editor = useEditor({
         extensions: [
-            StarterKit,
+            StarterKit.configure({
+                heading: {
+                    levels: [1, 2, 3],
+                },
+            }),
             Underline,
             TextStyle,
             Color,
@@ -156,14 +170,33 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
                     onClick={addImage} 
                     icon={<ImageIcon size={16} />} title="Bild einfügen" 
                 />
-                <input
-                    type="color"
-                    onInput={(event: any) => editor.chain().focus().setColor(event.target.value).run()}
-                    value={editor.getAttributes('textStyle').color || '#000000'}
-                    data-testid="setColor"
-                    className="w-6 h-6 p-0 border-0 rounded cursor-pointer"
-                    title="Textfarbe"
-                />
+
+                {/* Color presets + color picker */}
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200/60 dark:border-gray-700/60">
+                    <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider hidden sm:inline">Farbe:</span>
+                    {COLOR_PRESETS.map((preset) => (
+                        <button
+                            key={preset.color}
+                            type="button"
+                            onMouseDown={(e) => {
+                                e.preventDefault();
+                                editor.chain().focus().setColor(preset.color).run();
+                            }}
+                            className="w-4 h-4 rounded-full border border-black/15 dark:border-white/20 transition-transform hover:scale-125 cursor-pointer shadow-2xs"
+                            style={{ backgroundColor: preset.color }}
+                            title={preset.name}
+                        />
+                    ))}
+                    <div className="w-px h-3.5 bg-gray-300 dark:bg-gray-600 mx-0.5" />
+                    <input
+                        type="color"
+                        onInput={(event: any) => editor.chain().focus().setColor(event.target.value).run()}
+                        value={editor.getAttributes('textStyle').color || '#000000'}
+                        data-testid="setColor"
+                        className="w-5 h-5 p-0 border-0 rounded cursor-pointer opacity-85 hover:opacity-100"
+                        title="Eigene Farbe wählen (Color Picker)"
+                    />
+                </div>
                 
                 <div className="flex-1" />
                 

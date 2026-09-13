@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
-import { User, Shield, BadgeCheck, Loader2, Mail, Phone, MessageSquare, Settings as SettingsIcon, Pen, Trash2, Users, Sparkles, Check } from 'lucide-react';
+import { User, Shield, BadgeCheck, Loader2, Mail, Phone, MessageSquare, Settings as SettingsIcon, Pen, Trash2, Users, Sparkles, Check, CalendarDays } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
@@ -18,7 +18,7 @@ import { sanitizeHtml } from '../lib/sanitize';
 import ChildLinkModal from '../components/ChildLinkModal';
 import { triggerHaptic } from '../lib/haptics';
 import AvatarMakerModal from '../components/AvatarMakerModal';
-import { extractDominantGradient, getRandomGradient } from '../lib/colorExtractor';
+import { extractDominantGradient, getDefaultGradient, getRandomGradient, PRESET_GRADIENTS } from '../lib/colorExtractor';
 
 function ToggleSwitch({ checked, onChange, label }: { checked: boolean; onChange: () => void; label: string }) {
     return (
@@ -56,7 +56,9 @@ export default function Profile() {
     const [privacyCalendar, setPrivacyCalendar] = useState(true);
     const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
     const [isAvatarMakerOpen, setIsAvatarMakerOpen] = useState(false);
-    const [bannerGradient, setBannerGradient] = useState<string>('linear-gradient(135deg, #f59e0b 0%, #eab308 100%)');
+    const [bannerGradient, setBannerGradient] = useState<string>(getDefaultGradient());
+    const [showColorPicker, setShowColorPicker] = useState(false);
+    const [customColor, setCustomColor] = useState('#f59e0b');
 
     const [profile, setProfile] = useState<{
         first_name: string;
@@ -151,7 +153,7 @@ export default function Profile() {
             } else if (data.avatar_url) {
                 extractDominantGradient(data.avatar_url, user?.id).then(setBannerGradient);
             } else {
-                setBannerGradient(getRandomGradient(user?.id));
+                setBannerGradient(getDefaultGradient());
             }
         }
         setLoading(false);
@@ -239,12 +241,39 @@ export default function Profile() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="p-4 max-w-xl mx-auto pb-28 space-y-6"
+            className="p-4 max-w-3xl mx-auto pb-28 space-y-6"
         >
             {/* Header with Dynamic Banner & Avatar */}
             <motion.div variants={itemVariants} className="relative rounded-3xl overflow-hidden shadow-soft border border-gray-100 dark:border-gray-800 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md">
                 {/* Banner */}
-                <div className="h-32 transition-all duration-700 shadow-inner relative flex justify-end items-start p-3 gap-2" style={{ background: bannerGradient }}>
+                <div className="h-36 transition-all duration-700 shadow-inner relative flex justify-between items-start p-3.5 gap-2" style={{ background: bannerGradient }}>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                        <button
+                            type="button"
+                            onClick={() => setShowColorPicker(!showColorPicker)}
+                            className="px-3 py-1.5 rounded-full text-xs font-bold bg-black/40 hover:bg-black/60 text-white backdrop-blur-md transition-all flex items-center gap-1.5 shadow-sm cursor-pointer border border-white/20"
+                            title="Banner-Farbe anpassen"
+                        >
+                            🎨 Farbe {showColorPicker ? '▲' : '▼'}
+                        </button>
+                        {profile.avatar_url && (
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    triggerHaptic('selection');
+                                    const grad = await extractDominantGradient(profile.avatar_url);
+                                    setBannerGradient(grad);
+                                    if (user) await supabase.from('profiles').update({ banner_color: grad }).eq('id', user.id);
+                                    toast.success("Farbe an Profilbild angepasst!");
+                                }}
+                                className="px-3 py-1.5 rounded-full text-xs font-bold bg-white/80 hover:bg-white text-black backdrop-blur-md transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                                title="Farbe automatisch an Profilbild anpassen"
+                            >
+                                ✨ Bild anpassen
+                            </button>
+                        )}
+                    </div>
+
                     <button
                         type="button"
                         onClick={async () => {
@@ -252,30 +281,57 @@ export default function Profile() {
                             const newGrad = getRandomGradient();
                             setBannerGradient(newGrad);
                             if (user) await supabase.from('profiles').update({ banner_color: newGrad }).eq('id', user.id);
-                            toast.success("Zufällige Banner-Farbe gesetzt!");
+                            toast.success("Zufällige Farbe gewählt!");
                         }}
-                        className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-black/40 hover:bg-black/60 text-white backdrop-blur-md transition-all flex items-center gap-1 shadow-sm cursor-pointer"
-                        title="Zufällige Farbe wählen"
+                        className="px-2.5 py-1.5 rounded-full text-xs font-bold bg-black/40 hover:bg-black/60 text-white backdrop-blur-md transition-all flex items-center gap-1 shadow-sm cursor-pointer"
+                        title="Zufällige Farbe"
                     >
-                        🎲 Random
+                        🎲
                     </button>
-                    {profile.avatar_url && (
-                        <button
-                            type="button"
-                            onClick={async () => {
-                                triggerHaptic('selection');
-                                const grad = await extractDominantGradient(profile.avatar_url);
-                                setBannerGradient(grad);
-                                if (user) await supabase.from('profiles').update({ banner_color: grad }).eq('id', user.id);
-                                toast.success("Farbe an Profilbild angepasst!");
-                            }}
-                            className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-white/70 hover:bg-white/90 text-black backdrop-blur-md transition-all flex items-center gap-1 shadow-sm cursor-pointer"
-                            title="Farbe automatisch an Profilbild anpassen"
-                        >
-                            ✨ Bild anpassen
-                        </button>
-                    )}
                 </div>
+
+                {/* Color Selection Palette: Presets first, then Color Picker */}
+                {showColorPicker && (
+                    <div className="p-3.5 bg-gray-50 dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 flex flex-wrap items-center justify-between gap-3 animate-in slide-in-from-top-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Presets:</span>
+                            {PRESET_GRADIENTS.map((p) => (
+                                <button
+                                    key={p.name}
+                                    type="button"
+                                    onClick={async () => {
+                                        triggerHaptic('selection');
+                                        setBannerGradient(p.gradient);
+                                        if (user) await supabase.from('profiles').update({ banner_color: p.gradient }).eq('id', user.id);
+                                        toast.success(`${p.name} ausgewählt!`);
+                                    }}
+                                    className={cn(
+                                        "w-7 h-7 rounded-full transition-transform hover:scale-120 shadow-xs border border-white/80 dark:border-gray-800 cursor-pointer relative",
+                                        bannerGradient === p.gradient && "ring-2 ring-primary ring-offset-2 scale-110"
+                                    )}
+                                    style={{ background: p.gradient }}
+                                    title={p.name}
+                                />
+                            ))}
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Eigene Farbe:</span>
+                            <input
+                                type="color"
+                                value={customColor}
+                                onChange={async (e) => {
+                                    const c = e.target.value;
+                                    setCustomColor(c);
+                                    const grad = `linear-gradient(135deg, ${c} 0%, ${c}dd 100%)`;
+                                    setBannerGradient(grad);
+                                    if (user) await supabase.from('profiles').update({ banner_color: grad }).eq('id', user.id);
+                                }}
+                                className="w-8 h-8 p-0 border-0 rounded-lg cursor-pointer shadow-sm"
+                                title="Color Picker für eigene Farbe"
+                            />
+                        </div>
+                    </div>
+                )}
 
                 {/* Avatar & User Info */}
                 <div className="flex flex-col items-center text-center px-6 pb-6 -mt-16">
@@ -511,6 +567,60 @@ export default function Profile() {
                                 )}
                             </div>
                         </div>
+                    </CardContent>
+                </Card>
+            </motion.div>
+
+            {/* Availability Calendar (Wann hast du Zeit?) */}
+            <motion.div variants={itemVariants}>
+                <Card className="rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft bg-white/90 dark:bg-gray-900/90 backdrop-blur-md">
+                    <CardHeader className="pb-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                            <CardTitle className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
+                                <CalendarDays size={20} className="text-primary" /> Wann hast du Zeit? (Verfügbarkeit)
+                            </CardTitle>
+                            {isEditing && (
+                                <button
+                                    type="button"
+                                    onClick={() => setPrivacyCalendar(!privacyCalendar)}
+                                    className={cn(
+                                        "text-xs px-3 py-1.5 rounded-full border font-bold transition-all cursor-pointer shadow-2xs",
+                                        privacyCalendar
+                                            ? "bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                                            : "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300"
+                                    )}
+                                >
+                                    {privacyCalendar ? '🔒 Nur Matching (Privat)' : '👁️ Öffentlich sichtbar'}
+                                </button>
+                            )}
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1 font-medium leading-relaxed">
+                            {privacyCalendar
+                                ? 'Dein Zeitplan wird für den Smart-Matching-Algorithmus verwendet (z.B. passende Freistunden mit Tutoren/Schülern).'
+                                : 'Dein Kalender ist zusätzlich öffentlich auf deinem Profil sichtbar.'}
+                            {isEditing ? ' Klicke auf die Zeiten unten, um deine freien Stunden einzutragen.' : ''}
+                        </p>
+                    </CardHeader>
+                    <CardContent className="pt-2 pb-6">
+                        <AvailabilityCalendar
+                            availability={availability}
+                            onChange={isEditing ? setAvailability : undefined}
+                        />
+                        {!isEditing && (
+                            <div className="mt-4 flex justify-end">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                        triggerHaptic('light');
+                                        setIsEditing(true);
+                                    }}
+                                    className="rounded-xl text-xs font-bold gap-1.5"
+                                >
+                                    <Pen size={13} /> Zeiten bearbeiten
+                                </Button>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </motion.div>

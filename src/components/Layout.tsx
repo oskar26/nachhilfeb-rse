@@ -136,7 +136,7 @@ export default function Layout() {
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 overflow-y-auto overflow-x-hidden relative md:p-4 flex flex-col min-w-0">
+            <main className="flex-1 overflow-hidden relative md:p-4 flex flex-col min-w-0">
                 {/* Mobile Header */}
                 <div className="md:hidden flex items-center justify-between px-5 pt-[max(0.875rem,env(safe-area-inset-top))] pb-3.5 bg-white/85 dark:bg-gray-900/85 backdrop-blur-xl sticky top-0 z-30 border-b border-gray-200/60 dark:border-gray-800/80 shrink-0 shadow-sm">
                     <NavLink to="/welcome" onClick={handleNavClick} className="flex items-center gap-2.5">
@@ -148,7 +148,7 @@ export default function Layout() {
                 </div>
 
                 {/* Main View Wrapper with Smooth Page Transition */}
-                <div className="flex-1 w-full md:rounded-3xl md:bg-white/60 md:dark:bg-gray-900/40 md:backdrop-blur-md md:border md:border-gray-100/80 md:dark:border-gray-800/60 md:shadow-soft flex flex-col min-h-0">
+                <div className="flex-1 w-full md:rounded-3xl md:bg-white/80 md:dark:bg-gray-900/80 md:backdrop-blur-md md:border md:border-gray-100/80 md:dark:border-gray-800/60 md:shadow-soft flex flex-col min-h-0 overflow-y-auto overflow-x-hidden">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={location.pathname}

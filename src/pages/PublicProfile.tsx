@@ -15,22 +15,34 @@ import { sanitizeHtml } from '../lib/sanitize';
 import { triggerHaptic } from '../lib/haptics';
 import { cn } from '../lib/utils';
 import ShareDialog from '../components/ShareDialog';
-import { extractDominantGradient, getRandomGradient } from '../lib/colorExtractor';
+import { extractDominantGradient, getDefaultGradient, getRandomGradient } from '../lib/colorExtractor';
+import { useAuth } from '../context/AuthContext';
+import { AvailabilityCalendar, emptyAvailability, type Availability } from '../components/AvailabilityCalendar';
 
 export default function PublicProfile() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [profile, setProfile] = useState<any>(null);
     const [ads, setAds] = useState<any[]>([]);
     const [reviews, setReviews] = useState<any[]>([]);
     const [reviewCount, setReviewCount] = useState(0);
     const [loading, setLoading] = useState(true);
-    const [bannerGradient, setBannerGradient] = useState<string>('linear-gradient(135deg, #f59e0b 0%, #eab308 100%)');
+    const [bannerGradient, setBannerGradient] = useState<string>(getDefaultGradient());
     const [isShareOpen, setIsShareOpen] = useState(false);
+    const [myAvailability, setMyAvailability] = useState<Availability>(emptyAvailability());
 
     useEffect(() => {
         if (id) fetchProfileAndAds();
     }, [id]);
+
+    useEffect(() => {
+        if (user) {
+            supabase.from('profiles').select('availability').eq('id', user.id).single().then(({ data }) => {
+                if (data?.availability) setMyAvailability(data.availability);
+            });
+        }
+    }, [user]);
 
     async function fetchProfileAndAds() {
         setLoading(true);
@@ -44,7 +56,7 @@ export default function PublicProfile() {
             } else if (prof.avatar_url) {
                 extractDominantGradient(prof.avatar_url, prof.id).then(setBannerGradient);
             } else {
-                setBannerGradient(getRandomGradient(prof.id));
+                setBannerGradient(getDefaultGradient()); // FWG Gold default to match avatar
             }
 
             const { data: adsData } = await supabase.from('ads').select('*').eq('user_id', id).eq('is_hidden', false);
@@ -88,7 +100,7 @@ export default function PublicProfile() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="p-4 max-w-4xl mx-auto pb-28 space-y-6"
+            className="p-4 max-w-3xl mx-auto pb-28 space-y-6"
         >
             <motion.div variants={itemVariants} className="flex items-center justify-between gap-2">
                 <Button
@@ -120,10 +132,10 @@ export default function PublicProfile() {
             <motion.div variants={itemVariants} className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 to-yellow-500/30 rounded-3xl blur-md opacity-30 group-hover:opacity-60 transition duration-500"></div>
                 <Card className="relative p-0 overflow-hidden border border-gray-100 dark:border-gray-800 shadow-soft bg-white/90 dark:bg-gray-900/90 backdrop-blur-md rounded-3xl">
-                    <div className="h-32 transition-all duration-700 shadow-inner" style={{ background: bannerGradient }}></div>
-                    <CardContent className="pt-0 px-8 pb-8 relative">
-                        <div className="flex flex-col md:flex-row items-center md:items-end gap-6 -mt-16 mb-6">
-                            <div className="w-32 h-32 rounded-3xl bg-white dark:bg-gray-950 p-1 shadow-xl overflow-hidden border-4 border-white dark:border-gray-950">
+                    <div className="h-36 transition-all duration-700 shadow-inner" style={{ background: bannerGradient }}></div>
+                    <CardContent className="pt-0 px-6 sm:px-8 pb-8 relative">
+                        <div className="flex flex-col md:flex-row items-center md:items-end gap-6 mb-6">
+                            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-white dark:bg-gray-950 p-1 shadow-xl overflow-hidden border-4 border-white dark:border-gray-950 -mt-16 shrink-0">
                                 {profile.avatar_url ? (
                                     <img src={profile.avatar_url} className="w-full h-full object-cover rounded-2xl" />
                                 ) : (
@@ -132,8 +144,8 @@ export default function PublicProfile() {
                                     </div>
                                 )}
                             </div>
-                            <div className="text-center md:text-left pb-2 flex-1">
-                                <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white flex items-center justify-center md:justify-start gap-2">
+                            <div className="text-center md:text-left pt-3 pb-1 flex-1">
+                                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-gray-900 dark:text-white flex items-center justify-center md:justify-start gap-2">
                                     {profile.display_name || 'FWG Nutzer'}
                                     {profile.is_verified && <ShieldCheck className="text-blue-500" size={24} />}
                                 </h1>
@@ -184,6 +196,19 @@ export default function PublicProfile() {
                                 </div>
                             </div>
                         </div>
+
+                        {/* Availability Calendar (Freistunden & Zeiten) */}
+                        {profile.availability && (
+                            <div className="pt-6 mt-6 border-t border-gray-100 dark:border-gray-800">
+                                <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-1.5">
+                                    <Calendar size={14} className="text-primary" /> Wann hat {profile.display_name || 'dieser Nutzer'} Zeit?
+                                </h3>
+                                <AvailabilityCalendar
+                                    availability={profile.availability}
+                                    matchWith={myAvailability}
+                                />
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </motion.div>

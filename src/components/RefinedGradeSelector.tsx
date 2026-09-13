@@ -10,7 +10,7 @@ interface RefinedGradeSelectorProps {
 }
 
 const GRADES = ['5', '6', '7', '8', '9', '10', 'EF', 'Q1', 'Q2'];
-const LETTERS = ['a', 'b', 'c', 'd', 'e'];
+const LETTERS = ['a', 'b', 'c', 'd'];
 
 export function RefinedGradeSelector({ grade, letter, onChange, className }: RefinedGradeSelectorProps) {
     const [selectedGrade, setSelectedGrade] = useState(grade);

@@ -250,10 +250,14 @@ export class QueryBuilder<T = any[]> implements PromiseLike<QueryResult<T>> {
                         const outData = this.isSingle || this.isMaybeSingle ? res.data : [res.data].filter(Boolean);
                         return { data: outData, count: outData ? 1 : 0, error: res.error };
                     }
-                    const userFilter = this.filters.find(f => f.col === 'user_id')?.val;
+                    const userEqFilter = this.filters.find(f => f.col === 'user_id' && f.op === 'eq')?.val;
+                    const userNeqFilter = this.filters.find(f => f.col === 'user_id' && f.op === 'neq')?.val;
                     const typeFilter = this.filters.find(f => f.col === 'type')?.val;
-                    const res = await api.ads.list({ user_id: userFilter, type: typeFilter, all: true });
-                    const list = res.data || [];
+                    const res = await api.ads.list({ user_id: userEqFilter, type: typeFilter, all: true });
+                    let list = res.data || [];
+                    if (userNeqFilter) {
+                        list = list.filter((a: any) => a.user_id !== userNeqFilter);
+                    }
                     return { data: list, count: list.length, error: res.error };
                 }
                 if (this.operation === 'insert') {

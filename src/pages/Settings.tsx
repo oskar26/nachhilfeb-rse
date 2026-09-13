@@ -214,7 +214,7 @@ export default function Settings() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="p-4 max-w-xl mx-auto pb-28 space-y-6"
+            className="p-4 max-w-3xl mx-auto pb-28 space-y-6"
         >
             <motion.div variants={itemVariants} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">

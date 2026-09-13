@@ -13,6 +13,10 @@ export const PRESET_GRADIENTS = [
     { name: 'Midnight Cyber', gradient: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%)' },
 ];
 
+export function getDefaultGradient(): string {
+    return PRESET_GRADIENTS[0].gradient; // FWG Gold
+}
+
 export function getRandomGradient(seed?: string): string {
     if (seed) {
         let hash = 0;

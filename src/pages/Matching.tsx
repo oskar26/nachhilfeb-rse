@@ -9,7 +9,7 @@ import {
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
-import { emptyAvailability, countMatches, type Availability } from '../components/AvailabilityCalendar';
+import { AvailabilityCalendar, emptyAvailability, countMatches, type Availability } from '../components/AvailabilityCalendar';
 import { triggerHaptic } from '../lib/haptics';
 
 // ── Types ────────────────────────────────────────────────────────
@@ -162,14 +162,17 @@ function setDismissed(ids: string[]) {
 
 function MatchCard({
     match,
+    myAvail,
     onContact,
     onDismiss,
 }: {
     match: Match;
+    myAvail?: Availability;
     onContact: () => void;
     onDismiss: () => void;
 }) {
     const { ad, myAd, score, commonSubjects, availabilityMatches, gradeCompatibility, matchReasons, locationMatch } = match;
+    const [showCalendar, setShowCalendar] = useState(false);
     
     // Tier classification
     const isTopMatch = score >= 70;
@@ -306,7 +309,7 @@ function MatchCard({
                 </div>
 
                 {/* Secondary Meta: Locations & Availability */}
-                <div className="flex flex-wrap items-center gap-2 mb-4 text-[11px] text-gray-500 dark:text-gray-400">
+                <div className="flex flex-wrap items-center gap-2 mb-3 text-[11px] text-gray-500 dark:text-gray-400">
                     {ad.locations && ad.locations.length > 0 && (
                         <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-md">
                             <MapPin size={11} />
@@ -314,12 +317,37 @@ function MatchCard({
                         </div>
                     )}
                     {availabilityMatches > 0 && (
-                        <div className="flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-md font-semibold">
-                            <CalendarDays size={11} />
+                        <button
+                            type="button"
+                            onClick={() => setShowCalendar(!showCalendar)}
+                            className="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 px-2.5 py-1 rounded-xl font-bold transition-all cursor-pointer border border-emerald-200 dark:border-emerald-800/60 shadow-2xs"
+                            title="Gemeinsame Freistunden ansehen"
+                        >
+                            <CalendarDays size={12} className="text-emerald-600" />
                             <span>{availabilityMatches} Freistunden-Match</span>
-                        </div>
+                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 underline ml-0.5">
+                                {showCalendar ? 'Kalender einklappen ▲' : 'Zeiten ansehen ▼'}
+                            </span>
+                        </button>
                     )}
                 </div>
+
+                {/* Inline Availability Calendar comparison */}
+                {showCalendar && (
+                    <div className="mb-4 p-3 bg-gray-50/80 dark:bg-gray-800/40 rounded-2xl border border-gray-100 dark:border-gray-800">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-[11px] font-bold text-gray-600 dark:text-gray-300 flex items-center gap-1">
+                                <CalendarDays size={12} className="text-emerald-500" /> Gemeinsame Zeiten (grün markiert):
+                            </span>
+                            <span className="text-[10px] text-emerald-600 font-extrabold">{availabilityMatches} Treffer</span>
+                        </div>
+                        <AvailabilityCalendar
+                            availability={ad.profiles?.availability || emptyAvailability()}
+                            matchWith={myAvail}
+                            compact
+                        />
+                    </div>
+                )}
 
                 {/* Actions */}
                 <div className="flex gap-2.5 border-t dark:border-gray-800/80 pt-3 mt-1">
@@ -400,7 +428,9 @@ export default function Matching() {
 
             if (candidatesError) throw candidatesError;
 
-            setCandidateAds((candidates ?? []) as any[]);
+            // Extra security: filter out any candidate ads created by the current user
+            const filteredCandidates = ((candidates ?? []) as any[]).filter(c => c.user_id !== user?.id);
+            setCandidateAds(filteredCandidates);
         } catch (e) {
             console.error('[Matching] fetch error:', e);
         } finally {
@@ -423,6 +453,8 @@ export default function Matching() {
         const offerAds = userAds.filter(a => a.type === 'offer');
 
         candidateAds.forEach(candAd => {
+            // NEVER show own ads as matches
+            if (candAd.user_id === user?.id) return;
             if (dismissedIds.includes(candAd.id)) return;
 
             const candGrade = candAd.profiles?.grade_level || (candAd.grade_levels && candAd.grade_levels[0]) || '10';
@@ -815,6 +847,7 @@ export default function Matching() {
                             <MatchCard
                                 key={m.ad.id}
                                 match={m}
+                                myAvail={myProfile?.availability || emptyAvailability()}
                                 onContact={() => navigate(`/ad/${m.ad.id}`)}
                                 onDismiss={() => handleDismiss(m.ad.id)}
                             />
