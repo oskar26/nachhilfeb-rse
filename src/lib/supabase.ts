@@ -553,7 +553,28 @@ export const supabase = {
         },
 
         async signUp(params: any) {
-            const res = await api.auth.register(params);
+            const dataPayload: any = {
+                email: params.email,
+                password: params.password,
+                firstName: params.firstName || params.first_name || params.options?.data?.first_name || params.options?.data?.firstName,
+                lastName: params.lastName || params.last_name || params.options?.data?.last_name || params.options?.data?.lastName,
+                role: params.role || params.options?.data?.role || 'student',
+                grade: params.grade || params.options?.data?.grade,
+                letter: params.letter || params.options?.data?.letter,
+                birthDate: params.birthDate || params.options?.data?.birthDate,
+                parentalConsent: params.parentalConsent ?? params.options?.data?.parentalConsent ?? false,
+                inviteCode: params.inviteCode || params.options?.data?.inviteCode || '',
+                ...(params.options?.data || {}),
+                ...params
+            };
+
+            if (!dataPayload.firstName && dataPayload.full_name) {
+                const parts = dataPayload.full_name.trim().split(' ');
+                dataPayload.firstName = parts[0];
+                dataPayload.lastName = parts.slice(1).join(' ') || parts[0];
+            }
+
+            const res = await api.auth.register(dataPayload);
             if (res.error) {
                 return { data: { user: null, session: null }, error: res.error };
             }

@@ -188,10 +188,25 @@ export default function Login() {
             const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
                 email,
                 password,
+                firstName,
+                lastName,
+                first_name: firstName,
+                last_name: lastName,
+                grade: role === 'student' ? (grade || null) : null,
+                letter: role === 'student' ? (letter || null) : null,
+                birthDate,
+                parentalConsent: isUnder16 ? parentalConsent : true,
+                inviteCode: inviteCode.trim(),
                 options: {
                     data: {
+                        first_name: firstName,
+                        last_name: lastName,
                         full_name: `${firstName} ${lastName}`,
                         role: role,
+                        grade: role === 'student' ? (grade || null) : null,
+                        letter: role === 'student' ? (letter || null) : null,
+                        birthDate,
+                        inviteCode: inviteCode.trim()
                     }
                 }
             });

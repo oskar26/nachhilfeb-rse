@@ -23,14 +23,33 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     
     $email = filter_var(trim($data['email'] ?? ''), FILTER_VALIDATE_EMAIL);
     $password = $data['password'] ?? '';
-    $firstName = trim($data['firstName'] ?? '');
-    $lastName = trim($data['lastName'] ?? '');
-    $role = in_array($data['role'] ?? '', ['student', 'sv_admin', 'parent']) ? $data['role'] : 'student';
-    $grade = !empty($data['grade']) ? trim($data['grade']) : null;
-    $letter = !empty($data['letter']) ? trim($data['letter']) : null;
-    $birthDate = !empty($data['birthDate']) ? $data['birthDate'] : null;
-    $parentalConsent = !empty($data['parentalConsent']);
-    $inviteCode = trim($data['inviteCode'] ?? '');
+    
+    // Vor- und Nachname aus allen möglichen Quellen extrahieren
+    $firstName = trim($data['firstName'] ?? $data['first_name'] ?? $data['options']['data']['first_name'] ?? $data['options']['data']['firstName'] ?? '');
+    $lastName = trim($data['lastName'] ?? $data['last_name'] ?? $data['options']['data']['last_name'] ?? $data['options']['data']['lastName'] ?? '');
+
+    // Falls full_name existiert
+    $fullName = trim($data['fullName'] ?? $data['full_name'] ?? $data['options']['data']['full_name'] ?? $data['options']['data']['name'] ?? $data['name'] ?? '');
+    if ((empty($firstName) || empty($lastName)) && !empty($fullName)) {
+        $parts = preg_split('/\s+/', $fullName, 2);
+        if (empty($firstName)) $firstName = $parts[0] ?? '';
+        if (empty($lastName)) $lastName = $parts[1] ?? ($parts[0] ?? '');
+    }
+
+    if (!empty($firstName) && empty($lastName) && str_contains($firstName, ' ')) {
+        $parts = preg_split('/\s+/', $firstName, 2);
+        $firstName = $parts[0];
+        $lastName = $parts[1];
+    }
+
+    $role = in_array($data['role'] ?? $data['options']['data']['role'] ?? '', ['student', 'sv_admin', 'parent']) 
+        ? ($data['role'] ?? $data['options']['data']['role']) 
+        : 'student';
+    $grade = !empty($data['grade']) ? trim($data['grade']) : (!empty($data['options']['data']['grade']) ? trim($data['options']['data']['grade']) : null);
+    $letter = !empty($data['letter']) ? trim($data['letter']) : (!empty($data['options']['data']['letter']) ? trim($data['options']['data']['letter']) : null);
+    $birthDate = !empty($data['birthDate']) ? $data['birthDate'] : (!empty($data['birth_date']) ? $data['birth_date'] : (!empty($data['options']['data']['birthDate']) ? $data['options']['data']['birthDate'] : null));
+    $parentalConsent = !empty($data['parentalConsent']) || !empty($data['parental_consent']) || !empty($data['options']['data']['parentalConsent']);
+    $inviteCode = trim($data['inviteCode'] ?? $data['invite_code'] ?? $data['code'] ?? $data['options']['data']['inviteCode'] ?? '');
 
     if (!$email) {
         json_error('Bitte gib eine gültige E-Mail-Adresse ein.');
@@ -38,8 +57,11 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (strlen($password) < 8) {
         json_error('Das Passwort muss mindestens 8 Zeichen lang sein.');
     }
-    if (empty($firstName) || empty($lastName)) {
-        json_error('Vor- und Nachname sind erforderlich.');
+    if (empty($firstName)) {
+        json_error('Vorname ist erforderlich.');
+    }
+    if (empty($lastName)) {
+        $lastName = '.';
     }
 
     // Prüfen, ob E-Mail bereits existiert
