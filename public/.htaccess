@@ -1,0 +1,42 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # 1. API-Anfragen: Nicht auf index.html umschreiben
+  # Wenn eine PHP-Datei direkt angefragt wird, führe sie aus
+  RewriteCond %{REQUEST_URI} ^/api/.*\.php$ [NC]
+  RewriteRule ^ - [L]
+
+  # Routen wie /api/ads oder /api/auth/login an api/index.php leiten
+  RewriteRule ^api/(.*)$ api/index.php [QSA,L]
+
+  # 2. Single Page Application (SPA) Routing Fallback für das React-Frontend
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_URI} !^/api
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
+
+# Caching-Optimierung für Vite-Assets
+<IfModule mod_expires.c>
+  ExpiresActive On
+  # HTML & API-Responses nicht cachen
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType application/json "access plus 0 seconds"
+  # Assets mit Hashing für 1 Jahr cachen
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType font/woff "access plus 1 year"
+</IfModule>
+
+# Sicherheitsheader
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
