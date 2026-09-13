@@ -310,8 +310,16 @@ export class QueryBuilder<T = any[]> implements PromiseLike<QueryResult<T>> {
                         const res = await api.requests.get(idFilter);
                         return { data: res.data, count: res.data ? 1 : 0, error: res.error };
                     }
+                    const ownerFilter = this.filters.find(f => f.col === 'owner_id')?.val;
+                    const reqFilter = this.filters.find(f => f.col === 'requester_id')?.val;
                     const res = await api.requests.list();
-                    const list = res.data || [];
+                    let list = res.data || [];
+                    if (ownerFilter) {
+                        list = list.filter((r: any) => r.owner_id === ownerFilter);
+                    }
+                    if (reqFilter) {
+                        list = list.filter((r: any) => r.requester_id === reqFilter);
+                    }
                     return { data: list, count: list.length, error: res.error };
                 }
                 if (this.operation === 'insert') {
@@ -362,7 +370,17 @@ export class QueryBuilder<T = any[]> implements PromiseLike<QueryResult<T>> {
                 if (this.operation === 'select') {
                     const res = await api.favorites.list();
                     const list = res.data || [];
-                    return { data: list, count: list.length, error: res.error };
+                    const mapped = list.map((item: any) => ({
+                        id: item.ad_id || item.id,
+                        ad_id: item.ad_id || item.id,
+                        user_id: item.user_id,
+                        created_at: item.favorited_at || item.created_at,
+                        ads: item.ads || {
+                            ...item,
+                            profiles: item.profiles
+                        }
+                    }));
+                    return { data: mapped, count: mapped.length, error: res.error };
                 }
                 if (this.operation === 'insert') {
                     const res = await api.favorites.toggle(this.payload.ad_id);
@@ -474,6 +492,50 @@ export class QueryBuilder<T = any[]> implements PromiseLike<QueryResult<T>> {
             // 13. USER BLOCKS / BANS
             if (this.table === 'user_blocks' || this.table === 'user_bans') {
                 return { data: { success: true }, count: null, error: null };
+            }
+
+            // 14. PROMO CODES
+            if (this.table === 'promo_codes') {
+                if (this.operation === 'select') {
+                    const res = await api.promo_codes.list();
+                    return { data: res.data || [], count: (res.data || []).length, error: res.error };
+                }
+                if (this.operation === 'insert') {
+                    const payload = Array.isArray(this.payload) ? this.payload[0] : this.payload;
+                    const res = await api.promo_codes.create(payload);
+                    return { data: res.data, count: null, error: res.error };
+                }
+                if (this.operation === 'update') {
+                    const idFilter = this.filters.find(f => f.col === 'id')?.val;
+                    const res = await api.promo_codes.toggle(idFilter, this.payload?.is_active ?? true);
+                    return { data: res.data, count: null, error: res.error };
+                }
+                if (this.operation === 'delete') {
+                    const idFilter = this.filters.find(f => f.col === 'id')?.val;
+                    const res = await api.promo_codes.delete(idFilter);
+                    return { data: res.data, count: null, error: res.error };
+                }
+            }
+
+            // 15. INVITE CODES
+            if (this.table === 'invite_codes') {
+                if (this.operation === 'select') {
+                    const res = await api.codes.list();
+                    return { data: res.data || [], count: (res.data || []).length, error: res.error };
+                }
+                if (this.operation === 'insert') {
+                    // Handled through api.codes.generate or custom insert
+                    const res = await api.codes.list();
+                    return { data: res.data, count: null, error: null };
+                }
+                if (this.operation === 'delete') {
+                    const idFilter = this.filters.find(f => f.col === 'id')?.val;
+                    if (idFilter) {
+                        const res = await api.codes.deleteInvite(idFilter);
+                        return { data: res.data, count: null, error: res.error };
+                    }
+                    return { data: null, count: null, error: null };
+                }
             }
 
             // Fallback für sonstige Tabellen

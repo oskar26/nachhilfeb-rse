@@ -46,7 +46,9 @@ if ($method === 'GET') {
         SELECT r.*,
                a.short_description as ad_title, a.subjects as ad_subjects, a.type as ad_type,
                req.display_name as requester_name, req.avatar_url as requester_avatar, req.avatar_type as requester_avatar_type, req.grade_level as requester_grade,
-               own.display_name as owner_name, own.avatar_url as owner_avatar, own.avatar_type as owner_avatar_type, own.grade_level as owner_grade
+               req.phone_number as requester_phone, req.email as requester_email, req.settings as requester_settings,
+               own.display_name as owner_name, own.avatar_url as owner_avatar, own.avatar_type as owner_avatar_type, own.grade_level as owner_grade,
+               own.phone_number as owner_phone, own.email as owner_email, own.settings as owner_settings
         FROM ad_requests r
         JOIN ads a ON a.id = r.ad_id
         JOIN profiles req ON req.id = r.requester_id
@@ -59,6 +61,38 @@ if ($method === 'GET') {
 
     foreach ($rows as &$r) {
         $r['ad_subjects'] = json_decode($r['ad_subjects'] ?? '[]', true);
+        $reqSettings = json_decode($r['requester_settings'] ?? '{}', true) ?: [];
+        $ownSettings = json_decode($r['owner_settings'] ?? '{}', true) ?: [];
+
+        $r['requester'] = [
+            'id' => $r['requester_id'],
+            'display_name' => $r['requester_name'],
+            'avatar_url' => $r['requester_avatar'],
+            'avatar_type' => $r['requester_avatar_type'],
+            'grade_level' => $r['requester_grade'],
+            'phone_number' => $r['requester_phone'],
+            'email' => $r['requester_email'],
+            'settings' => $reqSettings
+        ];
+
+        $r['owner'] = [
+            'id' => $r['owner_id'],
+            'display_name' => $r['owner_name'],
+            'avatar_url' => $r['owner_avatar'],
+            'avatar_type' => $r['owner_avatar_type'],
+            'grade_level' => $r['owner_grade'],
+            'phone_number' => $r['owner_phone'],
+            'email' => $r['owner_email'],
+            'settings' => $ownSettings
+        ];
+
+        $r['ads'] = [
+            'id' => $r['ad_id'],
+            'short_description' => $r['ad_title'],
+            'title' => $r['ad_title'],
+            'subjects' => $r['ad_subjects'],
+            'type' => $r['ad_type']
+        ];
     }
 
     json_response($rows);

@@ -22,9 +22,9 @@ if ($method === 'GET') {
         $stmt = $pdo->prepare('
             SELECT a.*, 
                    p.display_name, p.first_name, p.last_name, p.avatar_url, p.avatar_type,
-                   p.banner_color, p.average_rating, p.is_verified, p.grade_level as user_grade,
-                   p.class_letter as user_class, p.email as user_email, p.phone_number as user_phone,
-                   p.settings as user_settings
+                   p.banner_color, p.average_rating, p.is_verified, p.is_coach as user_is_coach,
+                   p.grade_level as user_grade, p.class_letter as user_class, p.email as user_email, 
+                   p.phone_number as user_phone, p.settings as user_settings, p.availability as user_availability
             FROM ads a
             JOIN profiles p ON p.id = a.user_id
             WHERE a.id = ?
@@ -43,7 +43,8 @@ if ($method === 'GET') {
         $ad['price_details'] = json_decode($ad['price_details'] ?? '{}', true);
         $ad['duration_minutes'] = json_decode($ad['duration_minutes'] ?? '[]', true);
         $ad['image_urls'] = json_decode($ad['image_urls'] ?? '[]', true);
-        $ad['user_settings'] = json_decode($ad['user_settings'] ?? '{}', true);
+        $userSettings = json_decode($ad['user_settings'] ?? '{}', true) ?: [];
+        $ad['user_settings'] = $userSettings;
 
         // Boost-Status prüfen
         $isBoosted = !empty($ad['boosted']) && !empty($ad['boosted_until']) && strtotime($ad['boosted_until']) > time();
@@ -60,11 +61,13 @@ if ($method === 'GET') {
             'banner_color' => $ad['banner_color'],
             'average_rating' => (float)$ad['average_rating'],
             'is_verified' => (bool)$ad['is_verified'],
+            'is_coach' => !empty($ad['user_is_coach']) || !empty($userSettings['is_coach']),
+            'availability' => !empty($ad['user_availability']) ? json_decode($ad['user_availability'], true) : (!empty($userSettings['availability']) ? $userSettings['availability'] : null),
             'grade_level' => $ad['user_grade'],
             'class_letter' => $ad['user_class'],
             'email' => $ad['user_email'],
             'phone_number' => $ad['user_phone'],
-            'settings' => $ad['user_settings']
+            'settings' => $userSettings
         ];
 
         json_response($ad);
@@ -109,8 +112,9 @@ if ($method === 'GET') {
     $sql = "
         SELECT a.*, 
                p.display_name, p.first_name, p.last_name, p.avatar_url, p.avatar_type,
-               p.banner_color, p.average_rating, p.is_verified, p.grade_level as user_grade,
-               p.class_letter as user_class
+               p.banner_color, p.average_rating, p.is_verified, p.is_coach as user_is_coach,
+               p.grade_level as user_grade, p.class_letter as user_class,
+               p.settings as user_settings, p.availability as user_availability
         FROM ads a
         JOIN profiles p ON p.id = a.user_id
         $whereClause
@@ -144,6 +148,8 @@ if ($method === 'GET') {
         $row['image_urls'] = json_decode($row['image_urls'] ?? '[]', true) ?: [];
         
         $row['is_boosted'] = !empty($row['boosted']) && !empty($row['boosted_until']) && strtotime($row['boosted_until']) > time();
+        $userSettings = json_decode($row['user_settings'] ?? '{}', true) ?: [];
+        $row['user_settings'] = $userSettings;
 
         $row['profiles'] = [
             'id' => $row['user_id'],
@@ -155,6 +161,8 @@ if ($method === 'GET') {
             'banner_color' => $row['banner_color'],
             'average_rating' => (float)$row['average_rating'],
             'is_verified' => (bool)$row['is_verified'],
+            'is_coach' => !empty($row['user_is_coach']) || !empty($userSettings['is_coach']),
+            'availability' => !empty($row['user_availability']) ? json_decode($row['user_availability'], true) : (!empty($userSettings['availability']) ? $userSettings['availability'] : null),
             'grade_level' => $row['user_grade'],
             'class_letter' => $row['user_class']
         ];

@@ -6,7 +6,7 @@ import { Input } from '../components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../components/ui/Card';
 import { toast } from 'react-hot-toast';
 import { useTheme } from '../components/ThemeProvider';
-import { Sun, Moon, GraduationCap, CheckCircle, ShieldAlert } from 'lucide-react';
+import { Sun, Moon, GraduationCap, CheckCircle, ShieldAlert, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefinedGradeSelector } from '../components/RefinedGradeSelector';
 import { Logo, LogoBadge } from '../components/ui/Logo';
@@ -445,7 +445,7 @@ export default function Login() {
                                                             : "border-gray-200 text-gray-500 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800"
                                                     )}
                                                 >
-                                                    🎓 Schüler/in
+                                                    <GraduationCap size={14} className="inline mr-1" /> Schüler/in
                                                 </button>
                                                 <button
                                                     type="button"
@@ -457,7 +457,7 @@ export default function Login() {
                                                             : "border-gray-200 text-gray-500 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800"
                                                     )}
                                                 >
-                                                    👪 Elternteil
+                                                    <Users size={14} className="inline mr-1" /> Elternteil
                                                 </button>
                                             </div>
                                         </div>

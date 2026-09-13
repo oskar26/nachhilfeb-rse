@@ -7,7 +7,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../compone
 import { SubjectChip, SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
 import { GradeSelector } from '../components/GradeSelector';
 import { RichTextEditor } from '../components/RichTextEditor';
-import { ChevronLeft, ChevronRight, CheckCircle, Plus, X, Link as LinkIcon, AlertCircle, Lock, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle, Plus, X, Link as LinkIcon, AlertCircle, Lock, Sparkles, GraduationCap, Search, Users, Calculator, Info } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -67,6 +67,22 @@ export default function CreateAd() {
         image_urls: [] as string[],
         new_image_url: ''
     });
+
+    const getEffectiveHourlyRate = () => {
+        if (formData.price_mode !== 'fixed' || !formData.price_value) {
+            return null;
+        }
+        const val = Number(formData.price_value);
+        if (isNaN(val) || val <= 0) return null;
+        const minutes = formData.price_unit === '45min' ? 45 : formData.price_unit === '60min' ? 60 : formData.price_unit === '90min' ? 90 : 60;
+        const hourly = (val / minutes) * 60;
+        return {
+            hourly,
+            minutes,
+            formatted: hourly.toFixed(2)
+        };
+    };
+    const effectiveHourly = getEffectiveHourlyRate();
 
     useEffect(() => {
         if (location.state?.duplicateAd) {
@@ -384,20 +400,22 @@ export default function CreateAd() {
                                         <button
                                             onClick={() => setFormData({ ...formData, type: 'offer' })}
                                             className={cn(
-                                                "flex-1 py-4 px-2 text-center rounded-xl border-2 transition-all font-semibold",
+                                                "flex-1 py-4 px-2 text-center rounded-xl border-2 transition-all font-semibold flex items-center justify-center gap-2",
                                                 formData.type === 'offer' ? "border-primary bg-primary/10 text-primary-hover" : "border-gray-200 text-gray-500 hover:border-gray-300 dark:border-gray-700"
                                             )}
                                         >
-                                            Ich biete Nachhilfe 🎓
+                                            <GraduationCap size={18} />
+                                            <span>Ich biete Nachhilfe</span>
                                         </button>
                                         <button
                                             onClick={() => setFormData({ ...formData, type: 'search' })}
                                             className={cn(
-                                                "flex-1 py-4 px-2 text-center rounded-xl border-2 transition-all font-semibold",
+                                                "flex-1 py-4 px-2 text-center rounded-xl border-2 transition-all font-semibold flex items-center justify-center gap-2",
                                                 formData.type === 'search' ? "border-secondary bg-secondary/10 text-secondary" : "border-gray-200 text-gray-500 hover:border-gray-300 dark:border-gray-700"
                                             )}
                                         >
-                                            Ich suche Nachhilfe 🔍
+                                            <Search size={18} />
+                                            <span>Ich suche Nachhilfe</span>
                                         </button>
                                     </div>
                                     
@@ -411,13 +429,14 @@ export default function CreateAd() {
                                             type="button"
                                             onClick={() => setFormData({ ...formData, short_description: formData.short_description.includes('[Kleingruppe]') ? formData.short_description.replace('[Kleingruppe] ', '') : `[Kleingruppe] ${formData.short_description}` })}
                                             className={cn(
-                                                "px-3 py-1.5 rounded-xl text-xs font-bold transition-all border",
+                                                "px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5",
                                                 formData.short_description.includes('[Kleingruppe]')
                                                     ? "bg-purple-100 border-purple-300 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300"
                                                     : "bg-white dark:bg-gray-900 border-gray-200 text-gray-600"
                                             )}
                                         >
-                                            👥 {formData.short_description.includes('[Kleingruppe]') ? 'Kleingruppe (2-4 Schüler)' : 'Einzelunterricht'}
+                                            <Users size={14} />
+                                            <span>{formData.short_description.includes('[Kleingruppe]') ? 'Kleingruppe (2-4 Schüler)' : 'Einzelunterricht'}</span>
                                         </button>
                                     </div>
 
@@ -588,17 +607,81 @@ export default function CreateAd() {
                                         </select>
                                     </div>
                                     {/* Quick Select */}
-                                    <div className="flex gap-2">
-                                        {[5, 8, 10, 12, 15].map(p => (
+                                    <div className="flex gap-2 items-center flex-wrap">
+                                        <span className="text-xs text-gray-500 font-medium">Schnellwahl:</span>
+                                        {[6, 8, 10, 12, 15].map(p => (
                                             <button
                                                 key={p}
+                                                type="button"
                                                 onClick={() => setFormData(prev => ({ ...prev, price_value: p }))}
-                                                className="px-3 py-1 bg-gray-100 rounded-full text-sm hover:bg-gray-200 dark:bg-gray-800"
+                                                className={cn(
+                                                    "px-3 py-1 rounded-full text-xs font-semibold border transition-all",
+                                                    Number(formData.price_value) === p
+                                                        ? "bg-primary text-black border-primary"
+                                                        : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-transparent hover:border-gray-300 dark:hover:border-gray-700"
+                                                )}
                                             >
                                                 {p}€
                                             </button>
                                         ))}
                                     </div>
+
+                                    {/* Effective Hourly Rate & FWG Benchmark Advice */}
+                                    {effectiveHourly && (
+                                        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-3 mt-4">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2 text-xs font-semibold text-gray-600 dark:text-gray-400">
+                                                    <Calculator size={15} className="text-gray-400" />
+                                                    <span>Effektiver Stundenlohn (60 Min.):</span>
+                                                </div>
+                                                <span className="font-mono font-bold text-sm text-gray-900 dark:text-white">
+                                                    {effectiveHourly.formatted} € / 60 Min.
+                                                </span>
+                                            </div>
+
+                                            {effectiveHourly.hourly >= 9 && effectiveHourly.hourly <= 14 && (
+                                                <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800/60">
+                                                    <CheckCircle size={15} className="shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                                    <span>Faire Preisempfehlung – ca. 12 €/h Richtwert am FWG</span>
+                                                </div>
+                                            )}
+
+                                            {effectiveHourly.hourly < 9 && (
+                                                <div className="flex items-center gap-2 text-xs font-semibold text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/40 p-2.5 rounded-xl border border-sky-200 dark:border-sky-800/60">
+                                                    <Info size={15} className="shrink-0 text-sky-600 dark:text-sky-400" />
+                                                    <span>Sehr günstig – unter dem 12 €/h Richtwert</span>
+                                                </div>
+                                            )}
+
+                                            {effectiveHourly.hourly > 14 && effectiveHourly.hourly <= 18 && (
+                                                <div className="flex items-center gap-2 text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200 dark:border-amber-800/60">
+                                                    <Info size={15} className="shrink-0 text-amber-600 dark:text-amber-400" />
+                                                    <span>Etwas über dem Durchschnitt – FWG-Richtwert: ca. 12 €/h</span>
+                                                </div>
+                                            )}
+
+                                            {effectiveHourly.hourly > 18 && (
+                                                <div className="flex items-center gap-2 text-xs font-semibold text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 p-2.5 rounded-xl border border-rose-200 dark:border-rose-800/60">
+                                                    <AlertCircle size={15} className="shrink-0 text-rose-600 dark:text-rose-400" />
+                                                    <span>Relativ hoch für Schüler-Nachhilfe – Erlaubt, aber prüfe bitte, ob das beabsichtigt ist</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {formData.price_mode === 'free' && (
+                                <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-2.5 text-xs text-emerald-800 dark:text-emerald-300 font-medium animate-in fade-in">
+                                    <CheckCircle size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                    <span>Toll! Ehrenamtliche Nachhilfe stärkt den Zusammenhalt am FWG.</span>
+                                </div>
+                            )}
+
+                            {formData.price_mode === 'vb' && (
+                                <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 flex items-center gap-2.5 text-xs text-blue-800 dark:text-blue-300 font-medium animate-in fade-in">
+                                    <Info size={16} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                                    <span>Tipp zur Orientierung: Am FWG sind ca. 10–12 € pro 45–60 Minuten ein beliebter und erprobter Richtwert.</span>
                                 </div>
                             )}
                         </div>

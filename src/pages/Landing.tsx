@@ -17,6 +17,7 @@ import {
     ChevronDown,
     ChevronUp,
     Users,
+    Sparkles,
 } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { useState, useEffect } from 'react';
@@ -353,6 +354,77 @@ export default function Landing() {
                         </div>
                     </div>
 
+                </div>
+            </section>
+
+            {/* Schüler-Coaching AG Section */}
+            <section className="py-24 px-6 bg-gradient-to-b from-amber-500/5 via-yellow-500/10 to-transparent border-y border-amber-500/15">
+                <div className="max-w-6xl mx-auto">
+                    <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/15 text-amber-900 dark:text-amber-300 border border-amber-500/30">
+                            <Sparkles size={14} className="text-amber-500" />
+                            Besonderes Engagement am FWG
+                        </div>
+                        <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-gray-950 dark:text-white">
+                            Die Schüler-Coaching AG
+                        </h2>
+                        <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
+                            Große helfen Kleinen: Unter der engagierten Leitung von <strong className="font-bold text-gray-900 dark:text-white">Frau Balistreri</strong> begleiten erfahrene Oberstufenschüler:innen gezielt Kinder der <strong className="font-bold text-gray-900 dark:text-white">Klassen 5 und 6</strong> beim Start an unserer Schule.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                        <div className="p-8 rounded-3xl bg-white dark:bg-gray-900 border border-amber-500/20 shadow-soft space-y-4">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+                                <GraduationCap size={24} />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Pädagogisch begleitet</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                                Schüler-Coaches erhalten gezielte Methoden und Anleitung, um jüngere Schüler:innen nicht nur fachlich zu stärken, sondern auch beim Lernen lernen und der Arbeitsorganisation zu unterstützen.
+                            </p>
+                        </div>
+
+                        <div className="p-8 rounded-3xl bg-white dark:bg-gray-900 border border-amber-500/20 shadow-soft space-y-4">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+                                <Shield size={24} />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Offizielles Coach-Abzeichen</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                                Aktive Mitglieder der AG tragen ein goldenes Verifizierungs-Badge auf ihren Profilen und Anzeigen. So erkennen Eltern und 5./6.-Klässler sofort geprüfte Coaches.
+                            </p>
+                        </div>
+
+                        <div className="p-8 rounded-3xl bg-white dark:bg-gray-900 border border-amber-500/20 shadow-soft space-y-4">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+                                <Users size={24} />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Gemeinschaft & Fairness</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                                Die Nachhilfebörse unterstützt die AG mit unkomplizierter Vermittlung, fairen Richtpreisen (ca. 12 €/h) und sicherem Nachrichtenaustausch direkt im Schulsystem.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Callout box */}
+                    <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-amber-500/25 rounded-3xl p-8 sm:p-10 flex flex-col sm:flex-row items-center justify-between gap-6">
+                        <div className="space-y-2 text-center sm:text-left">
+                            <div className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                                Möchtest du Schüler-Coach werden?
+                            </div>
+                            <h4 className="text-2xl font-black text-gray-900 dark:text-white">
+                                Für Schüler:innen ab Klasse 9 / EF
+                            </h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xl">
+                                Wenn du Lust hast, Fünft- und Sechstklässler zu unterstützen und Teil der Schüler-Coaching AG zu werden, wende dich gerne direkt an Frau Balistreri oder sprich uns im SV-Raum an!
+                            </p>
+                        </div>
+                        <Button
+                            className="bg-primary text-black hover:bg-primary-hover rounded-full px-8 py-6 font-bold shadow-soft shrink-0"
+                            onClick={() => navigate(user ? '/' : '/login')}
+                        >
+                            {user ? 'Jetzt Angebot erstellen' : 'Jetzt mitmachen'}
+                        </Button>
+                    </div>
                 </div>
             </section>
 

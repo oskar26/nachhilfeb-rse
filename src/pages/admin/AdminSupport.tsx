@@ -362,9 +362,9 @@ export default function AdminSupport() {
                     className="h-11 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm focus:outline-none"
                 >
                     <option value="all">Alle Typen</option>
-                    <option value="bug">🐛 Bugs</option>
-                    <option value="feature">💡 Features</option>
-                    <option value="support">💬 Support</option>
+                    <option value="bug">Bugs</option>
+                    <option value="feature">Features</option>
+                    <option value="support">Support</option>
                 </select>
                 <select
                     value={filterStatus}

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Sparkles, Zap, X, MessageSquare, Frown, Loader2, 
     CalendarDays, Award, CheckCircle2, ArrowRight, RotateCcw, 
-    Filter, BookOpen, GraduationCap, MapPin 
+    Filter, BookOpen, GraduationCap, MapPin, Search 
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -197,12 +197,22 @@ function MatchCard({
             {/* Top Ribbon */}
             <div className="flex items-center justify-between px-5 pt-3.5 pb-1">
                 <span className={cn(
-                    'text-[10px] font-black uppercase px-2.5 py-1 rounded-full tracking-wider flex items-center gap-1',
+                    'text-[10px] font-black uppercase px-2.5 py-1 rounded-full tracking-wider flex items-center gap-1.5',
                     ad.type === 'offer' 
                         ? 'bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-300' 
                         : 'bg-blue-100 text-blue-900 dark:bg-blue-950/40 dark:text-blue-300'
                 )}>
-                    {ad.type === 'offer' ? '🎓 Bietet Nachhilfe' : '🔍 Sucht Nachhilfe'}
+                    {ad.type === 'offer' ? (
+                        <>
+                            <GraduationCap size={13} className="text-amber-700 dark:text-amber-300" />
+                            <span>Bietet Nachhilfe</span>
+                        </>
+                    ) : (
+                        <>
+                            <Search size={13} className="text-blue-700 dark:text-blue-300" />
+                            <span>Sucht Nachhilfe</span>
+                        </>
+                    )}
                 </span>
 
                 <div className={cn(
@@ -688,24 +698,7 @@ export default function Matching() {
     };
 
     return (
-        <div className="max-w-3xl mx-auto px-4 py-6 pb-28 space-y-6">
-            {/* Page Header */}
-            <div>
-                <div className="flex items-center gap-2 mb-1.5">
-                    <div className="w-10 h-10 rounded-2xl bg-amber-400/20 text-amber-900 dark:text-amber-300 flex items-center justify-center font-bold">
-                        <Sparkles size={22} className="text-primary-hover dark:text-primary animate-pulse" />
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
-                            Smart Matches
-                        </h1>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Finde automatisch passende Partner nach Fach, Stufe (inkl. Oberstufe EF/Q1/Q2) & Zeitplan
-                        </p>
-                    </div>
-                </div>
-            </div>
-
+        <div className="space-y-6">
             {/* Filter Tabs */}
             <div className="flex flex-wrap items-center justify-between gap-3 bg-gray-100/80 dark:bg-gray-800/80 p-1.5 rounded-2xl border dark:border-gray-700/50">
                 <div className="flex items-center gap-1">
@@ -735,7 +728,8 @@ export default function Matching() {
                                 : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
                         )}
                     >
-                        🎓 Ich suche Nachhilfe
+                        <GraduationCap size={14} className="text-amber-500" />
+                        <span>Ich suche Nachhilfe</span>
                     </button>
                     <button
                         onClick={() => {
@@ -749,7 +743,8 @@ export default function Matching() {
                                 : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
                         )}
                     >
-                        🔍 Ich biete Nachhilfe
+                        <Search size={14} className="text-blue-500" />
+                        <span>Ich biete Nachhilfe</span>
                     </button>
                 </div>
 

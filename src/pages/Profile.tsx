@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
-import { User, Shield, BadgeCheck, Loader2, Mail, Phone, MessageSquare, Settings as SettingsIcon, Pen, Trash2, Users, Sparkles, Check, CalendarDays } from 'lucide-react';
+import { User, Shield, BadgeCheck, Loader2, Mail, Phone, MessageSquare, Settings as SettingsIcon, Pen, Trash2, Users, Sparkles, Check, CalendarDays, Award, Shuffle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
@@ -67,6 +67,7 @@ export default function Profile() {
         class_letter: string;
         bio: string;
         is_verified: boolean;
+        is_coach?: boolean;
         avatar_url: string;
         moodle_name: string;
         phone_number: string;
@@ -85,6 +86,7 @@ export default function Profile() {
         class_letter: authProfile?.class_letter || '',
         bio: authProfile?.bio || '',
         is_verified: authProfile?.is_verified ?? false,
+        is_coach: !!authProfile?.is_coach,
         avatar_url: authProfile?.avatar_url || '',
 
         moodle_name: authProfile?.moodle_name || '',
@@ -133,6 +135,7 @@ export default function Profile() {
                 class_letter: data.class_letter || '',
                 bio: data.bio || '',
                 is_verified: data.is_verified,
+                is_coach: !!data.is_coach,
                 avatar_url: data.avatar_url || '',
                 moodle_name: data.moodle_name || '',
                 phone_number: data.phone_number || '',
@@ -269,7 +272,8 @@ export default function Profile() {
                                 className="px-3 py-1.5 rounded-full text-xs font-bold bg-white/80 hover:bg-white text-black backdrop-blur-md transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
                                 title="Farbe automatisch an Profilbild anpassen"
                             >
-                                ✨ Bild anpassen
+                                <Sparkles size={12} className="text-amber-500" />
+                                <span>Bild anpassen</span>
                             </button>
                         )}
                     </div>
@@ -286,7 +290,8 @@ export default function Profile() {
                         className="px-2.5 py-1.5 rounded-full text-xs font-bold bg-black/40 hover:bg-black/60 text-white backdrop-blur-md transition-all flex items-center gap-1 shadow-sm cursor-pointer"
                         title="Zufällige Farbe"
                     >
-                        🎲
+                        <Shuffle size={13} />
+                        <span>Zufall</span>
                     </button>
                 </div>
 
@@ -390,6 +395,11 @@ export default function Profile() {
                     </p>
 
                     <div className="flex flex-wrap justify-center items-center mt-3 gap-2">
+                        {profile.is_coach && (
+                            <div className="flex items-center text-amber-900 dark:text-amber-200 text-xs font-extrabold gap-1.5 bg-amber-100 dark:bg-amber-950/60 px-3 py-1 rounded-full border border-amber-300/80 dark:border-amber-700/60 shadow-xs">
+                                <Award size={14} className="text-amber-600 dark:text-amber-400" /> Schüler-Coach (5./6. Klasse)
+                            </div>
+                        )}
                         {profile.is_verified ? (
                             <div className="flex items-center text-green-700 dark:text-green-300 text-xs font-bold gap-1 bg-green-100/80 dark:bg-green-950/60 px-3 py-1 rounded-full border border-green-200 dark:border-green-800/80 shadow-xs">
                                 <BadgeCheck size={14} /> Verifiziert

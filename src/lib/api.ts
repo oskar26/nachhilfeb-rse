@@ -302,6 +302,69 @@ export const api = {
                 method: 'POST',
                 body: JSON.stringify({ count, role, prefix })
             });
+        },
+
+        async deleteInvite(id: string) {
+            return apiRequest('/codes.php?action=delete_invite', {
+                method: 'POST',
+                body: JSON.stringify({ id })
+            });
+        }
+    },
+
+    // Promo-Codes
+    promo_codes: {
+        async list() {
+            return apiRequest('/codes.php?action=promo_list');
+        },
+
+        async create(data: {
+            code: string;
+            effect_type: string;
+            push_level: string;
+            boost_days: number;
+            max_uses?: number | null;
+            target_group?: string;
+            description?: string;
+            expires_at?: string | null;
+            expiry_days?: number;
+        }) {
+            return apiRequest('/codes.php?action=promo_create', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+        },
+
+        async toggle(id: string, isActive: boolean) {
+            return apiRequest('/codes.php?action=promo_toggle', {
+                method: 'POST',
+                body: JSON.stringify({ id, is_active: isActive })
+            });
+        },
+
+        async delete(id: string) {
+            return apiRequest('/codes.php?action=promo_delete', {
+                method: 'POST',
+                body: JSON.stringify({ id })
+            });
+        }
+    },
+
+    // Schüler-Coaching AG (Frau Balistreri)
+    coach: {
+        async listStudents() {
+            return apiRequest('/profiles.php?action=coach_students');
+        },
+
+        async listLogs() {
+            return apiRequest('/profiles.php?action=coach_log');
+        },
+
+        async setCoachStatus(userId: string, isCoach: boolean) {
+            return apiRequest(`/profiles.php?id=${encodeURIComponent(userId)}`, {
+                method: 'PUT',
+                body: JSON.stringify({ is_coach: isCoach })
+            });
         }
     },
 
@@ -361,6 +424,10 @@ export const api = {
     // Admin
     admin: {
         async overview() {
+            return apiRequest('/admin.php?action=overview');
+        },
+
+        async getDashboardStats() {
             return apiRequest('/admin.php?action=overview');
         },
 

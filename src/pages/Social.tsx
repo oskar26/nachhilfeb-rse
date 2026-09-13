@@ -1,9 +1,11 @@
 import { useSearchParams } from 'react-router-dom';
-import { Sparkles, MessageSquare, Heart, Zap } from 'lucide-react';
+import { MessageSquare, Heart, Zap } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Favorites from './Favorites';
 import Requests from './Requests';
 import Matching from './Matching';
 import { cn } from '../lib/utils';
+import { triggerHaptic } from '../lib/haptics';
 
 export default function Social() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -33,6 +35,7 @@ export default function Social() {
     const currentTab = tabs.find(t => t.id === activeTab) || tabs[0];
 
     const selectTab = (tabId: string) => {
+        triggerHaptic('selection');
         setSearchParams({ tab: tabId });
     };
 
@@ -41,13 +44,15 @@ export default function Social() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Social Hub</h1>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Verwalte deine Kontakte, Merkliste und berechneten Matches.</p>
+                    <h1 className="text-2xl font-black tracking-tight text-gray-900 dark:text-white">Social Hub</h1>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mt-0.5">
+                        Verwalte deine Kontakte, Merkliste und berechneten Matches.
+                    </p>
                 </div>
             </div>
 
-            {/* Tab Switched Header Menu */}
-            <div className="bg-white dark:bg-gray-900 border dark:border-gray-800 p-1.5 rounded-2xl flex w-full justify-between shadow-sm">
+            {/* Sliding Yellow Tab Bar */}
+            <div className="relative bg-white dark:bg-gray-900 border border-gray-200/80 dark:border-gray-800 p-1.5 rounded-2xl flex w-full justify-between shadow-xs">
                 {tabs.map(tab => {
                     const Icon = tab.icon;
                     const isActive = tab.id === activeTab;
@@ -56,23 +61,38 @@ export default function Social() {
                             key={tab.id}
                             onClick={() => selectTab(tab.id)}
                             className={cn(
-                                "flex-1 flex items-center justify-center gap-2 py-3 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all",
-                                isActive
-                                    ? "bg-primary text-black shadow-sm"
-                                    : "text-gray-500 hover:text-gray-950 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-850"
+                                "relative flex-1 flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-extrabold transition-colors z-10 cursor-pointer select-none",
+                                isActive ? "text-amber-950" : "text-gray-500 hover:text-gray-900 dark:hover:text-gray-200"
                             )}
                         >
-                            <Icon size={16} className={cn(isActive ? "text-black" : "text-gray-400")} />
-                            <span>{tab.label}</span>
+                            {isActive && (
+                                <motion.div
+                                    layoutId="socialActiveIndicator"
+                                    className="absolute inset-0 bg-primary rounded-xl shadow-xs"
+                                    transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                                />
+                            )}
+                            <span className="relative z-10 flex items-center gap-2">
+                                <Icon size={16} className={isActive ? "text-amber-950" : "text-gray-400"} />
+                                <span>{tab.label}</span>
+                            </span>
                         </button>
                     );
                 })}
             </div>
 
-            {/* Render selected component */}
-            <div className="mt-4 animate-in fade-in duration-300">
-                {currentTab.component}
-            </div>
+            {/* Render selected component with smooth transition */}
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key={activeTab}
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
+                >
+                    {currentTab.component}
+                </motion.div>
+            </AnimatePresence>
         </div>
     );
 }

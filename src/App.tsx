@@ -26,6 +26,7 @@ import Cookies from './pages/Cookies';
 import UpdatePassword from './pages/UpdatePassword';
 import ParentGuide from './pages/ParentGuide';
 import Nutzungsbedingungen from './pages/Nutzungsbedingungen';
+import CoachPanel from './pages/coach/CoachPanel';
 import { Logo } from './components/ui/Logo';
 
 // Branded loading spinner
@@ -124,6 +125,7 @@ function App() {
               <Route path="ad/:id" element={<AdDetails />} />
               <Route path="profile" element={<Profile />} />
               <Route path="/profile/:id" element={<PublicProfile />} />
+              <Route path="coach-panel" element={<CoachPanel />} />
               <Route path="sv-panel" element={<AdminRoute><AdminLayout /></AdminRoute>}>
                 <Route index element={<SVDashboard />} />
               </Route>

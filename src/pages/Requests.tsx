@@ -72,9 +72,7 @@ export default function Requests() {
     if (!user) return <div className="p-4">Bitte einloggen.</div>;
 
     return (
-        <div className="p-4 max-w-3xl mx-auto pb-24 space-y-6">
-            <h1 className="text-2xl font-bold">Anfragen</h1>
-
+        <div className="space-y-6">
             <Tabs defaultValue="incoming">
                 <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="incoming">

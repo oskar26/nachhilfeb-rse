@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
 import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/Card';
 import { SubjectChip, SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
-import { GraduationCap, MapPin, Clock, Filter, Search, CalendarDays, ShieldCheck, ChevronDown, ChevronUp, Share2 } from 'lucide-react';
+import { GraduationCap, MapPin, Clock, Filter, Search, CalendarDays, ShieldCheck, ChevronDown, ChevronUp, Share2, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
@@ -498,7 +498,7 @@ export default function Feed() {
                                 <div className="flex items-center gap-2">
                                     {boosted && (
                                         <span className="text-yellow-600 dark:text-yellow-500 font-semibold text-[10px] flex items-center gap-0.5">
-                                            ✨ Empfohlen
+                                            <Sparkles size={10} /> Empfohlen
                                         </span>
                                     )}
                                     <button

@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Home, PlusCircle, User, LogOut, Settings, Users, MessageSquare, Inbox, Zap, Heart, Sparkles } from 'lucide-react';
+import { Home, PlusCircle, User, LogOut, Settings, Users, MessageSquare, Inbox, Zap, Heart, Sparkles, Award } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/Button';
@@ -11,20 +11,10 @@ import { Logo } from './ui/Logo';
 import { triggerHaptic } from '../lib/haptics';
 
 export default function Layout() {
-    const { user, signOut, isParent } = useAuth();
+    const { user, signOut, isParent, isAdmin, isCoachAdmin } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
-    const [isAdmin, setIsAdmin] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
-
-    useEffect(() => {
-        if (user) checkAdmin();
-    }, [user]);
-
-    const checkAdmin = async () => {
-        const { data } = await supabase.from('profiles').select('role').eq('id', user?.id).single();
-        if (data?.role === 'sv_admin') setIsAdmin(true);
-    };
 
     const handleSignOut = async () => {
         triggerHaptic('medium');
@@ -36,12 +26,22 @@ export default function Layout() {
         triggerHaptic('selection');
     };
 
-    const desktopNavLinkClass = ({ isActive }: { isActive: boolean }) =>
-        `relative flex items-center gap-3 rounded-2xl px-4 py-2.5 text-sm font-semibold transition-all ${
-            isActive
+    const currentTab = new URLSearchParams(location.search).get('tab') || 'requests';
+
+    const getDesktopNavLinkClass = (type: 'path' | 'social_tab', target: string, isStaticActive?: boolean) => {
+        let active = false;
+        if (type === 'path') {
+            active = !!isStaticActive;
+        } else if (type === 'social_tab') {
+            active = location.pathname === '/social' && currentTab === target;
+        }
+
+        return `relative flex items-center gap-3 rounded-2xl px-4 py-2.5 text-sm font-semibold transition-all ${
+            active
                 ? 'bg-amber-400/20 text-amber-950 dark:bg-yellow-400/15 dark:text-yellow-200 font-extrabold border border-amber-300/40 dark:border-yellow-400/30 shadow-xs'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-800/60'
         }`;
+    };
 
     const mobileNavItems = [
         { to: '/', label: 'Entdecken', icon: Home, end: true },
@@ -76,24 +76,24 @@ export default function Layout() {
 
                 <nav className="flex-1 space-y-1.5 px-4 py-4 overflow-y-auto">
                     <p className="px-4 text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mb-2">Menu</p>
-                    <NavLink to="/" end onClick={handleNavClick} className={desktopNavLinkClass}>
+                    <NavLink to="/" end onClick={handleNavClick} className={({ isActive }) => getDesktopNavLinkClass('path', '/', isActive)}>
                         <Home size={20} /> Entdecken
                     </NavLink>
-                    <NavLink to="/requests" onClick={handleNavClick} className={desktopNavLinkClass}>
+                    <NavLink to="/social?tab=requests" onClick={handleNavClick} className={() => getDesktopNavLinkClass('social_tab', 'requests')}>
                         <Inbox size={20} /> Anfragen
                     </NavLink>
                     
                     {!isParent ? (
                         <>
-                            <NavLink to="/matching" onClick={handleNavClick} className={desktopNavLinkClass}>
+                            <NavLink to="/social?tab=matches" onClick={handleNavClick} className={() => getDesktopNavLinkClass('social_tab', 'matches')}>
                                 <Zap size={20} /> Matches
                             </NavLink>
-                            <NavLink to="/favorites" onClick={handleNavClick} className={desktopNavLinkClass}>
+                            <NavLink to="/social?tab=watchlist" onClick={handleNavClick} className={() => getDesktopNavLinkClass('social_tab', 'watchlist')}>
                                 <Heart size={20} /> Merkliste
                             </NavLink>
                         </>
                     ) : (
-                        <NavLink to="/parent-dashboard" onClick={handleNavClick} className={desktopNavLinkClass}>
+                        <NavLink to="/parent-dashboard" onClick={handleNavClick} className={({ isActive }) => getDesktopNavLinkClass('path', '/parent-dashboard', isActive)}>
                             <Users size={20} /> Eltern-Dashboard
                         </NavLink>
                     )}
@@ -101,25 +101,36 @@ export default function Layout() {
                     {!isParent && (
                         <>
                             <p className="px-4 text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mt-6 mb-2">Erstellen</p>
-                            <NavLink to="/create-ad" onClick={handleNavClick} className={desktopNavLinkClass}>
+                            <NavLink to="/create-ad" onClick={handleNavClick} className={({ isActive }) => getDesktopNavLinkClass('path', '/create-ad', isActive)}>
                                 <PlusCircle size={20} /> Neue Anzeige
                             </NavLink>
                         </>
                     )}
 
                     <p className="px-4 text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mt-6 mb-2">Account</p>
-                    <NavLink to="/profile" onClick={handleNavClick} className={desktopNavLinkClass}>
+                    <NavLink to="/profile" onClick={handleNavClick} className={({ isActive }) => getDesktopNavLinkClass('path', '/profile', isActive)}>
                         <User size={20} /> Profil
                     </NavLink>
-                    <NavLink to="/settings" onClick={handleNavClick} className={desktopNavLinkClass}>
+                    <NavLink to="/settings" onClick={handleNavClick} className={({ isActive }) => getDesktopNavLinkClass('path', '/settings', isActive)}>
                         <Settings size={20} /> Einstellungen
                     </NavLink>
-                    <NavLink to="/welcome" onClick={handleNavClick} className={desktopNavLinkClass}>
+                    <NavLink to="/welcome" onClick={handleNavClick} className={({ isActive }) => getDesktopNavLinkClass('path', '/welcome', isActive)}>
                         <Sparkles size={20} /> Willkommen
                     </NavLink>
 
+                    {/* Coach Admin Panel (Frau Balistreri & SV) */}
+                    {isCoachAdmin && (
+                        <div className="mt-4 p-3 bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/30 rounded-2xl">
+                            <p className="px-2 text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-1.5">Schüler-Coaching</p>
+                            <NavLink to="/coach-panel" onClick={handleNavClick} className={({ isActive }) => `flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-bold transition-all ${isActive ? 'bg-amber-400/20 text-amber-950 font-extrabold' : 'text-amber-900 dark:text-amber-200 hover:bg-amber-100/60 dark:hover:bg-amber-900/40'}`}>
+                                <Award size={18} className="text-amber-600" />
+                                <span className="font-bold">Coaching Panel</span>
+                            </NavLink>
+                        </div>
+                    )}
+
                     {isAdmin && (
-                        <div className="mt-6 p-3 bg-red-50/60 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-2xl">
+                        <div className="mt-4 p-3 bg-red-50/60 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-2xl">
                             <p className="px-2 text-[10px] font-black text-red-500 uppercase tracking-wider mb-1.5">Admin Area</p>
                             <NavLink to="/sv-panel" onClick={handleNavClick} className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-100/50 dark:hover:bg-red-900/40 transition-all">
                                 <span className="font-bold">SV Panel</span>
@@ -147,15 +158,15 @@ export default function Layout() {
                     <NotificationCenter unreadCount={unreadCount} onCountChange={setUnreadCount} />
                 </div>
 
-                {/* Main View Wrapper with Smooth Page Transition */}
+                {/* Main View Wrapper with Smooth Page Transition (No vertical jumping) */}
                 <div className="flex-1 w-full md:rounded-3xl md:bg-white/80 md:dark:bg-gray-900/80 md:backdrop-blur-md md:border md:border-gray-100/80 md:dark:border-gray-800/60 md:shadow-soft flex flex-col min-h-0 overflow-y-auto overflow-x-hidden">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={location.pathname}
-                            initial={{ opacity: 0, y: 8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -8 }}
-                            transition={{ duration: 0.22, ease: "easeOut" }}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.12 }}
                             className="flex-1 w-full min-h-0"
                         >
                             <Outlet />

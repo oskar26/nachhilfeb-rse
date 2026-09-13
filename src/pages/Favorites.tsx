@@ -56,26 +56,23 @@ export default function Favorites() {
                 console.error('Error fetching favorites:', error);
                 toast.error("Gespeicherte Anzeigen konnten nicht geladen werden.");
             } else if (data) {
-                // Fetch profiles of ad owners manually to avoid deep nesting issues
-                const adOwnerIds = Array.from(new Set(data.filter(f => f.ads).map(f => f.ads.user_id)));
-                
-                let profileMap = new Map();
-                if (adOwnerIds.length > 0) {
-                    const { data: profiles } = await supabase
-                        .from('profiles')
-                        .select('id, display_name, grade_level')
-                        .in('id', adOwnerIds);
-                    profileMap = new Map(profiles?.map(p => [p.id, p]));
-                }
+                const mapped: FavoriteAd[] = data.map((f: any) => {
+                    const adData = f.ads || f;
+                    const profileData = adData.profiles || {
+                        display_name: adData.display_name || 'FWG Nutzer',
+                        grade_level: adData.user_grade || adData.grade_level
+                    };
 
-                const mapped: FavoriteAd[] = data.map((f: any) => ({
-                    id: f.id,
-                    ad_id: f.ad_id,
-                    ads: f.ads ? {
-                        ...f.ads,
-                        profiles: profileMap.get(f.ads.user_id)
-                    } : null
-                })).filter(f => f.ads !== null); // Filter deleted ads
+                    return {
+                        id: f.id || f.ad_id,
+                        ad_id: f.ad_id || f.id,
+                        ads: {
+                            ...adData,
+                            title: adData.title || adData.short_description || 'Nachhilfeanzeige',
+                            profiles: profileData
+                        }
+                    };
+                }).filter(f => f.ads && (f.ads.short_description || f.ads.title));
 
                 setFavorites(mapped);
             }
@@ -107,15 +104,7 @@ export default function Favorites() {
     if (!user) return <div className="p-4 text-center py-20">Bitte logge dich ein, um deine Merkliste zu sehen.</div>;
 
     return (
-        <div className="p-4 max-w-4xl mx-auto pb-24 space-y-6">
-            <div>
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                    <Heart className="text-red-500" fill="currentColor" size={24} /> Merkliste
-                </h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Deine gespeicherten Nachhilfeanzeigen auf einen Blick
-                </p>
-            </div>
+        <div className="space-y-6">
 
             {loading ? (
                 <div className="text-center py-20 text-gray-500 animate-pulse">Lade gespeicherte Anzeigen...</div>

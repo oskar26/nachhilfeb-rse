@@ -225,11 +225,11 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                     <ChevronLeft size={20} />
                                 </button>
                             )}
-                            <h2 className="text-lg font-black text-gray-900 dark:text-white">
+                            <h2 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-1.5">
                                 {view === 'menu' && 'Hilfe & Support'}
-                                {view === 'form' && (ticketType === 'bug' ? '🐛 Bug melden' : '💡 Feature vorschlagen')}
-                                {view === 'chat' && (activeTicket ? activeTicket.title : '💬 Support-Chat')}
-                                {view === 'success' && '✅ Eingereicht!'}
+                                {view === 'form' && (ticketType === 'bug' ? <><Bug size={18} className="inline" /> Bug melden</> : <><Lightbulb size={18} className="inline" /> Feature vorschlagen</>)}
+                                {view === 'chat' && (activeTicket ? activeTicket.title : <><MessageCircle size={18} className="inline" /> Support-Chat</>)}
+                                {view === 'success' && <><CheckCircle size={18} className="inline text-green-500" /> Eingereicht!</>}
                             </h2>
                         </div>
                         <button
@@ -390,7 +390,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                                 'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-lg',
                                                 ticket.type === 'bug' ? 'bg-red-100 dark:bg-red-900/30' : ticket.type === 'feature' ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-blue-100 dark:bg-blue-900/30'
                                             )}>
-                                                {ticket.type === 'bug' ? '🐛' : ticket.type === 'feature' ? '💡' : '💬'}
+                                                {ticket.type === 'bug' ? <Bug size={18} /> : ticket.type === 'feature' ? <Lightbulb size={18} /> : <MessageCircle size={18} />}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2">
@@ -420,7 +420,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                             <div className="space-y-3">
                                 {/* Ticket info */}
                                 <div className="bg-gray-50 dark:bg-gray-800/40 rounded-2xl p-3 border dark:border-gray-800 text-xs text-gray-500 space-y-1">
-                                    <p><span className="font-bold">Typ:</span> {activeTicket.type === 'bug' ? '🐛 Bug' : activeTicket.type === 'feature' ? '💡 Feature' : '💬 Support'}</p>
+                                    <p><span className="font-bold">Typ:</span> {activeTicket.type === 'bug' ? 'Bug' : activeTicket.type === 'feature' ? 'Feature' : 'Support'}</p>
                                     <p><span className="font-bold">Status:</span> {activeTicket.status}</p>
                                     <p className="text-gray-400 line-clamp-2">{activeTicket.description}</p>
                                 </div>

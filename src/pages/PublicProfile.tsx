@@ -7,7 +7,7 @@ import { Card, CardContent } from '../components/ui/Card';
 import { 
     ChevronLeft, GraduationCap, 
     CheckCircle, MessageSquare, Star, 
-    Calendar, ShieldCheck, Share2 
+    Calendar, ShieldCheck, Share2, Award 
 } from 'lucide-react';
 import { SubjectChip } from '../components/SubjectChip';
 import type { Subject } from '../components/SubjectChip';
@@ -129,13 +129,12 @@ export default function PublicProfile() {
             </motion.div>
 
             {/* Profile Header */}
-            <motion.div variants={itemVariants} className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 to-yellow-500/30 rounded-3xl blur-md opacity-30 group-hover:opacity-60 transition duration-500"></div>
-                <Card className="relative p-0 overflow-hidden border border-gray-100 dark:border-gray-800 shadow-soft bg-white/90 dark:bg-gray-900/90 backdrop-blur-md rounded-3xl">
+            <motion.div variants={itemVariants} className="relative">
+                <Card className="relative p-0 overflow-hidden border border-gray-200/80 dark:border-gray-800 shadow-xs bg-white dark:bg-gray-900 rounded-3xl">
                     <div className="h-36 transition-all duration-700 shadow-inner" style={{ background: bannerGradient }}></div>
                     <CardContent className="pt-0 px-6 sm:px-8 pb-8 relative">
                         <div className="flex flex-col md:flex-row items-center md:items-end gap-6 mb-6">
-                            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-white dark:bg-gray-950 p-1 shadow-xl overflow-hidden border-4 border-white dark:border-gray-950 -mt-16 shrink-0">
+                            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-white dark:bg-gray-950 p-1 shadow-md overflow-hidden border-4 border-white dark:border-gray-950 -mt-16 shrink-0">
                                 {profile.avatar_url ? (
                                     <img src={profile.avatar_url} className="w-full h-full object-cover rounded-2xl" />
                                 ) : (
@@ -153,9 +152,14 @@ export default function PublicProfile() {
                                     <GraduationCap size={18} /> Klasse {profile.grade_level || '?'}
                                 </p>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex flex-wrap gap-2 justify-center md:justify-end">
+                                {profile.is_coach && (
+                                    <span className="bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 text-xs font-extrabold px-3 py-1.5 rounded-full border border-amber-300/80 dark:border-amber-700/60 flex items-center gap-1.5 shadow-xs">
+                                        <Award size={14} className="text-amber-600 dark:text-amber-400" /> Schüler-Coach (5./6. Klasse)
+                                    </span>
+                                )}
                                 {profile.is_verified && (
-                                    <span className="bg-green-100 dark:bg-green-950/60 text-green-700 dark:text-green-300 text-xs font-bold px-3.5 py-1.5 rounded-full border border-green-200 dark:border-green-800/60 flex items-center gap-1.5 shadow-xs">
+                                    <span className="bg-green-100 dark:bg-green-950/60 text-green-700 dark:text-green-300 text-xs font-bold px-3 py-1.5 rounded-full border border-green-200 dark:border-green-800/60 flex items-center gap-1.5 shadow-xs">
                                         <CheckCircle size={14} /> Geprüft & Verifiziert
                                     </span>
                                 )}
@@ -167,7 +171,7 @@ export default function PublicProfile() {
                                 <div>
                                     <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-2">Über mich</h3>
                                     <div 
-                                        className="prose dark:prose-invert max-w-none text-sm text-gray-700 dark:text-gray-300 leading-relaxed bg-gray-50/60 dark:bg-gray-800/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-800/80"
+                                        className="prose dark:prose-invert max-w-none text-sm text-gray-700 dark:text-gray-300 leading-relaxed bg-gray-50/60 dark:bg-gray-850/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-800/80"
                                         dangerouslySetInnerHTML={{ __html: sanitizeHtml(profile.bio || '<p class="text-gray-400 italic">Keine Biografie angegeben.</p>') }}
                                     />
                                 </div>
@@ -177,18 +181,18 @@ export default function PublicProfile() {
                                 <div>
                                     <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-3">Statistiken</h3>
                                     <div className="space-y-2.5">
-                                        <div className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
+                                        <div className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-850/50 rounded-2xl border border-gray-100 dark:border-gray-800">
                                             <span className="text-xs text-gray-500 font-medium flex items-center gap-2"><Star size={14} className="text-yellow-500" /> Bewertung</span>
                                             <div className="flex items-center gap-1">
                                                 <span className="font-extrabold text-sm text-gray-900 dark:text-white">{reviewCount > 0 ? Number(profile.average_rating || 0).toFixed(1) : '-'}</span>
                                                 <span className="text-[10px] text-gray-400 font-bold">({reviewCount})</span>
                                             </div>
                                         </div>
-                                        <div className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
+                                        <div className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-850/50 rounded-2xl border border-gray-100 dark:border-gray-800">
                                             <span className="text-xs text-gray-500 font-medium flex items-center gap-2"><MessageSquare size={14} className="text-blue-500" /> Aktive Anzeigen</span>
                                             <span className="font-extrabold text-sm text-gray-900 dark:text-white">{ads.length}</span>
                                         </div>
-                                        <div className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
+                                        <div className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-850/50 rounded-2xl border border-gray-100 dark:border-gray-800">
                                             <span className="text-xs text-gray-500 font-medium flex items-center gap-2"><Calendar size={14} className="text-primary" /> Dabei seit</span>
                                             <span className="font-extrabold text-sm text-gray-900 dark:text-white">{new Date(profile.created_at).getFullYear()}</span>
                                         </div>
@@ -221,18 +225,15 @@ export default function PublicProfile() {
                         Dieser Nutzer hat aktuell keine öffentlichen Anzeigen geschaltet.
                     </Card>
                 ) : (
-                    <div className="grid gap-4">
+                    <div className="grid gap-3">
                         {ads.map(ad => (
-                            <motion.button 
+                            <button 
                                 key={ad.id}
-                                whileHover={{ y: -3, scale: 1.01 }}
-                                whileTap={{ scale: 0.98 }}
-                                transition={{ type: "spring", stiffness: 400, damping: 25 }}
                                 onClick={() => {
                                     triggerHaptic('light');
                                     navigate(`/ad/${ad.id}`);
                                 }}
-                                className="w-full text-left bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5 rounded-3xl shadow-soft hover:shadow-lg transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4 cursor-pointer select-none"
+                                className="w-full text-left bg-white dark:bg-gray-900 border border-gray-200/80 dark:border-gray-800 hover:border-amber-400/70 dark:hover:border-amber-400/50 p-5 rounded-3xl shadow-xs transition-colors flex flex-col md:flex-row justify-between items-start md:items-center gap-4 cursor-pointer select-none"
                             >
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-2">
@@ -246,7 +247,7 @@ export default function PublicProfile() {
                                     <p className="font-bold text-base text-gray-900 dark:text-white line-clamp-1">{ad.short_description}</p>
                                     <div className="flex flex-wrap gap-1.5">
                                         {ad.subjects?.map((s: Subject) => (
-                                            <SubjectChip key={s} subject={s} />
+                                             <SubjectChip key={s} subject={s} />
                                         ))}
                                     </div>
                                 </div>
@@ -255,7 +256,7 @@ export default function PublicProfile() {
                                         {ad.price_details?.mode === 'free' ? 'Kostenlos' : `${ad.price_details?.value}€/h`}
                                     </span>
                                 </div>
-                            </motion.button>
+                            </button>
                         ))}
                     </div>
                 )}

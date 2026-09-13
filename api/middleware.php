@@ -39,7 +39,7 @@ function get_auth_user(): ?array {
     $stmt = $pdo->prepare('
         SELECT u.id, u.email, u.email_verified,
                p.first_name, p.last_name, p.display_name, p.role, p.grade_level, p.class_letter,
-               p.is_verified, p.is_banned, p.ban_type, p.ban_reason, p.banned_until,
+               p.is_verified, p.is_coach, p.is_banned, p.ban_type, p.ban_reason, p.banned_until,
                p.avatar_url, p.avatar_type, p.banner_color, p.onboarding_complete
         FROM users u
         LEFT JOIN profiles p ON p.id = u.id
@@ -76,6 +76,7 @@ function get_auth_user(): ?array {
         }
     }
 
+    $user['is_coach'] = !empty($user['is_coach']);
     return $user;
 }
 
@@ -91,6 +92,14 @@ function require_admin(): array {
     $user = require_auth();
     if ($user['role'] !== 'sv_admin') {
         json_error('Zugriff verweigert. Diese Aktion erfordert SV-Admin-Rechte.', 403);
+    }
+    return $user;
+}
+
+function require_coach_or_admin(): array {
+    $user = require_auth();
+    if ($user['role'] !== 'sv_admin' && $user['role'] !== 'coach_admin') {
+        json_error('Zugriff verweigert. Diese Aktion erfordert SV-Admin- oder Schüler-Coaching-Rechte.', 403);
     }
     return $user;
 }

@@ -38,10 +38,13 @@ interface InviteCode {
 interface PromoCode {
     id: string;
     code: string;
-    effect_type: 'ad_boost' | 'badge' | 'special_discount' | 'custom';
+    effect_type: 'ad_boost' | 'badge' | 'coach_verification' | 'special_discount' | 'custom';
+    push_level?: 'standard' | 'super' | 'ultra';
     boost_days: number;
     max_uses: number | null;
     current_uses: number;
+    target_group?: string;
+    description?: string | null;
     is_active: boolean;
     expires_at: string | null;
     created_at: string;
@@ -65,9 +68,12 @@ export default function AdminCodes() {
 
     // Promo Code Form
     const [newPromoCode, setNewPromoCode] = useState('');
-    const [effectType, setEffectType] = useState<'ad_boost' | 'badge' | 'special_discount' | 'custom'>('ad_boost');
+    const [effectType, setEffectType] = useState<'ad_boost' | 'badge' | 'coach_verification' | 'special_discount' | 'custom'>('ad_boost');
+    const [pushLevel, setPushLevel] = useState<'standard' | 'super' | 'ultra'>('super');
     const [boostDays, setBoostDays] = useState<number>(14);
     const [maxUses, setMaxUses] = useState<string>('');
+    const [targetGroup, setTargetGroup] = useState<string>('all');
+    const [description, setDescription] = useState<string>('');
     const [expiryDays, setExpiryDays] = useState<string>('30');
 
     useEffect(() => {
@@ -184,8 +190,11 @@ export default function AdminCodes() {
             const { error } = await supabase.from('promo_codes').insert({
                 code: codeClean,
                 effect_type: effectType,
+                push_level: pushLevel,
                 boost_days: boostDays,
                 max_uses: parsedMaxUses,
+                target_group: targetGroup,
+                description: description.trim() || null,
                 expires_at: expiresAt,
                 is_active: true
             });
@@ -195,6 +204,7 @@ export default function AdminCodes() {
             toast.success(`Promo-Code '${codeClean}' erfolgreich angelegt!`);
             setNewPromoCode('');
             setMaxUses('');
+            setDescription('');
             fetchPromoCodes();
         } catch (error: any) {
             toast.error('Fehler beim Erstellen des Promo-Codes: ' + error.message);
@@ -297,17 +307,58 @@ export default function AdminCodes() {
                         {/* Form */}
                         <Card className="rounded-3xl border-none shadow-sm bg-white dark:bg-gray-900 col-span-2">
                             <CardContent className="p-6 space-y-4">
-                                <h2 className="font-bold text-sm text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
-                                    <Tag size={18} className="text-amber-500" />
-                                    Neuen Promo-Code konfigurieren & erstellen
-                                </h2>
+                                <div className="flex items-center justify-between">
+                                    <h2 className="font-bold text-sm text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
+                                        <Tag size={18} className="text-amber-500" />
+                                        Neuen Promo-Code konfigurieren & erstellen
+                                    </h2>
+                                </div>
+
+                                {/* Presets / Schnellvorlagen */}
+                                <div className="p-3 bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/30 rounded-2xl flex flex-wrap items-center gap-2">
+                                    <span className="text-[10px] font-black text-amber-800 dark:text-amber-300 uppercase tracking-wider">Schnell-Vorlagen:</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setNewPromoCode('COACHING-AG');
+                                            setEffectType('coach_verification');
+                                            setPushLevel('super');
+                                            setBoostDays(30);
+                                            setMaxUses('');
+                                            setTargetGroup('coach');
+                                            setDescription('Schüler-Coaching AG: Verifizierung + Super-Boost');
+                                            setExpiryDays('365');
+                                            toast.success("Vorlage 'Schüler-Coaching AG' geladen!");
+                                        }}
+                                        className="px-2.5 py-1 rounded-xl text-xs font-bold bg-amber-200/70 hover:bg-amber-200 text-amber-950 dark:bg-amber-900/50 dark:text-amber-200 transition-colors cursor-pointer"
+                                    >
+                                        Schüler-Coaching AG (COACHING-AG)
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setNewPromoCode('banane');
+                                            setEffectType('ad_boost');
+                                            setPushLevel('standard');
+                                            setBoostDays(14);
+                                            setMaxUses('50');
+                                            setTargetGroup('all');
+                                            setDescription('FWG Empfehlungscode: 14 Tage Anzeigen-Push');
+                                            setExpiryDays('365');
+                                            toast.success("Vorlage 'banane' geladen!");
+                                        }}
+                                        className="px-2.5 py-1 rounded-xl text-xs font-bold bg-yellow-200/70 hover:bg-yellow-200 text-yellow-950 dark:bg-yellow-900/50 dark:text-yellow-200 transition-colors cursor-pointer"
+                                    >
+                                        Empfehlungscode (banane)
+                                    </button>
+                                </div>
 
                                 <form onSubmit={handleCreatePromoCode} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-bold uppercase text-gray-400">Code-Name</label>
                                         <input
                                             type="text"
-                                            placeholder="z.B. SOMMER2026, BANANE, FWGSPECIAL"
+                                            placeholder="z.B. COACHING-AG, BANANE, FWGSPECIAL"
                                             value={newPromoCode}
                                             onChange={e => setNewPromoCode(e.target.value)}
                                             className="w-full h-10 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 text-sm font-bold tracking-wider uppercase focus:outline-none focus:ring-2 focus:ring-amber-400"
@@ -322,9 +373,23 @@ export default function AdminCodes() {
                                             onChange={e => setEffectType(e.target.value as any)}
                                             className="w-full h-10 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 text-sm font-medium focus:outline-none"
                                         >
-                                            <option value="ad_boost">Anzeigen-Boost (Highlights im Feed)</option>
-                                            <option value="badge">Exklusiver Profil-Badge</option>
+                                            <option value="ad_boost">Anzeigen-Push (Highlights im Feed)</option>
+                                            <option value="coach_verification">Schüler-Coaching Mitgliedschaft & Verifikation</option>
+                                            <option value="badge">Exklusiver Profil-Badge & Verifiziert</option>
                                             <option value="special_discount">Sonderaktions-Rabatt</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold uppercase text-gray-400">Push-Intensität / Boost-Stufe</label>
+                                        <select
+                                            value={pushLevel}
+                                            onChange={e => setPushLevel(e.target.value as any)}
+                                            className="w-full h-10 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 text-sm font-medium focus:outline-none"
+                                        >
+                                            <option value="standard">Standard Push (+25% Sichtbarkeit)</option>
+                                            <option value="super">Super Boost (Goldener Rahmen & Feed-Highlight)</option>
+                                            <option value="ultra">Ultra Push (Ganz oben angepinnt & Sofort-Push)</option>
                                         </select>
                                     </div>
 
@@ -344,9 +409,33 @@ export default function AdminCodes() {
                                         <label className="text-[10px] font-bold uppercase text-gray-400">Max. Nutzungen (Leer = Unbegrenzt)</label>
                                         <input
                                             type="number"
-                                            placeholder="z.B. 50"
+                                            placeholder="z.B. 50 (leer lassen für unbegrenzt)"
                                             value={maxUses}
                                             onChange={e => setMaxUses(e.target.value)}
+                                            className="w-full h-10 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 text-sm font-medium focus:outline-none"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold uppercase text-gray-400">Zielgruppe</label>
+                                        <select
+                                            value={targetGroup}
+                                            onChange={e => setTargetGroup(e.target.value)}
+                                            className="w-full h-10 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 text-sm font-medium focus:outline-none"
+                                        >
+                                            <option value="all">Alle Schüler (Standard)</option>
+                                            <option value="coach">Schüler-Coaching AG (5./6. Klasse Tutoren)</option>
+                                            <option value="tutor">Nur Nachhilfe-Anbieter</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="space-y-1 md:col-span-2">
+                                        <label className="text-[10px] font-bold uppercase text-gray-400">Interne Notiz / Beschreibung</label>
+                                        <input
+                                            type="text"
+                                            placeholder="z.B. Erstellt für Frau Balistreris Schüler-Coaches"
+                                            value={description}
+                                            onChange={e => setDescription(e.target.value)}
                                             className="w-full h-10 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 text-sm font-medium focus:outline-none"
                                         />
                                     </div>
@@ -359,6 +448,7 @@ export default function AdminCodes() {
                                             className="w-full h-10 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 text-sm font-medium focus:outline-none"
                                         >
                                             <option value="7">7 Tage gültig</option>
+                                            <option value="14">14 Tage gültig</option>
                                             <option value="30">30 Tage gültig</option>
                                             <option value="90">90 Tage gültig</option>
                                             <option value="365">1 Jahr gültig</option>
@@ -370,7 +460,7 @@ export default function AdminCodes() {
                                         <Button
                                             type="submit"
                                             disabled={creatingPromo}
-                                            className="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold h-10 rounded-xl gap-2 flex items-center justify-center shadow-md shadow-amber-500/10"
+                                            className="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold h-10 rounded-xl gap-2 flex items-center justify-center shadow-md shadow-amber-500/10 cursor-pointer"
                                         >
                                             <Plus size={16} /> Promo-Code anlegen & aktivieren
                                         </Button>
@@ -390,11 +480,14 @@ export default function AdminCodes() {
                                     Aktionscodes ermöglichen es Nutzern, ihre Nachhilfeanzeigen hervorzuheben oder exklusive Vorteile freizuschalten.
                                 </p>
                                 <div className="p-3 bg-white/80 dark:bg-gray-900/60 rounded-2xl border border-amber-200/60 dark:border-amber-900/30 text-xs space-y-1">
-                                    <span className="font-bold text-amber-700 dark:text-amber-400 block">⚡ Funktionen:</span>
-                                    <p className="text-gray-500 dark:text-gray-400">
-                                        • Ein- & Ausschalten per Klick<br />
-                                        • Automatische Nutzungsgrenzen<br />
-                                        • Integrierte Gültigkeitsprüfung beim Erstellen von Anzeigen
+                                    <span className="font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                                        <Zap size={13} /> Konfigurierbare Parameter:
+                                    </span>
+                                    <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
+                                        • Frei wählbarer Push-Grad (Standard, Super, Ultra)<br />
+                                        • Zielgruppen-Filterung (z.B. Coaching AG)<br />
+                                        • Status jederzeit per Klick umschaltbar oder löschbar<br />
+                                        • Automatische Limits & Verfallsdaten
                                     </p>
                                 </div>
                             </CardContent>
@@ -427,7 +520,8 @@ export default function AdminCodes() {
                                         <thead className="bg-gray-50 dark:bg-gray-800/30 border-b dark:border-gray-800 font-bold uppercase text-gray-400">
                                             <tr>
                                                 <th className="px-6 py-3.5">Code</th>
-                                                <th className="px-6 py-3.5">Effekt / Boost</th>
+                                                <th className="px-6 py-3.5">Effekt & Push</th>
+                                                <th className="px-6 py-3.5">Zielgruppe / Notiz</th>
                                                 <th className="px-6 py-3.5">Nutzungen</th>
                                                 <th className="px-6 py-3.5">Ablaufdatum</th>
                                                 <th className="px-6 py-3.5">Status</th>
@@ -444,10 +538,35 @@ export default function AdminCodes() {
                                                         <td className="px-6 py-4 font-mono font-extrabold tracking-wider text-sm text-gray-900 dark:text-white">
                                                             {p.code}
                                                         </td>
-                                                        <td className="px-6 py-4 font-medium">
-                                                            <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 font-bold text-[10px]">
-                                                                {p.boost_days} Tage Boost ({p.effect_type})
+                                                        <td className="px-6 py-4 font-medium space-y-1">
+                                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                                                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 font-bold text-[10px]">
+                                                                    {p.boost_days} Tage Boost
+                                                                </span>
+                                                                {p.push_level && (
+                                                                    <span className={cn(
+                                                                        "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase",
+                                                                        p.push_level === 'ultra' ? "bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300" :
+                                                                        p.push_level === 'super' ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-950/40 dark:text-yellow-300" :
+                                                                        "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                                                                    )}>
+                                                                        {p.push_level}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <span className="text-[10px] text-gray-400 block font-semibold">
+                                                                {p.effect_type === 'coach_verification' ? 'Schüler-Coaching AG' : p.effect_type}
                                                             </span>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">
+                                                            <div className="space-y-0.5">
+                                                                <span className="text-[10px] font-bold uppercase text-gray-400 block">
+                                                                    {p.target_group === 'coach' ? 'Schüler-Coaching AG' : p.target_group === 'tutor' ? 'Nur Anbieter' : 'Alle'}
+                                                                </span>
+                                                                {p.description && (
+                                                                    <p className="text-xs text-gray-500 italic line-clamp-1">{p.description}</p>
+                                                                )}
+                                                            </div>
                                                         </td>
                                                         <td className="px-6 py-4 font-semibold text-gray-600 dark:text-gray-300">
                                                             {p.current_uses} {p.max_uses !== null ? `/ ${p.max_uses}` : '(Unbegrenzt)'}
@@ -471,7 +590,7 @@ export default function AdminCodes() {
                                                                 <Button
                                                                     size="icon"
                                                                     variant="ghost"
-                                                                    className="h-8 w-8 rounded-lg"
+                                                                    className="h-8 w-8 rounded-lg cursor-pointer"
                                                                     onClick={() => togglePromoActive(p.id, p.is_active)}
                                                                     title={p.is_active ? 'Deaktivieren' : 'Aktivieren'}
                                                                 >
@@ -480,7 +599,7 @@ export default function AdminCodes() {
                                                                 <Button
                                                                     size="icon"
                                                                     variant="ghost"
-                                                                    className="h-8 w-8 rounded-lg"
+                                                                    className="h-8 w-8 rounded-lg cursor-pointer"
                                                                     onClick={() => handleCopy(p.id, p.code)}
                                                                     title="Kopieren"
                                                                 >
@@ -489,7 +608,7 @@ export default function AdminCodes() {
                                                                 <Button
                                                                     size="icon"
                                                                     variant="ghost"
-                                                                    className="h-8 w-8 rounded-lg text-red-500 hover:bg-red-50"
+                                                                    className="h-8 w-8 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 cursor-pointer"
                                                                     onClick={() => deletePromoCode(p.id, p.code)}
                                                                     title="Löschen"
                                                                 >

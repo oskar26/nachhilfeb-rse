@@ -9,6 +9,8 @@ interface AuthContextType {
     profile: Profile | null;
     loading: boolean;
     isAdmin: boolean;
+    isCoachAdmin: boolean;
+    isCoach: boolean;
     isParent: boolean;
     isVerified: boolean;
     signOut: () => Promise<void>;
@@ -21,6 +23,8 @@ const AuthContext = createContext<AuthContextType>({
     profile: null,
     loading: true,
     isAdmin: false,
+    isCoachAdmin: false,
+    isCoach: false,
     isParent: false,
     isVerified: false,
     signOut: async () => { },
@@ -132,6 +136,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const isAdmin = profile?.role === 'sv_admin';
+    const isCoachAdmin = profile?.role === 'sv_admin' || profile?.role === 'coach_admin';
+    const isCoach = !!profile?.is_coach;
     const isParent = profile?.role === 'parent';
     const isVerified = profile?.is_verified ?? false;
 
@@ -142,6 +148,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             profile, 
             loading, 
             isAdmin, 
+            isCoachAdmin,
+            isCoach,
             isParent, 
             isVerified, 
             signOut, 

@@ -17,7 +17,7 @@ export interface Database {
                     display_name: string | null
                     grade_level: string | null
                     class_letter: string | null
-                    role: 'student' | 'sv_admin' | 'parent'
+                    role: 'student' | 'sv_admin' | 'coach_admin' | 'parent'
                     subjects: string[]
                     bio: string | null
                     moodle_name: string | null
@@ -26,6 +26,8 @@ export interface Database {
                     settings: Json | null
                     avatar_url: string | null
                     is_verified: boolean
+                    is_coach?: boolean
+                    availability?: any
                     sv_code_used: string | null
                     is_banned?: boolean
                     ban_type?: 'temporary' | 'permanent' | null
@@ -46,7 +48,7 @@ export interface Database {
                     display_name?: string | null
                     grade_level?: string | null
                     class_letter?: string | null
-                    role?: 'student' | 'sv_admin' | 'parent'
+                    role?: 'student' | 'sv_admin' | 'coach_admin' | 'parent'
                     subjects?: string[]
                     bio?: string | null
                     moodle_name?: string | null
@@ -55,6 +57,8 @@ export interface Database {
                     settings?: Json | null
                     avatar_url?: string | null
                     is_verified?: boolean
+                    is_coach?: boolean
+                    availability?: any
                     sv_code_used?: string | null
                     is_banned?: boolean
                     average_rating?: number
