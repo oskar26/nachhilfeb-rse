@@ -6,6 +6,8 @@
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/response.php';
 require_once __DIR__ . '/middleware.php';
+require_once __DIR__ . '/mailer.php';
+
 
 cors_headers();
 
@@ -127,6 +129,44 @@ if ($method === 'POST') {
     ');
     $fetchMsg->execute([$msgId]);
     $created = $fetchMsg->fetch();
+
+    // E-Mail-Benachrichtigung an den Empfänger senden
+    $recipientId = ($req['requester_id'] === $user['id']) ? $req['owner_id'] : $req['requester_id'];
+    $recipStmt = $pdo->prepare('SELECT p.display_name, p.first_name, u.email FROM profiles p JOIN users u ON u.id = p.id WHERE p.id = ?');
+    $recipStmt->execute([$recipientId]);
+    $recip = $recipStmt->fetch();
+
+    if ($recip && !empty($recip['email'])) {
+        try {
+            send_email_new_chat_message(
+                $recip['email'],
+                $recip['first_name'] ?: $recip['display_name'] ?: 'Schüler/in',
+                $user['display_name'] ?: 'Ein/e Mitschüler/in',
+                $content,
+                $requestId
+            );
+        } catch (Exception $e) {
+            error_log('Fehler beim E-Mail Versand: ' . $e->getMessage());
+        }
+    }
+
+    // In-App Benachrichtigung anlegen
+    try {
+        $notifId = generate_uuid();
+        $senderName = $user['display_name'] ?: 'Jemand';
+        $pdo->prepare('
+            INSERT INTO notifications (id, user_id, type, title, message, data)
+            VALUES (?, ?, "message", ?, ?, ?)
+        ')->execute([
+            $notifId,
+            $recipientId,
+            "Neue Nachricht von $senderName",
+            mb_substr($content, 0, 150, 'UTF-8'),
+            json_encode(['request_id' => $requestId, 'link' => "/#/chat/$requestId"])
+        ]);
+    } catch (Exception $e) {
+        error_log('Fehler beim Anlegen der In-App Nachricht: ' . $e->getMessage());
+    }
 
     json_response($created, 201);
 }

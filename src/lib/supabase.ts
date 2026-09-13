@@ -436,7 +436,25 @@ export class QueryBuilder<T = any[]> implements PromiseLike<QueryResult<T>> {
 
             // 10. NOTIFICATIONS TABELLE
             if (this.table === 'notifications') {
-                return { data: [], count: 0, error: null };
+                if (this.operation === 'select') {
+                    const res = await api.notifications.list(30);
+                    return { data: (res.data || []) as any, count: res.data?.length || 0, error: res.error };
+                }
+                if (this.operation === 'update') {
+                    const idFilter = this.filters.find(f => f.col === 'id')?.val;
+                    const res = await api.notifications.markRead(idFilter || this.payload.id || this.payload.ids || { mark_all: true });
+                    return { data: res.data, count: null, error: res.error };
+                }
+                if (this.operation === 'insert') {
+                    const res = await api.notifications.create(this.payload);
+                    return { data: res.data, count: null, error: res.error };
+                }
+                if (this.operation === 'delete') {
+                    const idFilter = this.filters.find(f => f.col === 'id')?.val;
+                    const res = await api.notifications.delete(idFilter);
+                    return { data: res.data, count: null, error: res.error };
+                }
+                return { data: [] as any, count: 0, error: null };
             }
 
             // 11. PARENT LINKS
@@ -572,8 +590,9 @@ export const supabase = {
             return { data: { user: getStoredUser() }, error: null };
         },
 
-        async resetPasswordForEmail(_email: string, _opts?: any): Promise<{ data: any; error: any }> {
-            return { data: {}, error: null };
+        async resetPasswordForEmail(email: string, _opts?: any): Promise<{ data: any; error: any }> {
+            const res = await api.auth.resetPasswordRequest(email);
+            return { data: res.data, error: res.error };
         },
 
         onAuthStateChange(callback: AuthListener) {

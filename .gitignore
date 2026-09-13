@@ -26,3 +26,6 @@ dev-dist
 *.njsproj
 *.sln
 *.sw?
+
+# Credentials & Local Config
+api/db_credentials.php

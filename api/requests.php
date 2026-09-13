@@ -6,6 +6,8 @@
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/response.php';
 require_once __DIR__ . '/middleware.php';
+require_once __DIR__ . '/mailer.php';
+
 
 cors_headers();
 
@@ -114,6 +116,51 @@ if ($method === 'POST') {
         $msgInsert->execute([$msgId, $requestId, $user['id'], $message]);
     }
 
+    // E-Mail-Benachrichtigung an den Anzeigen-Eigentümer
+    $ownerStmt = $pdo->prepare('
+        SELECT p.first_name, p.display_name, u.email, a.short_description as ad_title
+        FROM profiles p
+        JOIN users u ON u.id = p.id
+        JOIN ads a ON a.id = ?
+        WHERE p.id = ?
+    ');
+    $ownerStmt->execute([$adId, $ad['user_id']]);
+    $owner = $ownerStmt->fetch();
+
+    if ($owner && !empty($owner['email'])) {
+        try {
+            send_email_new_ad_request(
+                $owner['email'],
+                $owner['first_name'] ?: $owner['display_name'] ?: 'Schüler/in',
+                $user['display_name'] ?: 'Ein/e Mitschüler/in',
+                $owner['ad_title'] ?: 'Deine Nachhilfe-Anzeige',
+                $message,
+                $requestId
+            );
+        } catch (Exception $e) {
+            error_log('Fehler beim E-Mail Versand: ' . $e->getMessage());
+        }
+    }
+
+    // In-App Benachrichtigung an den Eigentümer
+    try {
+        $notifId = generate_uuid();
+        $senderName = $user['display_name'] ?: 'Ein/e Mitschüler/in';
+        $adTitle = $owner['ad_title'] ?? 'deine Anzeige';
+        $pdo->prepare('
+            INSERT INTO notifications (id, user_id, type, title, message, data)
+            VALUES (?, ?, "alert", ?, ?, ?)
+        ')->execute([
+            $notifId,
+            $ad['user_id'],
+            "Neue Anfrage von $senderName",
+            "Jemand hat Interesse an deiner Anzeige „$adTitle“",
+            json_encode(['request_id' => $requestId, 'link' => '/#/social?tab=requests'])
+        ]);
+    } catch (Exception $e) {
+        error_log('Fehler beim Anlegen der In-App Benachrichtigung: ' . $e->getMessage());
+    }
+
     json_response([
         'id' => $requestId,
         'message' => 'Anfrage erfolgreich gesendet!'
@@ -153,6 +200,53 @@ if ($method === 'PATCH' || $method === 'PUT') {
 
     $update = $pdo->prepare('UPDATE ad_requests SET status = ? WHERE id = ?');
     $update->execute([$status, $id]);
+
+    // Bei Annahme/Ablehnung: E-Mail an den Anfragenden senden
+    if (in_array($status, ['accepted', 'rejected'])) {
+        $reqUserStmt = $pdo->prepare('
+            SELECT p.first_name, p.display_name, u.email, a.short_description as ad_title
+            FROM profiles p
+            JOIN users u ON u.id = p.id
+            JOIN ads a ON a.id = ?
+            WHERE p.id = ?
+        ');
+        $reqUserStmt->execute([$request['ad_id'], $request['requester_id']]);
+        $targetRequester = $reqUserStmt->fetch();
+
+        if ($targetRequester && !empty($targetRequester['email'])) {
+            try {
+                send_email_request_status_update(
+                    $targetRequester['email'],
+                    $targetRequester['first_name'] ?: $targetRequester['display_name'] ?: 'Schüler/in',
+                    $user['display_name'] ?: 'Ein/e Mitschüler/in',
+                    $status,
+                    $targetRequester['ad_title'] ?: 'Nachhilfe-Anzeige',
+                    $id
+                );
+            } catch (Exception $e) {
+                error_log('Fehler beim E-Mail Versand: ' . $e->getMessage());
+            }
+        }
+
+        // In-App Benachrichtigung an den Anfragenden
+        try {
+            $notifId = generate_uuid();
+            $actorName = $user['display_name'] ?: 'Der Ersteller';
+            $statusText = ($status === 'accepted') ? 'angenommen' : 'abgelehnt';
+            $pdo->prepare('
+                INSERT INTO notifications (id, user_id, type, title, message, data)
+                VALUES (?, ?, "alert", ?, ?, ?)
+            ')->execute([
+                $notifId,
+                $request['requester_id'],
+                "Anfrage $statusText",
+                "$actorName hat deine Nachhilfe-Anfrage $statusText.",
+                json_encode(['request_id' => $id, 'link' => ($status === 'accepted' ? "/#/chat/$id" : '/#/social?tab=requests')])
+            ]);
+        } catch (Exception $e) {
+            error_log('Fehler beim Anlegen der In-App Benachrichtigung: ' . $e->getMessage());
+        }
+    }
 
     json_response(['message' => 'Status erfolgreich aktualisiert.', 'status' => $status]);
 }

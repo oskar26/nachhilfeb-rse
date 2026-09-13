@@ -6,6 +6,7 @@
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/response.php';
 require_once __DIR__ . '/middleware.php';
+require_once __DIR__ . '/mailer.php';
 
 cors_headers();
 
@@ -53,6 +54,31 @@ if ($method === 'POST') {
         VALUES (?, ?, ?, ?, ?)
     ');
     $stmt->execute([$newsId, $title, $content, $admin['id'], $isPinned ? 1 : 0]);
+
+    // An alle aktiven Nutzer per E-Mail & In-App Benachrichtigung versenden
+    try {
+        $usersStmt = $pdo->query('
+            SELECT u.id, u.email, COALESCE(p.display_name, "Schüler/in") as display_name
+            FROM users u
+            JOIN profiles p ON p.id = u.id
+            WHERE p.is_banned = 0
+        ');
+        $allUsers = $usersStmt->fetchAll();
+        foreach ($allUsers as $u) {
+            // E-Mail
+            if (!empty($u['email'])) {
+                send_email_announcement($u['email'], $u['display_name'], $title, $content);
+            }
+            // In-App Benachrichtigung
+            $notifId = generate_uuid();
+            $pdo->prepare('
+                INSERT INTO notifications (id, user_id, type, title, message, data)
+                VALUES (?, ?, "alert", ?, ?, ?)
+            ')->execute([$notifId, $u['id'], "📢 $title", mb_substr($content, 0, 200, 'UTF-8'), json_encode(['news_id' => $newsId])]);
+        }
+    } catch (Exception $e) {
+        error_log("Fehler beim Versenden der News-Mails: " . $e->getMessage());
+    }
 
     json_response(['id' => $newsId, 'message' => 'Ankündigung erfolgreich veröffentlicht.'], 201);
 }

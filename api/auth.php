@@ -7,6 +7,8 @@ require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/jwt.php';
 require_once __DIR__ . '/response.php';
 require_once __DIR__ . '/middleware.php';
+require_once __DIR__ . '/mailer.php';
+
 
 cors_headers();
 
@@ -115,6 +117,13 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $pdo->commit();
+
+        // 4. Willkommens-E-Mail versenden
+        try {
+            send_email_welcome($email, $firstName, $finalRole);
+        } catch (Exception $e) {
+            error_log('Fehler beim Versenden der Willkommens-Mail: ' . $e->getMessage());
+        }
 
         // Token generieren
         $token = JWT::sign([
@@ -240,26 +249,73 @@ if ($action === 'me' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 }
 
 // ------------------------------------------------------------------------------
-// 4. PASSWORT AKTUALISIEREN
+// 4. PASSWORT ZURÜCKSETZEN ANFRAGEN (Sendet E-Mail)
+// ------------------------------------------------------------------------------
+if ($action === 'reset_password_request' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $data = get_json_input();
+    $email = filter_var(trim($data['email'] ?? ''), FILTER_VALIDATE_EMAIL);
+
+    if ($email) {
+        $stmt = $pdo->prepare('
+            SELECT u.id, p.first_name 
+            FROM users u 
+            LEFT JOIN profiles p ON p.id = u.id 
+            WHERE u.email = ?
+        ');
+        $stmt->execute([$email]);
+        $row = $stmt->fetch();
+
+        if ($row) {
+            $resetToken = JWT::sign([
+                'sub' => $row['id'],
+                'purpose' => 'reset_password'
+            ], JWT_SECRET, 7200); // 2 Stunden gültig
+
+            try {
+                send_email_password_reset($email, $row['first_name'] ?: 'Schüler/in', $resetToken);
+            } catch (Exception $e) {
+                error_log('Fehler beim Senden der Passwort-Reset-Mail: ' . $e->getMessage());
+            }
+        }
+    }
+
+    // Aus Sicherheitsgründen immer Erfolgsmeldung zurückgeben
+    json_response(['message' => 'Falls ein Konto mit dieser E-Mail existiert, wurde eine E-Mail zum Zurücksetzen versendet.']);
+}
+
+// ------------------------------------------------------------------------------
+// 5. PASSWORT AKTUALISIEREN (eingeloggt oder mit Reset-Token)
 // ------------------------------------------------------------------------------
 if ($action === 'update_password' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $user = require_auth();
     $data = get_json_input();
     $newPassword = $data['newPassword'] ?? $data['password'] ?? '';
+    $resetToken = $data['token'] ?? null;
+    $targetUserId = null;
 
     if (strlen($newPassword) < 8) {
         json_error('Das neue Passwort muss mindestens 8 Zeichen lang sein.');
     }
 
+    if ($resetToken) {
+        $payload = JWT::verify($resetToken);
+        if (!$payload || ($payload['purpose'] ?? '') !== 'reset_password' || empty($payload['sub'])) {
+            json_error('Der Link zum Zurücksetzen des Passworts ist ungültig oder abgelaufen.', 400);
+        }
+        $targetUserId = $payload['sub'];
+    } else {
+        $user = require_auth();
+        $targetUserId = $user['id'];
+    }
+
     $newHash = password_hash($newPassword, PASSWORD_BCRYPT);
     $stmt = $pdo->prepare('UPDATE users SET password_hash = ? WHERE id = ?');
-    $stmt->execute([$newHash, $user['id']]);
+    $stmt->execute([$newHash, $targetUserId]);
 
     json_response(['message' => 'Passwort erfolgreich aktualisiert.']);
 }
 
 // ------------------------------------------------------------------------------
-// 5. LOGOUT (Client-seitig durch Löschen des Tokens, Endpoint zur Bestätigung)
+// 6. LOGOUT (Client-seitig durch Löschen des Tokens, Endpoint zur Bestätigung)
 // ------------------------------------------------------------------------------
 if ($action === 'logout') {
     json_response(['message' => 'Erfolgreich abgemeldet.']);

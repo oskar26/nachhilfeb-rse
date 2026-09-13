@@ -6,6 +6,7 @@
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/response.php';
 require_once __DIR__ . '/middleware.php';
+require_once __DIR__ . '/mailer.php';
 
 cors_headers();
 
@@ -94,6 +95,49 @@ if ($method === 'POST') {
         $updateProfile->execute([$newAvg, $targetUserId]);
 
         $pdo->commit();
+
+        // Benachrichtigung & E-Mail an den bewerteten Nutzer senden
+        try {
+            $targetStmt = $pdo->prepare('
+                SELECT u.email, COALESCE(p.display_name, "Schüler/in") as display_name
+                FROM users u
+                JOIN profiles p ON p.id = u.id
+                WHERE u.id = ?
+            ');
+            $targetStmt->execute([$targetUserId]);
+            $targetUser = $targetStmt->fetch();
+
+            $authorStmt = $pdo->prepare('SELECT COALESCE(display_name, "Ein Mitschüler") as name FROM profiles WHERE id = ?');
+            $authorStmt->execute([$user['id']]);
+            $authorName = $authorStmt->fetch()['name'] ?? 'Ein Mitschüler';
+
+            if ($targetUser && !empty($targetUser['email'])) {
+                send_email_new_review(
+                    $targetUser['email'],
+                    $targetUser['display_name'],
+                    $authorName,
+                    $rating,
+                    $comment,
+                    $newAvg
+                );
+            }
+
+            // In-App Notification anlegen
+            $notifId = generate_uuid();
+            $stars = str_repeat('⭐', (int)round($rating));
+            $pdo->prepare('
+                INSERT INTO notifications (id, user_id, type, title, message, data)
+                VALUES (?, ?, "review", ?, ?, ?)
+            ')->execute([
+                $notifId,
+                $targetUserId,
+                "$authorName hat dich mit $stars bewertet",
+                $comment ?: "Du hast eine neue Bewertung erhalten.",
+                json_encode(['review_id' => $reviewId, 'rating' => $rating, 'average' => $newAvg])
+            ]);
+        } catch (Exception $e) {
+            error_log("Fehler beim Senden der Bewertungs-Benachrichtigung: " . $e->getMessage());
+        }
 
         json_response([
             'id' => $reviewId,

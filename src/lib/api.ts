@@ -128,10 +128,17 @@ export const api = {
             return apiRequest('/auth.php?action=me');
         },
 
-        async updatePassword(newPassword: string) {
+        async updatePassword(newPassword: string, token?: string) {
             return apiRequest('/auth.php?action=update_password', {
                 method: 'POST',
-                body: JSON.stringify({ password: newPassword })
+                body: JSON.stringify({ password: newPassword, token })
+            });
+        },
+
+        async resetPasswordRequest(email: string) {
+            return apiRequest('/auth.php?action=reset_password_request', {
+                method: 'POST',
+                body: JSON.stringify({ email })
             });
         },
 
@@ -401,6 +408,41 @@ export const api = {
 
         async delete(id: string) {
             return apiRequest(`/news.php?id=${encodeURIComponent(id)}`, {
+                method: 'DELETE'
+            });
+        }
+    },
+
+    // Benachrichtigungen (In-App & E-Mail Triggers)
+    notifications: {
+        async list(limit: number = 30) {
+            return apiRequest(`/notifications.php?limit=${limit}`);
+        },
+
+        async create(data: { user_id?: string; type: string; title: string; message?: string; body?: string; data?: any; link?: string }) {
+            return apiRequest('/notifications.php', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+        },
+
+        async markRead(idOrIds: string | string[] | { id?: string; ids?: string[]; mark_all?: boolean }) {
+            let body: any = {};
+            if (typeof idOrIds === 'string') {
+                body = { id: idOrIds };
+            } else if (Array.isArray(idOrIds)) {
+                body = { ids: idOrIds };
+            } else {
+                body = idOrIds;
+            }
+            return apiRequest('/notifications.php', {
+                method: 'PUT',
+                body: JSON.stringify(body)
+            });
+        },
+
+        async delete(id: string) {
+            return apiRequest(`/notifications.php?id=${encodeURIComponent(id)}`, {
                 method: 'DELETE'
             });
         }

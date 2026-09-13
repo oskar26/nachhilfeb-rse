@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
@@ -8,26 +9,32 @@ import { toast } from 'react-hot-toast';
 
 export default function UpdatePassword() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
+    // Token aus URL oder Hash auslesen
+    const hashParams = new URLSearchParams(window.location.hash.split('?')[1] || '');
+    const resetToken = searchParams.get('token') || hashParams.get('token');
+
     useEffect(() => {
-        // Supabase hash handling is done automatically by the client when redirected from email.
-        // We just need to check if there is a session.
+        // Falls ein Reset-Token übergeben wurde, muss der Nutzer nicht eingeloggt sein
+        if (resetToken) return;
+
         supabase.auth.getSession().then(({ data: { session } }) => {
             if (!session) {
                 toast.error("Ungültiger oder abgelaufener Link.");
                 navigate('/login');
             }
         });
-    }, [navigate]);
+    }, [navigate, resetToken]);
 
     const handleUpdatePassword = async (e: React.FormEvent) => {
         e.preventDefault();
         
-        if (password.length < 6) {
-            toast.error("Das Passwort muss mindestens 6 Zeichen lang sein.");
+        if (password.length < 8) {
+            toast.error("Das Passwort muss mindestens 8 Zeichen lang sein.");
             return;
         }
 
@@ -38,18 +45,29 @@ export default function UpdatePassword() {
 
         setIsLoading(true);
 
-        const { error } = await supabase.auth.updateUser({
-            password: password
-        });
+        try {
+            let error = null;
+            if (resetToken) {
+                const res = await api.auth.updatePassword(password, resetToken);
+                error = res.error;
+            } else {
+                const res = await supabase.auth.updateUser({
+                    password: password
+                });
+                error = res.error;
+            }
 
-        if (error) {
-            toast.error("Fehler beim Aktualisieren: " + error.message);
-        } else {
-            toast.success("Dein Passwort wurde erfolgreich aktualisiert!");
-            navigate('/settings');
+            if (error) {
+                toast.error("Fehler beim Aktualisieren: " + (error.message || 'Bitte erneut versuchen.'));
+            } else {
+                toast.success("Dein Passwort wurde erfolgreich aktualisiert!");
+                navigate('/login');
+            }
+        } catch (err: any) {
+            toast.error("Fehler beim Aktualisieren: " + (err.message || 'Unbekannter Fehler'));
+        } finally {
+            setIsLoading(false);
         }
-
-        setIsLoading(false);
     };
 
     return (

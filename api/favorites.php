@@ -6,6 +6,8 @@
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/response.php';
 require_once __DIR__ . '/middleware.php';
+require_once __DIR__ . '/mailer.php';
+
 
 cors_headers();
 
@@ -76,6 +78,51 @@ if ($method === 'POST') {
         // Hinzufügen
         $add = $pdo->prepare('INSERT INTO favorites (user_id, ad_id) VALUES (?, ?)');
         $add->execute([$user['id'], $adId]);
+
+        // E-Mail an den Eigentümer der Anzeige senden
+        $ownerStmt = $pdo->prepare('
+            SELECT p.first_name, p.display_name, u.email, a.short_description as ad_title, a.user_id as owner_id
+            FROM ads a
+            JOIN profiles p ON p.id = a.user_id
+            JOIN users u ON u.id = p.id
+            WHERE a.id = ?
+        ');
+        $ownerStmt->execute([$adId]);
+        $owner = $ownerStmt->fetch();
+
+        // Nur senden, wenn es nicht die eigene Anzeige ist
+        if ($owner && $owner['owner_id'] !== $user['id']) {
+            if (!empty($owner['email'])) {
+                try {
+                    send_email_ad_favorited(
+                        $owner['email'],
+                        $owner['first_name'] ?: $owner['display_name'] ?: 'Schüler/in',
+                        $owner['ad_title'] ?: 'Deine Nachhilfe-Anzeige'
+                    );
+                } catch (Exception $e) {
+                    error_log('Fehler beim E-Mail Versand: ' . $e->getMessage());
+                }
+            }
+
+            // In-App Benachrichtigung anlegen
+            try {
+                $notifId = generate_uuid();
+                $adTitle = $owner['ad_title'] ?: 'Deine Anzeige';
+                $pdo->prepare('
+                    INSERT INTO notifications (id, user_id, type, title, message, data)
+                    VALUES (?, ?, "like", ?, ?, ?)
+                ')->execute([
+                    $notifId,
+                    $owner['owner_id'],
+                    "Anzeige gemerkt! ⭐",
+                    "Jemand hat deine Anzeige „$adTitle“ auf die Merkliste gesetzt.",
+                    json_encode(['ad_id' => $adId, 'link' => "/#/ad/$adId"])
+                ]);
+            } catch (Exception $e) {
+                error_log('Fehler beim Anlegen der In-App Benachrichtigung: ' . $e->getMessage());
+            }
+        }
+
         json_response(['favorited' => true, 'message' => 'Zu Favoriten hinzugefügt.']);
     }
 }

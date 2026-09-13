@@ -38,9 +38,10 @@ $routes = [
     'favorites' => __DIR__ . '/favorites.php',
     'codes'     => __DIR__ . '/codes.php',
     'support'   => __DIR__ . '/support.php',
-    'reports'   => __DIR__ . '/reports.php',
-    'admin'     => __DIR__ . '/admin.php',
-    'news'      => __DIR__ . '/news.php',
+    'reports'       => __DIR__ . '/reports.php',
+    'admin'         => __DIR__ . '/admin.php',
+    'news'          => __DIR__ . '/news.php',
+    'notifications' => __DIR__ . '/notifications.php',
 ];
 
 // .php Endung tolerieren (z.B. /api/ads.php)

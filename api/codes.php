@@ -6,6 +6,7 @@
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/response.php';
 require_once __DIR__ . '/middleware.php';
+require_once __DIR__ . '/mailer.php';
 
 cors_headers();
 
@@ -86,6 +87,34 @@ if ($action === 'redeem' && $method === 'POST') {
         $updateProfile->execute([$rec['role'], $user['id']]);
 
         $pdo->commit();
+
+        // Benachrichtigung & Errungenschafts-Mail
+        try {
+            $userStmt = $pdo->prepare('SELECT u.email, p.display_name FROM users u JOIN profiles p ON p.id = u.id WHERE u.id = ?');
+            $userStmt->execute([$user['id']]);
+            $u = $userStmt->fetch();
+
+            if ($u && !empty($u['email'])) {
+                $badgeTitle = 'Verifizierter Account';
+                $badgeDesc = "Du hast erfolgreich einen SV-Zugangscode eingelöst und die Rolle '{$rec['role']}' erhalten.";
+                send_email_achievement($u['email'], $u['display_name'] ?: 'Schüler/in', $badgeTitle, $badgeDesc);
+            }
+
+            // In-App Notification
+            $notifId = generate_uuid();
+            $pdo->prepare('
+                INSERT INTO notifications (id, user_id, type, title, message, data)
+                VALUES (?, ?, "achievement", ?, ?, ?)
+            ')->execute([
+                $notifId,
+                $user['id'],
+                "🏆 Errungenschaft: Code eingelöst!",
+                "Du hast erfolgreich den Code eingelöst und wurdest verifiziert.",
+                json_encode(['role' => $rec['role'], 'code_id' => $rec['id']])
+            ]);
+        } catch (Exception $e) {
+            error_log('Fehler beim Senden der Code-Einlöse-Benachrichtigung: ' . $e->getMessage());
+        }
 
         json_response([
             'message' => "Code erfolgreich eingelöst! Rolle '{$rec['role']}' zugewiesen.",
