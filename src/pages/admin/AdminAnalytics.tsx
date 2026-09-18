@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
+import { api } from '../../lib/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import {
     BarChart3,
     TrendingUp,
     Users,
-    FileText,
     Download,
     Clock,
     Smartphone,
@@ -14,9 +13,7 @@ import {
     Tablet,
     Euro,
     Star,
-    CheckCircle,
-    Eye,
-    Globe
+    CheckCircle
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -89,10 +86,9 @@ export default function AdminAnalytics() {
     const [hourlyDistribution, setHourlyDistribution] = useState<HourlyDist[]>([]);
     const [topPages, setTopPages] = useState<PathDist[]>([]);
 
-    // Raw datasets for CSV Export
-    const [rawProfiles, setRawProfiles] = useState<any[]>([]);
+    // Raw datasets for CSV Export (Anzeigen als Stichprobe, Nutzer/Aufrufe als Aggregat)
     const [rawAds, setRawAds] = useState<any[]>([]);
-    const [rawPageViews, setRawPageViews] = useState<any[]>([]);
+    const [roleDistribution, setRoleDistribution] = useState<{ role: string; count: number }[]>([]);
 
     useEffect(() => {
         fetchAnalytics();
@@ -101,78 +97,79 @@ export default function AdminAnalytics() {
     const fetchAnalytics = async () => {
         setLoading(true);
         try {
-            // 1. Fetch profile stats
-            const { data: profiles, error: profilesError } = await supabase
-                .from('profiles')
-                .select('*');
-            if (profilesError) throw profilesError;
-            setRawProfiles(profiles || []);
+            // Alle Kennzahlen kommen aus dem PHP-Backend (keine direkten Tabellenzugriffe,
+            // kein Volltabellen-Nutzerexport – Nutzerkennzahlen als Aggregate aus overview)
+            const [
+                { data: overview },
+                { data: adsData },
+                { data: requestsData },
+                { data: reviewsData },
+                { data: reportsData },
+                { data: pageStats },
+            ] = await Promise.all([
+                api.admin.overview(),
+                api.ads.list({ all: true }),
+                api.requests.list(),
+                api.reviews.list({}),
+                api.reports.list(),
+                api.analytics.stats(),
+            ]);
 
-            // 2. Fetch ad stats
-            const { data: ads, error: adsError } = await supabase
-                .from('ads')
-                .select('*');
-            if (adsError) throw adsError;
-            setRawAds(ads || []);
+            const overviewRaw = overview ?? {};
+            const overviewStats = overviewRaw.stats ?? {};
 
-            // 3. Fetch requests stats
-            const { data: requests, error: requestsError } = await supabase
-                .from('ad_requests')
-                .select('status');
-            if (requestsError && requestsError.code !== '42P01') throw requestsError;
+            const ads = Array.isArray(adsData) ? adsData : ((adsData as any)?.ads ?? []);
+            setRawAds(ads);
 
-            // 4. Fetch review stats
-            const { data: reviews, error: reviewsError } = await supabase
-                .from('reviews')
-                .select('rating');
-            if (reviewsError && reviewsError.code !== '42P01') throw reviewsError;
+            const requests = Array.isArray(requestsData) ? requestsData : ((requestsData as any)?.requests ?? []);
+            const reviews = Array.isArray(reviewsData) ? reviewsData : ((reviewsData as any)?.reviews ?? []);
+            const reports = Array.isArray(reportsData) ? reportsData : ((reportsData as any)?.reports ?? []);
 
-            // 5. Fetch reports stats
-            const { data: reports, error: reportsError } = await supabase
-                .from('reports')
-                .select('status');
-            if (reportsError && reportsError.code !== '42P01') throw reportsError;
-
-            // 6. Fetch Page Analytics data if table exists
-            const { data: pageViews, error: analyticsError } = await supabase
-                .from('page_analytics')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(2000);
-
-            if (!analyticsError && pageViews) {
-                setRawPageViews(pageViews);
-                setTotalPageViews(pageViews.length);
-                processPageAnalytics(pageViews);
+            // Page-Views: Backend liefert Aggregate (30 Tage) + Gesamt-Total
+            const statsRaw = (pageStats as any) ?? {};
+            const totalViews = Number(statsRaw.total_views) || 0;
+            setTotalPageViews(totalViews);
+            const byPath = Array.isArray(statsRaw.by_path) ? statsRaw.by_path : [];
+            const byDevice = Array.isArray(statsRaw.by_device) ? statsRaw.by_device : [];
+            setTopPages(byPath.slice(0, 6).map((r: any) => ({ path: String(r.path), count: Number(r.views) || 0 })));
+            const deviceMap: Record<string, number> = { desktop: 0, mobile: 0, tablet: 0 };
+            byDevice.forEach((r: any) => {
+                if (r.device_type && deviceMap[r.device_type] !== undefined) {
+                    deviceMap[r.device_type] = Number(r.views) || 0;
+                }
+            });
+            setDeviceDistribution(Object.entries(deviceMap).map(([type, count]) => ({ type, count })));
+            if (totalViews > 0) {
+                const hourlyMap: Record<number, number> = {};
+                for (let i = 0; i < 24; i++) hourlyMap[i] = 0;
+                const byHour = Array.isArray(statsRaw.by_hour) ? statsRaw.by_hour : [];
+                byHour.forEach((r: any) => {
+                    const h = Number(r.hour);
+                    if (Number.isInteger(h) && h >= 0 && h < 24) hourlyMap[h] = Number(r.views) || 0;
+                });
+                setHourlyDistribution(Object.entries(hourlyMap).map(([h, count]) => ({ hour: parseInt(h), count })));
+            } else {
+                setHourlyDistribution([]);
             }
 
-            // Calculate profile metrics
-            if (profiles) {
-                let total = profiles.length;
-                let verified = 0;
-                let banned = 0;
-                let students = 0;
-                let parents = 0;
-                let admins = 0;
-                const gradesMap: Record<string, number> = {};
-
-                profiles.forEach(p => {
-                    if (p.is_verified) verified++;
-                    if (p.is_banned) banned++;
-                    if (p.role === 'student') students++;
-                    if (p.role === 'parent') parents++;
-                    if (p.role === 'sv_admin') admins++;
-                    if (p.grade_level) {
-                        gradesMap[p.grade_level] = (gradesMap[p.grade_level] || 0) + 1;
-                    }
-                });
+            // Calculate profile metrics (Totals + Rollen aus Overview, Stufen aus Backend-Aggregat)
+            {
+                const total = Number(overviewStats.total_users) || 0;
+                const verified = Number(overviewStats.verified_users) || 0;
+                const banned = Number(overviewStats.banned_users) || 0;
+                const byRole = (overviewRaw.by_role ?? {}) as Record<string, number>;
+                const students = Number(byRole.student) || 0;
+                const parents = Number(byRole.parent) || 0;
+                const admins = (Number(byRole.sv_admin) || 0) + (Number(byRole.coach_admin) || 0);
+                setRoleDistribution(Object.entries(byRole).map(([role, count]) => ({ role, count: Number(count) || 0 })));
 
                 setUserStats({ total, students, parents, admins, verified, banned });
 
-                const sortedGrades = Object.entries(gradesMap)
-                    .map(([grade, count]) => ({ grade, count }))
-                    .sort((a, b) => {
-                        const order = ['5', '6', '7', '8', '9', '10', 'EF', 'Q1', 'Q2'];
+                const gradeRows = Array.isArray(overviewRaw.grade_distribution) ? overviewRaw.grade_distribution : [];
+                const order = ['5', '6', '7', '8', '9', '10', 'EF', 'Q1', 'Q2'];
+                const sortedGrades = gradeRows
+                    .map((g: { grade: string; c: number }) => ({ grade: String(g.grade), count: Number(g.c) || 0 }))
+                    .sort((a: { grade: string; count: number }, b: { grade: string; count: number }) => {
                         const idxA = order.indexOf(a.grade);
                         const idxB = order.indexOf(b.grade);
                         if (idxA !== -1 && idxB !== -1) return idxA - idxB;
@@ -184,8 +181,8 @@ export default function AdminAnalytics() {
             }
 
             // Calculate ad metrics & price range
-            if (ads) {
-                let total = ads.length;
+            {
+                const total = ads.length;
                 let offers = 0;
                 let searches = 0;
                 let active = 0;
@@ -201,7 +198,7 @@ export default function AdminAnalytics() {
 
                 const now = new Date();
 
-                ads.forEach(ad => {
+                ads.forEach((ad: any) => {
                     if (ad.type === 'offer') offers++;
                     if (ad.type === 'search') searches++;
                     if (ad.is_active) active++;
@@ -239,18 +236,18 @@ export default function AdminAnalytics() {
             }
 
             // Engagement stats
-            if (requests) {
+            {
                 const totalRequests = requests.length;
-                const pendingRequests = requests.filter(r => r.status === 'pending').length;
-                const acceptedRequests = requests.filter(r => r.status === 'accepted').length;
-                const rejectedRequests = requests.filter(r => r.status === 'rejected').length;
+                const pendingRequests = requests.filter((r: any) => r.status === 'pending').length;
+                const acceptedRequests = requests.filter((r: any) => r.status === 'accepted').length;
+                const rejectedRequests = requests.filter((r: any) => r.status === 'rejected').length;
 
                 let totalReviews = 0;
                 let avgRating = 0;
 
                 if (reviews && reviews.length > 0) {
                     totalReviews = reviews.length;
-                    const sum = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
+                    const sum = reviews.reduce((acc: number, r: any) => acc + (r.rating || 0), 0);
                     avgRating = sum / totalReviews;
                 }
 
@@ -265,47 +262,18 @@ export default function AdminAnalytics() {
             }
 
             // Reports stats
-            if (reports) {
-                let total = reports.length;
-                let open = reports.filter(r => r.status === 'open').length;
-                let resolved = reports.filter(r => r.status === 'resolved').length;
+            {
+                const total = reports.length;
+                const open = reports.filter((r: any) => r.status === 'open').length;
+                const resolved = reports.filter((r: any) => r.status === 'resolved').length;
                 setReportsCount({ total, open, resolved });
             }
 
-        } catch (err) {
-            console.error('Error fetching analytics details:', err);
+        } catch {
+            toast.error('Analytics konnten nicht geladen werden.');
         } finally {
             setLoading(false);
         }
-    };
-
-    const processPageAnalytics = (views: any[]) => {
-        const deviceMap: Record<string, number> = { desktop: 0, mobile: 0, tablet: 0 };
-        const hourlyMap: Record<number, number> = {};
-        for (let i = 0; i < 24; i++) hourlyMap[i] = 0;
-        const pathMap: Record<string, number> = {};
-
-        views.forEach(v => {
-            if (v.device_type && deviceMap[v.device_type] !== undefined) {
-                deviceMap[v.device_type]++;
-            }
-            if (v.created_at) {
-                const hour = new Date(v.created_at).getHours();
-                hourlyMap[hour] = (hourlyMap[hour] || 0) + 1;
-            }
-            if (v.path) {
-                pathMap[v.path] = (pathMap[v.path] || 0) + 1;
-            }
-        });
-
-        setDeviceDistribution(Object.entries(deviceMap).map(([type, count]) => ({ type, count })));
-        setHourlyDistribution(Object.entries(hourlyMap).map(([h, count]) => ({ hour: parseInt(h), count })));
-        
-        const sortedPages = Object.entries(pathMap)
-            .map(([path, count]) => ({ path, count }))
-            .sort((a, b) => b.count - a.count)
-            .slice(0, 6);
-        setTopPages(sortedPages);
     };
 
     // CSV Exporter Helper
@@ -327,18 +295,13 @@ export default function AdminAnalytics() {
     };
 
     const exportUsersCSV = () => {
-        const headers = ['ID', 'E-Mail', 'Anzeigename', 'Rolle', 'Klassenstufe', 'Verifiziert', 'Gesperrt', 'Erstellt am'];
-        const rows = rawProfiles.map(p => [
-            p.id,
-            p.email || '',
-            p.display_name || p.full_name || '',
-            p.role || '',
-            p.grade_level || '',
-            p.is_verified ? 'Ja' : 'Nein',
-            p.is_banned ? 'Ja' : 'Nein',
-            p.created_at ? new Date(p.created_at).toLocaleString('de-DE') : ''
-        ]);
-        exportToCSV(`fwg_nutzer_export_${new Date().toISOString().slice(0, 10)}.csv`, headers, rows);
+        // Aggregat-Export (kein E-Mail-Dump): Rollen- + Stufenverteilung
+        const headers = ['Bereich', 'Schlüssel', 'Anzahl'];
+        const rows: (string | number)[][] = [
+            ...roleDistribution.map(r => ['Rolle', r.role, r.count] as (string | number)[]),
+            ...gradeDistribution.map(g => ['Klassenstufe', g.grade, g.count] as (string | number)[]),
+        ];
+        exportToCSV(`fwg_nutzer_aggregat_${new Date().toISOString().slice(0, 10)}.csv`, headers, rows);
     };
 
     const exportAdsCSV = () => {
@@ -359,15 +322,13 @@ export default function AdminAnalytics() {
     };
 
     const exportAnalyticsCSV = () => {
-        const headers = ['ID', 'Pfad', 'Gerätetyp', 'Browser', 'Zeitstempel'];
-        const rows = rawPageViews.map(v => [
-            v.id,
-            v.path || '',
-            v.device_type || 'desktop',
-            v.browser || '',
-            v.created_at ? new Date(v.created_at).toLocaleString('de-DE') : ''
-        ]);
-        exportToCSV(`fwg_analytics_aufrufe_${new Date().toISOString().slice(0, 10)}.csv`, headers, rows);
+        // Backend liefert Aggregate (keine Einzelaufrufe) – Seiten + Geräte als zwei Blöcke
+        const headers = ['Bereich', 'Schlüssel', 'Aufrufe'];
+        const rows: (string | number)[][] = [
+            ...topPages.map(p => ['Top-Seite', p.path, p.count] as (string | number)[]),
+            ...deviceDistribution.map(d => ['Gerät', d.type, d.count] as (string | number)[]),
+        ];
+        exportToCSV(`fwg_analytics_aggregat_${new Date().toISOString().slice(0, 10)}.csv`, headers, rows);
     };
 
     if (loading) {
@@ -382,7 +343,6 @@ export default function AdminAnalytics() {
     const maxSubjectCount = Math.max(...subjectDistribution.map(s => s.count), 1);
     const maxPriceCount = Math.max(...priceDistribution.map(p => p.count), 1);
     const maxHourlyCount = Math.max(...hourlyDistribution.map(h => h.count), 1);
-    const maxPageCount = Math.max(...topPages.map(p => p.count), 1);
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">

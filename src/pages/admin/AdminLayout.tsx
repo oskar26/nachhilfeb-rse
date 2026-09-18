@@ -19,6 +19,7 @@ import {
     X,
     Megaphone,
     LifeBuoy,
+    Award,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -32,6 +33,7 @@ const NAV_ITEMS = [
     { label: 'Chat', value: 'chat', icon: MessageSquare },
     { label: 'Analytics', value: 'analytics', icon: BarChart2 },
     { label: 'Audit Log', value: 'auditlog', icon: ClipboardList },
+    { label: 'Schüler-Coaching Log', value: 'coachlog', icon: Award },
 ];
 
 const TAB_LABELS: Record<string, string> = {
@@ -45,6 +47,7 @@ const TAB_LABELS: Record<string, string> = {
     chat: 'Chat',
     analytics: 'Analytics',
     auditlog: 'Audit Log',
+    coachlog: 'Schüler-Coaching Log',
 };
 
 export default function AdminLayout() {

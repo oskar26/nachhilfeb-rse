@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
 import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/Card';
 import { SubjectChip, SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
-import { GraduationCap, MapPin, Clock, Filter, Search, CalendarDays, ShieldCheck, ChevronDown, ChevronUp, Share2, Sparkles, Zap, Heart, Award } from 'lucide-react';
+import { GraduationCap, MapPin, Clock, Filter, Search, CalendarDays, ShieldCheck, ChevronDown, ChevronUp, Share2, Sparkles, Bookmark, X, SearchX, Award } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
@@ -16,6 +16,7 @@ import { toast } from 'react-hot-toast';
 import ShareDialog from '../components/ShareDialog';
 import { cn } from '../lib/utils';
 import { triggerHaptic } from '../lib/haptics';
+import { api } from '../lib/api';
 
 interface Ad {
     id: string;
@@ -24,7 +25,7 @@ interface Ad {
     subjects: Subject[];
     grade_levels: string[];
     locations: string[];
-    price_details: any;
+    price_details: { mode?: string; value?: string | number } | null;
     short_description: string;
     is_active: boolean;
     created_at: string;
@@ -34,30 +35,160 @@ interface Ad {
     profiles_avail?: Availability;
 }
 
+const PRICE_SLIDER_MIN = 0;
+const PRICE_SLIDER_MAX = 100;
+const SAVED_SEARCH_KEY = 'fwg_saved_search';
+const GRADE_VALUES = ['5', '6', '7', '8', '9', '10', 'EF', 'Q1', 'Q2'];
 
+interface SavedSearch {
+    query: string;
+    type: 'all' | 'offer' | 'search';
+    subject: Subject | null;
+    grades: string[];
+    minPrice: number;
+    maxPrice: number;
+    onlyCoaches: boolean;
+    filterByTime: boolean;
+}
+
+const FILTER_DEFAULTS = {
+    query: '',
+    type: 'all' as const,
+    subject: null,
+    grades: [] as string[],
+    minPrice: PRICE_SLIDER_MIN,
+    maxPrice: PRICE_SLIDER_MAX,
+    onlyCoaches: false,
+    filterByTime: false,
+};
+
+function isValidSubject(value: unknown): value is Subject {
+    return SUBJECT_CATEGORIES.some(category => category.subjects.includes(value as Subject));
+}
+
+function loadSavedSearch(): SavedSearch | null {
+    try {
+        const raw = localStorage.getItem(SAVED_SEARCH_KEY);
+        if (!raw) return null;
+        const parsed: unknown = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null;
+        const record = parsed as Record<string, unknown>;
+        if (
+            typeof record.query !== 'string' ||
+            !['all', 'offer', 'search'].includes(String(record.type)) ||
+            (record.subject !== null && !isValidSubject(record.subject)) ||
+            !Array.isArray(record.grades) ||
+            !record.grades.every(g => typeof g === 'string' && GRADE_VALUES.includes(g)) ||
+            typeof record.minPrice !== 'number' || !Number.isInteger(record.minPrice) ||
+            typeof record.maxPrice !== 'number' || !Number.isInteger(record.maxPrice) ||
+            record.minPrice < PRICE_SLIDER_MIN || record.maxPrice > PRICE_SLIDER_MAX ||
+            record.minPrice >= record.maxPrice ||
+            typeof record.onlyCoaches !== 'boolean' || typeof record.filterByTime !== 'boolean'
+        ) return null;
+        return {
+            query: record.query,
+            type: record.type as SavedSearch['type'],
+            subject: record.subject as Subject | null,
+            grades: [...new Set(record.grades as string[])],
+            minPrice: record.minPrice,
+            maxPrice: record.maxPrice,
+            onlyCoaches: record.onlyCoaches,
+            filterByTime: record.filterByTime,
+        };
+    } catch {
+        return null;
+    }
+}
+
+async function loadAds(): Promise<Ad[]> {
+    const { data: adsData, error } = await supabase
+        .from('ads')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+    if (error) throw error;
+    if (!adsData) throw new Error('Missing ads response');
+    if (adsData.length === 0) return [];
+    const userIds = Array.from(new Set(adsData.map(a => a.user_id)));
+    const { data: profiles, error: profileError } = await supabase.from('profiles')
+        .select('id, display_name, is_verified, grade_level, availability, is_coach').in('id', userIds);
+    if (profileError) throw profileError;
+    if (!profiles) throw new Error('Missing profiles response');
+    const profileMap = new Map(profiles.map(p => [p.id, p]));
+    return adsData.map(ad => ({
+        ...ad,
+        profiles: profileMap.get(ad.user_id),
+        profiles_avail: profileMap.get(ad.user_id)?.availability || emptyAvailability()
+    }));
+}
 
 export default function Feed() {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [ads, setAds] = useState<Ad[]>([]);
     const [loading, setLoading] = useState(true);
+    const [fetchError, setFetchError] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
-    const [showBanners, setShowBanners] = useState(() => localStorage.getItem('feed_show_banners') !== 'false');
+    const [showBanners, setShowBanners] = useState(() => {
+        try {
+            return localStorage.getItem('feed_show_banners') !== 'false';
+        } catch {
+            return true;
+        }
+    });
     const [myAvailability, setMyAvailability] = useState<Availability>(emptyAvailability());
     const [filterByTime, setFilterByTime] = useState(false);
     const [shareAd, setShareAd] = useState<{ id: string; title: string } | null>(null);
+    const [savedSearch, setSavedSearch] = useState<SavedSearch | null>(() => loadSavedSearch());
+
+    // Coaching Startseiten-Info
+    const [coachInfo, setCoachInfo] = useState<{
+        title: string;
+        description: string;
+        time: string;
+        room: string;
+        is_visible: boolean;
+    }>({
+        title: 'Kostenloses Coaching für Klasse 5 & 6!',
+        description: 'Wöchentlich einmal bieten wir für alle Schülerinnen und Schüler der Jahrgangsstufen 5 und 6 die Möglichkeit, Hilfen zu einzelnen Fächern oder zur Lern- und Arbeitsorganisation allgemein durch Schülerinnen und Schüler der 8. Klassen zu erhalten. Diese werden jeweils vor den Herbstferien für ihre Aufgabe geschult und stellen dann bis zum Ende des Schuljahres ehrenamtlich ihre Hilfe zur Verfügung. Dieses Angebot wird in der Regel sehr gerne angenommen, da die Coaches einen guten Blick auf die Probleme der jüngeren Schüler haben.',
+        time: 'Dienstags, 13:45 - 14:30 Uhr',
+        room: 'Raum H310',
+        is_visible: true
+    });
 
     // Filter State
     const [filterSubject, setFilterSubject] = useState<Subject | null>(null);
     const [filterGrade, setFilterGrade] = useState<string[]>([]);
     const [filterType, setFilterType] = useState<'all' | 'offer' | 'search'>('all');
     const [searchQuery, setSearchQuery] = useState('');
-    const [minPrice, setMinPrice] = useState(0);
-    const [maxPrice, setMaxPrice] = useState(100);
+    const [minPrice, setMinPrice] = useState(PRICE_SLIDER_MIN);
+    const [maxPrice, setMaxPrice] = useState(PRICE_SLIDER_MAX);
     const [filterOnlyCoaches, setFilterOnlyCoaches] = useState(false);
 
+    const [loadAttempt, setLoadAttempt] = useState(0);
+
     useEffect(() => {
-        fetchAds();
+        let cancelled = false;
+        loadAds().then(data => {
+            if (!cancelled) setAds(data);
+        }).catch(() => {
+            if (!cancelled) setFetchError(true);
+        }).finally(() => {
+            if (!cancelled) setLoading(false);
+        });
+        return () => { cancelled = true; };
+    }, [loadAttempt]);
+
+    useEffect(() => {
+        api.coach.getCoachInfo().then(res => {
+            if (res.data) {
+                setCoachInfo(prev => ({
+                    ...prev,
+                    ...res.data,
+                    is_visible: res.data.is_visible !== false
+                }));
+            }
+        }).catch(err => console.error('Coach info load error:', err));
     }, []);
 
     useEffect(() => {
@@ -68,30 +199,78 @@ export default function Feed() {
         }
     }, [user]);
 
-    const fetchAds = async () => {
+    const fetchAds = () => {
         setLoading(true);
-        const { data: adsData, error } = await supabase
-            .from('ads')
-            .select('*')
-            .eq('is_active', true)
-            .order('created_at', { ascending: false });
+        setFetchError(false);
+        setLoadAttempt(attempt => attempt + 1);
+    };
 
-        if (error) {
-            console.error('Error fetching ads', error);
-        } else if (adsData) {
-            const userIds = Array.from(new Set(adsData.map(a => a.user_id)));
-            const { data: profiles } = await supabase.from('profiles').select('id, display_name, is_verified, grade_level, availability, is_coach').in('id', userIds);
+    const hasActiveFilters = Boolean(
+        searchQuery ||
+        filterSubject ||
+        filterGrade.length > 0 ||
+        filterType !== 'all' ||
+        minPrice !== PRICE_SLIDER_MIN ||
+        maxPrice !== PRICE_SLIDER_MAX ||
+        filterOnlyCoaches || filterByTime
+    );
 
-            const profileMap = new Map(profiles?.map(p => [p.id, p]));
+    const resetAllFilters = () => {
+        setSearchQuery(FILTER_DEFAULTS.query);
+        setFilterType(FILTER_DEFAULTS.type);
+        setFilterSubject(FILTER_DEFAULTS.subject);
+        setFilterGrade([]);
+        setMinPrice(FILTER_DEFAULTS.minPrice);
+        setMaxPrice(FILTER_DEFAULTS.maxPrice);
+        setFilterOnlyCoaches(FILTER_DEFAULTS.onlyCoaches);
+        setFilterByTime(FILTER_DEFAULTS.filterByTime);
+    };
 
-            const joinedAds = adsData.map(ad => ({
-                ...ad,
-                profiles: profileMap.get(ad.user_id),
-                profiles_avail: (profileMap.get(ad.user_id) as any)?.availability || emptyAvailability()
-            }));
-            setAds(joinedAds);
+    const applySavedSearch = () => {
+        if (!savedSearch) return;
+        setSearchQuery(savedSearch.query);
+        setFilterType(savedSearch.type);
+        setFilterSubject(savedSearch.subject);
+        setFilterGrade(savedSearch.grades);
+        setMinPrice(savedSearch.minPrice);
+        setMaxPrice(savedSearch.maxPrice);
+        setFilterOnlyCoaches(savedSearch.onlyCoaches);
+        setFilterByTime(savedSearch.filterByTime);
+        triggerHaptic('light');
+        toast.success('Gespeicherte Suche angewendet.');
+    };
+
+    const discardSavedSearch = () => {
+        try {
+            localStorage.removeItem(SAVED_SEARCH_KEY);
+        } catch {
+            toast.error('Gespeicherte Suche konnte nicht gelöscht werden. Bitte erneut versuchen.');
+            return;
         }
-        setLoading(false);
+        setSavedSearch(null);
+        triggerHaptic('light');
+    };
+
+    const saveCurrentSearch = () => {
+        const entry: SavedSearch = {
+            query: searchQuery,
+            type: filterType,
+            subject: filterSubject,
+            grades: filterGrade,
+            minPrice,
+            maxPrice,
+            onlyCoaches: filterOnlyCoaches,
+            filterByTime,
+        };
+        try {
+            localStorage.setItem(SAVED_SEARCH_KEY, JSON.stringify(entry));
+            setSavedSearch(entry);
+            triggerHaptic('light');
+            toast.success('Suche gespeichert. Du kannst sie hier jederzeit wieder anwenden.');
+        } catch (err) {
+            console.error('Could not save search', err);
+            toast.error('Suche konnte nicht gespeichert werden.');
+        }
     };
 
     const filteredAds = ads.filter(ad => {
@@ -127,11 +306,14 @@ export default function Feed() {
         return true;
     });
 
-    const isAdBoosted = (ad: any) => {
-        return ad.boosted && ad.boosted_until && new Date(ad.boosted_until) > new Date();
+    const isAdBoosted = (ad: Ad): boolean => {
+        return Boolean(ad?.boosted && ad?.boosted_until && new Date(ad.boosted_until) > new Date());
     };
 
-    // Sort: Boosted ads always on top, then mild boost for coaches (+ fair ranking), then by matching score or created date
+    // Sort: Boosted ads always on top, then matching score or created date.
+    // Ranking-Vorteil für Coaches (bewusst & offengelegt, siehe /coaching):
+    // Anzeigen verifizierter Coaches (is_coach) erhalten +0.5 Matching-Punkte
+    // bzw. +24h Frische-Bonus – als Anerkennung fürs Ehrenamt. Kein Kauf möglich.
     const sortedAds = [...filteredAds].sort((a, b) => {
         const aBoost = isAdBoosted(a);
         const bBoost = isAdBoosted(b);
@@ -139,19 +321,16 @@ export default function Feed() {
         if (aBoost && !bBoost) return -1;
         if (!aBoost && bBoost) return 1;
 
+        const aCoach = Boolean(a.profiles?.is_coach);
+        const bCoach = Boolean(b.profiles?.is_coach);
+
         if (filterByTime) {
-            const scoreA = countMatches(myAvailability, a.profiles_avail || emptyAvailability());
-            const scoreB = countMatches(myAvailability, b.profiles_avail || emptyAvailability());
-            const coachA = a.profiles?.is_coach ? 0.5 : 0;
-            const coachB = b.profiles?.is_coach ? 0.5 : 0;
-            return (scoreB + coachB) - (scoreA + coachA);
+            const scoreA = countMatches(myAvailability, a.profiles_avail || emptyAvailability()) + (aCoach ? 0.5 : 0);
+            const scoreB = countMatches(myAvailability, b.profiles_avail || emptyAvailability()) + (bCoach ? 0.5 : 0);
+            return scoreB - scoreA;
         } else {
-            // Fair soft ranking: Coaches receive a gentle 24h freshness bonus in the feed
-            // so their ads stay visible slightly longer, but fresh ads from other students can still take the lead
-            const coachBonusA = a.profiles?.is_coach ? 24 * 60 * 60 * 1000 : 0;
-            const coachBonusB = b.profiles?.is_coach ? 24 * 60 * 60 * 1000 : 0;
-            const timeA = new Date(a.created_at).getTime() + coachBonusA;
-            const timeB = new Date(b.created_at).getTime() + coachBonusB;
+            const timeA = new Date(a.created_at).getTime() + (aCoach ? 24 * 60 * 60 * 1000 : 0);
+            const timeB = new Date(b.created_at).getTime() + (bCoach ? 24 * 60 * 60 * 1000 : 0);
             return timeB - timeA;
         }
     });
@@ -167,6 +346,7 @@ export default function Feed() {
                         {user && (
                             <button
                                 onClick={() => { setFilterByTime(!filterByTime); triggerHaptic('selection'); }}
+                                aria-pressed={filterByTime}
                                 className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-full border font-semibold transition-all cursor-pointer ${
                                     filterByTime
                                         ? 'bg-green-100 border-green-400 text-green-700'
@@ -180,6 +360,7 @@ export default function Feed() {
                         )}
                         <button
                             onClick={() => { setFilterOnlyCoaches(!filterOnlyCoaches); triggerHaptic('selection'); }}
+                            aria-pressed={filterOnlyCoaches}
                             className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-full border font-semibold transition-all cursor-pointer ${
                                 filterOnlyCoaches
                                     ? 'bg-amber-100 border-amber-400 text-amber-800 dark:bg-amber-950/40 dark:border-amber-700 dark:text-amber-300'
@@ -197,15 +378,11 @@ export default function Feed() {
                         <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => {
-                                triggerHaptic('light');
-                                localStorage.setItem('fwg_saved_search', JSON.stringify({ query: searchQuery, time: filterByTime }));
-                                toast.success("Suche gespeichert! Du wirst bei neuen passenden Anzeigen benachrichtigt.");
-                            }}
+                            onClick={saveCurrentSearch}
                             className="h-8 px-2.5 text-xs text-primary-hover dark:text-primary font-bold rounded-full border border-primary/20 bg-primary/10 hover:bg-primary/20 shadow-2xs"
-                            title="Aktuelle Suche speichern und bei neuen Anzeigen benachrichtigt werden"
+                            title="Aktuelle Filter nur in diesem Browser speichern; ersetzt die bisherige Suche"
                         >
-                            🔔 Merken
+                            {savedSearch ? <><Bookmark size={13} className="fill-current" /> Gemerkt</> : <><Bookmark size={13} /> Merken</>}
                         </Button>
                     </div>
                 </div>
@@ -213,6 +390,8 @@ export default function Feed() {
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                     <Input
+                        type="search"
+                        aria-label="Anzeigen nach Fach oder Name durchsuchen"
                         placeholder="Suchen nach Fächern, Namen..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
@@ -230,6 +409,7 @@ export default function Feed() {
                                 setFilterSubject(filterSubject === subj ? null : subj);
                                 if ('vibrate' in navigator) navigator.vibrate([15]);
                             }}
+                            aria-pressed={filterSubject === subj}
                             className={cn(
                                 "px-3 py-1 rounded-full border transition-all shrink-0 capitalize font-medium",
                                 filterSubject === subj
@@ -243,9 +423,29 @@ export default function Feed() {
                     {filterSubject && (
                         <button
                             onClick={() => setFilterSubject(null)}
+                            aria-label="Fachfilter zurücksetzen"
                             className="px-2.5 py-1 rounded-full bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400 text-xs font-bold shrink-0"
                         >
                             ✕ Filter zurücksetzen
+                        </button>
+                    )}
+                </div>
+
+                <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-bold text-gray-400" aria-live="polite">
+                        {loading
+                            ? 'Ergebnisse werden geladen…'
+                            : fetchError
+                                ? 'Ergebnisse konnten nicht geladen werden'
+                                : `${sortedAds.length} ${sortedAds.length === 1 ? 'Anzeige' : 'Anzeigen'}`}
+                    </p>
+                    {hasActiveFilters && !loading && (
+                        <button
+                            type="button"
+                            onClick={() => { resetAllFilters(); triggerHaptic('light'); }}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shrink-0 cursor-pointer"
+                        >
+                            <X size={12} /> Filter zurücksetzen
                         </button>
                     )}
                 </div>
@@ -272,7 +472,12 @@ export default function Feed() {
                                 </div>
                                 <div>
                                     <label className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-2 block">Preis (€)</label>
-                                    <PriceRangeSlider min={0} max={100} onChange={(min, max) => { setMinPrice(min); setMaxPrice(max); }} />
+                                    <PriceRangeSlider
+                                        min={PRICE_SLIDER_MIN}
+                                        max={PRICE_SLIDER_MAX}
+                                        value={{ min: minPrice, max: maxPrice }}
+                                        onChange={(min, max) => { setMinPrice(min); setMaxPrice(max); }}
+                                    />
                                 </div>
                             </div>
 
@@ -309,6 +514,42 @@ export default function Feed() {
                 </AnimatePresence>
             </div>
 
+            {savedSearch && !loading && !fetchError && (
+                <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 rounded-2xl border border-primary/20 bg-primary/5">
+                    <div className="flex items-center gap-2 min-w-0 text-sm">
+                        <Bookmark size={15} className="text-primary-hover dark:text-primary shrink-0 fill-current" />
+                        <span className="font-bold text-gray-700 dark:text-gray-200 shrink-0">Gemerkte Suche:</span>
+                        <span className="text-gray-500 dark:text-gray-400 truncate">
+                            {savedSearch.query ? `„${savedSearch.query}“` : 'Alle Anzeigen'}
+                            {savedSearch.subject ? ` · ${savedSearch.subject}` : ''}
+                            {savedSearch.grades.length > 0 ? ` · Kl. ${savedSearch.grades.join(', ')}` : ''}
+                            {savedSearch.minPrice > PRICE_SLIDER_MIN || savedSearch.maxPrice < PRICE_SLIDER_MAX
+                                ? ` · ${savedSearch.minPrice}–${savedSearch.maxPrice}€`
+                                : ''}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={applySavedSearch}
+                            className="h-8 px-3 text-xs font-bold rounded-full border-primary/30"
+                        >
+                            Suchen
+                        </Button>
+                        <button
+                            type="button"
+                            onClick={discardSavedSearch}
+                            aria-label="Gemerkte Suche verwerfen"
+                            title="Gemerkte Suche verwerfen"
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-200/60 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                        >
+                            <X size={15} />
+                        </button>
+                        </div>
+                </div>
+            )}
+
             {/* Banner Section */}
             <div className="mb-6">
                 <div className="flex items-center justify-between mb-3 px-2">
@@ -334,27 +575,33 @@ export default function Feed() {
 
                 {showBanners && (
                     <div className="space-y-4 animate-in slide-in-from-top-2">
-                        {/* Werbung / Info Block für das 8er Coaching */}
-                        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-950/40 border border-blue-200 dark:border-blue-900/50 shadow-sm overflow-hidden relative">
-                            <div className="absolute top-0 right-0 p-4 opacity-10">
-                                <GraduationCap size={120} />
-                            </div>
-                            <CardContent className="p-6 relative z-10 space-y-4">
-                                <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
-                                    <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-xl">
-                                        <GraduationCap size={20} />
+                        {/* Info Block für Schüler-Coaching (editierbar im Coach-Panel) */}
+                        {coachInfo.is_visible && (
+                            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-950/40 border border-blue-200 dark:border-blue-900/50 shadow-sm overflow-hidden relative">
+                                <div className="absolute top-0 right-0 p-4 opacity-10">
+                                    <GraduationCap size={120} />
+                                </div>
+                                <CardContent className="p-6 relative z-10 space-y-4">
+                                    <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
+                                        <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-xl">
+                                            <GraduationCap size={20} />
+                                        </div>
+                                        <h2 className="text-lg font-bold">{coachInfo.title}</h2>
                                     </div>
-                                    <h2 className="text-lg font-bold">Kostenloses Coaching für Klasse 5 & 6!</h2>
-                                </div>
-                                <p className="text-sm text-blue-900 dark:text-blue-200 leading-relaxed">
-                                    Wöchentlich einmal bieten wir für alle Schülerinnen und Schüler der Jahrgangsstufen 5 und 6 die Möglichkeit, Hilfen zu einzelnen Fächern oder zur Lern- und Arbeitsorganisation allgemein durch Schülerinnen und Schüler der 8. Klassen zu erhalten. Diese werden jeweils vor den Herbstferien für ihre Aufgabe geschult und stellen dann bis zum Ende des Schuljahres ehrenamtlich ihre Hilfe zur Verfügung. Dieses Angebot wird in der Regel sehr gerne angenommen, da die Coaches einen guten Blick auf die Probleme der jüngeren Schüler haben.
-                                </p>
-                                <div className="flex items-center gap-4 bg-white/60 dark:bg-black/20 p-3 rounded-xl inline-flex text-sm font-semibold text-blue-800 dark:text-blue-300">
-                                    <span className="flex items-center gap-1.5"><Clock size={16} /> Dienstags, 13:45 - 14:30 Uhr</span>
-                                    <span className="flex items-center gap-1.5"><MapPin size={16} /> Raum H310</span>
-                                </div>
-                            </CardContent>
-                        </Card>
+                                    <p className="text-sm text-blue-900 dark:text-blue-200 leading-relaxed whitespace-pre-line">
+                                        {coachInfo.description}
+                                    </p>
+                                    <div className="flex flex-wrap items-center gap-3 sm:gap-4 bg-white/60 dark:bg-black/20 p-3 rounded-xl inline-flex text-sm font-semibold text-blue-800 dark:text-blue-300">
+                                        {coachInfo.time && (
+                                            <span className="flex items-center gap-1.5"><Clock size={16} /> {coachInfo.time}</span>
+                                        )}
+                                        {coachInfo.room && (
+                                            <span className="flex items-center gap-1.5"><MapPin size={16} /> {coachInfo.room}</span>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
 
                         {/* Förderunterricht Info Block */}
                         <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 border border-indigo-100 dark:border-indigo-900/50 shadow-sm overflow-hidden relative">
@@ -441,14 +688,36 @@ export default function Feed() {
             <div className="grid gap-4">
                 {loading ? (
                     <div className="text-center py-20 text-gray-500 animate-pulse">Lade Anzeigen...</div>
+                ) : fetchError ? (
+                    <div className="flex flex-col items-center justify-center p-12 text-center bg-white dark:bg-gray-900 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm mt-8">
+                        <div className="w-24 h-24 mb-6 rounded-full bg-red-50 dark:bg-red-950/30 flex items-center justify-center">
+                            <SearchX size={40} className="text-red-400 dark:text-red-500" />
+                        </div>
+                        <h3 className="text-xl font-bold mb-2">Anzeigen konnten nicht geladen werden</h3>
+                        <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">Prüfe deine Internetverbindung und versuche es erneut.</p>
+                        <Button onClick={() => fetchAds()} className="rounded-full shadow-md">Erneut versuchen</Button>
+                    </div>
                 ) : sortedAds.length === 0 ? (
                     <div className="flex flex-col items-center justify-center p-12 text-center bg-white dark:bg-gray-900 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm mt-8">
                         <div className="w-24 h-24 mb-6 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
                             <Search size={40} className="text-gray-400 dark:text-gray-500" />
                         </div>
-                        <h3 className="text-xl font-bold mb-2">Der Feed ist leer</h3>
-                        <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">Wir konnten leider keine passenden Anzeigen zu deinen Suchkriterien finden. Ändere die Filter oder erstelle selbst etwas!</p>
-                        <Button onClick={() => navigate('/create-ad')} className="rounded-full shadow-md">Anzeige erstellen</Button>
+                        {hasActiveFilters ? (
+                            <>
+                                <h3 className="text-xl font-bold mb-2">Keine Treffer für diese Filter</h3>
+                                <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">Keine Anzeige passt zu deiner aktuellen Suche. Setze die Filter zurück oder erstelle selbst eine Anzeige!</p>
+                                <div className="flex flex-wrap justify-center gap-2">
+                                    <Button variant="outline" onClick={() => { resetAllFilters(); triggerHaptic('light'); }} className="rounded-full shadow-sm">Filter zurücksetzen</Button>
+                                    <Button onClick={() => navigate('/create-ad')} className="rounded-full shadow-md">Anzeige erstellen</Button>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <h3 className="text-xl font-bold mb-2">Der Feed ist leer</h3>
+                                <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">Aktuell gibt es keine aktiven Anzeigen. Erstelle selbst etwas!</p>
+                                <Button onClick={() => navigate('/create-ad')} className="rounded-full shadow-md">Anzeige erstellen</Button>
+                            </>
+                        )}
                     </div>
                 ) : (
                     sortedAds.map((ad) => {
@@ -464,9 +733,9 @@ export default function Feed() {
                             onClick={() => navigate(`/ad/${ad.id}`)}
                         >
                             {boosted && (
-                                <div className="bg-gradient-to-r from-yellow-400/20 via-amber-400/15 to-yellow-400/20 border-b border-yellow-400/30 px-4 py-1.5 flex items-center gap-1.5">
-                                    <span className="text-xs">🍌</span>
-                                    <span className="text-[11px] font-bold text-yellow-700 dark:text-yellow-400 tracking-wide uppercase">Empfohlene Anzeige</span>
+                                <div className="bg-gradient-to-r from-yellow-400/20 via-amber-400/15 to-yellow-400/20 border-b border-yellow-400/30 px-4 py-1.5 flex items-center gap-1.5" title="Diese Anzeige wird hervorgehoben (z. B. Coach-Status oder Aktion). Warum? Siehe Seite „Schüler-Coaching“.">
+                                    <span className="text-xs">⭐</span>
+                                    <span className="text-[11px] font-bold text-yellow-700 dark:text-yellow-400 tracking-wide uppercase">Hervorgehobene Anzeige</span>
                                 </div>
                             )}
                             <CardHeader className={cn(
@@ -533,8 +802,8 @@ export default function Feed() {
                                         </span>
                                     )}
                                     {boosted && (
-                                        <span className="text-yellow-600 dark:text-yellow-500 font-semibold text-[10px] flex items-center gap-0.5">
-                                            <Sparkles size={10} /> Empfohlen
+                                        <span className="text-yellow-600 dark:text-yellow-500 font-semibold text-[10px] flex items-center gap-0.5" title="Hervorgehoben (z. B. Coach-Status oder Aktion)">
+                                            <Sparkles size={10} /> Hervorgehoben
                                         </span>
                                     )}
                                     <button

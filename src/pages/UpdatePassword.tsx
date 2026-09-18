@@ -85,7 +85,7 @@ export default function UpdatePassword() {
                             <label className="text-sm font-medium">Neues Passwort</label>
                             <Input
                                 type="password"
-                                placeholder="Min. 6 Zeichen"
+                                placeholder="Min. 8 Zeichen"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required

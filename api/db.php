@@ -25,13 +25,18 @@ class DB {
                 PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES " . DB_CHARSET
             ];
 
+            // Fail-Closed bei fehlender Konfiguration (kein Fallback-Geheimnis im Repo)
+            if (empty(DB_NAME) || empty(DB_USER)) {
+                error_log('DB config missing: DB_NAME/DB_USER nicht gesetzt (Env oder db_credentials.php).');
+                json_error('Datenbankverbindung fehlgeschlagen. Bitte wende dich an den Support.', 500);
+            }
+
             try {
                 self::$instance = new PDO($dsn, DB_USER, DB_PASS, $options);
             } catch (PDOException $e) {
-                // Keine Passwörter in der Fehlerausgabe exponieren
-                json_error('Datenbankverbindung fehlgeschlagen. Bitte prüfe die Verbindungsdaten in api/config.php.', 500, [
-                    'message' => $e->getMessage()
-                ]);
+                // Details nur ins Server-Log, niemals an den Client (kein Info-Leak von Host/DSN)
+                error_log('DB connection failed: ' . $e->getMessage());
+                json_error('Datenbankverbindung fehlgeschlagen. Bitte wende dich an den Support.', 500);
             }
         }
 

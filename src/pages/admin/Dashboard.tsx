@@ -55,6 +55,8 @@ export default function SVDashboard() {
             return <AdminCodes />;
         case 'auditlog':
             return <AdminAuditLog />;
+        case 'coachlog':
+            return <AdminAuditLog defaultFilter="coach" />;
         case 'news':
             return <AdminNews />;
         case 'ads':
@@ -201,7 +203,7 @@ function AdManagement() {
                                             </span>
                                             <span className="font-bold">{ad.short_description}</span>
                                             {ad.is_hidden && <span className="text-[10px] bg-red-100 text-red-800 px-2 py-0.5 rounded-full font-bold uppercase">Versteckt</span>}
-                                            {ad.boosted && <span className="text-[10px] bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full font-bold uppercase">Geboostet 🍌</span>}
+                                            {ad.boosted && <span className="text-[10px] bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full font-bold uppercase">Geboostet ⭐</span>}
                                         </div>
                                         <div className="text-sm text-gray-500">
                                             Von <span className="font-semibold">{ad.profiles?.display_name || `${ad.profiles?.first_name || ''} ${ad.profiles?.last_name || ''}`}</span> • {new Date(ad.created_at).toLocaleDateString('de-DE')}

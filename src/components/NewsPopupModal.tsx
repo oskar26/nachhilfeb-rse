@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { X, Megaphone, Bell, CheckCircle2 } from 'lucide-react';
 import { Button } from './ui/Button';
@@ -25,11 +25,7 @@ export function NewsPopupModal() {
     const [news, setNews] = useState<Announcement | null>(null);
     const [open, setOpen] = useState(false);
 
-    useEffect(() => {
-        fetchLatestUnseenNews();
-    }, []);
-
-    const fetchLatestUnseenNews = async () => {
+    const fetchLatestUnseenNews = useCallback(async () => {
         try {
             const { data, error } = await supabase
                 .from('announcements')
@@ -40,6 +36,17 @@ export function NewsPopupModal() {
             if (error || !data || data.length === 0) return;
 
             const latest = data[0] as Announcement;
+            // Defensive Validierung: Kaputte/ungültige Datensätze (z. B. leere Antwort,
+            // Proxy-Fehlerseite) dürfen niemals ein leeres "Invalid Date"-Modal erzeugen.
+            const hasValidDate = !!latest.created_at && !Number.isNaN(new Date(latest.created_at).getTime());
+            if (
+                !latest.id ||
+                typeof latest.title !== 'string' || !latest.title.trim() ||
+                typeof latest.body !== 'string' || !latest.body.trim() ||
+                !hasValidDate
+            ) {
+                return;
+            }
             const dismissedIds = getDismissedNews();
 
             // Only show if user has NOT dismissed this specific news item
@@ -62,7 +69,13 @@ export function NewsPopupModal() {
         } catch (e) {
             console.error('[NewsPopupModal] fetch error:', e);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        // Fetch-on-Mount: idiomatischer Initial-Datenladung, kein kaskadierendes Render-Problem
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        fetchLatestUnseenNews();
+    }, [fetchLatestUnseenNews]);
 
     const handleDismiss = () => {
         if (!news) return;

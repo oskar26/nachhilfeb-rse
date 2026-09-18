@@ -38,10 +38,11 @@ export function CookieBanner() {
                             <ShieldCheck size={15} className="text-green-500" /> Datenschutz & Cookies
                         </p>
                         <p className="text-gray-500 dark:text-gray-400 text-xs leading-relaxed">
-                            Wir verwenden ausschließlich <strong>technisch notwendige Cookies</strong> für deine Anmeldung und App-Einstellungen (z.B. Dark Mode). Es findet kein Tracking durch Drittanbieter statt. Mehr dazu in unserer{' '}
+                            Wir speichern nur <strong>technisch Notwendiges</strong> in deinem Browser (Anmeldung, Einstellungen wie Dark Mode). Zusätzlich zählen wir anonym auf unserem Server, welche Seiten aufgerufen werden – <strong>ohne IP-Adresse und ohne Drittanbieter</strong>. Mehr dazu in unserer{' '}
                             <Link to="/datenschutz" className="underline font-semibold hover:text-primary-hover" onClick={decline}>
                                 Datenschutzerklärung
-                            </Link>.
+                            </Link>{' '}
+                            und den <Link to="/cookies" className="underline font-semibold hover:text-primary-hover" onClick={decline}>Cookie-Hinweisen</Link>.
                         </p>
                     </div>
                 </div>
@@ -59,7 +60,7 @@ export function CookieBanner() {
                         className="flex-1 sm:flex-none font-bold shadow-lg text-xs rounded-full"
                         onClick={accept}
                     >
-                        Alle akzeptieren ✓
+                        Verstanden
                     </Button>
                 </div>
             </div>

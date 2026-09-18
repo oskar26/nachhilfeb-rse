@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
+import { useState, useEffect, useCallback } from 'react';import { api } from '../../lib/api';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Card, CardContent } from '../../components/ui/Card';
@@ -8,7 +7,6 @@ import {
     Search,
     Edit,
     CheckCircle,
-    AlertTriangle,
     ShieldCheck,
     Ban,
     LayoutGrid,
@@ -16,7 +14,6 @@ import {
     Download,
     Users as UsersIcon,
     RefreshCw,
-    X,
     UserMinus,
     Check,
 } from 'lucide-react';
@@ -31,7 +28,7 @@ interface Profile {
     email: string | null;
     grade_level: string | null;
     class_letter: string | null;
-    role: 'student' | 'sv_admin' | 'parent';
+    role: 'student' | 'sv_admin' | 'coach_admin' | 'parent';
     is_verified: boolean;
     is_banned: boolean;
     avatar_url: string | null;
@@ -49,11 +46,15 @@ interface ParentLink {
 }
 
 export default function AdminUsers() {
+    const PAGE_SIZE = 25;
     const [users, setUsers] = useState<Profile[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [filterRole, setFilterRole] = useState<string>('all');
     const [filterStatus, setFilterStatus] = useState<string>('all');
+    const [page, setPage] = useState(0);
+    const [total, setTotal] = useState(0);
     const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
     // Dialog States
@@ -70,69 +71,69 @@ export default function AdminUsers() {
     } | null>(null);
 
     // Parent details state
-    const [linkedRelations, setLinkedRelations] = useState<ParentLink[]>([]);
     const [selectedUserRelations, setSelectedUserRelations] = useState<{
         user: Profile;
         relations: ParentLink[];
     } | null>(null);
 
+    // Suche entprellen (400ms), Seite bei Filterwechsel zurücksetzen
     useEffect(() => {
-        fetchUsers();
-    }, []);
+        const t = setTimeout(() => {
+            setPage(0);
+            setDebouncedSearch(search.trim());
+        }, 400);
+        return () => clearTimeout(t);
+    }, [search]);
 
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
         setLoading(true);
         try {
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .order('created_at', { ascending: false });
+            // Suche/Filter/Pagination laufen serverseitig (admin.php?action=users → {data, total})
+            const { data, error } = await api.admin.users(debouncedSearch || undefined, filterRole, {
+                limit: PAGE_SIZE,
+                offset: page * PAGE_SIZE,
+                status: filterStatus,
+            });
             if (error) throw error;
-            setUsers(data || []);
-        } catch (error: any) {
-            console.error('Error fetching users:', error);
-            toast.error('Nutzer konnten nicht geladen werden: ' + error.message);
+            interface UsersPayload { data?: Profile[]; total?: number }
+            const payload = (data ?? {}) as UsersPayload;
+            const list = (Array.isArray(data) ? (data as Profile[]) : payload.data ?? []).map((u) => ({
+                ...u,
+                email: u.email || (u as { auth_email?: string | null }).auth_email || null,
+            }));
+            setUsers(list);
+            setTotal(Array.isArray(data) ? list.length : Number(payload.total) || 0);
+        } catch {
+            toast.error('Nutzer konnten nicht geladen werden.');
         } finally {
             setLoading(false);
         }
-    };
+    }, [debouncedSearch, filterRole, filterStatus, page]);
+
+    useEffect(() => {
+        fetchUsers();
+    }, [fetchUsers]);
 
     const fetchUserRelations = async (user: Profile) => {
         try {
-            const { data, error } = await supabase
-                .from('parent_links')
-                .select('*')
-                .or(`parent_id.eq.${user.id},child_id.eq.${user.id}`);
-            
+            const { data, error } = await api.admin.parentLinks(user.id);
             if (error) throw error;
 
-            const links: ParentLink[] = data || [];
-            
-            // Resolve names for links
-            const resolvedLinks = await Promise.all(links.map(async (link) => {
+            const links: ParentLink[] = (Array.isArray(data) ? data : []).map((link: any) => {
                 const isParent = link.parent_id === user.id;
-                const targetId = isParent ? link.child_id : link.parent_id;
-                
-                const { data: profileData } = await supabase
-                    .from('profiles')
-                    .select('display_name, first_name, last_name')
-                    .eq('id', targetId)
-                    .single();
-
-                const name = profileData 
-                    ? (profileData.display_name || `${profileData.first_name} ${profileData.last_name}`)
-                    : 'Unbekannter Nutzer';
-
                 return {
                     ...link,
-                    parent_name: isParent ? (user.display_name || 'Ich') : name,
-                    child_name: isParent ? name : (user.display_name || 'Ich')
+                    parent_name: isParent
+                        ? (user.display_name || 'Ich')
+                        : (link.parent_name || 'Unbekannter Nutzer'),
+                    child_name: isParent
+                        ? (link.child_name || 'Unbekannter Nutzer')
+                        : (user.display_name || 'Ich'),
                 };
-            }));
+            });
 
-            setSelectedUserRelations({ user, relations: resolvedLinks });
-        } catch (error: any) {
-            console.error('Error fetching user relations:', error);
+            setSelectedUserRelations({ user, relations: links });
+        } catch {
             toast.error('Verknüpfungen konnten nicht geladen werden.');
         }
     };
@@ -140,34 +141,22 @@ export default function AdminUsers() {
     const handleEditSave = async () => {
         if (!editingUser) return;
         try {
-            const { error } = await supabase
-                .from('profiles')
-                .update({
-                    first_name: editingUser.first_name,
-                    last_name: editingUser.last_name,
-                    display_name: `${editingUser.first_name} ${editingUser.last_name}`,
-                    grade_level: editingUser.grade_level,
-                    class_letter: editingUser.class_letter,
-                    bio: editingUser.bio,
-                })
-                .eq('id', editingUser.id);
-
+            // SV-Admin darf fremde Profile via profiles.php-PUT editieren (Backend mit Längen-Checks + Audit)
+            const { error } = await api.profiles.update({
+                first_name: editingUser.first_name,
+                last_name: editingUser.last_name,
+                display_name: `${editingUser.first_name} ${editingUser.last_name}`,
+                grade_level: editingUser.grade_level,
+                class_letter: editingUser.class_letter,
+                bio: editingUser.bio,
+            }, editingUser.id);
             if (error) throw error;
 
             toast.success('Nutzerdaten erfolgreich aktualisiert');
             setEditingUser(null);
             fetchUsers();
-            
-            // Log audit
-            await supabase.from('admin_audit_log').insert({
-                admin_id: (await supabase.auth.getUser()).data.user?.id,
-                action: 'edit_user',
-                target_type: 'profile',
-                target_id: editingUser.id,
-                details: { display_name: `${editingUser.first_name} ${editingUser.last_name}` }
-            });
-        } catch (error: any) {
-            toast.error('Fehler beim Speichern: ' + error.message);
+        } catch {
+            toast.error('Fehler beim Speichern.');
         }
     };
 
@@ -179,53 +168,27 @@ export default function AdminUsers() {
         }
 
         try {
-            const expiresAt = banType === 'temporary' 
-                ? new Date(Date.now() + parseFloat(banDurationDays) * 24 * 60 * 60 * 1000).toISOString()
+            // Backend-Format: 'YYYY-MM-DD HH:MM:SS' (MySQL DATETIME)
+            const expiresAt = banType === 'temporary'
+                ? new Date(Date.now() + parseFloat(banDurationDays) * 24 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ')
                 : null;
 
-            // 1. Insert into user_bans (if table exists)
-            try {
-                await supabase
-                    .from('user_bans')
-                    .insert({
-                        user_id: banUserObj.id,
-                        banned_by: (await supabase.auth.getUser()).data.user?.id,
-                        reason: banReason,
-                        ban_type: banType,
-                        expires_at: expiresAt
-                    });
-            } catch (e) {
-                console.warn('user_bans table write error, updating profile directly:', e);
-            }
-
-            // 2. Directly update profiles table
-            const { error: profileError } = await supabase
-                .from('profiles')
-                .update({
-                    is_banned: true,
-                    ban_type: banType,
-                    ban_reason: banReason,
-                    banned_until: expiresAt
-                })
-                .eq('id', banUserObj.id);
-
-            if (profileError) throw profileError;
+            // Sperre + Audit übernimmt das Backend (admin.php?action=ban_user)
+            const { error } = await api.admin.banUser({
+                user_id: banUserObj.id,
+                is_banned: true,
+                ban_type: banType,
+                ban_reason: banReason.trim(),
+                banned_until: expiresAt,
+            });
+            if (error) throw error;
 
             toast.success(`Nutzer ${banUserObj.display_name} wurde gesperrt`);
             setBanUserObj(null);
             setBanReason('');
             fetchUsers();
-
-            // Audit log
-            await supabase.from('admin_audit_log').insert({
-                admin_id: (await supabase.auth.getUser()).data.user?.id,
-                action: 'ban_user',
-                target_type: 'profile',
-                target_id: banUserObj.id,
-                details: { reason: banReason, type: banType, expires_at: expiresAt }
-            });
-        } catch (error: any) {
-            toast.error('Sperre fehlgeschlagen: ' + error.message);
+        } catch {
+            toast.error('Sperre fehlgeschlagen.');
         }
     };
 
@@ -234,72 +197,33 @@ export default function AdminUsers() {
         const { type, user } = confirmAction;
 
         try {
-            let logAction = '';
-            let logDetails = {};
-
             if (type === 'unban') {
-                // Delete ban records for the user
-                try {
-                    await supabase
-                        .from('user_bans')
-                        .delete()
-                        .eq('user_id', user.id);
-                } catch (e) {}
-                
-                // Directly clear ban in profiles
-                const { error: unbanError } = await supabase
-                    .from('profiles')
-                    .update({ 
-                        is_banned: false,
-                        ban_type: null,
-                        ban_reason: null,
-                        banned_until: null
-                    })
-                    .eq('id', user.id);
-
-                if (unbanError) throw unbanError;
+                const { error } = await api.admin.banUser({ user_id: user.id, is_banned: false });
+                if (error) throw error;
 
                 toast.success('Nutzer entsperrt');
-                logAction = 'unban_user';
             } else if (type === 'verify') {
-                const { error } = await supabase
-                    .from('profiles')
-                    .update({ is_verified: !user.is_verified })
-                    .eq('id', user.id);
+                const { error } = await api.admin.verifyUser(user.id, !user.is_verified);
                 if (error) throw error;
 
                 toast.success(user.is_verified ? 'Verifizierung aufgehoben' : 'Nutzer verifiziert');
-                logAction = user.is_verified ? 'unverify_user' : 'verify_user';
             } else if (type === 'role') {
                 const newRole = user.role === 'sv_admin' ? 'student' : 'sv_admin';
-                const { error } = await supabase
-                    .from('profiles')
-                    .update({ role: newRole })
-                    .eq('id', user.id);
+                const { error } = await api.admin.setRole(user.id, newRole);
                 if (error) throw error;
 
                 toast.success(`Rolle geändert zu ${newRole}`);
-                logAction = 'change_role';
-                logDetails = { old_role: user.role, new_role: newRole };
             }
 
             setConfirmAction(null);
             fetchUsers();
-
-            // Audit
-            await supabase.from('admin_audit_log').insert({
-                admin_id: (await supabase.auth.getUser()).data.user?.id,
-                action: logAction,
-                target_type: 'profile',
-                target_id: user.id,
-                details: logDetails
-            });
-        } catch (error: any) {
-            toast.error('Aktion fehlgeschlagen: ' + error.message);
+        } catch {
+            toast.error('Aktion fehlgeschlagen.');
         }
     };
 
     const exportToCSV = () => {
+        // Exportiert bewusst nur die aktuelle Seite (kein Voll-Dump aller Nutzerdaten)
         if (users.length === 0) return;
         
         const headers = ['ID', 'Name', 'E-Mail', 'Rolle', 'Klasse/Stufe', 'Verifiziert', 'Gesperrt', 'Erstellt am'];
@@ -327,58 +251,40 @@ export default function AdminUsers() {
         document.body.removeChild(link);
     };
 
-    // Filters
-    const filteredUsers = users.filter(u => {
-        const fullName = `${u.first_name || ''} ${u.last_name || ''} ${u.display_name || ''}`.toLowerCase();
-        const matchesSearch = fullName.includes(search.toLowerCase()) || 
-            (u.email || '').toLowerCase().includes(search.toLowerCase());
-
-        const matchesRole = filterRole === 'all' || u.role === filterRole;
-
-        let matchesStatus = true;
-        if (filterStatus === 'verified') matchesStatus = u.is_verified && !u.is_banned;
-        if (filterStatus === 'banned') matchesStatus = u.is_banned;
-        if (filterStatus === 'unverified') matchesStatus = !u.is_verified && !u.is_banned;
-
-        return matchesSearch && matchesRole && matchesStatus;
-    });
+    // Suche/Rolle/Status filtert bereits das Backend – hier liegt die aktuelle Seite
+    const filteredUsers = users;
 
     const handleBatchVerifyPage = async () => {
         const unverifiedOnPage = filteredUsers.filter(u => !u.is_verified && !u.is_banned);
         if (unverifiedOnPage.length === 0) {
-            toast.error('Keine unverifizierten Nutzer auf dieser Ansicht.');
+            toast.error('Keine unverifizierten Nutzer auf dieser Seite.');
             return;
         }
 
-        if (!confirm(`${unverifiedOnPage.length} Nutzer in dieser Ansicht auf einmal verifizieren?`)) return;
+        if (!confirm(`${unverifiedOnPage.length} Nutzer auf dieser Seite auf einmal verifizieren?`)) return;
 
         try {
             const ids = unverifiedOnPage.map(u => u.id);
-            const { error } = await supabase
-                .from('profiles')
-                .update({ is_verified: true })
-                .in('id', ids);
+            // Backend hat keinen Batch-Endpoint; Einzelaufrufe (jeder wird auditiert)
+            const results = await Promise.all(
+                ids.map(id => api.admin.verifyUser(id, true))
+            );
+            const failed = results.filter(r => r.error).length;
+            if (failed === ids.length) throw new Error('verify failed');
 
-            if (error) throw error;
-
-            toast.success(`${unverifiedOnPage.length} Nutzer erfolgreich verifiziert!`);
+            toast.success(
+                failed === 0
+                    ? `${unverifiedOnPage.length} Nutzer erfolgreich verifiziert!`
+                    : `${unverifiedOnPage.length - failed} verifiziert, ${failed} fehlgeschlagen.`
+            );
             fetchUsers();
-
-            // Audit Log
-            await supabase.from('admin_audit_log').insert({
-                admin_id: (await supabase.auth.getUser()).data.user?.id,
-                action: 'verify_user',
-                target_type: 'batch_profiles',
-                details: { count: unverifiedOnPage.length, ids }
-            });
-        } catch (err: any) {
-            toast.error('Fehler bei der Stapelverifizierung: ' + err.message);
+        } catch {
+            toast.error('Fehler bei der Stapelverifizierung.');
         }
     };
 
     const unverifiedCount = users.filter(u => !u.is_verified && !u.is_banned).length;
-    const parentCount = users.filter(u => u.role === 'parent').length;
-    const bannedCount = users.filter(u => u.is_banned).length;
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
     return (
         <div className="space-y-6 animate-in fade-in duration-300">
@@ -398,19 +304,20 @@ export default function AdminUsers() {
                     {/* Role filter */}
                     <select
                         value={filterRole}
-                        onChange={e => setFilterRole(e.target.value)}
+                        onChange={e => { setFilterRole(e.target.value); setPage(0); }}
                         className="h-11 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                         <option value="all">Alle Rollen</option>
                         <option value="student">Schüler</option>
                         <option value="sv_admin">Admin</option>
+                        <option value="coach_admin">Schüler-Coach</option>
                         <option value="parent">Elternteil</option>
                     </select>
 
                     {/* Status filter */}
                     <select
                         value={filterStatus}
-                        onChange={e => setFilterStatus(e.target.value)}
+                        onChange={e => { setFilterStatus(e.target.value); setPage(0); }}
                         className="h-11 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                         <option value="all">Alle Status</option>
@@ -424,14 +331,14 @@ export default function AdminUsers() {
                         <Button
                             onClick={handleBatchVerifyPage}
                             className="h-11 rounded-2xl gap-1.5 text-xs font-bold bg-green-600 hover:bg-green-700 text-white shadow-sm"
-                            title="Alle gefilterten unverifizierten Schüler freischalten"
+                            title="Alle unverifizierten Nutzer auf dieser Seite freischalten"
                         >
                             <ShieldCheck size={16} /> Alle verifizieren ({unverifiedCount})
                         </Button>
                     )}
 
                     {/* Actions */}
-                    <Button onClick={exportToCSV} variant="outline" className="h-11 rounded-2xl gap-2 text-sm font-semibold">
+                    <Button onClick={exportToCSV} variant="outline" className="h-11 rounded-2xl gap-2 text-sm font-semibold" title="Exportiert die aktuelle Seite als CSV">
                         <Download size={16} /> CSV Export
                     </Button>
 
@@ -508,7 +415,7 @@ export default function AdminUsers() {
                                                     u.role === 'student' && 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
                                                     u.role === 'parent' && 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                                                 )}>
-                                                    {u.role === 'sv_admin' ? 'Admin' : u.role === 'parent' ? 'Elternteil' : 'Schüler'}
+                                                    {u.role === 'sv_admin' ? 'Admin' : u.role === 'coach_admin' ? 'Coach' : u.role === 'parent' ? 'Elternteil' : 'Schüler'}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 font-semibold text-sm">
@@ -629,7 +536,7 @@ export default function AdminUsers() {
                                         u.role === 'student' && 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
                                         u.role === 'parent' && 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                                     )}>
-                                        {u.role === 'sv_admin' ? 'Admin' : u.role === 'parent' ? 'Elternteil' : 'Schüler'}
+                                        {u.role === 'sv_admin' ? 'Admin' : u.role === 'coach_admin' ? 'Coach' : u.role === 'parent' ? 'Elternteil' : 'Schüler'}
                                     </span>
                                 </div>
                             </div>
@@ -648,6 +555,31 @@ export default function AdminUsers() {
                             </div>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {/* Pagination */}
+            {!loading && total > PAGE_SIZE && (
+                <div className="flex items-center justify-center gap-3 pt-2">
+                    <Button
+                        variant="outline"
+                        className="h-10 rounded-2xl text-sm font-semibold"
+                        disabled={page === 0}
+                        onClick={() => setPage(p => Math.max(0, p - 1))}
+                    >
+                        Zurück
+                    </Button>
+                    <span className="text-sm text-gray-500 font-medium">
+                        Seite {page + 1} von {totalPages} · {total} Nutzer
+                    </span>
+                    <Button
+                        variant="outline"
+                        className="h-10 rounded-2xl text-sm font-semibold"
+                        disabled={page + 1 >= totalPages}
+                        onClick={() => setPage(p => p + 1)}
+                    >
+                        Weiter
+                    </Button>
                 </div>
             )}
 

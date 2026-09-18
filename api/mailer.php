@@ -7,6 +7,13 @@
 require_once __DIR__ . '/config.php';
 
 /**
+ * Escaped Benutzereingaben für E-Mail-HTML (verhindert HTML-Injektion via Namen/Titel/Nachrichten).
+ */
+function fwg_esc($value): string {
+    return htmlspecialchars((string)($value ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+/**
  * Erzeugt ein responsives, modernes HTML-E-Mail-Layout
  */
 function render_email_template(array $params): string {
@@ -269,6 +276,9 @@ function send_email_password_reset(string $toEmail, string $userName, string $re
  */
 function send_email_new_chat_message(string $toEmail, string $recipientName, string $senderName, string $messageSnippet, string $requestId): bool {
     $chatUrl = APP_URL . "/#/chat/" . urlencode($requestId);
+    // Hinweis: title/greeting/quote_box escapet render_email_template selbst;
+    // nur body_html ist ein Raw-HTML-Sink und braucht fwg_esc().
+    $senderHtml = fwg_esc($senderName);
 
     $html = render_email_template([
         'category' => '💬 NEUE NACHRICHT',
@@ -278,7 +288,7 @@ function send_email_new_chat_message(string $toEmail, string $recipientName, str
         'subtitle' => 'Du hast eine neue private Nachricht auf der Nachhilfebörse erhalten.',
         'greeting' => "Hallo $recipientName,",
         'body_html' => "
-            Du hast eine neue Nachricht von <strong>$senderName</strong> zu eurer Nachhilfe-Absprache erhalten:
+            Du hast eine neue Nachricht von <strong>$senderHtml</strong> zu eurer Nachhilfe-Absprache erhalten:
         ",
         'quote_box' => [
             'title' => "Nachricht von $senderName",
@@ -305,7 +315,7 @@ function send_email_new_ad_request(string $toEmail, string $ownerName, string $r
         'subtitle' => "Jemand möchte Nachhilfe zu: $adTitle",
         'greeting' => "Hallo $ownerName,",
         'body_html' => "
-            Gute Neuigkeiten! <strong>$requesterName</strong> hat Interesse an deiner Nachhilfe-Anzeige gezeigt und dir eine Kontaktanfrage gesendet.
+            Gute Neuigkeiten! <strong>" . fwg_esc($requesterName) . "</strong> hat Interesse an deiner Nachhilfe-Anzeige gezeigt und dir eine Kontaktanfrage gesendet.
         ",
         'quote_box' => [
             'title' => "Nachricht von $requesterName",
@@ -331,8 +341,8 @@ function send_email_request_status_update(string $toEmail, string $recipientName
     $title = $isAccepted ? "$actorName hat deine Anfrage angenommen!" : "Update zu deiner Nachhilfe-Anfrage";
 
     $body = $isAccepted 
-        ? "Großartig! <strong>$actorName</strong> hat deine Anfrage zu <em>$adTitle</em> angenommen. Ihr könnt jetzt direkt im Chat Termine und Details vereinbaren!"
-        : "<strong>$actorName</strong> hat den Status deiner Anfrage zu <em>$adTitle</em> aktualisiert.";
+        ? "Großartig! <strong>" . fwg_esc($actorName) . "</strong> hat deine Anfrage zu <em>" . fwg_esc($adTitle) . "</em> angenommen. Ihr könnt jetzt direkt im Chat Termine und Details vereinbaren!"
+        : "<strong>" . fwg_esc($actorName) . "</strong> hat den Status deiner Anfrage zu <em>" . fwg_esc($adTitle) . "</em> aktualisiert.";
 
     $html = render_email_template([
         'category' => $category,
@@ -363,7 +373,7 @@ function send_email_ad_favorited(string $toEmail, string $ownerName, string $adT
         'subtitle' => "Beliebt bei anderen Schülern: $adTitle",
         'greeting' => "Hallo $ownerName,",
         'body_html' => "
-            Jemand am FWG hat deine Nachhilfe-Anzeige <strong>„$adTitle“</strong> auf die persönliche Merkliste gesetzt!<br><br>
+            Jemand am FWG hat deine Nachhilfe-Anzeige <strong>„" . fwg_esc($adTitle) . "“</strong> auf die persönliche Merkliste gesetzt!<br><br>
             Deine Anzeige weckt echtes Interesse. Achte in den kommenden Tagen auf neue Kontaktanfragen und Nachrichten in deinem Postfach.
         ",
         'cta_text' => 'Anzeige & Feed ansehen',
@@ -387,7 +397,7 @@ function send_email_new_match(string $toEmail, string $userName, string $subject
         'subtitle' => "Match-Score: $matchScore% Übereinstimmung",
         'greeting' => "Hallo $userName,",
         'body_html' => "
-            Unser automatisches Matching-System hat eine passende Nachhilfe-Anzeige für dich im Fach <strong>$subjectName</strong> gefunden!<br><br>
+            Unser automatisches Matching-System hat eine passende Nachhilfe-Anzeige für dich im Fach <strong>" . fwg_esc($subjectName) . "</strong> gefunden!<br><br>
             Klasse, Fach und Unterrichtsform stimmen hervorragend überein. Sieh dir das Match jetzt direkt an und nimm mit nur einem Klick Kontakt auf.
         ",
         'cta_text' => 'Match jetzt ansehen',
@@ -412,8 +422,8 @@ function send_email_achievement(string $toEmail, string $userName, string $badge
         'greeting' => "Glückwunsch $userName!",
         'body_html' => "
             Du hast auf der FWG Nachhilfebörse eine neue Errungenschaft verdient:<br><br>
-            <strong>$badgeTitle</strong><br>
-            <span style='color: #64748B;'>$badgeDescription</span><br><br>
+            <strong>" . fwg_esc($badgeTitle) . "</strong><br>
+            <span style='color: #64748B;'>" . fwg_esc($badgeDescription) . "</span><br><br>
             Dieses Abzeichen schmückt ab sofort dein öffentliches Profil und zeigt anderen Schülern dein Engagement!
         ",
         'cta_text' => 'Zum Profil & Abzeichen',
@@ -475,7 +485,7 @@ function send_email_new_review(string $toEmail, string $userName, string $author
         'subtitle' => "Dein Bewertungsschnitt liegt jetzt bei $newAvg von 5 Sternen.",
         'greeting' => "Hallo $userName,",
         'body_html' => "
-            Du hast soeben ein neues Feedback von <strong>$authorName</strong> auf der FWG Nachhilfebörse erhalten!
+            Du hast soeben ein neues Feedback von <strong>" . fwg_esc($authorName) . "</strong> auf der FWG Nachhilfebörse erhalten!
         ",
         'quote_box' => [
             'title' => "Bewertung von $authorName ($stars)",

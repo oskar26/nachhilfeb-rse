@@ -25,6 +25,7 @@ import Datenschutz from './pages/Datenschutz';
 import Cookies from './pages/Cookies';
 import UpdatePassword from './pages/UpdatePassword';
 import ParentGuide from './pages/ParentGuide';
+import Coaching from './pages/Coaching';
 import Nutzungsbedingungen from './pages/Nutzungsbedingungen';
 import CoachPanel from './pages/coach/CoachPanel';
 import { Logo } from './components/ui/Logo';
@@ -143,6 +144,7 @@ function App() {
             <Route path="/datenschutz" element={<Datenschutz />} />
             <Route path="/cookies" element={<Cookies />} />
             <Route path="/eltern-leitfaden" element={<ParentGuide />} />
+            <Route path="/coaching" element={<Coaching />} />
             <Route path="/nutzungsbedingungen" element={<Nutzungsbedingungen />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

@@ -31,8 +31,8 @@ export default function ParentGuide() {
                             Die Nachhilfebörse ist ein geschützter Raum. Nur Schülerinnen und Schüler des Friedrich-Wilhelms-Gymnasiums haben Zugang.
                         </p>
                         <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400 list-disc pl-4">
-                            <li>Jeder Account muss persönlich im SV-Raum per Schülerausweis oder SV-Code verifiziert werden, bevor Anzeigen erstellt werden können.</li>
-                            <li><strong>Spam-Schutz & Frist:</strong> Konten, die nach der Registrierung nicht innerhalb von 7 Tagen verifiziert werden, werden vom System automatisch gelöscht.</li>
+                            <li>Jeder Account muss persönlich im SV-Raum per Schülerausweis oder SV-Code verifiziert werden, bevor Anzeigen erstellt oder Nachrichten geschrieben werden können.</li>
+                            <li><strong>Spam-Schutz:</strong> Nicht verifizierte Konten bleiben eingeschränkt und können vom SV-Team deaktiviert werden – so bleibt die Plattform frei von Fake-Accounts.</li>
                             <li>Die Plattform ist nicht für schulfremde Personen zugänglich.</li>
                             <li>Nachhilfe-Treffen finden meist direkt in der Schule statt (z.B. Bibliothek, Mensa).</li>
                         </ul>
@@ -48,8 +48,8 @@ export default function ParentGuide() {
                             Wir fördern das Prinzip "Schüler helfen Schülern". Dies stärkt nicht nur das Wissen, sondern auch die Schulgemeinschaft.
                         </p>
                         <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400 list-disc pl-4">
-                            <li>Anbieter sind in der Regel engagierte Schüler der Oberstufe.</li>
-                            <li>Zusätzlich gibt es das kostenlose "8er Coaching" für die Stufen 5 und 6.</li>
+                            <li>Anbieter sind in der Regel engagierte Schülerinnen und Schüler ab Klasse 8 – viele davon geschulte Coaches der Schüler-Coaching AG.</li>
+                            <li>Zusätzlich gibt es die <strong>Schüler-Coaching AG von Frau Balistreri</strong> für die Stufen 5 und 6 (alle Regeln dazu auf der <a href="#/coaching" className="font-bold text-primary hover:underline">Coaching-Seite</a>).</li>
                             <li>Preise werden fair von Schülern für Schüler gestaltet (oft Festpreise um 10-15€ pro 45 Min).</li>
                         </ul>
                     </div>
@@ -79,9 +79,10 @@ export default function ParentGuide() {
                             Haben Sie Fragen zur Plattform, zum Förderunterricht oder ein konkretes Anliegen bezüglich des Jugendschutzes?
                         </p>
                         <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                            <p><strong>E-Mail SV-Team:</strong> sv@fwg-koeln.nrw.schule</p>
-                            <p><strong>Lerncoaching:</strong> lerncoaching@fwg-koeln.nrw.schule</p>
-                            <p><strong>Förderunterricht:</strong> foerderunterricht@fwg-koeln.nrw.schule</p>
+                            <p><strong>E-Mail SV-Team (Plattform & Moderation):</strong> <a href="mailto:info@sv-fwg.de" className="font-bold text-primary hover:underline">info@sv-fwg.de</a></p>
+                            <p><strong>Schüler-Coaching AG</strong> (dienstags 13:45–14:30 Uhr, Raum H310): Frau Balistreri, Herr Schulz, Herr Steinberg (über das Schulsekretariat) oder das SV-Team</p>
+                            <p><strong>Technische Probleme:</strong> <a href="mailto:technik@nachhilfe-sv.de" className="font-bold text-primary hover:underline">technik@nachhilfe-sv.de</a></p>
+                            <p className="text-xs">Bitte beachten Sie: Vergütung und Umfang der Nachhilfe vereinbaren Sie direkt mit der Anbieter-Familie – das SV-Team vermittelt nur den Kontakt.</p>
                         </div>
                     </div>
                 </div>
@@ -92,8 +93,8 @@ export default function ParentGuide() {
                         <Users className="text-primary-hover" size={24} /> Eltern-Account einrichten
                     </h3>
                     <p className="text-gray-600 dark:text-gray-300 text-sm max-w-2xl mx-auto leading-relaxed">
-                        Sie können als Elternteil einen Account registrieren und diesen mit dem Konto Ihres Kindes verknüpfen. 
-                        Dadurch erhalten Sie Einsicht in die erstellten Anzeigen, Bewertungen und erhalten Benachrichtigungen über Lernfortschritte.
+                        Sie können als Elternteil einen Account registrieren und diesen mit dem Konto Ihres Kindes verknüpfen.
+                        Dadurch behalten Sie den Überblick über die Anzeigen und Anfragen Ihres Kindes.
                     </p>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto text-left py-4">

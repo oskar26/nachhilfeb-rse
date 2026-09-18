@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../../lib/supabase';
+import { api } from '../../lib/api';
 import { Card, CardContent } from '../../components/ui/Card';
-import { Button } from '../../components/ui/Button';
 import { toast } from 'react-hot-toast';
 import {
     Users,
@@ -13,7 +12,6 @@ import {
     ShieldCheck,
     Clock,
     UserPlus,
-    Trash2,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -92,43 +90,28 @@ export default function AdminOverview() {
     const fetchAll = async () => {
         setLoading(true);
         try {
-            const [
-                { count: userCount },
-                { count: verifiedCount },
-                { count: bannedCount },
-                { count: adCount },
-                { count: reportCount },
-                { data: reports },
-                { data: users },
-            ] = await Promise.all([
-                supabase.from('profiles').select('*', { count: 'exact', head: true }),
-                supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_verified', true),
-                supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_banned', true),
-                supabase.from('ads').select('*', { count: 'exact', head: true }),
-                supabase.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'open'),
-                supabase
-                    .from('reports')
-                    .select('id, reason, status, created_at, reporter:reporter_id(display_name), user:reported_user_id(display_name)')
-                    .order('created_at', { ascending: false })
-                    .limit(5),
-                supabase
-                    .from('profiles')
-                    .select('id, display_name, first_name, last_name, email, created_at, role')
-                    .order('created_at', { ascending: false })
-                    .limit(5),
+            const [{ data: overview, error: overviewError }, { data: reportsData }] = await Promise.all([
+                api.admin.overview(),
+                api.reports.list(),
             ]);
+            if (overviewError) throw overviewError;
 
+            const statsRaw = (overview as any)?.stats ?? {};
             setStats({
-                users: userCount || 0,
-                verified: verifiedCount || 0,
-                banned: bannedCount || 0,
-                ads: adCount || 0,
-                reports: reportCount || 0,
+                users: Number(statsRaw.total_users) || 0,
+                verified: Number(statsRaw.verified_users) || 0,
+                banned: Number(statsRaw.banned_users) || 0,
+                ads: Number(statsRaw.active_ads) || 0,
+                reports: Number(statsRaw.open_reports) || 0,
             });
-            setRecentReports(reports || []);
-            setRecentUsers(users || []);
-        } catch (err) {
-            console.error(err);
+            // Neueste Nutzer liefert das Backend direkt (kein Volltabellen-Fetch mehr)
+            const recentUsersRaw = overview?.recent_users;
+            const usersList = Array.isArray(recentUsersRaw) ? recentUsersRaw : [];
+            setRecentUsers(usersList.slice(0, 5));
+            const reportsList = Array.isArray(reportsData) ? reportsData : ((reportsData as any)?.reports ?? []);
+            setRecentReports(reportsList.slice(0, 5));
+        } catch {
+            toast.error('Übersicht konnte nicht geladen werden.');
         } finally {
             setLoading(false);
         }
@@ -136,70 +119,12 @@ export default function AdminOverview() {
 
     const navTo = (tab: string) => navigate(`?tab=${tab}`);
 
-    const [oldUnverifiedCount, setOldUnverifiedCount] = useState(0);
-
-    const handleCleanupUnverified = async () => {
-        if (!confirm('Möchtest du alle Konten, die sich seit mehr als 7 Tagen nicht verifiziert haben, jetzt unwiderruflich bereinigen?')) return;
-        try {
-            const { data, error } = await supabase.rpc('cleanup_unverified_users');
-            if (error) {
-                // Manual fallback query if procedure doesn't exist
-                const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-                const { error: delErr } = await supabase
-                    .from('profiles')
-                    .delete()
-                    .eq('is_verified', false)
-                    .lt('created_at', sevenDaysAgo);
-                if (delErr) throw delErr;
-            }
-            toast.success("Automatische 7-Tage-Bereinigung abgeschlossen!");
-            fetchAll();
-        } catch (e: any) {
-            toast.error("Bereinigung fehlgeschlagen: " + e.message);
-        }
-    };
-
-    const handleAdvanceGradeLevels = async () => {
-        if (!confirm('Möchtest du den automatischen Stufenwechsel zum Schuljahreswechsel (z.B. 5->6, 10->EF, Q2->Ehemalige) für alle Nutzer durchführen?')) return;
-        try {
-            const { error } = await supabase.rpc('auto_advance_grade_levels');
-            if (error) throw error;
-            toast.success("Schuljahreswechsel erfolgreich durchgeführt! Alle Klassenstufen wurden hochgestuft.");
-            fetchAll();
-        } catch (e: any) {
-            toast.error("Stufenwechsel fehlgeschlagen: " + e.message);
-        }
-    };
-
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
-            {/* Page title & Anti-Spam Cleanup Action */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Übersicht</h1>
-                    <p className="text-gray-500 text-sm mt-1">Zusammenfassung des aktuellen Systemstatus</p>
-                </div>
-                
-                <div className="flex flex-wrap gap-2 items-center">
-                    <Button
-                        onClick={handleAdvanceGradeLevels}
-                        variant="outline"
-                        className="rounded-2xl border-blue-300 dark:border-blue-800 text-blue-800 dark:text-blue-300 bg-blue-50/50 dark:bg-blue-950/20 hover:bg-blue-100 text-xs font-bold gap-2 shrink-0"
-                        title="Stuft am 1. August alle Schüler in die nächste Jahrgangsstufe hoch"
-                    >
-                        <UserPlus size={15} className="text-blue-600" />
-                        Stufenwechsel (1. August)
-                    </Button>
-                    <Button
-                        onClick={handleCleanupUnverified}
-                        variant="outline"
-                        className="rounded-2xl border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 bg-amber-50/50 dark:bg-amber-950/20 hover:bg-amber-100 text-xs font-bold gap-2 shrink-0"
-                        title="Entfernt alle nicht-verifizierten Konten, die älter als 7 Tage sind"
-                    >
-                        <Trash2 size={15} className="text-amber-600" />
-                        Unverifizierte Accounts (&gt;7 Tage) bereinigen
-                    </Button>
-                </div>
+            {/* Page title */}
+            <div>
+                <h1 className="text-2xl font-bold tracking-tight">Übersicht</h1>
+                <p className="text-gray-500 text-sm mt-1">Zusammenfassung des aktuellen Systemstatus</p>
             </div>
 
             {/* Stat cards */}
@@ -328,7 +253,7 @@ export default function AdminOverview() {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="font-medium text-sm truncate">{u.display_name || `${u.first_name} ${u.last_name}`}</div>
-                                        <div className="text-xs text-gray-400 truncate">{u.email}</div>
+                                        <div className="text-xs text-gray-400 truncate">{u.email || u.auth_email}</div>
                                     </div>
                                     {u.role === 'sv_admin' && (
                                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 uppercase shrink-0">

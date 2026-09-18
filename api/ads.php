@@ -78,7 +78,7 @@ if ($method === 'GET') {
     $subject = $_GET['subject'] ?? null;
     $grade = $_GET['grade'] ?? null;
     $userId = $_GET['user_id'] ?? null;
-    $search = trim($_GET['search'] ?? '');
+    $search = mb_substr(trim($_GET['search'] ?? ''), 0, 100);
     $onlyActive = !isset($_GET['all']) || $_GET['all'] !== '1';
 
     $where = [];
@@ -118,9 +118,10 @@ if ($method === 'GET') {
         FROM ads a
         JOIN profiles p ON p.id = a.user_id
         $whereClause
-        ORDER BY 
+        ORDER BY
             (CASE WHEN a.boosted = 1 AND a.boosted_until > NOW() THEN 1 ELSE 0 END) DESC,
             a.created_at DESC
+        LIMIT 200
     ";
 
     $stmt = $pdo->prepare($sql);
@@ -180,32 +181,82 @@ if ($method === 'POST') {
     $user = require_auth();
     $data = get_json_input();
 
+    // Verifizierungs-Gate (Backend-Enforcement zum Frontend-Check in CreateAd):
+    // Nur verifizierte Nutzer oder Eltern-Accounts dürfen Anzeigen erstellen.
+    try {
+        $vStmt = $pdo->prepare('SELECT role, is_verified FROM profiles WHERE id = ?');
+        $vStmt->execute([$user['id']]);
+        $vRow = $vStmt->fetch();
+        $vRole = $vRow['role'] ?? '';
+        $vVerified = !empty($vRow['is_verified']);
+        if ($vRole !== 'parent' && !$vVerified) {
+            json_error('Dein Account ist noch nicht verifiziert. Bitte lasse dich im SV-Raum verifizieren, um Anzeigen zu erstellen.', 403);
+        }
+    } catch (Exception $e) {
+        error_log('Ads verification check error: ' . $e->getMessage());
+        json_error('Verifizierung konnte nicht geprüft werden. Bitte später erneut versuchen.', 500);
+    }
+
     $type = $data['type'] ?? 'offer';
     if (!in_array($type, ['offer', 'search'])) {
         json_error('Ungültiger Anzeigentyp.');
     }
 
-    $subjects = is_array($data['subjects'] ?? null) ? $data['subjects'] : [];
+    $subjects = is_array($data['subjects'] ?? null) ? array_slice($data['subjects'], 0, 10) : [];
     if (empty($subjects)) {
         json_error('Mindestens ein Fach muss angegeben werden.');
     }
+    foreach ($subjects as $s) {
+        if (!is_string($s) || mb_strlen($s) > 40) json_error('Ungültiges Fach.');
+    }
 
-    $gradeLevels = is_array($data['grade_levels'] ?? null) ? $data['grade_levels'] : [];
-    $locations = is_array($data['locations'] ?? null) ? $data['locations'] : [];
-    $customLocation = trim($data['custom_location'] ?? '');
+    $gradeLevels = is_array($data['grade_levels'] ?? null) ? array_slice($data['grade_levels'], 0, 12) : [];
+    $locations = is_array($data['locations'] ?? null) ? array_slice($data['locations'], 0, 10) : [];
+    $customLocation = mb_substr(trim($data['custom_location'] ?? ''), 0, 120);
     $priceDetails = is_array($data['price_details'] ?? null) ? $data['price_details'] : [];
-    $durationMinutes = is_array($data['duration_minutes'] ?? null) ? $data['duration_minutes'] : [45];
-    $shortDesc = trim($data['short_description'] ?? '');
-    $longDesc = trim($data['long_description'] ?? '');
-    $imageUrls = is_array($data['image_urls'] ?? null) ? $data['image_urls'] : [];
+    $durationMinutes = is_array($data['duration_minutes'] ?? null) ? array_slice($data['duration_minutes'], 0, 6) : [45];
+    $shortDesc = mb_substr(trim($data['short_description'] ?? ''), 0, 140);
+    $longDesc = mb_substr(trim($data['long_description'] ?? ''), 0, 8000);
+    $imageUrls = is_array($data['image_urls'] ?? null) ? array_slice($data['image_urls'], 0, 5) : [];
+    foreach ($imageUrls as $u) {
+        if (!is_string($u) || mb_strlen($u) > 2000 || !preg_match('#^https://#i', $u)) {
+            json_error('Ungültige Bild-URL (nur https, max. 5 Bilder).');
+        }
+    }
+    if ($shortDesc === '') {
+        json_error('Kurzbeschreibung ist erforderlich.');
+    }
 
-    // BANANE Easter Egg Promo Code prüfen
+    // Optionalen Aktionscode aus Datenbank prüfen
     $promoCode = trim($data['promo_code_used'] ?? $data['promo_code'] ?? '');
     $isBoosted = 0;
     $boostedUntil = null;
-    if (strtoupper($promoCode) === 'BANANE') {
-        $isBoosted = 1;
-        $boostedUntil = date('Y-m-d H:i:s', strtotime('+14 days'));
+    $usedPromoCode = null;
+
+    if (!empty($promoCode)) {
+        try {
+            $pStmt = $pdo->prepare('SELECT * FROM promo_codes WHERE code = ? AND is_active = 1 AND (expires_at IS NULL OR expires_at > NOW())');
+            $pStmt->execute([$promoCode]);
+            $promo = $pStmt->fetch();
+            if ($promo) {
+                $isBoosted = 1;
+                $bDays = (int)($promo['boost_days'] ?? 14);
+                if ($bDays <= 0) $bDays = 14;
+                $boostedUntil = date('Y-m-d H:i:s', strtotime("+{$bDays} days"));
+                $usedPromoCode = $promo['code'];
+                // Nutzungen erhöhen
+                $pdo->prepare('UPDATE promo_codes SET current_uses = current_uses + 1 WHERE id = ?')->execute([$promo['id']]);
+            }
+        } catch (Exception $e) {
+            error_log('Promo code verification error: ' . $e->getMessage());
+        }
+    }
+
+    // Spam-Schutz: max. 10 aktive Anzeigen pro Nutzer
+    $countStmt = $pdo->prepare('SELECT COUNT(*) FROM ads WHERE user_id = ? AND is_active = 1 AND is_archived = 0');
+    $countStmt->execute([$user['id']]);
+    if ((int)$countStmt->fetchColumn() >= 10) {
+        json_error('Du hast bereits 10 aktive Anzeigen. Archiviere zuerst eine alte Anzeige.', 429);
     }
 
     $adId = generate_uuid();
@@ -232,7 +283,7 @@ if ($method === 'POST') {
         json_encode($imageUrls),
         $isBoosted,
         $boostedUntil,
-        $isBoosted ? 'BANANE' : null
+        $usedPromoCode
     ]);
 
     json_response([

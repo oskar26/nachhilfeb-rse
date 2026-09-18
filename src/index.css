@@ -60,6 +60,32 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  :root { color-scheme: light; }
+  .dark { color-scheme: dark; }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.35);
+    color: inherit;
+  }
+
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid #a16207;
+    outline-offset: 3px;
+  }
+
+  .dark :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline-color: #fde047;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
   /* Custom Scrollbar */
   ::-webkit-scrollbar {
     width: 6px;

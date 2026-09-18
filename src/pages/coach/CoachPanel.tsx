@@ -18,7 +18,8 @@ import {
     History,
     GraduationCap,
     Users,
-    Key
+    Key,
+    Megaphone
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { cn } from '../../lib/utils';
@@ -26,7 +27,7 @@ import { triggerHaptic } from '../../lib/haptics';
 
 export default function CoachPanel() {
     const { user, profile, isCoachAdmin } = useAuth();
-    const [activeTab, setActiveTab] = useState<'students' | 'codes' | 'logs' | 'sv_activity'>('students');
+    const [activeTab, setActiveTab] = useState<'students' | 'codes' | 'info' | 'logs'>('students');
 
     // Students state
     const [students, setStudents] = useState<any[]>([]);
@@ -41,6 +42,17 @@ export default function CoachPanel() {
     const [codeCount, setCodeCount] = useState(1);
     const [copiedId, setCopiedId] = useState<string | null>(null);
 
+    // Info-Box State
+    const [infoForm, setInfoForm] = useState({
+        title: 'Kostenloses Coaching für Klasse 5 & 6!',
+        description: 'Wöchentlich einmal bieten wir für alle Schülerinnen und Schüler der Jahrgangsstufen 5 und 6 die Möglichkeit, Hilfen zu einzelnen Fächern oder zur Lern- und Arbeitsorganisation allgemein durch Schülerinnen und Schüler der 8. Klassen zu erhalten. Diese werden jeweils vor den Herbstferien für ihre Aufgabe geschult und stellen dann bis zum Ende des Schuljahres ehrenamtlich ihre Hilfe zur Verfügung. Dieses Angebot wird in der Regel sehr gerne angenommen, da die Coaches einen guten Blick auf die Probleme der jüngeren Schüler haben.',
+        time: 'Dienstags, 13:45 - 14:30 Uhr',
+        room: 'Raum H310',
+        is_visible: true
+    });
+    const [loadingInfo, setLoadingInfo] = useState(false);
+    const [savingInfo, setSavingInfo] = useState(false);
+
     // Logs state
     const [logs, setLogs] = useState<any[]>([]);
     const [loadingLogs, setLoadingLogs] = useState(false);
@@ -52,6 +64,7 @@ export default function CoachPanel() {
 
     useEffect(() => {
         if (activeTab === 'codes') loadCodes();
+        if (activeTab === 'info') loadInfo();
         if (activeTab === 'logs') loadLogs();
     }, [activeTab]);
 
@@ -89,6 +102,40 @@ export default function CoachPanel() {
             console.error(e);
         } finally {
             setLoadingLogs(false);
+        }
+    };
+
+    const loadInfo = async () => {
+        setLoadingInfo(true);
+        try {
+            const res = await api.coach.getCoachInfo();
+            if (res.data) {
+                setInfoForm({
+                    title: res.data.title || '',
+                    description: res.data.description || '',
+                    time: res.data.time || '',
+                    room: res.data.room || '',
+                    is_visible: res.data.is_visible !== false
+                });
+            }
+        } catch (e) {
+            console.error('Error loading coach info:', e);
+        } finally {
+            setLoadingInfo(false);
+        }
+    };
+
+    const handleSaveInfo = async (e: React.FormEvent) => {
+        e.preventDefault();
+        triggerHaptic('medium');
+        setSavingInfo(true);
+        try {
+            await api.coach.updateCoachInfo(infoForm);
+            toast.success('Startseiten-Infos erfolgreich aktualisiert!');
+        } catch (e: any) {
+            toast.error('Speichern fehlgeschlagen: ' + (e.message || 'Fehler'));
+        } finally {
+            setSavingInfo(false);
         }
     };
 
@@ -202,6 +249,16 @@ export default function CoachPanel() {
                 >
                     <Key size={16} />
                     <span>Coaching-Codes</span>
+                </button>
+                <button
+                    onClick={() => { triggerHaptic('selection'); setActiveTab('info'); }}
+                    className={cn(
+                        "flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
+                        activeTab === 'info' ? "bg-amber-400 text-amber-950 shadow-xs font-extrabold" : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                    )}
+                >
+                    <Megaphone size={16} />
+                    <span>Startseiten-Info</span>
                 </button>
                 <button
                     onClick={() => { triggerHaptic('selection'); setActiveTab('logs'); }}
@@ -320,7 +377,10 @@ export default function CoachPanel() {
                         <div>
                             <h3 className="text-base font-extrabold text-gray-900 dark:text-white">Neue Schüler-Coaching Codes vergeben</h3>
                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                Diese Codes schalten automatisch den offiziellen Schüler-Coach Haken und 30 Tage Super-Boost frei.
+                                Diese Codes schalten den offiziellen Schüler-Coach-Haken und eine 30-tägige
+                                Hervorhebung („Hervorgehobene Anzeige“) frei. <strong>Fairness:</strong> Codes nur
+                                nach Schulung und nur an AG-Mitglieder vergeben – jede Vergabe und Einlösung wird
+                                protokolliert. Die öffentlichen Regeln stehen auf der Coaching-Seite.
                             </p>
                         </div>
                         <Button
@@ -387,7 +447,100 @@ export default function CoachPanel() {
                 </div>
             )}
 
-            {/* TAB 3: LOGS */}
+            {/* TAB 3: STARTSEITEN-INFOS */}
+            {activeTab === 'info' && (
+                <Card className="rounded-3xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+                    <CardContent className="p-6 space-y-6">
+                        <div className="space-y-1">
+                            <h3 className="text-lg font-black text-gray-900 dark:text-white">
+                                Startseiten-Infobox bearbeiten
+                            </h3>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                Hier kannst du die Termine, Räume und Infos anpassen, die allen Schülern auf der Startseite angezeigt werden.
+                            </p>
+                        </div>
+
+                        {loadingInfo ? (
+                            <div className="py-12 text-center text-gray-400 font-bold text-xs uppercase tracking-wider">
+                                Lade aktuelle Infos...
+                            </div>
+                        ) : (
+                            <form onSubmit={handleSaveInfo} className="space-y-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold uppercase text-gray-500 ml-1">Titel der Info-Box</label>
+                                    <Input
+                                        value={infoForm.title}
+                                        onChange={e => setInfoForm({ ...infoForm, title: e.target.value })}
+                                        placeholder="z.B. Kostenloses Coaching für Klasse 5 & 6!"
+                                        required
+                                        className="rounded-xl font-bold"
+                                    />
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold uppercase text-gray-500 ml-1">Beschreibungstext</label>
+                                    <textarea
+                                        value={infoForm.description}
+                                        onChange={e => setInfoForm({ ...infoForm, description: e.target.value })}
+                                        placeholder="Erkläre das Angebot, Zielgruppe und Ablauf..."
+                                        rows={4}
+                                        required
+                                        className="w-full p-3 rounded-2xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase text-gray-500 ml-1">Uhrzeit & Wochentag</label>
+                                        <Input
+                                            value={infoForm.time}
+                                            onChange={e => setInfoForm({ ...infoForm, time: e.target.value })}
+                                            placeholder="z.B. Dienstags, 13:45 - 14:30 Uhr"
+                                            required
+                                            className="rounded-xl"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase text-gray-500 ml-1">Raum / Treffpunkt</label>
+                                        <Input
+                                            value={infoForm.room}
+                                            onChange={e => setInfoForm({ ...infoForm, room: e.target.value })}
+                                            placeholder="z.B. Raum H310"
+                                            required
+                                            className="rounded-xl"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-3 p-3.5 bg-gray-50 dark:bg-gray-800/40 rounded-2xl border border-gray-100 dark:border-gray-800">
+                                    <input
+                                        type="checkbox"
+                                        id="is_visible"
+                                        checked={infoForm.is_visible}
+                                        onChange={e => setInfoForm({ ...infoForm, is_visible: e.target.checked })}
+                                        className="w-4 h-4 rounded text-amber-500 focus:ring-amber-400 cursor-pointer"
+                                    />
+                                    <label htmlFor="is_visible" className="text-xs font-bold cursor-pointer text-gray-800 dark:text-gray-200">
+                                        Infobox auf der Startseite einblenden (öffentlich aktiv)
+                                    </label>
+                                </div>
+
+                                <div className="pt-2 flex justify-end">
+                                    <Button
+                                        type="submit"
+                                        disabled={savingInfo}
+                                        className="bg-amber-400 hover:bg-amber-500 text-amber-950 font-black rounded-xl px-6 shadow-md cursor-pointer"
+                                    >
+                                        {savingInfo ? 'Speichern...' : 'Änderungen speichern'}
+                                    </Button>
+                                </div>
+                            </form>
+                        )}
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* TAB 4: LOGS */}
             {activeTab === 'logs' && (
                 <Card className="rounded-3xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden shadow-xs">
                     <CardContent className="p-0">

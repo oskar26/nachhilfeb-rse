@@ -1,20 +1,20 @@
-import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Home, PlusCircle, User, LogOut, Settings, Users, MessageSquare, Inbox, Zap, Heart, Sparkles, Award } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/Button';
-import { supabase } from '../lib/supabase';
-import { useEffect, useState } from 'react';
+import { useRef, useState } from 'react';
 import NotificationCenter from './NotificationCenter';
 import InstallPrompt from './InstallPrompt';
 import { Logo } from './ui/Logo';
 import { triggerHaptic } from '../lib/haptics';
 
 export default function Layout() {
-    const { user, signOut, isParent, isAdmin, isCoachAdmin } = useAuth();
+    const { signOut, isParent, isAdmin, isCoachAdmin } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [unreadCount, setUnreadCount] = useState(0);
+    const mainContentRef = useRef<HTMLDivElement>(null);
 
     const handleSignOut = async () => {
         triggerHaptic('medium');
@@ -26,17 +26,18 @@ export default function Layout() {
         triggerHaptic('selection');
     };
 
-    const currentTab = new URLSearchParams(location.search).get('tab') || 'requests';
+    const pathname = location.pathname.replace(/\/+$/, '') || '/';
+    const isSocialRoute = ['/social', '/requests', '/matches', '/matching', '/favorites', '/watchlist'].includes(pathname);
+    const isChatRoute = pathname === '/chat' || pathname.startsWith('/chat/');
+    const pathTab = pathname === '/matches' || pathname === '/matching' ? 'matches'
+        : pathname === '/favorites' || pathname === '/watchlist' ? 'watchlist'
+        : 'requests';
+    const requestedTab = new URLSearchParams(location.search).get('tab');
+    const currentTab = requestedTab === 'requests' || requestedTab === 'matches' || requestedTab === 'watchlist'
+        ? requestedTab
+        : pathTab;
 
-    const isTabActive = (tab: string) => {
-        if (location.pathname === '/social') {
-            return currentTab === tab;
-        }
-        if (tab === 'requests') return location.pathname === '/requests';
-        if (tab === 'matches') return location.pathname === '/matches' || location.pathname === '/matching';
-        if (tab === 'watchlist') return location.pathname === '/favorites';
-        return false;
-    };
+    const isTabActive = (tab: string) => isSocialRoute && currentTab === tab;
 
     const getDesktopNavLinkClass = (type: 'path' | 'social_tab', target: string, isStaticActive?: boolean) => {
         let active = false;
@@ -46,26 +47,38 @@ export default function Layout() {
             active = isTabActive(target);
         }
 
-        return `relative flex items-center gap-3 rounded-2xl px-4 py-2.5 text-sm font-semibold transition-all ${
+        return `relative flex items-center gap-3 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 dark:focus-visible:ring-yellow-300 ${
             active
-                ? 'bg-amber-400/20 text-amber-950 dark:bg-yellow-400/15 dark:text-yellow-200 font-extrabold border border-amber-300/40 dark:border-yellow-400/30 shadow-xs'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-800/60'
+                ? 'bg-amber-400/20 text-amber-950 dark:bg-yellow-400/15 dark:text-yellow-200 font-extrabold border-amber-300/40 dark:border-yellow-400/30 shadow-xs'
+                : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-800/60'
         }`;
     };
 
     const mobileNavItems = [
         { to: '/', label: 'Entdecken', icon: Home, end: true },
         !isParent
-            ? { to: '/social', label: 'Social', icon: MessageSquare }
+            ? { to: '/social', label: 'Social', icon: MessageSquare, activateOnChat: true }
             : { to: '/parent-dashboard', label: 'Eltern', icon: Users },
         { to: '/create-ad', label: 'Erstellen', icon: PlusCircle, isAction: true },
         { to: '/settings', label: 'Optionen', icon: Settings },
         { to: '/profile', label: 'Profil', icon: User }
     ];
 
+    const showCreateAd = !isParent;
+
     return (
         <div className="flex h-[100dvh] w-full bg-[#f8f9fa] dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans overflow-hidden">
-
+            <Link
+                to={pathname || '/'}
+                onClick={event => {
+                    event.preventDefault();
+                    handleNavClick();
+                    mainContentRef.current?.focus();
+                }}
+                className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-xl focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-extrabold focus:text-amber-950 focus:shadow-lg"
+            >
+                Zum Hauptinhalt springen
+            </Link>
             {/* Desktop Sidebar */}
             <aside className="hidden md:flex w-72 flex-col m-4 rounded-3xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl shadow-soft border border-gray-100/80 dark:border-gray-800/80 overflow-visible h-[calc(100vh-2rem)] shrink-0 z-40">
                 <div className="p-6 pb-4 flex items-center justify-between relative z-50">
@@ -169,7 +182,12 @@ export default function Layout() {
                 </div>
 
                 {/* Main View Wrapper with Fast, Native-feeling Rendering (No stutter/freeze) */}
-                <div className="flex-1 w-full md:rounded-3xl md:bg-white/80 md:dark:bg-gray-900/80 md:backdrop-blur-md md:border md:border-gray-100/80 md:dark:border-gray-800/60 md:shadow-soft flex flex-col min-h-0 overflow-y-auto overflow-x-hidden">
+                <div
+                    ref={mainContentRef}
+                    tabIndex={-1}
+                    aria-label="Hauptinhalt"
+                    className="flex-1 w-full md:rounded-3xl md:bg-white/80 md:dark:bg-gray-900/80 md:backdrop-blur-md md:border md:border-gray-100/80 md:dark:border-gray-800/60 md:shadow-soft flex flex-col min-h-0 overflow-y-auto overflow-x-hidden focus:outline-none"
+                >
                     <Outlet />
                     {/* Spacer for bottom nav on mobile */}
                     <div className="h-[calc(6.5rem+env(safe-area-inset-bottom,0px))] md:hidden shrink-0" />
@@ -177,10 +195,11 @@ export default function Layout() {
             </main>
 
             {/* Mobile Bottom Navigation */}
-            <nav className="md:hidden fixed bottom-[max(1rem,calc(0.75rem+env(safe-area-inset-bottom,0px)))] left-4 right-4 h-16 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-full shadow-2xl flex items-center justify-around z-50 px-2 border border-gray-200/50 dark:border-gray-800/80 ring-1 ring-black/5">
+            <nav aria-label="Hauptnavigation" className="md:hidden fixed bottom-[max(1rem,calc(0.75rem+env(safe-area-inset-bottom,0px)))] left-4 right-4 h-16 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-full shadow-2xl flex items-center justify-around z-50 px-2 border border-gray-200/50 dark:border-gray-800/80 ring-1 ring-black/5">
                 {mobileNavItems.map((item) => {
                     const Icon = item.icon;
                     if (item.isAction) {
+                        if (!showCreateAd) return null;
                         return (
                             <NavLink
                                 key={item.to}
@@ -188,6 +207,7 @@ export default function Layout() {
                                 onClick={handleNavClick}
                                 className="flex flex-col items-center justify-center -mt-6"
                                 title={item.label}
+                                aria-label={`Neue Anzeige erstellen`}
                             >
                                 <motion.div
                                     whileHover={{ scale: 1.08 }}
@@ -205,11 +225,11 @@ export default function Layout() {
                         <NavLink
                             key={item.to}
                             to={item.to}
-                            end={item.end}
+                            end={item.end || (item.activateOnChat ? false : undefined)}
                             onClick={handleNavClick}
                             className={({ isActive }) =>
                                 `relative flex flex-col items-center justify-center w-full h-full gap-1 text-[11px] font-bold transition-all ${
-                                    isActive
+                                    isActive || (item.activateOnChat && (isSocialRoute || isChatRoute))
                                         ? 'text-gray-950 dark:text-white font-extrabold'
                                         : 'text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300'
                                 }`
@@ -218,9 +238,9 @@ export default function Layout() {
                         >
                             {({ isActive }) => (
                                 <>
-                                    <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                                    <Icon size={20} strokeWidth={isActive || (item.activateOnChat && (isSocialRoute || isChatRoute)) ? 2.5 : 2} />
                                     <span>{item.label}</span>
-                                    {isActive && (
+                                    {(isActive || (item.activateOnChat && (isSocialRoute || isChatRoute))) && (
                                         <motion.div
                                             layoutId="mobileNavActiveDot"
                                             className="absolute bottom-1 w-1 h-1 bg-primary rounded-full"

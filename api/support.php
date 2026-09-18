@@ -88,7 +88,7 @@ if ($method === 'POST') {
     // Nachricht an ein bestehendes Ticket senden
     if ($action === 'message') {
         $tId = $data['ticket_id'] ?? $ticketId;
-        $content = trim($data['content'] ?? '');
+        $content = mb_substr(trim($data['content'] ?? ''), 0, 2000);
 
         if (!$tId || empty($content)) {
             json_error('ticket_id und content sind erforderlich.');
@@ -125,8 +125,8 @@ if ($method === 'POST') {
     }
 
     // Neues Ticket erstellen
-    $title = trim($data['title'] ?? '');
-    $description = trim($data['description'] ?? '');
+    $title = mb_substr(trim($data['title'] ?? ''), 0, 200);
+    $description = mb_substr(trim($data['description'] ?? ''), 0, 5000);
     $type = in_array($data['type'] ?? '', ['bug', 'feature', 'support']) ? $data['type'] : 'support';
     $priority = in_array($data['priority'] ?? '', ['low', 'normal', 'high', 'critical']) ? $data['priority'] : 'normal';
     $deviceInfo = $data['device_info'] ?? [];
@@ -159,7 +159,7 @@ if ($method === 'POST') {
 // 3. PATCH: TICKET STATUS / NOTIZEN AKTUALISIEREN (ADMIN)
 // ------------------------------------------------------------------------------
 if ($method === 'PATCH' || $method === 'PUT') {
-    require_admin();
+    $admin = require_admin();
     if (!$ticketId) {
         json_error('ticket_id erforderlich.');
     }
@@ -178,7 +178,7 @@ if ($method === 'PATCH' || $method === 'PUT') {
     }
     if (isset($data['admin_notes'])) {
         $fields[] = 'admin_notes = ?';
-        $params[] = $data['admin_notes'];
+        $params[] = mb_substr(trim($data['admin_notes']), 0, 2000);
     }
 
     if (empty($fields)) {
@@ -187,6 +187,11 @@ if ($method === 'PATCH' || $method === 'PUT') {
 
     $params[] = $ticketId;
     $pdo->prepare('UPDATE support_tickets SET ' . implode(', ', $fields) . ' WHERE id = ?')->execute($params);
+
+    fwg_audit($pdo, $admin['id'], 'support_update', 'support_ticket', $ticketId, [
+        'status' => $data['status'] ?? null,
+        'priority' => $data['priority'] ?? null,
+    ]);
 
     json_response(['message' => 'Ticket erfolgreich aktualisiert.']);
 }

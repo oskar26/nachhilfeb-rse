@@ -6,26 +6,30 @@
 require_once __DIR__ . '/config.php';
 
 function cors_headers() {
-    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-    
-    // In der gleichen Domain oder in ALLOWED_ORIGINS erlauben
-    if (in_array($origin, ALLOWED_ORIGINS) || empty($origin)) {
-        if (!empty($origin)) {
-            header("Access-Control-Allow-Origin: $origin");
-            header("Access-Control-Allow-Credentials: true");
-        } else {
-            header("Access-Control-Allow-Origin: *");
-        }
-    } else {
-        header("Access-Control-Allow-Origin: *");
+    $origin = trim($_SERVER['HTTP_ORIGIN'] ?? '');
+    // Normalisieren: kein Trailing Slash, exakter Vergleich gegen Allowlist
+    $normalized = rtrim($origin, '/');
+
+    $allowed = defined('ALLOWED_ORIGINS') ? ALLOWED_ORIGINS : [];
+    $isAllowed = $normalized !== '' && in_array($normalized, $allowed, true);
+
+    if ($isAllowed) {
+        header("Access-Control-Allow-Origin: $normalized");
+        header("Access-Control-Allow-Credentials: true");
+        header("Vary: Origin");
     }
+    // Nicht-erlaubte Origins bekommen bewusst KEIN ACAO-Header (Fail-Closed),
+    // statt vorherigem wildcard-Fallback. Same-Origin ohne Origin-Header braucht kein CORS.
 
     header("Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS");
     header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+    header("Access-Control-Max-Age: 600");
     header("X-Content-Type-Options: nosniff");
     header("X-Frame-Options: SAMEORIGIN");
+    header("Referrer-Policy: strict-origin-when-cross-origin");
+    header("Permissions-Policy: camera=(), microphone=(), geolocation=()");
 
-    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
         http_response_code(204);
         exit;
     }
@@ -52,7 +56,11 @@ function get_json_input(): array {
     if (empty($raw)) {
         return [];
     }
-    $decoded = json_decode($raw, true);
+    // DoS-Schutz: max. 1 MB JSON-Body
+    if (strlen($raw) > 1024 * 1024) {
+        json_error('Request Body zu groß (max. 1 MB).', 413);
+    }
+    $decoded = json_decode($raw, true, 32);
     if (!is_array($decoded)) {
         json_error('Ungültiges JSON-Format im Request Body', 400);
     }
@@ -64,4 +72,24 @@ function generate_uuid(): string {
     $data[6] = chr(ord($data[6]) & 0x0f | 0x40); // UUID Version 4
     $data[8] = chr(ord($data[8]) & 0x3f | 0x80); // UUID Variant
     return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+}
+
+// Audit-Log für Admin-/Coach-Aktionen. Wirft nie (stille Drops vermeiden:
+// Fehler werden geloggt, blockieren die Hauptaktion aber nicht).
+function fwg_audit(PDO $pdo, string $adminId, string $action, string $targetType, ?string $targetId, array $details = []): void {
+    try {
+        $pdo->prepare('
+            INSERT INTO admin_audit_log (id, admin_id, action, target_type, target_id, details)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ')->execute([
+            generate_uuid(),
+            $adminId,
+            mb_substr($action, 0, 50),
+            mb_substr($targetType, 0, 20),
+            $targetId !== null ? mb_substr($targetId, 0, 64) : null,
+            json_encode($details, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        ]);
+    } catch (Exception $e) {
+        error_log('fwg_audit failed (' . $action . '): ' . $e->getMessage());
+    }
 }

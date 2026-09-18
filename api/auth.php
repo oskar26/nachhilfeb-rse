@@ -8,6 +8,7 @@ require_once __DIR__ . '/jwt.php';
 require_once __DIR__ . '/response.php';
 require_once __DIR__ . '/middleware.php';
 require_once __DIR__ . '/mailer.php';
+require_once __DIR__ . '/ratelimit.php';
 
 
 cors_headers();
@@ -20,6 +21,8 @@ $pdo = DB::getConnection();
 // ------------------------------------------------------------------------------
 if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = get_json_input();
+    // Anti-Spam: max. 5 Registrierungen pro Stunde und IP
+    fwg_require_rate_limit('register', 5, 3600);
     
     $email = filter_var(trim($data['email'] ?? ''), FILTER_VALIDATE_EMAIL);
     $password = $data['password'] ?? '';
@@ -42,27 +45,33 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $lastName = $parts[1];
     }
 
-    $role = in_array($data['role'] ?? $data['options']['data']['role'] ?? '', ['student', 'sv_admin', 'parent']) 
-        ? ($data['role'] ?? $data['options']['data']['role']) 
-        : 'student';
+    // Security: Selbst-Registrierung nur als student/parent. sv_admin/coach_admin NUR via Invite-Code.
+    $requestedRole = $data['role'] ?? $data['options']['data']['role'] ?? 'student';
+    $role = in_array($requestedRole, ['student', 'parent'], true) ? $requestedRole : 'student';
     $grade = !empty($data['grade']) ? trim($data['grade']) : (!empty($data['options']['data']['grade']) ? trim($data['options']['data']['grade']) : null);
     $letter = !empty($data['letter']) ? trim($data['letter']) : (!empty($data['options']['data']['letter']) ? trim($data['options']['data']['letter']) : null);
     $birthDate = !empty($data['birthDate']) ? $data['birthDate'] : (!empty($data['birth_date']) ? $data['birth_date'] : (!empty($data['options']['data']['birthDate']) ? $data['options']['data']['birthDate'] : null));
     $parentalConsent = !empty($data['parentalConsent']) || !empty($data['parental_consent']) || !empty($data['options']['data']['parentalConsent']);
     $inviteCode = trim($data['inviteCode'] ?? $data['invite_code'] ?? $data['code'] ?? $data['options']['data']['inviteCode'] ?? '');
 
-    if (!$email) {
+    if (!$email || strlen($email) > 254) {
         json_error('Bitte gib eine gültige E-Mail-Adresse ein.');
     }
-    if (strlen($password) < 8) {
-        json_error('Das Passwort muss mindestens 8 Zeichen lang sein.');
+    if (strlen($password) < 8 || strlen($password) > 128) {
+        json_error('Das Passwort muss 8–128 Zeichen lang sein.');
     }
+    $firstName = mb_substr($firstName, 0, 80);
+    $lastName = mb_substr($lastName, 0, 80);
     if (empty($firstName)) {
         json_error('Vorname ist erforderlich.');
     }
     if (empty($lastName)) {
         $lastName = '.';
     }
+    if ($birthDate !== null && !preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$birthDate)) {
+        json_error('Ungültiges Geburtsdatum (erwartet YYYY-MM-DD).');
+    }
+    $inviteCode = mb_substr($inviteCode, 0, 64);
 
     // Prüfen, ob E-Mail bereits existiert
     $checkStmt = $pdo->prepare('SELECT id FROM users WHERE email = ?');
@@ -174,7 +183,8 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     } catch (Exception $e) {
         $pdo->rollBack();
-        json_error('Fehler bei der Registrierung: ' . $e->getMessage(), 500);
+        error_log('Register failed: ' . $e->getMessage());
+        json_error('Fehler bei der Registrierung. Bitte versuche es später erneut.', 500);
     }
 }
 
@@ -183,11 +193,15 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 // ------------------------------------------------------------------------------
 if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = get_json_input();
-    $email = trim($data['email'] ?? '');
-    $password = $data['password'] ?? '';
+    // Brute-Force-Schutz: max. 10 Login-Versuche pro 10 Minuten und IP
+    fwg_require_rate_limit('login', 10, 600);
+    $email = mb_substr(trim($data['email'] ?? ''), 0, 254);
+    $password = is_string($data['password'] ?? null) ? $data['password'] : '';
 
-    if (empty($email) || empty($password)) {
-        json_error('Bitte E-Mail und Passwort eingeben.');
+    if (empty($email) || empty($password) || strlen($password) > 128) {
+        // Bewusst generisch + kleine Verzögerung gegen Credential-Stuffing/Enumeration
+        usleep(400000);
+        json_error('Ungültige Zugangsdaten. E-Mail oder Passwort falsch.', 401);
     }
 
     $stmt = $pdo->prepare('SELECT id, email, password_hash FROM users WHERE email = ?');
@@ -195,6 +209,7 @@ if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = $stmt->fetch();
 
     if (!$user || !password_verify($password, $user['password_hash'])) {
+        usleep(400000);
         json_error('Ungültige Zugangsdaten. E-Mail oder Passwort falsch.', 401);
     }
 
@@ -274,6 +289,8 @@ if ($action === 'me' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 // 4. PASSWORT ZURÜCKSETZEN ANFRAGEN (Sendet E-Mail)
 // ------------------------------------------------------------------------------
 if ($action === 'reset_password_request' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Missbrauchsschutz: max. 5 Reset-Mails pro Stunde und IP (Antwort bleibt generisch)
+    fwg_require_rate_limit('pwreset', 5, 3600);
     $data = get_json_input();
     $email = filter_var(trim($data['email'] ?? ''), FILTER_VALIDATE_EMAIL);
 
@@ -314,8 +331,8 @@ if ($action === 'update_password' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $resetToken = $data['token'] ?? null;
     $targetUserId = null;
 
-    if (strlen($newPassword) < 8) {
-        json_error('Das neue Passwort muss mindestens 8 Zeichen lang sein.');
+    if (strlen($newPassword) < 8 || strlen($newPassword) > 128) {
+        json_error('Das neue Passwort muss 8–128 Zeichen lang sein.');
     }
 
     if ($resetToken) {

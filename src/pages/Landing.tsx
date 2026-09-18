@@ -369,7 +369,7 @@ export default function Landing() {
                             Die Schüler-Coaching AG
                         </h2>
                         <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
-                            Große helfen Kleinen: Unter der engagierten Leitung von <strong className="font-bold text-gray-900 dark:text-white">Frau Balistreri</strong> begleiten erfahrene Oberstufenschüler:innen gezielt Kinder der <strong className="font-bold text-gray-900 dark:text-white">Klassen 5 und 6</strong> beim Start an unserer Schule.
+                            Große helfen Kleinen: Unter der engagierten Leitung von <strong className="font-bold text-gray-900 dark:text-white">Frau Balistreri</strong> begleiten geschulte Schülerinnen und Schüler <strong className="font-bold text-gray-900 dark:text-white">ab Klasse 8</strong> gezielt Kinder der <strong className="font-bold text-gray-900 dark:text-white">Klassen 5 und 6</strong> beim Start an unserer Schule.
                         </p>
                     </div>
 
@@ -400,7 +400,7 @@ export default function Landing() {
                             </div>
                             <h3 className="text-xl font-bold text-gray-900 dark:text-white">Gemeinschaft & Fairness</h3>
                             <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                                Die Nachhilfebörse unterstützt die AG mit unkomplizierter Vermittlung, fairen Richtpreisen (ca. 12 €/h) und sicherem Nachrichtenaustausch direkt im Schulsystem.
+                                Die Nachhilfebörse unterstützt die AG mit unkomplizierter Vermittlung, fairen Richtpreisen (ca. 10–15 € pro 45 Minuten) und sicherem Nachrichtenaustausch direkt im Schulsystem.
                             </p>
                         </div>
                     </div>
@@ -412,10 +412,13 @@ export default function Landing() {
                                 Möchtest du Schüler-Coach werden?
                             </div>
                             <h4 className="text-2xl font-black text-gray-900 dark:text-white">
-                                Für Schüler:innen ab Klasse 9 / EF
+                                Für Schüler:innen ab Klasse 8
                             </h4>
                             <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xl">
-                                Wenn du Lust hast, Fünft- und Sechstklässler zu unterstützen und Teil der Schüler-Coaching AG zu werden, wende dich gerne direkt an Frau Balistreri oder sprich uns im SV-Raum an!
+                                Wenn du Lust hast, Fünft- und Sechstklässler zu unterstützen und Teil der Schüler-Coaching AG zu werden, wende dich gerne direkt an Frau Balistreri oder sprich uns im SV-Raum an! Alle Regeln – wer Coach werden kann, warum manche Anzeigen hervorgehoben sind und was das Badge bedeutet – findest du transparent auf unserer{' '}
+                                <button onClick={() => navigate('/coaching')} className="font-bold text-primary hover:underline">
+                                    Coaching-Seite
+                                </button>.
                             </p>
                         </div>
                         <Button
@@ -436,7 +439,7 @@ export default function Landing() {
                     </div>
                     <h2 className="text-3xl md:text-5xl font-black tracking-tight text-gray-900 dark:text-white">Informationen für Eltern</h2>
                     <p className="text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
-                        Die Sicherheit Ihrer Kinder hat für uns oberste Priorität. Erfahren Sie, wie wir die Plattform schützen, wer sich registrieren darf und welche Sicherheitsmaßnahmen (wie unser automatischer Schimpfwort-Filter) aktiv sind.
+                        Die Sicherheit Ihrer Kinder hat für uns oberste Priorität. Erfahren Sie, wie wir die Plattform schützen, wer sich registrieren darf und welche Sicherheitsmaßnahmen (Meldefunktion, SV-Moderation, verifizierte Accounts) aktiv sind.
                     </p>
                     <div className="pt-4">
                         <Button 
@@ -463,6 +466,8 @@ export default function Landing() {
                         <button onClick={() => navigate('/impressum')} className="hover:text-black dark:hover:text-white transition-colors">Impressum</button>
                         <button onClick={() => navigate('/datenschutz')} className="hover:text-black dark:hover:text-white transition-colors">Datenschutz</button>
                         <button onClick={() => navigate('/cookies')} className="hover:text-black dark:hover:text-white transition-colors">Cookies</button>
+                        <button onClick={() => navigate('/coaching')} className="hover:text-black dark:hover:text-white transition-colors">Schüler-Coaching</button>
+                        <button onClick={() => navigate('/nutzungsbedingungen')} className="hover:text-black dark:hover:text-white transition-colors">Nutzungsbedingungen</button>
                         <button onClick={() => navigate('/eltern-leitfaden')} className="hover:text-black dark:hover:text-white transition-colors font-bold text-primary">Eltern-Leitfaden</button>
                     </div>
                 </div>

@@ -23,8 +23,8 @@ if ($method === 'POST') {
     $reportedUserId = $data['reported_user_id'] ?? null;
     $reportedAdId = $data['reported_ad_id'] ?? null;
     $category = in_array($data['category'] ?? '', ['profil', 'anzeige', 'chat', 'datenschutz', 'sonstiges']) ? $data['category'] : 'anzeige';
-    $reason = trim($data['reason'] ?? '');
-    $subReason = trim($data['sub_reason'] ?? '');
+    $reason = mb_substr(trim($data['reason'] ?? ''), 0, 1000);
+    $subReason = mb_substr(trim($data['sub_reason'] ?? ''), 0, 500);
     $priority = in_array($data['priority'] ?? '', ['normal', 'hoch', 'kritisch']) ? $data['priority'] : 'normal';
     $evidence = $data['evidence'] ?? [];
 
@@ -78,6 +78,7 @@ if ($method === 'GET') {
         ORDER BY 
             (CASE r.status WHEN \'open\' THEN 1 WHEN \'investigating\' THEN 2 ELSE 3 END),
             r.created_at DESC
+        LIMIT 200
     ');
     $reports = $stmt->fetchAll();
 
@@ -115,11 +116,16 @@ if ($method === 'PATCH' || $method === 'PUT') {
     }
     if ($adminNotes !== null) {
         $fields[] = 'admin_notes = ?';
-        $params[] = $adminNotes;
+        $params[] = mb_substr(trim($adminNotes), 0, 2000);
     }
 
     $params[] = $id;
     $pdo->prepare('UPDATE reports SET ' . implode(', ', $fields) . ' WHERE id = ?')->execute($params);
+
+    fwg_audit($pdo, $admin['id'], 'report_moderate', 'report', $id, [
+        'status' => $status,
+        'resolution_type' => $resolutionType,
+    ]);
 
     json_response(['message' => 'Meldung erfolgreich aktualisiert.']);
 }

@@ -51,14 +51,15 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
 
-    // Standard Coach-Admin Invite-Code für Frau Balistreri falls nicht existent
-    $checkBalistreri = $pdo->prepare("SELECT COUNT(*) FROM invite_codes WHERE code = 'BALISTRERI-COACH'");
-    $checkBalistreri->execute();
-    if ($checkBalistreri->fetchColumn() == 0) {
-        $pdo->prepare("
-            INSERT IGNORE INTO invite_codes (id, code, role, is_used, created_at)
-            VALUES (?, 'BALISTRERI-COACH', 'coach_admin', 0, NOW())
-        ")->execute([generate_uuid()]);
+    // Rolle 'coach_admin' in invite_codes sicherstellen (für Coaching-Admin-Codes,
+    // die das SV-Team im SV-Panel erzeugt). Fest einprogrammierte Codes gibt es
+    // bewusst nicht: Jeder Code im Quelltext wäre ein öffentlich lesbarer
+    // Generalschlüssel (Sicherheits- und Fairness-Gründe). Einmal-Codes werden
+    // im SV-Panel (Registrierungs-Einladungen) erzeugt, siehe ALL_INKL_ANLEITUNG.
+    try {
+        $pdo->exec("ALTER TABLE invite_codes MODIFY role ENUM('student','sv_admin','coach_admin','parent') NOT NULL DEFAULT 'student'");
+    } catch (Exception $e) {
+        error_log('Invite role migration note: ' . $e->getMessage());
     }
 
     // Standard-Codes anlegen, falls noch nicht vorhanden
@@ -73,14 +74,10 @@ try {
             (id, code, effect_type, push_level, boost_days, max_uses, current_uses, target_group, description, is_active, expires_at, created_at)
             VALUES (?, 'COACHING-AG', 'coach_verification', 'super', 30, NULL, 0, 'coach', 'Offizieller Schüler-Coaching AG Mitgliedscode mit Verifizierung & Boost', 1, ?, ?)
         ")->execute([generate_uuid(), $expires, $now]);
-
-        // 2. Empfehlungscode 'banane'
-        $pdo->prepare("
-            INSERT IGNORE INTO promo_codes 
-            (id, code, effect_type, push_level, boost_days, max_uses, current_uses, target_group, description, is_active, expires_at, created_at)
-            VALUES (?, 'banane', 'ad_boost', 'standard', 14, 50, 0, 'all', 'Beliebter FWG-Empfehlungscode: 14 Tage Anzeigen-Push', 1, ?, ?)
-        ")->execute([generate_uuid(), $expires, $now]);
     }
+
+    // Banane-Easteregg dauerhaft aus der Datenbank entfernen
+    $pdo->exec("DELETE FROM promo_codes WHERE code = 'banane'");
 } catch (Exception $e) {
     error_log("Promo codes migration note: " . $e->getMessage());
 }
@@ -145,23 +142,13 @@ if ($action === 'redeem' && $method === 'POST') {
         json_error('Bitte gib einen Code ein.');
     }
 
-    // 0. Spezieller Direktschlüssel für Frau Balistreri
-    if (strtoupper($code) === 'BALISTRERI-COACH') {
-        $pdo->beginTransaction();
-        try {
-            $pdo->prepare('UPDATE profiles SET is_verified = 1, is_coach = 1, role = "coach_admin" WHERE id = ?')->execute([$user['id']]);
-            $pdo->commit();
-            json_response([
-                'message' => 'Willkommen! Der Zugang zum Schüler-Coaching Leitungs-Panel (Frau Balistreri) wurde erfolgreich aktiviert.',
-                'role' => 'coach_admin',
-                'is_verified' => true,
-                'is_coach' => true
-            ]);
-        } catch (Exception $e) {
-            $pdo->rollBack();
-            json_error('Fehler: ' . $e->getMessage(), 500);
-        }
-    }
+    // Hinweis: Einen fest einprogrammierten Master-Code für die Coaching-Leitung
+    // gibt es bewusst nicht mehr (Sicherheits- und Fairness-Gründe: der Code stünde
+    // im Quelltext). Die Rolle "coach_admin" vergibt ausschließlich das SV-Team
+    // über das SV-Panel (Registrierungs-Einladungen → Rolle „Coaching-Admin",
+    // einmalig einlösbar, mit Ablaufdatum – oder Nutzerverwaltung → Rolle).
+    // Normale Coaches erhalten über AG-Codes lediglich das Coach-Badge (is_coach),
+    // keine Admin-Rechte.
 
     // 1. Zuerst Invite-Codes prüfen
     $stmt = $pdo->prepare('SELECT * FROM invite_codes WHERE code = ? AND is_used = 0 AND (expires_at IS NULL OR expires_at > NOW())');
@@ -187,7 +174,8 @@ if ($action === 'redeem' && $method === 'POST') {
             ]);
         } catch (Exception $e) {
             $pdo->rollBack();
-            json_error('Fehler beim Einlösen des Zugangscodes: ' . $e->getMessage(), 500);
+            error_log('Invite redeem error: ' . $e->getMessage());
+            json_error('Fehler beim Einlösen des Zugangscodes. Bitte später erneut versuchen.', 500);
         }
     }
 
@@ -275,7 +263,8 @@ if ($action === 'redeem' && $method === 'POST') {
             ]);
         } catch (Exception $e) {
             $pdo->rollBack();
-            json_error('Fehler beim Aktivieren des Promocodes: ' . $e->getMessage(), 500);
+            error_log('Promo redeem error: ' . $e->getMessage());
+            json_error('Fehler beim Aktivieren des Promocodes. Bitte später erneut versuchen.', 500);
         }
     }
 
@@ -307,7 +296,7 @@ if ($action === 'promo_create' && $method === 'POST') {
     $admin = require_coach_or_admin();
     $data = get_json_input();
 
-    $code = trim($data['code'] ?? '');
+    $code = mb_substr(trim($data['code'] ?? ''), 0, 64);
     if (empty($code)) {
         json_error('Der Code-Name darf nicht leer sein.');
     }
@@ -316,10 +305,10 @@ if ($action === 'promo_create' && $method === 'POST') {
         ? $data['effect_type'] : 'ad_boost';
     $pushLevel = in_array($data['push_level'] ?? '', ['standard', 'super', 'ultra'])
         ? $data['push_level'] : 'standard';
-    $boostDays = max(1, (int)($data['boost_days'] ?? 14));
-    $maxUses = !empty($data['max_uses']) ? (int)$data['max_uses'] : null;
-    $targetGroup = trim($data['target_group'] ?? 'all');
-    $description = trim($data['description'] ?? '');
+    $boostDays = max(1, min(365, (int)($data['boost_days'] ?? 14)));
+    $maxUses = !empty($data['max_uses']) ? max(1, min(100000, (int)$data['max_uses'])) : null;
+    $targetGroup = mb_substr(trim($data['target_group'] ?? 'all'), 0, 50);
+    $description = mb_substr(trim($data['description'] ?? ''), 0, 500);
 
     $expiresAt = null;
     if (!empty($data['expires_at'])) {
@@ -348,6 +337,14 @@ if ($action === 'promo_create' && $method === 'POST') {
         $admin['id']
     ]);
 
+    // Audit-Log für Code-Erstellung schreiben
+    $isCoachAction = ($effectType === 'coach_verification' || $targetGroup === 'coach' || $admin['role'] === 'coach_admin');
+    fwg_audit($pdo, $admin['id'], $isCoachAction ? 'coach_code_create' : 'promo_code_create', 'code', $id, [
+        'code' => $code,
+        'effect_type' => $effectType,
+        'creator_role' => $admin['role'],
+    ]);
+
     json_response([
         'message' => "Promocode „{$code}“ erfolgreich erstellt.",
         'id' => $id,
@@ -356,7 +353,7 @@ if ($action === 'promo_create' && $method === 'POST') {
 }
 
 if ($action === 'promo_toggle' && $method === 'POST') {
-    require_coach_or_admin();
+    $admin = require_coach_or_admin();
     $data = get_json_input();
     $codeId = $data['id'] ?? null;
     $isActive = !empty($data['is_active']) ? 1 : 0;
@@ -368,11 +365,13 @@ if ($action === 'promo_toggle' && $method === 'POST') {
     $pdo->prepare('UPDATE promo_codes SET is_active = ? WHERE id = ?')
         ->execute([$isActive, $codeId]);
 
+    fwg_audit($pdo, $admin['id'], 'promo_code_toggle', 'code', $codeId, ['is_active' => $isActive]);
+
     json_response(['message' => $isActive ? 'Code aktiviert.' : 'Code pausiert.']);
 }
 
 if ($action === 'promo_delete' && $method === 'POST') {
-    require_coach_or_admin();
+    $admin = require_coach_or_admin();
     $data = get_json_input();
     $codeId = $data['id'] ?? null;
 
@@ -381,6 +380,7 @@ if ($action === 'promo_delete' && $method === 'POST') {
     }
 
     $pdo->prepare('DELETE FROM promo_codes WHERE id = ?')->execute([$codeId]);
+    fwg_audit($pdo, $admin['id'], 'promo_code_delete', 'code', $codeId, []);
     json_response(['message' => 'Promocode gelöscht.']);
 }
 
@@ -410,12 +410,24 @@ if ($action === 'generate' && $method === 'POST') {
 
     $count = max(1, min(50, (int)($data['count'] ?? 5)));
     $role = in_array($data['role'] ?? '', ['student', 'sv_admin', 'coach_admin', 'parent']) ? $data['role'] : 'student';
-    $prefix = !empty($data['prefix']) ? strtoupper(trim($data['prefix'])) : ($role === 'coach_admin' ? 'COACH' : 'SV');
+
+    // Admin-Rollen dürfen nur vom SV-Admin-Team vergeben werden: Ein Coach-Admin
+    // soll sich nicht selbst (oder andere) zum SV-Admin hochstufen können.
+    if (in_array($role, ['sv_admin', 'coach_admin'], true) && ($admin['role'] ?? '') !== 'sv_admin') {
+        json_error('Nur das SV-Admin-Team darf Codes für Admin-Rollen erzeugen.', 403);
+    }
+
+    $prefix = !empty($data['prefix']) ? mb_substr(strtoupper(trim($data['prefix'])), 0, 16) : ($role === 'coach_admin' ? 'COACH' : 'SV');
+
+    // Neue Codes laufen standardmäßig nach 30 Tagen ab (einstellbar: 1–365 Tage),
+    // damit ungenutzte Einladungen nicht ewig gültig bleiben.
+    $expiryDays = max(1, min(365, (int)($data['expiry_days'] ?? 30)));
+    $expiresAt = date('Y-m-d H:i:s', strtotime("+{$expiryDays} days"));
 
     $generated = [];
     $insert = $pdo->prepare('
-        INSERT INTO invite_codes (id, code, created_by, role, is_used)
-        VALUES (?, ?, ?, ?, 0)
+        INSERT INTO invite_codes (id, code, created_by, role, is_used, expires_at)
+        VALUES (?, ?, ?, ?, 0, ?)
     ');
 
     for ($i = 0; $i < $count; $i++) {
@@ -424,13 +436,16 @@ if ($action === 'generate' && $method === 'POST') {
         $code = "{$prefix}-{$randomPart1}-{$randomPart2}";
         $id = generate_uuid();
 
-        $insert->execute([$id, $code, $admin['id'], $role]);
+        $insert->execute([$id, $code, $admin['id'], $role, $expiresAt]);
         $generated[] = [
             'id' => $id,
             'code' => $code,
-            'role' => $role
+            'role' => $role,
+            'expires_at' => $expiresAt,
         ];
     }
+
+    fwg_audit($pdo, $admin['id'], 'invite_codes_generate', 'invite_code', null, ['count' => $count, 'role' => $role, 'expiry_days' => $expiryDays]);
 
     json_response([
         'message' => "$count Codes erfolgreich generiert.",
@@ -439,11 +454,12 @@ if ($action === 'generate' && $method === 'POST') {
 }
 
 if ($action === 'delete_invite' && $method === 'POST') {
-    require_coach_or_admin();
+    $admin = require_coach_or_admin();
     $data = get_json_input();
     $id = $data['id'] ?? null;
     if ($id) {
         $pdo->prepare('DELETE FROM invite_codes WHERE id = ?')->execute([$id]);
+        fwg_audit($pdo, $admin['id'], 'invite_code_delete', 'invite_code', $id, []);
         json_response(['message' => 'Einladungscode gelöscht.']);
     }
     json_error('ID fehlt.');
@@ -514,10 +530,12 @@ if ($action === 'promo_revoke' && $method === 'POST') {
         }
 
         $pdo->commit();
+        fwg_audit($pdo, $admin['id'], 'promo_revoke', 'promo_redemption', $redemptionId, ['user_id' => $userId]);
         json_response(['message' => 'Promo-Vorteil erfolgreich entzogen.']);
     } catch (Exception $e) {
         $pdo->rollBack();
-        json_error('Fehler beim Entziehen: ' . $e->getMessage(), 500);
+        error_log('Promo revoke error: ' . $e->getMessage());
+        json_error('Fehler beim Entziehen des Promo-Vorteils. Bitte später erneut versuchen.', 500);
     }
 }
 

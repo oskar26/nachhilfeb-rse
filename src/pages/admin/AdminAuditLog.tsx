@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
+import { useState, useEffect, useCallback } from 'react';
+import { api } from '../../lib/api';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import {
@@ -9,7 +9,6 @@ import {
     Eye,
     ChevronLeft,
     ChevronRight,
-    Search,
     RefreshCw,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -45,81 +44,80 @@ const ACTION_LABELS: Record<string, string> = {
     edit_user: 'Nutzerdaten editiert',
     create_announcement: 'News erstellt',
     delete_announcement: 'News gelöscht',
+    promo_code_create: 'Promo-Code erstellt',
+    coach_assign: 'Schüler-Coach ernannt',
+    coach_revoke: 'Schüler-Coach Status entzogen',
+    coach_code_create: 'Coaching-Code erstellt',
+    coach_info_update: 'Coaching Startseiten-Infos geändert',
 };
 
-export default function AdminAuditLog() {
+const COACH_ACTIONS = ['coach_assign', 'coach_revoke', 'coach_code_create', 'coach_info_update'];
+
+export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter?: string }) {
     const [logs, setLogs] = useState<AuditLog[]>([]);
     const [loading, setLoading] = useState(true);
-    const [searchAction, setSearchAction] = useState('all');
+    const [searchAction, setSearchAction] = useState(defaultFilter);
     const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
     
-    // Pagination state
+    // Pagination state (Backend ohne Total-Count → Limit+1-Heuristik)
     const [page, setPage] = useState(0);
     const [totalCount, setTotalCount] = useState(0);
+    const [hasMore, setHasMore] = useState(false);
     const pageSize = 20;
 
-    useEffect(() => {
-        fetchLogs();
-    }, [page, searchAction]);
-
-    const fetchLogs = async () => {
+    const fetchLogs = useCallback(async () => {
         setLoading(true);
         try {
-            // Count total
-            let countQuery = supabase
-                .from('admin_audit_log')
-                .select('*', { count: 'exact', head: true });
-            
-            if (searchAction !== 'all') {
-                countQuery = countQuery.eq('action', searchAction);
-            }
-            
-            const { count } = await countQuery;
-            setTotalCount(count || 0);
-
-            // Fetch page logs
-            let query = supabase
-                .from('admin_audit_log')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .range(page * pageSize, (page + 1) * pageSize - 1);
-
-            if (searchAction !== 'all') {
-                query = query.eq('action', searchAction);
-            }
-
-            const { data, error } = await query;
+            // Backend liefert admin_name + paginierte Einträge; Details ggf. als JSON-String.
+            // Limit+1-Trick: Ein überzähliger Eintrag zeigt an, dass eine weitere Seite existiert.
+            const isCoachFilter = searchAction === 'coach';
+            const fetchLimit = isCoachFilter ? 100 : pageSize + 1;
+            const { data, error } = await api.admin.auditLog(
+                fetchLimit,
+                isCoachFilter ? 0 : page * pageSize,
+                isCoachFilter || searchAction === 'all' ? undefined : searchAction
+            );
             if (error) throw error;
 
-            // Resolve admin names
-            const logsList = data || [];
-            const resolvedLogs = await Promise.all(logsList.map(async (log) => {
-                if (log.admin_id) {
-                    const { data: profile } = await supabase
-                        .from('profiles')
-                        .select('display_name, first_name, last_name')
-                        .eq('id', log.admin_id)
-                        .single();
-                    return {
-                        ...log,
-                        admin_profile: profile ? {
-                            display_name: profile.display_name || `${profile.first_name} ${profile.last_name}`
-                        } : null
-                    };
+            let logsList = Array.isArray(data) ? data : [];
+            if (isCoachFilter) {
+                logsList = logsList.filter((log: any) => COACH_ACTIONS.includes(log.action));
+            }
+            const resolvedLogs = logsList.map((log: any) => {
+                let details = log.details;
+                if (typeof details === 'string') {
+                    try { details = JSON.parse(details); } catch { /* Rohstring behalten */ }
                 }
-                return log;
-            }));
+                return {
+                    ...log,
+                    details,
+                    admin_profile: log.admin_name
+                        ? { display_name: log.admin_name }
+                        : null,
+                };
+            });
 
-            setLogs(resolvedLogs);
-        } catch (error: any) {
-            console.error('Error fetching audit logs:', error);
+            setTotalCount(isCoachFilter
+                ? resolvedLogs.length
+                : page * pageSize + resolvedLogs.length);
+            const visibleLogs = isCoachFilter
+                ? resolvedLogs.slice(page * pageSize, (page + 1) * pageSize)
+                : (resolvedLogs.length > pageSize ? resolvedLogs.slice(0, pageSize) : resolvedLogs);
+            // „Weiter“-Button nur aktiv, wenn sicher eine nächste Seite existiert
+            setHasMore(isCoachFilter
+                ? (page + 1) * pageSize < resolvedLogs.length
+                : resolvedLogs.length > pageSize);
+            setLogs(visibleLogs);
+        } catch {
             toast.error('Audit Log konnte nicht geladen werden.');
         } finally {
             setLoading(false);
         }
-    };
+    }, [page, searchAction, pageSize]);
 
-    const totalPages = Math.ceil(totalCount / pageSize);
+    useEffect(() => {
+        fetchLogs();
+    }, [fetchLogs]);
 
     return (
         <div className="space-y-6 animate-in fade-in duration-300">
@@ -130,9 +128,16 @@ export default function AdminAuditLog() {
                     <p className="text-gray-500 text-sm mt-0.5">Vollständiges Protokoll aller administrativen Eingriffe</p>
                 </div>
                 
-                <div className="flex gap-2 items-center">
+                <div className="flex gap-2 items-center flex-wrap">
+                    <Button
+                        onClick={() => { setSearchAction(searchAction === 'coach' ? 'all' : 'coach'); setPage(0); }}
+                        variant={searchAction === 'coach' ? 'primary' : 'outline'}
+                        className="h-11 rounded-2xl gap-2 text-sm"
+                    >
+                        🏫 Schüler-Coaching
+                    </Button>
                     <select
-                        value={searchAction}
+                        value={searchAction === 'coach' ? 'all' : searchAction}
                         onChange={e => { setSearchAction(e.target.value); setPage(0); }}
                         className="h-11 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm focus:outline-none"
                     >
@@ -214,11 +219,11 @@ export default function AdminAuditLog() {
                 </CardContent>
             </Card>
 
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
+            {/* Pagination Controls (ohne Backend-Total: nur Zurück/Weiter) */}
+            {(page > 0 || hasMore) && (
                 <div className="flex items-center justify-between pt-4 shrink-0">
                     <span className="text-xs text-gray-500">
-                        Seite {page + 1} von {totalPages} ({totalCount} Einträge)
+                        Seite {page + 1}{searchAction === 'all' && !hasMore && totalCount > 0 ? ` (${totalCount} Einträge)` : ''}
                     </span>
                     <div className="flex gap-1">
                         <Button
@@ -230,8 +235,8 @@ export default function AdminAuditLog() {
                             <ChevronLeft size={16} />
                         </Button>
                         <Button
-                            onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                            disabled={page === totalPages - 1}
+                            onClick={() => setPage(p => p + 1)}
+                            disabled={!hasMore}
                             variant="outline"
                             className="h-9 w-9 p-0 rounded-xl"
                         >

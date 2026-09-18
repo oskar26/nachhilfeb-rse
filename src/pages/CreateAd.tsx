@@ -198,19 +198,12 @@ export default function CreateAd() {
                     isBoosted = true;
                     boostDays = redeemRes.boost_days || 14;
                     toast.success(`Promo-Code '${codeTrimmed}' erfolgreich aktiviert (${boostDays} Tage Boost)!`);
-                } else if (codeTrimmed === 'BANANE') {
-                    isBoosted = true;
-                    boostDays = 14;
-                    toast.success("Promo-Code 'BANANE' aktiviert!");
                 } else {
                     toast.error(redeemRes?.message || "Ungültiger oder abgelaufener Promo-Code.");
                 }
             } catch (e) {
-                // Fallback for hardcoded BANANE
-                if (codeTrimmed === 'BANANE') {
-                    isBoosted = true;
-                    toast.success("Promo-Code 'BANANE' aktiviert!");
-                }
+                console.error("Promo code check error:", e);
+                toast.error("Ungültiger oder abgelaufener Promo-Code.");
             }
         }
 
@@ -319,52 +312,96 @@ export default function CreateAd() {
     }
 
     return (
-        <div className="p-4 max-w-3xl mx-auto pb-24">
-            <h1 className="text-2xl font-bold mb-6">Anzeige aufgeben</h1>
+        <div className="w-full max-w-3xl mx-auto px-3 sm:px-4 py-4 pb-24 min-w-0 box-border overflow-x-hidden">
+            <h1 className="text-2xl font-bold mb-4 sm:mb-6">Anzeige aufgeben</h1>
 
             {/* Stepper */}
-            <div className="bg-white dark:bg-gray-900 p-4 rounded-3xl shadow-sm border dark:border-gray-800 mb-8 overflow-x-auto">
-                <div className="flex items-center justify-between min-w-[500px] relative px-4">
-                    {/* Connecting Line */}
-                    <div className="absolute top-4 left-8 right-8 h-0.5 bg-gray-100 dark:bg-gray-800 z-0" />
-                    
-                    {STEPS.map((step, index) => {
-                        const isCurrent = index === currentStep;
-                        const isCompleted = index < currentStep;
-                        return (
-                            <div key={index} className="flex flex-col items-center z-10">
-                                <button 
+            <div className="bg-white dark:bg-gray-900 p-4 rounded-3xl shadow-sm border dark:border-gray-800 mb-6">
+                {/* Mobile Stepper (< sm) */}
+                <div className="sm:hidden space-y-2.5">
+                    <div className="flex items-center justify-between text-xs font-bold">
+                        <span className="text-primary font-black uppercase tracking-wider">Schritt {currentStep + 1} von {STEPS.length}</span>
+                        <span className="text-gray-900 dark:text-white font-extrabold truncate ml-2">{STEPS[currentStep]}</span>
+                    </div>
+                    {/* Progress bar */}
+                    <div className="w-full bg-gray-100 dark:bg-gray-800 h-2 rounded-full overflow-hidden">
+                        <div 
+                            className="bg-primary h-full transition-all duration-300 rounded-full"
+                            style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
+                        />
+                    </div>
+                    <div className="flex items-center justify-between pt-1">
+                        {STEPS.map((step, index) => {
+                            const isCurrent = index === currentStep;
+                            const isCompleted = index < currentStep;
+                            return (
+                                <button
+                                    key={index}
+                                    type="button"
                                     onClick={() => jumpToStep(index)}
                                     disabled={index > currentStep && !isStepValid()}
                                     className={cn(
-                                        "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ring-4 ring-white dark:ring-gray-900 transition-all",
+                                        "w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-all",
                                         isCurrent
-                                            ? "bg-primary text-black scale-110 shadow-md"
+                                            ? "bg-primary text-black font-black scale-110 shadow-xs ring-2 ring-primary/30"
                                             : isCompleted
                                                 ? "bg-green-500 text-white cursor-pointer"
                                                 : "bg-gray-100 text-gray-400 dark:bg-gray-800 cursor-not-allowed opacity-60"
                                     )}
+                                    title={step}
                                 >
-                                    {isCompleted ? <CheckCircle size={14} /> : index + 1}
+                                    {isCompleted ? <CheckCircle size={12} /> : index + 1}
                                 </button>
-                                <span className={cn("text-[10px] mt-1.5 font-medium transition-colors whitespace-nowrap", isCurrent ? "text-gray-900 dark:text-white font-bold" : "text-gray-400")}>{step}</span>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Desktop Stepper (sm and up) */}
+                <div className="hidden sm:block overflow-x-auto">
+                    <div className="flex items-center justify-between min-w-[500px] relative px-4">
+                        {/* Connecting Line */}
+                        <div className="absolute top-4 left-8 right-8 h-0.5 bg-gray-100 dark:bg-gray-800 z-0" />
+                        
+                        {STEPS.map((step, index) => {
+                            const isCurrent = index === currentStep;
+                            const isCompleted = index < currentStep;
+                            return (
+                                <div key={index} className="flex flex-col items-center z-10">
+                                    <button 
+                                        type="button"
+                                        onClick={() => jumpToStep(index)}
+                                        disabled={index > currentStep && !isStepValid()}
+                                        className={cn(
+                                            "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ring-4 ring-white dark:ring-gray-900 transition-all",
+                                            isCurrent
+                                                ? "bg-primary text-black scale-110 shadow-md"
+                                                : isCompleted
+                                                    ? "bg-green-500 text-white cursor-pointer"
+                                                    : "bg-gray-100 text-gray-400 dark:bg-gray-800 cursor-not-allowed opacity-60"
+                                        )}
+                                    >
+                                        {isCompleted ? <CheckCircle size={14} /> : index + 1}
+                                    </button>
+                                    <span className={cn("text-[10px] mt-1.5 font-medium transition-colors whitespace-nowrap", isCurrent ? "text-gray-900 dark:text-white font-bold" : "text-gray-400")}>{step}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>{STEPS[currentStep]}</CardTitle>
+            <Card className="w-full min-w-0 overflow-hidden">
+                <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-4">
+                    <CardTitle className="text-lg sm:text-xl">{STEPS[currentStep]}</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6 min-h-[300px]">
+                <CardContent className="space-y-6 min-h-[280px] p-4 sm:p-6">
 
                     {/* Step 0: Type & Title */}
                     {currentStep === 0 && (
                         <div className="space-y-6">
                             {profile?.role === 'parent' && (
-                                <div className="bg-primary/10 border border-primary/20 p-5 rounded-2xl space-y-3">
+                                <div className="bg-primary/10 border border-primary/20 p-4 sm:p-5 rounded-2xl space-y-3">
                                     <h4 className="font-bold text-sm text-primary-hover">Anzeige für Ihr Kind erstellen</h4>
                                     {children.length === 0 ? (
                                         <div className="space-y-2">
@@ -396,31 +433,33 @@ export default function CreateAd() {
                                 </div>
                             ) : (
                                 <>
-                                    <div className="flex gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <button
+                                            type="button"
                                             onClick={() => setFormData({ ...formData, type: 'offer' })}
                                             className={cn(
-                                                "flex-1 py-4 px-2 text-center rounded-xl border-2 transition-all font-semibold flex items-center justify-center gap-2",
-                                                formData.type === 'offer' ? "border-primary bg-primary/10 text-primary-hover" : "border-gray-200 text-gray-500 hover:border-gray-300 dark:border-gray-700"
+                                                "py-3.5 px-4 text-center rounded-xl border-2 transition-all font-semibold flex items-center justify-center gap-2",
+                                                formData.type === 'offer' ? "border-primary bg-primary/10 text-primary-hover shadow-xs" : "border-gray-200 text-gray-500 hover:border-gray-300 dark:border-gray-700"
                                             )}
                                         >
-                                            <GraduationCap size={18} />
+                                            <GraduationCap size={18} className="shrink-0" />
                                             <span>Ich biete Nachhilfe</span>
                                         </button>
                                         <button
+                                            type="button"
                                             onClick={() => setFormData({ ...formData, type: 'search' })}
                                             className={cn(
-                                                "flex-1 py-4 px-2 text-center rounded-xl border-2 transition-all font-semibold flex items-center justify-center gap-2",
-                                                formData.type === 'search' ? "border-secondary bg-secondary/10 text-secondary" : "border-gray-200 text-gray-500 hover:border-gray-300 dark:border-gray-700"
+                                                "py-3.5 px-4 text-center rounded-xl border-2 transition-all font-semibold flex items-center justify-center gap-2",
+                                                formData.type === 'search' ? "border-secondary bg-secondary/10 text-secondary shadow-xs" : "border-gray-200 text-gray-500 hover:border-gray-300 dark:border-gray-700"
                                             )}
                                         >
-                                            <Search size={18} />
+                                            <Search size={18} className="shrink-0" />
                                             <span>Ich suche Nachhilfe</span>
                                         </button>
                                     </div>
                                     
                                     {/* Group session selection */}
-                                    <div className="bg-gray-50 dark:bg-gray-800/40 p-3 rounded-2xl border dark:border-gray-800 flex items-center justify-between">
+                                    <div className="bg-gray-50 dark:bg-gray-800/40 p-3.5 rounded-2xl border dark:border-gray-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                         <div>
                                             <span className="text-xs font-bold text-gray-900 dark:text-white block">Unterrichts-Format</span>
                                             <span className="text-[11px] text-gray-500 block">Einzelnachhilfe oder Kleingruppe (2-4 Schüler)?</span>
@@ -429,7 +468,7 @@ export default function CreateAd() {
                                             type="button"
                                             onClick={() => setFormData({ ...formData, short_description: formData.short_description.includes('[Kleingruppe]') ? formData.short_description.replace('[Kleingruppe] ', '') : `[Kleingruppe] ${formData.short_description}` })}
                                             className={cn(
-                                                "px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5",
+                                                "px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center justify-center gap-1.5 self-start sm:self-auto",
                                                 formData.short_description.includes('[Kleingruppe]')
                                                     ? "bg-purple-100 border-purple-300 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300"
                                                     : "bg-white dark:bg-gray-900 border-gray-200 text-gray-600"
@@ -447,7 +486,7 @@ export default function CreateAd() {
                                             value={formData.title}
                                             onChange={e => setFormData({ ...formData, title: e.target.value })}
                                             autoFocus
-                                            className="text-lg py-6"
+                                            className="text-base sm:text-lg py-5 sm:py-6"
                                         />
                                     </div>
                                 </>
@@ -558,8 +597,9 @@ export default function CreateAd() {
                     {/* Step 3: Pricing */}
                     {currentStep === 3 && (
                         <div className="space-y-6">
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <button
+                                    type="button"
                                     onClick={() => setFormData({ ...formData, price_mode: 'fixed' })}
                                     className={cn("p-4 border rounded-xl text-left hover:border-primary transition-all", formData.price_mode === 'fixed' && "border-primary bg-primary/5 ring-1 ring-primary")}
                                 >
@@ -567,6 +607,7 @@ export default function CreateAd() {
                                     <span className="text-xs text-gray-500">Euro pro Einheit</span>
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={() => setFormData({ ...formData, price_mode: 'vb' })}
                                     className={cn("p-4 border rounded-xl text-left hover:border-primary transition-all", formData.price_mode === 'vb' && "border-primary bg-primary/5 ring-1 ring-primary")}
                                 >
@@ -574,6 +615,7 @@ export default function CreateAd() {
                                     <span className="text-xs text-gray-500">Preis wird besprochen</span>
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={() => setFormData({ ...formData, price_mode: 'free' })}
                                     className={cn("p-4 border rounded-xl text-left hover:border-primary transition-all", formData.price_mode === 'free' && "border-primary bg-primary/5 ring-1 ring-primary")}
                                 >
@@ -791,18 +833,18 @@ export default function CreateAd() {
                     )}
 
                 </CardContent>
-                <CardFooter className="flex justify-between border-t pt-6">
-                    <Button variant="ghost" onClick={handleBack} disabled={currentStep === 0}>
-                        <ChevronLeft size={16} className="mr-2" /> Zurück
+                <CardFooter className="flex flex-row justify-between items-center border-t pt-4 sm:pt-6 p-4 sm:p-6 gap-2">
+                    <Button variant="ghost" onClick={handleBack} disabled={currentStep === 0} className="px-3 sm:px-4">
+                        <ChevronLeft size={16} className="mr-1 sm:mr-2 shrink-0" /> Zurück
                     </Button>
 
                     {currentStep === STEPS.length - 1 ? (
-                        <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-600/20">
-                            {isSubmitting ? 'Wird veröffentlicht...' : 'Jetzt veröffentlichen'} <CheckCircle size={16} className="ml-2" />
+                        <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-600/20 px-4 sm:px-5">
+                            {isSubmitting ? 'Wird veröffentlicht...' : 'Jetzt veröffentlichen'} <CheckCircle size={16} className="ml-1 sm:ml-2 shrink-0" />
                         </Button>
                     ) : (
-                        <Button onClick={handleNext} disabled={!isStepValid()}>
-                            Weiter <ChevronRight size={16} className="ml-2" />
+                        <Button onClick={handleNext} disabled={!isStepValid()} className="px-4 sm:px-5">
+                            Weiter <ChevronRight size={16} className="ml-1 sm:ml-2 shrink-0" />
                         </Button>
                     )}
                 </CardFooter>

@@ -172,7 +172,7 @@ CREATE TABLE IF NOT EXISTS `invite_codes` (
   `used_by` VARCHAR(36) DEFAULT NULL,
   `used_at` DATETIME DEFAULT NULL,
   `expires_at` DATETIME DEFAULT NULL,
-  `role` ENUM('student', 'sv_admin', 'parent') NOT NULL DEFAULT 'student',
+  `role` ENUM('student', 'sv_admin', 'coach_admin', 'parent') NOT NULL DEFAULT 'student',
   `is_used` TINYINT(1) NOT NULL DEFAULT 0,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -310,12 +310,33 @@ CREATE TABLE IF NOT EXISTS `news` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------------------------
--- Initialdaten: Vorinstallierte SV-Codes
+-- 16. Tabelle: page_analytics (Consent-gated Seitenaufrufe, keine IPs)
 -- ------------------------------------------------------------------------------
-INSERT IGNORE INTO `invite_codes` (`id`, `code`, `role`, `is_used`, `created_at`) VALUES
-('00000000-0000-4000-8000-000000000001', 'SV-ADMIN-2026', 'sv_admin', 0, NOW()),
-('00000000-0000-4000-8000-000000000002', 'SV-FWG-SCHUELER-1', 'student', 0, NOW()),
-('00000000-0000-4000-8000-000000000003', 'SV-FWG-SCHUELER-2', 'student', 0, NOW()),
-('00000000-0000-4000-8000-000000000004', 'SV-FWG-ELTERN-1', 'parent', 0, NOW());
+CREATE TABLE IF NOT EXISTS `page_analytics` (
+  `id` VARCHAR(36) NOT NULL,
+  `path` VARCHAR(255) NOT NULL,
+  `device_type` ENUM('mobile', 'tablet', 'desktop') NOT NULL DEFAULT 'desktop',
+  `browser` VARCHAR(50) NOT NULL DEFAULT 'Other',
+  `user_id` VARCHAR(36) DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_analytics_path` (`path`),
+  KEY `idx_analytics_created` (`created_at`),
+  CONSTRAINT `fk_analytics_user` FOREIGN KEY (`user_id`) REFERENCES `profiles` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------------------------
+-- Hinweis zu Einladungscodes: Es gibt bewusst KEINE vorinstallierten Codes.
+-- Jeder Code im Repository wäre öffentlich lesbar (auch 'SV-ADMIN-...'-Codes!).
+-- Einladungscodes erzeugt das SV-Team im SV-Panel (Registrierungs-Einladungen):
+-- Rolle wählen, Gültigkeit wählen, generieren, Code kopieren & verschicken.
+-- Notfall-Codes (einmalig, 14 Tage gültig) per SQL in der Datenbank anlegen,
+-- z. B. via phpMyAdmin – und nach dem Einlösen wieder löschen:
+--   INSERT INTO `invite_codes` (`id`, `code`, `role`, `is_used`, `expires_at`, `created_at`)
+--   VALUES (UUID(), 'SV-XXXX-XXXX', 'sv_admin', 0, DATE_ADD(NOW(), INTERVAL 14 DAY), NOW());
+-- Bereits verteilte Alt-Codes (z. B. 'BALISTRERI-COACH', 'SV-ADMIN-2026')
+-- nach dem Umstieg löschen:
+--   DELETE FROM `invite_codes` WHERE `code` IN ('BALISTRERI-COACH', 'SV-ADMIN-2026',
+--     'SV-FWG-SCHUELER-1', 'SV-FWG-SCHUELER-2', 'SV-FWG-ELTERN-1');
 
 SET foreign_key_checks = 1;

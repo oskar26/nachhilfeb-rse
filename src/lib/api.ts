@@ -52,10 +52,13 @@ export async function apiRequest<T = any>(
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
     const url = `${API_BASE}${cleanEndpoint}`;
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
     try {
         const response = await fetch(url, {
             ...options,
-            headers
+            headers,
+            signal: controller.signal,
         });
 
         const contentType = response.headers.get('content-type') || '';
@@ -68,10 +71,22 @@ export async function apiRequest<T = any>(
             if (!response.ok) {
                 return { data: null, error: { message: text || `HTTP Fehler ${response.status}` } };
             }
-            return { data: text as any, error: null };
+            // 200, aber kein JSON (z. B. PHP-Quelle bei fehlendem PHP-Runtime oder Proxy-Fehlerseite):
+            // Niemals Rohtext als data durchreichen – das vergiftet alle Consumer (z. B. News-Modal).
+            if (!text.trim()) {
+                return { data: null, error: null };
+            }
+            return { data: null, error: { message: 'Unerwartete Server-Antwort (kein JSON).', status: response.status } };
         }
 
         if (!response.ok) {
+            if (response.status === 401) {
+                // Abgelaufenes/ungültiges Token: Session lokal verwerfen, damit AuthContext neu lädt
+                try {
+                    localStorage.removeItem(TOKEN_KEY);
+                    localStorage.removeItem(USER_KEY);
+                } catch { /* ignore */ }
+            }
             return {
                 data: null,
                 error: {
@@ -84,13 +99,17 @@ export async function apiRequest<T = any>(
 
         return { data: json, error: null };
     } catch (err: any) {
-        console.error(`API Request Fehler bei ${endpoint}:`, err);
+        const isTimeout = err?.name === 'AbortError';
         return {
             data: null,
             error: {
-                message: err.message || 'Verbindung zum Server fehlgeschlagen. Bitte Internetverbindung prüfen.'
+                message: isTimeout
+                    ? 'Zeitüberschreitung: Der Server antwortet nicht. Bitte erneut versuchen.'
+                    : (err.message || 'Verbindung zum Server fehlgeschlagen. Bitte Internetverbindung prüfen.')
             }
         };
+    } finally {
+        clearTimeout(timeoutId);
     }
 }
 
@@ -297,10 +316,10 @@ export const api = {
             return apiRequest('/codes.php?action=list');
         },
 
-        async generate(count: number, role: string, prefix?: string) {
+        async generate(count: number, role: string, prefix?: string, expiry_days?: number) {
             return apiRequest('/codes.php?action=generate', {
                 method: 'POST',
-                body: JSON.stringify({ count, role, prefix })
+                body: JSON.stringify({ count, role, prefix, expiry_days })
             });
         },
 
@@ -376,6 +395,17 @@ export const api = {
                 method: 'PUT',
                 body: JSON.stringify({ is_coach: isCoach })
             });
+        },
+
+        async getCoachInfo() {
+            return apiRequest('/profiles.php?action=coach_info');
+        },
+
+        async updateCoachInfo(data: { title: string; description: string; time: string; room: string; is_visible?: boolean }) {
+            return apiRequest('/profiles.php?action=coach_info', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
         }
     },
 
@@ -442,10 +472,13 @@ export const api = {
             return apiRequest('/admin.php?action=overview');
         },
 
-        async users(search?: string, role?: string) {
+        async users(search?: string, role?: string, opts?: { limit?: number; offset?: number; status?: string }) {
             const params = new URLSearchParams();
             if (search) params.append('search', search);
-            if (role) params.append('role', role);
+            if (role && role !== 'all') params.append('role', role);
+            if (opts?.status && opts.status !== 'all') params.append('status', opts.status);
+            if (opts?.limit !== undefined) params.append('limit', String(opts.limit));
+            if (opts?.offset !== undefined) params.append('offset', String(opts.offset));
             return apiRequest(`/admin.php?action=users&${params.toString()}`);
         },
 
@@ -468,6 +501,30 @@ export const api = {
                 method: 'POST',
                 body: JSON.stringify({ user_id: userId, role })
             });
+        },
+
+        async auditLog(limit: number = 50, offset: number = 0, filterAction?: string) {
+            const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+            if (filterAction) params.append('filter_action', filterAction);
+            return apiRequest(`/admin.php?action=auditlog&${params.toString()}`);
+        },
+
+        async parentLinks(userId: string) {
+            return apiRequest(`/admin.php?action=parent_links&user_id=${encodeURIComponent(userId)}`);
+        }
+    },
+
+    // Analytics (Tracking öffentlich, Stats nur SV-Admin)
+    analytics: {
+        async track(path: string, deviceType: string, browser: string) {
+            return apiRequest('/analytics.php?action=track', {
+                method: 'POST',
+                body: JSON.stringify({ path, device_type: deviceType, browser })
+            });
+        },
+
+        async stats() {
+            return apiRequest('/analytics.php?action=stats');
         }
     },
 

@@ -184,7 +184,7 @@ export default function Settings() {
 
             if (error) throw error;
             triggerHaptic('success');
-            toast.success("Löschanfrage eingereicht. Ein Admin wird dein Konto innerhalb der Frist prüfen.");
+            toast.success("Löschanfrage eingereicht. Das SV-Team löscht dein Konto nach Prüfung (Bestätigung innerhalb von 14 Tagen).");
         } catch (err: any) {
             triggerHaptic('error');
             toast.error("Fehler: " + err.message);
@@ -413,7 +413,7 @@ export default function Settings() {
                                 <h4 className="font-bold text-xs text-red-900 dark:text-red-300 flex items-center gap-1.5">
                                     <AlertTriangle size={14} /> Recht auf Löschung (Art. 17 DSGVO)
                                 </h4>
-                                <p className="text-[11px] text-red-700 dark:text-red-400">Account und Daten zur Löschung vormerken (30 Tage Frist).</p>
+                                <p className="text-[11px] text-red-700 dark:text-red-400">Stellt eine Löschanfrage an das SV-Team (Bestätigung innerhalb von 14 Tagen).</p>
                             </div>
                             <Button
                                 onClick={handleDeleteAccount}
@@ -534,12 +534,12 @@ export default function Settings() {
                                                 console.error(error);
                                                 triggerHaptic('error');
                                                 toast.error('Fehler beim Einlösen des Codes.');
-                                            } else if (data === 'admin') {
+                                            } else if (data === 'sv_admin' || data === 'coach_admin') {
                                                 triggerHaptic('success');
-                                                toast.success('Admin-Rechte freigeschaltet! Lade neu...');
+                                                toast.success(data === 'sv_admin' ? 'SV-Admin-Rechte freigeschaltet! Lade neu...' : 'Coaching-Admin-Rechte freigeschaltet! Lade neu...');
                                                 (e.target as HTMLInputElement).value = '';
                                                 setTimeout(() => window.location.reload(), 1200);
-                                            } else if (data === 'verified') {
+                                            } else if (data && data !== 'invalid') {
                                                 triggerHaptic('success');
                                                 toast.success('Account verifiziert! Lade neu...');
                                                 (e.target as HTMLInputElement).value = '';

@@ -287,8 +287,12 @@ export class QueryBuilder<T = any[]> implements PromiseLike<QueryResult<T>> {
                         return { data: outData, count: outData ? 1 : 0, error: res.error };
                     }
                     if (inFilter && Array.isArray(inFilter)) {
-                        const res = await api.admin.users();
-                        const matched = (res.data || []).filter((u: any) => inFilter.includes(u.id));
+                        const res = await api.admin.users(undefined, undefined, { limit: 100 });
+                        const raw = res.data as unknown;
+                        const list: Array<{ id: string }> = Array.isArray(raw)
+                            ? (raw as Array<{ id: string }>)
+                            : ((raw as { data?: Array<{ id: string }> } | null)?.data ?? []);
+                        const matched = list.filter((u) => inFilter.includes(u.id));
                         return { data: matched, count: matched.length, error: res.error };
                     }
                     const res = await api.profiles.get();
@@ -721,12 +725,33 @@ export const supabase = {
             return { data: true, error: null };
         }
 
-        if (funcName === 'redeem_invite_code') {
-            const res = await api.codes.redeem(args.code_val);
+        if (funcName === 'redeem_invite_code' || funcName === 'redeem_code') {
+            const codeVal = args.code_val ?? args.secret_code ?? '';
+            const res = await api.codes.redeem(codeVal);
             if (res.error) {
                 return { data: 'invalid', error: res.error };
             }
             return { data: res.data?.role || 'student', error: null };
+        }
+
+        // Promo-Code beim Anzeigen-Erstellen einlösen (CreateAd). Das Backend
+        // schreibt den Vorteil (Boost/Verifizierung) direkt gut und liefert
+        // { message, effect_type, boost_days } zurück.
+        if (funcName === 'redeem_promo_code') {
+            const res = await api.codes.redeem(args.code_val ?? '');
+            if (res.error || !res.data || res.data.valid === false) {
+                const message = (res.data as any)?.message || res.error?.message || 'Ungültiger oder abgelaufener Promo-Code.';
+                return { data: { success: false, message }, error: null };
+            }
+            return {
+                data: {
+                    success: true,
+                    boost_days: (res.data as any)?.boost_days ?? 14,
+                    effect_type: (res.data as any)?.effect_type,
+                    message: (res.data as any)?.message,
+                },
+                error: null,
+            };
         }
 
         return { data: null, error: null };

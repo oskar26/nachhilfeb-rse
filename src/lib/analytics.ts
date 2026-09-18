@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { supabase } from './supabase';
+import { apiRequest } from './api';
 
 function getDeviceType(): 'mobile' | 'tablet' | 'desktop' {
     const ua = navigator.userAgent;
@@ -34,18 +34,14 @@ export function useAnalyticsTracker() {
         const device_type = getDeviceType();
         const browser = getBrowserName();
 
-        // Fire & forget tracking request
-        supabase.auth.getUser().then(({ data }) => {
-            supabase.from('page_analytics').insert({
-                path,
-                device_type,
-                browser,
-                user_id: data.user?.id || null
-            }).then(({ error }) => {
-                if (error && error.code !== '42P01') {
-                    console.debug('[Analytics Tracker] error:', error.message);
-                }
-            });
+        // Fire & forget über das eigene Backend (user_id wird serverseitig aus dem Token gelesen)
+        apiRequest('/analytics.php?action=track', {
+            method: 'POST',
+            body: JSON.stringify({ path, device_type, browser }),
+        }).then(({ error }) => {
+            if (error && import.meta.env.DEV) {
+                console.debug('[Analytics Tracker] error:', error.message);
+            }
         });
     }, [location.pathname]);
 }

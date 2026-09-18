@@ -40,8 +40,8 @@ if ($method === 'POST') {
     $admin = require_admin();
     $data = get_json_input();
 
-    $title = trim($data['title'] ?? '');
-    $content = trim($data['content'] ?? '');
+    $title = mb_substr(trim($data['title'] ?? ''), 0, 200);
+    $content = mb_substr(trim($data['content'] ?? ''), 0, 15000);
     $isPinned = !empty($data['is_pinned']);
 
     if (empty($title) || empty($content)) {
@@ -54,6 +54,8 @@ if ($method === 'POST') {
         VALUES (?, ?, ?, ?, ?)
     ');
     $stmt->execute([$newsId, $title, $content, $admin['id'], $isPinned ? 1 : 0]);
+
+    fwg_audit($pdo, $admin['id'], 'news_create', 'news', $newsId, ['title' => $title]);
 
     // An alle aktiven Nutzer per E-Mail & In-App Benachrichtigung versenden
     try {
@@ -87,13 +89,14 @@ if ($method === 'POST') {
 // 3. DELETE: NEWS LÖSCHEN (NUR ADMIN)
 // ------------------------------------------------------------------------------
 if ($method === 'DELETE') {
-    require_admin();
+    $admin = require_admin();
     $id = $_GET['id'] ?? null;
     if (!$id) {
         json_error('News-ID erforderlich.');
     }
 
     $pdo->prepare('DELETE FROM news WHERE id = ?')->execute([$id]);
+    fwg_audit($pdo, $admin['id'], 'news_delete', 'news', mb_substr((string)$id, 0, 64));
     json_response(['message' => 'Ankündigung gelöscht.']);
 }
 

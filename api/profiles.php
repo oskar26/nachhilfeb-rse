@@ -26,6 +26,18 @@ try {
     } catch (Exception $ex) {}
 }
 
+// Auto-Migration: app_settings Tabelle
+try {
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS app_settings (
+            setting_key VARCHAR(64) PRIMARY KEY,
+            setting_value LONGTEXT NOT NULL,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            updated_by VARCHAR(36) NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ");
+} catch (Exception $ex) {}
+
 // ------------------------------------------------------------------------------
 // 1. GET: PROFIL ABRUFEN ODER COACH-SCHÜLERLISTE
 // ------------------------------------------------------------------------------
@@ -68,6 +80,40 @@ if ($method === 'GET') {
             $l['details'] = json_decode($l['details'] ?? '{}', true);
         }
         json_response($logs);
+    }
+
+    // 1c. Schüler-Coaching Startseiten-Informationen (öffentlich lesbar)
+    if ($action === 'coach_info') {
+        $defaultInfo = [
+            'title' => 'Kostenloses Coaching für Klasse 5 & 6!',
+            'description' => 'Wöchentlich einmal bieten wir für alle Schülerinnen und Schüler der Jahrgangsstufen 5 und 6 die Möglichkeit, Hilfen zu einzelnen Fächern oder zur Lern- und Arbeitsorganisation allgemein durch Schülerinnen und Schüler der 8. Klassen zu erhalten. Diese werden jeweils vor den Herbstferien für ihre Aufgabe geschult und stellen dann bis zum Ende des Schuljahres ehrenamtlich ihre Hilfe zur Verfügung. Dieses Angebot wird in der Regel sehr gerne angenommen, da die Coaches einen guten Blick auf die Probleme der jüngeren Schüler haben.',
+            'time' => 'Dienstags, 13:45 - 14:30 Uhr',
+            'room' => 'Raum H310',
+            'is_visible' => true,
+            'updated_at' => null,
+            'updated_by_name' => null
+        ];
+
+        try {
+            $stmt = $pdo->prepare('
+                SELECT s.setting_value, s.updated_at, p.display_name as updated_by_name
+                FROM app_settings s
+                LEFT JOIN profiles p ON p.id = s.updated_by
+                WHERE s.setting_key = "coach_info"
+            ');
+            $stmt->execute();
+            $row = $stmt->fetch();
+            if ($row && !empty($row['setting_value'])) {
+                $val = json_decode($row['setting_value'], true);
+                if (is_array($val)) {
+                    $defaultInfo = array_merge($defaultInfo, $val);
+                    $defaultInfo['updated_at'] = $row['updated_at'];
+                    $defaultInfo['updated_by_name'] = $row['updated_by_name'];
+                }
+            }
+        } catch (Exception $e) {}
+
+        json_response($defaultInfo);
     }
 
     // 1c. Einzelnes Profil
@@ -123,7 +169,58 @@ if ($method === 'GET') {
 }
 
 // ------------------------------------------------------------------------------
-// 2. PUT / PATCH: PROFIL AKTUALISIEREN
+// 2. COACH-INFO AKTUALISIEREN (NUR COACH-ADMIN ODER SV-ADMIN)
+// ------------------------------------------------------------------------------
+if ($action === 'coach_info' && ($method === 'POST' || $method === 'PUT')) {
+    $currentUser = require_coach_or_admin();
+    $data = get_json_input();
+
+    $info = [
+        'title' => trim($data['title'] ?? 'Kostenloses Coaching für Klasse 5 & 6!'),
+        'description' => trim($data['description'] ?? ''),
+        'time' => trim($data['time'] ?? 'Dienstags, 13:45 - 14:30 Uhr'),
+        'room' => trim($data['room'] ?? 'Raum H310'),
+        'is_visible' => isset($data['is_visible']) ? (bool)$data['is_visible'] : true
+    ];
+
+    $jsonVal = json_encode($info, JSON_UNESCAPED_UNICODE);
+
+    $stmt = $pdo->prepare('
+        INSERT INTO app_settings (setting_key, setting_value, updated_at, updated_by)
+        VALUES ("coach_info", ?, NOW(), ?)
+        ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = NOW(), updated_by = VALUES(updated_by)
+    ');
+    $stmt->execute([$jsonVal, $currentUser['id']]);
+
+    // In admin_audit_log schreiben
+    try {
+        $pdo->prepare('
+            INSERT INTO admin_audit_log (id, admin_id, action, target_type, target_id, details)
+            VALUES (?, ?, "coach_info_update", "setting", "coach_info", ?)
+        ')->execute([
+            generate_uuid(),
+            $currentUser['id'],
+            json_encode([
+                'title' => $info['title'],
+                'time' => $info['time'],
+                'room' => $info['room'],
+                'is_visible' => $info['is_visible'],
+                'editor_name' => $currentUser['display_name'] ?: $currentUser['email'],
+                'editor_role' => $currentUser['role']
+            ], JSON_UNESCAPED_UNICODE)
+        ]);
+    } catch (Exception $e) {
+        error_log('Audit log error on coach_info_update: ' . $e->getMessage());
+    }
+
+    json_response([
+        'message' => 'Schüler-Coaching Startseiten-Infos erfolgreich aktualisiert.',
+        'info' => $info
+    ]);
+}
+
+// ------------------------------------------------------------------------------
+// 3. PUT / PATCH: PROFIL AKTUALISIEREN
 // ------------------------------------------------------------------------------
 if ($method === 'PUT' || $method === 'PATCH') {
     $user = require_auth();
@@ -147,11 +244,31 @@ if ($method === 'PUT' || $method === 'PATCH') {
         'avatar_type', 'banner_color', 'birth_date'
     ];
 
+    $textLimits = [
+        'first_name' => 80, 'last_name' => 80, 'display_name' => 80,
+        'grade_level' => 10, 'class_letter' => 5, 'bio' => 5000,
+        'moodle_name' => 120, 'phone_number' => 40, 'contact_other' => 300,
+        'avatar_url' => 2000, 'avatar_type' => 20, 'banner_color' => 20,
+        'birth_date' => 10,
+    ];
     if ($isSelf || $isSvAdmin) {
         foreach ($textFields as $tf) {
             if (array_key_exists($tf, $data)) {
+                $val = $data[$tf];
+                if ($val !== null && !is_string($val)) {
+                    json_error('Ungültiger Wert für ' . $tf . '.', 400);
+                }
+                if (is_string($val)) {
+                    $val = mb_substr(trim($val), 0, $textLimits[$tf] ?? 500);
+                    if ($tf === 'avatar_url' && $val !== '' && !preg_match('#^https://#i', $val)) {
+                        json_error('Avatar-URL muss mit https:// beginnen.', 400);
+                    }
+                    if ($tf === 'birth_date' && $val !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $val)) {
+                        json_error('Ungültiges Geburtsdatum.', 400);
+                    }
+                }
                 $fields[] = "`$tf` = ?";
-                $params[] = $data[$tf];
+                $params[] = $val;
             }
         }
     }

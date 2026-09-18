@@ -327,7 +327,7 @@ export default function Chat() {
             <div className="flex-1 overflow-y-auto p-4 space-y-1.5 bg-[#efeae2] dark:bg-[#0b141a]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%239C92AC\' fill-opacity=\'0.03\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }}>
                 {messages.length === 0 ? (
                     <div className="text-center p-4 bg-[#fcf4cb]/90 dark:bg-[#1d2e2f] text-[#54656f] dark:text-[#8696a0] text-xs rounded-lg max-w-sm mx-auto shadow-sm">
-                        Hier beginnt euer Chat. Deine Nachrichten werden über eine verschlüsselte Verbindung (HTTPS) übertragen und sicher in der EU gespeichert. Bitte achte auf unsere <a href="/nutzungsbedingungen" className="underline">Nutzungsbedingungen</a>.
+                        Hier beginnt euer Chat. Deine Nachrichten werden über eine verschlüsselte Verbindung (HTTPS) übertragen und sicher in Deutschland gespeichert. Bitte achte auf unsere <a href="#/nutzungsbedingungen" className="underline">Nutzungsbedingungen</a>.
                     </div>
                 ) : (
                     messages.map((msg, idx) => {
