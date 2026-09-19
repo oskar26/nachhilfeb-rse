@@ -14,13 +14,14 @@ und löschen keine Daten.
 | 004 | `004_filter_reports.sql` | Neue Tabelle `filter_overrides` (Filter-Training: freigegebene/geblockte Wörter) + sicherer Umgang mit der `reports`-Tabelle (inkl. evtl. `severity`-Spalte) |
 | 005 | `005_email_verification.sql` | Neue Tabelle `email_verifications` (6-stelliger Verifizierungs-Code, Bcrypt-Hash, 30 Min. gültig) |
 | 006 | `006_invite_codes_max_uses.sql` | Neue Spalten `max_uses` + `current_uses` in `invite_codes` (Codes 1x/2x/5x/10x oder unbegrenzt einlösbar) |
+| 007 | `007_page_analytics.sql` | Neue Tabelle `page_analytics` (Seitenaufrufe-Statistik fürs Dashboard, cookiefrei, keine IPs) |
 
 ## So geht's (dauert ca. 2 Minuten)
 
 1. **Einloggen:** ALL-INKL-KAS → **Datenbanken** → bei eurer Datenbank auf **phpMyAdmin** klicken (oder direkt über die phpMyAdmin-Adresse aus der KAS-Datenbankübersicht).
 2. **Datenbank wählen:** Links in der Liste eure Datenbank anklicken (Name steht in `api/db_credentials.php` bzw. als `DB_NAME`-Umgebungsvariable).
 3. **Importieren:** Oben auf den Reiter **„Importieren"** klicken → **„Datei auswählen"** → die Datei `001_...sql` von eurem Rechner wählen → ganz unten auf **„OK"** klicken.
-4. **Erfolgsmeldung** abwarten („Import wurde erfolgreich abgeschlossen") → Schritte 3–4 für `002_...sql`, `003_...sql`, `004_...sql`, `005_...sql` und `006_...sql` wiederholen.
+4. **Erfolgsmeldung** abwarten („Import wurde erfolgreich abgeschlossen") → Schritte 3–4 für `002_...sql` bis `007_...sql` wiederholen.
 5. **Prüfen (optional):** Links auf die Tabelle `ads` → Reiter **„Struktur"** → dort müssen `session_format` und `view_count` auftauchen.
 
 ## Falls etwas rot wird

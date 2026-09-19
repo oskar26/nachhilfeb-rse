@@ -148,7 +148,7 @@ if (!$result['jwt_configured']) {
 echo '<h2>Tabellen (' . count($result['tables']) . ' geprüft)</h2>';
 if (!empty($result['missing_tables'])) {
     echo '<p>Fehlend: ' . h_badge(false, '', htmlspecialchars(implode(', ', $result['missing_tables']))) . '</p>';
-    echo '<p>Fehlende Tabellen per phpMyAdmin nachimportieren (Dateien <code>sql-updates/001</code> bis <code>005</code>, siehe Anleitung im Projekt).</p>';
+    echo '<p>Fehlende Tabellen per phpMyAdmin nachimportieren (Dateien <code>sql-updates/001</code> bis <code>007</code>, siehe Anleitung im Projekt).</p>';
 } else {
     echo '<p>' . h_badge(true, 'ALLE VORHANDEN') . '</p>';
 }
