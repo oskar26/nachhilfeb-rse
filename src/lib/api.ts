@@ -161,6 +161,25 @@ export const api = {
             });
         },
 
+        async verifyEmail(email: string, code: string) {
+            const res = await apiRequest('/auth.php?action=verify_email', {
+                method: 'POST',
+                body: JSON.stringify({ email, code })
+            });
+            if (res.data?.token) {
+                setStoredToken(res.data.token);
+                setStoredUser(res.data.user);
+            }
+            return res;
+        },
+
+        async resendCode(email: string) {
+            return apiRequest('/auth.php?action=resend_code', {
+                method: 'POST',
+                body: JSON.stringify({ email })
+            });
+        },
+
         logout() {
             setStoredToken(null);
             setStoredUser(null);
@@ -171,7 +190,7 @@ export const api = {
     // Server-Selbsttest (öffentlich lesbar, enthält keine Secrets)
     health: {
         async status() {
-            return apiRequest('/health.php');
+            return apiRequest('/health.php?format=json');
         },
         async testmail() {
             return apiRequest('/health.php?action=testmail', { method: 'POST' });

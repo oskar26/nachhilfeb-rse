@@ -215,6 +215,40 @@ function send_html_email(string $toEmail, string $subject, string $htmlContent):
 // ------------------------------------------------------------------------------
 
 /**
+ * 0. Bestätigungs-Code nach Registrierung (Spam-Schutz: erst nach Code-Eingabe gibt es ein Login)
+ */
+function send_email_verification(string $toEmail, string $userName, string $code): bool {
+    $digits = implode('', array_map(
+        fn($d) => '<span style="display:inline-block;min-width:38px;padding:10px 0;margin:0 3px;background:#FEF9C3;border:2px solid #FACC15;border-radius:12px;font-size:26px;font-weight:900;color:#713F12;">' . htmlspecialchars($d, ENT_QUOTES, 'UTF-8') . '</span>',
+        str_split($code)
+    ));
+
+    $html = render_email_template([
+        'category' => '✉️ BESTÄTIGUNG',
+        'category_bg' => '#FEF9C3', // Gelb
+        'category_color' => '#713F12',
+        'title' => 'Bestätige deine E-Mail',
+        'subtitle' => 'Ein Schritt noch – dann kann es losgehen.',
+        'greeting' => "Hallo $userName,",
+        'body_html' => "
+            Danke für deine Registrierung bei der FWG Nachhilfebörse! Zum Schutz vor Spam-Accounts musst du deine E-Mail-Adresse kurz bestätigen.<br><br>
+            <strong>Dein Bestätigungs-Code (30 Minuten gültig):</strong><br><br>
+            <div style=\"text-align:center;margin:8px 0 4px;\">$digits</div><br>
+            Gib den Code einfach auf der Bestätigungs-Seite ein.<br><br>
+            <em>Falls du dich nicht registriert hast, ignoriere diese E-Mail – es wird kein Konto ohne Code-Bestätigung freigeschaltet.</em>
+        ",
+        'quote_box' => [
+            'title' => '🔑 Kein Code angekommen?',
+            'content' => 'Prüfe deinen Spam-Ordner. Auf der Bestätigungs-Seite kannst du dir kostenlos einen neuen Code zuschicken lassen.'
+        ],
+        'cta_text' => 'Code jetzt eingeben',
+        'cta_url' => APP_URL . '/#/verify-email'
+    ]);
+
+    return send_html_email($toEmail, 'Dein Bestätigungs-Code – FWG Nachhilfebörse', $html);
+}
+
+/**
  * 1. Willkommens-Mail nach Registrierung
  */
 function send_email_welcome(string $toEmail, string $userName, string $role): bool {

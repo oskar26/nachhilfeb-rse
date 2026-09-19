@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `id` VARCHAR(36) NOT NULL,
   `email` VARCHAR(255) NOT NULL,
   `password_hash` VARCHAR(255) NOT NULL,
-  `email_verified` TINYINT(1) NOT NULL DEFAULT 1,
+  `email_verified` TINYINT(1) NOT NULL DEFAULT 0,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -323,6 +323,21 @@ CREATE TABLE IF NOT EXISTS `page_analytics` (
   KEY `idx_analytics_path` (`path`),
   KEY `idx_analytics_created` (`created_at`),
   CONSTRAINT `fk_analytics_user` FOREIGN KEY (`user_id`) REFERENCES `profiles` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------------------------
+-- 17. Tabelle: email_verifications (6-stelliger E-Mail-Code, Bcrypt-Hash)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `email_verifications` (
+  `user_id` VARCHAR(36) NOT NULL,
+  `code_hash` VARCHAR(255) NOT NULL,
+  `expires_at` DATETIME NOT NULL,
+  `attempts` INT NOT NULL DEFAULT 0,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`),
+  KEY `idx_email_verifications_exp` (`expires_at`),
+  CONSTRAINT `fk_email_verifications_user`
+    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------------------------

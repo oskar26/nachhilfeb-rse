@@ -12,6 +12,7 @@ und löschen keine Daten.
 | 002 | `002_ad_views.sql` | Neue Tabelle `ad_views` (anonyme Aufruf-Zählung pro Anzeige, ohne IP) |
 | 003 | `003_coaching_tables.sql` | Stellt Coaching-Tabellen sicher (`promo_codes`, `promo_redemptions`, `admin_audit_log`, `app_settings`), entfernt alte Beispiel-Codes aus dem Git-Verlauf |
 | 004 | `004_filter_reports.sql` | Neue Tabelle `filter_overrides` (Filter-Training: freigegebene/geblockte Wörter) + sicherer Umgang mit der `reports`-Tabelle (inkl. evtl. `severity`-Spalte) |
+| 005 | `005_email_verification.sql` | Neue Tabelle `email_verifications` (6-stelliger Verifizierungs-Code, Bcrypt-Hash, 30 Min. gültig) |
 
 ## So geht's (dauert ca. 2 Minuten)
 

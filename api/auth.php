@@ -17,6 +17,22 @@ $action = $_GET['action'] ?? '';
 $pdo = DB::getConnection();
 
 // ------------------------------------------------------------------------------
+// AUTO-MIGRATION: E-Mail-Verifizierungscodes (6-stelliger Code, 30 Min. gültig)
+// ------------------------------------------------------------------------------
+try {
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS email_verifications (
+            user_id VARCHAR(36) PRIMARY KEY,
+            code_hash VARCHAR(255) NOT NULL,
+            expires_at DATETIME NOT NULL,
+            attempts TINYINT NOT NULL DEFAULT 0,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT fk_ev_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ");
+} catch (Exception $ex) {}
+
+// ------------------------------------------------------------------------------
 // 1. REGISTRIERUNG
 // ------------------------------------------------------------------------------
 if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -100,10 +116,10 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $userId = generate_uuid();
         $passwordHash = password_hash($password, PASSWORD_BCRYPT);
 
-        // 1. User erstellen
+        // 1. User erstellen (E-Mail zunächst UNBESTÄTIGT – Freischaltung per Code-Mail)
         $userStmt = $pdo->prepare('
             INSERT INTO users (id, email, password_hash, email_verified)
-            VALUES (?, ?, ?, 1)
+            VALUES (?, ?, ?, 0)
         ');
         $userStmt->execute([$userId, $email, $passwordHash]);
 
@@ -149,22 +165,24 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $pdo->commit();
 
-        // 4. Willkommens-E-Mail versenden (best-effort: Fehlschlag blockiert die Registrierung nicht)
+        // 4. Bestätigungs-Code erzeugen (6-stellig, 30 Minuten gültig) und per E-Mail senden.
+        // Gegen Spam-Accounts: Ohne diesen Code gibt es KEIN Login-Token (siehe verify_email + Login-Gate).
+        $verifyCode = (string)random_int(100000, 999999);
+        $verifyStmt = $pdo->prepare('
+            INSERT INTO email_verifications (user_id, code_hash, expires_at, attempts)
+            VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 30 MINUTE), 0)
+            ON DUPLICATE KEY UPDATE code_hash = VALUES(code_hash), expires_at = VALUES(expires_at), attempts = 0
+        ');
+        $verifyStmt->execute([$userId, password_hash($verifyCode, PASSWORD_BCRYPT)]);
+
         $mailSent = false;
         try {
-            $mailSent = (bool)send_email_welcome($email, $firstName, $finalRole);
+            $mailSent = (bool)send_email_verification($email, $firstName, $verifyCode);
         } catch (Exception $e) {
-            error_log('Fehler beim Versenden der Willkommens-Mail: ' . $e->getMessage());
+            error_log('Fehler beim Versenden der Bestätigungs-Mail: ' . $e->getMessage());
         }
 
-        // Token generieren
-        $token = JWT::sign([
-            'sub' => $userId,
-            'email' => $email,
-            'role' => $finalRole
-        ]);
-
-        // Profil zurückliefern
+        // Profil zurückliefern (OHNE Token – erst nach Code-Bestätigung gibt es eine Session)
         $fetchProfile = $pdo->prepare('SELECT * FROM profiles WHERE id = ?');
         $fetchProfile->execute([$userId]);
         $profile = $fetchProfile->fetch();
@@ -174,7 +192,7 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $profile['settings'] = json_decode($profile['settings'] ?? '{}', true);
 
         json_response([
-            'token' => $token,
+            'needs_verification' => true,
             'user' => [
                 'id' => $userId,
                 'email' => $email
@@ -188,6 +206,133 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         error_log('Register failed: ' . $e->getMessage());
         json_error('Fehler bei der Registrierung. Bitte versuche es später erneut.', 500);
     }
+}
+
+// ------------------------------------------------------------------------------
+// 1b. E-MAIL BESTÄTIGEN (6-stelliger Code aus der Bestätigungs-Mail)
+// ------------------------------------------------------------------------------
+if ($action === 'verify_email' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $data = get_json_input();
+    // Missbrauchsschutz: max. 10 Code-Versuche pro 10 Minuten und IP
+    fwg_require_rate_limit('verify', 10, 600);
+
+    $email = filter_var(trim($data['email'] ?? ''), FILTER_VALIDATE_EMAIL);
+    $userId = mb_substr(trim($data['user_id'] ?? $data['userId'] ?? ''), 0, 36);
+    $code = preg_replace('/\D/', '', (string)($data['code'] ?? ''));
+
+    if ((!$email && !$userId) || strlen($code) !== 6) {
+        json_error('Bitte gib den 6-stelligen Code aus der E-Mail ein.');
+    }
+
+    // User finden (per ID oder E-Mail)
+    if ($userId) {
+        $uStmt = $pdo->prepare('SELECT id, email FROM users WHERE id = ?');
+        $uStmt->execute([$userId]);
+    } else {
+        $uStmt = $pdo->prepare('SELECT id, email FROM users WHERE email = ?');
+        $uStmt->execute([$email]);
+    }
+    $found = $uStmt->fetch();
+    if (!$found) {
+        // Bewusst generisch (kein Account-Enumeration)
+        usleep(400000);
+        json_error('Der Code ist falsch oder abgelaufen. Bitte fordere einen neuen Code an.', 400);
+    }
+
+    $vStmt = $pdo->prepare('SELECT code_hash, expires_at, attempts FROM email_verifications WHERE user_id = ?');
+    $vStmt->execute([$found['id']]);
+    $row = $vStmt->fetch();
+    if (!$row) {
+        json_error('Es liegt kein offener Bestätigungs-Code vor. Bitte fordere einen neuen Code an.', 400);
+    }
+    if ((int)$row['attempts'] >= 5) {
+        json_error('Zu viele Fehlversuche. Bitte fordere einen neuen Code an.', 429);
+    }
+    if (strtotime($row['expires_at']) < time()) {
+        $pdo->prepare('DELETE FROM email_verifications WHERE user_id = ?')->execute([$found['id']]);
+        json_error('Der Code ist abgelaufen (30 Minuten). Bitte fordere einen neuen Code an.', 400);
+    }
+    if (!password_verify($code, $row['code_hash'])) {
+        $pdo->prepare('UPDATE email_verifications SET attempts = attempts + 1 WHERE user_id = ?')->execute([$found['id']]);
+        usleep(400000);
+        json_error('Der Code ist falsch. Bitte prüfe die E-Mail und versuche es erneut.', 400);
+    }
+
+    // Erfolg: Code verbrauchen, E-Mail als bestätigt markieren, Session ausstellen
+    $pdo->prepare('DELETE FROM email_verifications WHERE user_id = ?')->execute([$found['id']]);
+    $pdo->prepare('UPDATE users SET email_verified = 1 WHERE id = ?')->execute([$found['id']]);
+
+    $profileStmt = $pdo->prepare('SELECT * FROM profiles WHERE id = ?');
+    $profileStmt->execute([$found['id']]);
+    $profile = $profileStmt->fetch();
+    $role = $profile['role'] ?? 'student';
+
+    // Willkommens-Mail erst JETZT (bestätigte Adresse – kein Spam an Fremde)
+    try {
+        send_email_welcome($found['email'], $profile['first_name'] ?? 'Schüler/in', $role);
+    } catch (Exception $e) {
+        error_log('Fehler beim Versenden der Willkommens-Mail: ' . $e->getMessage());
+    }
+
+    $token = JWT::sign([
+        'sub' => $found['id'],
+        'email' => $found['email'],
+        'role' => $role
+    ]);
+
+    if ($profile) {
+        $profile['subjects'] = json_decode($profile['subjects'] ?? '[]', true);
+        $profile['settings'] = json_decode($profile['settings'] ?? '{}', true);
+    }
+
+    json_response([
+        'token' => $token,
+        'user' => [
+            'id' => $found['id'],
+            'email' => $found['email']
+        ],
+        'profile' => $profile
+    ]);
+}
+
+// ------------------------------------------------------------------------------
+// 1c. BESTÄTIGUNGS-CODE ERNEUT SENDEN
+// ------------------------------------------------------------------------------
+if ($action === 'resend_code' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $data = get_json_input();
+    // Missbrauchsschutz: max. 5 Code-Mails pro Stunde und IP (Antwort bleibt generisch)
+    fwg_require_rate_limit('resend', 5, 3600);
+
+    $email = filter_var(trim($data['email'] ?? ''), FILTER_VALIDATE_EMAIL);
+    $userId = mb_substr(trim($data['user_id'] ?? $data['userId'] ?? ''), 0, 36);
+
+    if ($userId) {
+        $uStmt = $pdo->prepare('SELECT u.id, u.email, u.email_verified, p.first_name FROM users u LEFT JOIN profiles p ON p.id = u.id WHERE u.id = ?');
+        $uStmt->execute([$userId]);
+    } elseif ($email) {
+        $uStmt = $pdo->prepare('SELECT u.id, u.email, u.email_verified, p.first_name FROM users u LEFT JOIN profiles p ON p.id = u.id WHERE u.email = ?');
+        $uStmt->execute([$email]);
+    } else {
+        $uStmt = null;
+    }
+
+    $found = $uStmt ? $uStmt->fetch() : null;
+    if ($found && empty($found['email_verified'])) {
+        $verifyCode = (string)random_int(100000, 999999);
+        $pdo->prepare('
+            INSERT INTO email_verifications (user_id, code_hash, expires_at, attempts)
+            VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 30 MINUTE), 0)
+            ON DUPLICATE KEY UPDATE code_hash = VALUES(code_hash), expires_at = VALUES(expires_at), attempts = 0
+        ')->execute([$found['id'], password_hash($verifyCode, PASSWORD_BCRYPT)]);
+        try {
+            send_email_verification($found['email'], $found['first_name'] ?: 'Schüler/in', $verifyCode);
+        } catch (Exception $e) {
+            error_log('Fehler beim erneuten Senden des Bestätigungs-Codes: ' . $e->getMessage());
+        }
+    }
+
+    // Immer generisch antworten (kein Account-Enumeration)
+    json_response(['message' => 'Falls für diese Adresse eine unbestätigte Registrierung vorliegt, wurde ein neuer Code versendet (30 Minuten gültig).']);
 }
 
 // ------------------------------------------------------------------------------
@@ -206,13 +351,23 @@ if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         json_error('Ungültige Zugangsdaten. E-Mail oder Passwort falsch.', 401);
     }
 
-    $stmt = $pdo->prepare('SELECT id, email, password_hash FROM users WHERE email = ?');
+    $stmt = $pdo->prepare('SELECT id, email, password_hash, email_verified FROM users WHERE email = ?');
     $stmt->execute([$email]);
     $user = $stmt->fetch();
 
     if (!$user || !password_verify($password, $user['password_hash'])) {
         usleep(400000);
         json_error('Ungültige Zugangsdaten. E-Mail oder Passwort falsch.', 401);
+    }
+
+    // E-Mail noch nicht bestätigt? Kein Login – erst Code eingeben (Spam-Schutz).
+    // Bestehende Konten (vor Einführung der Verifizierung) sind als bestätigt markiert.
+    if (empty($user['email_verified'])) {
+        json_error('Deine E-Mail-Adresse ist noch nicht bestätigt. Bitte gib den Code aus der Bestätigungs-Mail ein.', 403, [
+            'code' => 'email_not_verified',
+            'email' => $user['email'],
+            'user_id' => $user['id']
+        ]);
     }
 
     // Profil abrufen

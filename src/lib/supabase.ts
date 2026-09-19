@@ -662,7 +662,8 @@ export const supabase = {
                 data: {
                     user: res.data.user,
                     session,
-                    mailSent: (res.data as any)?.mail_sent !== false
+                    mailSent: (res.data as any)?.mail_sent !== false,
+                    needsVerification: (res.data as any)?.needs_verification === true
                 },
                 error: null
             };

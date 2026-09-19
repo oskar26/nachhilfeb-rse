@@ -24,10 +24,12 @@ import Impressum from './pages/Impressum';
 import Datenschutz from './pages/Datenschutz';
 import Cookies from './pages/Cookies';
 import UpdatePassword from './pages/UpdatePassword';
+import VerifyEmail from './pages/VerifyEmail';
 import ParentGuide from './pages/ParentGuide';
 import Coaching from './pages/Coaching';
 import Nutzungsbedingungen from './pages/Nutzungsbedingungen';
 import CoachPanel from './pages/coach/CoachPanel';
+import NotFound from './pages/NotFound';
 import { Logo } from './components/ui/Logo';
 
 // Branded loading spinner
@@ -115,6 +117,8 @@ function App() {
             <Route path="/welcome" element={<Landing />} />
             <Route path="/landing" element={<Landing />} />
             <Route path="/login" element={<Login />} />
+
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/update-password" element={<UpdatePassword />} />
 
             <Route path="/" element={
@@ -147,7 +151,7 @@ function App() {
             <Route path="/eltern-leitfaden" element={<ParentGuide />} />
             <Route path="/coaching" element={<Coaching />} />
             <Route path="/nutzungsbedingungen" element={<Nutzungsbedingungen />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
           <CookieBanner />
           <NewsPopupModal />

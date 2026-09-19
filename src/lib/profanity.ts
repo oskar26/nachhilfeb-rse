@@ -322,12 +322,12 @@ export async function loadFilterOverrides(force = false): Promise<FilterOverride
 
 /** Einheitliche Meldung für blockierte Inhalte */
 export const BLOCKED_MESSAGE =
-    `Diese Nachricht wurde blockiert: Sie enthält unangebrachte Inhalte. Bei Fragen wende dich an ${CONTACT_EMAILS.sicherheit}.`;
+    `Diese Nachricht wurde blockiert: Sie enthält unangebrachte Inhalte. Bei Fragen wende dich an ${CONTACT_EMAILS.general}.`;
 
 /** Verschärfte Meldung bei extremen Inhalten (Hassrede, Drohungen, Grooming) */
 export const EXTREME_MESSAGE =
     'Diese Nachricht wurde blockiert und zur Prüfung an die Schülervertretung weitergeleitet. ' +
-    'Bei Bedrohungen wende dich bitte zusätzlich an eine Vertrauensperson (Hr. Schulz, Hr. Steinberg) oder ' + CONTACT_EMAILS.sicherheit + '.';
+    'Bei Bedrohungen wende dich bitte zusätzlich an eine Vertrauensperson (Hr. Schulz, Hr. Steinberg) oder ' + CONTACT_EMAILS.general + '.';
 
 /** Hilfetext bei Hinweisen auf Selbstgefährdung */
 export const SELF_HARM_MESSAGE =

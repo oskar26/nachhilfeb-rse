@@ -27,9 +27,11 @@ if (!defined('DB_CHARSET')) define('DB_CHARSET', 'utf8mb4');
 
 // E-Mail & Branding Konfiguration
 if (!defined('APP_URL')) define('APP_URL', 'https://nachhilfe-sv.de');
+// Absender: anmeldung@ bleibt (Postfach existiert, PHP mail() braucht KEINE Credentials).
+// Antworten laufen auf die General-Mail info@nachhilfe-sv.de (bitte als Postfach anlegen).
 if (!defined('MAIL_FROM_EMAIL')) define('MAIL_FROM_EMAIL', 'anmeldung@nachhilfe-sv.de');
 if (!defined('MAIL_FROM_NAME')) define('MAIL_FROM_NAME', 'FWG Nachhilfebörse');
-if (!defined('MAIL_REPLY_TO')) define('MAIL_REPLY_TO', 'technik@nachhilfe-sv.de');
+if (!defined('MAIL_REPLY_TO')) define('MAIL_REPLY_TO', 'info@nachhilfe-sv.de');
 
 
 // JWT Secret Key (Für die Signierung der Login-Tokens)

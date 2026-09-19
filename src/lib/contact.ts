@@ -1,17 +1,18 @@
 // ==============================================================================
 // FWG Nachhilfebörse — Zentrale Kontaktadressen (eine Stelle für alle E-Mails)
-// Domain sv-fwg.de: SV-Organisation · Domain nachhilfe-sv.de: Plattform-Betrieb
+// Domain sv-fwg.de: NUR SV-Organisation · Domain nachhilfe-sv.de: Plattform-Betrieb
+// Schul-Adresse: Coaching läuft über Fr. Balistreri (kein eigenes Postfach nötig)
 // ==============================================================================
 
 export const CONTACT_EMAILS = {
-    /** SV-Organisation, Impressum, Datenschutz, allgemeine SV-Anliegen */
+    /** NUR SV-Organisation, Impressum, Datenschutz (Verantwortlicher) */
     svInfo: 'info@sv-fwg.de',
-    /** Allgemeine Hilfe, Fragen, Widersprüche (Nutzungsbedingungen), Eltern */
-    support: 'support@nachhilfe-sv.de',
-    /** Meldungen, Moderation, Missbrauch, Verifizierung, Filter-Fehlalarme */
-    sicherheit: 'sicherheit@nachhilfe-sv.de',
-    /** Schüler-Coaching AG (Fr. Balistreri, Hr. Schulz, Hr. Steinberg) */
-    coaching: 'coaching@nachhilfe-sv.de',
+    /** General-Mail Börse (NEU anzulegen): Hilfe, Fragen, Widerspruch, Löschung, Meldungen, Eltern */
+    general: 'info@nachhilfe-sv.de',
+    /** Versand-Adresse (NEU anzulegen, Weiterleitung genügt): Absender automatischer Mails */
+    noreply: 'noreply@nachhilfe-sv.de',
+    /** Schüler-Coaching AG: Fr. Balistreri (Schul-Adresse, kein Börsen-Postfach) */
+    coaching: 'Rosalia.Balistreri@fwg-koeln.nrw.schule',
     /** Bugs & technische Probleme */
     technik: 'technik@nachhilfe-sv.de',
 } as const;

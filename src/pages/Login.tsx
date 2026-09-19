@@ -155,7 +155,11 @@ export default function Login() {
                 console.error('Login Fehler:', error);
                 incrementAttempts();
                 const msg = error.message || '';
-                if (error.status === 401 || msg.includes("Invalid login credentials") || msg.includes("Ungültige Zugangsdaten")) {
+                const code = (error as any)?.details?.code || (error as any)?.code || '';
+                if (code === 'email_not_verified' || msg.includes("E-Mail-Adresse ist noch nicht bestätigt")) {
+                    toast("Deine E-Mail ist noch nicht bestätigt. Bitte gib den Code aus der E-Mail ein.");
+                    navigate('/verify-email', { state: { email } });
+                } else if (error.status === 401 || msg.includes("Invalid login credentials") || msg.includes("Ungültige Zugangsdaten")) {
                     setError("Ungültige Zugangsdaten. E-Mail oder Passwort falsch.");
                 } else {
                     setError("Beim Login ist ein unerwarteter Fehler aufgetreten: " + msg);
@@ -224,6 +228,17 @@ export default function Login() {
             }
 
             const newUser = signUpData.user;
+            // Neuer Flow: E-Mail-Verifizierung per Code (Backend liefert needs_verification, kein Token)
+            if ((signUpData as any).needsVerification && newUser) {
+                if ((signUpData as any).mailSent === false) {
+                    toast("Achtung: Die Bestätigungs-E-Mail konnte nicht versendet werden. Prüfe deinen Spam-Ordner oder melde dich bei info@nachhilfe-sv.de.", { duration: 8000 });
+                } else {
+                    toast.success("Fast geschafft! Wir haben dir einen Bestätigungs-Code per E-Mail geschickt.");
+                }
+                navigate('/verify-email', { state: { email } });
+                setIsLoading(false);
+                return;
+            }
             if (newUser) {
                 // 2. Update profile with custom registration fields
                 const { error: profileErr } = await supabase
@@ -265,7 +280,7 @@ export default function Login() {
                 } else {
                     toast.success("Registrierung erfolgreich!");
                     if ((signUpData as any).mailSent === false) {
-                        toast("Hinweis: Die Willkommens-E-Mail konnte nicht versendet werden. Falls du keine E-Mails erhältst, melde dich bei info@sv-fwg.de.", { duration: 8000 });
+                        toast("Hinweis: Die Willkommens-E-Mail konnte nicht versendet werden. Falls du keine E-Mails erhältst, melde dich bei info@nachhilfe-sv.de.", { duration: 8000 });
                     }
                     navigate('/');
                 }

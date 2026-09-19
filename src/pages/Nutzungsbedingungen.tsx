@@ -55,7 +55,7 @@ export default function Nutzungsbedingungen() {
                 <Section title="§ 3 Registrierung & Account">
                     <ul className="list-disc pl-4 space-y-1">
                         <li>Pro Person ist <strong>ein Account</strong> vorgesehen. Die Angaben bei der Registrierung müssen zutreffen (keine falschen Namen, Klassen oder Rollen).</li>
-                        <li>Deine <strong>Zugangsdaten sind geheim zu halten</strong>. Bei Verdacht auf Missbrauch informiere uns sofort über <a href="mailto:sicherheit@nachhilfe-sv.de" className="font-bold text-primary hover:underline">sicherheit@nachhilfe-sv.de</a>.</li>
+                        <li>Deine <strong>Zugangsdaten sind geheim zu halten</strong>. Bei Verdacht auf Missbrauch informiere uns sofort über <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-primary hover:underline">info@nachhilfe-sv.de</a>.</li>
                         <li>Die Angabe einer falschen Rolle (z. B. Eltern-Account ohne Elternschaft) oder die Umgehung der Verifizierung führt zur Sperrung.</li>
                     </ul>
                 </Section>
@@ -98,7 +98,7 @@ export default function Nutzungsbedingungen() {
                     </ul>
                     <p>
                         Gegen Maßnahmen kannst du <strong>Widerspruch einlegen</strong> – per Support-Ticket
-                        in der App, per E-Mail an <a href="mailto:support@nachhilfe-sv.de" className="font-bold text-primary hover:underline">support@nachhilfe-sv.de</a> oder
+                        in der App, per E-Mail an <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-primary hover:underline">info@nachhilfe-sv.de</a> oder
                         persönlich im SV-Raum. Wir prüfen jeden Fall erneut.
                     </p>
                 </Section>
@@ -124,7 +124,7 @@ export default function Nutzungsbedingungen() {
                     <p>
                         Du kannst die Nutzung <strong>jederzeit beenden</strong>. Die vollständige Löschung
                         deines Accounts beantragst du über ein <strong>Support-Ticket in der App</strong> oder
-                        per E-Mail an <a href="mailto:support@nachhilfe-sv.de" className="font-bold text-primary hover:underline">support@nachhilfe-sv.de</a>.
+                        per E-Mail an <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-primary hover:underline">info@nachhilfe-sv.de</a>.
                         Wir bestätigen die Löschung innerhalb von 14 Tagen (Details zur Speicherung in der{' '}
                         <Link to="/datenschutz" className="font-bold text-primary hover:underline">Datenschutzerklärung</Link>).
                     </p>
