@@ -10,7 +10,8 @@ import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import { cn } from '../lib/utils';
 import { triggerHaptic } from '../lib/haptics';
-import { blockedReason } from '../lib/profanity';
+import { blockedReason, checkContent, loadFilterOverrides, type FilterOverrides } from '../lib/profanity';
+import { maybeAutoReport } from '../lib/autoreport';
 import ReportWizard from './ReportWizard';
 
 interface SupportModalProps {
@@ -83,6 +84,12 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
     const [showReportWizard, setShowReportWizard] = useState(false);
     const chatEndRef = useRef<HTMLDivElement>(null);
 
+    // Profanity-2.0-Training: Admin-Overrides einmalig laden
+    const [filterOverrides, setFilterOverrides] = useState<FilterOverrides>({ allow: [], block: [] });
+    useEffect(() => {
+        loadFilterOverrides().then(setFilterOverrides).catch(() => {});
+    }, []);
+
     useEffect(() => {
         if (!isOpen) {
             setView('menu');
@@ -102,9 +109,10 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
             toast.error('Bitte Titel und Beschreibung ausfüllen.');
             return;
         }
-        const blockMsg = blockedReason(title + '\n' + description);
-        if (blockMsg) {
-            toast.error(blockMsg, { duration: 6000 });
+        const ticketCheck = checkContent(title + '\n' + description, filterOverrides);
+        if (ticketCheck.blocked) {
+            toast.error(blockedReason(title + '\n' + description, filterOverrides) ?? 'Dieser Text wurde vom Inhaltsfilter blockiert.', { duration: 6000 });
+            void maybeAutoReport(ticketCheck, title + '\n' + description, { category: 'sonstiges', reportedUserId: user?.id ?? null, place: 'Support-Ticket' });
             return;
         }
         if (!user) return;
@@ -171,9 +179,10 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
 
     const handleSendMessage = async () => {
         if (!newMessage.trim() || !activeTicket || !user) return;
-        const blockMsg = blockedReason(newMessage);
-        if (blockMsg) {
-            toast.error(blockMsg, { duration: 6000 });
+        const msgCheck = checkContent(newMessage, filterOverrides);
+        if (msgCheck.blocked) {
+            toast.error(blockedReason(newMessage, filterOverrides) ?? 'Diese Nachricht wurde vom Inhaltsfilter blockiert.', { duration: 6000 });
+            void maybeAutoReport(msgCheck, newMessage, { category: 'sonstiges', reportedUserId: user?.id ?? null, place: 'Support-Chat' });
             return;
         }
         try {

@@ -134,7 +134,7 @@ export default function Coaching() {
                         </p>
                         <p>
                             Dagegen kannst du <strong>Widerspruch einlegen</strong>: Schreibe an{' '}
-                            <a href="mailto:info@sv-fwg.de" className="font-bold text-primary hover:underline">info@sv-fwg.de</a>{' '}
+                            <a href="mailto:support@nachhilfe-sv.de" className="font-bold text-primary hover:underline">support@nachhilfe-sv.de</a>{' '}
                             oder komme im SV-Raum vorbei. Das SV-Team prüft jeden Fall erneut.
                         </p>
                     </RuleCard>
@@ -147,7 +147,7 @@ export default function Coaching() {
                     <div className="flex-1 text-center sm:text-left">
                         <h3 className="font-bold text-gray-900 dark:text-white">Fragen zum Coaching?</h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                            AG-Leitung: Frau Balistreri · SV-Lehrer: Herr Schulz, Herr Steinberg · SV-Team: <a href="mailto:info@sv-fwg.de" className="font-bold text-primary hover:underline">info@sv-fwg.de</a>
+                            AG-Leitung: Frau Balistreri · SV-Lehrer: Herr Schulz, Herr Steinberg · E-Mail: <a href="mailto:coaching@nachhilfe-sv.de" className="font-bold text-primary hover:underline">coaching@nachhilfe-sv.de</a>
                         </p>
                     </div>
                     <Button onClick={() => navigate('/eltern-leitfaden')} variant="outline" className="rounded-full shrink-0">

@@ -14,6 +14,7 @@ import ShareDialog from '../components/ShareDialog';
 import { Logo } from '../components/ui/Logo';
 import { cn } from '../lib/utils';
 import { triggerHaptic } from '../lib/haptics';
+import { requestPushPermission } from '../lib/push';
 
 function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: () => void }) {
     return (
@@ -71,18 +72,19 @@ export default function Settings() {
 
     const requestNotifications = async () => {
         triggerHaptic('medium');
-        if (!('Notification' in window)) {
-            toast.error('Dein Browser unterstützt keine Benachrichtigungen.');
-            return;
-        }
-        const permission = await Notification.requestPermission();
+        const permission = await requestPushPermission();
         if (permission === 'granted') {
             setNotificationsEnabled(true);
             triggerHaptic('success');
             toast.success('Benachrichtigungen aktiviert!');
+        } else if (permission === 'denied') {
+            setNotificationsEnabled(false);
+            toast.error('Benachrichtigungen sind blockiert. Aktiviere sie in den Browser-Einstellungen dieser Seite.', { duration: 6000 });
+        } else if (permission === 'unsupported') {
+            toast.error('Dein Browser unterstützt keine Benachrichtigungen.');
         } else {
             setNotificationsEnabled(false);
-            toast.error('Benachrichtigungen abgelehnt.');
+            toast('Du kannst es später erneut versuchen.');
         }
     };
 

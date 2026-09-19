@@ -422,6 +422,27 @@ export const api = {
         }
     },
 
+    // Moderation: Filter-Overrides (Profanity 2.0 Training)
+    moderation: {
+        async getOverrides() {
+            return apiRequest('/moderation.php?action=overrides');
+        },
+
+        async setOverride(data: { word: string; effect: 'allow' | 'deny' }) {
+            return apiRequest('/moderation.php?action=override', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+        },
+
+        async deleteOverride(word: string) {
+            return apiRequest('/moderation.php?action=override_delete', {
+                method: 'POST',
+                body: JSON.stringify({ word })
+            });
+        }
+    },
+
     // Support
     support: {
         async listTickets() {
@@ -536,8 +557,12 @@ export const api = {
             });
         },
 
-        async stats() {
-            return apiRequest('/analytics.php?action=stats');
+        async stats(days: 7 | 30 | 90 = 30) {
+            return apiRequest(`/analytics.php?action=stats&days=${days}`);
+        },
+
+        async summary() {
+            return apiRequest('/analytics.php?action=summary');
         }
     },
 

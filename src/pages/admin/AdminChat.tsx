@@ -23,7 +23,7 @@ interface AdminChatProps {
     onBack?: () => void;
 }
 
-import { checkContent } from '../../lib/profanity';
+import { checkContent, loadFilterOverrides, type FilterOverrides } from '../../lib/profanity';
 
 interface Message {
     id: string;
@@ -44,6 +44,12 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
     const [chatFound, setChatFound] = useState(true);
     const [names, setNames] = useState<{ user1: string; user2: string }>({ user1: 'Nutzer 1', user2: 'Nutzer 2' });
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    // Profanity-2.0-Training: Admin-Overrides für treffsicheres Highlight
+    const [filterOverrides, setFilterOverrides] = useState<FilterOverrides>({ allow: [], block: [] });
+    useEffect(() => {
+        loadFilterOverrides().then(setFilterOverrides).catch(() => {});
+    }, []);
 
     useEffect(() => {
         if (userId1 && userId2 && reportId) {
@@ -176,7 +182,7 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
 
     // Moderations-Highlight (Anzeige only, sendseitiger Block in Chat.tsx via shared Lib)
     const hasProfanity = (content: string) => {
-        return checkContent(content).blocked;
+        return checkContent(content, filterOverrides).blocked;
     };
 
     if (!userId1 || !userId2 || !reportId) {

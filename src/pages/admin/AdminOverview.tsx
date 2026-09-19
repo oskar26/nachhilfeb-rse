@@ -12,6 +12,7 @@ import {
     ShieldCheck,
     Clock,
     UserPlus,
+    TrendingUp,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -81,6 +82,7 @@ export default function AdminOverview() {
     const [stats, setStats] = useState<Stats>({ users: 0, ads: 0, reports: 0, banned: 0, verified: 0 });
     const [recentReports, setRecentReports] = useState<any[]>([]);
     const [recentUsers, setRecentUsers] = useState<any[]>([]);
+    const [pageTrend, setPageTrend] = useState<number[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -110,6 +112,23 @@ export default function AdminOverview() {
             setRecentUsers(usersList.slice(0, 5));
             const reportsList = Array.isArray(reportsData) ? reportsData : ((reportsData as any)?.reports ?? []);
             setRecentReports(reportsList.slice(0, 5));
+            // Mini-Verlauf der Seitenaufrufe (7 Tage, best-effort fürs Dashboard)
+            try {
+                const { data: pageStats } = await api.analytics.stats(7);
+                const byDay = Array.isArray((pageStats as any)?.by_day) ? (pageStats as any).by_day : [];
+                const dayMap: Record<string, number> = {};
+                byDay.forEach((r: any) => {
+                    if (r.day) dayMap[String(r.day).slice(0, 10)] = Number(r.views) || 0;
+                });
+                const trend: number[] = [];
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date();
+                    d.setDate(d.getDate() - i);
+                    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                    trend.push(dayMap[key] || 0);
+                }
+                setPageTrend(trend);
+            } catch { /* Verlauf ist optional – Dashboard bleibt nutzbar */ }
         } catch {
             toast.error('Übersicht konnte nicht geladen werden.');
         } finally {
@@ -163,10 +182,41 @@ export default function AdminOverview() {
                 />
             </div>
 
+            {/* Seitenaufrufe-Trend (7 Tage) */}
+            {pageTrend.some(v => v > 0) && (
+                <button
+                    type="button"
+                    onClick={() => navTo('analytics')}
+                    className="w-full text-left bg-white dark:bg-gray-900 rounded-3xl border dark:border-gray-800 shadow-sm p-5 hover:shadow-md transition-all"
+                >
+                    <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm font-bold flex items-center gap-2">
+                            <TrendingUp size={16} className="text-emerald-500" />
+                            Seitenaufrufe · letzte 7 Tage
+                        </span>
+                        <span className="text-xs text-gray-400 flex items-center gap-1">
+                            Details <ArrowUpRight size={12} />
+                        </span>
+                    </div>
+                    <div className="flex items-end gap-1.5 h-14">
+                        {pageTrend.map((v, i) => {
+                            const max = Math.max(...pageTrend, 1);
+                            return (
+                                <div
+                                    key={i}
+                                    className="flex-1 bg-emerald-500/70 rounded-t min-h-[3px]"
+                                    style={{ height: `${Math.max((v / max) * 100, 6)}%` }}
+                                    title={`${v} Aufrufe`}
+                                />
+                            );
+                        })}
+                    </div>
+                </button>
+            )}
+
             {/* Quick actions */}
             <div>
-                <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Schnellzugriff</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Schnellzugriff</h2>                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {[
                         { label: 'Codes & Verifikation', icon: <ShieldCheck size={18} />, tab: 'codes', color: 'green' },
                         { label: 'Nutzerverwaltung', icon: <Users size={18} />, tab: 'users', color: 'blue' },

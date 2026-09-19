@@ -55,6 +55,13 @@ interface TopAd {
     views: number;
 }
 
+interface DailyDist {
+    day: string;
+    count: number;
+}
+
+type StatsRange = 7 | 30 | 90;
+
 export default function AdminAnalytics() {
     const [loading, setLoading] = useState(true);
     const [userStats, setUserStats] = useState({
@@ -94,6 +101,11 @@ export default function AdminAnalytics() {
     const [hourlyDistribution, setHourlyDistribution] = useState<HourlyDist[]>([]);
     const [topPages, setTopPages] = useState<PathDist[]>([]);
     const [topAds, setTopAds] = useState<TopAd[]>([]);
+    // Seitenaufrufe-Verlauf (eigener Zeitraum, hoster-artig umschaltbar)
+    const [statsDays, setStatsDays] = useState<StatsRange>(30);
+    const [dailyViews, setDailyViews] = useState<DailyDist[]>([]);
+    const [uniqueLoggedIn, setUniqueLoggedIn] = useState(0);
+    const [pageStatsLoading, setPageStatsLoading] = useState(false);
 
     // Raw datasets for CSV Export (Anzeigen als Stichprobe, Nutzer/Aufrufe als Aggregat)
     const [rawAds, setRawAds] = useState<any[]>([]);
@@ -103,38 +115,17 @@ export default function AdminAnalytics() {
         fetchAnalytics();
     }, []);
 
-    const fetchAnalytics = async () => {
-        setLoading(true);
+    useEffect(() => {
+        fetchPageStats(statsDays);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [statsDays]);
+
+    // Seitenaufrufe separat laden (eigener Zeitraum, ohne den Rest neu zu laden)
+    const fetchPageStats = async (days: StatsRange) => {
+        setPageStatsLoading(true);
         try {
-            // Alle Kennzahlen kommen aus dem PHP-Backend (keine direkten Tabellenzugriffe,
-            // kein Volltabellen-Nutzerexport – Nutzerkennzahlen als Aggregate aus overview)
-            const [
-                { data: overview },
-                { data: adsData },
-                { data: requestsData },
-                { data: reviewsData },
-                { data: reportsData },
-                { data: pageStats },
-            ] = await Promise.all([
-                api.admin.overview(),
-                api.ads.list({ all: true }),
-                api.requests.list(),
-                api.reviews.list({}),
-                api.reports.list(),
-                api.analytics.stats(),
-            ]);
-
-            const overviewRaw = overview ?? {};
-            const overviewStats = overviewRaw.stats ?? {};
-
-            const ads = Array.isArray(adsData) ? adsData : ((adsData as any)?.ads ?? []);
-            setRawAds(ads);
-
-            const requests = Array.isArray(requestsData) ? requestsData : ((requestsData as any)?.requests ?? []);
-            const reviews = Array.isArray(reviewsData) ? reviewsData : ((reviewsData as any)?.reviews ?? []);
-            const reports = Array.isArray(reportsData) ? reportsData : ((reportsData as any)?.reports ?? []);
-
-            // Page-Views: Backend liefert Aggregate (30 Tage) + Gesamt-Total
+            const { data: pageStats, error } = await api.analytics.stats(days);
+            if (error) throw new Error(error.message);
             const statsRaw = (pageStats as any) ?? {};
             const totalViews = Number(statsRaw.total_views) || 0;
             setTotalPageViews(totalViews);
@@ -160,7 +151,58 @@ export default function AdminAnalytics() {
             } else {
                 setHourlyDistribution([]);
             }
+            // Verlauf: fehlende Tage mit 0 auffüllen (durchgehende Kurve)
+            const dayMap: Record<string, number> = {};
+            const byDay = Array.isArray(statsRaw.by_day) ? statsRaw.by_day : [];
+            byDay.forEach((r: any) => {
+                if (r.day) dayMap[String(r.day).slice(0, 10)] = Number(r.views) || 0;
+            });
+            const filled: DailyDist[] = [];
+            for (let i = days - 1; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                filled.push({ day: key, count: dayMap[key] || 0 });
+            }
+            setDailyViews(filled);
+            setUniqueLoggedIn(Number(statsRaw.unique_logged_in) || 0);
+        } catch {
+            toast.error('Seitenaufrufe konnten nicht geladen werden.');
+        } finally {
+            setPageStatsLoading(false);
+        }
+    };
 
+    const fetchAnalytics = async () => {
+        setLoading(true);
+        try {
+            // Alle Kennzahlen kommen aus dem PHP-Backend (keine direkten Tabellenzugriffe,
+            // kein Volltabellen-Nutzerexport – Nutzerkennzahlen als Aggregate aus overview)
+            const [
+                { data: overview },
+                { data: adsData },
+                { data: requestsData },
+                { data: reviewsData },
+                { data: reportsData },
+            ] = await Promise.all([
+                api.admin.overview(),
+                api.ads.list({ all: true }),
+                api.requests.list(),
+                api.reviews.list({}),
+                api.reports.list(),
+            ]);
+
+            const overviewRaw = overview ?? {};
+            const overviewStats = overviewRaw.stats ?? {};
+
+            const ads = Array.isArray(adsData) ? adsData : ((adsData as any)?.ads ?? []);
+            setRawAds(ads);
+
+            const requests = Array.isArray(requestsData) ? requestsData : ((requestsData as any)?.requests ?? []);
+            const reviews = Array.isArray(reviewsData) ? reviewsData : ((reviewsData as any)?.reviews ?? []);
+            const reports = Array.isArray(reportsData) ? reportsData : ((reportsData as any)?.reports ?? []);
+
+            // Page-Views laufen separat über fetchPageStats (eigener Zeitraum)
             // Calculate profile metrics (Totals + Rollen aus Overview, Stufen aus Backend-Aggregat)
             {
                 const total = Number(overviewStats.total_users) || 0;
@@ -347,6 +389,7 @@ export default function AdminAnalytics() {
         const rows: (string | number)[][] = [
             ...topPages.map(p => ['Top-Seite', p.path, p.count] as (string | number)[]),
             ...deviceDistribution.map(d => ['Gerät', d.type, d.count] as (string | number)[]),
+            ...dailyViews.map(d => ['Tag', d.day, d.count] as (string | number)[]),
             ...topAds.map(a => ['Top-Anzeige', `${a.type}: ${a.title}`, a.views] as (string | number)[]),
         ];
         exportToCSV(`fwg_analytics_aggregat_${new Date().toISOString().slice(0, 10)}.csv`, headers, rows);
@@ -364,6 +407,8 @@ export default function AdminAnalytics() {
     const maxSubjectCount = Math.max(...subjectDistribution.map(s => s.count), 1);
     const maxPriceCount = Math.max(...priceDistribution.map(p => p.count), 1);
     const maxHourlyCount = Math.max(...hourlyDistribution.map(h => h.count), 1);
+    const maxDailyCount = Math.max(...dailyViews.map(d => d.count), 1);
+    const rangeLabel = statsDays === 7 ? 'letzte 7 Tage' : statsDays === 90 ? 'letzte 90 Tage' : 'letzte 30 Tage';
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -416,7 +461,7 @@ export default function AdminAnalytics() {
                         <span className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider block">Erfasste Aufrufe</span>
                         <div className="text-3xl font-black">{totalPageViews}</div>
                         <span className="text-[10px] text-gray-400 block font-semibold">
-                            Inkl. Cookie-Einwilligung
+                            {uniqueLoggedIn} eingeloggte Besucher · Gesamt
                         </span>
                     </CardContent>
                 </Card>
@@ -434,6 +479,72 @@ export default function AdminAnalytics() {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* SECTION 0: AUFRUFE-VERLAUF (hoster-artig) */}
+            <Card className="rounded-3xl border-none shadow-sm">
+                <CardHeader>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <CardTitle className="text-base font-bold flex items-center gap-2">
+                                <TrendingUp size={18} className="text-primary-hover" /> Aufrufe-Verlauf
+                            </CardTitle>
+                            <CardDescription>
+                                Seitenaufrufe pro Tag ({rangeLabel}) · nur mit Cookie-Einwilligung gezählt
+                            </CardDescription>
+                        </div>
+                        <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl shrink-0" role="group" aria-label="Zeitraum wählen">
+                            {([7, 30, 90] as StatsRange[]).map(d => (
+                                <button
+                                    key={d}
+                                    type="button"
+                                    onClick={() => setStatsDays(d)}
+                                    aria-pressed={statsDays === d}
+                                    className={d === statsDays
+                                        ? "px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-gray-900 shadow-xs text-gray-900 dark:text-white"
+                                        : "px-3 py-1.5 rounded-lg text-xs font-bold text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"}>
+                                    {d} Tage
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    {pageStatsLoading ? (
+                        <div className="py-12 text-center text-gray-400 text-xs font-bold uppercase tracking-wider">Lade Verlauf…</div>
+                    ) : dailyViews.every(d => d.count === 0) ? (
+                        <div className="text-center py-12 text-gray-400 text-xs italic">
+                            Noch keine Aufrufdaten im Zeitraum. Sobald Nutzer mit Einwilligung Seiten aufrufen, erscheint hier der Verlauf.
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <div className="flex items-end gap-1 h-36 pt-4 px-2 border-b dark:border-gray-800" style={{ minWidth: `${Math.max(dailyViews.length * 14, 280)}px` }}>
+                                {dailyViews.map(d => {
+                                    const pct = (d.count / maxDailyCount) * 100;
+                                    const label = new Date(d.day + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+                                    return (
+                                        <div key={d.day} className="flex-1 flex flex-col items-center gap-1 group relative min-w-[10px]">
+                                            <div
+                                                className="w-full bg-emerald-500/70 group-hover:bg-emerald-500 rounded-t transition-all duration-300 min-h-[2px]"
+                                                style={{ height: `${pct}%` }}
+                                            />
+                                            {(statsDays === 7 || d.count === maxDailyCount) && (
+                                                <span className="text-[9px] text-gray-400 font-mono">{label}</span>
+                                            )}
+                                            <div className="absolute -top-8 bg-gray-900 text-white text-[10px] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-nowrap">
+                                                {d.count} Aufrufe ({label})
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            <div className="flex justify-between text-[10px] text-gray-400 font-bold uppercase px-2 pt-2">
+                                <span>{dailyViews.length > 0 ? new Date(dailyViews[0].day + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}</span>
+                                <span>Heute</span>
+                            </div>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
 
             {/* SECTION 1: BESUCHSZEITEN & GERÄTE-VERTEILUNG */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

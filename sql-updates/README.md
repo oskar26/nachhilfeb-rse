@@ -11,13 +11,14 @@ und löschen keine Daten.
 | 001 | `001_ads_session_format_viewcount.sql` | Neue Spalten `session_format` (Einzel/Kleingruppe/Egal) + `view_count` (Aufrufe) in `ads` |
 | 002 | `002_ad_views.sql` | Neue Tabelle `ad_views` (anonyme Aufruf-Zählung pro Anzeige, ohne IP) |
 | 003 | `003_coaching_tables.sql` | Stellt Coaching-Tabellen sicher (`promo_codes`, `promo_redemptions`, `admin_audit_log`, `app_settings`), entfernt alte Beispiel-Codes aus dem Git-Verlauf |
+| 004 | `004_filter_reports.sql` | Neue Tabelle `filter_overrides` (Filter-Training: freigegebene/geblockte Wörter) + sicherer Umgang mit der `reports`-Tabelle (inkl. evtl. `severity`-Spalte) |
 
 ## So geht's (dauert ca. 2 Minuten)
 
 1. **Einloggen:** ALL-INKL-KAS → **Datenbanken** → bei eurer Datenbank auf **phpMyAdmin** klicken (oder direkt über die phpMyAdmin-Adresse aus der KAS-Datenbankübersicht).
 2. **Datenbank wählen:** Links in der Liste eure Datenbank anklicken (Name steht in `api/db_credentials.php` bzw. als `DB_NAME`-Umgebungsvariable).
 3. **Importieren:** Oben auf den Reiter **„Importieren"** klicken → **„Datei auswählen"** → die Datei `001_...sql` von eurem Rechner wählen → ganz unten auf **„OK"** klicken.
-4. **Erfolgsmeldung** abwarten („Import wurde erfolgreich abgeschlossen") → Schritte 3–4 für `002_...sql` und `003_...sql` wiederholen.
+4. **Erfolgsmeldung** abwarten („Import wurde erfolgreich abgeschlossen") → Schritte 3–4 für `002_...sql`, `003_...sql` und `004_...sql` wiederholen.
 5. **Prüfen (optional):** Links auf die Tabelle `ads` → Reiter **„Struktur"** → dort müssen `session_format` und `view_count` auftauchen.
 
 ## Falls etwas rot wird

@@ -22,6 +22,7 @@ import {
 import { Card } from '../components/ui/Card';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
 
 export default function Landing() {
     const navigate = useNavigate();
@@ -32,6 +33,20 @@ export default function Landing() {
     });
     const [announcements, setAnnouncements] = useState<any[]>([]);
     const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
+    // Live-Kennzahlen für die Willkommensseite (öffentlicher Summary-Endpoint, best-effort)
+    const [liveStats, setLiveStats] = useState<{ active_ads: number; coaches: number; page_views: number } | null>(null);
+
+    useEffect(() => {
+        api.analytics.summary().then(({ data, error }) => {
+            if (!error && data) {
+                setLiveStats({
+                    active_ads: Number((data as any).active_ads) || 0,
+                    coaches: Number((data as any).coaches) || 0,
+                    page_views: Number((data as any).page_views) || 0,
+                });
+            }
+        });
+    }, []);
 
     const toggleInfo = (val: boolean) => {
         setInfoOpen(val);
@@ -54,7 +69,7 @@ export default function Landing() {
                 console.warn('Could not fetch announcements from database, using fallback:', err);
                 setAnnouncements([
                     { id: '1', title: 'SV-Nachhilfebörse v2 ist live!', body: 'Neue Features: Merkliste mit Sammlungen, verbessertes Meldesystem, personalisiertes Matching und vieles mehr!', icon: 'megaphone', created_at: '2026-06-20T12:00:00Z' },
-                    { id: '2', title: 'Neue Fächer verfügbar', body: 'Ab sofort können Angebote und Suchen für die Fächer Chemie und Informatik erstellt werden.', icon: '🧪', created_at: '2026-06-18T12:00:00Z' }
+                    { id: '2', title: 'Neue Fächer verfügbar', body: 'Ab sofort können Angebote und Suchen für die Fächer Chemie und Informatik erstellt werden.', icon: 'flask', created_at: '2026-06-18T12:00:00Z' }
                 ]);
             } finally {
                 setLoadingAnnouncements(false);
@@ -142,6 +157,27 @@ export default function Landing() {
                         {user ? 'Zur Plattform' : 'Jetzt loslegen'}
                     </Button>
                 </motion.div>
+
+                {liveStats && (
+                    <motion.div
+                        className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-10"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.7, delay: 0.4 }}
+                        aria-label="Aktuelle Kennzahlen der Nachhilfebörse"
+                    >
+                        {[
+                            { value: liveStats.active_ads, label: 'Aktive Anzeigen' },
+                            { value: liveStats.coaches, label: 'Schüler-Coaches' },
+                            { value: liveStats.page_views, label: 'Seitenaufrufe' },
+                        ].map(s => (
+                            <div key={s.label} className="px-5 py-3 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm min-w-[7.5rem]">
+                                <div className="text-2xl font-black tabular-nums">{s.value.toLocaleString('de-DE')}</div>
+                                <div className="text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">{s.label}</div>
+                            </div>
+                        ))}
+                    </motion.div>
+                )}
             </section>            {/* Collapsible News & Announcements Section */}
             <section className="px-6 py-4 max-w-4xl mx-auto">
                 <CollapsedNewsWidget />

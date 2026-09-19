@@ -22,6 +22,23 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { cn } from '../../lib/utils';
+import { api } from '../../lib/api';
+
+/** Evidenz einer automatischen Filtermeldung (Profanity 2.0, Quelle 'auto_filter'). */
+interface AutoFilterEvidence {
+    source: string;
+    severity?: string;
+    hits?: string[];
+    excerpt?: string;
+}
+
+function getAutoEvidence(r: { evidence: unknown }): AutoFilterEvidence | null {
+    const ev = r.evidence as AutoFilterEvidence | string[] | null;
+    if (ev && typeof ev === 'object' && !Array.isArray(ev) && (ev as AutoFilterEvidence).source === 'auto_filter') {
+        return ev as AutoFilterEvidence;
+    }
+    return null;
+}
 
 interface Profile {
     id: string;
@@ -67,6 +84,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
     // Filters
     const [filterCategory, setFilterCategory] = useState<string>('all');
     const [filterPriority, setFilterPriority] = useState<string>('all');
+    const [filterSource, setFilterSource] = useState<'all' | 'auto' | 'manual'>('all');
     const [searchQuery, setSearchQuery] = useState('');
     
     // Detail States
@@ -218,10 +236,84 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
         }
     };
 
+    // --- Filter-Review (Profanity 2.0 Training) ---
+    // „Zutreffend": Verstoß bestätigen (lösen als Verwarnung).
+    const handleConfirmViolation = async () => {
+        if (!selectedReport) return;
+        try {
+            const adminId = (await supabase.auth.getUser()).data.user?.id;
+            const { error } = await supabase
+                .from('reports')
+                .update({
+                    status: 'resolved',
+                    resolution_type: 'warn',
+                    resolved_by: adminId,
+                    resolved_at: new Date().toISOString(),
+                    admin_notes: (adminNotes ? adminNotes + '\n' : '') + '[Filter-Review] Treffer bestätigt.',
+                })
+                .eq('id', selectedReport.id);
+            if (error) throw error;
+            toast.success('Filter-Treffer bestätigt (Verwarnung).');
+            fetchReports();
+            setSelectedReport(null);
+            await supabase.from('admin_audit_log').insert({
+                admin_id: adminId,
+                action: 'filter_review_confirm',
+                target_type: 'report',
+                target_id: selectedReport.id,
+                details: {}
+            });
+        } catch (error: any) {
+            toast.error('Aktion fehlgeschlagen: ' + error.message);
+        }
+    };
+
+    // „Fehlalarm": Meldung abweisen UND getroffene Wörter für den Filter freigeben (Training).
+    const handleFalsePositive = async () => {
+        if (!selectedReport) return;
+        const auto = getAutoEvidence(selectedReport);
+        const hits = auto?.hits ?? [];
+        try {
+            for (const word of hits) {
+                try {
+                    await api.moderation.setOverride({ word, effect: 'allow' });
+                } catch {
+                    /* Einzelnes Wort darf den Review nicht abbrechen. */
+                }
+            }
+            const adminId = (await supabase.auth.getUser()).data.user?.id;
+            const { error } = await supabase
+                .from('reports')
+                .update({
+                    status: 'dismissed',
+                    resolution_type: 'dismiss',
+                    resolved_by: adminId,
+                    resolved_at: new Date().toISOString(),
+                    admin_notes: (adminNotes ? adminNotes + '\n' : '') + `[Filter-Review] Fehlalarm – freigegeben: ${hits.join(', ') || '–'}.`,
+                })
+                .eq('id', selectedReport.id);
+            if (error) throw error;
+            toast.success(hits.length > 0 ? `Fehlalarm – ${hits.length} Wort/Wörter für den Filter freigegeben.` : 'Als Fehlalarm abgewiesen.');
+            fetchReports();
+            setSelectedReport(null);
+            await supabase.from('admin_audit_log').insert({
+                admin_id: adminId,
+                action: 'filter_review_false_positive',
+                target_type: 'report',
+                target_id: selectedReport.id,
+                details: { released_words: hits }
+            });
+        } catch (error: any) {
+            toast.error('Aktion fehlgeschlagen: ' + error.message);
+        }
+    };
+
     // Filter Logic
     const filteredReports = reports.filter(r => {
         const matchesCategory = filterCategory === 'all' || r.category === filterCategory;
         const matchesPriority = filterPriority === 'all' || r.priority === filterPriority;
+        const isAuto = getAutoEvidence(r) !== null;
+        const matchesSource = filterSource === 'all' || (filterSource === 'auto' ? isAuto : !isAuto);
         
         const reporterName = r.reporter?.display_name || '';
         const reportedName = r.user?.display_name || r.ad?.short_description || '';
@@ -234,7 +326,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
             descText.toLowerCase().includes(searchQuery.toLowerCase()) ||
             reasonText.toLowerCase().includes(searchQuery.toLowerCase());
 
-        return matchesCategory && matchesPriority && matchesSearch;
+        return matchesCategory && matchesPriority && matchesSource && matchesSearch;
     });
 
     // Grouping for Kanban columns
@@ -282,6 +374,17 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                         <option value="normal">Normal</option>
                         <option value="hoch">Hoch</option>
                         <option value="kritisch">Kritisch</option>
+                    </select>
+
+                    <select
+                        value={filterSource}
+                        onChange={e => setFilterSource(e.target.value as 'all' | 'auto' | 'manual')}
+                        className="h-11 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm focus:outline-none"
+                        title="Quelle der Meldung"
+                    >
+                        <option value="all">Alle Quellen</option>
+                        <option value="auto">Filter-Meldungen (Review)</option>
+                        <option value="manual">Manuelle Meldungen</option>
                     </select>
 
                     <Button onClick={fetchReports} variant="ghost" className="h-11 w-11 p-0 rounded-2xl" title="Aktualisieren">
@@ -457,6 +560,36 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                                 </div>
                             </div>
 
+                            {/* Filter-Treffer (automatische Meldung, Profanity 2.0 Training) */}
+                            {(() => {
+                                const auto = getAutoEvidence(selectedReport);
+                                if (!auto) return null;
+                                return (
+                                    <div className="space-y-2 bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-900/50 p-4 rounded-2xl">
+                                        <span className="text-[10px] font-bold text-violet-500 uppercase tracking-wider block">
+                                            Automatische Filtermeldung • Schwere: {auto.severity ?? '–'}
+                                        </span>
+                                        {auto.hits && auto.hits.length > 0 && (
+                                            <div className="flex gap-1.5 flex-wrap">
+                                                {auto.hits.map((h, i) => (
+                                                    <span key={i} className="px-2.5 py-1 rounded-xl bg-violet-100 dark:bg-violet-900/40 text-violet-800 dark:text-violet-200 text-xs font-mono font-bold">
+                                                        {h}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {auto.excerpt && (
+                                            <div className="bg-white dark:bg-gray-950 p-3 rounded-xl border dark:border-gray-800 text-sm italic text-gray-700 dark:text-gray-300">
+                                                "{auto.excerpt}"
+                                            </div>
+                                        )}
+                                        <p className="text-[11px] text-violet-600 dark:text-violet-300 font-medium">
+                                            Wahr oder falsch? Mit „Zutreffend" bestätigst du den Verstoß, mit „Fehlalarm" wird die Meldung abgewiesen und die getroffenen Wörter werden für den Filter freigegeben (Training).
+                                        </p>
+                                    </div>
+                                );
+                            })()}
+
                             {/* Evidence Screenshots */}
                             {selectedReport.evidence && selectedReport.evidence.length > 0 && (
                                 <div className="space-y-2">
@@ -511,6 +644,23 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                         <div className="p-4 bg-gray-50 dark:bg-gray-800/40 border-t dark:border-gray-800 shrink-0">
                             {selectedReport.status === 'open' ? (
                                 <div className="flex flex-col gap-2">
+                                    {getAutoEvidence(selectedReport) && (
+                                        <div className="flex gap-2">
+                                            <Button
+                                                onClick={handleFalsePositive}
+                                                variant="outline"
+                                                className="flex-1 h-10 text-xs font-bold rounded-xl border-violet-300 text-violet-700 hover:bg-violet-50 dark:border-violet-800 dark:text-violet-300"
+                                            >
+                                                Fehlalarm – Wörter freigeben
+                                            </Button>
+                                            <Button
+                                                onClick={handleConfirmViolation}
+                                                className="flex-1 h-10 text-xs font-bold rounded-xl bg-violet-600 hover:bg-violet-700 text-white"
+                                            >
+                                                Zutreffend – Verstoß bestätigen
+                                            </Button>
+                                        </div>
+                                    )}
                                     <div className="flex gap-2">
                                         <Button
                                             onClick={handleDismiss}

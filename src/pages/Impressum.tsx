@@ -41,6 +41,9 @@ export default function Impressum() {
                             <h2 className="font-bold text-lg mb-2 text-gray-900 dark:text-white">Kontakt</h2>
                             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
                                 E-Mail: <a href="mailto:info@sv-fwg.de" className="font-bold text-primary hover:underline">info@sv-fwg.de</a><br />
+                                Hilfe & Fragen: <a href="mailto:support@nachhilfe-sv.de" className="font-bold text-primary hover:underline">support@nachhilfe-sv.de</a><br />
+                                Meldungen & Moderation: <a href="mailto:sicherheit@nachhilfe-sv.de" className="font-bold text-primary hover:underline">sicherheit@nachhilfe-sv.de</a><br />
+                                Schüler-Coaching: <a href="mailto:coaching@nachhilfe-sv.de" className="font-bold text-primary hover:underline">coaching@nachhilfe-sv.de</a><br />
                                 Technik & Fehlermeldungen: <a href="mailto:technik@nachhilfe-sv.de" className="font-bold text-primary hover:underline">technik@nachhilfe-sv.de</a><br />
                                 Die Nachhilfebörse ist ein nicht-kommerzielles Schülerprojekt der SV.
                                 Ansprechpartner für Inhalte dieser Plattform ist das SV-Team.

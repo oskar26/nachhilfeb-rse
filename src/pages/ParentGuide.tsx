@@ -79,8 +79,9 @@ export default function ParentGuide() {
                             Haben Sie Fragen zur Plattform, zum Förderunterricht oder ein konkretes Anliegen bezüglich des Jugendschutzes?
                         </p>
                         <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                            <p><strong>E-Mail SV-Team (Plattform & Moderation):</strong> <a href="mailto:info@sv-fwg.de" className="font-bold text-primary hover:underline">info@sv-fwg.de</a></p>
-                            <p><strong>Schüler-Coaching AG</strong> (dienstags 13:45–14:30 Uhr, Raum H310): Frau Balistreri, Herr Schulz, Herr Steinberg (über das Schulsekretariat) oder das SV-Team</p>
+                            <p><strong>E-Mail SV-Team (Organisation):</strong> <a href="mailto:info@sv-fwg.de" className="font-bold text-primary hover:underline">info@sv-fwg.de</a></p>
+                            <p><strong>Fragen & Hilfe:</strong> <a href="mailto:support@nachhilfe-sv.de" className="font-bold text-primary hover:underline">support@nachhilfe-sv.de</a></p>
+                            <p><strong>Schüler-Coaching AG</strong> (dienstags 13:45–14:30 Uhr, Raum H310): <a href="mailto:coaching@nachhilfe-sv.de" className="font-bold text-primary hover:underline">coaching@nachhilfe-sv.de</a> (Frau Balistreri, Herr Schulz, Herr Steinberg)</p>
                             <p><strong>Technische Probleme:</strong> <a href="mailto:technik@nachhilfe-sv.de" className="font-bold text-primary hover:underline">technik@nachhilfe-sv.de</a></p>
                             <p className="text-xs">Bitte beachten Sie: Vergütung und Umfang der Nachhilfe vereinbaren Sie direkt mit der Anbieter-Familie – das SV-Team vermittelt nur den Kontakt.</p>
                         </div>

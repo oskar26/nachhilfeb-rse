@@ -53,6 +53,7 @@ function AnalyticsTracker() {
 }
 
 import { NewsPopupModal } from './components/NewsPopupModal';
+import { PushPrompt } from './components/PushPrompt';
 import BannedScreen from './components/BannedScreen';
 
 // Protected Route Component
@@ -150,6 +151,7 @@ function App() {
           </Routes>
           <CookieBanner />
           <NewsPopupModal />
+          <PushPrompt />
         </HashRouter>
       </AuthProvider>
     </ThemeProvider>

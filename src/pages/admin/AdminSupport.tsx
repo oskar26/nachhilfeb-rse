@@ -9,7 +9,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { cn } from '../../lib/utils';
-import { blockedReason } from '../../lib/profanity';
+import { blockedReason, checkContent, loadFilterOverrides, type FilterOverrides } from '../../lib/profanity';
+import { maybeAutoReport } from '../../lib/autoreport';
 
 interface Ticket {
     id: string;
@@ -49,6 +50,12 @@ export default function AdminSupport() {
     const [newReply, setNewReply] = useState('');
     const [sendingReply, setSendingReply] = useState(false);
     const chatEndRef = useRef<HTMLDivElement>(null);
+
+    // Profanity-2.0-Training: Admin-Overrides einmalig laden
+    const [filterOverrides, setFilterOverrides] = useState<FilterOverrides>({ allow: [], block: [] });
+    useEffect(() => {
+        loadFilterOverrides().then(setFilterOverrides).catch(() => {});
+    }, []);
 
     useEffect(() => {
         fetchTickets();
@@ -115,9 +122,10 @@ export default function AdminSupport() {
 
     const handleSendReply = async () => {
         if (!newReply.trim() || !activeTicket) return;
-        const blockMsg = blockedReason(newReply);
-        if (blockMsg) {
-            toast.error(blockMsg, { duration: 6000 });
+        const replyCheck = checkContent(newReply, filterOverrides);
+        if (replyCheck.blocked) {
+            toast.error(blockedReason(newReply, filterOverrides) ?? 'Diese Nachricht wurde vom Inhaltsfilter blockiert.', { duration: 6000 });
+            void maybeAutoReport(replyCheck, newReply, { category: 'sonstiges', place: 'Support-Antwort (SV)' });
             return;
         }
         setSendingReply(true);

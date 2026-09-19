@@ -9,7 +9,8 @@ import { toast } from 'react-hot-toast';
 import { cn } from '../lib/utils';
 import ReportWizard from '../components/ReportWizard';
 import { downloadICSFile } from '../lib/calendar';
-import { blockedReason } from '../lib/profanity';
+import { blockedReason, checkContent, loadFilterOverrides, type FilterOverrides } from '../lib/profanity';
+import { maybeAutoReport } from '../lib/autoreport';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/Dialog';
 
 interface Message {
@@ -44,6 +45,12 @@ export default function Chat() {
     // Report/Block state
     const [reportOpen, setReportOpen] = useState(false);
     const [otherUserId, setOtherUserId] = useState<string | null>(null);
+
+    // Profanity-2.0-Training: Admin-Overrides einmalig laden
+    const [filterOverrides, setFilterOverrides] = useState<FilterOverrides>({ allow: [], block: [] });
+    useEffect(() => {
+        loadFilterOverrides().then(setFilterOverrides).catch(() => {});
+    }, []);
 
     // Appointment booking state
     const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
@@ -156,9 +163,10 @@ export default function Chat() {
         e.preventDefault();
         if (!newMessage.trim() || !user || !requestId) return;
 
-        const hit = blockedReason(newMessage);
-        if (hit) {
-            toast.error(hit, { duration: 6000 });
+        const check = checkContent(newMessage, filterOverrides);
+        if (check.blocked) {
+            toast.error(blockedReason(newMessage, filterOverrides) ?? 'Diese Nachricht wurde vom Inhaltsfilter blockiert.', { duration: 6000 });
+            void maybeAutoReport(check, newMessage, { category: 'chat', reportedUserId: user.id, place: 'Chat' });
             return;
         }
 
@@ -213,9 +221,10 @@ export default function Chat() {
         const trimmed = editContent.trim();
         if (!trimmed) return;
 
-        const hit = blockedReason(trimmed);
-        if (hit) {
-            toast.error(hit, { duration: 6000 });
+        const editCheck = checkContent(trimmed, filterOverrides);
+        if (editCheck.blocked) {
+            toast.error(blockedReason(trimmed, filterOverrides) ?? 'Diese Nachricht wurde vom Inhaltsfilter blockiert.', { duration: 6000 });
+            void maybeAutoReport(editCheck, trimmed, { category: 'chat', reportedUserId: user?.id ?? null, place: 'Chat (Bearbeitung)' });
             return;
         }
 

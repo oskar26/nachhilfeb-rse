@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { apiRequest } from './api';
 
@@ -22,15 +22,39 @@ function getBrowserName(): string {
     return 'Other';
 }
 
+// Dynamische Routen-Segmente (IDs) normalisieren, damit die Statistik
+// Seiten gruppiert statt tausender Einzel-URLs („/ad/:id“ wie beim Hoster).
+function normalizePath(raw: string): string {
+    let path = raw.split('?')[0].split('#')[0] || '/';
+    if (!path.startsWith('/')) path = '/' + path;
+    path = path
+        .replace(/^\/ad\/[^/]+/i, '/ad/:id')
+        .replace(/^\/chat\/[^/]+/i, '/chat/:id')
+        .replace(/^\/profile\/[^/]+/i, '/profile/:id')
+        .replace(/^\/user\/[^/]+/i, '/user/:id');
+    return path.length > 255 ? path.slice(0, 255) : path;
+}
+
 export function useAnalyticsTracker() {
     const location = useLocation();
+    const lastTracked = useRef<string>('');
 
     useEffect(() => {
         const consent = localStorage.getItem('cookie_consent');
-        // Strictly only track if user accepted cookies
+        // Nur bei ausdrücklicher Zustimmung zählen („accepted“, nicht „essential_only“)
         if (consent !== 'accepted') return;
 
-        const path = location.pathname;
+        // HashRouter-sicher: React Router liefert den Pfad bereits geparst,
+        // Fallback auf window.location.hash für volle Hash-Pfade.
+        const raw = location.pathname && location.pathname !== '/'
+            ? location.pathname + location.search
+            : window.location.hash.replace(/^#/, '') || '/';
+        const path = normalizePath(raw);
+
+        // Doppel-Hits (StrictMode, schnelle Re-Renders) vermeiden
+        if (path === lastTracked.current) return;
+        lastTracked.current = path;
+
         const device_type = getDeviceType();
         const browser = getBrowserName();
 
@@ -43,5 +67,5 @@ export function useAnalyticsTracker() {
                 console.debug('[Analytics Tracker] error:', error.message);
             }
         });
-    }, [location.pathname]);
+    }, [location.pathname, location.search, location.hash]);
 }

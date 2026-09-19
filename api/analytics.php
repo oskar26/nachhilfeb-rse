@@ -50,15 +50,20 @@ if ($action === 'track' && $method === 'POST') {
 }
 
 // ------------------------------------------------------------------------------
-// 2. STATS (nur SV-Admin)
+// 2. STATS (nur SV-Admin) – ?days=7|30|90 (Default 30)
 // ------------------------------------------------------------------------------
 if ($action === 'stats' && $method === 'GET') {
     require_admin();
 
+    $days = (int)($_GET['days'] ?? 30);
+    if (!in_array($days, [7, 30, 90], true)) {
+        $days = 30;
+    }
+
     $byPath = $pdo->query("
         SELECT path, COUNT(*) as views
         FROM page_analytics
-        WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        WHERE created_at >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
         GROUP BY path
         ORDER BY views DESC
         LIMIT 50
@@ -67,21 +72,21 @@ if ($action === 'stats' && $method === 'GET') {
     $byDevice = $pdo->query("
         SELECT device_type, COUNT(*) as views
         FROM page_analytics
-        WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        WHERE created_at >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
         GROUP BY device_type
     ")->fetchAll();
 
     $byBrowser = $pdo->query("
         SELECT browser, COUNT(*) as views
         FROM page_analytics
-        WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        WHERE created_at >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
         GROUP BY browser
     ")->fetchAll();
 
     $byDay = $pdo->query("
         SELECT DATE(created_at) as day, COUNT(*) as views
         FROM page_analytics
-        WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        WHERE created_at >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
         GROUP BY DATE(created_at)
         ORDER BY day ASC
     ")->fetchAll();
@@ -89,19 +94,51 @@ if ($action === 'stats' && $method === 'GET') {
     $byHour = $pdo->query("
         SELECT HOUR(created_at) as hour, COUNT(*) as views
         FROM page_analytics
-        WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        WHERE created_at >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
         GROUP BY HOUR(created_at)
     ")->fetchAll();
 
     $total = $pdo->query('SELECT COUNT(*) FROM page_analytics')->fetchColumn();
 
+    // Eindeutige eingeloggte Besucher im Zeitraum (anonyme Hits zählen als 1 Gruppe dazu)
+    $uniques = $pdo->query("
+        SELECT COUNT(DISTINCT user_id) as logged_in,
+               SUM(user_id IS NULL) as anonymous_hits
+        FROM page_analytics
+        WHERE created_at >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
+    ")->fetch();
+
     json_response([
         'total_views' => (int)$total,
+        'days' => $days,
+        'unique_logged_in' => (int)($uniques['logged_in'] ?? 0),
+        'anonymous_hits' => (int)($uniques['anonymous_hits'] ?? 0),
         'by_path' => $byPath,
         'by_device' => $byDevice,
         'by_browser' => $byBrowser,
         'by_day' => $byDay,
         'by_hour' => $byHour,
+    ]);
+}
+
+// ------------------------------------------------------------------------------
+// 3. SUMMARY (öffentlich – nur nicht-personenbezogene Kennzahlen für Startseite)
+// ------------------------------------------------------------------------------
+if ($action === 'summary' && $method === 'GET') {
+    $ads = (int)$pdo->query('SELECT COUNT(*) FROM ads WHERE is_active = 1 AND is_archived = 0')->fetchColumn();
+    $coaches = 0;
+    try {
+        $coaches = (int)$pdo->query('SELECT COUNT(*) FROM profiles WHERE is_coach = 1')->fetchColumn();
+    } catch (Exception $e) {}
+    $views = 0;
+    try {
+        $views = (int)$pdo->query('SELECT COUNT(*) FROM page_analytics')->fetchColumn();
+    } catch (Exception $e) {}
+
+    json_response([
+        'active_ads' => $ads,
+        'coaches' => $coaches,
+        'page_views' => $views,
     ]);
 }
 
