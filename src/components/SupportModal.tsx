@@ -179,6 +179,28 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
 
     const handleSendMessage = async () => {
         if (!newMessage.trim() || !activeTicket || !user) return;
+        // Direkt-Chat-Fallback: Falls das Ticket nur lokal existiert (tmp-*),
+        // erst das echte Ticket vom Server holen – sonst schlägt der FK-Check fehl.
+        let ticketId = activeTicket.id;
+        if (ticketId.startsWith('tmp-')) {
+            try {
+                const { data } = await supabase
+                    .from('support_tickets')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false });
+                const real = (data?.[0] as SupportTicket | undefined) ?? null;
+                if (!real) {
+                    toast.error('Chat konnte nicht angelegt werden. Bitte schließe das Fenster und versuche es erneut.');
+                    return;
+                }
+                setActiveTicket(real);
+                ticketId = real.id;
+            } catch {
+                toast.error('Chat konnte nicht angelegt werden. Bitte versuche es erneut.');
+                return;
+            }
+        }
         const msgCheck = checkContent(newMessage, filterOverrides);
         if (msgCheck.blocked) {
             toast.error(blockedReason(newMessage, filterOverrides) ?? 'Diese Nachricht wurde vom Inhaltsfilter blockiert.', { duration: 6000 });
@@ -187,7 +209,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
         }
         try {
             const { error } = await supabase.from('support_messages').insert({
-                ticket_id: activeTicket.id,
+                ticket_id: ticketId,
                 sender_id: user.id,
                 content: newMessage.trim(),
                 is_admin_reply: false,
@@ -197,7 +219,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
 
             triggerHaptic('light');
             setNewMessage('');
-            fetchMessages(activeTicket.id);
+            fetchMessages(ticketId);
         } catch {
             toast.error('Nachricht konnte nicht gesendet werden.');
         }
@@ -611,7 +633,11 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                     )}
                 </motion.div>
             </motion.div>
-            <ReportWizard isOpen={showReportWizard} onClose={() => setShowReportWizard(false)} />
+            {/* Melde-Dialog bewusst ÜBER dem Support-Overlay (eigener Stacking-Context),
+                sonst liegt der Dialog (z-50) unter dem Modal-Backdrop (z-100). */}
+            <div className="relative z-[200]">
+                <ReportWizard isOpen={showReportWizard} onClose={() => setShowReportWizard(false)} />
+            </div>
         </AnimatePresence>,
         document.body
     );

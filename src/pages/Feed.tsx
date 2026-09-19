@@ -839,9 +839,9 @@ export default function Feed() {
                                     ? "bg-yellow-50/60 dark:bg-yellow-900/10"
                                     : "bg-gray-50/50 dark:bg-gray-800/50"
                             )}>
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <h3 className="font-bold text-lg">{ad.profiles?.display_name || 'Unbekannt'}</h3>
+                                <div className="min-w-0">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <h3 className="font-bold text-lg truncate">{ad.profiles?.display_name || 'Unbekannt'}</h3>
                                         {ad.profiles?.is_verified && (
                                             <span className="bg-green-100 text-green-700 text-[10px] px-1.5 py-0.5 rounded-full border border-green-200">Verifiziert</span>
                                         )}
@@ -884,7 +884,7 @@ export default function Feed() {
                                 "p-3 text-xs text-gray-400 flex justify-between items-center",
                                 boosted ? "bg-yellow-50/40 dark:bg-yellow-900/5" : "bg-gray-50 dark:bg-gray-900/40"
                             )}>
-                                <div className="flex gap-3">
+                                <div className="flex flex-wrap gap-x-3 gap-y-1 min-w-0">
                                     {ad.locations && ad.locations[0] && (
                                         <span className="flex items-center gap-1"><MapPin size={12} /> {ad.locations[0]} {ad.locations.length > 1 ? `+${ad.locations.length - 1}` : ''}</span>
                                     )}
