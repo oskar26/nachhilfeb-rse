@@ -165,7 +165,17 @@ export const api = {
             setStoredToken(null);
             setStoredUser(null);
             return Promise.resolve({ data: { success: true }, error: null });
-        }
+        },
+    },
+
+    // Server-Selbsttest (öffentlich lesbar, enthält keine Secrets)
+    health: {
+        async status() {
+            return apiRequest('/health.php');
+        },
+        async testmail() {
+            return apiRequest('/health.php?action=testmail', { method: 'POST' });
+        },
     },
 
     // Anzeigen

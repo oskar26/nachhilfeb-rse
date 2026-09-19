@@ -661,7 +661,8 @@ export const supabase = {
             return {
                 data: {
                     user: res.data.user,
-                    session
+                    session,
+                    mailSent: (res.data as any)?.mail_sent !== false
                 },
                 error: null
             };

@@ -149,9 +149,10 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $pdo->commit();
 
-        // 4. Willkommens-E-Mail versenden
+        // 4. Willkommens-E-Mail versenden (best-effort: Fehlschlag blockiert die Registrierung nicht)
+        $mailSent = false;
         try {
-            send_email_welcome($email, $firstName, $finalRole);
+            $mailSent = (bool)send_email_welcome($email, $firstName, $finalRole);
         } catch (Exception $e) {
             error_log('Fehler beim Versenden der Willkommens-Mail: ' . $e->getMessage());
         }
@@ -178,7 +179,8 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 'id' => $userId,
                 'email' => $email
             ],
-            'profile' => $profile
+            'profile' => $profile,
+            'mail_sent' => $mailSent
         ], 201);
 
     } catch (Exception $e) {

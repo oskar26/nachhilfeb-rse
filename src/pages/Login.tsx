@@ -154,10 +154,11 @@ export default function Login() {
             if (error) {
                 console.error('Login Fehler:', error);
                 incrementAttempts();
-                if (error.message.includes("Invalid login credentials")) {
+                const msg = error.message || '';
+                if (error.status === 401 || msg.includes("Invalid login credentials") || msg.includes("Ungültige Zugangsdaten")) {
                     setError("Ungültige Zugangsdaten. E-Mail oder Passwort falsch.");
                 } else {
-                    setError("Beim Login ist ein unerwarteter Fehler aufgetreten: " + error.message);
+                    setError("Beim Login ist ein unerwarteter Fehler aufgetreten: " + msg);
                 }
             } else {
                 clearAttempts();
@@ -263,6 +264,9 @@ export default function Login() {
                     setMode('login');
                 } else {
                     toast.success("Registrierung erfolgreich!");
+                    if ((signUpData as any).mailSent === false) {
+                        toast("Hinweis: Die Willkommens-E-Mail konnte nicht versendet werden. Falls du keine E-Mails erhältst, melde dich bei info@sv-fwg.de.", { duration: 8000 });
+                    }
                     navigate('/');
                 }
             } else {
