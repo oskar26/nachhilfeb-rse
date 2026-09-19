@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -95,9 +96,10 @@ export default function NotificationCenter({ onCountChange }: Props) {
     const buttonRef = useRef<HTMLButtonElement>(null);
 
     // ── Fetch ──────────────────────────────────────────────────────
-    const fetchNotifications = useCallback(async () => {
+    // silent=true: kein Spinner-Flash, Liste bleibt stehen (gegen Flackern)
+    const fetchNotifications = useCallback(async (silent = false) => {
         if (!user) return;
-        setLoading(true);
+        if (!silent) setLoading(true);
         try {
             const { data, error } = await supabase
                 .from('notifications')
@@ -129,7 +131,7 @@ export default function NotificationCenter({ onCountChange }: Props) {
     }, [user, onCountChange]);
 
     useEffect(() => {
-        fetchNotifications();
+        fetchNotifications(false);
     }, [fetchNotifications]);
 
     // ── Realtime subscription ──────────────────────────────────────
@@ -141,7 +143,7 @@ export default function NotificationCenter({ onCountChange }: Props) {
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
-                () => { fetchNotifications(); }
+                () => { fetchNotifications(true); }
             )
             .subscribe();
 
@@ -165,7 +167,10 @@ export default function NotificationCenter({ onCountChange }: Props) {
 
     const toggleOpen = () => {
         triggerHaptic('light');
-        setOpen(o => !o);
+        const willOpen = !open;
+        setOpen(willOpen);
+        // Beim Öffnen still aktualisieren (kein Spinner-Flash)
+        if (willOpen) fetchNotifications(true);
     };
 
     // ── Mark all as read ───────────────────────────────────────────
@@ -217,20 +222,21 @@ export default function NotificationCenter({ onCountChange }: Props) {
                 )}
             </motion.button>
 
-            {/* Dropdown panel */}
+            {/* Dropdown panel (Portal: immun gegen backdrop-blur/overflow der Header) */}
+            {typeof document !== 'undefined' && createPortal(
             <AnimatePresence>
                 {open && (
                     <motion.div
                         ref={panelRef}
-                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                        initial={{ opacity: 0, scale: 0.97, y: 8 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 8 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 28 }}
+                        exit={{ opacity: 0, scale: 0.97, y: 6 }}
+                        transition={{ type: 'tween', duration: 0.16, ease: 'easeOut' }}
                         className={cn(
-                            // Mobile: fixed below header bar
+                            // Mobile: volle Breite unter der Header-Leiste
                             'fixed left-3 right-3 top-[4.5rem]',
-                            // Desktop: absolute positioning anchored smoothly
-                            'md:absolute md:left-auto md:-right-2 md:top-12 md:w-84 md:max-w-sm',
+                            // Desktop: rechts angedockt mit echter Breite
+                            'md:left-auto md:right-6 md:top-[4.5rem] md:w-[380px]',
                             'max-h-[70vh] md:max-h-[520px] overflow-hidden',
                             'bg-white/95 dark:bg-gray-900/95 backdrop-blur-2xl',
                             'rounded-3xl shadow-2xl border border-gray-200/80 dark:border-gray-800',
@@ -321,7 +327,9 @@ export default function NotificationCenter({ onCountChange }: Props) {
                         </div>
                     </motion.div>
                 )}
-            </AnimatePresence>
+            </AnimatePresence>,
+            document.body
+            )}
         </div>
     );
 }

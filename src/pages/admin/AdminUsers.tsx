@@ -16,6 +16,7 @@ import {
     RefreshCw,
     UserMinus,
     Check,
+    Trash2,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { cn } from '../../lib/utils';
@@ -64,7 +65,7 @@ export default function AdminUsers() {
     const [banType, setBanType] = useState<'temporary' | 'permanent'>('permanent');
     const [banDurationDays, setBanDurationDays] = useState('7');
     const [confirmAction, setConfirmAction] = useState<{
-        type: 'role' | 'verify' | 'unban';
+        type: 'role' | 'verify' | 'unban' | 'delete';
         user: Profile;
         title: string;
         message: string;
@@ -213,6 +214,11 @@ export default function AdminUsers() {
                 if (error) throw error;
 
                 toast.success(`Rolle geändert zu ${newRole}`);
+            } else if (type === 'delete') {
+                const { error } = await api.admin.deleteUser(user.id);
+                if (error) throw error;
+
+                toast.success(`Nutzer ${user.display_name || 'Unbekannt'} endgültig gelöscht`);
             }
 
             setConfirmAction(null);
@@ -500,6 +506,20 @@ export default function AdminUsers() {
                                                             <Ban size={14} />
                                                         </Button>
                                                     )}
+                                                    <Button
+                                                        size="icon"
+                                                        variant="ghost"
+                                                        className="h-9 w-9 rounded-xl text-red-600 hover:bg-red-100 dark:hover:bg-red-950/40"
+                                                        onClick={() => setConfirmAction({
+                                                            type: 'delete',
+                                                            user: u,
+                                                            title: 'Nutzer endgültig löschen?',
+                                                            message: `Der Account von ${u.display_name || 'diesem Nutzer'} wird mit ALLEN Anzeigen, Nachrichten und Bewertungen unwiderruflich gelöscht (DSGVO-Löschung). Nur im Audit-Protokoll bleibt eine Spur. Fortfahren?`
+                                                        })}
+                                                        title="Nutzer endgültig löschen"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </Button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -552,6 +572,12 @@ export default function AdminUsers() {
                                 ) : (
                                     <Button size="sm" variant="outline" className="h-8 rounded-xl flex-1 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 border-red-100" onClick={() => setBanUserObj(u)}>Sperren</Button>
                                 )}
+                                <Button size="sm" variant="outline" className="h-8 w-10 rounded-xl text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 border-red-200 px-0" onClick={() => setConfirmAction({
+                                    type: 'delete',
+                                    user: u,
+                                    title: 'Nutzer endgültig löschen?',
+                                    message: `Der Account von ${u.display_name || 'diesem Nutzer'} wird mit ALLEN Anzeigen, Nachrichten und Bewertungen unwiderruflich gelöscht (DSGVO-Löschung). Nur im Audit-Protokoll bleibt eine Spur. Fortfahren?`
+                                })} title="Nutzer endgültig löschen"><Trash2 size={14} /></Button>
                             </div>
                         </div>
                     ))}
@@ -703,12 +729,12 @@ export default function AdminUsers() {
             <Dialog open={!!confirmAction} onOpenChange={() => setConfirmAction(null)}>
                 <DialogContent className="rounded-3xl max-w-md">
                     <DialogHeader>
-                        <DialogTitle>{confirmAction?.title}</DialogTitle>
+                        <DialogTitle className={cn(confirmAction?.type === 'delete' && "text-red-600")}>{confirmAction?.title}</DialogTitle>
                         <DialogDescription>{confirmAction?.message}</DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
                         <Button variant="ghost" onClick={() => setConfirmAction(null)} className="rounded-xl">Abbrechen</Button>
-                        <Button onClick={executeConfirmedAction} className="rounded-xl bg-primary text-black font-bold">Ausführen</Button>
+                        <Button onClick={executeConfirmedAction} className={cn("rounded-xl font-bold", confirmAction?.type === 'delete' ? "bg-red-600 hover:bg-red-700 text-white" : "bg-primary text-black")}>{confirmAction?.type === 'delete' ? 'Endgültig löschen' : 'Ausführen'}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

@@ -23,8 +23,8 @@ import {
 } from 'lucide-react';
 
 const NAV_ITEMS = [
-    { label: 'Codes & Verifikation', value: 'codes', icon: Key },
     { label: 'Übersicht', value: 'overview', icon: LayoutDashboard },
+    { label: 'Codes & Verifikation', value: 'codes', icon: Key },
     { label: 'Support & Feedback', value: 'support', icon: LifeBuoy },
     { label: 'Nutzer', value: 'users', icon: Users },
     { label: 'Anzeigen', value: 'ads', icon: FileText },
@@ -58,10 +58,10 @@ export default function AdminLayout() {
     const [openTickets, setOpenTickets] = useState(0);
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    // Determine active tab from hash or query param - Defaults to 'codes' as first item
+    // Determine active tab from hash or query param - Defaults to 'overview' as first item
     const hash = location.hash.replace('#', '');
     const params = new URLSearchParams(location.search);
-    const activeTab = params.get('tab') || hash || 'codes';
+    const activeTab = params.get('tab') || hash || 'overview';
 
     useEffect(() => {
         if (!isAdmin) {

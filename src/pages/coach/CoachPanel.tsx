@@ -118,6 +118,7 @@ export default function CoachPanel() {
                     is_visible: res.data.is_visible !== false
                 });
             }
+            await loadPageTexts();
         } catch (e) {
             console.error('Error loading coach info:', e);
         } finally {
@@ -136,6 +137,43 @@ export default function CoachPanel() {
             toast.error('Speichern fehlgeschlagen: ' + (e.message || 'Fehler'));
         } finally {
             setSavingInfo(false);
+        }
+    };
+
+    // Coaching-Seiten-Texte (/coaching) — alle Abschnitte editierbar
+    const PAGE_SECTIONS = [
+        { key: 'hero', label: 'Seitenkopf (Titel + Einleitung)' },
+        { key: 's_badge', label: 'Was bedeutet das Coach-Abzeichen?' },
+        { key: 's_school', label: 'Das Coaching an unserer Schule' },
+        { key: 's_who', label: 'Wer kann Coach werden?' },
+        { key: 's_boost', label: 'Warum stehen manche Anzeigen oben?' },
+        { key: 's_fair', label: 'Gleiche Chancen für alle' },
+        { key: 's_conduct', label: 'Verhalten als Coach' },
+        { key: 's_revoke', label: 'Entzug des Status & Widerspruch' },
+    ];
+    const [pageForm, setPageForm] = useState<Record<string, string>>({});
+    const [savingPage, setSavingPage] = useState(false);
+
+    const loadPageTexts = async () => {
+        try {
+            const res = await api.coach.getCoachingPage();
+            if (res.data && typeof res.data === 'object') setPageForm(res.data);
+        } catch (e) {
+            console.error('Error loading coaching page texts:', e);
+        }
+    };
+
+    const handleSavePage = async (e: React.FormEvent) => {
+        e.preventDefault();
+        triggerHaptic('medium');
+        setSavingPage(true);
+        try {
+            await api.coach.updateCoachingPage(pageForm);
+            toast.success('Coaching-Seiten-Texte erfolgreich aktualisiert!');
+        } catch (e: any) {
+            toast.error('Speichern fehlgeschlagen: ' + (e.message || 'Fehler'));
+        } finally {
+            setSavingPage(false);
         }
     };
 
@@ -537,6 +575,61 @@ export default function CoachPanel() {
                                 </div>
                             </form>
                         )}
+
+                        <div className="pt-4 mt-2 border-t border-gray-100 dark:border-gray-800 space-y-1">
+                            <h3 className="text-lg font-black text-gray-900 dark:text-white">
+                                Texte der Coaching-Seite bearbeiten
+                            </h3>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                Jeder Abschnitt der öffentlichen <span className="font-bold">/coaching-Seite</span> lässt sich hier anpassen.
+                                Leerzeile = neuer Absatz, Zeilen mit • werden zu Aufzählungen. Die Adresse fwg-koeln.de wird automatisch verlinkt.
+                            </p>
+                        </div>
+
+                        <form onSubmit={handleSavePage} className="space-y-4">
+                            {PAGE_SECTIONS.map(sec => {
+                                const bodyKey = sec.key === 'hero' ? 'hero_subtitle' : `${sec.key}_body`;
+                                return (
+                                <div key={sec.key} className="p-4 rounded-2xl border border-gray-200 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-800/30 space-y-2.5">
+                                    <h4 className="text-sm font-black text-gray-900 dark:text-white">{sec.label}</h4>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[11px] font-bold uppercase text-gray-500 ml-1">Überschrift</label>
+                                        <Input
+                                            value={pageForm[`${sec.key}_title`] ?? ''}
+                                            onChange={e => setPageForm({ ...pageForm, [`${sec.key}_title`]: e.target.value })}
+                                            className="rounded-xl font-bold"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[11px] font-bold uppercase text-gray-500 ml-1">Text</label>
+                                        <textarea
+                                            value={pageForm[bodyKey] ?? ''}
+                                            onChange={e => setPageForm({ ...pageForm, [bodyKey]: e.target.value })}
+                                            rows={5}
+                                            className="w-full p-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                        />
+                                    </div>
+                                </div>
+                                );
+                            })}
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold uppercase text-gray-500 ml-1">Kontaktzeile (unten auf der Seite)</label>
+                                <Input
+                                    value={pageForm.contact_text ?? ''}
+                                    onChange={e => setPageForm({ ...pageForm, contact_text: e.target.value })}
+                                    className="rounded-xl"
+                                />
+                            </div>
+                            <div className="pt-2 flex justify-end">
+                                <Button
+                                    type="submit"
+                                    disabled={savingPage}
+                                    className="bg-amber-400 hover:bg-amber-500 text-amber-950 font-black rounded-xl px-6 shadow-md cursor-pointer"
+                                >
+                                    {savingPage ? 'Speichern...' : 'Seiten-Texte speichern'}
+                                </Button>
+                            </div>
+                        </form>
                         </CardContent>
                     </Card>
                 </div>

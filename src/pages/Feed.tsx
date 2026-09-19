@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
 import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/Card';
 import { SubjectChip, SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
-import { GraduationCap, MapPin, Clock, Filter, Search, CalendarDays, ShieldCheck, ChevronDown, ChevronUp, Share2, Sparkles, Bookmark, X, SearchX, Award, Users } from 'lucide-react';
+import { GraduationCap, MapPin, Clock, Filter, Search, CalendarDays, ShieldCheck, ChevronDown, ChevronUp, Share2, Sparkles, Bookmark, X, SearchX, Award, Users, ArrowUpDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
@@ -25,10 +25,11 @@ interface Ad {
     subjects: Subject[];
     grade_levels: string[];
     locations: string[];
-    price_details: { mode?: string; value?: string | number } | null;
+    price_details: { mode?: string; value?: string | number; unit?: string } | null;
     duration_minutes?: number[];
     session_format?: 'single' | 'group' | 'any' | string;
     view_count?: number;
+    favorite_count?: number;
     short_description: string;
     is_active: boolean;
     created_at: string;
@@ -39,9 +40,45 @@ interface Ad {
 }
 
 const PRICE_SLIDER_MIN = 0;
-const PRICE_SLIDER_MAX = 100;
+const PRICE_SLIDER_MAX = 30;
 const SAVED_SEARCH_KEY = 'fwg_saved_search';
 const GRADE_VALUES = ['5', '6', '7', '8', '9', '10', 'EF', 'Q1', 'Q2'];
+
+type SortKey = 'newest' | 'oldest' | 'cheapest' | 'priciest' | 'popular' | 'saved';
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+    { value: 'newest', label: 'Neueste zuerst' },
+    { value: 'oldest', label: 'Älteste zuerst' },
+    { value: 'cheapest', label: 'Günstigste zuerst' },
+    { value: 'priciest', label: 'Teuerste zuerst' },
+    { value: 'popular', label: 'Beliebteste zuerst' },
+    { value: 'saved', label: 'Meistgespeichertste zuerst' },
+];
+const SORT_KEYS: SortKey[] = ['newest', 'oldest', 'cheapest', 'priciest', 'popular', 'saved'];
+
+function isValidSortKey(value: unknown): value is SortKey {
+    return typeof value === 'string' && (SORT_KEYS as string[]).includes(value);
+}
+
+/** Normiert den Preis einer Anzeige auf Euro pro Stunde (60 Min). free → 0, vb/unbekannt → null. */
+function getHourlyRate(ad: Ad): number | null {
+    const mode = ad.price_details?.mode;
+    if (mode === 'free') return 0;
+    if (mode !== 'fixed') return null;
+    const val = Number(ad.price_details?.value);
+    if (!Number.isFinite(val) || val < 0) return null;
+    const unit = ad.price_details?.unit;
+    const minutes = unit === '45min' ? 45 : unit === '90min' ? 90 : 60;
+    return Math.round(((val / minutes) * 60) * 100) / 100;
+}
+
+function formatHourlyRate(ad: Ad): string {
+    const mode = ad.price_details?.mode;
+    if (mode === 'free') return 'Kostenlos';
+    if (mode === 'vb') return 'VB';
+    const hourly = getHourlyRate(ad);
+    if (hourly === null) return 'Preis auf Anfrage';
+    return `${Number.isInteger(hourly) ? hourly : hourly.toFixed(2).replace('.', ',')}€/h`;
+}
 
 interface SavedSearch {
     query: string;
@@ -52,6 +89,7 @@ interface SavedSearch {
     maxPrice: number;
     onlyCoaches: boolean;
     filterByTime: boolean;
+    sortKey: SortKey;
 }
 
 const FILTER_DEFAULTS = {
@@ -63,6 +101,7 @@ const FILTER_DEFAULTS = {
     maxPrice: PRICE_SLIDER_MAX,
     onlyCoaches: false,
     filterByTime: false,
+    sortKey: 'newest' as SortKey,
 };
 
 function isValidSubject(value: unknown): value is Subject {
@@ -97,6 +136,7 @@ function loadSavedSearch(): SavedSearch | null {
             maxPrice: record.maxPrice,
             onlyCoaches: record.onlyCoaches,
             filterByTime: record.filterByTime,
+            sortKey: isValidSortKey(record.sortKey) ? record.sortKey : 'newest',
         };
     } catch {
         return null;
@@ -177,6 +217,7 @@ export default function Feed() {
     const [minPrice, setMinPrice] = useState(PRICE_SLIDER_MIN);
     const [maxPrice, setMaxPrice] = useState(PRICE_SLIDER_MAX);
     const [filterOnlyCoaches, setFilterOnlyCoaches] = useState(false);
+    const [sortKey, setSortKey] = useState<SortKey>('newest');
 
     const [loadAttempt, setLoadAttempt] = useState(0);
 
@@ -225,7 +266,8 @@ export default function Feed() {
         filterType !== 'all' ||
         minPrice !== PRICE_SLIDER_MIN ||
         maxPrice !== PRICE_SLIDER_MAX ||
-        filterOnlyCoaches || filterByTime
+        filterOnlyCoaches || filterByTime ||
+        sortKey !== 'newest'
     );
 
     const resetAllFilters = () => {
@@ -237,6 +279,7 @@ export default function Feed() {
         setMaxPrice(FILTER_DEFAULTS.maxPrice);
         setFilterOnlyCoaches(FILTER_DEFAULTS.onlyCoaches);
         setFilterByTime(FILTER_DEFAULTS.filterByTime);
+        setSortKey(FILTER_DEFAULTS.sortKey);
     };
 
     const applySavedSearch = () => {
@@ -249,6 +292,7 @@ export default function Feed() {
         setMaxPrice(savedSearch.maxPrice);
         setFilterOnlyCoaches(savedSearch.onlyCoaches);
         setFilterByTime(savedSearch.filterByTime);
+        setSortKey(savedSearch.sortKey);
         triggerHaptic('light');
         toast.success('Gespeicherte Suche angewendet.');
     };
@@ -274,6 +318,7 @@ export default function Feed() {
             maxPrice,
             onlyCoaches: filterOnlyCoaches,
             filterByTime,
+            sortKey,
         };
         try {
             localStorage.setItem(SAVED_SEARCH_KEY, JSON.stringify(entry));
@@ -305,13 +350,11 @@ export default function Feed() {
             const hasMatch = filterGrade.some(g => ad.grade_levels.includes(g));
             if (!hasMatch) return false;
         }
-        // Price
-        if (ad.price_details?.mode === 'fixed') {
-            const val = Number(ad.price_details.value);
-            if (val < minPrice || val > maxPrice) return false;
+        // Preis (normiert auf Euro pro Stunde; VB passiert immer, da Preis unbekannt)
+        const hourly = getHourlyRate(ad);
+        if (hourly !== null) {
+            if (hourly < minPrice || hourly > maxPrice) return false;
         }
-        // Free logic (included if minPrice is 0)
-        if (ad.price_details?.mode === 'free' && minPrice > 0) return false;
 
         // Coach filter
         if (filterOnlyCoaches && !ad.profiles?.is_coach) return false;
@@ -323,7 +366,7 @@ export default function Feed() {
         return Boolean(ad?.boosted && ad?.boosted_until && new Date(ad.boosted_until) > new Date());
     };
 
-    // Sort: Boosted ads always on top, then matching score or created date.
+    // Sort: Boosted ads always on top, then the selected sort order.
     // Ranking-Vorteil für Coaches (bewusst & offengelegt, siehe /coaching):
     // Anzeigen verifizierter Coaches (is_coach) erhalten +0.5 Matching-Punkte
     // bzw. +24h Frische-Bonus – als Anerkennung fürs Ehrenamt. Kein Kauf möglich.
@@ -336,6 +379,28 @@ export default function Feed() {
 
         const aCoach = Boolean(a.profiles?.is_coach);
         const bCoach = Boolean(b.profiles?.is_coach);
+
+        switch (sortKey) {
+            case 'oldest':
+                return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+            case 'cheapest':
+            case 'priciest': {
+                // Unbekannte Preise (VB) ans Ende sortieren
+                const pa = getHourlyRate(a);
+                const pb = getHourlyRate(b);
+                if (pa === null && pb === null) break;
+                if (pa === null) return 1;
+                if (pb === null) return -1;
+                return sortKey === 'cheapest' ? pa - pb : pb - pa;
+            }
+            case 'popular':
+                return (b.view_count || 0) - (a.view_count || 0);
+            case 'saved':
+                return (b.favorite_count || 0) - (a.favorite_count || 0);
+            case 'newest':
+            default:
+                break;
+        }
 
         if (filterByTime) {
             const scoreA = countMatches(myAvailability, a.profiles_avail || emptyAvailability()) + (aCoach ? 0.5 : 0);
@@ -452,6 +517,20 @@ export default function Feed() {
                                 ? 'Ergebnisse konnten nicht geladen werden'
                                 : `${sortedAds.length} ${sortedAds.length === 1 ? 'Anzeige' : 'Anzeigen'}`}
                     </p>
+                    <label className="flex items-center gap-1.5 text-xs font-bold text-gray-500 dark:text-gray-400 shrink-0">
+                        <ArrowUpDown size={13} className="shrink-0" />
+                        <span className="sr-only">Sortierung</span>
+                        <select
+                            value={sortKey}
+                            onChange={e => { if (isValidSortKey(e.target.value)) { setSortKey(e.target.value); triggerHaptic('selection'); } }}
+                            className="bg-gray-100 dark:bg-gray-800 rounded-full px-2.5 py-1 text-xs font-bold text-gray-700 dark:text-gray-200 border border-transparent focus:border-primary focus:outline-none cursor-pointer max-w-[11rem] truncate"
+                            aria-label="Anzeigen sortieren"
+                        >
+                            {SORT_OPTIONS.map(o => (
+                                <option key={o.value} value={o.value}>{o.label}</option>
+                            ))}
+                        </select>
+                    </label>
                     {hasActiveFilters && !loading && (
                         <button
                             type="button"
@@ -483,8 +562,11 @@ export default function Feed() {
                                         <button onClick={() => { triggerHaptic('selection'); setFilterType('search'); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${filterType === 'search' ? 'bg-blue-500 text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>Gesuche</button>
                                     </div>
                                 </div>
-                                <div>
-                                    <label className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-2 block">Preis (€)</label>
+                                <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 px-3.5 pt-2.5 pb-8">
+                                    <div className="flex items-baseline justify-between mb-1">
+                                        <label className="text-xs font-extrabold uppercase tracking-wider text-gray-400">Preis pro Stunde</label>
+                                        <span className="text-xs font-bold text-gray-600 dark:text-gray-300">{minPrice}€ – {maxPrice}€</span>
+                                    </div>
                                     <PriceRangeSlider
                                         min={PRICE_SLIDER_MIN}
                                         max={PRICE_SLIDER_MAX}
@@ -559,7 +641,7 @@ export default function Feed() {
                         >
                             <X size={15} />
                         </button>
-                        </div>
+                    </div>
                 </div>
             )}
 
@@ -702,7 +784,7 @@ export default function Feed() {
                 {loading ? (
                     <div className="text-center py-20 text-gray-500 animate-pulse">Lade Anzeigen...</div>
                 ) : fetchError ? (
-                    <div className="flex flex-col items-center justify-center p-12 text-center bg-white dark:bg-gray-900 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm mt-8">
+                    <div className="flex flex-col items-center justify-center p-6 sm:p-12 text-center bg-white dark:bg-gray-900 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm mt-8 min-w-0 overflow-hidden">
                         <div className="w-24 h-24 mb-6 rounded-full bg-red-50 dark:bg-red-950/30 flex items-center justify-center">
                             <SearchX size={40} className="text-red-400 dark:text-red-500" />
                         </div>
@@ -711,7 +793,7 @@ export default function Feed() {
                         <Button onClick={() => fetchAds()} className="rounded-full shadow-md">Erneut versuchen</Button>
                     </div>
                 ) : sortedAds.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center p-12 text-center bg-white dark:bg-gray-900 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm mt-8">
+                    <div className="flex flex-col items-center justify-center p-6 sm:p-12 text-center bg-white dark:bg-gray-900 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm mt-8 min-w-0 overflow-hidden">
                         <div className="w-24 h-24 mb-6 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
                             <Search size={40} className="text-gray-400 dark:text-gray-500" />
                         </div>
@@ -781,7 +863,7 @@ export default function Feed() {
                                             ? "bg-yellow-50 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700 text-yellow-800 dark:text-yellow-300"
                                             : "bg-white dark:bg-gray-700 border-gray-100 dark:border-gray-600"
                                     )}>
-                                        {ad.price_details?.mode === 'free' ? 'Kostenlos' : (ad.price_details?.mode === 'vb' ? 'VB' : (ad.price_details?.value !== null && ad.price_details?.value !== undefined && ad.price_details.value !== '' ? `${ad.price_details.value}€` : 'Preis auf Anfrage'))}
+                                        {formatHourlyRate(ad)}
                                     </div>
                                     {filterByTime && matchScore > 0 && (
                                         <div className="flex items-center gap-1 text-[10px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded-full">

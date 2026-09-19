@@ -243,7 +243,64 @@ if ($action === 'set_role' && $method === 'POST') {
 }
 
 // ------------------------------------------------------------------------------
-// 6. AUDIT-LOG LISTE (für AdminAuditLog-Frontend, paginiert)
+// 6. NUTZER ENDGÜLTIG LÖSCHEN (DSGVO-Löschung, mit Audit-Spur)
+// ------------------------------------------------------------------------------
+if ($action === 'delete_user' && $method === 'POST') {
+    $data = get_json_input();
+    $targetId = $data['user_id'] ?? null;
+
+    if (!$targetId) {
+        json_error('user_id erforderlich.');
+    }
+    if ($targetId === $admin['id']) {
+        json_error('Du kannst dich nicht selbst löschen.', 400);
+    }
+
+    $check = $pdo->prepare('SELECT id, display_name, email, role FROM profiles WHERE id = ?');
+    $check->execute([$targetId]);
+    $target = $check->fetch();
+    if (!$target) {
+        json_error('Nutzer nicht gefunden.', 404);
+    }
+    // SV-Admins nicht per Löschen entfernen (erst Rolle entziehen) — verhindert
+    // versehentlichen Totalverlust des Admin-Zugangs.
+    if ($target['role'] === 'sv_admin') {
+        json_error('SV-Admins können nicht gelöscht werden. Entziehe zuerst die Admin-Rolle (Rolle ändern).', 400);
+    }
+
+    $pdo->beginTransaction();
+    try {
+        // Tabellen ohne Fremdschlüssel zuerst bereinigen
+        $pdo->prepare('UPDATE promo_codes SET created_by = NULL WHERE created_by = ?')->execute([$targetId]);
+        $pdo->prepare('DELETE FROM promo_redemptions WHERE user_id = ?')->execute([$targetId]);
+
+        // Audit-Spur VOR dem Löschen schreiben (admin_id hat SET NULL, target_id bleibt als Text erhalten)
+        $logId = generate_uuid();
+        $pdo->prepare("
+            INSERT INTO admin_audit_log (id, admin_id, action, target_type, target_id, details)
+            VALUES (?, ?, 'delete_user', 'profile', ?, ?)
+        ")->execute([
+            $logId,
+            $admin['id'],
+            $targetId,
+            json_encode(['display_name' => $target['display_name'], 'email' => $target['email'], 'role' => $target['role']])
+        ]);
+
+        // Löschen aus users kaskadiert: profiles, ads, requests, messages, reviews,
+        // favorites, support, reports, parent_links, notifications, analytics (SET NULL)
+        $pdo->prepare('DELETE FROM users WHERE id = ?')->execute([$targetId]);
+        $pdo->commit();
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        error_log('Admin delete_user failed: ' . $e->getMessage());
+        json_error('Löschen fehlgeschlagen (Server-Fehler).');
+    }
+
+    json_response(['message' => 'Nutzer „' . ($target['display_name'] ?: 'Unbekannt') . '“ endgültig gelöscht (inkl. aller Anzeigen und Nachrichten).']);
+}
+
+// ------------------------------------------------------------------------------
+// 7. AUDIT-LOG LISTE (für AdminAuditLog-Frontend, paginiert)
 // ------------------------------------------------------------------------------
 if ($action === 'auditlog' && $method === 'GET') {
     $limit = max(1, min(100, (int)($_GET['limit'] ?? 50)));

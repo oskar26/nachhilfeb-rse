@@ -62,6 +62,16 @@ try {
         error_log('Invite role migration note: ' . $e->getMessage());
     }
 
+    // Mehrfach-Einlösung: max_uses NULL/1 = einmalig (Legacy-Verhalten über
+    // is_used-Flag), max_uses > 1 = so oft einlösbar (z. B. 2x für Geschwister,
+    // 10x für eine Klasse). current_uses zählt die Einlösungen.
+    try {
+        $pdo->exec('ALTER TABLE invite_codes ADD COLUMN IF NOT EXISTS max_uses INT DEFAULT NULL');
+    } catch (Exception $e) {}
+    try {
+        $pdo->exec('ALTER TABLE invite_codes ADD COLUMN IF NOT EXISTS current_uses INT NOT NULL DEFAULT 0');
+    } catch (Exception $e) {}
+
     // Standard-Codes anlegen, falls noch nicht vorhanden
     $count = $pdo->query("SELECT COUNT(*) FROM promo_codes")->fetchColumn();
     if ($count == 0) {
@@ -150,17 +160,28 @@ if ($action === 'redeem' && $method === 'POST') {
     // Normale Coaches erhalten über AG-Codes lediglich das Coach-Badge (is_coach),
     // keine Admin-Rechte.
 
-    // 1. Zuerst Invite-Codes prüfen
-    $stmt = $pdo->prepare('SELECT * FROM invite_codes WHERE code = ? AND is_used = 0 AND (expires_at IS NULL OR expires_at > NOW())');
+    // 1. Zuerst Invite-Codes prüfen (einmalig via is_used ODER mehrfach via max_uses)
+    $stmt = $pdo->prepare('SELECT * FROM invite_codes WHERE code = ? AND (expires_at IS NULL OR expires_at > NOW())');
     $stmt->execute([$code]);
     $rec = $stmt->fetch();
+
+    // Gültigkeit: einmalige Codes nur unbenutzt, Mehrfach-Codes nur unter Limit
+    $recMax = isset($rec['max_uses']) && $rec['max_uses'] !== null ? (int)$rec['max_uses'] : 1;
+    $recUsed = (int)($rec['current_uses'] ?? 0);
+    $recSpent = !empty($rec['is_used']);
+    if ($rec && ($recMax <= 1 ? $recSpent : $recUsed >= $recMax)) {
+        $rec = false; // aufgebraucht -> wie ungültig behandeln (fällt zu Promo-Prüfung durch)
+    }
 
     if ($rec) {
         $pdo->beginTransaction();
         try {
             $now = date('Y-m-d H:i:s');
-            $pdo->prepare('UPDATE invite_codes SET is_used = 1, used_by = ?, used_at = ? WHERE id = ?')
-                ->execute([$user['id'], $now, $rec['id']]);
+            $newUsed = $recUsed + 1;
+            // Einmalig: is_used setzen. Mehrfach: zählen, is_used erst bei Limit.
+            $spentFlag = ($recMax <= 1 || $newUsed >= $recMax) ? 1 : 0;
+            $pdo->prepare('UPDATE invite_codes SET is_used = ?, current_uses = ?, used_by = ?, used_at = ? WHERE id = ?')
+                ->execute([$spentFlag, $newUsed, $user['id'], $now, $rec['id']]);
 
             $pdo->prepare('UPDATE profiles SET is_verified = 1, role = ? WHERE id = ?')
                 ->execute([$rec['role'], $user['id']]);
@@ -402,6 +423,12 @@ if ($action === 'list' && $method === 'GET') {
         ORDER BY c.created_at DESC
     ');
     $codes = $stmt->fetchAll();
+    foreach ($codes as &$c) {
+        $c['is_used'] = (bool)($c['is_used'] ?? false);
+        $c['max_uses'] = isset($c['max_uses']) && $c['max_uses'] !== null ? (int)$c['max_uses'] : null;
+        $c['current_uses'] = (int)($c['current_uses'] ?? 0);
+    }
+    unset($c);
 
     json_response($codes);
 }
@@ -426,10 +453,16 @@ if ($action === 'generate' && $method === 'POST') {
     $expiryDays = max(1, min(365, (int)($data['expiry_days'] ?? 30)));
     $expiresAt = date('Y-m-d H:i:s', strtotime("+{$expiryDays} days"));
 
+    // Nutzungs-Limit: null = unbegrenzt, sonst 1/2/5/10 (1 = einmalig, Standard)
+    $maxUsesRaw = $data['max_uses'] ?? 1;
+    $maxUses = ($maxUsesRaw === null || $maxUsesRaw === '' || strtolower((string)$maxUsesRaw) === 'unlimited')
+        ? null
+        : max(1, min(100, (int)$maxUsesRaw));
+
     $generated = [];
     $insert = $pdo->prepare('
-        INSERT INTO invite_codes (id, code, created_by, role, is_used, expires_at)
-        VALUES (?, ?, ?, ?, 0, ?)
+        INSERT INTO invite_codes (id, code, created_by, role, is_used, expires_at, max_uses, current_uses)
+        VALUES (?, ?, ?, ?, 0, ?, ?, 0)
     ');
 
     for ($i = 0; $i < $count; $i++) {
@@ -438,16 +471,17 @@ if ($action === 'generate' && $method === 'POST') {
         $code = "{$prefix}-{$randomPart1}-{$randomPart2}";
         $id = generate_uuid();
 
-        $insert->execute([$id, $code, $admin['id'], $role, $expiresAt]);
+        $insert->execute([$id, $code, $admin['id'], $role, $expiresAt, $maxUses]);
         $generated[] = [
             'id' => $id,
             'code' => $code,
             'role' => $role,
             'expires_at' => $expiresAt,
+            'max_uses' => $maxUses,
         ];
     }
 
-    fwg_audit($pdo, $admin['id'], 'invite_codes_generate', 'invite_code', null, ['count' => $count, 'role' => $role, 'expiry_days' => $expiryDays]);
+    fwg_audit($pdo, $admin['id'], 'invite_codes_generate', 'invite_code', null, ['count' => $count, 'role' => $role, 'expiry_days' => $expiryDays, 'max_uses' => $maxUses]);
 
     json_response([
         'message' => "$count Codes erfolgreich generiert.",

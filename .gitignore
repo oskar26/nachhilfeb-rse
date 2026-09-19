@@ -29,3 +29,4 @@ dev-dist
 
 # Credentials & Local Config
 api/db_credentials.php
+db_credentials.php

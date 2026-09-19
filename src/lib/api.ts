@@ -358,10 +358,10 @@ export const api = {
             return apiRequest('/codes.php?action=list');
         },
 
-        async generate(count: number, role: string, prefix?: string, expiry_days?: number) {
+        async generate(count: number, role: string, prefix?: string, expiry_days?: number, max_uses?: number | null) {
             return apiRequest('/codes.php?action=generate', {
                 method: 'POST',
-                body: JSON.stringify({ count, role, prefix, expiry_days })
+                body: JSON.stringify({ count, role, prefix, expiry_days, max_uses })
             });
         },
 
@@ -445,6 +445,17 @@ export const api = {
 
         async updateCoachInfo(data: { title: string; description: string; time: string; room: string; is_visible?: boolean }) {
             return apiRequest('/profiles.php?action=coach_info', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+        },
+
+        async getCoachingPage() {
+            return apiRequest('/profiles.php?action=coaching_page');
+        },
+
+        async updateCoachingPage(data: Record<string, string>) {
+            return apiRequest('/profiles.php?action=coaching_page', {
                 method: 'POST',
                 body: JSON.stringify(data)
             });
@@ -563,6 +574,13 @@ export const api = {
             return apiRequest('/admin.php?action=set_role', {
                 method: 'POST',
                 body: JSON.stringify({ user_id: userId, role })
+            });
+        },
+
+        async deleteUser(userId: string) {
+            return apiRequest('/admin.php?action=delete_user', {
+                method: 'POST',
+                body: JSON.stringify({ user_id: userId })
             });
         },
 

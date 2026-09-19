@@ -220,6 +220,90 @@ if ($action === 'coach_info' && ($method === 'POST' || $method === 'PUT')) {
 }
 
 // ------------------------------------------------------------------------------
+// 2b. COACHING-SEITEN-TEXTE (öffentlich lesen, NUR COACH-ADMIN/SV-ADMIN schreiben)
+// Alle Texte der /coaching-Seite, editierbar über das Coach-Panel (Tab Info).
+// ------------------------------------------------------------------------------
+function fwg_coaching_page_defaults() {
+    return [
+        'hero_title' => 'Schüler-Coaching am FWG',
+        'hero_subtitle' => "Große helfen Kleinen: Geschulte Schülerinnen und Schüler ab Klasse 8 unterstützen die Klassen 5 und 6 beim Ankommen am Friedrich-Wilhelms-Gymnasium Köln – ehrenamtlich, pädagogisch begleitet und für alle nach denselben fairen Regeln.",
+        's_badge_title' => 'Was bedeutet das Coach-Abzeichen?',
+        's_badge_body' => "Das goldene Coach-Badge auf Profilen und Anzeigen zeigt: Diese Person ist aktives Mitglied der Schüler-Coaching AG, wurde von der AG-Leitung geschult und vom SV-Team verifiziert.\n\nDas Badge steht für Vertrauenswürdigkeit als Person – nicht für Erfolgsgarantien und nicht für kostenlose Nachhilfe. Preise und Absprachen bleiben Sache der Beteiligten (siehe Nutzungsbedingungen).",
+        's_school_title' => 'Das Coaching an unserer Schule',
+        's_school_body' => "Das Schüler-Coaching ist ein schulisches Angebot des FWG: Jede Woche dienstags von 13:45–14:30 Uhr in Raum H310 helfen geschulte Schülerinnen und Schüler der 8. Klassen den 5. und 6. Klassen – bei einzelnen Fächern oder der Lern- und Arbeitsorganisation allgemein. Die Coaches werden jeweils vor den Herbstferien geschult und engagieren sich ehrenamtlich bis zum Ende des Schuljahres. Dieses Angebot wird in der Regel sehr gerne angenommen, da die Coaches einen guten Blick auf die Probleme der jüngeren Schülerinnen und Schüler haben.\n\nMehr dazu auf der Schul-Website: fwg-koeln.de/lebendige-schule/foerdern-und-fordern/coaching. Diese Nachhilfebörse der SV ergänzt das Angebot: Hier finden alle Jahrgangsstufen individuelle Nachhilfe – die Coaches der AG sind dabei besonders sichtbar, damit man sie leicht findet.",
+        's_who_title' => 'Wer kann Coach werden?',
+        's_who_body' => "• Schülerin oder Schüler des FWG ab Klasse 8\n• Teilnahme an der Coach-Schulung der AG-Leitung (findet jeweils vor den Herbstferien statt)\n• Zuverlässigkeit und respektvoller Umgang – auch auf der Plattform\n• Verifizierter Account auf der Nachhilfebörse\n\nInteressiert? Wende dich an Frau Balistreri oder sprich das SV-Team im SV-Raum an. Die Aufnahme erfolgt nach Schulung über einen persönlichen Coaching-Code – für alle mit denselben Kriterien.",
+        's_boost_title' => 'Warum stehen manche Anzeigen oben?',
+        's_boost_body' => "Anzeigen mit dem Hinweis „Hervorgehoben“ erhalten eine bessere Platzierung und eine gelbe Markierung. Das passiert ausschließlich in zwei Fällen:\n\n• Coach-Status: Nach Einlösen eines Coaching-Codes werden Anzeigen des Coaches für 30 Tage hervorgehoben.\n• SV-Aktionen: Zeitlich begrenzte Hinweise des SV-Teams (z. B. zum Schuljahresstart).\n\nSichtbarkeit ist bei uns nicht käuflich: Es gibt keine bezahlten Boosts und keine Werbung. Zusätzlich erhalten Coach-Anzeigen einen kleinen, öffentlich dokumentierten Ranking-Vorteil (etwa +24 Stunden Aktualität bzw. leicht bessere Match-Einordnung) – bewusst als Anerkennung für das Ehrenamt der Coaches, für alle Coaches gleich und nur solange der Coach-Status aktiv ist. Versteckte Bevorzugungen gibt es nicht: Alles steht auf dieser Seite.",
+        's_fair_title' => 'Gleiche Chancen für alle',
+        's_fair_body' => "• Jede Schülerin und jeder Schüler kann kostenlos Anzeigen erstellen – mit oder ohne Badge.\n• Der Filter „Nur Coaches“ hilft beim Finden geprüfter Coaches, blendet aber niemanden aus: Alle Anzeigen bleiben für alle sichtbar.\n• Codes sind personenbezogen und begrenzt (in der Regel einmalig einlösbar) und werden nur nach Schulung vergeben – nicht auf Zuruf oder gegen Gegenleistung.\n• Die Vergabe von Codes und Coach-Status wird protokolliert und kann vom SV-Team geprüft werden.\n• Der kleine Ranking-Vorteil für Coaches steht öffentlich auf dieser Seite – es gibt keine versteckten Bevorzugungen.",
+        's_conduct_title' => 'Verhalten als Coach',
+        's_conduct_body' => "• Respektvoller, geduldiger Umgang – besonders mit jüngeren Schülern\n• Keine falschen Versprechen (z. B. garantierte Notenverbesserung)\n• Treffen möglichst in der Schule (z. B. Bibliothek, Mensa); private Treffen nur mit Wissen der Eltern\n• Bei Problemen: frühzeitig die AG-Leitung oder das SV-Team ansprechen",
+        's_revoke_title' => 'Entzug des Status & Widerspruch',
+        's_revoke_body' => "Bei Verstößen gegen diese Regeln oder die Nutzungsbedingungen (z. B. unzuverlässiges Verhalten, Missbrauch des Badges, unangemessene Inhalte) kann die AG-Leitung oder das SV-Team den Coach-Status entziehen – mit kurzer Begründung direkt in der App oder per E-Mail.\n\nDagegen kannst du Widerspruch einlegen: Schreibe an info@nachhilfe-sv.de oder komme im SV-Raum vorbei. Das SV-Team prüft jeden Fall erneut.",
+        'contact_text' => 'AG-Leitung: Frau Balistreri · SV-Lehrer: Herr Schulz, Herr Steinberg',
+    ];
+}
+
+if ($action === 'coaching_page' && $method === 'GET') {
+    $page = fwg_coaching_page_defaults();
+    try {
+        $stmt = $pdo->prepare('SELECT setting_value FROM app_settings WHERE setting_key = "coaching_page"');
+        $stmt->execute();
+        $row = $stmt->fetch();
+        if ($row && !empty($row['setting_value'])) {
+            $val = json_decode($row['setting_value'], true);
+            if (is_array($val)) {
+                foreach ($page as $k => $v) {
+                    if (isset($val[$k]) && is_string($val[$k]) && $val[$k] !== '') {
+                        $page[$k] = $val[$k];
+                    }
+                }
+            }
+        }
+    } catch (Exception $e) {}
+    json_response($page);
+}
+
+if ($action === 'coaching_page' && ($method === 'POST' || $method === 'PUT')) {
+    $currentUser = require_coach_or_admin();
+    $data = get_json_input();
+    $defaults = fwg_coaching_page_defaults();
+    $page = [];
+    foreach ($defaults as $k => $v) {
+        $raw = trim((string)($data[$k] ?? ''));
+        if ($raw === '') {
+            $raw = $v;
+        }
+        $isTitle = (bool)preg_match('/(_title|^hero_title|contact_text)$/', $k);
+        $page[$k] = mb_substr($raw, 0, $isTitle ? 200 : 8000);
+    }
+    $jsonVal = json_encode($page, JSON_UNESCAPED_UNICODE);
+    $stmt = $pdo->prepare('
+        INSERT INTO app_settings (setting_key, setting_value, updated_at, updated_by)
+        VALUES ("coaching_page", ?, NOW(), ?)
+        ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = NOW(), updated_by = VALUES(updated_by)
+    ');
+    $stmt->execute([$jsonVal, $currentUser['id']]);
+    try {
+        $pdo->prepare('
+            INSERT INTO admin_audit_log (id, admin_id, action, target_type, target_id, details)
+            VALUES (?, ?, "coach_page_update", "setting", "coaching_page", ?)
+        ')->execute([
+            generate_uuid(),
+            $currentUser['id'],
+            json_encode([
+                'editor_name' => $currentUser['display_name'] ?: $currentUser['email'],
+                'editor_role' => $currentUser['role']
+            ], JSON_UNESCAPED_UNICODE)
+        ]);
+    } catch (Exception $e) {
+        error_log('Audit log error on coach_page_update: ' . $e->getMessage());
+    }
+    json_response(['message' => 'Coaching-Seiten-Texte erfolgreich aktualisiert.', 'page' => $page]);
+}
+
+// ------------------------------------------------------------------------------
 // 3. PUT / PATCH: PROFIL AKTUALISIEREN
 // ------------------------------------------------------------------------------
 if ($method === 'PUT' || $method === 'PATCH') {

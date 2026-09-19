@@ -25,6 +25,8 @@ interface InviteCode {
     code: string;
     is_used: boolean;
     role: 'student' | 'sv_admin' | 'coach_admin' | 'parent';
+    max_uses: number | null;
+    current_uses: number;
     created_at: string;
     expires_at: string | null;
     used_by: string | null;
@@ -50,7 +52,7 @@ interface PromoCode {
 }
 
 export default function AdminCodes() {
-    const [activeTab, setActiveTab] = useState<'invite' | 'promo'>('promo');
+    const [activeTab, setActiveTab] = useState<'invite' | 'promo'>('invite');
     
     // Invite Codes State
     const [inviteCodes, setInviteCodes] = useState<InviteCode[]>([]);
@@ -59,6 +61,7 @@ export default function AdminCodes() {
     const [generateRole, setGenerateRole] = useState<'student' | 'sv_admin' | 'coach_admin' | 'parent'>('student');
     const [batchSize, setBatchSize] = useState<number>(1);
     const [inviteExpiryDays, setInviteExpiryDays] = useState<string>('14');
+    const [inviteMaxUses, setInviteMaxUses] = useState<string>('1');
     const [generatedInviteCodes, setGeneratedInviteCodes] = useState<{ code: string; role: string; expires_at?: string }[]>([]);
     const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
 
@@ -176,7 +179,8 @@ export default function AdminCodes() {
         try {
             // Echte serverseitige Generierung (kryptografisch sichere Codes via
             // random_bytes, mit Ablaufdatum + Audit-Log) – siehe codes.php.
-            const res = await api.codes.generate(batchSize, generateRole, undefined, parseInt(inviteExpiryDays) || 14);
+            const maxUses = inviteMaxUses === 'unlimited' ? null : parseInt(inviteMaxUses) || 1;
+            const res = await api.codes.generate(batchSize, generateRole, undefined, parseInt(inviteExpiryDays) || 14, maxUses);
             if (res.error) throw new Error(res.error.message || 'Generierung fehlgeschlagen');
             const codes = res.data?.codes || [];
             setGeneratedInviteCodes(codes);
@@ -291,17 +295,6 @@ export default function AdminCodes() {
             <div className="flex items-center justify-between border-b dark:border-gray-800 pb-3">
                 <div className="flex gap-2">
                     <button
-                        onClick={() => setActiveTab('promo')}
-                        className={cn(
-                            "flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all",
-                            activeTab === 'promo'
-                                ? "bg-amber-500 text-black shadow-md shadow-amber-500/20"
-                                : "bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-gray-900 dark:hover:text-gray-200"
-                        )}
-                    >
-                        <Zap size={16} /> Aktions- & Promo-Codes
-                    </button>
-                    <button
                         onClick={() => setActiveTab('invite')}
                         className={cn(
                             "flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all",
@@ -311,6 +304,17 @@ export default function AdminCodes() {
                         )}
                     >
                         <Key size={16} /> Registrierungs-Einladungen
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('promo')}
+                        className={cn(
+                            "flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all",
+                            activeTab === 'promo'
+                                ? "bg-amber-500 text-black shadow-md shadow-amber-500/20"
+                                : "bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-gray-900 dark:hover:text-gray-200"
+                        )}
+                    >
+                        <Zap size={16} /> Aktions- & Promo-Codes
                     </button>
                 </div>
             </div>
@@ -683,7 +687,7 @@ export default function AdminCodes() {
                                     Neue Registrierungscodes generieren
                                 </h2>
                                 
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-bold uppercase text-gray-400">Rolle</label>
                                         <select
@@ -713,6 +717,22 @@ export default function AdminCodes() {
                                     </div>
 
                                     <div className="space-y-1">
+                                        <label className="text-[10px] font-bold uppercase text-gray-400">Einlösungen</label>
+                                        <select
+                                            value={inviteMaxUses}
+                                            onChange={e => setInviteMaxUses(e.target.value)}
+                                            className="w-full mt-1 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 text-sm focus:outline-none"
+                                            title="Wie oft kann jeder Code eingelöst werden?"
+                                        >
+                                            <option value="1">1× einlösbar</option>
+                                            <option value="2">2× einlösbar</option>
+                                            <option value="5">5× einlösbar</option>
+                                            <option value="10">10× einlösbar</option>
+                                            <option value="unlimited">Unbegrenzt</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="space-y-1">
                                         <label className="text-[10px] font-bold uppercase text-gray-400">Gültigkeit</label>
                                         <select
                                             value={inviteExpiryDays}
@@ -726,7 +746,7 @@ export default function AdminCodes() {
                                         </select>
                                     </div>
 
-                                    <div className="flex items-end">
+                                    <div className="md:col-span-2">
                                         <Button
                                             onClick={generateInviteCodes}
                                             disabled={generatingInvite}
@@ -749,7 +769,9 @@ export default function AdminCodes() {
                                     Neue Codes – jetzt per E-Mail/Chat verschicken
                                 </h2>
                                 <p className="text-xs text-green-700 dark:text-green-300">
-                                    Jeder Code ist <strong>einmalig einlösbar</strong> und läuft automatisch ab.
+                                    {inviteMaxUses === 'unlimited'
+                                        ? 'Jeder Code ist unbegrenzt einlösbar'
+                                        : `Jeder Code ist ${inviteMaxUses}× einlösbar`} und läuft automatisch ab.
                                     Einlösen: bei der Registrierung im Feld „Einladungscode“ oder in den Einstellungen unter „SV-Code einlösen“.
                                 </p>
                                 <div className="space-y-2">
@@ -799,6 +821,7 @@ export default function AdminCodes() {
                                             <tr>
                                                 <th className="px-6 py-3.5">Code</th>
                                                 <th className="px-6 py-3.5">Rolle</th>
+                                                <th className="px-6 py-3.5">Nutzungen</th>
                                                 <th className="px-6 py-3.5">Ablaufdatum</th>
                                                 <th className="px-6 py-3.5">Status</th>
                                                 <th className="px-6 py-3.5 text-right">Aktionen</th>
@@ -807,6 +830,10 @@ export default function AdminCodes() {
                                         <tbody className="divide-y dark:divide-gray-800">
                                             {inviteCodes.map(c => {
                                                 const isExpired = c.expires_at ? new Date(c.expires_at) < new Date() : false;
+                                                const uses = c.current_uses ?? (c.is_used ? 1 : 0);
+                                                const limit = c.max_uses ?? 1;
+                                                const limitReached = c.max_uses === null ? false : uses >= limit;
+                                                const showDelete = !limitReached && !isExpired;
                                                 return (
                                                     <tr key={c.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
                                                         <td className="px-6 py-4 font-mono font-bold tracking-wider text-gray-900 dark:text-gray-100">
@@ -823,11 +850,18 @@ export default function AdminCodes() {
                                                                  {c.role === 'sv_admin' ? 'Admin' : c.role === 'coach_admin' ? 'Coaching-Admin' : c.role === 'parent' ? 'Elternteil' : 'Schüler'}
                                                             </span>
                                                         </td>
+                                                        <td className="px-6 py-4 font-semibold text-gray-600 dark:text-gray-300">
+                                                            {c.max_uses === null ? `${uses} (unbegrenzt)` : `${uses} / ${limit}`}
+                                                        </td>
                                                         <td className="px-6 py-4 text-gray-500 font-medium">
                                                             {c.expires_at ? new Date(c.expires_at).toLocaleDateString('de-DE') : '--'}
                                                         </td>
                                                         <td className="px-6 py-4">
-                                                            {c.is_used ? (
+                                                            {limitReached ? (
+                                                                <span className="text-gray-500 font-medium">
+                                                                    Aufgebraucht{c.used_by_profile?.display_name ? <> – zuletzt: <span className="font-bold text-gray-800 dark:text-gray-200">{c.used_by_profile.display_name}</span></> : null}
+                                                                </span>
+                                                            ) : c.is_used ? (
                                                                 <span className="text-gray-500 font-medium">
                                                                     Genutzt von <span className="font-bold text-gray-800 dark:text-gray-200">{c.used_by_profile?.display_name || 'User'}</span>
                                                                 </span>
@@ -848,7 +882,7 @@ export default function AdminCodes() {
                                                                 >
                                                                     {copiedCodeId === c.id ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
                                                                 </Button>
-                                                                {!c.is_used && (
+                                                                {!showDelete ? null : (
                                                                     <Button
                                                                         size="icon"
                                                                         variant="ghost"

@@ -50,8 +50,18 @@ export default function PublicProfile() {
         if (prof) {
             setProfile(prof);
 
-            // Set or extract dynamic banner gradient
-            if (prof.banner_color) {
+            // Set or extract dynamic banner gradient (leere/weisse/transparente
+            // Werte fallen auf FWG-Gold zurück, sonst bliebe der Banner unsichtbar)
+            const rawBanner = (prof.banner_color || '').trim().toLowerCase();
+            const isBlankBanner =
+                !rawBanner ||
+                rawBanner === 'transparent' ||
+                rawBanner === '#ffffff' ||
+                rawBanner === '#fff' ||
+                rawBanner === 'white' ||
+                rawBanner === 'rgba(255,255,255,1)' ||
+                rawBanner === 'rgb(255,255,255)';
+            if (!isBlankBanner) {
                 setBannerGradient(prof.banner_color);
             } else if (prof.avatar_url) {
                 extractDominantGradient(prof.avatar_url, prof.id).then(setBannerGradient);

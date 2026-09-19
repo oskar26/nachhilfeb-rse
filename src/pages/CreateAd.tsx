@@ -31,10 +31,11 @@ const SESSION_FORMATS: { value: SessionFormat; title: string; hint: string }[] =
     { value: 'group', title: 'Kleingruppe', hint: '2–4 Schüler' },
     { value: 'any', title: 'Egal', hint: 'Beides möglich' },
 ];
-type LocationPreset = 'Bibliothek' | 'Schule' | 'Mensa' | 'SV-Raum' | 'Glaskasten' | 'Oberes Foyer' | 'Vor der Aula' | 'Unteres Foyer' | 'Schulhof' | 'Online' | 'Bei dir' | 'Bei mir';
+type LocationPreset = 'Bibliothek' | 'Schule' | 'Mensa' | 'SV-Raum' | 'Glaskasten' | 'Oberes Foyer' | 'Vor der Aula' | 'Unteres Foyer' | 'Schulhof' | 'Aula' | 'Pausenhalle' | 'Selbstlernzentrum' | 'Lernbüro' | 'Schulgarten' | 'Stadtbibliothek' | 'Café' | 'Online' | 'Bei dir' | 'Bei mir';
 // Orte sind inhaltlich unverändert (Backend-kompatibel), nur gruppiert dargestellt.
 const LOCATION_GROUPS: { title: string; locations: LocationPreset[] }[] = [
-    { title: 'In der Schule', locations: ['Bibliothek', 'Schule', 'Mensa', 'SV-Raum', 'Glaskasten', 'Oberes Foyer', 'Unteres Foyer', 'Vor der Aula', 'Schulhof'] },
+    { title: 'In der Schule', locations: ['Bibliothek', 'Mensa', 'SV-Raum', 'Glaskasten', 'Oberes Foyer', 'Unteres Foyer', 'Vor der Aula', 'Aula', 'Pausenhalle', 'Selbstlernzentrum', 'Lernbüro', 'Schulhof', 'Schulgarten', 'Schule'] },
+    { title: 'Außerhalb (öffentlich)', locations: ['Stadtbibliothek', 'Café'] },
     { title: 'Online', locations: ['Online'] },
     { title: 'Bei dir oder bei mir', locations: ['Bei dir', 'Bei mir'] },
 ];

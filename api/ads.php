@@ -120,7 +120,8 @@ if ($method === 'GET') {
 
     // Sortierung: Aktive Boosts zuerst, danach neueste
     $sql = "
-        SELECT a.*, 
+        SELECT a.*,
+                (SELECT COUNT(*) FROM favorites f WHERE f.ad_id = a.id) as favorite_count,
                p.display_name, p.first_name, p.last_name, p.avatar_url, p.avatar_type,
                p.banner_color, p.average_rating, p.is_verified, p.is_coach as user_is_coach,
                p.grade_level as user_grade, p.class_letter as user_class,
@@ -159,6 +160,7 @@ if ($method === 'GET') {
         $row['image_urls'] = json_decode($row['image_urls'] ?? '[]', true) ?: [];
         
         $row['is_boosted'] = !empty($row['boosted']) && !empty($row['boosted_until']) && strtotime($row['boosted_until']) > time();
+        $row['favorite_count'] = isset($row['favorite_count']) ? (int)$row['favorite_count'] : 0;
         $userSettings = json_decode($row['user_settings'] ?? '{}', true) ?: [];
         $row['user_settings'] = $userSettings;
 
