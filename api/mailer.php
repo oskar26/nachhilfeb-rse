@@ -28,6 +28,8 @@ function render_email_template(array $params): string {
     $ctaText     = htmlspecialchars($params['cta_text'] ?? 'Zur Nachhilfebörse');
     $ctaUrl      = htmlspecialchars($params['cta_url'] ?? APP_URL);
     $appUrl      = APP_URL;
+    $preheader   = htmlspecialchars(mb_substr($params['preheader'] ?? '', 0, 140));
+    $year        = date('Y');
 
     $quoteSection = '';
     if (!empty($quoteBox)) {
@@ -64,6 +66,7 @@ function render_email_template(array $params): string {
     </style>
 </head>
 <body style='background-color: #F1F5F9; margin: 0; padding: 40px 0;'>
+    " . ($preheader ? "<div style='display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;'>$preheader</div>" : "") . "
     <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%'>
         <tr>
             <td align='center' style='padding: 0 16px;'>
@@ -78,7 +81,7 @@ function render_email_template(array $params): string {
                                     <td style='vertical-align: middle; padding-right: 12px;'>
                                         <!-- Gold Logo Badge -->
                                         <div style='width: 44px; height: 44px; background-color: #0F172A; border-radius: 12px; display: inline-block; text-align: center; line-height: 44px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.1);'>
-                                            <span style='font-size: 22px;'>🦉</span>
+                                            <span style='font-size: 15px; font-weight: 900; color: #FACC15; letter-spacing: -0.5px;'>FWG</span>
                                         </div>
                                     </td>
                                     <td style='vertical-align: middle;'>
@@ -149,7 +152,7 @@ function render_email_template(array $params): string {
                                 FWG Nachhilfebörse – Eine Initiative der Schülervertretung (SV)
                             </div>
                             <div>
-                                Friedrich-Wilhelms-Gymnasium Köln • Severinstraße • 50678 Köln
+                                Friedrich-Wilhelms-Gymnasium Köln • Severinstraße 241 • 50676 Köln
                             </div>
                             <div style='margin-top: 12px;'>
                                 <a href='$appUrl' style='color: #64748B; margin: 0 8px;'>Plattform öffnen</a> • 
@@ -158,7 +161,10 @@ function render_email_template(array $params): string {
                             </div>
                             <div style='margin-top: 12px; font-size: 11px; color: #94A3B8;'>
                                 Du erhältst diese automatische E-Mail zu deinen Aktivitäten auf nachhilfe-sv.de.<br>
-                                Du kannst deine E-Mail-Einstellungen jederzeit in deinem Profil anpassen.
+                                Fragen dazu? Schreib uns an <a href='mailto:info@nachhilfe-sv.de' style='color: #64748B;'>info@nachhilfe-sv.de</a>.
+                            </div>
+                            <div style='margin-top: 8px; font-size: 11px; color: #94A3B8;'>
+                                © $year Schülervertretung · Friedrich-Wilhelms-Gymnasium Köln
                             </div>
                         </td>
                     </tr>
@@ -195,7 +201,8 @@ function send_html_email(string $toEmail, string $subject, string $htmlContent):
         "Content-type: text/html; charset=UTF-8",
         "From: $encodedFromName <$fromEmail>",
         "Reply-To: $replyTo",
-        "X-Mailer: PHP/" . phpversion(),
+        "List-Unsubscribe: <mailto:" . MAIL_REPLY_TO . "?subject=Abmelden>",
+        "X-Mailer: FWG-Nachhilfeboerse",
         "X-Priority: 3"
     ];
 
@@ -224,11 +231,12 @@ function send_email_verification(string $toEmail, string $userName, string $code
     ));
 
     $html = render_email_template([
-        'category' => '✉️ BESTÄTIGUNG',
+        'category' => 'BESTÄTIGUNG',
         'category_bg' => '#FEF9C3', // Gelb
         'category_color' => '#713F12',
         'title' => 'Bestätige deine E-Mail',
         'subtitle' => 'Ein Schritt noch – dann kann es losgehen.',
+        'preheader' => 'Dein Bestätigungs-Code für die FWG Nachhilfebörse.',
         'greeting' => "Hallo $userName,",
         'body_html' => "
             Danke für deine Registrierung bei der FWG Nachhilfebörse! Zum Schutz vor Spam-Accounts musst du deine E-Mail-Adresse kurz bestätigen.<br><br>
@@ -238,7 +246,7 @@ function send_email_verification(string $toEmail, string $userName, string $code
             <em>Falls du dich nicht registriert hast, ignoriere diese E-Mail – es wird kein Konto ohne Code-Bestätigung freigeschaltet.</em>
         ",
         'quote_box' => [
-            'title' => '🔑 Kein Code angekommen?',
+            'title' => 'Kein Code angekommen?',
             'content' => 'Prüfe deinen Spam-Ordner. Auf der Bestätigungs-Seite kannst du dir kostenlos einen neuen Code zuschicken lassen.'
         ],
         'cta_text' => 'Code jetzt eingeben',
@@ -254,30 +262,32 @@ function send_email_verification(string $toEmail, string $userName, string $code
 function send_email_welcome(string $toEmail, string $userName, string $role): bool {
     $roleName = match($role) {
         'sv_admin' => 'SV-Administrator',
+        'coach_admin' => 'Schüler-Coach (AG-Leitung)',
         'parent' => 'Elternteil',
         default => 'Schüler/in'
     };
 
     $html = render_email_template([
-        'category' => '👋 WILLKOMMEN',
+        'category' => 'WILLKOMMEN',
         'category_bg' => '#DCFCE7', // Grün
         'category_color' => '#166534',
         'title' => 'Willkommen an Bord!',
         'subtitle' => 'Dein Konto auf der FWG Nachhilfebörse ist bereit.',
+        'preheader' => 'Dein Konto ist bereit – jetzt Profil vervollständigen und loslegen.',
         'greeting' => "Hallo $userName,",
         'body_html' => "
             Wir freuen uns sehr, dass du Teil der neuen FWG Nachhilfebörse bist!<br><br>
             Dein Account wurde erfolgreich als <strong>$roleName</strong> eingerichtet. Ab sofort kannst du Nachhilfe anbieten, gezielt nach Unterstützung suchen oder dich mit anderen Schülerinnen und Schülern des FWG austauschen.
         ",
         'quote_box' => [
-            'title' => '🚀 Tipp zum Start',
+            'title' => 'Tipp zum Start',
             'content' => 'Vervollständige dein Profil und erstelle direkt dein erstes Nachhilfe-Angebot oder -Gesuch, um schneller gefunden zu werden.'
         ],
         'cta_text' => 'Jetzt loslegen',
         'cta_url' => APP_URL
     ]);
 
-    return send_html_email($toEmail, 'Willkommen bei der FWG Nachhilfebörse! 🦉', $html);
+    return send_html_email($toEmail, 'Willkommen bei der FWG Nachhilfebörse!', $html);
 }
 
 /**
@@ -287,11 +297,12 @@ function send_email_password_reset(string $toEmail, string $userName, string $re
     $resetUrl = APP_URL . "/#/update-password?token=" . urlencode($resetToken);
 
     $html = render_email_template([
-        'category' => '🔐 SICHERHEIT',
+        'category' => 'SICHERHEIT',
         'category_bg' => '#FEE2E2', // Rot
         'category_color' => '#991B1B',
         'title' => 'Passwort zurücksetzen',
         'subtitle' => 'Du hast eine Anfrage zum Zurücksetzen deines Passworts gestellt.',
+        'preheader' => 'Lege in 2 Stunden ein neues Passwort fest.',
         'greeting' => "Hallo $userName,",
         'body_html' => "
             Wir haben eine Anfrage erhalten, das Passwort für dein Konto zurückzusetzen.<br><br>
@@ -315,11 +326,12 @@ function send_email_new_chat_message(string $toEmail, string $recipientName, str
     $senderHtml = fwg_esc($senderName);
 
     $html = render_email_template([
-        'category' => '💬 NEUE NACHRICHT',
+        'category' => 'NEUE NACHRICHT',
         'category_bg' => '#E0E7FF', // Indigo
         'category_color' => '#3730A3',
         'title' => "$senderName hat dir geschrieben",
         'subtitle' => 'Du hast eine neue private Nachricht auf der Nachhilfebörse erhalten.',
+        'preheader' => "$senderName hat dir geschrieben – antworte direkt im Chat.",
         'greeting' => "Hallo $recipientName,",
         'body_html' => "
             Du hast eine neue Nachricht von <strong>$senderHtml</strong> zu eurer Nachhilfe-Absprache erhalten:
@@ -332,7 +344,7 @@ function send_email_new_chat_message(string $toEmail, string $recipientName, str
         'cta_url' => $chatUrl
     ]);
 
-    return send_html_email($toEmail, "Neue Nachricht von $senderName 💬", $html);
+    return send_html_email($toEmail, "Neue Nachricht von $senderName", $html);
 }
 
 /**
@@ -342,11 +354,12 @@ function send_email_new_ad_request(string $toEmail, string $ownerName, string $r
     $requestUrl = APP_URL . "/#/social?tab=requests";
 
     $html = render_email_template([
-        'category' => '🤝 NEUE ANFRAGE',
+        'category' => 'NEUE ANFRAGE',
         'category_bg' => '#FEF08A', // Gelb
         'category_color' => '#854D0E',
         'title' => 'Neues Interesse an deiner Anzeige!',
         'subtitle' => "Jemand möchte Nachhilfe zu: $adTitle",
+        'preheader' => "Jemand interessiert sich für deine Anzeige: $adTitle.",
         'greeting' => "Hallo $ownerName,",
         'body_html' => "
             Gute Neuigkeiten! <strong>" . fwg_esc($requesterName) . "</strong> hat Interesse an deiner Nachhilfe-Anzeige gezeigt und dir eine Kontaktanfrage gesendet.
@@ -359,7 +372,7 @@ function send_email_new_ad_request(string $toEmail, string $ownerName, string $r
         'cta_url' => $requestUrl
     ]);
 
-    return send_html_email($toEmail, "Neues Interesse von $requesterName an deiner Anzeige 🤝", $html);
+    return send_html_email($toEmail, "Neues Interesse von $requesterName an deiner Anzeige", $html);
 }
 
 /**
@@ -369,7 +382,7 @@ function send_email_request_status_update(string $toEmail, string $recipientName
     $isAccepted = ($status === 'accepted');
     $chatUrl = APP_URL . "/#/chat/" . urlencode($requestId);
 
-    $category = $isAccepted ? '✅ ANFRAGE ANGENOMMEN' : 'ℹ️ ANFRAGEN-UPDATE';
+    $category = $isAccepted ? 'ANFRAGE ANGENOMMEN' : 'ANFRAGEN-UPDATE';
     $catBg = $isAccepted ? '#DCFCE7' : '#F1F5F9';
     $catColor = $isAccepted ? '#166534' : '#475569';
     $title = $isAccepted ? "$actorName hat deine Anfrage angenommen!" : "Update zu deiner Nachhilfe-Anfrage";
@@ -389,7 +402,7 @@ function send_email_request_status_update(string $toEmail, string $recipientName
         'cta_url' => $isAccepted ? $chatUrl : (APP_URL . "/#/social?tab=requests")
     ]);
 
-    $subj = $isAccepted ? "Anfrage angenommen von $actorName! 🎉" : "Status-Update zu deiner Nachhilfe-Anfrage";
+    $subj = $isAccepted ? "Anfrage angenommen von $actorName!" : "Status-Update zu deiner Nachhilfe-Anfrage";
     return send_html_email($toEmail, $subj, $html);
 }
 
@@ -397,24 +410,25 @@ function send_email_request_status_update(string $toEmail, string $recipientName
  * 6. Jemand hat deine Anzeige auf die Merkliste gesetzt
  */
 function send_email_ad_favorited(string $toEmail, string $ownerName, string $adTitle): bool {
-    $feedUrl = APP_URL . "/#/feed";
+    $feedUrl = APP_URL . '/#/';
 
     $html = render_email_template([
-        'category' => '⭐ MERKLISTE',
+        'category' => 'MERKLISTE',
         'category_bg' => '#FEF3C7', // Amber
         'category_color' => '#B45309',
         'title' => 'Deine Anzeige wurde gemerkt!',
         'subtitle' => "Beliebt bei anderen Schülern: $adTitle",
+        'preheader' => 'Deine Anzeige weckt Interesse – sieh nach, wer sie gemerkt hat.',
         'greeting' => "Hallo $ownerName,",
         'body_html' => "
             Jemand am FWG hat deine Nachhilfe-Anzeige <strong>„" . fwg_esc($adTitle) . "“</strong> auf die persönliche Merkliste gesetzt!<br><br>
             Deine Anzeige weckt echtes Interesse. Achte in den kommenden Tagen auf neue Kontaktanfragen und Nachrichten in deinem Postfach.
         ",
-        'cta_text' => 'Anzeige & Feed ansehen',
+        'cta_text' => 'Anzeige ansehen',
         'cta_url' => $feedUrl
     ]);
 
-    return send_html_email($toEmail, "Jemand hat deine Anzeige auf die Merkliste gesetzt! ⭐", $html);
+    return send_html_email($toEmail, 'Jemand hat deine Anzeige auf die Merkliste gesetzt', $html);
 }
 
 /**
@@ -424,11 +438,12 @@ function send_email_new_match(string $toEmail, string $userName, string $subject
     $matchesUrl = APP_URL . "/#/social?tab=matches";
 
     $html = render_email_template([
-        'category' => '✨ NEUES MATCH',
+        'category' => 'NEUES MATCH',
         'category_bg' => '#F3E8FF', // Lila
         'category_color' => '#6B21A8',
         'title' => "Neues Match in $subjectName gefunden!",
         'subtitle' => "Match-Score: $matchScore% Übereinstimmung",
+        'preheader' => 'Eine passende Nachhilfe-Anzeige wartet auf dich.',
         'greeting' => "Hallo $userName,",
         'body_html' => "
             Unser automatisches Matching-System hat eine passende Nachhilfe-Anzeige für dich im Fach <strong>" . fwg_esc($subjectName) . "</strong> gefunden!<br><br>
@@ -438,7 +453,7 @@ function send_email_new_match(string $toEmail, string $userName, string $subject
         'cta_url' => $matchesUrl
     ]);
 
-    return send_html_email($toEmail, "Neues Nachhilfe-Match in $subjectName für dich! ✨", $html);
+    return send_html_email($toEmail, "Neues Nachhilfe-Match in $subjectName für dich", $html);
 }
 
 /**
@@ -448,11 +463,12 @@ function send_email_achievement(string $toEmail, string $userName, string $badge
     $profileUrl = APP_URL . "/#/profile";
 
     $html = render_email_template([
-        'category' => '🏆 NEUE ERRUNGENSCHAFT',
+        'category' => 'NEUE ERRUNGENSCHAFT',
         'category_bg' => '#FEF08A', // Gold
         'category_color' => '#854D0E',
         'title' => "Errungenschaft freigeschaltet: $badgeTitle",
         'subtitle' => 'Herzlichen Glückwunsch zu deinem Meilenstein!',
+        'preheader' => 'Du hast ein neues Abzeichen auf der Nachhilfebörse verdient.',
         'greeting' => "Glückwunsch $userName!",
         'body_html' => "
             Du hast auf der FWG Nachhilfebörse eine neue Errungenschaft verdient:<br><br>
@@ -464,7 +480,7 @@ function send_email_achievement(string $toEmail, string $userName, string $badge
         'cta_url' => $profileUrl
     ]);
 
-    return send_html_email($toEmail, "🏆 Neue Errungenschaft freigeschaltet: $badgeTitle!", $html);
+    return send_html_email($toEmail, "Neue Errungenschaft freigeschaltet: $badgeTitle", $html);
 }
 
 /**
@@ -472,18 +488,19 @@ function send_email_achievement(string $toEmail, string $userName, string $badge
  */
 function send_email_announcement(string $toEmail, string $userName, string $title, string $content): bool {
     $html = render_email_template([
-        'category' => '🚀 NEUIGKEITEN',
+        'category' => 'NEUIGKEITEN',
         'category_bg' => '#E0F2FE', // Hellblau
         'category_color' => '#0369A1',
         'title' => $title,
         'subtitle' => 'Neues von der FWG Nachhilfebörse & Schülervertretung',
+        'preheader' => 'Neuigkeiten von deiner Nachhilfebörse.',
         'greeting' => "Hallo $userName,",
         'body_html' => nl2br(htmlspecialchars($content)),
         'cta_text' => 'Jetzt ausprobieren',
         'cta_url' => APP_URL
     ]);
 
-    return send_html_email($toEmail, "Neu bei der FWG Nachhilfebörse: $title 🚀", $html);
+    return send_html_email($toEmail, "Neu bei der FWG Nachhilfebörse: $title", $html);
 }
 
 /**
@@ -491,10 +508,11 @@ function send_email_announcement(string $toEmail, string $userName, string $titl
  */
 function send_email_generic_notification(string $toEmail, string $userName, string $title, string $message, string $ctaText = 'Jetzt ansehen', string $ctaUrl = APP_URL): bool {
     $html = render_email_template([
-        'category' => '🔔 BENACHRICHTIGUNG',
+        'category' => 'BENACHRICHTIGUNG',
         'category_bg' => '#F1F5F9',
         'category_color' => '#334155',
         'title' => $title,
+        'preheader' => 'Es gibt etwas Neues für dich auf der Nachhilfebörse.',
         'greeting' => "Hallo $userName,",
         'body_html' => nl2br(htmlspecialchars($message)),
         'cta_text' => $ctaText,
@@ -509,25 +527,26 @@ function send_email_generic_notification(string $toEmail, string $userName, stri
  */
 function send_email_new_review(string $toEmail, string $userName, string $authorName, float $rating, string $comment, float $newAvg): bool {
     $profileUrl = APP_URL . "/#/profile";
-    $stars = str_repeat('⭐', (int)round($rating));
+    $ratingText = rtrim(rtrim(number_format($rating, 1, ',', ''), '0'), ',') . ' von 5 Sternen';
 
     $html = render_email_template([
-        'category' => '⭐ NEUE BEWERTUNG',
+        'category' => 'NEUE BEWERTUNG',
         'category_bg' => '#FEF08A',
         'category_color' => '#854D0E',
-        'title' => "$authorName hat dir $stars ($rating von 5) gegeben!",
+        'title' => "$authorName hat dir $ratingText gegeben!",
         'subtitle' => "Dein Bewertungsschnitt liegt jetzt bei $newAvg von 5 Sternen.",
+        'preheader' => 'Du hast eine neue Bewertung erhalten.',
         'greeting' => "Hallo $userName,",
         'body_html' => "
             Du hast soeben ein neues Feedback von <strong>" . fwg_esc($authorName) . "</strong> auf der FWG Nachhilfebörse erhalten!
         ",
         'quote_box' => [
-            'title' => "Bewertung von $authorName ($stars)",
+            'title' => "Bewertung von $authorName ($ratingText)",
             'content' => $comment ?: 'Kein schriftlicher Kommentar hinterlassen.'
         ],
         'cta_text' => 'Profil & Bewertungen ansehen',
         'cta_url' => $profileUrl
     ]);
 
-    return send_html_email($toEmail, "Neue Bewertung von $authorName erhalten ($stars) ⭐", $html);
+    return send_html_email($toEmail, "Neue Bewertung von $authorName erhalten ($ratingText)", $html);
 }

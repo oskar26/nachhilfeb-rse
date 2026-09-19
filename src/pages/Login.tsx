@@ -13,12 +13,24 @@ import { Logo, LogoBadge } from '../components/ui/Logo';
 import { cn } from '../lib/utils';
 
 const RATE_LIMIT_KEY = 'fwg_auth_attempts';
-const MAX_ATTEMPTS = 5;
-const COOLDOWN_MS = 15 * 60 * 1000; // 15 Minutes
+// Fairer Schutz vor Passwort-Raten: 8 Fehlversuche innerhalb von 10 Minuten
+// führen zu einer kurzen 5-Minuten-Pause. Server-Fehler und noch nicht
+// bestätigte E-Mails zählen bewusst NICHT mit (siehe handleAuth).
+const MAX_ATTEMPTS = 8;
+const COOLDOWN_MS = 5 * 60 * 1000; // 5 Minuten
+const ATTEMPT_WINDOW_MS = 10 * 60 * 1000; // 10 Minuten
 
 interface RateLimitData {
     attempts: number;
+    firstAttemptAt: number;
     blockedUntil: number;
+}
+
+// Sekunden freundlich anzeigen ("5 Minuten" statt "300 Sekunden")
+function formatWaitTime(totalSeconds: number): string {
+    if (totalSeconds < 60) return `${totalSeconds} Sekunden`;
+    const minutes = Math.ceil(totalSeconds / 60);
+    return minutes === 1 ? '1 Minute' : `${minutes} Minuten`;
 }
 
 export default function Login() {
@@ -97,19 +109,29 @@ export default function Login() {
 
     const incrementAttempts = () => {
         const dataStr = localStorage.getItem(RATE_LIMIT_KEY);
-        let data: RateLimitData = { attempts: 0, blockedUntil: 0 };
-        
+        const now = Date.now();
+        let data: RateLimitData = { attempts: 0, firstAttemptAt: now, blockedUntil: 0 };
+
         if (dataStr) {
-            data = JSON.parse(dataStr);
+            try {
+                data = { firstAttemptAt: now, ...JSON.parse(dataStr) };
+            } catch {
+                // Kaputte Daten verwerfen und neu starten
+            }
+        }
+
+        // Zählfenster abgelaufen? Dann neu starten (alte Vertipper verjähren).
+        if (now - data.firstAttemptAt > ATTEMPT_WINDOW_MS) {
+            data = { attempts: 0, firstAttemptAt: now, blockedUntil: 0 };
         }
 
         data.attempts += 1;
         if (data.attempts >= MAX_ATTEMPTS) {
-            data.blockedUntil = Date.now() + COOLDOWN_MS;
+            data.blockedUntil = now + COOLDOWN_MS;
             setIsBlocked(true);
-            toast.error("Zu viele Fehlversuche. Du wurdest für 15 Minuten gesperrt.");
+            toast.error("Zu viele Fehlversuche. Bitte warte 5 Minuten, dann geht es weiter.");
         }
-        
+
         localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify(data));
     };
 
@@ -122,7 +144,7 @@ export default function Login() {
         e.preventDefault();
 
         if (isBlocked) {
-            toast.error(`Bitte warte noch ${timeLeft} Sekunden.`);
+            toast.error(`Bitte warte noch ${formatWaitTime(timeLeft)}.`);
             return;
         }
         
@@ -153,13 +175,15 @@ export default function Login() {
 
             if (error) {
                 console.error('Login Fehler:', error);
-                incrementAttempts();
                 const msg = error.message || '';
                 const code = (error as any)?.details?.code || (error as any)?.code || '';
                 if (code === 'email_not_verified' || msg.includes("E-Mail-Adresse ist noch nicht bestätigt")) {
                     toast("Deine E-Mail ist noch nicht bestätigt. Bitte gib den Code aus der E-Mail ein.");
                     navigate('/verify-email', { state: { email } });
                 } else if (error.status === 401 || msg.includes("Invalid login credentials") || msg.includes("Ungültige Zugangsdaten")) {
+                    // Nur echte Fehlversuche (falsches Passwort) zählen — keine
+                    // Server-Fehler und keine noch unbestätigten E-Mails.
+                    incrementAttempts();
                     setError("Ungültige Zugangsdaten. E-Mail oder Passwort falsch.");
                 } else {
                     setError("Beim Login ist ein unerwarteter Fehler aufgetreten: " + msg);
@@ -427,7 +451,7 @@ export default function Login() {
                                     <ShieldAlert size={16} className="mt-0.5" />
                                     <div>
                                         <p className="font-bold">Anmeldung vorübergehend gesperrt</p>
-                                        <p>Bitte warte noch {timeLeft} Sekunden, bevor du es erneut versuchst.</p>
+                                        <p>Bitte warte noch {formatWaitTime(timeLeft)}, bevor du es erneut versuchst.</p>
                                     </div>
                                 </div>
                             )}
