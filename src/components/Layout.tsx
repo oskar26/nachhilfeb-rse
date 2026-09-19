@@ -47,10 +47,10 @@ export default function Layout() {
             active = isTabActive(target);
         }
 
-        return `relative flex items-center gap-3 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 dark:focus-visible:ring-yellow-300 ${
+        return `relative flex items-center gap-3 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-900 ${
             active
-                ? 'bg-amber-400/20 text-amber-950 dark:bg-yellow-400/15 dark:text-yellow-200 font-extrabold border-amber-300/40 dark:border-yellow-400/30 shadow-xs'
-                : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-800/60'
+                ? 'bg-primary/15 text-gray-900 dark:bg-primary/15 dark:text-primary border-primary/30 dark:border-primary/25 shadow-sm font-extrabold'
+                : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-800/60'
         }`;
     };
 
@@ -80,7 +80,7 @@ export default function Layout() {
                 Zum Hauptinhalt springen
             </Link>
             {/* Desktop Sidebar */}
-            <aside className="hidden md:flex w-72 flex-col m-4 rounded-3xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl shadow-soft border border-gray-100/80 dark:border-gray-800/80 overflow-visible h-[calc(100vh-2rem)] shrink-0 z-40">
+            <aside className="hidden md:flex w-72 flex-col m-4 rounded-3xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl shadow-soft border border-gray-200/60 dark:border-gray-800/80 overflow-hidden h-[calc(100vh-2rem)] shrink-0 z-40">
                 <div className="p-6 pb-4 flex items-center justify-between relative z-50">
                     <NavLink to="/welcome" onClick={handleNavClick} className="flex items-center gap-3 group">
                         <Logo className="w-9 h-9 text-black dark:text-white shrink-0 transition-transform group-hover:scale-105" />
@@ -97,7 +97,7 @@ export default function Layout() {
                     <div className="h-px bg-gray-100 dark:bg-gray-800/80 w-full" />
                 </div>
 
-                <nav className="flex-1 space-y-1.5 px-4 py-4 overflow-y-auto">
+                <nav className="flex-1 space-y-1.5 px-4 py-4 overflow-y-auto overscroll-contain [scrollbar-width:thin]">
                     <p className="px-4 text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mb-2">Menu</p>
                     <NavLink to="/" end onClick={handleNavClick} className={({ isActive }) => getDesktopNavLinkClass('path', '/', isActive)}>
                         <Home size={20} /> Entdecken
@@ -143,19 +143,19 @@ export default function Layout() {
 
                     {/* Coach Admin Panel (Frau Balistreri & SV) */}
                     {isCoachAdmin && (
-                        <div className="mt-4 p-3 bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/30 rounded-2xl">
-                            <p className="px-2 text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-1.5">Schüler-Coaching</p>
-                            <NavLink to="/coach-panel" onClick={handleNavClick} className={({ isActive }) => `flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-bold transition-all ${isActive ? 'bg-amber-400/20 text-amber-950 font-extrabold' : 'text-amber-900 dark:text-amber-200 hover:bg-amber-100/60 dark:hover:bg-amber-900/40'}`}>
-                                <Award size={18} className="text-amber-600" />
+                        <div className="mt-4 p-3 bg-primary/10 dark:bg-amber-950/20 border border-primary/25 dark:border-amber-900/30 rounded-2xl">
+                            <p className="px-2 text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-[0.08em] mb-1.5">Schüler-Coaching</p>
+                            <NavLink to="/coach-panel" onClick={handleNavClick} className={({ isActive }) => `flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isActive ? 'bg-primary/20 text-gray-900 dark:text-amber-100 font-extrabold' : 'text-amber-800 dark:text-amber-200 hover:bg-primary/10 dark:hover:bg-amber-900/40'}`}>
+                                <Award size={18} className="text-amber-600 dark:text-amber-400 shrink-0" />
                                 <span className="font-bold">Coaching Panel</span>
                             </NavLink>
                         </div>
                     )}
 
                     {isAdmin && (
-                        <div className="mt-4 p-3 bg-red-50/60 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-2xl">
-                            <p className="px-2 text-[10px] font-black text-red-500 uppercase tracking-wider mb-1.5">Admin Area</p>
-                            <NavLink to="/sv-panel" onClick={handleNavClick} className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-100/50 dark:hover:bg-red-900/40 transition-all">
+                        <div className="mt-4 p-3 bg-red-50/60 dark:bg-red-950/20 border border-red-200/60 dark:border-red-900/30 rounded-2xl">
+                            <p className="px-2 text-[10px] font-black text-red-600 dark:text-red-400 uppercase tracking-[0.08em] mb-1.5">Admin Area</p>
+                            <NavLink to="/sv-panel" onClick={handleNavClick} className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 ${isActive ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-200' : 'text-red-600 dark:text-red-400 hover:bg-red-100/70 dark:hover:bg-red-900/40'}`}>
                                 <span className="font-bold">SV Panel</span>
                             </NavLink>
                         </div>
@@ -171,8 +171,8 @@ export default function Layout() {
 
             {/* Main Content Area */}
             <main className="flex-1 overflow-hidden relative md:p-4 flex flex-col min-w-0">
-                {/* Mobile Header */}
-                <div className="md:hidden flex items-center justify-between px-5 pt-[max(0.875rem,env(safe-area-inset-top))] pb-3.5 bg-white/85 dark:bg-gray-900/85 backdrop-blur-xl sticky top-0 z-30 border-b border-gray-200/60 dark:border-gray-800/80 shrink-0 shadow-sm">
+                {/* Mobile Header — aligns with desktop glass (90% + blur-xl) */}
+                <div className="md:hidden flex items-center justify-between px-5 pt-[max(0.875rem,env(safe-area-inset-top))] pb-3.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl sticky top-0 z-30 border-b border-gray-200/60 dark:border-gray-800/80 shrink-0 shadow-sm">
                     <NavLink to="/welcome" onClick={handleNavClick} className="flex items-center gap-2.5">
                         <Logo className="w-8 h-8 text-black dark:text-white shrink-0" />
                         <span className="font-black text-lg tracking-tight text-gray-900 dark:text-white">Nachhilfebörse</span>
@@ -194,8 +194,8 @@ export default function Layout() {
                 </div>
             </main>
 
-            {/* Mobile Bottom Navigation */}
-            <nav aria-label="Hauptnavigation" className="md:hidden fixed bottom-[max(1rem,calc(0.75rem+env(safe-area-inset-bottom,0px)))] left-4 right-4 h-16 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-full shadow-2xl flex items-center justify-around z-50 px-2 border border-gray-200/50 dark:border-gray-800/80 ring-1 ring-black/5">
+            {/* Mobile Bottom Navigation — pill, consistent radius + border */}
+            <nav aria-label="Hauptnavigation" className="md:hidden fixed bottom-[max(1rem,calc(0.75rem+env(safe-area-inset-bottom,0px)))] left-4 right-4 h-16 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-full shadow-2xl flex items-center justify-around z-50 px-2 border border-gray-200/60 dark:border-gray-800/80 ring-1 ring-black/[0.04] dark:ring-white/5">
                 {mobileNavItems.map((item) => {
                     const Icon = item.icon;
                     if (item.isAction) {
@@ -213,7 +213,7 @@ export default function Layout() {
                                     whileHover={{ scale: 1.08 }}
                                     whileTap={{ scale: 0.92 }}
                                     transition={{ type: "spring", stiffness: 450, damping: 25 }}
-                                    className="bg-primary text-primary-foreground p-3.5 rounded-full shadow-lg shadow-yellow-500/25 border-4 border-white dark:border-gray-950"
+                                    className="bg-primary text-primary-foreground p-3.5 rounded-full shadow-lg shadow-primary/25 border-4 border-white dark:border-gray-950 ring-1 ring-black/5"
                                 >
                                     <PlusCircle size={24} strokeWidth={2.5} />
                                 </motion.div>
