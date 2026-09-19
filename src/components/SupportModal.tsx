@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -278,7 +278,8 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
         fetchMessages(ticket.id);
     };
 
-    const deviceInfo = getDeviceInfo();
+    // Einmal pro Öffnen berechnen, nicht bei jedem Render (Vermeidung von Jank + unnötiger Arbeit).
+    const deviceInfo = useMemo(() => getDeviceInfo(), [isOpen]);
 
     if (!isOpen) return null;
 
@@ -300,7 +301,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: 60, opacity: 0 }}
                     transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                    className="bg-white dark:bg-gray-900 w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl max-h-[90vh] flex flex-col border border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden"
+                    className="bg-white dark:bg-gray-900 w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl max-h-[90vh] flex flex-col border border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden pb-[env(safe-area-inset-bottom)]"
                 >
                     {/* Header */}
                     <div className="flex items-center justify-between px-6 py-4 border-b dark:border-gray-800 shrink-0">
@@ -335,7 +336,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1 overflow-y-auto p-6">
+                    <div className="flex-1 min-h-0 overflow-y-auto p-6">
                         {/* Menu View */}
                         {view === 'menu' && (
                             <div className="space-y-3">
