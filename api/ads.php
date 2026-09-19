@@ -12,6 +12,16 @@ cors_headers();
 $method = $_SERVER['REQUEST_METHOD'];
 $pdo = DB::getConnection();
 $id = $_GET['id'] ?? null;
+$action = $_GET['action'] ?? null;
+
+// Auto-Migration: Unterrichts-Format + Aufrufzähler (läuft vor jedem Request,
+// damit ältere Datenbanken ohne manuellen Import weiter funktionieren)
+try {
+    $pdo->exec("ALTER TABLE ads ADD COLUMN IF NOT EXISTS session_format VARCHAR(16) NOT NULL DEFAULT 'any'");
+} catch (Exception $e) {}
+try {
+    $pdo->exec("ALTER TABLE ads ADD COLUMN IF NOT EXISTS view_count INT NOT NULL DEFAULT 0");
+} catch (Exception $e) {}
 
 // ------------------------------------------------------------------------------
 // 1. GET: ANZEIGEN ABRUFEN (Liste oder Einzelanzeige)
@@ -175,6 +185,20 @@ if ($method === 'GET') {
 }
 
 // ------------------------------------------------------------------------------
+// 1b. POST ?action=view: ANONYMER AUFRUFZÄHLER (kein Login nötig)
+// ------------------------------------------------------------------------------
+if ($action === 'view' && $method === 'POST') {
+    $data = get_json_input();
+    $viewId = $data['ad_id'] ?? $id;
+    if (!empty($viewId)) {
+        try {
+            $pdo->prepare('UPDATE ads SET view_count = view_count + 1 WHERE id = ?')->execute([$viewId]);
+        } catch (Exception $e) {}
+    }
+    json_response(['ok' => true]);
+}
+
+// ------------------------------------------------------------------------------
 // 2. POST: NEUE ANZEIGE ERSTELLEN
 // ------------------------------------------------------------------------------
 if ($method === 'POST') {
@@ -202,6 +226,12 @@ if ($method === 'POST') {
         json_error('Ungültiger Anzeigentyp.');
     }
 
+    // Unterrichts-Format: 'single' (Einzel), 'group' (Kleingruppe), 'any' (Egal).
+    $sessionFormat = $data['session_format'] ?? 'any';
+    if (!in_array($sessionFormat, ['single', 'group', 'any'])) {
+        $sessionFormat = 'any';
+    }
+
     $subjects = is_array($data['subjects'] ?? null) ? array_slice($data['subjects'], 0, 10) : [];
     if (empty($subjects)) {
         json_error('Mindestens ein Fach muss angegeben werden.');
@@ -227,30 +257,12 @@ if ($method === 'POST') {
         json_error('Kurzbeschreibung ist erforderlich.');
     }
 
-    // Optionalen Aktionscode aus Datenbank prüfen
-    $promoCode = trim($data['promo_code_used'] ?? $data['promo_code'] ?? '');
+    // Hinweis: Aktions-/Promo-Codes für Anzeigen wurden ersatzlos entfernt.
+    // Neue Anzeigen starten immer ohne Hervorhebung (Boost nur noch über
+    // Coach-Status oder SV-Admin). Mitgesendete Promo-Felder werden ignoriert.
     $isBoosted = 0;
     $boostedUntil = null;
     $usedPromoCode = null;
-
-    if (!empty($promoCode)) {
-        try {
-            $pStmt = $pdo->prepare('SELECT * FROM promo_codes WHERE code = ? AND is_active = 1 AND (expires_at IS NULL OR expires_at > NOW())');
-            $pStmt->execute([$promoCode]);
-            $promo = $pStmt->fetch();
-            if ($promo) {
-                $isBoosted = 1;
-                $bDays = (int)($promo['boost_days'] ?? 14);
-                if ($bDays <= 0) $bDays = 14;
-                $boostedUntil = date('Y-m-d H:i:s', strtotime("+{$bDays} days"));
-                $usedPromoCode = $promo['code'];
-                // Nutzungen erhöhen
-                $pdo->prepare('UPDATE promo_codes SET current_uses = current_uses + 1 WHERE id = ?')->execute([$promo['id']]);
-            }
-        } catch (Exception $e) {
-            error_log('Promo code verification error: ' . $e->getMessage());
-        }
-    }
 
     // Spam-Schutz: max. 10 aktive Anzeigen pro Nutzer
     $countStmt = $pdo->prepare('SELECT COUNT(*) FROM ads WHERE user_id = ? AND is_active = 1 AND is_archived = 0');
@@ -262,16 +274,17 @@ if ($method === 'POST') {
     $adId = generate_uuid();
     $stmt = $pdo->prepare('
         INSERT INTO ads (
-            id, user_id, type, subjects, grade_levels, locations, custom_location,
+            id, user_id, type, session_format, subjects, grade_levels, locations, custom_location,
             price_details, duration_minutes, short_description, long_description,
             image_urls, is_active, is_archived, boosted, boosted_until, promo_code_used
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, ?, ?, ?)
     ');
 
     $stmt->execute([
         $adId,
         $user['id'],
         $type,
+        $sessionFormat,
         json_encode($subjects),
         json_encode($gradeLevels),
         json_encode($locations),
@@ -319,11 +332,14 @@ if ($method === 'PUT' || $method === 'PATCH') {
     $params = [];
 
     $updatable = [
-        'type', 'custom_location', 'short_description', 'long_description',
+        'type', 'session_format', 'custom_location', 'short_description', 'long_description',
         'is_active', 'is_archived'
     ];
     foreach ($updatable as $f) {
         if (isset($data[$f])) {
+            if ($f === 'session_format' && !in_array($data[$f], ['single', 'group', 'any'])) {
+                continue;
+            }
             $fields[] = "`$f` = ?";
             $params[] = $data[$f];
         }

@@ -308,7 +308,9 @@ if ($action === 'promo_create' && $method === 'POST') {
     $boostDays = max(1, min(365, (int)($data['boost_days'] ?? 14)));
     $maxUses = !empty($data['max_uses']) ? max(1, min(100000, (int)$data['max_uses'])) : null;
     $targetGroup = mb_substr(trim($data['target_group'] ?? 'all'), 0, 50);
-    $description = mb_substr(trim($data['description'] ?? ''), 0, 500);
+    // Spalte ist VARCHAR(255) – längere Texte würden den INSERT mit
+    // „Data too long" fehlschlagen lassen (stiller Fehler im Panel).
+    $description = mb_substr(trim($data['description'] ?? ''), 0, 255);
 
     $expiresAt = null;
     if (!empty($data['expires_at'])) {

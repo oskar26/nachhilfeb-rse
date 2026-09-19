@@ -5,7 +5,7 @@ import { Button } from './ui/Button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/Dialog';
 import { Input } from './ui/Input';
 import { toast } from 'react-hot-toast';
-import { X, ShieldAlert, AlertTriangle, ChevronRight, ChevronLeft, Check, Camera } from 'lucide-react';
+import { X, ShieldAlert, AlertTriangle, ChevronRight, ChevronLeft, Check, Camera, FileText, User, MessageCircle, Lock, Flag, type LucideIcon } from 'lucide-react';
 
 interface ReportWizardProps {
     isOpen: boolean;
@@ -33,12 +33,12 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
 
     if (!isOpen) return null;
 
-    const categories: { value: ReportCategory; label: string; desc: string; icon: string }[] = [
-        { value: 'anzeige', label: 'Anzeige / Angebot', desc: 'Unangemessene Inhalte, falsche Angaben oder Spam in einer Anzeige.', icon: '📝' },
-        { value: 'profil', label: 'Profil / Nutzer', desc: 'Falscher Name, unpassendes Profilbild oder betrügerisches Verhalten.', icon: '👤' },
-        { value: 'chat', label: 'Chat / Nachricht', desc: 'Beleidigungen, Belästigungen oder Spam im Chat.', icon: '💬' },
-        { value: 'datenschutz', label: 'Datenschutz', desc: 'Unerlaubte Weitergabe privater Daten oder Kontaktdaten.', icon: '🔒' },
-        { value: 'sonstiges', label: 'Sonstiges', desc: 'Sonstige Regelverstöße, die nicht oben aufgeführt sind.', icon: '⚠️' }
+    const categories: { value: ReportCategory; label: string; desc: string; icon: LucideIcon }[] = [
+        { value: 'anzeige', label: 'Anzeige / Angebot', desc: 'Unangemessene Inhalte, falsche Angaben oder Spam in einer Anzeige.', icon: FileText },
+        { value: 'profil', label: 'Profil / Nutzer', desc: 'Falscher Name, unpassendes Profilbild oder betrügerisches Verhalten.', icon: User },
+        { value: 'chat', label: 'Chat / Nachricht', desc: 'Beleidigungen, Belästigungen oder Spam im Chat.', icon: MessageCircle },
+        { value: 'datenschutz', label: 'Datenschutz', desc: 'Unerlaubte Weitergabe privater Daten oder Kontaktdaten.', icon: Lock },
+        { value: 'sonstiges', label: 'Sonstiges', desc: 'Sonstige Regelverstöße, die nicht oben aufgeführt sind.', icon: Flag }
     ];
 
     const subReasons: Record<ReportCategory, string[]> = {
@@ -149,7 +149,7 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
                                         onClick={() => { setCategory(c.value); setSubReason(''); }}
                                         className={`flex items-start text-left p-3 rounded-2xl border transition-all ${category === c.value ? 'border-red-400 bg-red-50/50 dark:bg-red-950/20 ring-1 ring-red-400' : 'border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900'}`}
                                     >
-                                        <span className="text-2xl mr-3 mt-0.5">{c.icon}</span>
+                                        <span className="mr-3 mt-0.5 text-red-500"><c.icon size={22} /></span>
                                         <div>
                                             <p className="font-bold text-sm">{c.label}</p>
                                             <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{c.desc}</p>

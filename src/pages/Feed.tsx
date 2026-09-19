@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
 import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/Card';
 import { SubjectChip, SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
-import { GraduationCap, MapPin, Clock, Filter, Search, CalendarDays, ShieldCheck, ChevronDown, ChevronUp, Share2, Sparkles, Bookmark, X, SearchX, Award } from 'lucide-react';
+import { GraduationCap, MapPin, Clock, Filter, Search, CalendarDays, ShieldCheck, ChevronDown, ChevronUp, Share2, Sparkles, Bookmark, X, SearchX, Award, Users } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
@@ -26,6 +26,9 @@ interface Ad {
     grade_levels: string[];
     locations: string[];
     price_details: { mode?: string; value?: string | number } | null;
+    duration_minutes?: number[];
+    session_format?: 'single' | 'group' | 'any' | string;
+    view_count?: number;
     short_description: string;
     is_active: boolean;
     created_at: string;
@@ -115,11 +118,21 @@ async function loadAds(): Promise<Ad[]> {
     if (profileError) throw profileError;
     if (!profiles) throw new Error('Missing profiles response');
     const profileMap = new Map(profiles.map(p => [p.id, p]));
-    return adsData.map(ad => ({
-        ...ad,
-        profiles: profileMap.get(ad.user_id),
-        profiles_avail: profileMap.get(ad.user_id)?.availability || emptyAvailability()
-    }));
+    return adsData.map(ad => {
+        const prof = profileMap.get(ad.user_id);
+        // Booleans normalisieren: MySQL liefert TINYINT (0/1) – ein rohes
+        // `{profil.is_coach && <Badge>}` würde sonst eine sichtbare „0" rendern.
+        const safeProfile = prof ? {
+            ...prof,
+            is_coach: Boolean(prof.is_coach),
+            is_verified: Boolean(prof.is_verified),
+        } : prof;
+        return {
+            ...ad,
+            profiles: safeProfile,
+            profiles_avail: prof?.availability || emptyAvailability()
+        };
+    });
 }
 
 export default function Feed() {
@@ -424,9 +437,9 @@ export default function Feed() {
                         <button
                             onClick={() => setFilterSubject(null)}
                             aria-label="Fachfilter zurücksetzen"
-                            className="px-2.5 py-1 rounded-full bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400 text-xs font-bold shrink-0"
+                            className="px-2.5 py-1 rounded-full bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400 text-xs font-bold shrink-0 inline-flex items-center gap-1"
                         >
-                            ✕ Filter zurücksetzen
+                            <X size={12} /> Filter zurücksetzen
                         </button>
                     )}
                 </div>
@@ -734,7 +747,7 @@ export default function Feed() {
                         >
                             {boosted && (
                                 <div className="bg-gradient-to-r from-yellow-400/20 via-amber-400/15 to-yellow-400/20 border-b border-yellow-400/30 px-4 py-1.5 flex items-center gap-1.5" title="Diese Anzeige wird hervorgehoben (z. B. Coach-Status oder Aktion). Warum? Siehe Seite „Schüler-Coaching“.">
-                                    <span className="text-xs">⭐</span>
+                                    <Sparkles size={12} className="text-yellow-600 dark:text-yellow-400" />
                                     <span className="text-[11px] font-bold text-yellow-700 dark:text-yellow-400 tracking-wide uppercase">Hervorgehobene Anzeige</span>
                                 </div>
                             )}
@@ -768,7 +781,7 @@ export default function Feed() {
                                             ? "bg-yellow-50 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700 text-yellow-800 dark:text-yellow-300"
                                             : "bg-white dark:bg-gray-700 border-gray-100 dark:border-gray-600"
                                     )}>
-                                        {ad.price_details?.mode === 'free' ? 'Kostenlos' : (ad.price_details?.mode === 'vb' ? 'VB' : `${ad.price_details?.value}€`)}
+                                        {ad.price_details?.mode === 'free' ? 'Kostenlos' : (ad.price_details?.mode === 'vb' ? 'VB' : (ad.price_details?.value !== null && ad.price_details?.value !== undefined && ad.price_details.value !== '' ? `${ad.price_details.value}€` : 'Preis auf Anfrage'))}
                                     </div>
                                     {filterByTime && matchScore > 0 && (
                                         <div className="flex items-center gap-1 text-[10px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded-full">
@@ -793,7 +806,10 @@ export default function Feed() {
                                     {ad.locations && ad.locations[0] && (
                                         <span className="flex items-center gap-1"><MapPin size={12} /> {ad.locations[0]} {ad.locations.length > 1 ? `+${ad.locations.length - 1}` : ''}</span>
                                     )}
-                                    <span className="flex items-center gap-1"><Clock size={12} /> Flexibel</span>
+                                    <span className="flex items-center gap-1"><Clock size={12} /> {Array.isArray(ad.duration_minutes) && ad.duration_minutes.length > 0 ? ad.duration_minutes.map((d: number) => d === 0 ? 'Egal' : `${d} Min.`).join(' • ') : 'Flexibel'}</span>
+                                    {ad.session_format && ad.session_format !== 'any' && (
+                                        <span className="flex items-center gap-1"><Users size={12} /> {ad.session_format === 'single' ? 'Einzeln' : 'Kleingruppe'}</span>
+                                    )}
                                 </div>
                                 <div className="flex items-center gap-2">
                                     {ad.profiles?.is_coach && (

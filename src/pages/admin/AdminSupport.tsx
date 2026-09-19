@@ -5,10 +5,11 @@ import { Input } from '../../components/ui/Input';
 import { Card, CardContent } from '../../components/ui/Card';
 import { 
     Search, Bug, Lightbulb, MessageCircle, Send, Loader2, 
-    ChevronLeft, CheckCircle, Clock, AlertCircle, X, Filter, RefreshCw 
+    ChevronLeft, CheckCircle, Clock, AlertCircle, X, Filter, RefreshCw, Shield, User 
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { cn } from '../../lib/utils';
+import { blockedReason } from '../../lib/profanity';
 
 interface Ticket {
     id: string;
@@ -114,6 +115,11 @@ export default function AdminSupport() {
 
     const handleSendReply = async () => {
         if (!newReply.trim() || !activeTicket) return;
+        const blockMsg = blockedReason(newReply);
+        if (blockMsg) {
+            toast.error(blockMsg, { duration: 6000 });
+            return;
+        }
         setSendingReply(true);
         try {
             const { data: { user } } = await supabase.auth.getUser();
@@ -291,8 +297,8 @@ export default function AdminSupport() {
                                                     : 'bg-gray-100 dark:bg-gray-800 mr-auto'
                                             )}
                                         >
-                                            <p className="text-[10px] font-bold text-gray-400 mb-0.5">
-                                                {msg.is_admin_reply ? '🛡️ Admin-Antwort' : `👤 ${activeTicket.user_name}`}
+                                            <p className="text-[10px] font-bold text-gray-400 mb-0.5 inline-flex items-center gap-1">
+                                                {msg.is_admin_reply ? (<><Shield size={11} /> Admin-Antwort</>) : (<><User size={11} /> {activeTicket.user_name}</>)}
                                             </p>
                                             <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap">{msg.content}</p>
                                             <p className="text-[10px] text-gray-400 text-right mt-1">

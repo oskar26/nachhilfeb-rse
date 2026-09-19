@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { SubjectChip } from '../components/SubjectChip';
 import { toast } from 'react-hot-toast';
-import { ChevronLeft, MapPin, Clock, Heart, Send, CheckCircle, Phone, Mail, CalendarDays, Share2, X, Copy } from 'lucide-react';
+import { ChevronLeft, MapPin, Clock, Heart, Send, CheckCircle, Phone, Mail, CalendarDays, Share2, X, Copy, Eye, Users, User, Shuffle } from 'lucide-react';
 import ReportWizard from '../components/ReportWizard';
 import ShareDialog from '../components/ShareDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/Dialog';
@@ -31,6 +32,7 @@ export default function AdDetails() {
     // Report & Share States
     const [isReportOpen, setIsReportOpen] = useState(false);
     const [isShareOpen, setIsShareOpen] = useState(false);
+    const trackedViewForRef = useRef<string | null>(null);
 
     useEffect(() => {
         if (!id) return;
@@ -43,6 +45,11 @@ export default function AdDetails() {
 
         if (adData) {
             setAd(adData);
+            // Aufruf anonym zählen (einmal pro Anzeigen-Besuch, auch im StrictMode)
+            if (trackedViewForRef.current !== adData.id) {
+                trackedViewForRef.current = adData.id;
+                api.ads.trackView(adData.id);
+            }
             const { data: prof } = await supabase.from('profiles').select('*').eq('id', adData.user_id).single();
             setProfile(prof);
             setTheirAvailability(prof?.availability || emptyAvailability());
@@ -148,12 +155,12 @@ export default function AdDetails() {
                     <CardHeader className="bg-gray-50 dark:bg-gray-900/50 border-b">
                         <div className="flex justify-between items-start">
                             <div>
-                                <h1 className="text-2xl font-bold mb-2">{ad.subjects[0]?.toUpperCase()} - {profile?.display_name || 'Nutzer'}</h1>
+                                <h1 className="text-2xl font-bold mb-2">{ad.subjects?.[0]?.toUpperCase() || 'Nachhilfe'} - {profile?.display_name || 'Nutzer'}</h1>
                                 <p className="text-gray-500 text-lg">{ad.type === 'offer' ? 'Biete Nachhilfe' : 'Suche Nachhilfe'}</p>
                             </div>
                             <div className="text-right">
                                 <div className="text-xl font-bold text-primary-hover">{price}</div>
-                                <div className="text-sm text-gray-400">{ad.duration_minutes?.join(', ')} min</div>
+                                <div className="text-sm text-gray-400">{(ad.duration_minutes || []).map((d: number) => d === 0 ? 'Egal' : `${d} min`).join(', ') || 'Egal'}</div>
                             </div>
                         </div>
                     </CardHeader>
@@ -168,6 +175,22 @@ export default function AdDetails() {
                             <span className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
                                 <Clock size={14} /> Flexibel
                             </span>
+                            {ad.session_format && ad.session_format !== 'any' && (
+                                <span className="flex items-center gap-1 bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 px-2 py-1 rounded" title={ad.session_format === 'group' ? 'Kleingruppe (2–4 Schüler)' : 'Einzelunterricht'}>
+                                    {ad.session_format === 'group' ? <Users size={14} /> : <User size={14} />}
+                                    {ad.session_format === 'group' ? 'Kleingruppe' : 'Einzeln'}
+                                </span>
+                            )}
+                            {ad.session_format === 'any' && (
+                                <span className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded" title="Einzel oder Kleingruppe – nach Absprache">
+                                    <Shuffle size={14} /> Egal
+                                </span>
+                            )}
+                            {(ad.view_count ?? 0) > 0 && (
+                                <span className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded" title="So oft wurde diese Anzeige aufgerufen">
+                                    <Eye size={14} /> {ad.view_count} {ad.view_count === 1 ? 'Aufruf' : 'Aufrufe'}
+                                </span>
+                            )}
                         </div>
 
                         {/* Subjects */}
@@ -279,8 +302,8 @@ export default function AdDetails() {
                             {user && (() => {
                                 const score = countMatches(myAvailability, theirAvailability);
                                 return score > 0 ? (
-                                    <span className="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-full">
-                                        ✅ {score} gemeinsame Zeitslot{score !== 1 ? 's' : ''}
+                                    <span className="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-full inline-flex items-center gap-1">
+                                        <CheckCircle size={12} /> {score} gemeinsame Zeitslot{score !== 1 ? 's' : ''}
                                     </span>
                                 ) : (
                                     <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">

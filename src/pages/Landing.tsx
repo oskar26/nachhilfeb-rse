@@ -53,7 +53,7 @@ export default function Landing() {
             } catch (err) {
                 console.warn('Could not fetch announcements from database, using fallback:', err);
                 setAnnouncements([
-                    { id: '1', title: 'SV-Nachhilfebörse v2 ist live!', body: 'Neue Features: Merkliste mit Sammlungen, verbessertes Meldesystem, personalisiertes Matching und vieles mehr!', icon: '📢', created_at: '2026-06-20T12:00:00Z' },
+                    { id: '1', title: 'SV-Nachhilfebörse v2 ist live!', body: 'Neue Features: Merkliste mit Sammlungen, verbessertes Meldesystem, personalisiertes Matching und vieles mehr!', icon: 'megaphone', created_at: '2026-06-20T12:00:00Z' },
                     { id: '2', title: 'Neue Fächer verfügbar', body: 'Ab sofort können Angebote und Suchen für die Fächer Chemie und Informatik erstellt werden.', icon: '🧪', created_at: '2026-06-18T12:00:00Z' }
                 ]);
             } finally {

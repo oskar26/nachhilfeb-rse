@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Sparkles, Zap, X, MessageSquare, Frown, Loader2, 
     CalendarDays, Award, CheckCircle2, ArrowRight, RotateCcw, 
-    Filter, BookOpen, GraduationCap, MapPin, Search 
+    Filter, BookOpen, GraduationCap, MapPin, Search, Check 
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -288,8 +288,8 @@ function MatchCard({
                         <div className="flex flex-wrap gap-1">
                             {commonSubjects.length > 0 ? (
                                 commonSubjects.map(s => (
-                                    <span key={s} className="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-amber-400/20 text-amber-900 dark:text-amber-200 capitalize">
-                                        ✓ {s}
+                                    <span key={s} className="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-amber-400/20 text-amber-900 dark:text-amber-200 capitalize inline-flex items-center gap-1">
+                                        <Check size={11} /> {s}
                                     </span>
                                 ))
                             ) : (

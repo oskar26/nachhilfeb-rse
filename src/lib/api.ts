@@ -205,6 +205,19 @@ export const api = {
             return apiRequest(`/ads.php?id=${encodeURIComponent(id)}`, {
                 method: 'DELETE'
             });
+        },
+
+        // Anonymer Aufruf-Zähler (DSGVO-sparsam: keine IP, keine User-ID).
+        // Fehler werden still ignoriert – Tracking darf nie die Anzeige blockieren.
+        async trackView(id: string) {
+            try {
+                await apiRequest('/ads.php?action=view', {
+                    method: 'POST',
+                    body: JSON.stringify({ ad_id: id })
+                });
+            } catch {
+                /* Tracking ist Best-Effort */
+            }
         }
     },
 

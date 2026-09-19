@@ -1,14 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-    X, Bug, Lightbulb, MessageCircle, Send, Loader2, 
-    CheckCircle, ChevronLeft, Smartphone, Monitor, Globe 
+import {
+    X, Bug, Lightbulb, MessageCircle, Send, Loader2,
+    CheckCircle, ChevronLeft, Smartphone, Monitor, Globe, Shield, Zap, Flag
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import { cn } from '../lib/utils';
 import { triggerHaptic } from '../lib/haptics';
+import { blockedReason } from '../lib/profanity';
+import ReportWizard from './ReportWizard';
 
 interface SupportModalProps {
     isOpen: boolean;
@@ -76,6 +79,8 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
     const [messages, setMessages] = useState<SupportMessage[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [loadingChat, setLoadingChat] = useState(false);
+    const [startingDirectChat, setStartingDirectChat] = useState(false);
+    const [showReportWizard, setShowReportWizard] = useState(false);
     const chatEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -84,6 +89,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
             setTitle('');
             setDescription('');
             setActiveTicket(null);
+            setShowReportWizard(false);
         }
     }, [isOpen]);
 
@@ -94,6 +100,11 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
     const handleSubmitTicket = async () => {
         if (!title.trim() || !description.trim()) {
             toast.error('Bitte Titel und Beschreibung ausfüllen.');
+            return;
+        }
+        const blockMsg = blockedReason(title + '\n' + description);
+        if (blockMsg) {
+            toast.error(blockMsg, { duration: 6000 });
             return;
         }
         if (!user) return;
@@ -160,6 +171,11 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
 
     const handleSendMessage = async () => {
         if (!newMessage.trim() || !activeTicket || !user) return;
+        const blockMsg = blockedReason(newMessage);
+        if (blockMsg) {
+            toast.error(blockMsg, { duration: 6000 });
+            return;
+        }
         try {
             const { error } = await supabase.from('support_messages').insert({
                 ticket_id: activeTicket.id,
@@ -173,7 +189,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
             triggerHaptic('light');
             setNewMessage('');
             fetchMessages(activeTicket.id);
-        } catch (err: any) {
+        } catch {
             toast.error('Nachricht konnte nicht gesendet werden.');
         }
     };
@@ -181,6 +197,49 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
     const openChatView = () => {
         setView('chat');
         fetchChatTickets();
+    };
+
+    // Direkt-Chat ohne Ticket-Pflicht: Ticket wird automatisch angelegt und sofort geöffnet
+    const handleStartDirectChat = async () => {
+        if (!user || startingDirectChat) return;
+        setStartingDirectChat(true);
+        try {
+            const { error } = await supabase.from('support_tickets').insert({
+                user_id: user.id,
+                type: 'support',
+                title: 'Direkter Support-Chat',
+                description: 'Direkt aus dem Support-Fenster gestarteter Chat.',
+            });
+            if (error) throw error;
+
+            // Neuestes Ticket des Nutzers laden und direkt öffnen
+            const { data, error: listError } = await supabase
+                .from('support_tickets')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false });
+            if (listError) throw listError;
+
+            const ticket = (data?.[0] as SupportTicket) || {
+                id: `tmp-${Date.now()}`,
+                type: 'support',
+                title: 'Direkter Support-Chat',
+                description: 'Direkt aus dem Support-Fenster gestarteter Chat.',
+                status: 'open',
+                created_at: new Date().toISOString(),
+            };
+            triggerHaptic('success');
+            setActiveTicket(ticket);
+            setMessages([]);
+            setView('chat');
+            if (!ticket.id.startsWith('tmp-')) {
+                fetchMessages(ticket.id);
+            }
+        } catch (err: any) {
+            toast.error('Direkt-Chat konnte nicht gestartet werden: ' + (err.message || 'Fehler'));
+        } finally {
+            setStartingDirectChat(false);
+        }
     };
 
     const openTicketChat = (ticket: SupportTicket) => {
@@ -192,7 +251,11 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
 
     if (!isOpen) return null;
 
-    return (
+    // Als Portal in document.body rendern: So bleibt das Overlay (fixed inset-0)
+    // immer am Viewport ausgerichtet – auch wenn ein Elternelement transformiert
+    // ist (transform bricht sonst die fixed-Positionierung und lässt unten eine
+    // weiße Fläche frei).
+    return createPortal(
         <AnimatePresence>
             <motion.div
                 initial={{ opacity: 0 }}
@@ -284,7 +347,34 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                     </div>
                                     <div>
                                         <p className="font-extrabold text-sm text-gray-900 dark:text-white">Support-Chat</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">Schreib direkt mit dem SV-Admin-Team.</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">Bisherige Tickets ansehen und weiterschreiben.</p>
+                                    </div>
+                                </button>
+
+                                <button
+                                    onClick={() => { handleStartDirectChat(); }}
+                                    disabled={startingDirectChat}
+                                    className="w-full flex items-center gap-4 p-4 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-2xl text-left hover:bg-emerald-100/60 dark:hover:bg-emerald-950/30 transition-all group cursor-pointer disabled:opacity-60"
+                                >
+                                    <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center shrink-0">
+                                        {startingDirectChat ? <Loader2 size={22} className="text-emerald-600 dark:text-emerald-400 animate-spin" /> : <Zap size={22} className="text-emerald-600 dark:text-emerald-400" />}
+                                    </div>
+                                    <div>
+                                        <p className="font-extrabold text-sm text-gray-900 dark:text-white">Direkt chatten</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">Sofort losschreiben – ganz ohne Ticket-Formular.</p>
+                                    </div>
+                                </button>
+
+                                <button
+                                    onClick={() => { setShowReportWizard(true); triggerHaptic('light'); }}
+                                    className="w-full flex items-center gap-4 p-4 bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/30 rounded-2xl text-left hover:bg-orange-100/60 dark:hover:bg-orange-950/30 transition-all group cursor-pointer"
+                                >
+                                    <div className="w-12 h-12 rounded-2xl bg-orange-500/20 flex items-center justify-center shrink-0">
+                                        <Flag size={22} className="text-orange-600 dark:text-orange-400" />
+                                    </div>
+                                    <div>
+                                        <p className="font-extrabold text-sm text-gray-900 dark:text-white">Inhalt melden</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">Anzeige, Profil, Chat oder Datenschutzverstoß melden.</p>
                                     </div>
                                 </button>
                             </div>
@@ -441,7 +531,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                             )}
                                         >
                                             <p className="text-[10px] font-bold text-gray-400 mb-0.5">
-                                                {msg.is_admin_reply ? '🛡️ SV Admin' : 'Du'}
+                                                {msg.is_admin_reply ? (<span className="inline-flex items-center gap-1"><Shield size={12} /> SV Admin</span>) : 'Du'}
                                             </p>
                                             <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap">{msg.content}</p>
                                             <p className="text-[10px] text-gray-400 text-right mt-1">
@@ -512,6 +602,8 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                     )}
                 </motion.div>
             </motion.div>
-        </AnimatePresence>
+            <ReportWizard isOpen={showReportWizard} onClose={() => setShowReportWizard(false)} />
+        </AnimatePresence>,
+        document.body
     );
 }

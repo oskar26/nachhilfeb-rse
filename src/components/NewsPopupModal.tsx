@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { X, Megaphone, Bell, CheckCircle2 } from 'lucide-react';
 import { Button } from './ui/Button';
+import NewsIcon from './NewsIcon';
 
 interface Announcement {
     id: string;
@@ -57,7 +58,7 @@ export function NewsPopupModal() {
                 // Try browser push notification if permissions granted
                 if ('Notification' in window && Notification.permission === 'granted') {
                     try {
-                        new Notification(`${latest.icon || '📢'} ${latest.title}`, {
+                        new Notification(latest.title, {
                             body: latest.body,
                             icon: '/favicon.ico'
                         });
@@ -115,8 +116,8 @@ export function NewsPopupModal() {
 
                 {/* Content */}
                 <div className="p-6 space-y-4 -mt-6">
-                    <div className="w-14 h-14 rounded-2xl bg-white dark:bg-gray-800 shadow-md border dark:border-gray-700 flex items-center justify-center text-3xl">
-                        {news.icon || '📢'}
+                    <div className="w-14 h-14 rounded-2xl bg-white dark:bg-gray-800 shadow-md border dark:border-gray-700 flex items-center justify-center text-gray-700 dark:text-gray-200">
+                        <NewsIcon value={news.icon} size={28} />
                     </div>
 
                     <div>

@@ -1,6 +1,6 @@
 import { cn } from '../lib/utils';
 import { useState } from 'react';
-import { Check } from 'lucide-react';
+import { Check, CalendarDays, ChevronUp, ChevronDown } from 'lucide-react';
 
 export type DayKey = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 export type Availability = Record<DayKey, string[]>; // string[] is array of slot keys like "13:30"
@@ -84,7 +84,7 @@ export function AvailabilityCalendar({
     if (!isEditable && activeSlots.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center p-6 text-center bg-gray-50 dark:bg-gray-900/50 rounded-2xl border border-dashed border-gray-200 dark:border-gray-800">
-                <span className="text-gray-400 dark:text-gray-600 text-3xl mb-2">📅</span>
+                <CalendarDays size={28} className="text-gray-300 dark:text-gray-600 mb-2" />
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                     Keine Verfügbarkeiten eingetragen
                 </p>
@@ -179,7 +179,11 @@ export function AvailabilityCalendar({
                             onClick={() => setShowAll(!showAll)} 
                             className="text-xs font-semibold text-primary-hover hover:underline inline-flex items-center gap-1"
                         >
-                            {showAll ? 'Kalender einklappen 👆' : `Ganzen Kalender anzeigen (${SLOTS.length} Zeiten) 👇`}
+                            {showAll ? (
+                                <span className="inline-flex items-center gap-1">Kalender einklappen <ChevronUp size={14} /></span>
+                            ) : (
+                                <span className="inline-flex items-center gap-1">Ganzen Kalender anzeigen ({SLOTS.length} Zeiten) <ChevronDown size={14} /></span>
+                            )}
                         </button>
                     </div>
                 )}

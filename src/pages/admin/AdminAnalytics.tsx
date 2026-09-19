@@ -13,7 +13,8 @@ import {
     Tablet,
     Euro,
     Star,
-    CheckCircle
+    CheckCircle,
+    Eye
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -45,6 +46,13 @@ interface HourlyDist {
 interface PathDist {
     path: string;
     count: number;
+}
+
+interface TopAd {
+    id: string;
+    title: string;
+    type: string;
+    views: number;
 }
 
 export default function AdminAnalytics() {
@@ -85,6 +93,7 @@ export default function AdminAnalytics() {
     const [deviceDistribution, setDeviceDistribution] = useState<DeviceDist[]>([]);
     const [hourlyDistribution, setHourlyDistribution] = useState<HourlyDist[]>([]);
     const [topPages, setTopPages] = useState<PathDist[]>([]);
+    const [topAds, setTopAds] = useState<TopAd[]>([]);
 
     // Raw datasets for CSV Export (Anzeigen als Stichprobe, Nutzer/Aufrufe als Aggregat)
     const [rawAds, setRawAds] = useState<any[]>([]);
@@ -233,6 +242,17 @@ export default function AdminAnalytics() {
                     .sort((a, b) => b.count - a.count)
                     .slice(0, 8);
                 setSubjectDistribution(sortedSubjects);
+                // Meistaufgerufene Anzeigen (anonymes View-Tracking, Details-Seite zählt +1)
+                const sortedByViews = [...ads]
+                    .map((ad: any) => ({
+                        id: String(ad.id ?? ''),
+                        title: String(ad.short_description || ad.title || 'Anzeige ohne Titel'),
+                        type: ad.type === 'search' ? 'Gesuch' : 'Angebot',
+                        views: Number(ad.view_count) || 0
+                    }))
+                    .sort((a, b) => b.views - a.views)
+                    .slice(0, 6);
+                setTopAds(sortedByViews);
             }
 
             // Engagement stats
@@ -327,6 +347,7 @@ export default function AdminAnalytics() {
         const rows: (string | number)[][] = [
             ...topPages.map(p => ['Top-Seite', p.path, p.count] as (string | number)[]),
             ...deviceDistribution.map(d => ['Gerät', d.type, d.count] as (string | number)[]),
+            ...topAds.map(a => ['Top-Anzeige', `${a.type}: ${a.title}`, a.views] as (string | number)[]),
         ];
         exportToCSV(`fwg_analytics_aggregat_${new Date().toISOString().slice(0, 10)}.csv`, headers, rows);
     };
@@ -621,6 +642,38 @@ export default function AdminAnalytics() {
                             <span className="text-gray-500">SV-Admins im Dienst:</span>
                             <span>{userStats.admins} SV-Admins</span>
                         </div>
+                    </CardContent>
+                </Card>
+
+                {/* 5. Meistaufgerufene Anzeigen */}
+                <Card className="rounded-3xl border-none shadow-sm">
+                    <CardHeader>
+                        <CardTitle className="text-base font-bold flex items-center gap-2">
+                            <Eye size={18} className="text-primary-hover" /> Meistaufgerufene Anzeigen
+                        </CardTitle>
+                        <CardDescription>Anonyme Aufrufzählung pro Anzeigendetailseite</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        {topAds.length === 0 || topAds.every(a => a.views === 0) ? (
+                            <div className="text-center py-8 text-gray-400 text-xs italic">
+                                Noch keine Aufrufe gezählt. Sobald Anzeigen geöffnet werden, erscheinen sie hier.
+                            </div>
+                        ) : (
+                            topAds.map((a, i) => (
+                                <div key={a.id || i} className="flex items-center gap-3 py-2 border-b dark:border-gray-800 last:border-0">
+                                    <span className="w-6 h-6 rounded-lg bg-primary/10 text-primary-hover text-xs font-black flex items-center justify-center shrink-0">
+                                        {i + 1}
+                                    </span>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-xs font-bold truncate">{a.title}</p>
+                                        <p className="text-[10px] text-gray-400 font-semibold">{a.type}</p>
+                                    </div>
+                                    <span className="font-bold bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full text-xs shrink-0">
+                                        {a.views} {a.views === 1 ? 'Aufruf' : 'Aufrufe'}
+                                    </span>
+                                </div>
+                            ))
+                        )}
                     </CardContent>
                 </Card>
 

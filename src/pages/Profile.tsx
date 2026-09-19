@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
-import { User, Shield, BadgeCheck, Loader2, Mail, Phone, MessageSquare, Settings as SettingsIcon, Pen, Trash2, Users, Sparkles, Check, CalendarDays, Award, Shuffle, Palette, X } from 'lucide-react';
+import { User, Shield, BadgeCheck, Loader2, Mail, Phone, MessageSquare, Settings as SettingsIcon, Pen, Trash2, Users, Sparkles, Check, CalendarDays, Award, Shuffle, Palette, X, Lock, Eye } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
@@ -618,7 +618,7 @@ export default function Profile() {
                                             : "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300"
                                     )}
                                 >
-                                    {privacyCalendar ? '🔒 Nur Matching (Privat)' : '👁️ Öffentlich sichtbar'}
+                                    {privacyCalendar ? (<span className="inline-flex items-center gap-1"><Lock size={12} /> Nur Matching (Privat)</span>) : (<span className="inline-flex items-center gap-1"><Eye size={12} /> Öffentlich sichtbar</span>)}
                                 </button>
                             )}
                         </div>

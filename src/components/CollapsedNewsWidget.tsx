@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Megaphone, ChevronDown, ChevronUp, Calendar } from 'lucide-react';
+import NewsIcon from './NewsIcon';
 import { cn } from '../lib/utils';
 
 interface Announcement {
@@ -45,8 +46,8 @@ export function CollapsedNewsWidget() {
                 className="w-full p-4 flex items-center justify-between text-left hover:bg-amber-500/5 transition-colors gap-3"
             >
                 <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-800 dark:text-amber-300 flex items-center justify-center text-xl shrink-0">
-                        {news.icon || '📢'}
+                    <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-800 dark:text-amber-300 flex items-center justify-center shrink-0">
+                        <NewsIcon value={news.icon} size={20} />
                     </div>
                     <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">

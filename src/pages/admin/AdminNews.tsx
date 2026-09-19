@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Megaphone, Trash2, Plus, Calendar, AlertCircle } from 'lucide-react';
+import NewsIcon, { NEWS_ICONS } from '../../components/NewsIcon';
 import { toast } from 'react-hot-toast';
 
 interface Announcement {
@@ -22,9 +23,7 @@ export default function AdminNews() {
     // Form fields
     const [title, setTitle] = useState('');
     const [body, setBody] = useState('');
-    const [icon, setIcon] = useState('📢');
-
-    const icons = ['📢', '🧪', '🎉', '🌟', 'ℹ️', '🚨', '📚', '🏆'];
+    const [icon, setIcon] = useState('megaphone');
 
     useEffect(() => {
         fetchAnnouncements();
@@ -80,7 +79,7 @@ export default function AdminNews() {
             toast.success('Neuigkeit erfolgreich erstellt!');
             setTitle('');
             setBody('');
-            setIcon('📢');
+            setIcon('megaphone');
             fetchAnnouncements();
 
             // Log this action to the Audit Log if it exists
@@ -196,34 +195,25 @@ export default function AdminNews() {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-xs font-bold uppercase text-gray-500 ml-1 block">Icon / Custom Emoji auswählen</label>
+                                <label className="text-xs font-bold uppercase text-gray-500 ml-1 block">Symbol auswählen</label>
                                 <div className="flex flex-wrap gap-2">
-                                    {icons.map(item => (
+                                    {NEWS_ICONS.map(({ name, label, Icon }) => (
                                         <button
-                                            key={item}
+                                            key={name}
                                             type="button"
-                                            onClick={() => setIcon(item)}
-                                            className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg border transition-all ${
-                                                icon === item
-                                                    ? 'border-primary bg-primary/10 scale-110'
-                                                    : 'border-gray-200 hover:border-gray-300 dark:border-gray-800 dark:hover:border-gray-700'
+                                            title={label}
+                                            aria-label={label}
+                                            aria-pressed={icon === name}
+                                            onClick={() => setIcon(name)}
+                                            className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all ${
+                                                icon === name
+                                                    ? 'border-primary bg-primary/10 scale-110 text-primary-hover'
+                                                    : 'border-gray-200 hover:border-gray-300 dark:border-gray-800 dark:hover:border-gray-700 text-gray-500'
                                             }`}
                                         >
-                                            {item}
+                                            <Icon size={18} />
                                         </button>
                                     ))}
-                                </div>
-                                <div className="pt-1 flex items-center gap-2">
-                                    <input
-                                        type="text"
-                                        placeholder="Oder eigenes Emoji eintippen (z.B. 🔥, 🎓, 🎁)..."
-                                        value={icon}
-                                        onChange={e => setIcon(e.target.value)}
-                                        className="w-full h-10 px-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                    />
-                                    <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xl shrink-0">
-                                        {icon || '📢'}
-                                    </div>
                                 </div>
                             </div>
 
@@ -257,8 +247,8 @@ export default function AdminNews() {
                             {announcements.map((item) => (
                                 <Card key={item.id} className="border border-gray-100 dark:border-gray-850 bg-white dark:bg-gray-900 rounded-3xl overflow-hidden hover:shadow-sm transition-all duration-200">
                                     <CardContent className="p-5 flex items-start gap-4">
-                                        <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-xl shrink-0 mt-0.5">
-                                            {item.icon}
+                                        <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-gray-500 shrink-0 mt-0.5">
+                                            <NewsIcon value={item.icon} size={20} />
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-start justify-between gap-4">

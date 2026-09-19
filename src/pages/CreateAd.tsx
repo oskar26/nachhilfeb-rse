@@ -7,7 +7,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../compone
 import { SubjectChip, SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
 import { GradeSelector } from '../components/GradeSelector';
 import { RichTextEditor } from '../components/RichTextEditor';
-import { ChevronLeft, ChevronRight, CheckCircle, Plus, X, Link as LinkIcon, AlertCircle, Lock, Sparkles, GraduationCap, Search, Users, Calculator, Info } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle, Plus, X, Link as LinkIcon, AlertCircle, Lock, Sparkles, GraduationCap, Search, Users, User, Shuffle, School, Wifi, Home, MapPin, Calculator, Info } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -24,11 +24,23 @@ const STEPS = [
     'Vorschau'
 ];
 
-type PriceMode = 'free' | 'fixed' | 'vb' | 'custom';
+type PriceMode = 'free' | 'fixed' | 'vb';
+type SessionFormat = 'single' | 'group' | 'any';
+const SESSION_FORMATS: { value: SessionFormat; title: string; hint: string }[] = [
+    { value: 'single', title: 'Einzelunterricht', hint: 'Nur du + Tutor' },
+    { value: 'group', title: 'Kleingruppe', hint: '2–4 Schüler' },
+    { value: 'any', title: 'Egal', hint: 'Beides möglich' },
+];
 type LocationPreset = 'Bibliothek' | 'Schule' | 'Mensa' | 'SV-Raum' | 'Glaskasten' | 'Oberes Foyer' | 'Vor der Aula' | 'Unteres Foyer' | 'Schulhof' | 'Online' | 'Bei dir' | 'Bei mir';
-const LOCATIONS: LocationPreset[] = ['Bibliothek', 'Schule', 'Mensa', 'SV-Raum', 'Glaskasten', 'Oberes Foyer', 'Vor der Aula', 'Unteres Foyer', 'Schulhof', 'Online', 'Bei dir', 'Bei mir'];
+// Orte sind inhaltlich unverändert (Backend-kompatibel), nur gruppiert dargestellt.
+const LOCATION_GROUPS: { title: string; locations: LocationPreset[] }[] = [
+    { title: 'In der Schule', locations: ['Bibliothek', 'Schule', 'Mensa', 'SV-Raum', 'Glaskasten', 'Oberes Foyer', 'Unteres Foyer', 'Vor der Aula', 'Schulhof'] },
+    { title: 'Online', locations: ['Online'] },
+    { title: 'Bei dir oder bei mir', locations: ['Bei dir', 'Bei mir'] },
+];
 
-const DURATIONS = [0, 15, 30, 45, 60, 90, 120, 180];
+const DURATION_PRESETS = [30, 45, 60, 90];
+const DURATION_EGAL = 0; // 0 = „Egal / nach Absprache" (wird so im Feed angezeigt)
 
 export default function CreateAd() {
     const navigate = useNavigate();
@@ -39,7 +51,6 @@ export default function CreateAd() {
     const [profile, setProfile] = useState<any>(null);
     const [isVerified, setIsVerified] = useState(false);
     const [loadingProfile, setLoadingProfile] = useState(true);
-    const [promoCode, setPromoCode] = useState('');
 
     const [children, setChildren] = useState<any[]>([]);
     const [selectedChildId, setSelectedChildId] = useState<string>('');
@@ -48,6 +59,7 @@ export default function CreateAd() {
     const [formData, setFormData] = useState({
         type: 'offer' as 'offer' | 'search',
         title: '',
+        session_format: 'any' as SessionFormat,
         subjects: [] as Subject[],
         grade_levels: [] as string[],
 
@@ -87,9 +99,17 @@ export default function CreateAd() {
     useEffect(() => {
         if (location.state?.duplicateAd) {
             const d = location.state.duplicateAd;
+            // Legacy-Daten säubern: Der alte [Kleingruppe]-Prefix im Titel wird ins Format-Feld überführt.
+            const rawShort: string = d.short_description || '';
+            const legacyGroup = rawShort.startsWith('[Kleingruppe] ');
+            const cleanShort = legacyGroup ? rawShort.replace(/^\[Kleingruppe\]\s*/, '') : rawShort;
+            const legacyFormat = d.session_format === 'single' || d.session_format === 'group' || d.session_format === 'any'
+                ? d.session_format
+                : (legacyGroup ? 'group' : 'any');
             setFormData({
                 type: d.type || 'offer',
                 title: d.short_description || '',
+                session_format: legacyFormat,
                 subjects: d.subjects || [],
                 grade_levels: d.grade_levels || [],
                 locations: d.locations || [],
@@ -99,7 +119,7 @@ export default function CreateAd() {
                 price_mode: d.price_details?.mode || 'fixed',
                 price_value: d.price_details?.value ?? '',
                 price_unit: d.price_details?.unit || '45min',
-                short_description: d.short_description || '',
+                short_description: cleanShort,
                 long_description: d.long_description || '',
                 image_urls: d.image_urls || [],
                 new_image_url: ''
@@ -186,45 +206,28 @@ export default function CreateAd() {
             finalLocations.push(formData.custom_location);
         }
 
-        let isBoosted = false;
-        let boostDays = 14;
-        const codeTrimmed = promoCode.trim().toUpperCase();
+        // Legacy-Säuberung: Ein evtl. noch vorhandener [Kleingruppe]-Prefix gehört ins
+        // session_format-Feld und nicht in den sichtbaren Text.
+        const cleanShortDescription = formData.short_description.replace(/^\[Kleingruppe\]\s*/, '');
 
-        if (codeTrimmed) {
-            // Check promo code in DB
-            try {
-                const { data: redeemRes } = await supabase.rpc('redeem_promo_code', { code_val: codeTrimmed });
-                if (redeemRes && redeemRes.success) {
-                    isBoosted = true;
-                    boostDays = redeemRes.boost_days || 14;
-                    toast.success(`Promo-Code '${codeTrimmed}' erfolgreich aktiviert (${boostDays} Tage Boost)!`);
-                } else {
-                    toast.error(redeemRes?.message || "Ungültiger oder abgelaufener Promo-Code.");
-                }
-            } catch (e) {
-                console.error("Promo code check error:", e);
-                toast.error("Ungültiger oder abgelaufener Promo-Code.");
-            }
-        }
-
-        const boostedUntil = isBoosted ? new Date(Date.now() + boostDays * 24 * 60 * 60 * 1000).toISOString() : null;
         const effectiveUserId = profile?.role === 'parent' && selectedChildId ? selectedChildId : user.id;
 
         const { error } = await supabase.from('ads').insert({
             user_id: effectiveUserId,
             type: formData.type,
+            session_format: formData.session_format,
             subjects: formData.subjects,
             grade_levels: formData.grade_levels,
             locations: finalLocations,
             price_details: priceDetails,
             duration_minutes: finalDurations,
-            short_description: formData.short_description,
+            short_description: cleanShortDescription,
             long_description: formData.long_description,
             image_urls: formData.image_urls,
             is_active: true,
-            boosted: isBoosted,
-            boosted_until: boostedUntil,
-            promo_code_used: isBoosted ? codeTrimmed : null
+            boosted: false,
+            boosted_until: null,
+            promo_code_used: null
         });
 
         setIsSubmitting(false);
@@ -458,25 +461,32 @@ export default function CreateAd() {
                                         </button>
                                     </div>
                                     
-                                    {/* Group session selection */}
-                                    <div className="bg-gray-50 dark:bg-gray-800/40 p-3.5 rounded-2xl border dark:border-gray-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                        <div>
-                                            <span className="text-xs font-bold text-gray-900 dark:text-white block">Unterrichts-Format</span>
-                                            <span className="text-[11px] text-gray-500 block">Einzelnachhilfe oder Kleingruppe (2-4 Schüler)?</span>
+                                    {/* Unterrichts-Format: Einzel / Kleingruppe / Egal */}
+                                    <div>
+                                        <span className="text-sm font-medium block">Unterrichts-Format</span>
+                                        <span className="text-[11px] text-gray-500 block mb-2">Einzelnachhilfe, Kleingruppe (2–4 Schüler) oder flexibel?</span>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {SESSION_FORMATS.map(f => {
+                                                const Icon = f.value === 'single' ? User : f.value === 'group' ? Users : Shuffle;
+                                                const active = formData.session_format === f.value;
+                                                return (
+                                                    <button
+                                                        key={f.value}
+                                                        type="button"
+                                                        onClick={() => setFormData({ ...formData, session_format: f.value })}
+                                                        aria-pressed={active}
+                                                        className={cn(
+                                                            "py-3 px-2 text-center rounded-xl border-2 transition-all font-semibold flex flex-col items-center justify-center gap-1",
+                                                            active ? "border-primary bg-primary/10 text-primary-hover shadow-xs" : "border-gray-200 text-gray-500 hover:border-gray-300 dark:border-gray-700 dark:text-gray-400"
+                                                        )}
+                                                    >
+                                                        <Icon size={18} className="shrink-0" />
+                                                        <span className="text-xs sm:text-sm">{f.title}</span>
+                                                        <span className="text-[10px] font-normal opacity-80">{f.hint}</span>
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => setFormData({ ...formData, short_description: formData.short_description.includes('[Kleingruppe]') ? formData.short_description.replace('[Kleingruppe] ', '') : `[Kleingruppe] ${formData.short_description}` })}
-                                            className={cn(
-                                                "px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center justify-center gap-1.5 self-start sm:self-auto",
-                                                formData.short_description.includes('[Kleingruppe]')
-                                                    ? "bg-purple-100 border-purple-300 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300"
-                                                    : "bg-white dark:bg-gray-900 border-gray-200 text-gray-600"
-                                            )}
-                                        >
-                                            <Users size={14} />
-                                            <span>{formData.short_description.includes('[Kleingruppe]') ? 'Kleingruppe (2-4 Schüler)' : 'Einzelunterricht'}</span>
-                                        </button>
                                     </div>
 
                                     <div>
@@ -538,58 +548,105 @@ export default function CreateAd() {
                     {currentStep === 2 && (
                         <div className="space-y-6">
                             <div>
-                                <label className="text-sm font-medium mb-2 block">Wo findet es statt?</label>
-                                <div className="flex flex-wrap gap-2 mb-3">
-                                    {LOCATIONS.map(loc => (
-                                        <button
-                                            key={loc}
-                                            onClick={() => toggleLocation(loc)}
-                                            className={cn(
-                                                "px-3 py-1.5 rounded-full text-sm border transition-colors",
-                                                formData.locations.includes(loc)
-                                                    ? "bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-black"
-                                                    : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
-                                            )}
-                                        >
-                                            {loc}
-                                        </button>
-                                    ))}
+                                <label className="text-sm font-medium mb-1 block">Wo findet die Nachhilfe statt?</label>
+                                <p className="text-[11px] text-gray-500 mb-3">Wähle alle Orte, die für dich passen (Mehrfachauswahl).</p>
+                                <div className="space-y-4">
+                                    {LOCATION_GROUPS.map(group => {
+                                        const GroupIcon = group.title === 'In der Schule' ? School : group.title === 'Online' ? Wifi : Home;
+                                        return (
+                                            <div key={group.title}>
+                                                <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 flex items-center gap-1.5">
+                                                    <GroupIcon size={13} /> {group.title}
+                                                </p>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {group.locations.map(loc => {
+                                                        const active = formData.locations.includes(loc);
+                                                        return (
+                                                            <button
+                                                                key={loc}
+                                                                type="button"
+                                                                onClick={() => toggleLocation(loc)}
+                                                                aria-pressed={active}
+                                                                className={cn(
+                                                                    "px-3.5 py-2 rounded-full text-sm border transition-colors font-medium",
+                                                                    active
+                                                                        ? "bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-black"
+                                                                        : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                                                                )}
+                                                            >
+                                                                {loc}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
-                                <div className="flex gap-2 items-center">
+                                <div className="flex gap-2 items-center mt-3">
+                                    <MapPin size={15} className="text-gray-400 shrink-0" />
                                     <Input
-                                        placeholder="Oder eigener Ort..."
+                                        placeholder="Oder eigener Ort (z. B. Stadtbibliothek)..."
                                         value={formData.custom_location}
                                         onChange={e => setFormData({ ...formData, custom_location: e.target.value })}
                                         className="max-w-xs"
                                     />
                                 </div>
+                                {(formData.locations.length > 0 || formData.custom_location) && (
+                                    <p className="text-[11px] text-gray-500 mt-2">
+                                        Ausgewählt: {[ ...formData.locations, ...(formData.custom_location ? [formData.custom_location] : []) ].join(' • ')}
+                                    </p>
+                                )}
                             </div>
 
                             <div>
-                                <label className="text-sm font-medium mb-2 block">Dauer (Minuten)</label>
+                                <label className="text-sm font-medium mb-1 block">Wie lange dauert eine Einheit?</label>
+                                <p className="text-[11px] text-gray-500 mb-3">Eine Dauer wählen oder „Egal" für Absprache im Chat.</p>
                                 <div className="flex flex-wrap gap-2 mb-3">
-                                    {DURATIONS.map(dur => (
-                                        <button
-                                            key={dur}
-                                            onClick={() => toggleDuration(dur)}
-                                            className={cn(
-                                                "w-12 h-12 rounded-lg text-sm font-medium border flex items-center justify-center transition-all",
-                                                formData.duration_minutes.includes(dur)
-                                                    ? "bg-blue-100 border-blue-500 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200"
-                                                    : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
-                                            )}
-                                        >
-                                            {dur === 0 ? 'Individuell / Egal' : `${dur} min`}
-                                        </button>
-                                    ))}
+                                    {DURATION_PRESETS.map(dur => {
+                                        const active = formData.duration_minutes.includes(dur);
+                                        return (
+                                            <button
+                                                key={dur}
+                                                type="button"
+                                                onClick={() => toggleDuration(dur)}
+                                                aria-pressed={active}
+                                                className={cn(
+                                                    "min-w-16 px-4 h-12 rounded-xl text-sm font-semibold border flex items-center justify-center transition-all",
+                                                    active
+                                                        ? "bg-blue-100 border-blue-500 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200"
+                                                        : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                                                )}
+                                            >
+                                                {dur} Min.
+                                            </button>
+                                        );
+                                    })}
+                                    <button
+                                        type="button"
+                                        onClick={() => toggleDuration(DURATION_EGAL)}
+                                        aria-pressed={formData.duration_minutes.includes(DURATION_EGAL)}
+                                        className={cn(
+                                            "px-4 h-12 rounded-xl text-sm font-semibold border flex items-center justify-center transition-all",
+                                            formData.duration_minutes.includes(DURATION_EGAL)
+                                                ? "bg-blue-100 border-blue-500 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200"
+                                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                                        )}
+                                    >
+                                        Egal / nach Absprache
+                                    </button>
                                 </div>
-                                <Input
-                                    type="number"
-                                    placeholder="Andere Dauer (min)"
-                                    value={formData.custom_duration}
-                                    onChange={e => setFormData({ ...formData, custom_duration: e.target.value })}
-                                    className="max-w-[150px]"
-                                />
+                                <div className="flex gap-2 items-center">
+                                    <Input
+                                        type="number"
+                                        min={5}
+                                        max={480}
+                                        placeholder="Andere Dauer (Min.)"
+                                        value={formData.custom_duration}
+                                        onChange={e => setFormData({ ...formData, custom_duration: e.target.value })}
+                                        className="max-w-[170px]"
+                                    />
+                                </div>
                             </div>
                         </div>
                     )}
@@ -803,9 +860,21 @@ export default function CreateAd() {
                                         <span className="px-3 py-1 bg-primary text-black rounded-full text-sm font-bold">
                                             {formData.price_mode === 'fixed' ? `${formData.price_value}€ / ${formData.price_unit}` : (formData.price_mode === 'free' ? 'Kostenlos' : 'VB')}
                                         </span>
+                                        <span className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-sm font-semibold">
+                                            {formData.session_format === 'single' ? 'Einzelunterricht' : formData.session_format === 'group' ? 'Kleingruppe' : 'Format: Egal'}
+                                        </span>
                                         {formData.subjects.map(s => <SubjectChip key={s} subject={s} />)}
                                     </div>
-                                    <p className="text-gray-600 dark:text-gray-300">{formData.short_description}</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                        {[ ...formData.locations, ...(formData.custom_location ? [formData.custom_location] : []) ].join(' • ') || 'Kein Ort gewählt'}
+                                        {'  ·  '}
+                                        {(() => {
+                                            const all = [...formData.duration_minutes, ...(formData.custom_duration ? [Number(formData.custom_duration)] : [])].filter(n => !isNaN(n));
+                                            if (all.length === 0) return 'Keine Dauer gewählt';
+                                            return all.map(d => d === 0 ? 'Dauer: Egal' : `${d} Min.`).join(' • ');
+                                        })()}
+                                    </p>
+                                    <p className="text-gray-600 dark:text-gray-300 mt-2">{formData.short_description}</p>
                                 </div>
                                 <div className="p-6 prose dark:prose-invert max-w-none">
                                     <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(formData.long_description || '<p class="text-gray-400 italic">Keine Beschreibung</p>') }} />
@@ -820,15 +889,6 @@ export default function CreateAd() {
                                 </div>
                             </div>
 
-                            <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-800 space-y-2">
-                                <label className="text-xs font-bold uppercase text-gray-500 block">Aktionscode (Optional)</label>
-                                <Input
-                                    placeholder="Falls vorhanden, gib hier deinen Aktionscode ein..."
-                                    value={promoCode}
-                                    onChange={e => setPromoCode(e.target.value)}
-                                    className="max-w-xs border-dashed"
-                                />
-                            </div>
                         </div>
                     )}
 

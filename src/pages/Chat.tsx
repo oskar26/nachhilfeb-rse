@@ -9,6 +9,7 @@ import { toast } from 'react-hot-toast';
 import { cn } from '../lib/utils';
 import ReportWizard from '../components/ReportWizard';
 import { downloadICSFile } from '../lib/calendar';
+import { blockedReason } from '../lib/profanity';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/Dialog';
 
 interface Message {
@@ -20,17 +21,6 @@ interface Message {
     read_at: string | null;
     created_at: string;
     edited_at?: string | null;
-}
-
-const PROFANITY_LIST = [
-    'hurensohn', 'arschloch', 'bastard', 'bitch', 'fotze', 'wichser', 'missgeburt', 
-    'schlampe', 'nigger', 'fick', 'ficken', 'slut', 'whore', 'cunt', 'dick', 'cock', 'pussy',
-    'asshole', 'motherfucker', 'spasti', 'spast'
-];
-
-function containsProfanity(text: string): boolean {
-    const lowerText = text.toLowerCase();
-    return PROFANITY_LIST.some(word => lowerText.includes(word));
 }
 
 export default function Chat() {
@@ -65,7 +55,7 @@ export default function Chat() {
         e.preventDefault();
         if (!appDate || !appTime || !user || !requestId) return;
 
-        const formattedContent = `📅 TERMIN-VEREINBARUNG\nFach: ${appSubject}\nDatum: ${appDate}\nUhrzeit: ${appTime} Uhr (45 Min)\nOrt: FWG Bibliothek / Schulgelände`;
+        const formattedContent = `TERMIN-VEREINBARUNG\nFach: ${appSubject}\nDatum: ${appDate}\nUhrzeit: ${appTime} Uhr (45 Min)\nOrt: FWG Bibliothek / Schulgelände`;
 
         const { error } = await supabase.from('messages').insert({
             request_id: requestId,
@@ -166,8 +156,9 @@ export default function Chat() {
         e.preventDefault();
         if (!newMessage.trim() || !user || !requestId) return;
 
-        if (containsProfanity(newMessage)) {
-            toast.error('Deine Nachricht enthält unangemessene Ausdrücke. Bitte formuliere sie um.');
+        const hit = blockedReason(newMessage);
+        if (hit) {
+            toast.error(hit, { duration: 6000 });
             return;
         }
 
@@ -202,7 +193,7 @@ export default function Chat() {
         });
         if (error) {
             // Table may not exist yet – show guidance
-            toast('Bitte melde diesen Nutzer, um ihn zu blockieren. Die Blockier-Funktion ist noch in Einrichtung.', { icon: 'ℹ️', duration: 5000 });
+            toast('Bitte melde diesen Nutzer, um ihn zu blockieren. Die Blockier-Funktion ist noch in Einrichtung.', { duration: 5000 });
         } else {
             toast.success(`${otherUser?.display_name || 'Nutzer'} wurde blockiert. Du wirst keine Nachrichten mehr von dieser Person sehen.`);
         }
@@ -222,8 +213,9 @@ export default function Chat() {
         const trimmed = editContent.trim();
         if (!trimmed) return;
 
-        if (containsProfanity(trimmed)) {
-            toast.error('Deine Nachricht enthält unangemessene Ausdrücke. Bitte formuliere sie um.');
+        const hit = blockedReason(trimmed);
+        if (hit) {
+            toast.error(hit, { duration: 6000 });
             return;
         }
 
@@ -311,7 +303,7 @@ export default function Chat() {
                             <button 
                                 onClick={() => {
                                     setMenuOpen(false);
-                                    toast('Bitte kontaktiere die SV, um den Chat löschen zu lassen.', { icon: 'ℹ️' });
+                                    toast('Bitte kontaktiere die SV, um den Chat löschen zu lassen.');
                                 }}
                                 className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-[#2a3942] text-red-600 dark:text-red-400 transition-colors flex items-center gap-2"
                             >
@@ -359,7 +351,7 @@ export default function Chat() {
                                         )}
                                     >
                                         {msg.is_deleted ? (
-                                            <span className="flex items-center gap-1 text-xs text-[#8696a0]">🚫 Diese Nachricht wurde gelöscht.</span>
+                                            <span className="flex items-center gap-1 text-xs text-[#8696a0]"><Ban size={12} /> Diese Nachricht wurde gelöscht.</span>
                                         ) : isEditing ? (
                                             <div className="space-y-2 min-w-[200px]">
                                                 <textarea
@@ -388,7 +380,7 @@ export default function Chat() {
                                         ) : (
                                             <div>
                                                 <div className="whitespace-pre-wrap">{msg.content}</div>
-                                                {msg.content.includes('📅 TERMIN-VEREINBARUNG') && (
+                                                {msg.content.includes('TERMIN-VEREINBARUNG') && (
                                                     <button
                                                         type="button"
                                                         onClick={() => {
@@ -406,7 +398,7 @@ export default function Chat() {
                                                         }}
                                                         className="mt-2 text-xs font-bold bg-[#00a884] text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm hover:bg-[#008f72] transition-colors"
                                                     >
-                                                        <Download size={13} /> 📆 In Kalender speichern (.ics)
+                                                        <Download size={13} /> In Kalender speichern (.ics)
                                                     </button>
                                                 )}
                                             </div>

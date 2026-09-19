@@ -1,7 +1,6 @@
-import { useRef, type KeyboardEvent } from 'react';
+import { useRef, useState, type KeyboardEvent } from 'react';
 import { useSearchParams, useLocation } from 'react-router-dom';
 import { MessageSquare, Heart, Zap } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import Favorites from './Favorites';
 import Requests from './Requests';
 import Matching from './Matching';
@@ -23,31 +22,19 @@ export default function Social({ initialTab }: { initialTab?: 'requests' | 'matc
         ? requestedTab
         : pathTab || initialTab || 'requests';
 
-    const tabs = [
-        {
-            id: 'requests',
-            label: 'Anfragen',
-            icon: MessageSquare,
-            component: <Requests />
-        },
-        {
-            id: 'matches',
-            label: 'Matches',
-            icon: Zap,
-            component: <Matching />
-        },
-        {
-            id: 'watchlist',
-            label: 'Merkliste',
-            icon: Heart,
-            component: <Favorites />
-        }
-    ];
+    // Bereits besuchte Tabs bleiben gemountet (kein erneutes Laden beim Zurückspringen,
+    // keine AnimatePresence-Unmounts -> butterweiches, sofortiges Umschalten).
+    const [visitedTabs, setVisitedTabs] = useState<string[]>([activeTab]);
 
-    const currentTab = tabs.find(t => t.id === activeTab) || tabs[0];
+    const tabs = [
+        { id: 'requests', label: 'Anfragen', icon: MessageSquare },
+        { id: 'matches', label: 'Matches', icon: Zap },
+        { id: 'watchlist', label: 'Merkliste', icon: Heart }
+    ] as const;
 
     const selectTab = (tabId: string) => {
         triggerHaptic('selection');
+        setVisitedTabs(prev => (prev.includes(tabId) ? prev : [...prev, tabId]));
         setSearchParams(params => {
             const nextParams = new URLSearchParams(params);
             nextParams.set('tab', tabId);
@@ -90,8 +77,8 @@ export default function Social({ initialTab }: { initialTab?: 'requests' | 'matc
                 </div>
             </div>
 
-            {/* Sliding Yellow Tab Bar */}
-            <div role="tablist" aria-label="Social" className="relative bg-white dark:bg-gray-900 border border-gray-200/80 dark:border-gray-800 p-1 sm:p-1.5 rounded-2xl flex w-full justify-between shadow-xs">
+            {/* Tab Bar (reines CSS, keine Layout-Animationen -> kein Ruckeln) */}
+            <div role="tablist" aria-label="Social" className="bg-white dark:bg-gray-900 border border-gray-200/80 dark:border-gray-800 p-1 sm:p-1.5 rounded-2xl flex w-full justify-between shadow-xs">
                 {tabs.map((tab, index) => {
                     const Icon = tab.icon;
                     const isActive = tab.id === activeTab;
@@ -103,24 +90,19 @@ export default function Social({ initialTab }: { initialTab?: 'requests' | 'matc
                             role="tab"
                             id={`social-tab-${tab.id}`}
                             aria-selected={isActive}
-                            aria-controls="social-tabpanel"
+                            aria-controls={`social-tabpanel-${tab.id}`}
                             tabIndex={isActive ? 0 : -1}
                             onKeyDown={event => handleTabKeyDown(event, index)}
                             onClick={() => selectTab(tab.id)}
                             className={cn(
-                                "relative min-w-0 flex-1 flex items-center justify-center py-3 px-1 sm:px-3 rounded-xl text-xs sm:text-sm font-extrabold transition-colors z-10 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 dark:focus-visible:ring-yellow-300",
-                                isActive ? "text-amber-950" : "text-gray-500 hover:text-gray-900 dark:hover:text-gray-200"
+                                "min-w-0 flex-1 flex items-center justify-center py-3 px-1 sm:px-3 rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer select-none transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 dark:focus-visible:ring-yellow-300",
+                                isActive
+                                    ? "bg-primary text-amber-950 shadow-xs"
+                                    : "text-gray-500 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/60"
                             )}
                         >
-                            {isActive && (
-                                <motion.div
-                                    layoutId="socialActiveIndicator"
-                                    className="absolute inset-0 bg-primary rounded-xl shadow-xs"
-                                    transition={{ type: "spring", stiffness: 450, damping: 32 }}
-                                />
-                            )}
-                            <span className="relative z-10 flex items-center gap-1 sm:gap-2 whitespace-nowrap">
-                                <Icon aria-hidden="true" size={16} className={cn("shrink-0", isActive ? "text-amber-950" : "text-gray-400")} />
+                            <span className="flex items-center gap-1 sm:gap-2 whitespace-nowrap">
+                                <Icon aria-hidden="true" size={16} className={cn("shrink-0", !isActive && "text-gray-400")} />
                                 <span>{tab.label}</span>
                             </span>
                         </button>
@@ -128,26 +110,22 @@ export default function Social({ initialTab }: { initialTab?: 'requests' | 'matc
                 })}
             </div>
 
-            {/* Render selected component with smooth transition */}
-            <div
-                id="social-tabpanel"
-                role="tabpanel"
-                aria-labelledby={`social-tab-${activeTab}`}
-                tabIndex={0}
-                className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 dark:focus-visible:ring-yellow-300"
-            >
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={activeTab}
-                        initial={{ opacity: 0, y: 4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -4 }}
-                        transition={{ duration: 0.15, ease: "easeOut" }}
-                    >
-                        {currentTab.component}
-                    </motion.div>
-                </AnimatePresence>
-            </div>
+            {/* Alle besuchten Tabs bleiben gemountet, nur das aktive ist sichtbar */}
+            {visitedTabs.includes('requests') && (
+                <div id="social-tabpanel-requests" role="tabpanel" aria-labelledby="social-tab-requests" tabIndex={0} hidden={activeTab !== 'requests'} className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 dark:focus-visible:ring-yellow-300">
+                    <Requests />
+                </div>
+            )}
+            {visitedTabs.includes('matches') && (
+                <div id="social-tabpanel-matches" role="tabpanel" aria-labelledby="social-tab-matches" tabIndex={0} hidden={activeTab !== 'matches'} className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 dark:focus-visible:ring-yellow-300">
+                    <Matching />
+                </div>
+            )}
+            {visitedTabs.includes('watchlist') && (
+                <div id="social-tabpanel-watchlist" role="tabpanel" aria-labelledby="social-tab-watchlist" tabIndex={0} hidden={activeTab !== 'watchlist'} className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 dark:focus-visible:ring-yellow-300">
+                    <Favorites />
+                </div>
+            )}
         </div>
     );
 }

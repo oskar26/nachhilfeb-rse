@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
-import { Trash2, Search } from 'lucide-react';
+import { Trash2, Search, Sparkles } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { cn } from '../../lib/utils';
 import { useState, useEffect } from 'react';
@@ -203,7 +203,7 @@ function AdManagement() {
                                             </span>
                                             <span className="font-bold">{ad.short_description}</span>
                                             {ad.is_hidden && <span className="text-[10px] bg-red-100 text-red-800 px-2 py-0.5 rounded-full font-bold uppercase">Versteckt</span>}
-                                            {ad.boosted && <span className="text-[10px] bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full font-bold uppercase">Geboostet ⭐</span>}
+                                            {ad.boosted && <span className="text-[10px] bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full font-bold uppercase inline-flex items-center gap-1">Geboostet <Sparkles size={11} /></span>}
                                         </div>
                                         <div className="text-sm text-gray-500">
                                             Von <span className="font-semibold">{ad.profiles?.display_name || `${ad.profiles?.first_name || ''} ${ad.profiles?.last_name || ''}`}</span> • {new Date(ad.created_at).toLocaleDateString('de-DE')}

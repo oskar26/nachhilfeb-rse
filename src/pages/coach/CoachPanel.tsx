@@ -86,8 +86,8 @@ export default function CoachPanel() {
             const res = await api.promo_codes.list();
             const list = (res.data || []).filter((c: any) => c.effect_type === 'coach_verification' || c.target_group === 'coach');
             setCoachCodes(list);
-        } catch (e) {
-            console.error(e);
+        } catch (e: any) {
+            toast.error('Codes konnten nicht geladen werden: ' + (e.message || 'Fehler'));
         } finally {
             setLoadingCodes(false);
         }
@@ -98,8 +98,8 @@ export default function CoachPanel() {
         try {
             const res = await api.coach.listLogs();
             if (res.data) setLogs(res.data);
-        } catch (e) {
-            console.error(e);
+        } catch (e: any) {
+            toast.error('Protokoll konnte nicht geladen werden: ' + (e.message || 'Fehler'));
         } finally {
             setLoadingLogs(false);
         }
@@ -274,7 +274,7 @@ export default function CoachPanel() {
 
             {/* TAB 1: SCHÜLERLISTE */}
             {activeTab === 'students' && (
-                <div className="space-y-4">
+                <div className="space-y-4 min-h-[480px]">
                     <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
                         <div className="relative w-full sm:w-80">
                             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -372,7 +372,7 @@ export default function CoachPanel() {
 
             {/* TAB 2: COACHING CODES */}
             {activeTab === 'codes' && (
-                <div className="space-y-4">
+                <div className="space-y-4 min-h-[480px]">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-5 bg-white dark:bg-gray-900 border border-gray-200/80 dark:border-gray-800 rounded-3xl shadow-xs">
                         <div>
                             <h3 className="text-base font-extrabold text-gray-900 dark:text-white">Neue Schüler-Coaching Codes vergeben</h3>
@@ -449,6 +449,7 @@ export default function CoachPanel() {
 
             {/* TAB 3: STARTSEITEN-INFOS */}
             {activeTab === 'info' && (
+                <div className="min-h-[480px]">
                 <Card className="rounded-3xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
                     <CardContent className="p-6 space-y-6">
                         <div className="space-y-1">
@@ -536,12 +537,14 @@ export default function CoachPanel() {
                                 </div>
                             </form>
                         )}
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
+                </div>
             )}
 
             {/* TAB 4: LOGS */}
             {activeTab === 'logs' && (
+                <div className="min-h-[480px]">
                 <Card className="rounded-3xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden shadow-xs">
                     <CardContent className="p-0">
                         <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/30">
@@ -581,6 +584,7 @@ export default function CoachPanel() {
                         )}
                     </CardContent>
                 </Card>
+                </div>
             )}
         </div>
     );

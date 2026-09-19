@@ -10,6 +10,7 @@ import {
     ChevronLeft,
     ChevronRight,
     RefreshCw,
+    GraduationCap,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { cn } from '../../lib/utils';
@@ -134,7 +135,7 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
                         variant={searchAction === 'coach' ? 'primary' : 'outline'}
                         className="h-11 rounded-2xl gap-2 text-sm"
                     >
-                        🏫 Schüler-Coaching
+                        <GraduationCap size={16} /> Schüler-Coaching
                     </Button>
                     <select
                         value={searchAction === 'coach' ? 'all' : searchAction}

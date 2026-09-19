@@ -11,6 +11,7 @@ import {
     User,
     ArrowLeft,
     RefreshCw,
+    Ban,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { cn } from '../../lib/utils';
@@ -21,6 +22,8 @@ interface AdminChatProps {
     reportId?: string | null;
     onBack?: () => void;
 }
+
+import { checkContent } from '../../lib/profanity';
 
 interface Message {
     id: string;
@@ -33,13 +36,6 @@ interface Message {
         display_name: string | null;
     } | null;
 }
-
-const PROFANITY_LIST = [
-    'hurensohn', 'arschloch', 'bastard', 'bitch', 'fotze', 
-    'wichser', 'missgeburt', 'schlampe', 'nigger', 'fick', 
-    'ficken', 'slut', 'whore', 'cunt', 'dick', 'cock', 
-    'pussy', 'asshole', 'motherfucker', 'spasti', 'spast'
-];
 
 export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminChatProps) {
     const [messages, setMessages] = useState<Message[]>([]);
@@ -155,7 +151,7 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
         const chatLog = messages.map(m => {
             const time = new Date(m.created_at).toLocaleString('de-DE');
             const senderName = m.sender_id === userId1 ? names.user1 : names.user2;
-            const content = m.is_deleted ? '🚫 Diese Nachricht wurde gelöscht' : m.content;
+            const content = m.is_deleted ? '[Diese Nachricht wurde gelöscht]' : m.content;
             return `[${time}] ${senderName}: ${content}`;
         }).join('\n');
 
@@ -178,8 +174,9 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
         toast.success('Chat-Protokoll exportiert');
     };
 
+    // Moderations-Highlight (Anzeige only, sendseitiger Block in Chat.tsx via shared Lib)
     const hasProfanity = (content: string) => {
-        return PROFANITY_LIST.some(word => content.toLowerCase().includes(word));
+        return checkContent(content).blocked;
     };
 
     if (!userId1 || !userId2 || !reportId) {
@@ -293,7 +290,7 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
                                     'text-sm text-gray-800 dark:text-gray-200 mt-0.5 break-words whitespace-pre-wrap',
                                     msg.is_deleted && 'text-gray-400 italic'
                                 )}>
-                                    {msg.is_deleted ? '🚫 Diese Nachricht wurde gelöscht' : msg.content}
+                                    {msg.is_deleted ? (<span className="inline-flex items-center gap-1"><Ban size={12} /> Diese Nachricht wurde gelöscht</span>) : msg.content}
                                 </p>
 
                                 {profanity && (

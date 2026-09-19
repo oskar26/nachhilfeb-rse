@@ -59,6 +59,9 @@ export default function Coaching() {
                             bei einzelnen Fächern oder der Lern- und Arbeitsorganisation allgemein.
                             Die Coaches werden jeweils vor den Herbstferien geschult und engagieren
                             sich ehrenamtlich bis zum Ende des Schuljahres.
+                            Dieses Angebot wird in der Regel sehr gerne angenommen,
+                            da die Coaches einen guten Blick auf die Probleme der
+                            jüngeren Schülerinnen und Schüler haben.
                         </p>
                         <p>
                             Mehr dazu auf der Schul-Website:{' '}

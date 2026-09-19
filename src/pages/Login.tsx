@@ -415,7 +415,7 @@ export default function Login() {
 
                             {error && (
                                 <div className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800/50 flex items-start gap-2">
-                                    <span>⚠️</span> <span>{error}</span>
+                                    <ShieldAlert size={16} className="shrink-0 mt-0.5" /> <span>{error}</span>
                                 </div>
                             )}
 
@@ -550,7 +550,7 @@ export default function Login() {
                                     <label className="text-xs font-bold uppercase text-gray-500 ml-1">E-Mail Adresse</label>
                                     <Input
                                         type="email"
-                                        placeholder="schueler@fwg.de"
+                                        placeholder="E-Mail-Adresse"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         required
@@ -600,8 +600,8 @@ export default function Login() {
                         </CardContent>
                         {mode === 'register' && (
                             <CardFooter className="bg-amber-50/50 dark:bg-amber-950/20 py-4 px-6 mt-4 border-t border-amber-200/50 dark:border-amber-900/30 flex flex-col space-y-1">
-                                <p className="text-[11px] text-amber-900 dark:text-amber-300 font-semibold text-center w-full leading-relaxed">
-                                    ⚠️ <strong>Spam-Schutz:</strong> Accounts, die nicht innerhalb von <strong>7 Tagen</strong> durch einen SV-Code oder vor Ort verifiziert werden, werden automatisch gelöscht.
+                                <p className="text-[11px] text-amber-900 dark:text-amber-300 font-semibold text-center w-full leading-relaxed inline-flex items-start justify-center gap-1">
+                                    <ShieldAlert size={13} className="shrink-0 mt-px" /> <span><strong>Hinweis:</strong> Neue Accounts müssen durch einen SV-Code oder vor Ort verifiziert werden, bevor Anzeigen erstellt werden können.</span>
                                 </p>
                             </CardFooter>
                         )}

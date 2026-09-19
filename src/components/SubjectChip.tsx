@@ -47,33 +47,33 @@ const subjectColorMap: Record<Subject, string> = {
 const subjectLabelMap: Record<Subject, string> = {
     // Aufgabenfeld 1
     deutsch: 'Deutsch',
-    englisch: 'Englisch 🇬🇧',
-    franzoesisch: 'Französisch 🇫🇷',
-    kunst: 'Kunst 🎨',
+    englisch: 'Englisch',
+    franzoesisch: 'Französisch',
+    kunst: 'Kunst',
     griechisch: 'Griechisch',
     latein: 'Latein',
-    musik: 'Musik 🎵',
+    musik: 'Musik',
     literatur: 'Literatur',
     kultur: 'Kultur',
     // Aufgabenfeld 2
     geschichte: 'Geschichte',
     paedagogik: 'Pädagogik',
-    erdkunde: 'Erdkunde 🌍',
+    erdkunde: 'Erdkunde',
     philosophie: 'Philosophie',
     sowi: 'Sozialwiss.',
     wirtschaft_gesell: 'Wi & Gesell.',
     wirtschaft_politik: 'Wi & Politik',
     // Aufgabenfeld 3
-    biologie: 'Biologie 🧬',
-    chemie: 'Chemie 🧪',
-    informatik: 'Informatik 💻',
-    mathematik: 'Mathematik 📐',
-    physik: 'Physik ⚡',
-    blauer_planet: 'Blauer Planet 🌎',
+    biologie: 'Biologie',
+    chemie: 'Chemie',
+    informatik: 'Informatik',
+    mathematik: 'Mathematik',
+    physik: 'Physik',
+    blauer_planet: 'Blauer Planet',
     // Aufgabenfeld 4
     prakt_philosophie: 'Prakt. Philo',
     religion: 'Religion',
-    sport: 'Sport ⚽',
+    sport: 'Sport',
 };
 
 export const SUBJECT_CATEGORIES = [

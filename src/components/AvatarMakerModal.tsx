@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/Dialog';
 import { Button } from './ui/Button';
-import { Smile, Type, PenTool, Upload, RotateCcw, Trash2, Check, Sparkles, X } from 'lucide-react';
+import { Shapes, Type, PenTool, Upload, RotateCcw, Trash2, Check, Sparkles, X, BookOpen, Pencil, GraduationCap, FlaskConical, Calculator, Lightbulb, Brain, Backpack, NotebookPen, Laptop, Palette, Globe, Smile, Laugh, Rocket, Star, Flame, Zap, Heart, ThumbsUp, Trophy, Music, Gamepad2, Bike, Dumbbell, Guitar, Headphones, Target, Camera, Medal, Flag, Puzzle, Dices, Timer, Tent, type LucideIcon } from 'lucide-react';
 import { compressImage } from '../lib/image';
 import { toast } from 'react-hot-toast';
 import { cn } from '../lib/utils';
@@ -14,20 +14,69 @@ interface AvatarMakerModalProps {
     initialName?: string;
 }
 
-const EMOJI_CATEGORIES = [
+interface SymbolItem {
+    name: string;
+    label: string;
+    Icon: LucideIcon;
+}
+
+const SYMBOL_CATEGORIES: { name: string; items: SymbolItem[] }[] = [
     {
         name: 'Schule & Lernen',
-        emojis: ['📚', '✏️', '🎓', '🔬', '📐', '💡', '🧠', '🎒', '📝', '💻', '🎨', '🪐']
+        items: [
+            { name: 'BookOpen', label: 'Buch', Icon: BookOpen },
+            { name: 'Pencil', label: 'Stift', Icon: Pencil },
+            { name: 'GraduationCap', label: 'Abschluss-Hut', Icon: GraduationCap },
+            { name: 'FlaskConical', label: 'Experiment', Icon: FlaskConical },
+            { name: 'Calculator', label: 'Taschenrechner', Icon: Calculator },
+            { name: 'Lightbulb', label: 'Idee', Icon: Lightbulb },
+            { name: 'Brain', label: 'Kopf', Icon: Brain },
+            { name: 'Backpack', label: 'Rucksack', Icon: Backpack },
+            { name: 'NotebookPen', label: 'Heft', Icon: NotebookPen },
+            { name: 'Laptop', label: 'Laptop', Icon: Laptop },
+            { name: 'Palette', label: 'Kunst', Icon: Palette },
+            { name: 'Globe', label: 'Welt', Icon: Globe },
+        ]
     },
     {
-        name: 'Smileys & Vibes',
-        emojis: ['😎', '🤓', '🚀', '⭐', '🔥', '✨', '🦊', '🦁', '🐼', '🐨', '🦄', '⚡']
+        name: 'Vibes & Symbole',
+        items: [
+            { name: 'Smile', label: 'Lächeln', Icon: Smile },
+            { name: 'Laugh', label: 'Lachen', Icon: Laugh },
+            { name: 'Rocket', label: 'Rakete', Icon: Rocket },
+            { name: 'Star', label: 'Stern', Icon: Star },
+            { name: 'Flame', label: 'Flamme', Icon: Flame },
+            { name: 'Sparkles', label: 'Funkeln', Icon: Sparkles },
+            { name: 'Zap', label: 'Blitz', Icon: Zap },
+            { name: 'Heart', label: 'Herz', Icon: Heart },
+            { name: 'ThumbsUp', label: 'Daumen hoch', Icon: ThumbsUp },
+            { name: 'Trophy', label: 'Pokal', Icon: Trophy },
+            { name: 'Music', label: 'Musik', Icon: Music },
+            { name: 'Gamepad2', label: 'Gaming', Icon: Gamepad2 },
+        ]
     },
     {
         name: 'Sport & Hobbys',
-        emojis: ['⚽', '🏀', '🎾', '🎮', '🎸', '🎧', '🥋', '🛹', '♟️', '🎯', '🏊', '🚴']
+        items: [
+            { name: 'Bike', label: 'Fahrrad', Icon: Bike },
+            { name: 'Dumbbell', label: 'Fitness', Icon: Dumbbell },
+            { name: 'Guitar', label: 'Gitarre', Icon: Guitar },
+            { name: 'Headphones', label: 'Kopfhörer', Icon: Headphones },
+            { name: 'Target', label: 'Ziel', Icon: Target },
+            { name: 'Camera', label: 'Kamera', Icon: Camera },
+            { name: 'Medal', label: 'Medaille', Icon: Medal },
+            { name: 'Flag', label: 'Flagge', Icon: Flag },
+            { name: 'Puzzle', label: 'Puzzle', Icon: Puzzle },
+            { name: 'Dices', label: 'Würfel', Icon: Dices },
+            { name: 'Timer', label: 'Stoppuhr', Icon: Timer },
+            { name: 'Tent', label: 'Zelten', Icon: Tent },
+        ]
     }
 ];
+
+const SYMBOL_MAP: Record<string, LucideIcon> = Object.fromEntries(
+    SYMBOL_CATEGORIES.flatMap(cat => cat.items.map(item => [item.name, item.Icon]))
+);
 
 const BG_PALETTES = [
     '#facc15', // Gold
@@ -48,11 +97,12 @@ const MONOGRAM_FONTS = [
 ];
 
 export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName = '' }: AvatarMakerModalProps) {
-    const [mode, setMode] = useState<'emoji' | 'text' | 'draw' | 'upload'>('emoji');
+    const [mode, setMode] = useState<'symbol' | 'text' | 'draw' | 'upload'>('symbol');
 
-    // Emoji Tab State
-    const [selectedEmoji, setSelectedEmoji] = useState('🎓');
-    const [emojiBg, setEmojiBg] = useState('#facc15');
+    // Symbol Tab State
+    const [selectedSymbol, setSelectedSymbol] = useState('GraduationCap');
+    const [symbolBg, setSymbolBg] = useState('#facc15');
+    const symbolPreviewRef = useRef<HTMLSpanElement | null>(null);
 
     // Text Tab State
     const derivedInitials = initialName
@@ -185,7 +235,27 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
     };
 
     // --- Generate Final Output Image Data URL ---
-    const generateAvatarUrl = (): string | null => {
+    // Rendert das in der Vorschau angezeigte Lucide-SVG in das Avatar-Canvas.
+    const renderSymbolToCanvas = (ctx: CanvasRenderingContext2D, size: number): Promise<void> => {
+        const svgEl = symbolPreviewRef.current?.querySelector('svg');
+        if (!svgEl) return Promise.reject(new Error('Symbol-Vorschau nicht gefunden'));
+        const clone = svgEl.cloneNode(true) as SVGSVGElement;
+        clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        clone.setAttribute('width', '160');
+        clone.setAttribute('height', '160');
+        const svgUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(clone));
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+                ctx.drawImage(img, size / 2 - 80, size / 2 - 80, 160, 160);
+                resolve();
+            };
+            img.onerror = () => reject(new Error('Symbol konnte nicht gezeichnet werden'));
+            img.src = svgUrl;
+        });
+    };
+
+    const generateAvatarUrl = async (): Promise<string | null> => {
         const size = 256;
         const canvas = document.createElement('canvas');
         canvas.width = size;
@@ -193,18 +263,15 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
         const ctx = canvas.getContext('2d');
         if (!ctx) return null;
 
-        if (mode === 'emoji') {
+        if (mode === 'symbol') {
             // Background
-            ctx.fillStyle = emojiBg;
+            ctx.fillStyle = symbolBg;
             ctx.beginPath();
             ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
             ctx.fill();
 
-            // Emoji
-            ctx.font = '130px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(selectedEmoji, size / 2, size / 2 + 10);
+            // Symbol (aus der Live-Vorschau übernommen)
+            await renderSymbolToCanvas(ctx, size);
             return canvas.toDataURL('image/png');
         }
 
@@ -245,8 +312,13 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
         return null;
     };
 
-    const handleSave = () => {
-        const url = generateAvatarUrl();
+    const handleSave = async () => {
+        let url: string | null = null;
+        try {
+            url = await generateAvatarUrl();
+        } catch {
+            url = null;
+        }
         if (!url) {
             toast.error("Bitte wähle oder erstelle ein Profilbild.");
             return;
@@ -266,7 +338,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                         <DialogTitle className="text-lg font-black">Profilbild-Maker</DialogTitle>
                     </div>
                     <DialogDescription className="text-xs text-gray-500 dark:text-gray-400">
-                        Wähle ein Emoji, Initialen, zeichne selbst oder lade ein Foto hoch.
+                        Wähle ein Symbol, Initialen, zeichne selbst oder lade ein Foto hoch.
                     </DialogDescription>
                     <button
                         onClick={onClose}
@@ -279,13 +351,13 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                 {/* Mode Selector Tabs */}
                 <div className="flex border-b dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 p-2 gap-1.5 overflow-x-auto">
                     <button
-                        onClick={() => { triggerHaptic('selection'); setMode('emoji'); }}
+                        onClick={() => { triggerHaptic('selection'); setMode('symbol'); }}
                         className={cn(
                             "flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shrink-0",
-                            mode === 'emoji' ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-xs" : "text-gray-500 hover:text-gray-800"
+                            mode === 'symbol' ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-xs" : "text-gray-500 hover:text-gray-800"
                         )}
                     >
-                        <Smile size={15} /> Emoji
+                        <Shapes size={15} /> Symbol
                     </button>
                     <button
                         onClick={() => { triggerHaptic('selection'); setMode('text'); }}
@@ -322,12 +394,17 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                         <div
                             className="w-24 h-24 rounded-full shadow-lg border-4 border-white dark:border-gray-800 flex items-center justify-center overflow-hidden transition-all transform hover:scale-105"
                             style={{
-                                backgroundColor: mode === 'emoji' ? emojiBg : mode === 'text' ? textBg : undefined
+                                backgroundColor: mode === 'symbol' ? symbolBg : mode === 'text' ? textBg : undefined
                             }}
                         >
-                            {mode === 'emoji' && (
-                                <span className="text-5xl select-none">{selectedEmoji}</span>
-                            )}
+                            {mode === 'symbol' && (() => {
+                                const SelectedIcon = SYMBOL_MAP[selectedSymbol] || GraduationCap;
+                                return (
+                                    <span ref={symbolPreviewRef} className="flex items-center justify-center text-white select-none">
+                                        <SelectedIcon size={52} strokeWidth={1.8} />
+                                    </span>
+                                );
+                            })()}
                             {mode === 'text' && (
                                 <span
                                     className="text-3xl font-black select-none"
@@ -365,8 +442,8 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                         <span className="text-[11px] font-semibold text-gray-400">Vorschau</span>
                     </div>
 
-                    {/* MODE 1: EMOJI */}
-                    {mode === 'emoji' && (
+                    {/* MODE 1: SYMBOL */}
+                    {mode === 'symbol' && (
                         <div className="space-y-4">
                             {/* Color Selector */}
                             <div>
@@ -375,36 +452,39 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                                     {BG_PALETTES.map(color => (
                                         <button
                                             key={color}
-                                            onClick={() => setEmojiBg(color)}
+                                            onClick={() => setSymbolBg(color)}
                                             style={{ backgroundColor: color }}
                                             className={cn(
                                                 "w-8 h-8 rounded-full border-2 transition-transform shrink-0",
-                                                emojiBg === color ? "border-black dark:border-white scale-110 shadow-md" : "border-transparent hover:scale-105"
+                                                symbolBg === color ? "border-black dark:border-white scale-110 shadow-md" : "border-transparent hover:scale-105"
                                             )}
                                         />
                                     ))}
                                 </div>
                             </div>
 
-                            {/* Emoji List */}
+                            {/* Symbol List */}
                             <div className="space-y-3">
-                                {EMOJI_CATEGORIES.map(cat => (
+                                {SYMBOL_CATEGORIES.map(cat => (
                                     <div key={cat.name}>
                                         <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">{cat.name}</span>
                                         <div className="grid grid-cols-6 gap-2 bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-2xl border dark:border-gray-800">
-                                            {cat.emojis.map(emoji => (
+                                            {cat.items.map(({ name, label, Icon }) => (
                                                 <button
-                                                    key={emoji}
+                                                    key={name}
+                                                    title={label}
+                                                    aria-label={label}
+                                                    aria-pressed={selectedSymbol === name}
                                                     onClick={() => {
                                                         triggerHaptic('light');
-                                                        setSelectedEmoji(emoji);
+                                                        setSelectedSymbol(name);
                                                     }}
                                                     className={cn(
-                                                        "text-2xl p-2 rounded-xl hover:bg-white dark:hover:bg-gray-800 transition-transform active:scale-95 text-center select-none",
-                                                        selectedEmoji === emoji && "bg-white dark:bg-gray-800 shadow-sm scale-110 border border-primary/30"
+                                                        "p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 transition-transform active:scale-95 flex items-center justify-center select-none",
+                                                        selectedSymbol === name && "bg-white dark:bg-gray-800 shadow-sm scale-110 border border-primary/30 text-gray-900 dark:text-white"
                                                     )}
                                                 >
-                                                    {emoji}
+                                                    <Icon size={24} />
                                                 </button>
                                             ))}
                                         </div>

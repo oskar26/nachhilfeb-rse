@@ -173,7 +173,7 @@ export default function Settings() {
 
     const handleDeleteAccount = async () => {
         triggerHaptic('warning');
-        if (!confirm("⚠️ Willst du deinen Account und all deine Anzeigen wirklich zur Löschung vormerken? Diese Aktion schickt eine Anfrage an die Administration.")) return;
+        if (!confirm("Willst du deinen Account und all deine Anzeigen wirklich zur Löschung vormerken? Diese Aktion schickt eine Anfrage an die Administration.")) return;
 
         try {
             const { error } = await supabase.from('support_tickets').insert({
@@ -501,7 +501,7 @@ export default function Settings() {
                                 if (next >= 5) {
                                     setShowSecretInput(true);
                                     triggerHaptic('success');
-                                    toast('Entwickler-Modus aktiviert!', { icon: '🔓' });
+                                    toast.success('Entwickler-Modus aktiviert!');
                                 }
                             }}
                         >
