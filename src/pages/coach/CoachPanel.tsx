@@ -1,16 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
-import { supabase } from '../../lib/supabase';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import {
     Award,
     Search,
-    ShieldCheck,
-    CheckCircle2,
-    XCircle,
     Copy,
     Check,
     RefreshCw,
@@ -26,7 +22,7 @@ import { cn } from '../../lib/utils';
 import { triggerHaptic } from '../../lib/haptics';
 
 export default function CoachPanel() {
-    const { user, profile, isCoachAdmin } = useAuth();
+    const { isCoachAdmin } = useAuth();
     const [activeTab, setActiveTab] = useState<'students' | 'codes' | 'info' | 'logs'>('students');
 
     // Students state
@@ -39,7 +35,6 @@ export default function CoachPanel() {
     const [coachCodes, setCoachCodes] = useState<any[]>([]);
     const [loadingCodes, setLoadingCodes] = useState(false);
     const [generatingCode, setGeneratingCode] = useState(false);
-    const [codeCount, setCodeCount] = useState(1);
     const [copiedId, setCopiedId] = useState<string | null>(null);
 
     // Info-Box State
@@ -73,7 +68,7 @@ export default function CoachPanel() {
         try {
             const res = await api.coach.listStudents();
             if (res.data) setStudents(res.data);
-        } catch (e: any) {
+        } catch {
             toast.error('Schülerliste konnte nicht geladen werden.');
         } finally {
             setLoadingStudents(false);
@@ -272,7 +267,7 @@ export default function CoachPanel() {
                     onClick={() => { triggerHaptic('selection'); setActiveTab('students'); }}
                     className={cn(
                         "flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
-                        activeTab === 'students' ? "bg-amber-400 text-amber-950 shadow-xs font-extrabold" : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                        activeTab === 'students' ? "bg-primary text-primary-foreground shadow-xs font-extrabold" : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
                     )}
                 >
                     <Users size={16} />
@@ -282,7 +277,7 @@ export default function CoachPanel() {
                     onClick={() => { triggerHaptic('selection'); setActiveTab('codes'); }}
                     className={cn(
                         "flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
-                        activeTab === 'codes' ? "bg-amber-400 text-amber-950 shadow-xs font-extrabold" : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                        activeTab === 'codes' ? "bg-primary text-primary-foreground shadow-xs font-extrabold" : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
                     )}
                 >
                     <Key size={16} />
@@ -292,7 +287,7 @@ export default function CoachPanel() {
                     onClick={() => { triggerHaptic('selection'); setActiveTab('info'); }}
                     className={cn(
                         "flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
-                        activeTab === 'info' ? "bg-amber-400 text-amber-950 shadow-xs font-extrabold" : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                        activeTab === 'info' ? "bg-primary text-primary-foreground shadow-xs font-extrabold" : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
                     )}
                 >
                     <Megaphone size={16} />
@@ -302,7 +297,7 @@ export default function CoachPanel() {
                     onClick={() => { triggerHaptic('selection'); setActiveTab('logs'); }}
                     className={cn(
                         "flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
-                        activeTab === 'logs' ? "bg-amber-400 text-amber-950 shadow-xs font-extrabold" : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                        activeTab === 'logs' ? "bg-primary text-primary-foreground shadow-xs font-extrabold" : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
                     )}
                 >
                     <History size={16} />
@@ -395,7 +390,7 @@ export default function CoachPanel() {
                                                 "rounded-xl text-xs font-bold shrink-0 cursor-pointer",
                                                 student.is_coach
                                                     ? "border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
-                                                    : "bg-amber-500 hover:bg-amber-600 text-amber-950 font-extrabold shadow-xs"
+                                                    : "bg-primary hover:bg-primary-hover text-primary-foreground font-extrabold shadow-xs"
                                             )}
                                         >
                                             {student.is_coach ? "Coach entziehen" : "Zum Coach machen"}
@@ -424,7 +419,7 @@ export default function CoachPanel() {
                         <Button
                             onClick={handleGenerateCoachCode}
                             disabled={generatingCode}
-                            className="bg-amber-500 hover:bg-amber-600 text-amber-950 font-black rounded-xl gap-2 shadow-xs cursor-pointer"
+                            className="bg-primary hover:bg-primary-hover text-primary-foreground font-black rounded-full gap-2 shadow-xs cursor-pointer"
                         >
                             <Plus size={16} /> Neuen Coaching-Code erstellen
                         </Button>
@@ -524,7 +519,7 @@ export default function CoachPanel() {
                                         placeholder="Erkläre das Angebot, Zielgruppe und Ablauf..."
                                         rows={4}
                                         required
-                                        className="w-full p-3 rounded-2xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                        className="w-full p-3 rounded-2xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] dark:focus:ring-primary"
                                     />
                                 </div>
 
@@ -557,7 +552,7 @@ export default function CoachPanel() {
                                         id="is_visible"
                                         checked={infoForm.is_visible}
                                         onChange={e => setInfoForm({ ...infoForm, is_visible: e.target.checked })}
-                                        className="w-4 h-4 rounded text-amber-500 focus:ring-amber-400 cursor-pointer"
+                                        className="w-4 h-4 rounded accent-primary focus:ring-[hsl(var(--ring))] cursor-pointer"
                                     />
                                     <label htmlFor="is_visible" className="text-xs font-bold cursor-pointer text-gray-800 dark:text-gray-200">
                                         Infobox auf der Startseite einblenden (öffentlich aktiv)
@@ -568,7 +563,7 @@ export default function CoachPanel() {
                                     <Button
                                         type="submit"
                                         disabled={savingInfo}
-                                        className="bg-amber-400 hover:bg-amber-500 text-amber-950 font-black rounded-xl px-6 shadow-md cursor-pointer"
+                                        className="bg-primary hover:bg-primary-hover text-primary-foreground font-black rounded-full px-6 shadow-md cursor-pointer"
                                     >
                                         {savingInfo ? 'Speichern...' : 'Änderungen speichern'}
                                     </Button>
@@ -606,7 +601,7 @@ export default function CoachPanel() {
                                             value={pageForm[bodyKey] ?? ''}
                                             onChange={e => setPageForm({ ...pageForm, [bodyKey]: e.target.value })}
                                             rows={5}
-                                            className="w-full p-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                            className="w-full p-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] dark:focus:ring-primary"
                                         />
                                     </div>
                                 </div>
@@ -624,7 +619,7 @@ export default function CoachPanel() {
                                 <Button
                                     type="submit"
                                     disabled={savingPage}
-                                    className="bg-amber-400 hover:bg-amber-500 text-amber-950 font-black rounded-xl px-6 shadow-md cursor-pointer"
+                                    className="bg-primary hover:bg-primary-hover text-primary-foreground font-black rounded-full px-6 shadow-md cursor-pointer"
                                 >
                                     {savingPage ? 'Speichern...' : 'Seiten-Texte speichern'}
                                 </Button>

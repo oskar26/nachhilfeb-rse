@@ -3,7 +3,6 @@ import { ShieldAlert, LogOut, MessageCircle, Clock, AlertTriangle } from 'lucide
 import { Logo } from './ui/Logo';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
 interface BannedScreenProps {
@@ -71,7 +70,7 @@ export default function BannedScreen({ banReason, banType, bannedUntil }: Banned
             });
 
             toast.success('Einspruch wurde eingereicht. Ein Admin wird sich melden.');
-        } catch (err) {
+        } catch {
             toast.error('Fehler beim Einreichen. Bitte versuche es später erneut.');
         }
     };

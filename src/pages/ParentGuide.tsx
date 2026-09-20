@@ -116,7 +116,7 @@ export default function ParentGuide() {
                         </div>
                     </div>
                     
-                    <Button onClick={() => navigate('/login')} className="bg-primary hover:bg-primary/95 text-black font-extrabold px-8 h-12 rounded-2xl shadow-md transition-all">
+                    <Button onClick={() => navigate('/login')} className="bg-primary hover:bg-primary/95 text-black font-extrabold px-8 h-12 shadow-md transition-all">
                         Jetzt Eltern-Account erstellen
                     </Button>
                 </div>

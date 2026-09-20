@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
-import { Logo, LogoBadge } from '../components/ui/Logo';
+import { Logo } from '../components/ui/Logo';
 import { useAuth } from '../context/AuthContext';
 import {
     Search,
@@ -14,25 +14,15 @@ import {
     CheckCircle,
     Smartphone,
     GraduationCap,
-    ChevronDown,
-    ChevronUp,
     Users,
     Sparkles,
 } from 'lucide-react';
-import { Card } from '../components/ui/Card';
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
 import { api } from '../lib/api';
 
 export default function Landing() {
     const navigate = useNavigate();
     const { user } = useAuth();
-    const [infoOpen, setInfoOpen] = useState<boolean>(() => {
-        const stored = localStorage.getItem('landing_infoOpen');
-        return stored === null ? true : stored === 'true';
-    });
-    const [announcements, setAnnouncements] = useState<any[]>([]);
-    const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
     // Live-Kennzahlen für die Willkommensseite (öffentlicher Summary-Endpoint, best-effort)
     const [liveStats, setLiveStats] = useState<{ active_ads: number; coaches: number; page_views: number } | null>(null);
 
@@ -48,40 +38,10 @@ export default function Landing() {
         });
     }, []);
 
-    const toggleInfo = (val: boolean) => {
-        setInfoOpen(val);
-        localStorage.setItem('landing_infoOpen', String(val));
-    };
-
-    useEffect(() => {
-        async function fetchAnnouncements() {
-            try {
-                const { data, error } = await supabase
-                    .from('announcements')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (error) {
-                    throw error;
-                }
-                setAnnouncements(data || []);
-            } catch (err) {
-                console.warn('Could not fetch announcements from database, using fallback:', err);
-                setAnnouncements([
-                    { id: '1', title: 'SV-Nachhilfebörse v2 ist live!', body: 'Neue Features: Merkliste mit Sammlungen, verbessertes Meldesystem, personalisiertes Matching und vieles mehr!', icon: 'megaphone', created_at: '2026-06-20T12:00:00Z' },
-                    { id: '2', title: 'Neue Fächer verfügbar', body: 'Ab sofort können Angebote und Suchen für die Fächer Chemie und Informatik erstellt werden.', icon: 'flask', created_at: '2026-06-18T12:00:00Z' }
-                ]);
-            } finally {
-                setLoadingAnnouncements(false);
-            }
-        }
-        fetchAnnouncements();
-    }, []);
-
     return (
         <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 font-sans selection:bg-primary selection:text-primary-foreground overflow-x-hidden">
             {/* Navbar */}
-            <nav className="fixed top-0 left-0 right-0 px-6 py-4 flex justify-between items-center z-50 backdrop-blur-xl bg-white/70 dark:bg-gray-950/70 border-b border-gray-200/50 dark:border-gray-800/50">
+            <nav className="fixed top-0 left-0 right-0 px-6 py-4 flex justify-between items-center z-50 backdrop-blur-xl bg-white/90 dark:bg-gray-950/90 border-b border-gray-200/50 dark:border-gray-800/50">
                 <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate(user ? '/' : '/welcome')}>
                     <Logo className="w-9 h-9 text-black dark:text-white shrink-0 hover:scale-105 transition-transform" />
                     <span className="text-xl font-extrabold tracking-tight text-gray-900 dark:text-white">Nachhilfebörse</span>
@@ -129,7 +89,7 @@ export default function Landing() {
                     transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}
                 >
                     Finde Nachhilfe.<br className="hidden sm:block" />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-500 dark:from-white dark:to-gray-500">
+                    <span className="text-gray-500 dark:text-gray-400">
                         Einfacher denn je.
                     </span>
                 </motion.h1>
@@ -240,7 +200,7 @@ export default function Landing() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.8 }}
                 >
-                    <div className="absolute top-0 left-0 right-0 h-16 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 flex items-center px-6 justify-between z-10">
+                    <div className="absolute top-0 left-0 right-0 h-16 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 flex items-center px-6 justify-between z-10">
                         <div className="flex items-center gap-4">
                             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold text-black text-sm">N</div>
                             <div className="h-4 w-32 bg-gray-200 dark:bg-gray-800 rounded-full"></div>

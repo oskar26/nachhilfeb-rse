@@ -78,6 +78,45 @@ export default function Chat() {
         }
     };
 
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    const markAsRead = async (messageId: string) => {
+        await supabase.from('messages').update({ read_at: new Date().toISOString() }).eq('id', messageId);
+    };
+
+    const fetchData = async () => {
+        setLoading(true);
+        // Fetch request info to get other user id
+        const { data: request } = await supabase.from('ad_requests').select('*').eq('id', requestId).single();
+        if (!request) {
+            navigate('/requests');
+            return;
+        }
+
+        const otherId = request.requester_id === user?.id ? request.owner_id : request.requester_id;
+        const { data: profile } = await supabase.from('profiles').select('display_name, avatar_url').eq('id', otherId).single();
+        setOtherUser(profile);
+        setOtherUserId(otherId);
+
+        // Fetch messages
+        const { data: msgs } = await supabase.from('messages')
+            .select('*')
+            .eq('request_id', requestId)
+            .order('created_at', { ascending: true });
+
+        if (msgs) {
+            setMessages(msgs);
+            // Mark unread messages as read
+            const unreadIds = msgs.filter(m => m.sender_id !== user?.id && !m.read_at).map(m => m.id);
+            if (unreadIds.length > 0) {
+                unreadIds.forEach(id => markAsRead(id));
+            }
+        }
+        setLoading(false);
+    };
+
     useEffect(() => {
         if (!user || !requestId) return;
         fetchData();
@@ -119,45 +158,6 @@ export default function Chat() {
         if (menuOpen) document.addEventListener('mousedown', handleClick);
         return () => document.removeEventListener('mousedown', handleClick);
     }, [menuOpen]);
-
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
-
-    const fetchData = async () => {
-        setLoading(true);
-        // Fetch request info to get other user id
-        const { data: request } = await supabase.from('ad_requests').select('*').eq('id', requestId).single();
-        if (!request) {
-            navigate('/requests');
-            return;
-        }
-
-        const otherId = request.requester_id === user?.id ? request.owner_id : request.requester_id;
-        const { data: profile } = await supabase.from('profiles').select('display_name, avatar_url').eq('id', otherId).single();
-        setOtherUser(profile);
-        setOtherUserId(otherId);
-
-        // Fetch messages
-        const { data: msgs } = await supabase.from('messages')
-            .select('*')
-            .eq('request_id', requestId)
-            .order('created_at', { ascending: true });
-        
-        if (msgs) {
-            setMessages(msgs);
-            // Mark unread messages as read
-            const unreadIds = msgs.filter(m => m.sender_id !== user?.id && !m.read_at).map(m => m.id);
-            if (unreadIds.length > 0) {
-                unreadIds.forEach(id => markAsRead(id));
-            }
-        }
-        setLoading(false);
-    };
-
-    const markAsRead = async (messageId: string) => {
-        await supabase.from('messages').update({ read_at: new Date().toISOString() }).eq('id', messageId);
-    };
 
     const sendMessage = async (e: React.FormEvent) => {
         e.preventDefault();

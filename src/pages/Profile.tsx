@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
-import { User, Shield, BadgeCheck, Loader2, Mail, Phone, MessageSquare, Settings as SettingsIcon, Pen, Trash2, Users, Sparkles, Check, CalendarDays, Award, Shuffle, Palette, X, Lock, Eye } from 'lucide-react';
+import { User, Shield, BadgeCheck, Loader2, Mail, Phone, Settings as SettingsIcon, Pen, Users, Sparkles, CalendarDays, Award, Shuffle, Palette, X, Lock, Eye } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
@@ -11,7 +11,6 @@ import { SubjectChip, type Subject } from '../components/SubjectChip';
 import { RefinedGradeSelector } from '../components/RefinedGradeSelector';
 import { Link } from 'react-router-dom';
 import { cn } from '../lib/utils';
-import { compressImage } from '../lib/image';
 import { RichTextEditor } from '../components/RichTextEditor';
 import { AvailabilityCalendar, emptyAvailability, type Availability } from '../components/AvailabilityCalendar';
 import { sanitizeHtml } from '../lib/sanitize';
@@ -51,7 +50,6 @@ export default function Profile() {
     const [loading, setLoading] = useState(!authProfile);
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const [availability, setAvailability] = useState<Availability>(emptyAvailability());
     const [privacyCalendar, setPrivacyCalendar] = useState(true);
     const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
@@ -102,11 +100,6 @@ export default function Profile() {
 
         offered_subjects: []
     });
-
-    useEffect(() => {
-        if (!user) return;
-        fetchProfile();
-    }, [user]);
 
     async function fetchProfile() {
         if (!authProfile) setLoading(true);
@@ -161,6 +154,11 @@ export default function Profile() {
         }
         setLoading(false);
     }
+
+    useEffect(() => {
+        if (!user) return;
+        fetchProfile();
+    }, [user]);
 
     const handleAvatarSaved = async (newUrl: string) => {
         setProfile(p => ({ ...p, avatar_url: newUrl }));

@@ -67,7 +67,7 @@ export default function ShareDialog({
             setCopied(true);
             toast.success("Link in die Zwischenablage kopiert!");
             setTimeout(() => setCopied(false), 2000);
-        } catch (err) {
+        } catch {
             toast.error("Fehler beim Kopieren des Links.");
         }
     };

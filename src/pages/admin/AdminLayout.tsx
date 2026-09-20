@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { cn } from '../../lib/utils';
@@ -77,7 +77,9 @@ export default function AdminLayout() {
                     .select('*', { count: 'exact', head: true })
                     .eq('status', 'open');
                 setOpenReports(count || 0);
-            } catch (e) {}
+            } catch {
+                /* Zähler optional – Badge bleibt bei Fehler auf 0 */
+            }
 
             try {
                 const { count: ticketCount } = await supabase
@@ -85,7 +87,9 @@ export default function AdminLayout() {
                     .select('*', { count: 'exact', head: true })
                     .eq('status', 'open');
                 setOpenTickets(ticketCount || 0);
-            } catch (e) {}
+            } catch {
+                /* Zähler optional – Badge bleibt bei Fehler auf 0 */
+            }
         };
         fetchCounts();
     }, []);

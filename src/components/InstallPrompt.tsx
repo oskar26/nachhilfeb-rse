@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { X, Download, Share } from 'lucide-react';
-import { Logo, LogoBadge } from './ui/Logo';
+import { Logo } from './ui/Logo';
 
 interface BeforeInstallPromptEvent extends Event {
     readonly platforms: string[];
@@ -34,13 +34,10 @@ function isDismissed(): boolean {
 export default function InstallPrompt() {
     const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
     const [show, setShow] = useState(false);
-    const [ios, setIos] = useState(false);
+    const [ios] = useState(() => isIOS());
 
     useEffect(() => {
         if (isStandalone() || isDismissed()) return;
-
-        const ios = isIOS();
-        setIos(ios);
 
         if (ios) {
             // Show iOS instructions after 3s
@@ -57,7 +54,7 @@ export default function InstallPrompt() {
 
         window.addEventListener('beforeinstallprompt', handler);
         return () => window.removeEventListener('beforeinstallprompt', handler);
-    }, []);
+    }, [ios]);
 
     const handleInstall = async () => {
         if (!deferredPrompt) return;
@@ -113,8 +110,8 @@ export default function InstallPrompt() {
         );
     }
 
-    // ── Mobile bottom sheet ───────────────────────────────────────
-    const MobileSheet = () => (
+    // ── Mobile bottom sheet (Render-Helper, keine Komponente: stabile Identität) ──
+    const renderMobileSheet = () => (
         <div className="md:hidden fixed bottom-0 left-0 right-0 z-[200] animate-in slide-in-from-bottom-full duration-400">
             <div className="bg-white/85 dark:bg-gray-900/85 backdrop-blur-2xl rounded-t-[2rem] shadow-2xl ring-1 ring-black/10 dark:ring-white/10 px-6 pt-5 pb-8">
                 {/* Drag handle */}
@@ -151,8 +148,8 @@ export default function InstallPrompt() {
         </div>
     );
 
-    // ── Desktop top banner ────────────────────────────────────────
-    const DesktopBanner = () => (
+    // ── Desktop top banner (Render-Helper, keine Komponente: stabile Identität) ──
+    const renderDesktopBanner = () => (
         <div className="hidden md:block fixed top-4 left-1/2 -translate-x-1/2 z-[200] animate-in slide-in-from-top-4 duration-300 max-w-lg w-full px-4">
             <div className="bg-white/85 dark:bg-gray-900/85 backdrop-blur-2xl rounded-2xl shadow-xl ring-1 ring-black/10 dark:ring-white/10 p-4 flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow">
@@ -186,8 +183,8 @@ export default function InstallPrompt() {
 
     return (
         <>
-            <MobileSheet />
-            <DesktopBanner />
+            {renderMobileSheet()}
+            {renderDesktopBanner()}
         </>
     );
 }

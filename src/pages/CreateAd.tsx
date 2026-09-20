@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../components/ui/Card';
 import { SubjectChip, SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
 import { GradeSelector } from '../components/GradeSelector';
 import { RichTextEditor } from '../components/RichTextEditor';
-import { ChevronLeft, ChevronRight, CheckCircle, Plus, X, Link as LinkIcon, AlertCircle, Lock, Sparkles, GraduationCap, Search, Users, User, Shuffle, School, Wifi, Home, MapPin, Calculator, Info } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle, Plus, X, Link as LinkIcon, AlertCircle, Lock, GraduationCap, Search, Users, User, Shuffle, School, Wifi, Home, MapPin, Calculator, Info } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -129,12 +128,6 @@ export default function CreateAd() {
         }
     }, [location.state]);
 
-    useEffect(() => {
-        if (user) {
-            checkVerification();
-        }
-    }, [user]);
-
     async function checkVerification() {
         const { data } = await supabase.from('profiles').select('*').eq('id', user?.id).single();
         if (data) {
@@ -147,7 +140,7 @@ export default function CreateAd() {
                     .select('*, child:child_id(id, display_name, first_name, last_name, grade_level)')
                     .eq('parent_id', user?.id)
                     .eq('status', 'active');
-                
+
                 if (links && links.length > 0) {
                     const childList = links.map((l: any) => l.child).filter(c => c !== null);
                     setChildren(childList);
@@ -157,6 +150,12 @@ export default function CreateAd() {
         }
         setLoadingProfile(false);
     }
+
+    useEffect(() => {
+        if (user) {
+            checkVerification();
+        }
+    }, [user]);
 
     // Effect: Auto-set grade if type is search
     useEffect(() => {
@@ -195,14 +194,14 @@ export default function CreateAd() {
         };
 
         // Combine custom duration if any
-        let finalDurations = [...formData.duration_minutes];
+        const finalDurations = [...formData.duration_minutes];
         if (formData.custom_duration) {
             const custom = parseInt(formData.custom_duration);
             if (!isNaN(custom)) finalDurations.push(custom);
         }
 
         // Combine locations
-        let finalLocations = [...formData.locations];
+        const finalLocations = [...formData.locations];
         if (formData.custom_location) {
             finalLocations.push(formData.custom_location);
         }

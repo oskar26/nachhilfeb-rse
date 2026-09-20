@@ -47,7 +47,7 @@ export default function Layout() {
             active = isTabActive(target);
         }
 
-        return `relative flex items-center gap-3 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-900 ${
+        return `relative flex items-center gap-3 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] dark:focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-900 ${
             active
                 ? 'bg-primary/15 text-gray-900 dark:bg-primary/15 dark:text-primary border-primary/30 dark:border-primary/25 shadow-sm font-extrabold'
                 : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-800/60'
@@ -145,7 +145,7 @@ export default function Layout() {
                     {isCoachAdmin && (
                         <div className="mt-4 p-3 bg-primary/10 dark:bg-amber-950/20 border border-primary/25 dark:border-amber-900/30 rounded-2xl">
                             <p className="px-2 text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-[0.08em] mb-1.5">Schüler-Coaching</p>
-                            <NavLink to="/coach-panel" onClick={handleNavClick} className={({ isActive }) => `flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isActive ? 'bg-primary/20 text-gray-900 dark:text-amber-100 font-extrabold' : 'text-amber-800 dark:text-amber-200 hover:bg-primary/10 dark:hover:bg-amber-900/40'}`}>
+                            <NavLink to="/coach-panel" onClick={handleNavClick} className={({ isActive }) => `flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] dark:focus-visible:ring-primary ${isActive ? 'bg-primary/20 text-gray-900 dark:text-amber-100 font-extrabold' : 'text-amber-800 dark:text-amber-200 hover:bg-primary/10 dark:hover:bg-amber-900/40'}`}>
                                 <Award size={18} className="text-amber-600 dark:text-amber-400 shrink-0" />
                                 <span className="font-bold">Coaching Panel</span>
                             </NavLink>

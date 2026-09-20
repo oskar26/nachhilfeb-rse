@@ -7,10 +7,9 @@ import { Button } from '../components/ui/Button';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { SubjectChip } from '../components/SubjectChip';
 import { toast } from 'react-hot-toast';
-import { ChevronLeft, MapPin, Clock, Heart, Send, CheckCircle, Phone, Mail, CalendarDays, Share2, X, Copy, Eye, Users, User, Shuffle } from 'lucide-react';
+import { ChevronLeft, MapPin, Clock, Heart, Send, CheckCircle, Phone, Mail, CalendarDays, Share2, Copy, Eye, Users, User, Shuffle } from 'lucide-react';
 import ReportWizard from '../components/ReportWizard';
 import ShareDialog from '../components/ShareDialog';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/Dialog';
 import { AvailabilityCalendar, emptyAvailability, countMatches, type Availability } from '../components/AvailabilityCalendar';
 import { sanitizeHtml } from '../lib/sanitize';
 
@@ -33,11 +32,6 @@ export default function AdDetails() {
     const [isReportOpen, setIsReportOpen] = useState(false);
     const [isShareOpen, setIsShareOpen] = useState(false);
     const trackedViewForRef = useRef<string | null>(null);
-
-    useEffect(() => {
-        if (!id) return;
-        fetchAdAndStatus();
-    }, [id, user]);
 
     async function fetchAdAndStatus() {
         setLoading(true);
@@ -72,6 +66,11 @@ export default function AdDetails() {
         }
         setLoading(false);
     }
+
+    useEffect(() => {
+        if (!id) return;
+        fetchAdAndStatus();
+    }, [id, user]);
 
     const toggleFavorite = async () => {
         if (!user || !ad) return;

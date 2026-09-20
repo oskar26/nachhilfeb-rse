@@ -18,7 +18,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps & HTMLMotionProps
 
         const variants = {
             primary: 'bg-primary text-primary-foreground font-semibold hover:bg-primary-hover shadow-md hover:shadow-lg dark:shadow-yellow-500/10',
-            secondary: 'bg-white text-gray-900 border border-gray-200/80 shadow-sm hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700/80 dark:text-gray-100 dark:hover:bg-gray-700',
+            secondary: 'bg-gray-100 text-gray-900 shadow-sm hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700',
             outline: 'border border-gray-200 bg-transparent hover:bg-gray-100/60 text-gray-900 dark:border-gray-700 dark:text-gray-100 dark:hover:bg-gray-800/60',
             ghost: 'hover:bg-gray-100/80 hover:text-gray-900 dark:hover:bg-gray-800/80 dark:hover:text-gray-100',
             destructive: 'bg-red-500 text-white hover:bg-red-600 shadow-md shadow-red-500/20',
@@ -49,7 +49,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps & HTMLMotionProps
                 whileTap={isDisabled ? undefined : { scale: 0.96 }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 className={cn(
-                    'inline-flex items-center justify-center whitespace-nowrap rounded-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 select-none cursor-pointer',
+                    'inline-flex items-center justify-center whitespace-nowrap rounded-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] dark:focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 select-none cursor-pointer',
                     variants[variant],
                     sizes[size],
                     className

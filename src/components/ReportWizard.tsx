@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/Button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/Dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/Dialog';
 import { Input } from './ui/Input';
 import { toast } from 'react-hot-toast';
-import { X, ShieldAlert, AlertTriangle, ChevronRight, ChevronLeft, Check, Camera, FileText, User, MessageCircle, Lock, Flag, type LucideIcon } from 'lucide-react';
+import { X, ShieldAlert, AlertTriangle, ChevronRight, ChevronLeft, Camera, FileText, User, MessageCircle, Lock, Flag, type LucideIcon } from 'lucide-react';
 
 interface ReportWizardProps {
     isOpen: boolean;

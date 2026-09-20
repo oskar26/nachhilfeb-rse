@@ -74,7 +74,7 @@ export function PushPrompt() {
                             type="button"
                             onClick={handleEnable}
                             disabled={busy}
-                            className="h-11 flex-1 rounded-2xl bg-primary text-sm font-bold text-black transition-transform active:scale-[0.98] disabled:opacity-60"
+                            className="h-11 flex-1 rounded-full bg-primary text-sm font-bold text-black transition-transform active:scale-[0.98] disabled:opacity-60"
                         >
                             {busy ? 'Einen Moment …' : 'Aktivieren'}
                         </button>
@@ -82,7 +82,7 @@ export function PushPrompt() {
                     <button
                         type="button"
                         onClick={handleDismiss}
-                        className="h-11 flex-1 rounded-2xl border border-gray-200 text-sm font-bold text-gray-600 dark:border-gray-700 dark:text-gray-300"
+                        className="h-11 flex-1 rounded-full border border-gray-200 text-sm font-bold text-gray-600 dark:border-gray-700 dark:text-gray-300"
                     >
                         {denied ? 'Später erinnern' : 'Jetzt nicht'}
                     </button>

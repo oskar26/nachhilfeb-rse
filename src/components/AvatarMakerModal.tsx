@@ -118,21 +118,12 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
     const [isDrawing, setIsDrawing] = useState(false);
     const [brushColor, setBrushColor] = useState('#000000');
     const [brushSize, setBrushSize] = useState(6);
-    const [drawBg, setDrawBg] = useState('#ffffff');
+    const [drawBg] = useState('#ffffff');
     const [drawHistory, setDrawHistory] = useState<ImageData[]>([]);
 
     // Upload Tab State
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
-
-    // Preview Canvas
-    const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
-
-    useEffect(() => {
-        if (mode === 'draw') {
-            initDrawCanvas();
-        }
-    }, [mode, drawBg]);
 
     const initDrawCanvas = () => {
         const canvas = canvasRef.current;
@@ -145,6 +136,12 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         setDrawHistory([ctx.getImageData(0, 0, canvas.width, canvas.height)]);
     };
+
+    useEffect(() => {
+        if (mode === 'draw') {
+            initDrawCanvas();
+        }
+    }, [mode, drawBg]);
 
     // --- Drawing Handlers (Touch & Mouse) ---
     const getCoordinates = (e: React.MouseEvent | React.TouchEvent) => {
@@ -646,7 +643,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                                             setUploadedUrl(compressed);
                                             triggerHaptic('success');
                                             toast.success("Foto geladen!");
-                                        } catch (err) {
+                                        } catch {
                                             toast.error("Fehler beim Komprimieren des Fotos.");
                                         }
                                     }

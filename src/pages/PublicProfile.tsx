@@ -15,7 +15,7 @@ import { sanitizeHtml } from '../lib/sanitize';
 import { triggerHaptic } from '../lib/haptics';
 import { cn } from '../lib/utils';
 import ShareDialog from '../components/ShareDialog';
-import { extractDominantGradient, getDefaultGradient, getRandomGradient } from '../lib/colorExtractor';
+import { extractDominantGradient, getDefaultGradient } from '../lib/colorExtractor';
 import { useAuth } from '../context/AuthContext';
 import { AvailabilityCalendar, emptyAvailability, type Availability } from '../components/AvailabilityCalendar';
 
@@ -25,16 +25,11 @@ export default function PublicProfile() {
     const { user } = useAuth();
     const [profile, setProfile] = useState<any>(null);
     const [ads, setAds] = useState<any[]>([]);
-    const [reviews, setReviews] = useState<any[]>([]);
     const [reviewCount, setReviewCount] = useState(0);
     const [loading, setLoading] = useState(true);
     const [bannerGradient, setBannerGradient] = useState<string>(getDefaultGradient());
     const [isShareOpen, setIsShareOpen] = useState(false);
     const [myAvailability, setMyAvailability] = useState<Availability>(emptyAvailability());
-
-    useEffect(() => {
-        if (id) fetchProfileAndAds();
-    }, [id]);
 
     useEffect(() => {
         if (user) {
@@ -72,17 +67,20 @@ export default function PublicProfile() {
             const { data: adsData } = await supabase.from('ads').select('*').eq('user_id', id).eq('is_hidden', false);
             if (adsData) setAds(adsData);
 
-            const { data: reviewsData, count } = await supabase
+            const { count } = await supabase
                 .from('reviews')
                 .select('*, author:author_id(display_name, avatar_url)', { count: 'exact' })
                 .eq('target_user_id', id)
                 .order('created_at', { ascending: false });
-            
-            if (reviewsData) setReviews(reviewsData);
+
             if (count !== null) setReviewCount(count);
         }
         setLoading(false);
     }
+
+    useEffect(() => {
+        if (id) fetchProfileAndAds();
+    }, [id]);
 
     if (loading) return (
         <div className="flex flex-col items-center justify-center p-20 gap-3">

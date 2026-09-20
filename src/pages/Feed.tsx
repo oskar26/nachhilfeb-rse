@@ -427,7 +427,7 @@ export default function Feed() {
                                 aria-pressed={filterByTime}
                                 className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-full border font-semibold transition-all cursor-pointer ${
                                     filterByTime
-                                        ? 'bg-green-100 border-green-400 text-green-700'
+                                        ? 'bg-primary text-black border-primary shadow-sm dark:bg-primary dark:text-black'
                                         : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-500'
                                 }`}
                                 title="Passende Zeiten oben anzeigen"
@@ -441,12 +441,12 @@ export default function Feed() {
                             aria-pressed={filterOnlyCoaches}
                             className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-full border font-semibold transition-all cursor-pointer ${
                                 filterOnlyCoaches
-                                    ? 'bg-amber-100 border-amber-400 text-amber-800 dark:bg-amber-950/40 dark:border-amber-700 dark:text-amber-300'
+                                    ? 'bg-primary text-black border-primary shadow-sm dark:bg-primary dark:text-black'
                                     : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-500'
                             }`}
                             title="Nur Schüler-Coaches der AG anzeigen"
                         >
-                            <Award size={13} className={filterOnlyCoaches ? 'text-amber-600 dark:text-amber-400' : 'text-gray-400'} />
+                            <Award size={13} className={filterOnlyCoaches ? 'text-black dark:text-black' : 'text-gray-400'} />
                             <span className="hidden sm:inline">Schüler-Coaches</span>
                             <span className="sm:hidden">Coaches</span>
                         </button>
@@ -480,7 +480,7 @@ export default function Feed() {
                 {/* Quick Subject Filter Chips */}
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
                     <span className="text-gray-400 font-bold shrink-0 text-[10px] uppercase mr-1">Beliebt:</span>
-                    {(['mathe', 'deutsch', 'englisch', 'physik', 'latein', 'französisch', 'chemie', 'informatik'] as Subject[]).map((subj) => (
+                    {(['mathematik', 'deutsch', 'englisch', 'physik', 'latein', 'franzoesisch', 'chemie', 'informatik'] as Subject[]).map((subj) => (
                         <button
                             key={subj}
                             onClick={() => {
@@ -504,7 +504,7 @@ export default function Feed() {
                             aria-label="Fachfilter zurücksetzen"
                             className="px-2.5 py-1 rounded-full bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400 text-xs font-bold shrink-0 inline-flex items-center gap-1"
                         >
-                            <X size={12} /> Filter zurücksetzen
+                            <X size={12} /> Zurücksetzen
                         </button>
                     )}
                 </div>
@@ -610,7 +610,7 @@ export default function Feed() {
             </div>
 
             {savedSearch && !loading && !fetchError && (
-                <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 rounded-2xl border border-primary/20 bg-primary/5">
+                <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 rounded-2xl border border-primary/20 bg-primary/5 dark:bg-primary/10">
                     <div className="flex items-center gap-2 min-w-0 text-sm">
                         <Bookmark size={15} className="text-primary-hover dark:text-primary shrink-0 fill-current" />
                         <span className="font-bold text-gray-700 dark:text-gray-200 shrink-0">Gemerkte Suche:</span>
@@ -647,15 +647,15 @@ export default function Feed() {
 
             {/* Banner Section */}
             <div className="mb-6">
-                <div className="flex items-center justify-between mb-3 px-2">
+                                <div className="flex items-center justify-between mb-3 px-2">
                     <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Aktuelles & Infos</h2>
-                    <Button 
-                        variant="outline" 
-                        size="sm" 
+                    <Button
+                        variant="outline"
+                        size="sm"
                         className={cn(
                             "h-8 text-xs rounded-full font-bold transition-all shadow-sm flex items-center gap-1",
-                            showBanners 
-                                ? "bg-amber-100 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 hover:bg-amber-200" 
+                            showBanners
+                                ? "bg-primary text-black border-primary hover:bg-primary-hover dark:bg-primary dark:text-black"
                                 : "bg-primary border-primary text-black hover:bg-primary/95"
                         )}
                         onClick={() => { const next = !showBanners; setShowBanners(next); localStorage.setItem('feed_show_banners', String(next)); }}
@@ -670,11 +670,11 @@ export default function Feed() {
 
                 {showBanners && (
                     <div className="space-y-4 animate-in slide-in-from-top-2">
-                        {/* Info Block für Schüler-Coaching (editierbar im Coach-Panel) */}
+                            {/* Info Block für Schüler-Coaching (editierbar im Coach-Panel) */}
                         {coachInfo.is_visible && (
                             <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-950/40 border border-blue-200 dark:border-blue-900/50 shadow-sm overflow-hidden relative">
-                                <div className="absolute top-0 right-0 p-4 opacity-10">
-                                    <GraduationCap size={120} />
+                                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none" aria-hidden="true">
+                                    <GraduationCap size={96} />
                                 </div>
                                 <CardContent className="p-6 relative z-10 space-y-4">
                                     <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400">

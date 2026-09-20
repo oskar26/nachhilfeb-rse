@@ -37,12 +37,6 @@ export default function Favorites() {
     // Share Dialog States
     const [sharingAd, setSharingAd] = useState<{ id: string; title: string } | null>(null);
 
-    useEffect(() => {
-        if (user) {
-            fetchFavorites();
-        }
-    }, [user]);
-
     const fetchFavorites = async () => {
         setLoading(true);
         try {
@@ -81,6 +75,12 @@ export default function Favorites() {
         }
         setLoading(false);
     };
+
+    useEffect(() => {
+        if (user) {
+            fetchFavorites();
+        }
+    }, [user]);
 
     const handleRemoveFavorite = async (adId: string) => {
         try {
@@ -126,7 +126,7 @@ export default function Favorites() {
                         return (
                             <Card
                                 key={fav.id}
-                                className="overflow-hidden hover:shadow-md transition-shadow relative border-gray-200 dark:border-gray-800 bg-white/70 dark:bg-gray-900/70 flex flex-col justify-between"
+                                className="overflow-hidden hover:shadow-md transition-shadow relative border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex flex-col justify-between"
                             >
                                 <CardHeader className="p-4 bg-gray-50/30 dark:bg-gray-850/30 border-b border-gray-100 dark:border-gray-800 flex flex-row justify-between items-start">
                                     <div>

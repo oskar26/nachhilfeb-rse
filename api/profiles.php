@@ -55,14 +55,20 @@ try {
 }
 
 // Fehlende Codes für Bestandsprofile nachtragen (bounded, damit Request nicht hängt)
+// Limit 10 pro Request + nur Schüler (parent braucht keinen Code) -> kein Timeout.
+// Einzelne Fehler (z. B. Unique-Kollision) dürfen den Haupt-Request nie killen (500 vermeiden).
 try {
-    $stmt = $pdo->query("SELECT id FROM profiles WHERE parent_link_code IS NULL OR parent_link_code = '' LIMIT 500");
+    $stmt = $pdo->query("SELECT id FROM profiles WHERE (parent_link_code IS NULL OR parent_link_code = '') AND role != 'parent' LIMIT 10");
     $missing = $stmt ? $stmt->fetchAll() : [];
     foreach ($missing as $m) {
-        $code = fwg_generate_parent_code($pdo);
-        $pdo->prepare('UPDATE profiles SET parent_link_code = ? WHERE id = ?')->execute([$code, $m['id']]);
+        try {
+            $code = fwg_generate_parent_code($pdo);
+            $pdo->prepare('UPDATE profiles SET parent_link_code = ? WHERE id = ?')->execute([$code, $m['id']]);
+        } catch (Throwable $inner) {
+            // stiller Skip – nächster Versuch im nächsten Request
+        }
     }
-} catch (Exception $e) {}
+} catch (Throwable $e) {}
 
 // ------------------------------------------------------------------------------
 // 0b. ELTERN-VERKNÜPFUNG: Code-Lookup, Direktsuche, Code-Erzeugung, Link-CRUD
@@ -74,21 +80,33 @@ $parentPermissionsDefaults = [
     'can_receive_notifications' => true,
 ];
 
-// 0b1. Code-Lookup: Schülerprofil anhand des 6-stelligen Verknüpfungscodes finden
+// 0b1. Code-Lookup: Schülerprofil anhand des Verknüpfungscodes finden (fehlertolerant)
 if ($method === 'GET' && $action === 'lookup_code') {
     require_auth();
-    $code = trim(strtoupper((string)($_GET['code'] ?? '')));
-    if (!preg_match('/^[A-Z0-9]{6,10}$/', $code)) {
+    $raw = (string)($_GET['code'] ?? '');
+    // Fehlertolerant: Leerzeichen/Bindestriche entfernen, nur A-Z0-9 behalten, Uppercase
+    $code = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', trim($raw)) ?? '');
+    if ($code === '' || strlen($code) < 4) {
+        json_error('Ungültiger Code. Bitte 6-stelligen Code prüfen.', 400);
+    }
+    // Auf 6-10 begrenzen, längere Eingaben kürzen statt 500 zu werfen
+    if (strlen($code) > 10) $code = substr($code, 0, 10);
+    if (!preg_match('/^[A-Z0-9]{4,10}$/', $code)) {
         json_error('Ungültiger Code.', 400);
     }
-    $stmt = $pdo->prepare('
-        SELECT id, first_name, last_name, display_name, grade_level, class_letter
-        FROM profiles
-        WHERE parent_link_code = ? AND role != "parent"
-        LIMIT 1
-    ');
-    $stmt->execute([$code]);
-    $child = $stmt->fetch();
+    try {
+        $stmt = $pdo->prepare('
+            SELECT id, first_name, last_name, display_name, grade_level, class_letter
+            FROM profiles
+            WHERE parent_link_code = ? AND role != "parent"
+            LIMIT 1
+        ');
+        $stmt->execute([$code]);
+        $child = $stmt->fetch();
+    } catch (Throwable $e) {
+        error_log('lookup_code failed: ' . $e->getMessage());
+        json_error('Suche vorübergehend nicht verfügbar.', 500);
+    }
     if (!$child) {
         json_error('Kein Schülerprofil mit diesem Code gefunden.', 404);
     }
@@ -103,44 +121,136 @@ if ($method === 'GET' && $action === 'lookup_code') {
     ]);
 }
 
-// 0b2. Direktsuche: Name und optional Klasse/Geburtsdatum (Eltern ohne Code)
+// 0b2. Direktsuche: Name und optional Klasse/Geburtsdatum (fehlertolerant)
 if ($method === 'GET' && $action === 'search_children') {
     require_auth();
     $q = trim((string)($_GET['q'] ?? ''));
-    $grade = trim((string)($_GET['grade_level'] ?? ''));
-    $birth = trim((string)($_GET['birth_date'] ?? ''));
+    $gradeRaw = trim((string)($_GET['grade_level'] ?? ''));
+    $birthRaw = trim((string)($_GET['birth_date'] ?? ''));
 
-    if ($q === '' && $grade === '' && $birth === '') {
-        json_error('Bitte mindestens Name, Klasse oder Geburtsdatum angeben.', 400);
-    }
+    // Fehlertolerant: leere Suche liefert leeres Array (200) statt 400, damit Frontend keinen http error zeigt.
+    $hasQ = $q !== '';
+    $hasGrade = $gradeRaw !== '';
+    $hasBirth = $birthRaw !== '';
+
     $where = 'role != "parent"';
     $params = [];
-    if ($q !== '') {
-        $where .= ' AND (display_name LIKE ? OR first_name LIKE ? OR last_name LIKE ?)';
-        $like = '%' . $q . '%';
-        array_push($params, $like, $like, $like);
-    }
-    if ($grade !== '') {
-        $where .= ' AND grade_level = ?';
-        $params[] = $grade;
-    }
-    if ($birth !== '') {
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $birth)) {
-            json_error('Ungültiges Geburtsdatum. Format: JJJJ-MM-TT.', 400);
+
+    // --- Name: Tokenisierung + LIKE-Escaping (tolerant gegen Leerzeichen/Großklein) ---
+    if ($hasQ) {
+        $q = mb_substr(preg_replace('/\s+/', ' ', $q), 0, 100);
+        $tokens = preg_split('/\s+/', $q, -1, PREG_SPLIT_NO_EMPTY);
+        $tokens = array_slice(array_filter($tokens, fn($t) => $t !== ''), 0, 5);
+        foreach ($tokens as $tok) {
+            $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $tok);
+            $like = '%' . $escaped . '%';
+            $where .= ' AND (display_name LIKE ? OR first_name LIKE ? OR last_name LIKE ?)';
+            array_push($params, $like, $like, $like);
         }
-        $where .= ' AND birth_date = ?';
-        $params[] = $birth;
+        if (empty($tokens)) $hasQ = false;
     }
 
-    $stmt = $pdo->prepare("
-        SELECT id, first_name, last_name, display_name, grade_level, class_letter, birth_date
-        FROM profiles
-        WHERE $where
-        ORDER BY last_name ASC, first_name ASC
-        LIMIT 15
-    ");
-    $stmt->execute($params);
-    $rows = $stmt->fetchAll();
+    // --- Klasse: fehlertolerant (7b, 7 B, Klasse 7b, 7, b) ---
+    if ($hasGrade) {
+        // "Klasse"-Präfix entfernen, trimmen
+        $norm = trim(preg_replace('/^(klasse\s*)/i', '', $gradeRaw));
+        $norm = mb_substr($norm, 0, 20);
+        // Versuche Muster: Zahl + optional Buchstabe (z. B. "7b", "10 a", "7")
+        if (preg_match('/^(\d{1,2})\s*([a-zA-Z])?$/u', $norm, $gm)) {
+            $d = $gm[1];
+            $l = isset($gm[2]) && $gm[2] !== '' ? strtolower($gm[2]) : '';
+            // Grade-Level enthält die Stufen-Zahl (LIKE %7%)
+            $where .= ' AND grade_level LIKE ?';
+            $params[] = '%' . $d . '%';
+            if ($l !== '') {
+                $escapedL = str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $l);
+                $where .= ' AND (class_letter LIKE ? OR class_letter = ? OR grade_level LIKE ?)';
+                $params[] = '%' . $escapedL . '%';
+                $params[] = $l;
+                $params[] = '%' . $escapedL . '%';
+            }
+        } else {
+            // Fallback: Ziffern und einzelnen Buchstaben separat extrahieren
+            $digits = preg_replace('/[^0-9]/', '', $norm);
+            $lettersOnly = strtolower(preg_replace('/[^a-zA-Z]/', '', $norm));
+            $singleLetter = (strlen($lettersOnly) === 1) ? $lettersOnly : '';
+            if ($digits !== '' && $singleLetter !== '') {
+                $where .= ' AND grade_level LIKE ?';
+                $params[] = '%' . $digits . '%';
+                $escapedL = str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $singleLetter);
+                $where .= ' AND class_letter LIKE ?';
+                $params[] = '%' . $escapedL . '%';
+            } elseif ($digits !== '') {
+                $where .= ' AND grade_level LIKE ?';
+                $params[] = '%' . $digits . '%';
+            } elseif ($singleLetter !== '') {
+                $escapedL = str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $singleLetter);
+                $where .= ' AND class_letter LIKE ?';
+                $params[] = '%' . $escapedL . '%';
+            } else {
+                // Kein erkanntes Muster -> sanftes LIKE auf grade_level (statt 400)
+                $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $norm);
+                $where .= ' AND grade_level LIKE ?';
+                $params[] = '%' . $escaped . '%';
+            }
+        }
+    }
+
+    // --- Geburtsdatum: mehrere Formate tolerant, ungültiges wird ignoriert statt 400 ---
+    $birthNorm = null;
+    if ($hasBirth) {
+        $b = trim($birthRaw);
+        // Versuche YYYY-MM-DD
+        if (preg_match('/^(\d{4})-(\d{1,2})-(\d{1,2})$/', $b, $m)) {
+            $cand = sprintf('%04d-%02d-%02d', (int)$m[1], (int)$m[2], (int)$m[3]);
+            if (checkdate((int)$m[2], (int)$m[3], (int)$m[1])) $birthNorm = $cand;
+        } elseif (preg_match('/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/', $b, $m)) {
+            // DD.MM.YYYY | DD-MM-YYYY | DD/MM/YYYY
+            if (checkdate((int)$m[2], (int)$m[1], (int)$m[3])) {
+                $birthNorm = sprintf('%04d-%02d-%02d', (int)$m[3], (int)$m[2], (int)$m[1]);
+            }
+        } elseif (preg_match('/^(\d{4})[.\/](\d{1,2})[.\/](\d{1,2})$/', $b, $m)) {
+            if (checkdate((int)$m[2], (int)$m[3], (int)$m[1])) {
+                $birthNorm = sprintf('%04d-%02d-%02d', (int)$m[1], (int)$m[2], (int)$m[3]);
+            }
+        } else {
+            $ts = strtotime(str_replace('.', '-', $b));
+            if ($ts !== false) {
+                $cand = date('Y-m-d', $ts);
+                $y = (int)substr($cand, 0, 4);
+                if ($y >= 1900 && $y <= 2035) $birthNorm = $cand;
+            }
+        }
+        if ($birthNorm !== null) {
+            $where .= ' AND birth_date = ?';
+            $params[] = $birthNorm;
+        }
+        // sonst: ungültiges Datum wird fehlertolerant ignoriert (kein Filter, kein 400)
+    }
+
+    // Wenn nach Normalisierung gar kein Filter wirksam ist -> leeres Ergebnis (200) statt 400
+    $hasEffectiveFilter = ($hasQ && isset($tokens) && !empty($tokens)) || $hasGrade || $birthNorm !== null;
+    // Falls Eingabe nur aus Leerzeichen/ungültigem Datum bestand und kein anderer Filter -> leer
+    if (!$hasEffectiveFilter) {
+        // Wenn Nutzer wirklich gar nichts eingegeben hat, liefere leeres Array
+        // (Frontend zeigt "Bitte mindestens..."-Toast, aber wir vermeiden http error)
+        json_response([]);
+    }
+
+    try {
+        $stmt = $pdo->prepare("
+            SELECT id, first_name, last_name, display_name, grade_level, class_letter, birth_date
+            FROM profiles
+            WHERE $where
+            ORDER BY last_name ASC, first_name ASC
+            LIMIT 15
+        ");
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll();
+    } catch (Throwable $e) {
+        error_log('search_children failed: ' . $e->getMessage());
+        json_error('Suche vorübergehend nicht verfügbar.', 500);
+    }
     $result = array_map(function ($r) {
         $full = trim((string)($r['first_name'] ?? '') . ' ' . (string)($r['last_name'] ?? ''));
         return [

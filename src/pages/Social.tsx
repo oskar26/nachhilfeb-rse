@@ -95,7 +95,7 @@ export default function Social({ initialTab }: { initialTab?: 'requests' | 'matc
                             onKeyDown={event => handleTabKeyDown(event, index)}
                             onClick={() => selectTab(tab.id)}
                             className={cn(
-                                "min-w-0 flex-1 flex items-center justify-center py-3 px-1 sm:px-3 rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer select-none transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 dark:focus-visible:ring-yellow-300",
+                                "min-w-0 flex-1 flex items-center justify-center py-3 px-1 sm:px-3 rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer select-none transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] dark:focus-visible:ring-primary",
                                 isActive
                                     ? "bg-primary text-amber-950 shadow-xs"
                                     : "text-gray-500 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/60"
@@ -112,17 +112,17 @@ export default function Social({ initialTab }: { initialTab?: 'requests' | 'matc
 
             {/* Alle besuchten Tabs bleiben gemountet, nur das aktive ist sichtbar */}
             {visitedTabs.includes('requests') && (
-                <div id="social-tabpanel-requests" role="tabpanel" aria-labelledby="social-tab-requests" tabIndex={0} hidden={activeTab !== 'requests'} className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 dark:focus-visible:ring-yellow-300">
+                <div id="social-tabpanel-requests" role="tabpanel" aria-labelledby="social-tab-requests" tabIndex={0} hidden={activeTab !== 'requests'} className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] dark:focus-visible:ring-primary">
                     <Requests />
                 </div>
             )}
             {visitedTabs.includes('matches') && (
-                <div id="social-tabpanel-matches" role="tabpanel" aria-labelledby="social-tab-matches" tabIndex={0} hidden={activeTab !== 'matches'} className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 dark:focus-visible:ring-yellow-300">
+                <div id="social-tabpanel-matches" role="tabpanel" aria-labelledby="social-tab-matches" tabIndex={0} hidden={activeTab !== 'matches'} className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] dark:focus-visible:ring-primary">
                     <Matching />
                 </div>
             )}
             {visitedTabs.includes('watchlist') && (
-                <div id="social-tabpanel-watchlist" role="tabpanel" aria-labelledby="social-tab-watchlist" tabIndex={0} hidden={activeTab !== 'watchlist'} className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 dark:focus-visible:ring-yellow-300">
+                <div id="social-tabpanel-watchlist" role="tabpanel" aria-labelledby="social-tab-watchlist" tabIndex={0} hidden={activeTab !== 'watchlist'} className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] dark:focus-visible:ring-primary">
                     <Favorites />
                 </div>
             )}

@@ -21,10 +21,6 @@ export default function Requests() {
     const [ratingUser, setRatingUser] = useState<any>(null);
     const [ratingAdId, setRatingAdId] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (user) fetchRequests();
-    }, [user]);
-
     const fetchRequests = async () => {
 
         // Incoming: I am the owner
@@ -47,6 +43,10 @@ export default function Requests() {
         if (out) setOutgoing(out);
         setStats({ incoming: inc?.filter(r => r.status === 'pending').length || 0, outgoing: 0 });
     };
+
+    useEffect(() => {
+        if (user) fetchRequests();
+    }, [user]);
 
     const handleStatus = async (id: string, status: 'accepted' | 'rejected') => {
         await supabase.from('ad_requests').update({ status }).eq('id', id);

@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Megaphone, ChevronDown, ChevronUp, Calendar } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import NewsIcon from './NewsIcon';
-import { cn } from '../lib/utils';
 
 interface Announcement {
     id: string;
@@ -15,10 +14,6 @@ interface Announcement {
 export function CollapsedNewsWidget() {
     const [news, setNews] = useState<Announcement | null>(null);
     const [expanded, setExpanded] = useState(false); // Default collapsed as requested!
-
-    useEffect(() => {
-        fetchLatestNews();
-    }, []);
 
     const fetchLatestNews = async () => {
         try {
@@ -35,6 +30,10 @@ export function CollapsedNewsWidget() {
             /* noop */
         }
     };
+
+    useEffect(() => {
+        fetchLatestNews();
+    }, []);
 
     if (!news) return null;
 

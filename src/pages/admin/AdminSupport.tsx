@@ -5,7 +5,7 @@ import { Input } from '../../components/ui/Input';
 import { Card, CardContent } from '../../components/ui/Card';
 import { 
     Search, Bug, Lightbulb, MessageCircle, Send, Loader2, 
-    ChevronLeft, CheckCircle, Clock, AlertCircle, X, Filter, RefreshCw, Shield, User 
+    ChevronLeft, Clock, AlertCircle, RefreshCw, Shield, User 
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { cn } from '../../lib/utils';

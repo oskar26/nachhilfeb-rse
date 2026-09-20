@@ -8,7 +8,6 @@ import {
     Download,
     Shield,
     Lock,
-    User,
     ArrowLeft,
     RefreshCw,
     Ban,

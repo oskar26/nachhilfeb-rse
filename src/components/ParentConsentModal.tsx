@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/Dialog';
 import { Button } from './ui/Button';
-import { ShieldCheck, Printer, CheckCircle2, Award, Calendar, User, FileText } from 'lucide-react';
+import { ShieldCheck, Printer, Award, Calendar, User, FileText } from 'lucide-react';
 
 interface ParentConsentModalProps {
     isOpen: boolean;

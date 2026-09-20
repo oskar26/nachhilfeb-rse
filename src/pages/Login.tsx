@@ -7,9 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { toast } from 'react-hot-toast';
 import { useTheme } from '../components/ThemeProvider';
 import { Sun, Moon, GraduationCap, CheckCircle, ShieldAlert, Users } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { RefinedGradeSelector } from '../components/RefinedGradeSelector';
-import { Logo, LogoBadge } from '../components/ui/Logo';
+import { Logo } from '../components/ui/Logo';
 import { cn } from '../lib/utils';
 
 const RATE_LIMIT_KEY = 'fwg_auth_attempts';
@@ -565,7 +565,7 @@ export default function Login() {
                                                         id="parentalConsent" 
                                                         checked={parentalConsent}
                                                         onChange={(e) => setParentalConsent(e.target.checked)}
-                                                        className="mt-0.5 w-4 h-4 text-amber-600 rounded focus:ring-amber-500 cursor-pointer"
+                                                        className="mt-0.5 w-4 h-4 rounded cursor-pointer accent-[#b45309] dark:accent-[#facc15] focus:ring-[hsl(var(--ring))]"
                                                     />
                                                     <label htmlFor="parentalConsent" className="text-xs font-semibold text-amber-900 dark:text-amber-200 cursor-pointer leading-tight">
                                                         Meine Erziehungsberechtigten stimmen der Nutzung dieser Plattform zu. *

@@ -310,7 +310,7 @@ export default function AdminCodes() {
                         className={cn(
                             "flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all",
                             activeTab === 'promo'
-                                ? "bg-amber-500 text-black shadow-md shadow-amber-500/20"
+                                ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
                                 : "bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-gray-900 dark:hover:text-gray-200"
                         )}
                     >
@@ -363,7 +363,7 @@ export default function AdminCodes() {
                                             placeholder="z.B. COACHING-AG, FWGSPECIAL, HERBST26"
                                             value={newPromoCode}
                                             onChange={e => setNewPromoCode(e.target.value)}
-                                            className="w-full h-10 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 text-sm font-bold tracking-wider uppercase focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                            className="w-full h-10 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 text-sm font-bold tracking-wider uppercase focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] dark:focus:ring-primary"
                                             required
                                         />
                                     </div>
@@ -462,7 +462,7 @@ export default function AdminCodes() {
                                         <Button
                                             type="submit"
                                             disabled={creatingPromo}
-                                            className="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold h-10 rounded-xl gap-2 flex items-center justify-center shadow-md shadow-amber-500/10 cursor-pointer"
+                                            className="w-full bg-primary hover:bg-primary-hover text-primary-foreground font-bold h-10 rounded-full gap-2 flex items-center justify-center shadow-md shadow-primary/10 cursor-pointer"
                                         >
                                             <Plus size={16} /> Promo-Code anlegen & aktivieren
                                         </Button>

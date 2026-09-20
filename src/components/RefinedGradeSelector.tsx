@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -15,12 +15,15 @@ const LETTERS = ['a', 'b', 'c', 'd'];
 export function RefinedGradeSelector({ grade, letter, onChange, className }: RefinedGradeSelectorProps) {
     const [selectedGrade, setSelectedGrade] = useState(grade);
     const [selectedLetter, setSelectedLetter] = useState(letter);
+    const [prevProps, setPrevProps] = useState({ grade, letter });
 
-    // Sync external props if they change
-    useEffect(() => {
+    // Props-Sync in der Render-Phase (kein Effect: keine kaskadierenden Renders,
+    // z. B. nach Formular-Reset durch die Elternkomponente)
+    if (prevProps.grade !== grade || prevProps.letter !== letter) {
+        setPrevProps({ grade, letter });
         setSelectedGrade(grade);
         setSelectedLetter(letter);
-    }, [grade, letter]);
+    }
 
     const isOberstufe = ['EF', 'Q1', 'Q2'].includes(selectedGrade);
 

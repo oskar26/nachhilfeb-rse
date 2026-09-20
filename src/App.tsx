@@ -1,4 +1,5 @@
 import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
 import Feed from './pages/Feed';
@@ -6,13 +7,10 @@ import Login from './pages/Login';
 import SVDashboard from './pages/admin/Dashboard';
 import AdminLayout from './pages/admin/AdminLayout';
 import ParentDashboard from './pages/ParentDashboard';
-import Matching from './pages/Matching';
 import CreateAd from './pages/CreateAd';
 import AdDetails from './pages/AdDetails';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
-import Requests from './pages/Requests';
-import Favorites from './pages/Favorites';
 import Landing from './pages/Landing';
 import Chat from './pages/Chat';
 import Social from './pages/Social';
@@ -62,23 +60,29 @@ import BannedScreen from './components/BannedScreen';
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, profile, loading } = useAuth();
   const location = useLocation();
+  // Mount timestamp via lazy initializer: stable across renders, no render-phase
+  // side effect and no cascading update (state setter never called in an effect).
+  const [mountedAt] = useState(() => Date.now());
 
   if (loading) return <AppLoader />;
   if (!user) return <Navigate to="/welcome" replace />;
 
-  // Check if user is banned
-  if (profile?.is_banned) {
-    const isTemp = profile.ban_type === 'temporary';
-    const isExpired = isTemp && profile.banned_until && new Date(profile.banned_until).getTime() <= Date.now();
-    if (!isExpired) {
-      return (
-        <BannedScreen
-          banReason={profile.ban_reason}
-          banType={profile.ban_type}
-          bannedUntil={profile.banned_until}
-        />
-      );
-    }
+  // Check if user is banned (temporary bans auto-expire once mountedAt is known)
+  const isTemp = profile?.ban_type === 'temporary';
+  const isExpired = isTemp && profile?.banned_until && mountedAt !== null
+    && new Date(profile.banned_until).getTime() <= mountedAt;
+  const activeBan = profile?.is_banned && !isExpired
+    ? { banReason: profile.ban_reason, banType: profile.ban_type, bannedUntil: profile.banned_until }
+    : null;
+
+  if (activeBan) {
+    return (
+      <BannedScreen
+        banReason={activeBan.banReason}
+        banType={activeBan.banType}
+        bannedUntil={activeBan.bannedUntil}
+      />
+    );
   }
 
   // Only redirect to profile if onboarding_complete is explicitly false AND has no name at all

@@ -716,6 +716,8 @@ export const supabase = {
         },
 
         async resetPasswordForEmail(email: string, _opts?: any): Promise<{ data: any; error: any }> {
+            // Hinweis: Zusatzoptionen (z. B. redirectTo) verwertet der PHP-Endpunkt;
+            // der Parameter existiert nur für supabase-js-kompatible Aufrufe.
             const res = await api.auth.resetPasswordRequest(email);
             return { data: res.data, error: res.error };
         },

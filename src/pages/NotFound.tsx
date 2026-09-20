@@ -15,11 +15,11 @@ export default function NotFound() {
         Vielleicht wurde die Anzeige gelöscht oder der Link ist veraltet. Zurück zur Startseite?
       </p>
       <div className="mt-7 flex flex-wrap justify-center gap-3">
-        <Button onClick={() => navigate(-1)} variant="outline" className="rounded-xl">
+        <Button onClick={() => navigate(-1)} variant="outline">
           <ArrowLeft size={16} className="mr-1.5" /> Zurück
         </Button>
         <Link to="/">
-          <Button className="rounded-xl">
+          <Button>
             <Home size={16} className="mr-1.5" /> Zur Startseite
           </Button>
         </Link>

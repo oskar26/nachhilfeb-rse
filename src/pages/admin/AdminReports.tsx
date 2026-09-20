@@ -1,22 +1,17 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../../components/ui/Button';
-import { Card, CardContent } from '../../components/ui/Card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../../components/ui/Dialog';
 import {
     AlertTriangle,
     Eye,
-    CheckCircle,
     XCircle,
-    Clock,
     User,
     ChevronRight,
     MessageSquare,
-    ArrowUpRight,
     Search,
     List as ListIcon,
     LayoutGrid,
-    BookOpen,
     Image as ImageIcon,
     RefreshCw,
 } from 'lucide-react';

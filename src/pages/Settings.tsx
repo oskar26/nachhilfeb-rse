@@ -51,12 +51,10 @@ export default function Settings() {
         email_visible: false,
         phone_visible: false
     });
-    const [loading, setLoading] = useState(true);
     const [tapCount, setTapCount] = useState(0);
     const [showSecretInput, setShowSecretInput] = useState(false);
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
     const [parentLinks, setParentLinks] = useState<any[]>([]);
-    const [copiedCode, setCopiedCode] = useState(false);
     const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
     const [isSupportOpen, setIsSupportOpen] = useState(false);
     const [isShareOpen, setIsShareOpen] = useState(false);
@@ -94,7 +92,6 @@ export default function Settings() {
         if (data?.settings) {
             setSettings(data.settings);
         }
-        setLoading(false);
     };
 
     const fetchParentLinks = async () => {
@@ -259,11 +256,11 @@ export default function Settings() {
                                         className={cn(
                                             "flex flex-col items-center justify-center p-4 rounded-2xl border transition-all cursor-pointer select-none gap-2",
                                             isActive
-                                                ? "bg-amber-400/20 border-amber-400 text-amber-950 dark:text-yellow-200 font-extrabold shadow-xs"
+                                                ? "bg-primary/20 border-primary text-primary-hover dark:text-primary font-extrabold shadow-xs"
                                                 : "bg-gray-50/60 dark:bg-gray-800/40 border-gray-100 dark:border-gray-800 text-gray-500 hover:text-gray-900 dark:hover:text-gray-200"
                                         )}
                                     >
-                                        <Icon size={22} className={isActive ? "text-yellow-600 dark:text-yellow-400" : ""} />
+                                        <Icon size={22} className={isActive ? "text-primary-hover dark:text-primary" : ""} />
                                         <span className="text-xs">{item.label}</span>
                                     </motion.button>
                                 );

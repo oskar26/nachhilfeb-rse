@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Sparkles, Zap, X, MessageSquare, Frown, Loader2, 
-    CalendarDays, Award, CheckCircle2, ArrowRight, RotateCcw, 
-    Filter, BookOpen, GraduationCap, MapPin, Search, Check 
+    CalendarDays, Award, CheckCircle2, ArrowRight, RotateCcw,
+    BookOpen, GraduationCap, MapPin, Search, Check 
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -171,7 +171,7 @@ function MatchCard({
     onContact: () => void;
     onDismiss: () => void;
 }) {
-    const { ad, myAd, score, commonSubjects, availabilityMatches, gradeCompatibility, matchReasons, locationMatch } = match;
+    const { ad, myAd, score, commonSubjects, availabilityMatches, gradeCompatibility, matchReasons } = match;
     const [showCalendar, setShowCalendar] = useState(false);
     
     // Tier classification
@@ -218,7 +218,7 @@ function MatchCard({
                 <div className={cn(
                     'flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black shrink-0 border',
                     isTopMatch
-                        ? 'bg-amber-400/20 text-amber-900 dark:text-amber-200 border-amber-400/40 shadow-xs'
+                        ? 'bg-primary/20 text-amber-950 dark:text-primary border-primary/40 shadow-xs'
                         : isGoodMatch
                         ? 'bg-blue-500/15 text-blue-800 dark:text-blue-300 border-blue-400/30'
                         : 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/20'
@@ -288,7 +288,7 @@ function MatchCard({
                         <div className="flex flex-wrap gap-1">
                             {commonSubjects.length > 0 ? (
                                 commonSubjects.map(s => (
-                                    <span key={s} className="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-amber-400/20 text-amber-900 dark:text-amber-200 capitalize inline-flex items-center gap-1">
+                                    <span key={s} className="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-primary/20 text-amber-950 dark:text-primary capitalize inline-flex items-center gap-1">
                                         <Check size={11} /> {s}
                                     </span>
                                 ))
@@ -457,10 +457,6 @@ export default function Matching() {
         const myGrade = myProfile?.grade_level || '10';
         const myGradeNum = gradeToNumber(myGrade);
         const myProfileSubjects = Array.isArray(myProfile?.subjects) ? myProfile.subjects : [];
-
-        // Pre-aggregate user's search and offer ads
-        const searchAds = userAds.filter(a => a.type === 'search');
-        const offerAds = userAds.filter(a => a.type === 'offer');
 
         candidateAds.forEach(candAd => {
             // NEVER show own ads as matches
@@ -781,7 +777,7 @@ export default function Matching() {
                     </div>
                     <button
                         onClick={() => navigate('/create-ad')}
-                        className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-black font-black rounded-xl shrink-0 shadow-xs transition-all cursor-pointer text-center"
+                        className="px-3.5 py-2 bg-primary hover:bg-primary-hover text-primary-foreground font-black rounded-full shrink-0 shadow-xs transition-all cursor-pointer text-center"
                     >
                         Anzeige schalten
                     </button>
