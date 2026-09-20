@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../lib/api';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/Dialog';
@@ -16,12 +16,50 @@ import {
     Shield,
     Trash2,
     Calendar,
-    ArrowUpRight,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { cn } from '../lib/utils';
 import ParentLinkFlow from '../components/ParentLinkFlow';
 import ParentConsentModal from '../components/ParentConsentModal';
+
+interface ActivityItem {
+    type: 'ad' | 'request' | 'review';
+    title: string;
+    description: string;
+    timestamp: string;
+}
+
+interface ParentLink {
+    id: string;
+    parent_id: string;
+    child_id: string;
+    status: string;
+    permissions: {
+        can_view_ads: boolean;
+        can_view_ratings: boolean;
+        can_view_activity: boolean;
+        can_receive_notifications: boolean;
+    };
+    created_at: string;
+    linked_at: string | null;
+    child: {
+        id: string;
+        full_name: string | null;
+        display_name: string | null;
+        first_name?: string | null;
+        last_name?: string | null;
+        grade_level: string | null;
+        class_letter?: string | null;
+        avatar_url: string | null;
+        average_rating: number;
+        stats?: {
+            ads_count: number;
+            requests_count: number;
+            reviews_count: number;
+        };
+        recent_activity?: ActivityItem[];
+    };
+}
 
 interface ChildData {
     link_id: string;
@@ -38,18 +76,8 @@ interface ChildData {
         requestsCount: number;
         reviewsCount: number;
     };
-    recentActivity: Array<{
-        id: string;
-        type: 'ad' | 'request' | 'review';
-        title: string;
-        description: string;
-        timestamp: string;
-    }>;
-    preferences: {
-        notify_new_ads: boolean;
-        notify_requests: boolean;
-        notify_ratings: boolean;
-    };
+    recentActivity: Array<ActivityItem & { id: string }>;
+    notify: boolean;
 }
 
 export default function ParentDashboard() {
@@ -69,132 +97,44 @@ export default function ParentDashboard() {
     const fetchChildrenData = async () => {
         setLoading(true);
         try {
-            // 1. Fetch active parent links
-            const { data: links, error: linksError } = await supabase
-                .from('parent_links')
-                .select('*')
-                .eq('parent_id', user?.id)
-                .eq('status', 'active');
+            const { data, error } = await api.parentLinks.list();
+            if (error) throw error;
 
-            if (linksError) throw linksError;
-
-            if (!links || links.length === 0) {
-                setChildren([]);
-                setLoading(false);
-                return;
-            }
-
-            const childrenDataResolved: ChildData[] = await Promise.all(links.map(async (link) => {
-                // 2. Fetch child profile
-                const { data: childProfile, error: profileError } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', link.child_id)
-                    .single();
-
-                if (profileError) throw profileError;
-
-                // 3. Fetch statistics
-                const { count: adsCount } = await supabase
-                    .from('ads')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('user_id', link.child_id);
-
-                const { count: requestsCount } = await supabase
-                    .from('ad_requests')
-                    .select('*', { count: 'exact', head: true })
-                    .or(`requester_id.eq.${link.child_id},owner_id.eq.${link.child_id}`);
-
-                const { count: reviewsCount } = await supabase
-                    .from('reviews')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('target_user_id', link.child_id);
-
-                // 4. Fetch recent activity (union-like from Ads, Requests, and Reviews)
-                const activities: ChildData['recentActivity'] = [];
-
-                // Ads
-                const { data: ads } = await supabase
-                    .from('ads')
-                    .select('id, short_description, created_at, type')
-                    .eq('user_id', link.child_id)
-                    .order('created_at', { ascending: false })
-                    .limit(3);
-
-                ads?.forEach(ad => {
-                    activities.push({
-                        id: ad.id,
-                        type: 'ad',
-                        title: ad.type === 'offer' ? 'Neue Nachhilfe angeboten' : 'Neue Nachhilfesuche gestartet',
-                        description: ad.short_description || '',
-                        timestamp: ad.created_at
-                    });
+            const links: ParentLink[] = (data as ParentLink[]) || [];
+            const mapped: ChildData[] = links
+                .filter(link => link.status === 'active')
+                .map(link => {
+                    const child = link.child || {};
+                    const stats = child.stats || { ads_count: 0, requests_count: 0, reviews_count: 0 };
+                    const activity = (child.recent_activity || []).map((a: ActivityItem, i: number) => ({
+                        id: `${link.id}-${a.type}-${i}`,
+                        type: a.type as ActivityItem['type'],
+                        title: a.title,
+                        description: a.description,
+                        timestamp: a.timestamp,
+                    }));
+                    const permissions = link.permissions || {};
+                    return {
+                        link_id: link.id,
+                        profile: {
+                            id: child.id,
+                            full_name: child.full_name ?? null,
+                            display_name: child.display_name ?? child.full_name ?? 'Unbekannt',
+                            grade_level: child.grade_level ?? null,
+                            avatar_url: child.avatar_url ?? null,
+                            average_rating: Number(child.average_rating) || 0,
+                        },
+                        stats: {
+                            adsCount: Number(stats.ads_count) || 0,
+                            requestsCount: Number(stats.requests_count) || 0,
+                            reviewsCount: Number(stats.reviews_count) || 0,
+                        },
+                        recentActivity: activity,
+                        notify: permissions.can_receive_notifications ?? true,
+                    };
                 });
 
-                // Requests
-                const { data: requests } = await supabase
-                    .from('ad_requests')
-                    .select('id, status, created_at, ads(short_description)')
-                    .or(`requester_id.eq.${link.child_id},owner_id.eq.${link.child_id}`)
-                    .order('created_at', { ascending: false })
-                    .limit(3);
-
-                requests?.forEach(req => {
-                    activities.push({
-                        id: req.id,
-                        type: 'request',
-                        title: 'Anfrage-Aktivität',
-                        description: `Nachhilfestunden-Anfrage zu "${(req.ads as any)?.short_description || 'Anzeige'}" (${req.status})`,
-                        timestamp: req.created_at
-                    });
-                });
-
-                // Reviews
-                const { data: reviews } = await supabase
-                    .from('reviews')
-                    .select('id, rating, comment, created_at, author:author_id(display_name)')
-                    .eq('target_user_id', link.child_id)
-                    .order('created_at', { ascending: false })
-                    .limit(3);
-
-                reviews?.forEach(rev => {
-                    activities.push({
-                        id: rev.id,
-                        type: 'review',
-                        title: `Bewertung erhalten (${rev.rating} Sterne)`,
-                        description: rev.comment ? `"${rev.comment}" von ${((Array.isArray(rev.author) ? rev.author[0] : rev.author) as any)?.display_name || 'Mitschüler'}` : 'Kein Kommentar hinterlassen',
-                        timestamp: rev.created_at
-                    });
-                });
-
-                // Sort activities by timestamp descending
-                activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-
-                return {
-                    link_id: link.id,
-                    profile: {
-                        id: childProfile.id,
-                        full_name: childProfile.full_name,
-                        display_name: childProfile.display_name || `${childProfile.first_name} ${childProfile.last_name}`,
-                        grade_level: childProfile.grade_level,
-                        avatar_url: childProfile.avatar_url,
-                        average_rating: childProfile.average_rating || 0
-                    },
-                    stats: {
-                        adsCount: adsCount || 0,
-                        requestsCount: requestsCount || 0,
-                        reviewsCount: reviewsCount || 0
-                    },
-                    recentActivity: activities.slice(0, 5),
-                    preferences: {
-                        notify_new_ads: link.permissions?.can_receive_notifications ?? true,
-                        notify_requests: link.permissions?.can_receive_notifications ?? true,
-                        notify_ratings: link.permissions?.can_receive_notifications ?? true
-                    }
-                };
-            }));
-
-            setChildren(childrenDataResolved);
+            setChildren(mapped);
         } catch (error: any) {
             console.error('Error loading parent dashboard data:', error);
             toast.error('Daten konnten nicht geladen werden.');
@@ -203,54 +143,43 @@ export default function ParentDashboard() {
         }
     };
 
-    const handleToggleNotification = async (childId: string, prefKey: keyof ChildData['preferences'], currentVal: boolean) => {
+    const handleToggleNotification = async (childId: string, currentVal: boolean) => {
         try {
             const childIndex = children.findIndex(c => c.profile.id === childId);
             if (childIndex === -1) return;
+            const child = children[childIndex];
+            const nextVal = !currentVal;
 
-            const updatedPreferences = {
-                ...children[childIndex].preferences,
-                [prefKey]: !currentVal
-            };
-
-            const { error } = await supabase
-                .from('parent_links')
-                .update({
-                    permissions: {
-                        can_view_ads: true,
-                        can_view_ratings: true,
-                        can_view_activity: true,
-                        can_receive_notifications: updatedPreferences.notify_new_ads
-                    }
-                })
-                .eq('id', children[childIndex].link_id);
-
+            const { error } = await api.parentLinks.update(child.link_id, {
+                permissions: {
+                    can_view_ads: true,
+                    can_view_ratings: true,
+                    can_view_activity: true,
+                    can_receive_notifications: nextVal,
+                },
+            });
             if (error) throw error;
 
-            setChildren(children.map((c, idx) => 
-                idx === childIndex ? { ...c, preferences: updatedPreferences } : c
+            setChildren(children.map((c, idx) =>
+                idx === childIndex ? { ...c, notify: nextVal } : c
             ));
             toast.success('Einstellungen aktualisiert');
         } catch (err: any) {
-            toast.error('Änderung konnte nicht gespeichert werden: ' + err.message);
+            toast.error('Änderung konnte nicht gespeichert werden: ' + (err?.message || 'Unbekannter Fehler'));
         }
     };
 
     const handleRemoveLink = async () => {
         if (!selectedLinkToDelete) return;
         try {
-            const { error } = await supabase
-                .from('parent_links')
-                .delete()
-                .eq('id', selectedLinkToDelete.id);
-
+            const { error } = await api.parentLinks.remove(selectedLinkToDelete.id);
             if (error) throw error;
 
             toast.success(`Verknüpfung zu ${selectedLinkToDelete.name} aufgehoben.`);
             setChildren(children.filter(c => c.link_id !== selectedLinkToDelete.id));
             setSelectedLinkToDelete(null);
         } catch (err: any) {
-            toast.error('Aufheben fehlgeschlagen: ' + err.message);
+            toast.error('Aufheben fehlgeschlagen: ' + (err?.message || 'Unbekannter Fehler'));
         }
     };
 
@@ -313,7 +242,6 @@ export default function ParentDashboard() {
                             {/* Left card: Child profile & quick stats */}
                             <Card className="rounded-3xl border-none shadow-sm bg-white dark:bg-gray-900 lg:col-span-1">
                                 <CardContent className="p-6 space-y-6">
-                                    {/* Profile summary */}
                                     <div className="flex items-center gap-4">
                                         <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 text-white font-bold text-xl flex items-center justify-center shrink-0">
                                             {child.profile.avatar_url ? (
@@ -328,7 +256,6 @@ export default function ParentDashboard() {
                                         </div>
                                     </div>
 
-                                    {/* Ratings if available */}
                                     {child.profile.average_rating > 0 && (
                                         <div className="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-950/20 px-3 py-1.5 rounded-xl border border-yellow-100 dark:border-yellow-900/40 w-fit text-xs text-yellow-700 font-bold">
                                             <Star size={14} fill="currentColor" />
@@ -336,7 +263,6 @@ export default function ParentDashboard() {
                                         </div>
                                     )}
 
-                                    {/* Stats grid */}
                                     <div className="grid grid-cols-3 gap-3 border-t border-b dark:border-gray-800 py-4">
                                         <div className="text-center">
                                             <span className="text-xs text-gray-400 block mb-0.5">Anzeigen</span>
@@ -361,31 +287,24 @@ export default function ParentDashboard() {
                                         </div>
                                     </div>
 
-                                    {/* Notification settings for this child */}
+                                    {/* Notification setting for this child */}
                                     <div className="space-y-4">
                                         <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-                                            <Bell size={14} /> Benachrichtigungs-Präferenzen
+                                            <Bell size={14} /> Benachrichtigungen
                                         </h4>
-                                        <div className="space-y-3">
-                                            {[
-                                                { key: 'notify_new_ads', label: 'Bei neuer Nachhilfe-Anzeige' },
-                                                { key: 'notify_requests', label: 'Bei neuen Kontaktanfragen' },
-                                                { key: 'notify_ratings', label: 'Bei neuen Bewertungen' },
-                                            ].map((pref) => (
-                                                <label key={pref.key} className="flex justify-between items-center text-sm cursor-pointer select-none">
-                                                    <span className="font-medium text-gray-600 dark:text-gray-400">{pref.label}</span>
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={(child.preferences as any)[pref.key]}
-                                                        onChange={() => handleToggleNotification(child.profile.id, pref.key as any, (child.preferences as any)[pref.key])}
-                                                        className="w-4 h-4 rounded text-primary accent-primary"
-                                                    />
-                                                </label>
-                                            ))}
-                                        </div>
+                                        <label className="flex justify-between items-center text-sm cursor-pointer select-none">
+                                            <span className="font-medium text-gray-600 dark:text-gray-400">
+                                                Bei neuen Anzeigen, Anfragen & Bewertungen benachrichtigen
+                                            </span>
+                                            <input
+                                                type="checkbox"
+                                                checked={child.notify}
+                                                onChange={() => handleToggleNotification(child.profile.id, child.notify)}
+                                                className="w-4 h-4 rounded text-primary accent-primary"
+                                            />
+                                        </label>
                                     </div>
 
-                                    {/* Action buttons */}
                                     <div className="space-y-2 pt-2">
                                         <Button
                                             onClick={() => setSelectedConsentChild(child)}
@@ -432,7 +351,7 @@ export default function ParentDashboard() {
                                                         {act.type === 'review' && <Star size={16} />}
                                                     </div>
                                                     <div className="min-w-0 flex-1 space-y-0.5">
-                                                        <div className="font-bold text-sm text-gray-900 dark:text-gray-100 flex items-center gap-2 flex-wrap">
+                                                        <div className="font-bold text-sm text-gray-900 dark:text-gray-100">
                                                             {act.title}
                                                         </div>
                                                         <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">

@@ -462,6 +462,53 @@ export const api = {
         }
     },
 
+    // Eltern-Verknüpfung
+    parentLinks: {
+        async lookupCode(code: string) {
+            return apiRequest(`/profiles.php?action=lookup_code&code=${encodeURIComponent(code)}`);
+        },
+
+        async searchChildren(params: { q?: string; grade_level?: string; birth_date?: string }) {
+            const s = new URLSearchParams();
+            if (params.q) s.append('q', params.q);
+            if (params.grade_level) s.append('grade_level', params.grade_level);
+            if (params.birth_date) s.append('birth_date', params.birth_date);
+            return apiRequest(`/profiles.php?action=search_children&${s.toString()}`);
+        },
+
+        async ensureCode() {
+            return apiRequest('/profiles.php?action=ensure_parent_code', {
+                method: 'POST',
+                body: JSON.stringify({})
+            });
+        },
+
+        async list() {
+            return apiRequest('/profiles.php?action=parent_links');
+        },
+
+        async create(data: { child_id: string; permissions?: Record<string, boolean> }) {
+            return apiRequest('/profiles.php?action=parent_links', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+        },
+
+        async update(linkId: string, data: { permissions?: Record<string, boolean>; status?: string }) {
+            return apiRequest('/profiles.php?action=parent_links', {
+                method: 'PATCH',
+                body: JSON.stringify({ link_id: linkId, ...data })
+            });
+        },
+
+        async remove(linkId: string) {
+            return apiRequest('/profiles.php?action=parent_links', {
+                method: 'DELETE',
+                body: JSON.stringify({ link_id: linkId })
+            });
+        }
+    },
+
     // Moderation: Filter-Overrides (Profanity 2.0 Training)
     moderation: {
         async getOverrides() {

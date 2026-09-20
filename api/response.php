@@ -71,7 +71,26 @@ function generate_uuid(): string {
     $data = random_bytes(16);
     $data[6] = chr(ord($data[6]) & 0x0f | 0x40); // UUID Version 4
     $data[8] = chr(ord($data[8]) & 0x3f | 0x80); // UUID Variant
-    return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+    return vsprintf('%s%s-%s%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+}
+
+// Eindeutiger Eltern-Verknüpfungscode für Schülerprofile (6 Zeichen, verwechslungssicher:
+// kein I/O/1/0). Kollisionen werden per SELECT ausgeschlossen.
+function fwg_generate_parent_code(PDO $pdo): string {
+    $alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+    $max = strlen($alphabet) - 1;
+    for ($i = 0; $i < 20; $i++) {
+        $code = '';
+        for ($j = 0; $j < 6; $j++) {
+            $code .= $alphabet[random_int(0, $max)];
+        }
+        $stmt = $pdo->prepare('SELECT id FROM profiles WHERE parent_link_code = ? LIMIT 1');
+        $stmt->execute([$code]);
+        if (!$stmt->fetchColumn()) {
+            return $code;
+        }
+    }
+    json_error('Code konnte nicht erzeugt werden.', 500);
 }
 
 // Audit-Log für Admin-/Coach-Aktionen. Wirft nie (stille Drops vermeiden:

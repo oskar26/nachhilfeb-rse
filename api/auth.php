@@ -32,6 +32,19 @@ try {
     ");
 } catch (Exception $ex) {}
 
+// AUTO-MIGRATION: parent_link_code Spalte (Eltern-Verknüpfungscode)
+try {
+    $pdo->query("SELECT parent_link_code FROM profiles LIMIT 0");
+} catch (Exception $e) {
+    try {
+        $pdo->exec("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS parent_link_code VARCHAR(10) NULL");
+    } catch (Exception $ex) {
+        try {
+            $pdo->exec("ALTER TABLE profiles ADD COLUMN parent_link_code VARCHAR(10) NULL");
+        } catch (Exception $ex2) {}
+    }
+}
+
 // ------------------------------------------------------------------------------
 // 1. REGISTRIERUNG
 // ------------------------------------------------------------------------------
@@ -132,8 +145,8 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             INSERT INTO profiles (
                 id, first_name, last_name, display_name, grade_level, class_letter,
                 role, email, birth_date, parental_consent_given, parental_consent_date,
-                is_verified, onboarding_complete, settings, subjects
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                is_verified, onboarding_complete, settings, subjects, parent_link_code
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)
         ');
         $now = date('Y-m-d H:i:s');
         $profileStmt->execute([
@@ -150,7 +163,8 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $parentalConsent ? $now : null,
             $isVerified,
             json_encode(['email_visible' => false, 'phone_visible' => false]),
-            json_encode([])
+            json_encode([]),
+            $finalRole === 'student' ? fwg_generate_parent_code($pdo) : null
         ]);
 
         // 3. SV-Code als eingelöst markieren

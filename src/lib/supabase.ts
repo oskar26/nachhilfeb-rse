@@ -279,6 +279,12 @@ export class QueryBuilder<T = any[]> implements PromiseLike<QueryResult<T>> {
             // 2. PROFILES TABELLE
             if (this.table === 'profiles') {
                 if (this.operation === 'select') {
+                    const codeFilter = this.filters.find(f => f.col === 'parent_link_code' && f.op === 'eq')?.val;
+                    if (codeFilter) {
+                        const res = await api.parentLinks.lookupCode(String(codeFilter));
+                        const outData = this.isSingle || this.isMaybeSingle ? res.data : [res.data].filter(Boolean);
+                        return { data: outData, count: outData ? 1 : 0, error: res.error };
+                    }
                     const idFilter = this.filters.find(f => f.col === 'id')?.val;
                     const inFilter = this.filters.find(f => f.col === 'id' && f.op === 'in')?.val;
                     if (idFilter) {
@@ -485,7 +491,33 @@ export class QueryBuilder<T = any[]> implements PromiseLike<QueryResult<T>> {
 
             // 11. PARENT LINKS
             if (this.table === 'parent_links') {
-                return { data: [], count: 0, error: null };
+                if (this.operation === 'select') {
+                    const res = await api.parentLinks.list();
+                    let list = (res.data as any[]) || [];
+                    const statusFilter = this.filters.find(f => f.col === 'status')?.val;
+                    const parentIdFilter = this.filters.find(f => f.col === 'parent_id')?.val;
+                    const childIdFilter = this.filters.find(f => f.col === 'child_id')?.val;
+                    if (statusFilter) list = list.filter((x: any) => x.status === statusFilter);
+                    if (parentIdFilter) list = list.filter((x: any) => x.parent_id === parentIdFilter);
+                    if (childIdFilter) list = list.filter((x: any) => x.child_id === childIdFilter);
+                    return { data: list, count: list.length, error: res.error };
+                }
+                if (this.operation === 'insert') {
+                    const payload = Array.isArray(this.payload) ? this.payload[0] : this.payload;
+                    const res = await api.parentLinks.create(payload as any);
+                    return { data: res.data, count: null, error: res.error };
+                }
+                if (this.operation === 'update') {
+                    const idFilter = this.filters.find(f => f.col === 'id')?.val;
+                    const res = await api.parentLinks.update(idFilter || this.payload?.id, this.payload as any);
+                    return { data: res.data, count: null, error: res.error };
+                }
+                if (this.operation === 'delete') {
+                    const idFilter = this.filters.find(f => f.col === 'id')?.val;
+                    const res = await api.parentLinks.remove(idFilter || this.payload?.id);
+                    return { data: res.data, count: null, error: res.error };
+                }
+                return { data: [] as any, count: 0, error: null };
             }
 
             // 12. ADMIN AUDIT LOG

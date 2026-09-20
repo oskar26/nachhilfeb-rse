@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
 import { toast } from 'react-hot-toast';
 import ChildLinkModal from '../components/ChildLinkModal';
 import SupportModal from '../components/SupportModal';
@@ -98,13 +99,10 @@ export default function Settings() {
 
     const fetchParentLinks = async () => {
         try {
-            const { data, error } = await supabase
-                .from('parent_links')
-                .select('id, status, parent:parent_id(display_name, first_name, last_name)')
-                .eq('child_id', user?.id)
-                .eq('status', 'active');
+            const { data, error } = await api.parentLinks.list();
             if (error) throw error;
-            setParentLinks(data || []);
+            const links = (data as any[]) || [];
+            setParentLinks(links.filter(l => l.status === 'active'));
         } catch (err) {
             console.error('Error fetching parent links:', err);
         }
@@ -114,13 +112,13 @@ export default function Settings() {
         triggerHaptic('medium');
         if (!confirm('Möchtest du diese Eltern-Verknüpfung wirklich aufheben?')) return;
         try {
-            const { error } = await supabase.from('parent_links').delete().eq('id', linkId);
+            const { error } = await api.parentLinks.remove(linkId);
             if (error) throw error;
             triggerHaptic('success');
             toast.success('Verknüpfung aufgehoben');
             setParentLinks(parentLinks.filter(p => p.id !== linkId));
         } catch (err: any) {
-            toast.error('Fehler: ' + err.message);
+            toast.error('Fehler: ' + (err?.message || 'Unbekannter Fehler'));
         }
     };
 

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/Dialog';
 import { Button } from './ui/Button';
-import { Copy, Share2, Check, Users, MessageCircle } from 'lucide-react';
+import { Copy, Check, Users, MessageCircle, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { useAuth } from '../context/AuthContext';
+import { api } from '../lib/api';
 
 interface ChildLinkModalProps {
     isOpen: boolean;
@@ -11,13 +11,45 @@ interface ChildLinkModalProps {
 }
 
 export default function ChildLinkModal({ isOpen, onClose }: ChildLinkModalProps) {
-    const { user, profile } = useAuth();
+    const [linkCode, setLinkCode] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
     const [copied, setCopied] = useState(false);
 
-    // Compute link code: use profile's parent_link_code or fallback to first 6 chars of user UUID
-    const linkCode = profile?.parent_link_code || (user?.id ? user.id.slice(0, 6).toUpperCase() : '------');
+    // Beim Öffnen immer den persistierten Code laden bzw. erzeugen.
+    // Der Fallback auf die UUID-Präfixe ist WEG: Der Code wird serverseitig
+    // gespeichert (profiles.parent_link_code), damit Eltern ihn sicher abrufen können.
+    const ensureCode = async () => {
+        if (!isOpen) return;
+        setLoading(true);
+        try {
+            const res = await api.parentLinks.ensureCode();
+            const code = (res.data as { parent_link_code?: string } | null)?.parent_link_code;
+            if (res.error || !code) {
+                toast.error('Code konnte nicht geladen werden.');
+                setLinkCode(null);
+            } else {
+                setLinkCode(code);
+            }
+        } catch {
+            toast.error('Code konnte nicht geladen werden.');
+            setLinkCode(null);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleOpenChange = (open: boolean) => {
+        if (!open) {
+            onClose();
+            setCopied(false);
+            return;
+        }
+        setCopied(false);
+        ensureCode();
+    };
 
     const handleCopy = () => {
+        if (!linkCode) return;
         navigator.clipboard.writeText(linkCode);
         setCopied(true);
         toast.success('Code in die Zwischenablage kopiert!');
@@ -25,6 +57,7 @@ export default function ChildLinkModal({ isOpen, onClose }: ChildLinkModalProps)
     };
 
     const handleWhatsAppShare = () => {
+        if (!linkCode) return;
         const shareText = encodeURIComponent(
             `Hallo! Bitte verknüpfe mein Schülerkonto auf der FWG Nachhilfebörse mit deinem Elternteil-Account.\n\n` +
             `Verknüpfungscode: *${linkCode}*\n\n` +
@@ -34,7 +67,7 @@ export default function ChildLinkModal({ isOpen, onClose }: ChildLinkModalProps)
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
+        <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogContent className="rounded-3xl max-w-md bg-white dark:bg-gray-900 border dark:border-gray-800 shadow-xl">
                 <DialogHeader className="text-center space-y-2">
                     <div className="w-14 h-14 bg-primary/10 text-primary-hover rounded-2xl flex items-center justify-center mx-auto mb-1">
@@ -50,9 +83,15 @@ export default function ChildLinkModal({ isOpen, onClose }: ChildLinkModalProps)
                     {/* Code Display Box */}
                     <div className="bg-gray-50 dark:bg-gray-950 p-5 rounded-2xl border dark:border-gray-800 text-center space-y-2">
                         <span className="text-[10px] font-extrabold uppercase text-gray-400 tracking-wider block">Dein Verknüpfungscode</span>
-                        <div className="text-3xl font-black tracking-widest font-mono text-primary-hover select-all">
-                            {linkCode}
-                        </div>
+                        {loading || !linkCode ? (
+                            <div className="h-11 flex items-center justify-center">
+                                <Loader2 size={24} className="animate-spin text-gray-400" />
+                            </div>
+                        ) : (
+                            <div className="text-3xl font-black tracking-widest font-mono text-primary-hover select-all">
+                                {linkCode}
+                            </div>
+                        )}
                         <p className="text-[11px] text-gray-400">Dieser Code ist einzigartig für dein Schülerprofil.</p>
                     </div>
 
@@ -60,6 +99,7 @@ export default function ChildLinkModal({ isOpen, onClose }: ChildLinkModalProps)
                     <div className="grid grid-cols-2 gap-3">
                         <Button
                             onClick={handleCopy}
+                            disabled={!linkCode}
                             variant="outline"
                             className="rounded-2xl h-12 gap-2 text-xs font-bold border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800"
                         >
@@ -69,6 +109,7 @@ export default function ChildLinkModal({ isOpen, onClose }: ChildLinkModalProps)
 
                         <Button
                             onClick={handleWhatsAppShare}
+                            disabled={!linkCode}
                             className="rounded-2xl h-12 gap-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20"
                         >
                             <MessageCircle size={16} />
@@ -82,7 +123,7 @@ export default function ChildLinkModal({ isOpen, onClose }: ChildLinkModalProps)
                         <ol className="list-decimal list-inside space-y-1.5 text-gray-500 leading-relaxed">
                             <li>Dein Elternteil registriert sich als <strong className="text-gray-700 dark:text-gray-300">Elternteil</strong>.</li>
                             <li>Im Eltern-Dashboard klickt er/sie auf <strong className="text-gray-700 dark:text-gray-300">"Kind verknüpfen"</strong>.</li>
-                            <li>Nach Eingabe des Codes <strong className="font-mono text-gray-700 dark:text-gray-300">{linkCode}</strong> ist die Verknüpfung aktiv.</li>
+                            <li>Der Code kann per WhatsApp geteilt oder direkt eingegeben werden – die Verknüpfung ist danach sofort aktiv.</li>
                         </ol>
                     </div>
                 </div>

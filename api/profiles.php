@@ -38,6 +38,430 @@ try {
     ");
 } catch (Exception $ex) {}
 
+// Auto-Migration: parent_link_code Spalte (Eltern-Verknüpfungscode)
+try {
+    $pdo->query("SELECT parent_link_code FROM profiles LIMIT 0");
+} catch (Exception $e) {
+    try {
+        $pdo->exec("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS parent_link_code VARCHAR(10) NULL");
+    } catch (Exception $ex) {
+        try {
+            $pdo->exec("ALTER TABLE profiles ADD COLUMN parent_link_code VARCHAR(10) NULL");
+        } catch (Exception $ex2) {}
+    }
+    try {
+        $pdo->exec("ALTER TABLE profiles ADD UNIQUE INDEX idx_profiles_parent_code (parent_link_code)");
+    } catch (Exception $ex3) {}
+}
+
+// Fehlende Codes für Bestandsprofile nachtragen (bounded, damit Request nicht hängt)
+try {
+    $stmt = $pdo->query("SELECT id FROM profiles WHERE parent_link_code IS NULL OR parent_link_code = '' LIMIT 500");
+    $missing = $stmt ? $stmt->fetchAll() : [];
+    foreach ($missing as $m) {
+        $code = fwg_generate_parent_code($pdo);
+        $pdo->prepare('UPDATE profiles SET parent_link_code = ? WHERE id = ?')->execute([$code, $m['id']]);
+    }
+} catch (Exception $e) {}
+
+// ------------------------------------------------------------------------------
+// 0b. ELTERN-VERKNÜPFUNG: Code-Lookup, Direktsuche, Code-Erzeugung, Link-CRUD
+// ------------------------------------------------------------------------------
+$parentPermissionsDefaults = [
+    'can_view_ads' => true,
+    'can_view_ratings' => true,
+    'can_view_activity' => true,
+    'can_receive_notifications' => true,
+];
+
+// 0b1. Code-Lookup: Schülerprofil anhand des 6-stelligen Verknüpfungscodes finden
+if ($method === 'GET' && $action === 'lookup_code') {
+    require_auth();
+    $code = trim(strtoupper((string)($_GET['code'] ?? '')));
+    if (!preg_match('/^[A-Z0-9]{6,10}$/', $code)) {
+        json_error('Ungültiger Code.', 400);
+    }
+    $stmt = $pdo->prepare('
+        SELECT id, first_name, last_name, display_name, grade_level, class_letter
+        FROM profiles
+        WHERE parent_link_code = ? AND role != "parent"
+        LIMIT 1
+    ');
+    $stmt->execute([$code]);
+    $child = $stmt->fetch();
+    if (!$child) {
+        json_error('Kein Schülerprofil mit diesem Code gefunden.', 404);
+    }
+    $full = trim((string)($child['first_name'] ?? '') . ' ' . (string)($child['last_name'] ?? ''));
+    json_response([
+        'id' => $child['id'],
+        'full_name' => $full !== '' ? $full : ($child['display_name'] ?? 'Unbekannt'),
+        'display_name' => $child['display_name'] ?: $full,
+        'grade_level' => $child['grade_level'],
+        'class_letter' => $child['class_letter'],
+        'parent_link_code' => $code,
+    ]);
+}
+
+// 0b2. Direktsuche: Name und optional Klasse/Geburtsdatum (Eltern ohne Code)
+if ($method === 'GET' && $action === 'search_children') {
+    require_auth();
+    $q = trim((string)($_GET['q'] ?? ''));
+    $grade = trim((string)($_GET['grade_level'] ?? ''));
+    $birth = trim((string)($_GET['birth_date'] ?? ''));
+
+    if ($q === '' && $grade === '' && $birth === '') {
+        json_error('Bitte mindestens Name, Klasse oder Geburtsdatum angeben.', 400);
+    }
+    $where = 'role != "parent"';
+    $params = [];
+    if ($q !== '') {
+        $where .= ' AND (display_name LIKE ? OR first_name LIKE ? OR last_name LIKE ?)';
+        $like = '%' . $q . '%';
+        array_push($params, $like, $like, $like);
+    }
+    if ($grade !== '') {
+        $where .= ' AND grade_level = ?';
+        $params[] = $grade;
+    }
+    if ($birth !== '') {
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $birth)) {
+            json_error('Ungültiges Geburtsdatum. Format: JJJJ-MM-TT.', 400);
+        }
+        $where .= ' AND birth_date = ?';
+        $params[] = $birth;
+    }
+
+    $stmt = $pdo->prepare("
+        SELECT id, first_name, last_name, display_name, grade_level, class_letter, birth_date
+        FROM profiles
+        WHERE $where
+        ORDER BY last_name ASC, first_name ASC
+        LIMIT 15
+    ");
+    $stmt->execute($params);
+    $rows = $stmt->fetchAll();
+    $result = array_map(function ($r) {
+        $full = trim((string)($r['first_name'] ?? '') . ' ' . (string)($r['last_name'] ?? ''));
+        return [
+            'id' => $r['id'],
+            'full_name' => $full !== '' ? $full : ($r['display_name'] ?? 'Unbekannt'),
+            'display_name' => $r['display_name'] ?: $full,
+            'grade_level' => $r['grade_level'],
+            'class_letter' => $r['class_letter'],
+            'birth_date' => $r['birth_date'],
+        ];
+    }, $rows);
+    json_response($result);
+}
+
+// 0b3. Sicherstellen, dass das eigene Profil einen Code besitzt (und zurückgeben)
+if ($method === 'POST' && $action === 'ensure_parent_code') {
+    $user = require_auth();
+    $code = null;
+    $stmt = $pdo->prepare('SELECT parent_link_code FROM profiles WHERE id = ?');
+    $stmt->execute([$user['id']]);
+    $existing = $stmt->fetchColumn();
+    if ($existing) {
+        $code = $existing;
+    } else {
+        $code = fwg_generate_parent_code($pdo);
+        $pdo->prepare('UPDATE profiles SET parent_link_code = ? WHERE id = ?')->execute([$code, $user['id']]);
+    }
+    json_response(['parent_link_code' => $code]);
+}
+
+// 0b4. Verknüpfungen lesen: Elternteil -> Kinder (mit Stats/Aktivität) | Kind -> Elternteile
+if ($method === 'GET' && $action === 'parent_links') {
+    $user = require_auth();
+
+    if ($user['role'] === 'parent') {
+        $linksStmt = $pdo->prepare('
+            SELECT pl.* FROM parent_links pl WHERE pl.parent_id = ? ORDER BY pl.created_at DESC
+        ');
+        $linksStmt->execute([$user['id']]);
+        $links = $linksStmt->fetchAll();
+        $result = [];
+
+        foreach ($links as $link) {
+            $personStmt = $pdo->prepare('SELECT * FROM profiles WHERE id = ?');
+            $personStmt->execute([$link['child_id']]);
+            $child = $personStmt->fetch();
+            if (!$child) {
+                continue;
+            }
+            $full = trim((string)($child['first_name'] ?? '') . ' ' . (string)($child['last_name'] ?? ''));
+
+            $c = $link['child_id'];
+            $cntStmt = $pdo->prepare('SELECT COUNT(*) FROM ads WHERE user_id = ? AND is_active = 1 AND is_archived = 0');
+            $cntStmt->execute([$c]);
+            $adsCount = (int)$cntStmt->fetchColumn();
+            $cntStmt = $pdo->prepare('SELECT COUNT(*) FROM ad_requests WHERE requester_id = ? OR owner_id = ?');
+            $cntStmt->execute([$c, $c]);
+            $reqCount = (int)$cntStmt->fetchColumn();
+            $cntStmt = $pdo->prepare('SELECT COUNT(*) FROM reviews WHERE target_user_id = ?');
+            $cntStmt->execute([$c]);
+            $revCount = (int)$cntStmt->fetchColumn();
+
+            $activity = [];
+            $aStmt = $pdo->prepare('
+                SELECT id, short_description, created_at, type FROM ads
+                WHERE user_id = ? AND is_active = 1 AND is_archived = 0
+                ORDER BY created_at DESC LIMIT 3
+            ');
+            $aStmt->execute([$c]);
+            foreach ($aStmt->fetchAll() as $a) {
+                $activity[] = [
+                    'type' => 'ad',
+                    'title' => $a['type'] === 'offer' ? 'Neue Nachhilfe angeboten' : 'Neue Nachhilfesuche gestartet',
+                    'description' => (string)($a['short_description'] ?? ''),
+                    'timestamp' => $a['created_at'],
+                ];
+            }
+            $rStmt = $pdo->prepare('
+                SELECT ar.id, ar.status, ar.created_at, ad.short_description
+                FROM ad_requests ar
+                LEFT JOIN ads ad ON ad.id = ar.ad_id
+                WHERE ar.requester_id = ? OR ar.owner_id = ?
+                ORDER BY ar.created_at DESC LIMIT 3
+            ');
+            $rStmt->execute([$c, $c]);
+            foreach ($rStmt->fetchAll() as $ar) {
+                $activity[] = [
+                    'type' => 'request',
+                    'title' => 'Anfrage-Aktivität',
+                    'description' => 'Nachhilfestunden-Anfrage zu "' . (string)($ar['short_description'] ?? 'Anzeige') . '" (' . $ar['status'] . ')',
+                    'timestamp' => $ar['created_at'],
+                ];
+            }
+            $vStmt = $pdo->prepare('
+                SELECT r.rating, r.comment, r.created_at, p.display_name
+                FROM reviews r
+                LEFT JOIN profiles p ON p.id = r.author_id
+                WHERE r.target_user_id = ?
+                ORDER BY r.created_at DESC LIMIT 3
+            ');
+            $vStmt->execute([$c]);
+            foreach ($vStmt->fetchAll() as $rv) {
+                $author = $rv['display_name'] ?: 'Mitschüler';
+                $activity[] = [
+                    'type' => 'review',
+                    'title' => 'Bewertung erhalten (' . $rv['rating'] . ' Sterne)',
+                    'description' => $rv['comment'] ? '"' . $rv['comment'] . '" von ' . $author : 'Kein Kommentar hinterlassen',
+                    'timestamp' => $rv['created_at'],
+                ];
+            }
+            usort($activity, function ($a, $b) {
+                return strtotime($b['timestamp']) <=> strtotime($a['timestamp']);
+            });
+
+            $result[] = [
+                'id' => $link['id'],
+                'parent_id' => $link['parent_id'],
+                'child_id' => $c,
+                'status' => $link['status'],
+                'permissions' => json_decode($link['permissions'] ?? '{}', true) ?: $parentPermissionsDefaults,
+                'created_at' => $link['created_at'],
+                'linked_at' => $link['linked_at'],
+                'child' => [
+                    'id' => $child['id'],
+                    'full_name' => $full ?: ($child['display_name'] ?? 'Unbekannt'),
+                    'display_name' => $child['display_name'] ?: $full,
+                    'first_name' => $child['first_name'],
+                    'last_name' => $child['last_name'],
+                    'grade_level' => $child['grade_level'],
+                    'class_letter' => $child['class_letter'],
+                    'avatar_url' => $child['avatar_url'],
+                    'average_rating' => (float)$child['average_rating'],
+                    'stats' => [
+                        'ads_count' => $adsCount,
+                        'requests_count' => $reqCount,
+                        'reviews_count' => $revCount,
+                    ],
+                    'recent_activity' => array_slice($activity, 0, 5),
+                ],
+            ];
+        }
+        json_response($result);
+    }
+
+    // Kind / andere Rollen: Elternteile, die dieses Konto verknüpft haben
+    $linksStmt = $pdo->prepare('
+        SELECT pl.* FROM parent_links pl WHERE pl.child_id = ? ORDER BY pl.created_at DESC
+    ');
+    $linksStmt->execute([$user['id']]);
+    $links = $linksStmt->fetchAll();
+    $result = [];
+    foreach ($links as $link) {
+        $peopleStmt = $pdo->prepare('SELECT id, first_name, last_name, display_name FROM profiles WHERE id = ?');
+        $peopleStmt->execute([$link['parent_id']]);
+        $parent = $peopleStmt->fetch();
+        if (!$parent) {
+            continue;
+        }
+        $full = trim((string)($parent['first_name'] ?? '') . ' ' . (string)($parent['last_name'] ?? ''));
+        $result[] = [
+            'id' => $link['id'],
+            'parent_id' => $link['parent_id'],
+            'child_id' => $link['child_id'],
+            'status' => $link['status'],
+            'permissions' => json_decode($link['permissions'] ?? '{}', true) ?: $parentPermissionsDefaults,
+            'created_at' => $link['created_at'],
+            'linked_at' => $link['linked_at'],
+            'parent' => [
+                'id' => $parent['id'],
+                'full_name' => $full ?: ($parent['display_name'] ?? 'Unbekannt'),
+                'display_name' => $parent['display_name'] ?: $full,
+                'first_name' => $parent['first_name'],
+                'last_name' => $parent['last_name'],
+            ],
+        ];
+    }
+    json_response($result);
+}
+
+// 0b5. Verknüpfung erstellen (nur Elternteil- oder SV-Admin-Konto)
+if ($method === 'POST' && $action === 'parent_links') {
+    $user = require_auth();
+    if ($user['role'] !== 'parent' && $user['role'] !== 'sv_admin') {
+        json_error('Nur Elternteil-Konten können Kinder verknüpfen.', 403);
+    }
+    $data = get_json_input();
+    $childId = trim((string)($data['child_id'] ?? ''));
+    if ($childId === '' || !preg_match('/^[0-9a-f-]{36}$/i', $childId)) {
+        json_error('child_id fehlt oder ist ungültig.', 400);
+    }
+    if ($childId === $user['id']) {
+        json_error('Du kannst dein eigenes Konto nicht verknüpfen.', 400);
+    }
+
+    $personStmt = $pdo->prepare('SELECT id, role FROM profiles WHERE id = ?');
+    $personStmt->execute([$childId]);
+    $child = $personStmt->fetch();
+    if (!$child) {
+        json_error('Profil nicht gefunden.', 404);
+    }
+    if ($child['role'] === 'parent') {
+        json_error('Dieses Profil ist selbst ein Elternteil-Konto.', 400);
+    }
+
+    $dup = $pdo->prepare('SELECT id FROM parent_links WHERE parent_id = ? AND child_id = ?');
+    $dup->execute([$user['id'], $childId]);
+    if ($dup->fetchColumn()) {
+        json_error('Dieses Kind ist bereits mit deinem Account verknüpft.', 409);
+    }
+
+    $perms = $parentPermissionsDefaults;
+    if (isset($data['permissions']) && is_array($data['permissions'])) {
+        foreach ($perms as $k => $v) {
+            $perms[$k] = (bool)($data['permissions'][$k] ?? $v);
+        }
+    }
+
+    $linkId = generate_uuid();
+    $now = date('Y-m-d H:i:s');
+    try {
+        $ins = $pdo->prepare('
+            INSERT INTO parent_links (id, parent_id, child_id, status, permissions, created_at, linked_at)
+            VALUES (?, ?, ?, "active", ?, ?, ?)
+        ');
+        $ins->execute([$linkId, $user['id'], $childId, json_encode($perms, JSON_UNESCAPED_UNICODE), $now, $now]);
+    } catch (Exception $e) {
+        json_error('Diese Verknüpfung existiert bereits.', 409);
+    }
+
+    json_response([
+        'message' => 'Verknüpfung erfolgreich.',
+        'link' => [
+            'id' => $linkId,
+            'parent_id' => $user['id'],
+            'child_id' => $childId,
+            'status' => 'active',
+            'permissions' => $perms,
+            'created_at' => $now,
+            'linked_at' => $now,
+        ],
+    ]);
+}
+
+// 0b6. Verknüpfung aktualisieren (Berechtigungen: Elternteil; Status: beide Seiten)
+if ($method === 'PATCH' && $action === 'parent_links') {
+    $user = require_auth();
+    $data = get_json_input();
+    $linkId = trim((string)($data['link_id'] ?? ''));
+    if ($linkId === '') {
+        json_error('link_id fehlt.', 400);
+    }
+    $linkStmt = $pdo->prepare('SELECT * FROM parent_links WHERE id = ?');
+    $linkStmt->execute([$linkId]);
+    $link = $linkStmt->fetch();
+    if (!$link) {
+        json_error('Verknüpfung nicht gefunden.', 404);
+    }
+    $isParent = $link['parent_id'] === $user['id'];
+    $isChild = $link['child_id'] === $user['id'];
+    $isAdmin = $user['role'] === 'sv_admin';
+    if (!$isParent && !$isChild && !$isAdmin) {
+        json_error('Keine Berechtigung für diese Verknüpfung.', 403);
+    }
+
+    $fields = [];
+    $params = [];
+
+    if (isset($data['permissions']) && ($isParent || $isAdmin)) {
+        if (!is_array($data['permissions'])) {
+            json_error('Ungültige Berechtigungen.', 400);
+        }
+        $perms = $parentPermissionsDefaults;
+        foreach ($perms as $k => $v) {
+            $perms[$k] = (bool)($data['permissions'][$k] ?? $v);
+        }
+        $fields[] = 'permissions = ?';
+        $params[] = json_encode($perms, JSON_UNESCAPED_UNICODE);
+    }
+
+    if (isset($data['status']) && ($isParent || $isChild || $isAdmin)) {
+        $status = (string)$data['status'];
+        if (!in_array($status, ['active', 'revoked'], true)) {
+            json_error('Ungültiger Status.', 400);
+        }
+        $fields[] = 'status = ?';
+        $params[] = $status;
+    }
+
+    if (empty($fields)) {
+        json_error('Keine Änderungen übermittelt.', 400);
+    }
+
+    $params[] = $linkId;
+    $pdo->prepare('UPDATE parent_links SET ' . implode(', ', $fields) . ' WHERE id = ?')->execute($params);
+    json_response(['message' => 'Verknüpfung aktualisiert.']);
+}
+
+// 0b7. Verknüpfung aufheben (beide Seiten oder SV-Admin)
+if ($method === 'DELETE' && $action === 'parent_links') {
+    $user = require_auth();
+    $data = get_json_input();
+    $linkId = trim((string)($data['link_id'] ?? ''));
+    if ($linkId === '') {
+        json_error('link_id fehlt.', 400);
+    }
+    $linkStmt = $pdo->prepare('SELECT * FROM parent_links WHERE id = ?');
+    $linkStmt->execute([$linkId]);
+    $link = $linkStmt->fetch();
+    if (!$link) {
+        json_error('Verknüpfung nicht gefunden.', 404);
+    }
+    $isParent = $link['parent_id'] === $user['id'];
+    $isChild = $link['child_id'] === $user['id'];
+    $isAdmin = $user['role'] === 'sv_admin';
+    if (!$isParent && !$isChild && !$isAdmin) {
+        json_error('Keine Berechtigung für diese Verknüpfung.', 403);
+    }
+    $pdo->prepare('DELETE FROM parent_links WHERE id = ?')->execute([$linkId]);
+    json_response(['message' => 'Verknüpfung aufgehoben.']);
+}
+
 // ------------------------------------------------------------------------------
 // 1. GET: PROFIL ABRUFEN ODER COACH-SCHÜLERLISTE
 // ------------------------------------------------------------------------------
