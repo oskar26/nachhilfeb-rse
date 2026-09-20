@@ -126,9 +126,9 @@ if ($action === 'stats' && $method === 'GET') {
 // ------------------------------------------------------------------------------
 if ($action === 'summary' && $method === 'GET') {
     $ads = (int)$pdo->query('SELECT COUNT(*) FROM ads WHERE is_active = 1 AND is_archived = 0')->fetchColumn();
-    $coaches = 0;
+    $users = 0;
     try {
-        $coaches = (int)$pdo->query('SELECT COUNT(*) FROM profiles WHERE is_coach = 1')->fetchColumn();
+        $users = (int)$pdo->query('SELECT COUNT(*) FROM profiles')->fetchColumn();
     } catch (Exception $e) {}
     $views = 0;
     try {
@@ -137,7 +137,7 @@ if ($action === 'summary' && $method === 'GET') {
 
     json_response([
         'active_ads' => $ads,
-        'coaches' => $coaches,
+        'users' => $users,
         'page_views' => $views,
     ]);
 }

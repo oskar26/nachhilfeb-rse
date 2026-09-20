@@ -24,14 +24,14 @@ export default function Landing() {
     const navigate = useNavigate();
     const { user } = useAuth();
     // Live-Kennzahlen für die Willkommensseite (öffentlicher Summary-Endpoint, best-effort)
-    const [liveStats, setLiveStats] = useState<{ active_ads: number; coaches: number; page_views: number } | null>(null);
+    const [liveStats, setLiveStats] = useState<{ active_ads: number; users: number; page_views: number } | null>(null);
 
     useEffect(() => {
         api.analytics.summary().then(({ data, error }) => {
             if (!error && data) {
                 setLiveStats({
                     active_ads: Number((data as any).active_ads) || 0,
-                    coaches: Number((data as any).coaches) || 0,
+                    users: Number((data as any).users) || 0,
                     page_views: Number((data as any).page_views) || 0,
                 });
             }
@@ -128,7 +128,7 @@ export default function Landing() {
                     >
                         {[
                             { value: liveStats.active_ads, label: 'Aktive Anzeigen' },
-                            { value: liveStats.coaches, label: 'Schüler-Coaches' },
+                            { value: liveStats.users, label: 'User' },
                             { value: liveStats.page_views, label: 'Seitenaufrufe' },
                         ].map(s => (
                             <div key={s.label} className="px-5 py-3 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm min-w-[7.5rem]">
