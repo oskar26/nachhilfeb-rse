@@ -1,4 +1,5 @@
 import * as React from "react"
+import { createPortal } from "react-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "../../lib/utils"
 import { triggerHaptic } from "../../lib/haptics"
@@ -11,27 +12,43 @@ export interface DialogProps {
 }
 
 const Dialog = ({ children, open, onClose, onOpenChange }: DialogProps) => {
-    const handleClose = () => {
-        if (onClose) onClose();
-        if (onOpenChange) onOpenChange(false);
-    };
+    const [mounted, setMounted] = React.useState(false);
 
     React.useEffect(() => {
-        if (open) {
-            triggerHaptic('medium');
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
-        return () => {
-            document.body.style.overflow = '';
-        };
-    }, [open]);
+        setMounted(true);
+        return () => setMounted(false);
+    }, []);
 
-    return (
+    const handleClose = React.useCallback(() => {
+        if (onClose) onClose();
+        if (onOpenChange) onOpenChange(false);
+    }, [onClose, onOpenChange]);
+
+    React.useEffect(() => {
+        if (!open) return;
+        triggerHaptic('medium');
+        const prevOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') handleClose();
+        };
+        window.addEventListener('keydown', onKey);
+        return () => {
+            document.body.style.overflow = prevOverflow;
+            window.removeEventListener('keydown', onKey);
+        };
+    }, [open, handleClose]);
+
+    if (!mounted || typeof document === 'undefined') return null;
+
+    // Als Portal in document.body rendern: So bleibt das Overlay (fixed inset-0)
+    // immer am Viewport ausgerichtet – auch wenn ein Elternelement transformiert
+    // ist (transform/filter/backdrop-blur brechen sonst die fixed-Positionierung
+    // und lassen unten eine weiße Fläche frei).
+    return createPortal(
         <AnimatePresence>
             {open && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
                     {/* Backdrop */}
                     <motion.div
                         initial={{ opacity: 0 }}
@@ -48,13 +65,16 @@ const Dialog = ({ children, open, onClose, onOpenChange }: DialogProps) => {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.96, y: 10 }}
                         transition={{ type: "spring", stiffness: 350, damping: 26 }}
-                        className="relative z-10 w-full max-w-lg my-auto"
+                        className="relative z-10 w-full max-w-lg my-auto max-h-[90vh] overflow-y-auto"
+                        role="dialog"
+                        aria-modal="true"
                     >
                         {children}
                     </motion.div>
                 </div>
             )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 };
 

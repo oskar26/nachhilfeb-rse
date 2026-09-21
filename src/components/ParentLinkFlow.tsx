@@ -178,7 +178,11 @@ export default function ParentLinkFlow({ isOpen, onClose, onSuccess }: ParentLin
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={handleClose}>
+        <Dialog
+            open={isOpen}
+            onClose={handleClose}
+            onOpenChange={(open) => { if (!open) handleClose(); }}
+        >
             <DialogContent className="max-w-md w-full">
                 {step < 3 && (
                     <div className="flex items-center gap-2 mb-2">

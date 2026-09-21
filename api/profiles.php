@@ -266,19 +266,45 @@ if ($method === 'GET' && $action === 'search_children') {
 }
 
 // 0b3. Sicherstellen, dass das eigene Profil einen Code besitzt (und zurückgeben)
+// Gehärtet: fehlendes Profil -> 404, Unique-Kollision -> 1x Retry, kein unbehandelter 500.
 if ($method === 'POST' && $action === 'ensure_parent_code') {
     $user = require_auth();
-    $code = null;
-    $stmt = $pdo->prepare('SELECT parent_link_code FROM profiles WHERE id = ?');
-    $stmt->execute([$user['id']]);
-    $existing = $stmt->fetchColumn();
-    if ($existing) {
-        $code = $existing;
-    } else {
-        $code = fwg_generate_parent_code($pdo);
-        $pdo->prepare('UPDATE profiles SET parent_link_code = ? WHERE id = ?')->execute([$code, $user['id']]);
+    try {
+        $stmt = $pdo->prepare('SELECT id, parent_link_code FROM profiles WHERE id = ? LIMIT 1');
+        $stmt->execute([$user['id']]);
+        $row = $stmt->fetch();
+        if (!$row) {
+            json_error('Profil nicht gefunden.', 404);
+        }
+        $existing = is_string($row['parent_link_code'] ?? null) ? trim((string)$row['parent_link_code']) : '';
+        if ($existing !== '' && preg_match('/^[A-Z0-9]{4,10}$/', strtoupper($existing))) {
+            json_response(['parent_link_code' => strtoupper($existing)]);
+        }
+        // Neuen Code erzeugen + speichern (mit 1x Retry bei Unique-Kollision)
+        $code = null;
+        for ($attempt = 0; $attempt < 2; $attempt++) {
+            try {
+                $code = fwg_generate_parent_code($pdo);
+                $upd = $pdo->prepare('UPDATE profiles SET parent_link_code = ? WHERE id = ?');
+                $upd->execute([$code, $user['id']]);
+                break;
+            } catch (Throwable $u) {
+                $msg = $u->getMessage();
+                // Nur bei Unique-Verletzung erneut versuchen, sonst weiterwerfen
+                if (stripos($msg, 'uplicate') !== false && $attempt === 0) {
+                    continue;
+                }
+                throw $u;
+            }
+        }
+        if (!$code) {
+            json_error('Code konnte nicht erzeugt werden.', 500);
+        }
+        json_response(['parent_link_code' => $code]);
+    } catch (Throwable $e) {
+        error_log('ensure_parent_code failed: ' . $e->getMessage());
+        json_error('Code konnte nicht geladen werden.', 500);
     }
-    json_response(['parent_link_code' => $code]);
 }
 
 // 0b4. Verknüpfungen lesen: Elternteil -> Kinder (mit Stats/Aktivität) | Kind -> Elternteile

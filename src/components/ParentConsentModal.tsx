@@ -28,7 +28,11 @@ export default function ParentConsentModal({
         : new Date().toLocaleDateString('de-DE');
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
+        <Dialog
+            open={isOpen}
+            onClose={onClose}
+            onOpenChange={(open) => { if (!open) onClose(); }}
+        >
             <DialogContent className="rounded-3xl max-w-lg bg-white dark:bg-gray-900 border dark:border-gray-800 shadow-2xl print:shadow-none print:border-none print:w-full">
                 <DialogHeader className="text-center space-y-2 border-b dark:border-gray-800 pb-4">
                     <div className="flex justify-center items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary-hover">

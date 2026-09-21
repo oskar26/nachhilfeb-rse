@@ -10,6 +10,7 @@ import { supabase } from '../lib/supabase';
 import { api } from '../lib/api';
 import { toast } from 'react-hot-toast';
 import ChildLinkModal from '../components/ChildLinkModal';
+import ParentLinkFlow from '../components/ParentLinkFlow';
 import SupportModal from '../components/SupportModal';
 import ShareDialog from '../components/ShareDialog';
 import { Logo } from '../components/ui/Logo';
@@ -45,7 +46,7 @@ function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: () =>
 export default function Settings() {
     const { theme, setTheme } = useTheme();
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, isParent } = useAuth();
     
     const [settings, setSettings] = useState({
         email_visible: false,
@@ -56,6 +57,7 @@ export default function Settings() {
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
     const [parentLinks, setParentLinks] = useState<any[]>([]);
     const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+    const [isParentLinkFlowOpen, setIsParentLinkFlowOpen] = useState(false);
     const [isSupportOpen, setIsSupportOpen] = useState(false);
     const [isShareOpen, setIsShareOpen] = useState(false);
 
@@ -107,7 +109,7 @@ export default function Settings() {
 
     const handleRemoveParentLink = async (linkId: string) => {
         triggerHaptic('medium');
-        if (!confirm('Möchtest du diese Eltern-Verknüpfung wirklich aufheben?')) return;
+        if (!confirm(isParent ? 'Möchtest du diese Kind-Verknüpfung wirklich aufheben?' : 'Möchtest du diese Eltern-Verknüpfung wirklich aufheben?')) return;
         try {
             const { error } = await api.parentLinks.remove(linkId);
             if (error) throw error;
@@ -326,53 +328,76 @@ export default function Settings() {
                 </Card>
             </motion.div>
 
-            {/* Parent Links Section */}
+            {/* Parent Links Section – rollenabhängig:
+                Schüler sehen verknüpfte Eltern (Code anzeigen),
+                Eltern sehen verknüpfte Kinder (Kind verknüpfen). */}
             <motion.div variants={itemVariants}>
                 <Card className="rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft">
                     <CardHeader className="p-6 pb-2 flex flex-row items-center justify-between">
                         <div>
-                            <CardTitle className="text-base font-extrabold">Verknüpfte Eltern-Accounts</CardTitle>
-                            <CardDescription className="text-xs">Elternteile mit Lesezugriff auf deine Nachhilfeanzeigen</CardDescription>
+                            <CardTitle className="text-base font-extrabold">
+                                {isParent ? 'Verknüpfte Kinder-Accounts' : 'Verknüpfte Eltern-Accounts'}
+                            </CardTitle>
+                            <CardDescription className="text-xs">
+                                {isParent
+                                    ? 'Schülerkonten mit Lesezugriff für dein Elternteil-Konto'
+                                    : 'Elternteile mit Lesezugriff auf deine Nachhilfeanzeigen'}
+                            </CardDescription>
                         </div>
                         <Button
                             variant="outline"
                             size="sm"
                             onClick={() => {
                                 triggerHaptic('light');
-                                setIsLinkModalOpen(true);
+                                if (isParent) {
+                                    setIsParentLinkFlowOpen(true);
+                                } else {
+                                    setIsLinkModalOpen(true);
+                                }
                             }}
                             className="rounded-full text-xs font-bold shrink-0"
                         >
-                            + Verknüpfen
+                            {isParent ? '+ Kind verknüpfen' : '+ Verknüpfen'}
                         </Button>
                     </CardHeader>
                     <CardContent className="p-6 pt-3 space-y-3">
                         {parentLinks.length === 0 ? (
-                            <p className="text-xs text-gray-400 italic py-1">Aktuell keine Eltern-Accounts verknüpft.</p>
+                            <p className="text-xs text-gray-400 italic py-1">
+                                {isParent ? 'Aktuell keine Kinder-Accounts verknüpft.' : 'Aktuell keine Eltern-Accounts verknüpft.'}
+                            </p>
                         ) : (
-                            parentLinks.map((link: any) => (
-                                <div key={link.id} className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-yellow-900 dark:text-yellow-200 font-extrabold text-xs">
-                                            <Users size={16} />
+                            parentLinks.map((link: any) => {
+                                const person = isParent ? link.child : link.parent;
+                                const displayName = person?.display_name
+                                    || [person?.first_name, person?.last_name].filter(Boolean).join(' ')
+                                    || (isParent ? 'Kind' : 'Elternteil');
+                                const subLabel = isParent && person?.grade_level
+                                    ? `Klasse ${person.grade_level}`
+                                    : 'Aktiv';
+                                return (
+                                    <div key={link.id} className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-yellow-900 dark:text-yellow-200 font-extrabold text-xs">
+                                                <Users size={16} />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-bold text-gray-900 dark:text-white">
+                                                    {displayName}
+                                                </p>
+                                                <span className="text-[10px] text-green-600 dark:text-green-400 font-bold uppercase">{subLabel}</span>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-bold text-gray-900 dark:text-white">
-                                                {link.parent?.display_name || `${link.parent?.first_name} ${link.parent?.last_name}`}
-                                            </p>
-                                            <span className="text-[10px] text-green-600 dark:text-green-400 font-bold uppercase">Aktiv</span>
-                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleRemoveParentLink(link.id)}
+                                            className="text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl"
+                                        >
+                                            <Trash2 size={16} />
+                                        </Button>
                                     </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => handleRemoveParentLink(link.id)}
-                                        className="text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl"
-                                    >
-                                        <Trash2 size={16} />
-                                    </Button>
-                                </div>
-                            ))
+                                );
+                            })
                         )}
                     </CardContent>
                 </Card>
@@ -556,6 +581,11 @@ export default function Settings() {
             </motion.div>
 
             <ChildLinkModal isOpen={isLinkModalOpen} onClose={() => setIsLinkModalOpen(false)} />
+            <ParentLinkFlow
+                isOpen={isParentLinkFlowOpen}
+                onClose={() => setIsParentLinkFlowOpen(false)}
+                onSuccess={fetchParentLinks}
+            />
             <SupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} />
             <ShareDialog type="app" isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} />
         </motion.div>

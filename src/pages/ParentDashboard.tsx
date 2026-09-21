@@ -63,6 +63,7 @@ interface ParentLink {
 
 interface ChildData {
     link_id: string;
+    linkedAt: string | null;
     profile: {
         id: string;
         full_name: string | null;
@@ -116,6 +117,7 @@ export default function ParentDashboard() {
                     const permissions = link.permissions || {};
                     return {
                         link_id: link.id,
+                        linkedAt: link.linked_at || link.created_at || null,
                         profile: {
                             id: child.id,
                             full_name: child.full_name ?? null,
@@ -221,17 +223,23 @@ export default function ParentDashboard() {
                     <p className="text-gray-500 font-medium">Lade Kinder-Aktivitäten...</p>
                 </div>
             ) : children.length === 0 ? (
-                <Card className="rounded-3xl border-none shadow-sm bg-white dark:bg-gray-900 py-16 text-center">
+                <Card className="rounded-3xl border-none shadow-sm bg-white dark:bg-gray-900 py-12 text-center">
                     <CardContent className="space-y-4 max-w-md mx-auto">
-                        <div className="w-16 h-16 bg-gray-50 dark:bg-gray-800 text-gray-400 rounded-full flex items-center justify-center mx-auto">
+                        <div className="w-16 h-16 bg-primary/10 text-primary-hover rounded-full flex items-center justify-center mx-auto">
                             <Users size={32} />
                         </div>
                         <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Keine Kinder verknüpft</h2>
                         <p className="text-gray-500 text-sm leading-relaxed">
-                            Du hast noch kein Schülerkonto mit deinem Elternteil-Account verknüpft. Bitte klicke auf "Kind verknüpfen", um dein Kind einzuladen.
+                            Du hast noch kein Schülerkonto verknüpft. Dein Kind zeigt dir seinen persönlichen Code an –
+                            du gibst ihn hier ein.
                         </p>
+                        <ol className="text-left text-xs text-gray-500 dark:text-gray-400 space-y-2 bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-4 border border-gray-100 dark:border-gray-800">
+                            <li><strong className="text-gray-700 dark:text-gray-200">1.</strong> Kind meldet sich als Schüler/in an</li>
+                            <li><strong className="text-gray-700 dark:text-gray-200">2.</strong> Kind öffnet <span className="font-mono font-bold">Einstellungen → Eltern-Verknüpfung</span></li>
+                            <li><strong className="text-gray-700 dark:text-gray-200">3.</strong> Du klickst unten auf „Kind verknüpfen" und gibst den 6-stelligen Code ein</li>
+                        </ol>
                         <Button onClick={() => setIsLinkFlowOpen(true)} className="rounded-2xl font-bold bg-primary text-black">
-                            Jetzt Kind verknüpfen
+                            <Plus size={16} className="mr-1" /> Jetzt Kind verknüpfen
                         </Button>
                     </CardContent>
                 </Card>
@@ -381,7 +389,11 @@ export default function ParentDashboard() {
             />
 
             {/* Delete verification Dialog */}
-            <Dialog open={!!selectedLinkToDelete} onOpenChange={() => setSelectedLinkToDelete(null)}>
+            <Dialog
+                open={!!selectedLinkToDelete}
+                onClose={() => setSelectedLinkToDelete(null)}
+                onOpenChange={(open) => { if (!open) setSelectedLinkToDelete(null); }}
+            >
                 <DialogContent className="rounded-3xl max-w-md">
                     <DialogHeader>
                         <DialogTitle className="text-red-600 flex items-center gap-2">
@@ -404,9 +416,10 @@ export default function ParentDashboard() {
             <ParentConsentModal
                 isOpen={!!selectedConsentChild}
                 onClose={() => setSelectedConsentChild(null)}
-                childName={selectedConsentChild?.profile.display_name || 'Kind'}
-                parentName={profile?.display_name || profile?.first_name ? `${profile?.first_name} ${profile?.last_name}` : 'Elternteil'}
+                childName={selectedConsentChild?.profile.display_name || selectedConsentChild?.profile.full_name || 'Kind'}
+                parentName={profile?.display_name || ([profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Elternteil')}
                 gradeLevel={selectedConsentChild?.profile.grade_level}
+                linkedDate={selectedConsentChild?.linkedAt || undefined}
             />
         </div>
     );
