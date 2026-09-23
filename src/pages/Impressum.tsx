@@ -34,7 +34,7 @@ export default function Impressum() {
                                 </li>
                                 <li className="flex items-start gap-2">
                                     <Phone size={16} className="shrink-0 mt-1.5" aria-hidden="true" />
-                                    <span>Telefon: <strong>[Telefon – wird ergänzt]</strong></span>
+                                    <span>Telefon: <strong>[Telefon: wird ergänzt]</strong></span>
                                 </li>
                                 <li>
                                     Schüler-Coaching:{' '}
@@ -70,7 +70,7 @@ export default function Impressum() {
                         <div>
                             <h2 className="font-bold text-lg mb-2 text-gray-900 dark:text-white">Verantwortlich für redaktionelle Inhalte (§ 18 Abs. 2 MStV)</h2>
                             <p className="text-[15px] leading-7 text-gray-600 dark:text-gray-300">
-                                <strong>[Name, Funktion – wird ergänzt]</strong>, für das SV-Team des
+                                <strong>[Name, Funktion: wird ergänzt]</strong>, für das SV-Team des
                                 Friedrich-Wilhelm-Gymnasiums Köln,<br />
                                 Severinstraße 241, 50676 Köln.
                             </p>

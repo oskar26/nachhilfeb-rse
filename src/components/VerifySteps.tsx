@@ -19,14 +19,14 @@ interface VerifyStep {
 }
 
 const STEPS_DU: VerifyStep[] = [
-    { icon: Smartphone, title: 'Melde dich an', text: 'Account anlegen — dauert keine große Pause.' },
-    { icon: DoorOpen, title: 'Komm in den SV-Raum', text: 'Sag einfach: „Hey, ich habe mich angemeldet, ich möchte mich verifizieren lassen."' },
-    { icon: BadgeCheck, title: 'Wir schalten dich frei — du bist verifiziert.', text: 'Erst dann kannst du Anzeigen erstellen und Kontakt aufnehmen.' },
+    { icon: Smartphone, title: 'Melde dich an', text: 'Account anlegen. Das dauert keine große Pause.' },
+    { icon: DoorOpen, title: 'Komm in den SV-Raum', text: 'Sag einfach: „Hey, ich habe mich angemeldet, ich möchte mich verifizieren lassen.“' },
+    { icon: BadgeCheck, title: 'Wir schalten dich frei. Du bist verifiziert.', text: 'Erst dann kannst du Anzeigen erstellen und Kontakt aufnehmen.' },
 ];
 
 const STEPS_SIE: VerifyStep[] = [
     { icon: Smartphone, title: 'Anmelden', text: 'Ihr Kind erstellt seinen Account in der App.' },
-    { icon: DoorOpen, title: 'Im SV-Raum melden', text: 'Ihr Kind sagt dem SV-Team: „Ich möchte mich verifizieren lassen."' },
+    { icon: DoorOpen, title: 'Im SV-Raum melden', text: 'Ihr Kind sagt dem SV-Team: „Ich möchte mich verifizieren lassen.“' },
     { icon: BadgeCheck, title: 'Freigeschaltet = verifiziert', text: 'Erst dann kann Ihr Kind Anzeigen erstellen und Kontakt aufnehmen.' },
 ];
 
@@ -46,7 +46,7 @@ function ParentNote({ dark }: { dark: boolean }) {
             <KeyRound size={15} className={`mt-0.5 shrink-0 ${dark ? 'text-primary' : 'text-amber-700'}`} aria-hidden />
             <span>
                 <strong className={dark ? 'text-white' : 'text-gray-900'}>Nur die Eltern-Verknüpfung braucht einen Code</strong>
-                {' '}— die Schüler-Verifizierung nicht.
+                {', die Schüler-Verifizierung nicht.'}
             </span>
         </p>
     );

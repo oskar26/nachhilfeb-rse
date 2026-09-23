@@ -166,7 +166,7 @@ async function loadAds(): Promise<Ad[]> {
     return adsData.map(ad => {
         const prof = profileMap.get(ad.user_id);
         // Booleans normalisieren: MySQL liefert TINYINT (0/1) – ein rohes
-        // `{profil.is_coach && <Badge>}` würde sonst eine sichtbare „0" rendern.
+        // `{profil.is_coach && <Badge>}` würde sonst eine sichtbare „0“ rendern.
         const safeProfile = prof ? {
             ...prof,
             is_coach: Boolean(prof.is_coach),
@@ -770,7 +770,7 @@ export default function Feed() {
                                     <h2 className="text-lg font-bold">Leitfaden für Eltern & Sicherheit</h2>
                                 </div>
                                 <p className="text-sm text-emerald-900 dark:text-emerald-200 leading-relaxed">
-                                    Sicherheit und Jugendschutz haben oberste Priorität. Alle Accounts werden persönlich durch die Schülervertretung verifiziert. Erfahren Sie mehr über unsere Maßnahmen, Verhaltensregeln und Kontaktaufnahme in unserem ausführlichen Leitfaden.
+                                    Sicherheit und Jugendschutz haben oberste Priorität. Alle Accounts werden persönlich durch die Schülervertretung verifiziert. Mehr zu Maßnahmen, Verhaltensregeln und Kontakt steht im ausführlichen Leitfaden.
                                 </p>
                                 <div>
                                     <Button 

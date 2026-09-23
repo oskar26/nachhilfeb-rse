@@ -69,9 +69,9 @@ const FAECHER_TICKER: string[] = SUBJECT_CATEGORIES.flatMap((c) => c.subjects).m
 /* Brett-Vorschau: native App-Screens (390×844), per Container-Query skaliert.
    Namen und Preise sind die Demo-Tickets aus dem Hero, klar als Demo gestempelt. */
 const BOARD_SCREENS = [
-    { key: 'feed', alt: 'App-Vorschau: Feed mit Nachhilfe-Anzeigen vom FWG', caption: 'Feed — Anzeigen stöbern' },
-    { key: 'chat', alt: 'App-Vorschau: Chat für Anfragen zwischen Schülern', caption: 'Chat — Anfragen klären' },
-    { key: 'profil', alt: 'App-Vorschau: Profil mit Fächern und Verifiziert-Badge', caption: 'Profil — zeigen, was du kannst' },
+    { key: 'feed', alt: 'App-Vorschau: Feed mit Nachhilfe-Anzeigen vom FWG', caption: 'Feed: Anzeigen stöbern' },
+    { key: 'chat', alt: 'App-Vorschau: Chat für Anfragen zwischen Schülern', caption: 'Chat: Anfragen klären' },
+    { key: 'profil', alt: 'App-Vorschau: Profil mit Fächern und Verifiziert-Badge', caption: 'Profil: zeigen, was du kannst' },
 ] as const;
 
 const easeOut = [0.16, 1, 0.3, 1] as const;
@@ -296,7 +296,7 @@ export default function Landing() {
         transition: { duration: 0.7, delay, ease: easeOut },
     };
 
-    /* FOCAL „Frisch geklebt": Tape-up — Elemente kommen leicht schräg und geradet sich. */
+    /* FOCAL „Frisch geklebt“: Tape-up — Elemente kommen leicht schräg und geradet sich. */
     const rise = (delay = 0, y = 26) => reduceMotion ? {} : {
         initial: { opacity: 0, y, rotate: -0.7 },
         animate: { opacity: 1, y: 0, rotate: 0 },
@@ -355,7 +355,7 @@ export default function Landing() {
                             {...rise(0.13)}
                             className="mt-6 text-lg sm:text-xl text-gray-300 max-w-xl leading-relaxed"
                         >
-                            Mathe-SOS oder Englisch-Ass? Am FWG Köln Nachhilfe <strong className="text-white font-bold">suchen</strong> und <strong className="text-white font-bold">anbieten</strong> — direkt unter Mitschülern, SV-verifiziert.
+                            Mathe-SOS oder Englisch-Ass? Am FWG Köln Nachhilfe <strong className="text-white font-bold">suchen</strong> und <strong className="text-white font-bold">anbieten</strong>, direkt unter Mitschülern und SV-verifiziert.
                         </motion.p>
                         <motion.div
                             {...rise(0.21)}
@@ -477,7 +477,7 @@ export default function Landing() {
                     <motion.div {...anim()}>
                         <h2 className="font-display uppercase leading-[0.95] break-words text-4xl sm:text-7xl max-w-3xl">Drei Wege an ein Ziel: die Klausur sitzt.</h2>
                         <motion.span {...wipeLine()} className="mt-4 block h-1.5 w-16 origin-left rounded-full bg-primary" aria-hidden />
-                        <p className="mt-4 text-lg text-gray-600 max-w-2xl">Reiß dir deinen Streifen ab — jeder Weg startet mit einem Klick und endet im Chat mit echten Mitschülern.</p>
+                        <p className="mt-4 text-lg text-gray-600 max-w-2xl">Reiß dir deinen Streifen ab. Jeder Weg startet mit einem Klick und endet im Chat mit echten Mitschülern.</p>
                     </motion.div>
                     <div className="mt-10 divide-y-2 divide-dashed divide-gray-300 border-y-2 border-dashed border-gray-300">
                         {[
@@ -518,7 +518,7 @@ export default function Landing() {
                     <motion.div {...anim()} className="max-w-3xl">
                         <h2 className="font-display uppercase leading-[0.95] break-words text-4xl text-white sm:text-6xl">So sieht das <span className="text-primary">Schwarze Brett</span> in der App aus.</h2>
                         <motion.span {...wipeLine()} className="mt-4 block h-1.5 w-16 origin-left rounded-full bg-primary" aria-hidden />
-                        <p className="mt-4 text-lg leading-relaxed text-gray-300">Kein Katalog, kein Kleingedrucktes: stöbern, anfragen, Profil zeigen — alles direkt am Handy, alles vom FWG.</p>
+                        <p className="mt-4 text-lg leading-relaxed text-gray-300">Stöbern, anfragen, Profil zeigen: alles direkt am Handy, alles vom FWG. Ohne Katalog, ohne Kleingedrucktes.</p>
                     </motion.div>
                     <div className="board-stage relative mt-10">
                         <div className="board-phones" aria-label="App-Ansichten horizontal durchscrollen" tabIndex={0}>
@@ -556,12 +556,12 @@ export default function Landing() {
                     </motion.div>
                     <motion.dl {...anim(0.06)} className="mt-10 border-t-2 border-black">
                         {[
-                            { icon: Filter, t: 'Entdecken & Filtern', d: 'Präzise Filter für Klassenstufen, Fächer und Preisspannen — finde exakt, was du suchst.' },
+                            { icon: Filter, t: 'Entdecken & Filtern', d: 'Präzise Filter für Klassenstufen, Fächer und Preisspannen. So findest du exakt, was du suchst.' },
                             { icon: Bookmark, t: 'Merkliste', d: 'Spannende Anzeigen ablegen und später wiederfinden. Nichts geht verloren.' },
                             { icon: MessageSquare, t: 'Sichere Anfragen', d: 'Anbieter direkt anschreiben. Handy und Moodle bleiben privat, bis die Anfrage angenommen ist.' },
                             { icon: Shield, t: 'Verifizierte Nutzer', d: 'Echte Accounts durch Verifizierung im SV-Raum. Keine Fake-Profile, Moderation inklusive.' },
-                            { icon: ImageIcon, t: 'Starke Profile', d: 'Profilbild und ausführliche Biografie mit Text-Editor — zeig, was du kannst.' },
-                            { icon: Smartphone, t: 'Als App installierbar', d: 'Auf den Homescreen legen und wie eine echte App nutzen — iOS wie Android (PWA).' },
+                            { icon: ImageIcon, t: 'Starke Profile', d: 'Profilbild und ausführliche Biografie mit Text-Editor. Zeig, was du kannst.' },
+                            { icon: Smartphone, t: 'Als App installierbar', d: 'Auf den Homescreen legen und wie eine echte App nutzen, auf iOS wie Android (PWA).' },
                         ].map((f, i) => (
                             <div key={f.t} className={`grid gap-3 py-5 sm:grid-cols-[3.5rem_1fr_1.4fr] sm:items-center sm:gap-6 ${i > 0 ? 'border-t border-gray-300' : ''}`}>
                                 <span className="grid place-items-center w-12 h-12 rounded-xl bg-black text-primary"><f.icon size={22} aria-hidden /></span>
@@ -580,7 +580,7 @@ export default function Landing() {
                         <Shield size={30} className="text-amber-600" aria-hidden />
                         <h2 className="mt-4 font-display uppercase leading-[0.95] text-4xl sm:text-5xl">Du entscheidest, wer was sieht.</h2>
                         <motion.span {...wipeLine()} className="mt-4 block h-1.5 w-16 origin-left rounded-full bg-primary" aria-hidden />
-                        <p className="mt-4 text-gray-600 leading-relaxed">Handy, Moodle, E-Mail: erst nach Annahme deiner Anfrage sichtbar. Schieb die Regler — so fühlt sich Kontrolle an.</p>
+                        <p className="mt-4 text-gray-600 leading-relaxed">Handy, Moodle, E-Mail: erst nach Annahme deiner Anfrage sichtbar. Schieb die Regler, so fühlt sich Kontrolle an.</p>
                         <div className="mt-6 space-y-3">
                             {[
                                 { label: 'Handynummer', desc: 'Nur für angenommene Anfragen', on: showPhone, set: setShowPhone },
@@ -589,7 +589,7 @@ export default function Landing() {
                                 <div key={r.label} className="flex items-center justify-between gap-4 rounded-2xl border border-gray-200 bg-white px-5 py-4">
                                     <div>
                                         <p className="font-bold text-sm">{r.label}</p>
-                                        <p className="text-xs text-gray-500">{r.on ? r.desc : 'Versteckt — niemand sieht das'}</p>
+                                        <p className="text-xs text-gray-500">{r.on ? r.desc : 'Versteckt: niemand sieht das'}</p>
                                     </div>
                                     <button
                                         role="switch" aria-checked={r.on} aria-label={`${r.label} Sichtbarkeit`}
@@ -624,7 +624,7 @@ export default function Landing() {
                     </motion.div>
                     <div className="mt-10 grid md:grid-cols-3 gap-4">
                         {[
-                            { icon: GraduationCap, t: 'Pädagogisch begleitet', d: 'Coaches lernen Methoden fürs Lernen-Lernen und Arbeitsorganisation — nicht nur Fachwissen.' },
+                            { icon: GraduationCap, t: 'Pädagogisch begleitet', d: 'Coaches lernen Methoden fürs Lernen-Lernen und Arbeitsorganisation, nicht nur Fachwissen.' },
                             { icon: Shield, t: 'Offizielles Coach-Abzeichen', d: 'Goldenes Badge auf Profil und Anzeigen: Eltern und 5./6.-Klässler erkennen geprüfte Coaches sofort.' },
                             { icon: Users, t: 'Gemeinschaft & Fairness', d: 'Unkomplizierte Vermittlung, faire Richtpreise der Coaching-AG (ca. 10–15 € pro 45 Min), sicherer Chat im Schulsystem.' },
                         ].map((c, i) => (
@@ -652,7 +652,7 @@ export default function Landing() {
                         <span className="inline-grid place-items-center w-16 h-16 rounded-2xl bg-white/5 border border-white/10"><Shield className="text-blue-500" size={30} aria-hidden /></span>
                         <h2 className="mt-6 font-display uppercase leading-[0.95] break-words text-4xl sm:text-6xl text-primary">Informationen für Eltern</h2>
                         <motion.span {...wipeLine()} className="mx-auto mt-4 block h-1.5 w-16 origin-left rounded-full bg-primary" aria-hidden />
-                        <p className="mt-4 text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">Die Sicherheit Ihrer Kinder hat oberste Priorität: Meldefunktion, SV-Moderation, verifizierte Accounts. Wer sich registrieren darf und wie wir schützen — alles im Leitfaden.</p>
+                        <p className="mt-4 text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">Die Sicherheit Ihrer Kinder hat oberste Priorität: Meldefunktion, SV-Moderation, verifizierte Accounts. Wer sich registrieren darf und wie wir schützen, steht im Leitfaden.</p>
                         <Link to="/eltern-leitfaden" className="press mt-8 inline-flex items-center justify-center h-14 px-8 text-base gap-2.5 rounded-full bg-primary text-black hover:bg-primary-hover font-bold shadow-md">Eltern-Leitfaden <ArrowRight size={18} aria-hidden /></Link>
                     </motion.div>
                 </div>

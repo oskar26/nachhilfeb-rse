@@ -40,7 +40,7 @@ const LOCATION_GROUPS: { title: string; locations: LocationPreset[] }[] = [
 ];
 
 const DURATION_PRESETS = [30, 45, 60, 90];
-const DURATION_EGAL = 0; // 0 = „Egal / nach Absprache" (wird so im Feed angezeigt)
+const DURATION_EGAL = 0; // 0 = „Egal / nach Absprache“ (wird so im Feed angezeigt)
 
 const DRAFT_KEY = 'fwg_draft_ad';
 const INITIAL_FORM = {
@@ -371,7 +371,7 @@ export default function CreateAd() {
 
     const toggleDuration = (min: number) => {
         setFormData(prev => {
-            // „Egal" ist exklusiv: steht für „Dauer klären wir im Chat" statt einer festen Minutenzahl.
+            // „Egal“ ist exklusiv: steht für „Dauer klären wir im Chat“ statt einer festen Minutenzahl.
             if (min === DURATION_EGAL) {
                 const hasEgal = prev.duration_minutes.includes(DURATION_EGAL);
                 return { ...prev, duration_minutes: hasEgal ? [] : [DURATION_EGAL], custom_duration: '' };
@@ -636,7 +636,7 @@ export default function CreateAd() {
                                             className="text-base sm:text-lg py-5 sm:py-6"
                                             maxLength={80}
                                         />
-                                        <p className="text-[11px] text-gray-500 mt-1.5">So erscheint deine Anzeige im Feed – Fach + Klasse im Titel helfen beim Finden.</p>
+                                        <p className="text-[11px] text-gray-500 mt-1.5">So erscheint deine Anzeige im Feed. Fach und Klasse im Titel helfen beim Finden.</p>
                                     </div>
                                 </>
                             )}
@@ -657,7 +657,7 @@ export default function CreateAd() {
                                                 : '25 Fächer in 4 Gruppen'}
                                     </span>
                                 </div>
-                                <p className="text-[11px] text-gray-500 mb-3">Mindestens 1 Fach wählen – tippe zum Filtern, statt lange zu scrollen.</p>
+                                <p className="text-[11px] text-gray-500 mb-3">Mindestens 1 Fach wählen. Tippe zum Filtern, statt lange zu scrollen.</p>
                                 <div className="relative mb-4">
                                     <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                     <Input
@@ -748,7 +748,7 @@ export default function CreateAd() {
                                         </button>
                                     )}
                                 </div>
-                                <p className="text-[11px] text-gray-500 mb-3">Wähle alle Orte, die für dich passen – 19 Orte in 4 Gruppen, Mehrfachauswahl möglich.</p>
+                                <p className="text-[11px] text-gray-500 mb-3">Wähle alle Orte, die für dich passen. 19 Orte in 4 Gruppen, Mehrfachauswahl möglich.</p>
                                 <div className="space-y-4">
                                     {LOCATION_GROUPS.map(group => {
                                         const GroupIcon = group.title === 'In der Schule' ? School : group.title === 'Online' ? Wifi : group.title === 'Außerhalb (öffentlich)' ? MapPin : Home;
@@ -809,7 +809,7 @@ export default function CreateAd() {
 
                             <div>
                                 <label className="text-sm font-medium mb-1 block">Wie lange dauert eine Einheit?</label>
-                                <p className="text-[11px] text-gray-500 mb-3">Standard ist „Egal / nach Absprache“ – ihr klärt die Dauer dann im Chat. Feste Minuten sind exklusiv dazu.</p>
+                                <p className="text-[11px] text-gray-500 mb-3">Standard ist „Egal / nach Absprache“. Ihr klärt die Dauer dann im Chat. Feste Minuten sind exklusiv dazu.</p>
                                 <div className="flex flex-wrap gap-2 mb-3">
                                     {DURATION_PRESETS.map(dur => {
                                         const active = formData.duration_minutes.includes(dur);
@@ -960,28 +960,28 @@ export default function CreateAd() {
                                             {effectiveHourly.hourly >= 9 && effectiveHourly.hourly <= 14 && (
                                                 <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800/60">
                                                     <CheckCircle size={15} className="shrink-0 text-emerald-600 dark:text-emerald-400" />
-                                                    <span>Faire Preisempfehlung – ca. 10–12 € pro 45–60 Min Richtwert am FWG</span>
+                                                    <span>Faire Preisempfehlung: ca. 10–12 € pro 45–60 Min Richtwert am FWG</span>
                                                 </div>
                                             )}
 
                                             {effectiveHourly.hourly < 9 && (
                                                 <div className="flex items-center gap-2 text-xs font-semibold text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/40 p-2.5 rounded-xl border border-sky-200 dark:border-sky-800/60">
                                                     <Info size={15} className="shrink-0 text-sky-600 dark:text-sky-400" />
-                                                    <span>Sehr günstig – unter dem Richtwert ca. 10–12 € pro 45–60 Min</span>
+                                                    <span>Sehr günstig: unter dem Richtwert ca. 10–12 € pro 45–60 Min</span>
                                                 </div>
                                             )}
 
                                             {effectiveHourly.hourly > 14 && effectiveHourly.hourly <= 18 && (
                                                 <div className="flex items-center gap-2 text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200 dark:border-amber-800/60">
                                                     <Info size={15} className="shrink-0 text-amber-600 dark:text-amber-400" />
-                                                    <span>Etwas über dem Durchschnitt – FWG-Richtwert: ca. 10–12 € pro 45–60 Min</span>
+                                                    <span>Etwas über dem Durchschnitt. FWG-Richtwert: ca. 10–12 € pro 45–60 Min</span>
                                                 </div>
                                             )}
 
                                             {effectiveHourly.hourly > 18 && (
                                                 <div className="flex items-center gap-2 text-xs font-semibold text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 p-2.5 rounded-xl border border-rose-200 dark:border-rose-800/60">
                                                     <AlertCircle size={15} className="shrink-0 text-rose-600 dark:text-rose-400" />
-                                                    <span>Relativ hoch für Schüler-Nachhilfe – Erlaubt, aber prüfe bitte, ob das beabsichtigt ist</span>
+                                                    <span>Relativ hoch für Schüler-Nachhilfe. Erlaubt, aber prüfe bitte, ob das beabsichtigt ist</span>
                                                 </div>
                                             )}
                                         </div>

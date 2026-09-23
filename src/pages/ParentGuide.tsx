@@ -32,7 +32,7 @@ function CheckRow({ children }: { children: React.ReactNode }) {
 const PARENT_STEPS = [
     { n: '1', t: 'Registrieren', d: 'Elternkonto mit dem SV-Einladungscode für Eltern erstellen.' },
     { n: '2', t: 'Code anfragen', d: '6-stelligen Freigabe-Code unter „Einstellungen“ Ihres Kindes zeigen lassen.' },
-    { n: '3', t: 'Verknüpfen', d: 'Code im Eltern-Dashboard eingeben — sofort aktiv.' },
+    { n: '3', t: 'Verknüpfen', d: 'Code im Eltern-Dashboard eingeben. Sofort aktiv.' },
 ];
 
 export default function ParentGuide() {
@@ -77,7 +77,7 @@ export default function ParentGuide() {
                     <motion.span {...wipeLine()} className="mt-2 ml-14 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
                     <dl className="mt-5">
                         <SpecRowDark label="Zugang">Nur Schülerinnen und Schüler des Friedrich-Wilhelm-Gymnasiums.</SpecRowDark>
-                        <SpecRowDark label="Verifizierung">Persönlich im SV-Raum — ohne Code, einfach melden.</SpecRowDark>
+                        <SpecRowDark label="Verifizierung">Persönlich im SV-Raum, ohne Code. Einfach melden.</SpecRowDark>
                         <SpecRowDark label="Treffen">Meist direkt in der Schule, z. B. Bibliothek oder Mensa.</SpecRowDark>
                         <SpecRowDark label="Schutz">Unverifizierte Konten bleiben eingeschränkt und können deaktiviert werden.</SpecRowDark>
                     </dl>
@@ -99,10 +99,10 @@ export default function ParentGuide() {
                     <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
                     <div className="mt-5 space-y-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300 max-w-prose">
                         <p>
-                            <strong className="text-gray-900 dark:text-white">Wer hilft:</strong> Engagierte Schülerinnen und Schüler ab Klasse 8 — viele aus der Coaching-AG.
+                            <strong className="text-gray-900 dark:text-white">Wer hilft:</strong> Engagierte Schülerinnen und Schüler ab Klasse 8, viele aus der Coaching-AG.
                         </p>
                         <p>
-                            <strong className="text-gray-900 dark:text-white">Coaching-AG:</strong> Schüler-Coaching AG von Frau Balistreri für die Stufen 5 und 6 — alle Regeln auf der{' '}
+                            <strong className="text-gray-900 dark:text-white">Coaching-AG:</strong> Schüler-Coaching AG von Frau Balistreri für die Stufen 5 und 6. Alle Regeln stehen auf der{' '}
                             <Link to="/coaching" className="font-bold text-amber-700 dark:text-primary hover:underline">Coaching-Seite</Link>.
                         </p>
                     </div>
@@ -112,7 +112,7 @@ export default function ParentGuide() {
                             ca. 10–12 € / 45–60 Min
                         </p>
                         <p className="mt-2 text-sm leading-relaxed text-gray-300">
-                            Fair von Schülern für Schüler – Richtwert der Nachhilfebörse.
+                            Fair von Schülern für Schüler: Richtwert der Nachhilfebörse.
                         </p>
                     </div>
                 </motion.section>
@@ -145,10 +145,10 @@ export default function ParentGuide() {
                         <CheckRow>
                             <strong className="text-gray-900 dark:text-white">Primär-Kontakt:</strong>{' '}
                             <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-amber-700 dark:text-primary hover:underline break-anywhere">info@nachhilfe-sv.de</a>
-                            {' '}— Fragen und Hilfe rund um die Börse.
+                            {'. Fragen und Hilfe rund um die Börse.'}
                         </CheckRow>
                         <CheckRow>
-                            <strong className="text-gray-900 dark:text-white">Hinweis:</strong> Vergütung und Umfang vereinbaren Sie direkt mit der Anbieter-Familie — das SV-Team vermittelt nur den Kontakt.
+                            <strong className="text-gray-900 dark:text-white">Hinweis:</strong> Vergütung und Umfang vereinbaren Sie direkt mit der Anbieter-Familie. Das SV-Team vermittelt nur den Kontakt.
                         </CheckRow>
                     </ul>
                 </motion.section>

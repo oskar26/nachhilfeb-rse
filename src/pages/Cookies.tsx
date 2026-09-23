@@ -27,7 +27,7 @@ export default function Cookies() {
                             Es gibt keine externen Tracker (kein Google Analytics o. ä.).
                         </p>
                         <p>
-                            Eine <strong>anonyme Server-Statistik</strong> (welche Seiten werden aufgerufen –{' '}
+                            Eine <strong>anonyme Server-Statistik</strong> (welche Seiten werden aufgerufen,{' '}
                             <strong>ohne IP-Adresse, ohne Personenbezug</strong>) läuft immer mit, damit wir die
                             App verbessern können. Sie lässt sich nicht abschalten, weil dabei keine
                             personenbezogenen Daten anfallen.
@@ -85,7 +85,7 @@ export default function Cookies() {
                     <h2 id="cookies-hinweis" className="font-bold text-lg text-gray-900 dark:text-white">Hinweis erneut anzeigen</h2>
                     <div className="text-[15px] leading-7 text-gray-600 dark:text-gray-300 space-y-2">
                         <p>
-                            Der Cookie-Hinweis ist eine reine Information – es gibt keine Auswahl und
+                            Der Cookie-Hinweis ist eine reine Information. Es gibt keine Auswahl und
                             keine Einwilligung, die du widerrufen müsstest. Wenn du den Hinweis trotzdem
                             noch einmal sehen möchtest, blendest du ihn hier wieder ein:
                         </p>

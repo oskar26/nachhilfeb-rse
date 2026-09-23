@@ -23,7 +23,7 @@ function Section({ id, title, children }: { id: string; title: string; children:
 
 const toc = [
     { id: 'd1', label: '1. Wer ist verantwortlich?' },
-    { id: 'd2', label: '2. Welche Daten – und wofür?' },
+    { id: 'd2', label: '2. Welche Daten und wofür?' },
     { id: 'd3', label: '3. Kinder und Jugendliche' },
     { id: 'd4', label: '4. Wer bekommt die Daten? Wo liegen sie?' },
     { id: 'd5', label: '5. Wie lange speichern wir Daten?' },
@@ -42,7 +42,7 @@ export default function Datenschutz() {
                 {/* Leseeinheit 1: Zusammenfassung + Inhaltsübersicht gehören zusammen. */}
                 <div className="flex flex-col gap-4 sm:gap-5 min-w-0">
                 <section aria-labelledby="datenschutz-tldr" className="bg-white dark:bg-gray-900 p-6 sm:p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col gap-3">
-                    <h2 id="datenschutz-tldr" className="font-bold text-lg text-gray-900 dark:text-white">TL;DR – kurz und einfach gesagt</h2>
+                    <h2 id="datenschutz-tldr" className="font-bold text-lg text-gray-900 dark:text-white">TL;DR: kurz und einfach gesagt</h2>
                     <div className="text-[15px] leading-7 text-gray-600 dark:text-gray-300 flex flex-col gap-2">
                         <p>
                             Deine Daten gehören dir. Wir speichern nur, was die App zum Laufen braucht
@@ -93,10 +93,10 @@ export default function Datenschutz() {
                 </Section>
 
                 <Section id="d2" title="2. Welche Daten verarbeiten wir – und wofür?">
-                    <p><strong>Registrierung & Account (Art. 6 Abs. 1 lit. b DSGVO – Vertrag):</strong> E-Mail-Adresse, selbst gewählter Name, Rolle (Schüler/in, Elternteil), Klassenstufe und Geburtsdatum (zur Prüfung der Alters- und Schulregeln). Das Passwort wird ausschließlich als sicherer Hash gespeichert – im Klartext kennt es niemand.</p>
+                    <p><strong>Registrierung & Account (Art. 6 Abs. 1 lit. b DSGVO (Vertrag)):</strong> E-Mail-Adresse, selbst gewählter Name, Rolle (Schüler/in, Elternteil), Klassenstufe und Geburtsdatum (zur Prüfung der Alters- und Schulregeln). Das Passwort wird ausschließlich als sicherer Hash gespeichert – im Klartext kennt es niemand.</p>
                     <p><strong>Profil & Anzeigen (Art. 6 Abs. 1 lit. b DSGVO):</strong> Alle Angaben, die du freiwillig in Profil und Anzeigen einträgst (Fächer, Beschreibung, Preise, Verfügbarkeiten, Profilbild). Anzeigen sind für alle angemeldeten Nutzer sichtbar.</p>
                     <p><strong>Nachrichten & Anfragen (Art. 6 Abs. 1 lit. b DSGVO):</strong> Chat-Nachrichten und Anfragen zwischen Nutzern, damit die Vermittlung funktioniert.</p>
-                    <p><strong>Verifizierung & Sicherheit (Art. 6 Abs. 1 lit. f DSGVO – berechtigtes Interesse am Schutz Minderjähriger):</strong> Verifizierungsstatus, Sperrstatus bei Regelverstößen sowie ein Protokoll von Moderationsmaßnahmen (wer wurde wann von wem aus welchem Grund verwarnt/gesperrt).</p>
+                    <p><strong>Verifizierung & Sicherheit (Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse am Schutz Minderjähriger)):</strong> Verifizierungsstatus, Sperrstatus bei Regelverstößen sowie ein Protokoll von Moderationsmaßnahmen (wer wurde wann von wem aus welchem Grund verwarnt/gesperrt).</p>
                     <p><strong>Anonyme Nutzungsstatistik (Art. 6 Abs. 1 lit. f DSGVO):</strong> Wir erfassen in anonymisierter Form, welche Seiten aufgerufen werden (Seitenpfad, Gerätetyp, Browser, Uhrzeit), um die App zu verbessern. Es werden <strong>keine IP-Adressen gespeichert</strong>, keine Cookies zu Analysezwecken gesetzt und <strong>keine externen Analyse- oder Werbedienste</strong> (z. B. Google Analytics) eingesetzt.</p>
                     <p><strong>Technisch notwendige Speicherung:</strong> Anmeldestatus und Einstellungen (z. B. Theme, Hinweis-Status) werden lokal in deinem Browser (Local Storage) abgelegt. Das ist für den Betrieb erforderlich; eine Einwilligung ist dafür nach § 25 Abs. 2 TDDDG nicht nötig.</p>
                 </Section>
@@ -175,7 +175,7 @@ export default function Datenschutz() {
                 <section aria-labelledby="datenschutz-handeln" className="bg-white dark:bg-gray-900 p-6 sm:p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col gap-3">
                     <h2 id="datenschutz-handeln" className="font-bold text-lg text-gray-900 dark:text-white">Was du jetzt tun kannst</h2>
                     <ul className="text-[15px] leading-7 text-gray-600 dark:text-gray-300 list-disc pl-4 space-y-1">
-                        <li><strong>Support-Ticket in der App</strong> erstellen – für Auskunft, Korrektur oder Löschung deines Accounts.</li>
+                        <li><strong>Support-Ticket in der App</strong> erstellen, für Auskunft, Korrektur oder Löschung deines Accounts.</li>
                         <li><strong>E-Mail schreiben</strong> an <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-amber-700 dark:text-primary hover:underline break-anywhere">info@nachhilfe-sv.de</a> – wir antworten und bestätigen Löschungen innerhalb von 14 Tagen.</li>
                         <li><strong>Beschwerde einreichen</strong> bei der LDI NRW (Kavalleriestr. 2–4, 40213 Düsseldorf), wenn du mit unserer Antwort nicht zufrieden bist.</li>
                     </ul>

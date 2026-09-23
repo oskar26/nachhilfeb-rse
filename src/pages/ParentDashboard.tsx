@@ -250,7 +250,7 @@ export default function ParentDashboard() {
                         <ol className="text-left text-xs text-gray-500 dark:text-gray-400 space-y-2 bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-4 border border-gray-100 dark:border-gray-800">
                             <li><strong className="text-gray-700 dark:text-gray-200">1.</strong> Kind meldet sich als Schüler/in an</li>
                             <li><strong className="text-gray-700 dark:text-gray-200">2.</strong> Kind öffnet <span className="font-mono font-bold">Einstellungen → Eltern-Verknüpfung</span></li>
-                            <li><strong className="text-gray-700 dark:text-gray-200">3.</strong> Sie klicken unten auf „Kind verknüpfen" und geben den 6-stelligen Code ein</li>
+                            <li><strong className="text-gray-700 dark:text-gray-200">3.</strong> Sie klicken unten auf „Kind verknüpfen“ und geben den 6-stelligen Code ein</li>
                         </ol>
                         <Button onClick={() => setIsLinkFlowOpen(true)} className="rounded-2xl font-bold bg-primary text-black">
                             <Plus size={16} className="mr-1" /> Jetzt Kind verknüpfen

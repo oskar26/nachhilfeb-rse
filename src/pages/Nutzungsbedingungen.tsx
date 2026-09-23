@@ -243,7 +243,7 @@ export default function Nutzungsbedingungen() {
                     </Para>
 
                     <Para id="p7" nr="07" title="§ 7 Moderation & Sanktionen">
-                        <p>Bei Verstößen gegen diese Bedingungen kann das SV-Team – je nach Schwere – folgende Maßnahmen ergreifen:</p>
+                        <p>Bei Verstößen gegen diese Bedingungen kann das SV-Team je nach Schwere folgende Maßnahmen ergreifen:</p>
                         <ul className="divide-y divide-gray-100 dark:divide-gray-800 border-y border-gray-100 dark:border-gray-800">
                             {SANKTIONEN.map((s) => (
                                 <li key={s.v} className="py-3">
