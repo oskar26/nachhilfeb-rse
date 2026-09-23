@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Sparkles, Zap, X, MessageSquare, Frown, Loader2, 
-    CalendarDays, Award, CheckCircle2, ArrowRight, RotateCcw,
+    CalendarDays, CheckCircle2, ArrowRight, RotateCcw,
     BookOpen, GraduationCap, MapPin, Search, Check 
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -248,8 +248,8 @@ function MatchCard({
                                     {ad.profiles?.display_name ?? 'FWG Schüler/in'}
                                 </p>
                                 {ad.profiles?.is_verified && (
-                                    <span title="Verifizierter Account">
-                                        <Award size={14} className="text-amber-500 shrink-0" />
+                                    <span title="Verifizierter Account" className="inline-flex items-center gap-1 text-[11px] font-bold bg-green-500/15 text-green-700 dark:text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full">
+                                        <CheckCircle2 size={12} className="shrink-0" aria-hidden="true" /> Verifiziert
                                     </span>
                                 )}
                             </div>

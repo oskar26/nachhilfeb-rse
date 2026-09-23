@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform, type MotionValue } from 'framer-motion';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
 import SiteHeader from '../components/SiteHeader';
 import VerifySteps from '../components/VerifySteps';
@@ -22,6 +22,14 @@ import {
     ArrowRight,
     ArrowUpRight,
     Lock,
+    Home,
+    PlusCircle,
+    Settings,
+    User,
+    MapPin,
+    Clock,
+    ChevronLeft,
+    Send,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
@@ -58,119 +66,184 @@ const SUBJECT_LABELS: Record<Subject, string> = {
 
 const FAECHER_TICKER: string[] = SUBJECT_CATEGORIES.flatMap((c) => c.subjects).map((s) => SUBJECT_LABELS[s]);
 
-/* iPhone-Mockups für die Sektion „So sieht's in der App aus". */
-const MOCKUPS = [
-    { src: '/mockups/app-feed.png', file: 'public/mockups/app-feed.png', alt: 'App-Vorschau: Feed mit Nachhilfe-Anzeigen vom FWG', caption: 'Feed — Anzeigen stöbern' },
-    { src: '/mockups/app-chat.png', file: 'public/mockups/app-chat.png', alt: 'App-Vorschau: Chat für Anfragen zwischen Schülern', caption: 'Chat — Anfragen klären' },
-    { src: '/mockups/app-profil.png', file: 'public/mockups/app-profil.png', alt: 'App-Vorschau: Profil mit Fächern und Verifiziert-Badge', caption: 'Profil — zeigen, was du kannst' },
-];
+/* Brett-Vorschau: native App-Screens (390×844), per Container-Query skaliert.
+   Namen und Preise sind die Demo-Tickets aus dem Hero, klar als Demo gestempelt. */
+const BOARD_SCREENS = [
+    { key: 'feed', alt: 'App-Vorschau: Feed mit Nachhilfe-Anzeigen vom FWG', caption: 'Feed — Anzeigen stöbern' },
+    { key: 'chat', alt: 'App-Vorschau: Chat für Anfragen zwischen Schülern', caption: 'Chat — Anfragen klären' },
+    { key: 'profil', alt: 'App-Vorschau: Profil mit Fächern und Verifiziert-Badge', caption: 'Profil — zeigen, was du kannst' },
+] as const;
 
 const easeOut = [0.16, 1, 0.3, 1] as const;
 
-/* Faden-Netz (Netz-Effekt) als reine SVG-Deko — Fäden wie am Schwarzen Brett:
-   Pin-Köpfe (Pin-Rot #dc2626, Kante #7f1d1d wie .board-pin) + feine Fäden
-   dazwischen (Gelb/Weiß auf Schwarz, dezent dunkel auf Papier). Statisch, kein
-   Canvas, kein rAF, keine Listener: Bewegung kommt ausschließlich per
-   Parallax-Transform vom Eltern-Wrapper (drift-Prop, transform-only, kein
-   Layout). 9 Pins, 10 kurze Nachbar-Segmente (Distanz-Schwelle by
-   construction, Limit ~40 Nodes weit unterschritten). aria-hidden +
-   pointer-events-none: kein Kontrast-, Touch- oder A11y-Einfluss. Unter
-   prefers-reduced-motion bleibt das Netz sichtbar, aber starr
-   (drift=undefined + CSS-Fallback in index.css). */
-const THREAD_PINS: Array<{ x: number; y: number; extra?: boolean }> = [
-    { x: 70, y: 112 },
-    { x: 250, y: 52 },
-    { x: 430, y: 118 },
-    { x: 610, y: 48 },
-    { x: 795, y: 112 },
-    { x: 975, y: 54 },
-    { x: 1130, y: 108 },
-    { x: 350, y: 62, extra: true },
-    { x: 880, y: 62, extra: true },
-];
-/* Ketten-Segmente (jeweils Nachbarn) + lokale Extra-Segmente; Q-Kontrolle
-   hängt die Fäden leicht durch wie echte Brett-Fäden. fill:none, 1.25px. */
-const THREAD_LINKS: Array<{ a: number; b: number; sag: number; tone: 0 | 1 | 2; extra?: boolean }> = [
-    { a: 0, b: 1, sag: 16, tone: 0 },
-    { a: 1, b: 2, sag: 18, tone: 1 },
-    { a: 2, b: 3, sag: 16, tone: 2 },
-    { a: 3, b: 4, sag: 18, tone: 0 },
-    { a: 4, b: 5, sag: 16, tone: 1 },
-    { a: 5, b: 6, sag: 18, tone: 2 },
-    { a: 1, b: 7, sag: 10, tone: 1, extra: true },
-    { a: 7, b: 2, sag: 12, tone: 0, extra: true },
-    { a: 4, b: 8, sag: 12, tone: 0, extra: true },
-    { a: 8, b: 5, sag: 10, tone: 1, extra: true },
-];
-
-function ThreadSeam({ variant = 'dark', drift, className = '' }: { variant?: 'dark' | 'paper'; drift?: MotionValue<number>; className?: string }) {
-    const tones = variant === 'dark'
-        ? (['#FACC15', '#dc2626', '#ffffff'] as const)
-        : (['#1c1917', '#dc2626', '#1c1917'] as const);
-    const opacities = variant === 'dark' ? ([0.3, 0.34, 0.14] as const) : ([0.14, 0.3, 0.12] as const);
-    const threadPath = (l: (typeof THREAD_LINKS)[number]) => {
-        const p = THREAD_PINS[l.a];
-        const q = THREAD_PINS[l.b];
-        const mx = (p.x + q.x) / 2;
-        const my = (p.y + q.y) / 2 + l.sag;
-        return `M ${p.x} ${p.y} Q ${mx} ${my} ${q.x} ${q.y}`;
-    };
+function PhoneStatus({ light = false }: { light?: boolean }) {
+    const ink = light ? 'text-white' : 'text-black';
     return (
-        <div aria-hidden="true" className={`thread-seam pointer-events-none relative h-16 w-full overflow-hidden sm:h-24 ${className}`}>
-            {/* +2rem Bleed (oben/unten je 1rem, geclippt): Parallax-Drift legt
-                nie den Sektionsgrund frei, kein Page-Overflow. */}
-            <motion.svg
-                viewBox="0 0 1200 160"
-                preserveAspectRatio="xMidYMid slice"
-                focusable="false"
-                aria-hidden="true"
-                className="block h-[calc(100%+2rem)] w-full -mt-4"
-                style={drift ? { y: drift } : undefined}
-            >
-                {THREAD_LINKS.map((l, i) => (
-                    <path
-                        key={i}
-                        d={threadPath(l)}
-                        fill="none"
-                        stroke={tones[l.tone]}
-                        strokeOpacity={opacities[l.tone]}
-                        strokeWidth={1.25}
-                        className={l.extra ? 'thread-extra' : undefined}
-                    />
-                ))}
-                {THREAD_PINS.map((p, i) => (
-                    <g key={i} className={p.extra ? 'thread-extra' : undefined}>
-                        <circle cx={p.x} cy={p.y} r={6.5} fill="#dc2626" stroke="#7f1d1d" strokeWidth={2} opacity={variant === 'dark' ? 0.9 : 0.85} />
-                        <circle cx={p.x - 2} cy={p.y - 2} r={1.8} fill="#ffffff" opacity={0.65} />
-                    </g>
-                ))}
-            </motion.svg>
+        <div className={`flex h-[54px] items-end justify-between px-7 pb-1 text-[13px] font-semibold ${ink}`}>
+            <span className="font-mono tabular-nums tracking-tight">9:41</span>
+            <span className="flex items-center gap-1.5" aria-hidden>
+                <svg width="17" height="12" viewBox="0 0 17 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="0.6" /><rect x="4.5" y="5" width="3" height="7" rx="0.6" /><rect x="9" y="2.5" width="3" height="9.5" rx="0.6" /><rect x="13.5" y="0" width="3" height="12" rx="0.6" /></svg>
+                <svg width="15" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M1.2 4.6c3.7-3.4 9.9-3.4 13.6 0" /><path d="M3.6 7.1c2.4-2.1 6.4-2.1 8.8 0" /><path d="M6.3 9.5c1-0.9 2.4-0.9 3.4 0" /></svg>
+                <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.6" y="0.6" width="21" height="10.8" rx="2.4" fill="none" stroke="currentColor" strokeWidth="1.2" /><rect x="2.2" y="2.2" width="15.5" height="7.6" rx="1" fill="currentColor" /><rect x="22.6" y="3.6" width="1.5" height="4.8" rx="0.6" fill="currentColor" /></svg>
+            </span>
         </div>
     );
 }
 
-/* CSS-iPhone-Frame mit Dynamic Island; zeigt bei fehlender Datei eine
-   gestaltete Platzhalter-Card mit exaktem Ablagepfad. */
-function IPhoneFrame({ src, alt, file }: { src: string; alt: string; file: string }) {
-    const [ok, setOk] = useState(false);
+function DemoStamp() {
+    return <span className="pointer-events-none absolute right-3 top-14 z-30 rotate-6 rounded-sm bg-primary px-1.5 py-px text-[9px] font-black uppercase tracking-[0.14em] text-black">Demo</span>;
+}
+
+function PhoneTabBar() {
+    const tabs = [
+        { label: 'Entdecken', Icon: Home, active: true },
+        { label: 'Social', Icon: MessageSquare },
+        { label: 'Erstellen', Icon: PlusCircle },
+        { label: 'Optionen', Icon: Settings },
+        { label: 'Profil', Icon: User },
+    ];
     return (
-        <div className="relative mx-auto w-full max-w-[300px] rounded-[3rem] border border-white/20 bg-black p-2.5 shadow-2xl">
-            <div className="relative aspect-[9/19] overflow-hidden rounded-[2.4rem] bg-[#faf7ef]">
-                <div className="absolute left-1/2 top-2.5 z-10 h-6 w-24 -translate-x-1/2 rounded-full bg-black" aria-hidden />
-                <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center text-gray-900">
-                    <Smartphone size={28} aria-hidden className="text-gray-400" />
-                    <p className="text-sm font-bold">Noch kein Screenshot da.</p>
-                    <p className="font-mono text-xs leading-relaxed text-gray-600 break-anywhere">Screenshot ablegen unter: {file}</p>
+        <div className="absolute inset-x-0 bottom-0 z-10 flex h-[84px] items-start justify-around border-t border-black/10 bg-white px-1 pt-2">
+            {tabs.map(({ label, Icon, active }) => (
+                <div key={label} className={`flex w-14 flex-col items-center gap-0.5 text-[10px] font-semibold ${active ? 'text-black' : 'text-gray-400'}`}>
+                    <Icon size={18} strokeWidth={active ? 2.4 : 1.8} aria-hidden />
+                    {label}
                 </div>
-                {!ok ? null : (
-                    <img src={src} alt={alt} loading="lazy" onLoad={() => setOk(true)} onError={() => setOk(false)} className="absolute inset-0 h-full w-full object-cover object-top" />
-                )}
-                {/* Unsichtbarer Probe-Loader: schaltet das echte Bild nur bei erfolgreichem Laden frei */}
-                {!ok && <img src={src} alt="" aria-hidden loading="lazy" onLoad={() => setOk(true)} className="absolute h-px w-px opacity-0" />}
+            ))}
+        </div>
+    );
+}
+
+function FeedScreen() {
+    const cards = [
+        { name: 'Lena K.', grade: 'Q1', price: '12 € / 45 Min', subject: 'Mathematik', color: '#D62728', text: 'Analysis vor der Klausur. Alte Aufgaben, ruhig erklärt.', place: 'Bibliothek', time: '45 Min' },
+        { name: 'Aylin D.', grade: 'Q2', price: '14 € / 45 Min', subject: 'Physik', color: '#0891b2', text: 'Mechanik ohne Panik. Mit alten Klausuren.', place: 'Bibliothek', time: '45 Min' },
+    ];
+    return (
+        <div className="relative h-full bg-[#f8f9fa]">
+            <PhoneStatus />
+            <DemoStamp />
+            <div className="flex items-center justify-between bg-gray-950 px-4 py-3 text-white">
+                <div className="flex items-center gap-2">
+                    <span className="grid h-7 w-7 place-items-center rounded-lg bg-primary text-black"><Logo size={16} /></span>
+                    <span className="text-[15px] font-extrabold tracking-tight">Entdecken</span>
+                </div>
+                <Search size={18} aria-hidden />
             </div>
-            <div className="absolute -left-[2px] top-24 h-10 w-[3px] rounded-full bg-white/20" aria-hidden />
-            <div className="absolute -left-[2px] top-40 h-14 w-[3px] rounded-full bg-white/20" aria-hidden />
-            <div className="absolute -right-[2px] top-32 h-16 w-[3px] rounded-full bg-white/20" aria-hidden />
+            <div className="px-3.5 pt-3">
+                <div className="flex h-10 items-center gap-2 rounded-full bg-white px-3.5 text-[13px] text-gray-400 shadow-sm">
+                    <Search size={14} aria-hidden />
+                    Fach, Klasse, Preis
+                </div>
+                <div className="mt-3 flex gap-1.5">
+                    {['Alle', 'Mathe', 'Physik', 'Englisch'].map((chip, i) => (
+                        <span key={chip} className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${i === 0 ? 'bg-gray-950 text-white' : 'bg-white text-gray-600'}`}>{chip}</span>
+                    ))}
+                </div>
+            </div>
+            <div className="mt-3 space-y-3 px-3.5">
+                {cards.map((c) => (
+                    <article key={c.name} className="overflow-hidden rounded-2xl bg-white shadow-[0_10px_24px_-16px_rgba(0,0,0,0.45)]">
+                        <header className="flex items-start justify-between gap-2 bg-gray-950 px-3.5 py-2.5 text-white">
+                            <div>
+                                <p className="flex items-center gap-1 text-[15px] font-bold leading-none">{c.name}<ShieldCheck size={13} className="text-primary" aria-hidden /></p>
+                                <p className="mt-1 text-[11px] font-medium text-gray-300">{c.grade} · Verifiziert</p>
+                            </div>
+                            <span className="shrink-0 whitespace-nowrap rounded-full bg-white px-2.5 py-1 text-[12px] font-bold text-black">{c.price}</span>
+                        </header>
+                        <div className="px-3.5 py-2.5">
+                            <span className="inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold text-white" style={{ background: c.color }}>{c.subject}</span>
+                            <p className="mt-1.5 text-[13px] leading-snug text-gray-700">{c.text}</p>
+                            <p className="mt-2 flex gap-3 text-[11px] font-semibold text-gray-500">
+                                <span className="inline-flex items-center gap-1"><MapPin size={11} aria-hidden />{c.place}</span>
+                                <span className="inline-flex items-center gap-1"><Clock size={11} aria-hidden />{c.time}</span>
+                            </p>
+                        </div>
+                    </article>
+                ))}
+            </div>
+            <PhoneTabBar />
+        </div>
+    );
+}
+
+function ChatScreen() {
+    return (
+        <div className="relative h-full bg-[#efeae2]">
+            <div className="bg-white">
+                <PhoneStatus />
+                <div className="flex items-center gap-2 border-b border-black/5 px-2 pb-2.5">
+                    <ChevronLeft size={22} aria-hidden />
+                    <span className="grid h-9 w-9 place-items-center rounded-full bg-gray-950 text-[12px] font-bold text-primary">LK</span>
+                    <div className="min-w-0">
+                        <p className="flex items-center gap-1 text-[15px] font-bold leading-none text-gray-950">Lena K.<ShieldCheck size={13} className="text-emerald-600" aria-hidden /></p>
+                        <p className="mt-0.5 text-[11px] font-medium text-gray-500">Q1 · Mathematik</p>
+                    </div>
+                </div>
+            </div>
+            <DemoStamp />
+            <p className="mx-auto mt-3 w-fit rounded-lg bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-gray-500">Heute</p>
+            <div className="mt-3 space-y-1.5 px-3">
+                <p className="ml-8 rounded-lg rounded-tr-sm bg-white px-3 py-2 text-[13.5px] leading-snug text-gray-900 shadow-sm">Hey, hast du Donnerstag nach der 6. noch Zeit für Analysis?</p>
+                <p className="mr-8 rounded-lg rounded-tl-sm bg-[#d9fdd3] px-3 py-2 text-[13.5px] leading-snug text-gray-900 shadow-sm">Ja. Bibliothek, 12 € / 45 Min. Bring die letzten zwei Klausuren mit.</p>
+                <p className="ml-8 w-fit rounded-lg rounded-tr-sm bg-white px-3 py-2 text-[13.5px] leading-snug text-gray-900 shadow-sm">Perfekt, ich bin da.</p>
+            </div>
+            <div className="absolute inset-x-0 bottom-0 flex items-center gap-2 bg-[#f0f2f5] px-2.5 pb-7 pt-2">
+                <div className="flex h-10 flex-1 items-center rounded-full bg-white px-3.5 text-[13px] text-gray-400">Nachricht</div>
+                <span className="grid h-10 w-10 place-items-center rounded-full bg-[#00a884] text-white"><Send size={16} aria-hidden /></span>
+            </div>
+        </div>
+    );
+}
+
+function ProfileScreen() {
+    return (
+        <div className="relative h-full bg-[#f8f9fa]">
+            <div className="bg-gray-950 text-white">
+                <PhoneStatus light />
+                <div className="px-5 pb-5 pt-2">
+                    <div className="flex items-end gap-3">
+                        <span className="grid h-16 w-16 place-items-center rounded-2xl bg-primary text-2xl font-black text-black">AD</span>
+                        <div>
+                            <p className="flex items-center gap-1 text-[18px] font-bold leading-none">Aylin D.<ShieldCheck size={15} className="text-primary" aria-hidden /></p>
+                            <p className="mt-1 text-[12px] font-medium text-gray-300">Q2 · FWG Köln</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <DemoStamp />
+            <div className="px-4 pt-4">
+                <div className="flex flex-wrap gap-1.5">
+                    <span className="rounded-full bg-[#0891b2] px-2.5 py-1 text-[11px] font-bold text-white">Physik</span>
+                    <span className="rounded-full bg-[#1D4ED8] px-2.5 py-1 text-[11px] font-bold text-white">Englisch</span>
+                    <span className="rounded-full bg-gray-950 px-2.5 py-1 text-[11px] font-bold text-white">14 € / 45 Min</span>
+                </div>
+                <p className="mt-3 text-[13.5px] leading-relaxed text-gray-700">Mechanik, Optik, Altklausuren. Termine nach der 6., meist in der Bibliothek.</p>
+                <p className="mt-4 rounded-xl bg-white px-3 py-2.5 text-[12px] font-semibold leading-snug text-gray-600 shadow-sm">Verifiziert im SV-Raum. Zahlung läuft nicht über die App.</p>
+            </div>
+            <PhoneTabBar />
+        </div>
+    );
+}
+
+const SCREEN_BY_KEY = { feed: FeedScreen, chat: ChatScreen, profil: ProfileScreen } as const;
+
+function PhoneFrame({ alt, children }: { alt: string; children: ReactNode }) {
+    return (
+        <div className="phone" role="img" aria-label={alt}>
+            <span className="phone-btn phone-btn-silent" aria-hidden />
+            <span className="phone-btn phone-btn-vol" aria-hidden />
+            <span className="phone-btn phone-btn-power" aria-hidden />
+            <div className="phone-chassis" aria-hidden>
+                <div className="phone-screen">
+                    <div className="phone-stage">
+                        <span className="phone-island" />
+                        {children}
+                        <span className="phone-home" />
+                    </div>
+                    <span className="phone-glare" />
+                </div>
+            </div>
         </div>
     );
 }
@@ -178,105 +251,20 @@ function IPhoneFrame({ src, alt, file }: { src: string; alt: string; file: strin
 export default function Landing() {
     const { user } = useAuth();
     const reduceMotion = useReducedMotion();
-    const [liveStats, setLiveStats] = useState<{ active_ads: number; users: number; page_views: number } | null>(null);
-    const [statsFailed, setStatsFailed] = useState(false);
+    const [liveStats, setLiveStats] = useState<{ active_ads: number; users: number; page_views: number; page_views_30d: number } | null>(null);
+    const [, setStatsFailed] = useState(false);
 
     /* Privatsphäre-Demo */
     const [showPhone, setShowPhone] = useState(true);
     const [showMoodle, setShowMoodle] = useState(false);
 
-    /* Brett-Showcase: vertikaler Scroll treibt horizontale Kartenfahrt (Sticky-Pin).
-       Journey draußen (280vh via .board-journey) + klemmendes Board (.board-sticky,
-       100svh, overflow hidden) + Track per translateX aus Scroll-Progress.
-       Framer useScroll/useTransform = bestehende Motion-Sprache (kein Hand-Listener);
-       Distanz in px gemessen (scrollWidth - clientWidth) = responsiv exakt, nur
-       transform (kein Layout), will-change nur im Journey (CSS). */
-    const [activeMock, setActiveMock] = useState(0);
-    const journeyRef = useRef<HTMLDivElement | null>(null);
-    const viewportRef = useRef<HTMLDivElement | null>(null);
-    const trackRef = useRef<HTMLDivElement | null>(null);
-    const mockItemRefs = useRef<(HTMLElement | null)[]>([]);
-    const journeyEnabled = !reduceMotion;
-    const [trackDist, setTrackDist] = useState(0);
-    const { scrollYProgress } = useScroll({
-        target: journeyRef,
-        offset: ['start start', 'end end'],
-    });
-    const trackX = useTransform(scrollYProgress, [0, 1], [0, -trackDist]);
-    /* Netz + Parallax-Staffelung (nur transform, Framer useScroll/useTransform
-       im bestehenden Motion-Stil): Grain/Glows langsam, Headline subtil,
-       Tickets gegenläufig, Faden-Nähte driften im eigenen Fenster. Jede Ebene
-       eigene Geschwindigkeit. reduceMotion → Styles undefined (statisch,
-       Inhalt identisch). #brett-Journey bleibt unangetastet (eigene Refs). */
     const heroRef = useRef<HTMLElement | null>(null);
-    const wegeRef = useRef<HTMLElement | null>(null);
-    const brettSeamRef = useRef<HTMLDivElement | null>(null);
     const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
-    const { scrollYProgress: wegeProgress } = useScroll({ target: wegeRef, offset: ['start end', 'end start'] });
-    const { scrollYProgress: brettSeamProgress } = useScroll({ target: brettSeamRef, offset: ['start end', 'end start'] });
     const heroGrainY = useTransform(heroProgress, [0, 1], [0, 70]);
     const heroGlowAY = useTransform(heroProgress, [0, 1], [0, 110]);
     const heroGlowBY = useTransform(heroProgress, [0, 1], [0, 60]);
     const heroHeadY = useTransform(heroProgress, [0, 1], [0, 36]);
     const heroTicketY = useTransform(heroProgress, [0, 1], [0, -46]);
-    const heroSeamDrift = useTransform(heroProgress, [0, 1], [-8, 12]);
-    const wegeSeamDrift = useTransform(wegeProgress, [0, 1], [-16, 16]);
-    const brettSeamDrift = useTransform(brettSeamProgress, [0, 1], [-12, 12]);
-    useMotionValueEvent(scrollYProgress, 'change', (v) => {
-        const idx = Math.min(MOCKUPS.length - 1, Math.max(0, Math.round(v * (MOCKUPS.length - 1))));
-        setActiveMock(idx);
-    });
-
-    /* Fahrstrecke messen: Track-Breite minus Viewport (0 = alles sichtbar, keine Fahrt).
-       ResizeObserver + Resize-Listener, keine Layout-Animation. */
-    useEffect(() => {
-        if (!journeyEnabled) {
-            setTrackDist(0);
-            return;
-        }
-        const track = trackRef.current;
-        const viewport = viewportRef.current;
-        if (!track || !viewport || typeof ResizeObserver === 'undefined') {
-            const measureFallback = () => {
-                const t = trackRef.current;
-                const vp = viewportRef.current;
-                if (!t || !vp) return;
-                setTrackDist(Math.max(0, t.scrollWidth - vp.clientWidth));
-            };
-            measureFallback();
-            window.addEventListener('resize', measureFallback);
-            return () => window.removeEventListener('resize', measureFallback);
-        }
-        const measure = () => setTrackDist(Math.max(0, track.scrollWidth - viewport.clientWidth));
-        measure();
-        const ro = new ResizeObserver(measure);
-        ro.observe(track);
-        ro.observe(viewport);
-        window.addEventListener('resize', measure);
-        return () => {
-            ro.disconnect();
-            window.removeEventListener('resize', measure);
-        };
-    }, [journeyEnabled]);
-
-    /* Dots = Fortschritt: scrollen die SEITE zur passenden Progress-Position
-       (kein Carousel-Snap). Fallback (RM): normale Anker per scrollIntoView. */
-    const scrollToMock = (index: number) => {
-        if (!journeyEnabled) {
-            mockItemRefs.current[index]?.scrollIntoView({
-                behavior: reduceMotion ? 'auto' : 'smooth',
-                inline: 'center',
-                block: 'nearest',
-            });
-            return;
-        }
-        const journey = journeyRef.current;
-        if (!journey) return;
-        const top = window.scrollY + journey.getBoundingClientRect().top;
-        const total = Math.max(0, journey.offsetHeight - window.innerHeight);
-        const y = top + (total * index) / (MOCKUPS.length - 1);
-        window.scrollTo({ top: y, behavior: reduceMotion ? 'auto' : 'smooth' });
-    };
 
     useEffect(() => {
         api.analytics.summary().then(({ data, error }) => {
@@ -285,6 +273,7 @@ export default function Landing() {
                     active_ads: Number((data as any).active_ads) || 0,
                     users: Number((data as any).users) || 0,
                     page_views: Number((data as any).page_views) || 0,
+                    page_views_30d: Number((data as any).page_views_30d) || 0,
                 });
             } else {
                 setStatsFailed(true);
@@ -338,13 +327,6 @@ export default function Landing() {
         viewport: { once: true, margin: '-80px 0px' },
         transition: { duration: 0.65, delay: i * 0.08, ease: easeOut },
     };
-    const pinPress = (i: number) => reduceMotion ? {} : {
-        initial: { x: '-50%', opacity: 0, scale: 1.55 },
-        whileInView: { x: '-50%', opacity: 1, scale: [1.55, 0.8, 1] },
-        viewport: { once: true, margin: '-80px 0px' },
-        transition: { duration: 0.6, delay: 0.3 + i * 0.08, ease: easeOut },
-    };
-
     return (
         <main className="min-h-screen bg-gray-950 text-gray-100 font-sans selection:bg-primary selection:text-black overflow-x-clip">
             {/* Skip-Link als Scroll-Button: reines href="#inhalt" wäre unter HashRouter eine 404-Route. */}
@@ -395,6 +377,7 @@ export default function Landing() {
                                 { icon: BadgeCheck, label: 'SV-verifiziert' },
                                 { icon: ShieldCheck, label: 'Nur FWG Köln' },
                                 { icon: Lock, label: 'DSGVO aus DE' },
+                                { icon: BadgeCheck, label: 'Kostenlos fürs FWG' },
                             ].map(s => (
                                 <li key={s.label} className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-gray-200">
                                     <s.icon size={15} className="text-primary" aria-hidden /> {s.label}
@@ -439,26 +422,24 @@ export default function Landing() {
                             </motion.div>
                             <motion.div {...rise(0.5, 14)} className="mt-5 flex items-center gap-2 text-xs text-gray-400">
                                 <span className="w-2 h-2 rounded-full bg-green-400" aria-hidden />
-                                <span className="font-mono tabular-nums">{liveStats ? `${liveStats.active_ads.toLocaleString('de-DE')} aktive Anzeigen` : '—'}</span>
+                                <span className="font-mono tabular-nums">{liveStats ? `${liveStats.page_views_30d.toLocaleString('de-DE')} monatliche Seitenaufrufe` : '—'}</span>
                             </motion.div>
                         </motion.div>
                     </motion.div>
                 </div>
-                {/* Faden-Naht Hero → Wege: Netz hängt zwischen Plakat und Tickerband. */}
-                <ThreadSeam variant="dark" drift={reduceMotion ? undefined : heroSeamDrift} className="relative z-0" />
             </section>
 
             {/* Fächer-Ticker, Kennzahlen & News — eigene Sektion direkt unter der Hero */}
             <section aria-label="Fächer, Kennzahlen und Neuigkeiten">
                 {/* Tickerband */}
-                <div className="relative border-y-4 border-primary bg-primary text-black overflow-hidden" aria-label="Fächerübersicht">
-                    <div className="ticker-track flex w-max items-center gap-0 py-2.5 font-display uppercase text-lg tracking-wide">
+                <div className="relative overflow-hidden border-y border-black/20 bg-primary text-black" aria-label="Fächerübersicht">
+                    <div className="ticker-track flex w-max items-center py-3 font-display uppercase tracking-[0.14em] text-base sm:text-lg">
                         {[0, 1].map(copy => (
                             <div key={copy} className="flex shrink-0 items-center" aria-hidden={copy === 1}>
                                 {FAECHER_TICKER.map(f => (
                                     <span key={`${copy}-${f}`} className="flex items-center">
-                                        <span className="px-5">{f}</span>
-                                        <Sparkles size={15} aria-hidden />
+                                        <span className="px-4">{f}</span>
+                                        <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-[1px] bg-black/80" />
                                     </span>
                                 ))}
                             </div>
@@ -466,18 +447,17 @@ export default function Landing() {
                     </div>
                 </div>
 
-                {/* Kennzahlen */}
-                <div className="relative border-b border-white/10">
-                    <dl className="max-w-7xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-2 gap-2 sm:gap-4 min-w-0" aria-label="Aktuelle Kennzahlen der Nachhilfebörse">
+                <div className="relative border-b border-white/10 bg-gray-950">
+                    <dl className="mx-auto flex max-w-7xl flex-wrap items-baseline gap-x-12 gap-y-3 px-4 py-5 sm:px-6" aria-label="Aktuelle Kennzahlen der Nachhilfebörse">
                         {[
-                            { value: liveStats?.active_ads, label: 'Aktive Anzeigen' },
+                            { value: liveStats?.page_views_30d, label: 'Monatliche Seitenaufrufe' },
                             { value: liveStats?.users, label: 'Nutzer' },
                         ].map(s => (
-                            <div key={s.label} className="rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 sm:px-6 sm:py-4 min-w-0 flex flex-col">
-                                <dt className="order-2 mt-1 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.1em] sm:tracking-[0.14em] text-gray-400 break-words">{s.label}</dt>
-                                <dd className="order-1 font-mono tabular-nums text-xl sm:text-4xl font-bold text-white">
+                            <div key={s.label} className="flex items-baseline gap-3">
+                                <dd className="font-mono text-3xl font-bold tabular-nums text-primary sm:text-4xl">
                                     {s.value !== undefined && s.value !== null ? s.value.toLocaleString('de-DE') : '—'}
                                 </dd>
+                                <dt className="text-sm font-semibold text-gray-200">{s.label}</dt>
                             </div>
                         ))}
                     </dl>
@@ -492,7 +472,7 @@ export default function Landing() {
             </section>
 
             {/* WEGE — drei Abriss-Streifen statt Karten (Faden-Naht am Ende → Brett) */}
-            <section id="wege" ref={wegeRef} className="relative overflow-hidden bg-[#faf7ef] text-gray-900 poster-grain-dark scroll-mt-16">
+            <section id="wege" className="relative overflow-hidden bg-[#faf7ef] text-gray-900 poster-grain-dark scroll-mt-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
                     <motion.div {...anim()}>
                         <h2 className="font-display uppercase leading-[0.95] break-words text-4xl sm:text-7xl max-w-3xl">Drei Wege an ein Ziel: die Klausur sitzt.</h2>
@@ -531,84 +511,36 @@ export default function Landing() {
                         ))}
                     </div>
                 </div>
-                {/* Faden-Naht Wege → Brett: dezente dunkle Fäden auf Papier, zeigen Richtung Brett. */}
-                <ThreadSeam variant="paper" drift={reduceMotion ? undefined : wegeSeamDrift} className="relative z-0" />
             </section>
 
-            {/* SCHWARZES BRETT: Sticky-Pin-Showcase — vertikaler Scroll fährt die Karten horizontal.
-                Außen .board-journey (280vh Scroll-Strecke), innen .board-sticky (100svh,
-                overflow hidden), Track per translateX aus Scroll-Progress (useScroll/
-                useTransform). Titel oben + CTA unten bleiben normal im Fluss (kein Cut);
-                Dots klemmen mit (Fortschritt) und scrollen die Seite zur Position. */}
             <section id="brett" className="bg-gray-950 border-y border-white/10 scroll-mt-16">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
-                    <div className="relative rounded-[1.75rem] board-frame bg-[#0c0c10]">
-                        <div className="absolute inset-0 rounded-[1.4rem] poster-grain opacity-100" aria-hidden />
-                        <div className="absolute inset-0 rounded-[1.4rem] board-vignette pointer-events-none" aria-hidden />
-                        <div className="pointer-events-none absolute inset-3 rounded-2xl border-2 border-dashed border-white/15" aria-hidden />
-                        <div className="relative p-6 sm:p-10 lg:p-12">
-                            <motion.div {...anim()} className="max-w-3xl">
-                                <h2 className="font-display uppercase leading-[0.95] break-words text-4xl sm:text-6xl text-white">So sieht das <span className="text-primary">Schwarze Brett</span> in der App aus.</h2>
-                                <motion.span {...wipeLine()} className="mt-4 block h-1.5 w-16 origin-left rounded-full bg-primary" aria-hidden />
-                                <p className="mt-4 text-gray-300 text-lg leading-relaxed">Kein Katalog, kein Kleingedrucktes: stöbern, anfragen, Profil zeigen — alles direkt am Handy, alles vom FWG.</p>
-                            </motion.div>
-                            {/* Faden-Naht Brett-Intro → Journey: gelb-rote Fäden führen zu den Pins.
-                                In-Flow-Sibling mit eigenem Overflow-Fenster — Journey-Mechanik
-                                (Sticky/Track-Ref/Distanz) bleibt unangetastet. */}
-                            <div ref={brettSeamRef}>
-                                <ThreadSeam variant="dark" drift={reduceMotion ? undefined : brettSeamDrift} className="mt-6 sm:mt-8" />
-                            </div>
-                            <div ref={journeyRef} className={journeyEnabled ? 'board-journey' : undefined}>
-                                <div className={journeyEnabled ? 'board-sticky' : undefined}>
-                                    <div ref={viewportRef} className={journeyEnabled ? 'board-viewport' : 'mt-10'}>
-                                        <motion.div
-                                            ref={trackRef}
-                                            style={journeyEnabled ? { x: trackX } : undefined}
-                                            className={journeyEnabled ? 'board-track flex w-max items-stretch gap-6 pb-2 pt-4' : 'mt-10 grid gap-6 md:grid-cols-3'}
-                                        >
-                                            {MOCKUPS.map((m, i) => (
-                                                <motion.figure
-                                                    key={m.src}
-                                                    {...(journeyEnabled ? {} : anim(i * 0.06))}
-                                                    ref={(el) => {
-                                                        mockItemRefs.current[i] = el;
-                                                    }}
-                                                    className={journeyEnabled ? 'flex-none w-[78vw] max-w-[340px] sm:w-[340px] lg:w-[400px]' : 'w-full'}
-                                                >
-                                                    <div className={`board-card board-card--${i} relative rounded-3xl border border-white/10 px-4 pb-5 pt-9 transition-transform duration-300 hover:rotate-0 ${i === 0 ? 'rotate-[-1.8deg]' : i === 1 ? 'rotate-[1.4deg] translate-y-2' : 'rotate-[-0.7deg] -translate-y-1'}`}>
-                                                        <motion.span aria-hidden className="board-pin absolute left-1/2 top-3 z-[2] -translate-x-1/2" {...pinPress(i)} />
-                                                        <div className="board-phone">
-                                                            <IPhoneFrame src={m.src} alt={m.alt} file={m.file} />
-                                                        </div>
-                                                        <figcaption className="mt-4 text-center text-sm font-bold">
-                                                            <span className={`board-caption ${i === 0 ? '-rotate-1' : i === 1 ? 'rotate-1' : '-rotate-[0.5deg]'}`}>{m.caption}</span>
-                                                        </figcaption>
-                                                    </div>
-                                                </motion.figure>
-                                            ))}
-                                        </motion.div>
-                                    </div>
-                                    <div className={journeyEnabled ? 'flex justify-center gap-0' : 'mt-4 flex justify-center gap-0'} role="group" aria-label="Vorschau wählen">
-                                        {MOCKUPS.map((m, i) => (
-                                            <button
-                                                key={m.src}
-                                                type="button"
-                                                onClick={() => scrollToMock(i)}
-                                                aria-label={`Vorschau ${i + 1} von ${MOCKUPS.length}: ${m.caption}`}
-                                                aria-current={activeMock === i ? 'true' : undefined}
-                                                className="press group flex min-h-11 min-w-11 items-center justify-center p-3"
-                                            >
-                                                <span aria-hidden className={`block h-2.5 rounded-full transition-all duration-150 ease-out group-active:scale-75 ${activeMock === i ? 'w-7 bg-primary' : 'w-2.5 bg-white/40 group-hover:bg-white/70'}`} />
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                            <motion.div {...anim()} className="mt-10">
-                                <Link to={ziel} className="press inline-flex items-center justify-center h-14 px-8 text-base gap-2.5 rounded-full font-bold bg-primary text-black hover:bg-primary-hover shadow-md">Jetzt loslegen <ArrowRight size={18} aria-hidden /></Link>
-                            </motion.div>
+                <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
+                    <motion.div {...anim()} className="max-w-3xl">
+                        <h2 className="font-display uppercase leading-[0.95] break-words text-4xl text-white sm:text-6xl">So sieht das <span className="text-primary">Schwarze Brett</span> in der App aus.</h2>
+                        <motion.span {...wipeLine()} className="mt-4 block h-1.5 w-16 origin-left rounded-full bg-primary" aria-hidden />
+                        <p className="mt-4 text-lg leading-relaxed text-gray-300">Kein Katalog, kein Kleingedrucktes: stöbern, anfragen, Profil zeigen — alles direkt am Handy, alles vom FWG.</p>
+                    </motion.div>
+                    <div className="board-stage relative mt-10">
+                        <div className="board-phones" aria-label="App-Ansichten horizontal durchscrollen" tabIndex={0}>
+                            {BOARD_SCREENS.map((m) => {
+                                const Screen = SCREEN_BY_KEY[m.key];
+                                return (
+                                    <figure key={m.key} className="board-sheet">
+                                        <PhoneFrame alt={m.alt}>
+                                            <Screen />
+                                        </PhoneFrame>
+                                        <figcaption className="mt-4 text-center">
+                                            <span className="board-caption text-sm font-bold">{m.caption}</span>
+                                        </figcaption>
+                                    </figure>
+                                );
+                            })}
                         </div>
+                        <p className="board-swipe-hint" aria-hidden>Wischen für weitere Ansichten →</p>
                     </div>
+                    <motion.div {...anim()} className="mt-8">
+                        <Link to={ziel} className="press inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-primary px-8 text-base font-bold text-black shadow-md hover:bg-primary-hover">Jetzt loslegen <ArrowRight size={18} aria-hidden /></Link>
+                    </motion.div>
                 </div>
             </section>
 
@@ -694,7 +626,7 @@ export default function Landing() {
                         {[
                             { icon: GraduationCap, t: 'Pädagogisch begleitet', d: 'Coaches lernen Methoden fürs Lernen-Lernen und Arbeitsorganisation — nicht nur Fachwissen.' },
                             { icon: Shield, t: 'Offizielles Coach-Abzeichen', d: 'Goldenes Badge auf Profil und Anzeigen: Eltern und 5./6.-Klässler erkennen geprüfte Coaches sofort.' },
-                            { icon: Users, t: 'Gemeinschaft & Fairness', d: 'Unkomplizierte Vermittlung, faire Richtpreise (ca. 10–15 € pro 45 Minuten), sicherer Chat im Schulsystem.' },
+                            { icon: Users, t: 'Gemeinschaft & Fairness', d: 'Unkomplizierte Vermittlung, faire Richtpreise der Coaching-AG (ca. 10–15 € pro 45 Min), sicherer Chat im Schulsystem.' },
                         ].map((c, i) => (
                             <motion.div key={c.t} {...anim(i * 0.06)} className="rounded-3xl bg-black text-white p-7">
                                 <c.icon size={26} className="text-primary" aria-hidden />

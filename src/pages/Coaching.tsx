@@ -267,7 +267,7 @@ export function CoachingView({ content, design }: { content: Record<string, stri
             <p className="mt-5 text-[15px] leading-7 text-gray-600 dark:text-gray-300 max-w-prose">
                 Die AG-Stunde dienstags in <span className="font-mono tabular-nums">H310</span> ist{' '}
                 <strong>ehrenamtlich</strong>. Private Nachhilfe über die Börse vereinbaren Familien direkt —
-                Richtwert <span className="font-mono tabular-nums font-bold">ca. 10–15 € / 45 Min</span>.
+                Richtwert <span className="font-mono tabular-nums font-bold">ca. 10–12 € pro 45–60 Min</span>.
             </p>
             <div className="mt-5 border-t border-gray-100 dark:border-gray-800 pt-5">
                 <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-gray-500 dark:text-gray-400">

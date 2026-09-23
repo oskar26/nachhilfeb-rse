@@ -109,10 +109,10 @@ export default function ParentGuide() {
                     <div className="mt-6 rounded-2xl bg-gray-950 dark:bg-black p-5 sm:p-6">
                         <p className="text-xs font-bold uppercase tracking-[0.14em] text-gray-400">Faire Preise</p>
                         <p className="mt-2 font-mono tabular-nums text-2xl sm:text-3xl font-bold text-primary">
-                            ca. 10–15 € / 45 Min
+                            ca. 10–12 € / 45–60 Min
                         </p>
                         <p className="mt-2 text-sm leading-relaxed text-gray-300">
-                            Fair von Schülern für Schüler.
+                            Fair von Schülern für Schüler – Richtwert der Nachhilfebörse.
                         </p>
                     </div>
                 </motion.section>

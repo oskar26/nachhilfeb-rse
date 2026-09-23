@@ -450,13 +450,51 @@ export default function Profile() {
                 <motion.div variants={itemVariants} className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-2xl text-sm text-amber-900 dark:text-amber-200 shadow-soft">
                     <p className="font-extrabold mb-0.5">Account eingeschränkt</p>
                     <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">Du musst dich im SV-Raum verifizieren lassen, um eigene Nachhilfeanzeigen zu veröffentlichen.</p>
+                    <Link
+                        to="/welcome"
+                        className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-bold text-amber-950 dark:text-primary bg-primary/30 dark:bg-primary/15 hover:bg-primary/50 dark:hover:bg-primary/25 px-3 py-1.5 rounded-full transition-colors"
+                    >
+                        So geht's in 3 Schritten →
+                    </Link>
                 </motion.div>
             )}
+
+            {/* Goal gradient: head-start from signup (name+grade), never 0% */}
+            {(() => {
+                const checks = [
+                    { label: 'Name & Klasse', done: Boolean(profile.first_name && profile.grade_level) },
+                    { label: 'Kurz-Bio', done: Boolean((profile.bio || '').replace(/<[^>]+>/g, '').trim().length > 20) },
+                    { label: 'Zeiten eintragen', done: Object.values(availability).some(d => d.length > 0) },
+                    { label: 'Verifiziert', done: Boolean(profile.is_verified) },
+                    { label: 'Erste Anzeige', done: (authProfile?.role === 'parent') || false },
+                ];
+                // Head start: account exists = always at least the first item when name present
+                const doneCount = checks.filter(c => c.done).length + (profile.first_name ? 0 : 0);
+                const pct = Math.max(20, Math.round((doneCount / checks.length) * 100));
+                return (
+                    <motion.div variants={itemVariants} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-4 rounded-2xl shadow-soft" aria-label={`Profil-Fortschritt: ${pct} Prozent`}>
+                        <div className="flex items-center justify-between mb-2 gap-3">
+                            <p className="text-xs font-extrabold uppercase tracking-wider text-gray-400">Profil-Stärke</p>
+                            <p className="text-sm font-black text-gray-900 dark:text-white tabular-nums">{pct}%</p>
+                        </div>
+                        <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden mb-3" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+                            <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${pct}%` }} />
+                        </div>
+                        <ul className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[11px] font-semibold">
+                            {checks.map(c => (
+                                <li key={c.label} className={cn('flex items-center gap-1', c.done ? 'text-green-700 dark:text-green-400' : 'text-gray-400')}>
+                                    <span aria-hidden>{c.done ? '✓' : '○'}</span> {c.label}
+                                </li>
+                            ))}
+                        </ul>
+                    </motion.div>
+                );
+            })()}
 
             {/* Profile Data Card */}
             <motion.div variants={itemVariants}>
                 <Card className="overflow-hidden rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft">
-                    <CardHeader className="bg-gray-950 dark:bg-black poster-grain text-white border-b border-white/10 px-6 py-4">
+                    <CardHeader className="bg-gray-950 dark:bg-black poster-grain text-white border-b border-white/5 px-6 py-4">
                         <div className="flex justify-between items-center">
                             <h2 className="text-base font-extrabold leading-tight tracking-tight text-white dark:text-gray-100">Persönliche Angaben</h2>
                             <Button

@@ -247,7 +247,7 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
                                 </div>
                             )}
 
-                            <div className="bg-red-50/50 dark:bg-red-950/10 border border-red-150 dark:border-red-900/30 p-3 rounded-2xl flex gap-2 text-xs text-red-800 dark:text-red-350">
+                            <div className="bg-red-50/50 dark:bg-red-950/10 border border-red-200 dark:border-red-900/30 p-3 rounded-2xl flex gap-2 text-xs text-red-800 dark:text-red-300">
                                 <AlertTriangle size={16} className="shrink-0 mt-0.5" />
                                 <p className="leading-relaxed">Missbrauch der Meldefunktion kann zu einer Sperre deines Kontos führen. Bitte melde nur tatsächliche Verstöße.</p>
                             </div>
@@ -255,7 +255,7 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
                     )}
                 </div>
 
-                <DialogFooter className="border-t border-gray-150 dark:border-gray-850 pt-4 flex justify-between">
+                <DialogFooter className="border-t border-gray-200 dark:border-gray-800 pt-4 flex justify-between">
                     {step > 1 ? (
                         <Button variant="outline" size="sm" onClick={handleBack} className="rounded-full">
                             <ChevronLeft size={16} className="mr-1" /> Zurück

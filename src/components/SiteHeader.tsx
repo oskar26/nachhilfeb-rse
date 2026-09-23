@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'framer-motion';
-import { ArrowRight, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { Logo } from './ui/Logo';
-import { useAuth } from '../context/AuthContext';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -38,7 +37,6 @@ function scrollToSection(id: string): void {
  * Mobil: volle Höhe Slide-Sheet von rechts (role=dialog), Fokus-Roundtrip zum Burger.
  */
 export default function SiteHeader() {
-    const { user } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
     const onWelcomePage = location.pathname === '/welcome' || location.pathname === '/landing';
@@ -122,7 +120,7 @@ export default function SiteHeader() {
     /* Viewport wächst auf md (Burger verschwindet per CSS): Sheet schließen, Fokus nicht klauen. */
     useEffect(() => {
         if (!menuOpen || typeof window.matchMedia !== 'function') return;
-        const mq = window.matchMedia('(min-width: 768px)');
+        const mq = window.matchMedia('(min-width: 1024px)');
         const onChange = () => {
             if (!mq.matches) return;
             restoreFocusRef.current = false;
@@ -165,45 +163,36 @@ export default function SiteHeader() {
             {/* Sentinel am Dokumentanfang: markiert den un-gescrollten Zustand (kein scroll-Listener). */}
             <div ref={sentinelRef} aria-hidden className="pointer-events-none absolute left-0 top-0 h-px w-full" />
             {/* Navigation */}
-            <header className={`sticky top-0 z-50 border-b bg-black/90 backdrop-blur-xl poster-grain transition-[border-color,box-shadow] duration-200 ${scrolled ? 'border-white/25 shadow-[0_14px_36px_-14px_rgba(0,0,0,0.9),0_8px_24px_-16px_rgba(250,204,21,0.45)]' : 'border-white/10 dark-glow'}`}>
-                {/* 3-Spalten-Grid mit balancierten 1fr-Seiten-Slots: Mitte bleibt optisch zentriert
-                    (minmax(0,1fr) verhindert Track-Wachstum durch lange Nav-Inhalte).
-                    Höhe kollabiert sauber mit der Subline (Grid-0fr-Trick + Padding), kein Fix-h. */}
-                <div className={`max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-4 transition-[padding] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${scrolled ? 'py-1.5' : 'py-2.5'}`}>
-                    <div className="flex min-w-0 items-center justify-self-start">
-                        <nav className="hidden md:flex items-center gap-4 lg:gap-6 text-sm font-semibold text-gray-300 whitespace-nowrap" aria-label="Bereiche">
-                            <Link to="/welcome" className="press hover:text-white active:text-primary transition-colors">Start</Link>
-                            {/* HashRouter-sicher: <Link> liefert href="/#/welcome" als Fallback (niemals href="#..."),
-                                onClick fängt ab und scrollt zur Sektion. */}
-                            <Link to="/welcome" onClick={goSection('wege')} className="press hover:text-white active:text-primary transition-colors">Suchen &amp; Anbieten</Link>
-                            <Link to="/welcome" onClick={goSection('brett')} className="press hover:text-white active:text-primary transition-colors">Schwarzes Brett</Link>
-                            <Link to="/coaching" className="press hover:text-white active:text-primary transition-colors">Coaching-AG</Link>
-                            <Link to="/eltern-leitfaden" className="press hover:text-white active:text-primary transition-colors">Eltern</Link>
-                        </nav>
-                    </div>
-                    <Link to="/welcome" className="flex items-center gap-3 min-w-0 max-w-full justify-self-center" aria-label="Nachhilfebörse Startseite">
+            <header className={`sticky top-0 z-50 border-b border-black/15 bg-[#faf7ef] transition-[box-shadow] duration-200 ${scrolled ? 'shadow-[0_8px_24px_-18px_rgba(0,0,0,0.45)]' : ''}`}>
+                <div className={`mx-auto flex max-w-7xl items-center gap-3 px-4 transition-[padding] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none sm:px-6 xl:gap-6 ${scrolled ? 'py-1.5' : 'py-2.5'}`}>
+                    <Link to="/welcome" className="flex min-w-0 items-center gap-3" aria-label="Nachhilfebörse Startseite">
                         <span className="grid place-items-center w-10 h-10 rounded-xl bg-primary text-black shadow-[0_6px_20px_-6px_rgba(250,204,21,0.6)] shrink-0">
                             <Logo size={24} />
                         </span>
                         <span className="flex min-w-0 flex-col leading-none">
-                            <span className="text-lg font-extrabold tracking-tight truncate text-white">Nachhilfebörse <span className="text-primary">FWG</span></span>
+                            <span className="text-lg font-extrabold tracking-tight truncate text-black">Nachhilfebörse <span className="text-black">FWG</span></span>
                             {/* Subline kollabiert per Grid-0fr/1fr + Opacity: kein leerer schwarzer Streifen,
                                 kein Layout-Sprung. RM → instant via motion-reduce + globalem Kill-Switch. */}
                             <span aria-hidden={scrolled} className={`grid transition-[grid-template-rows,opacity,margin] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${scrolled ? 'grid-rows-[0fr] opacity-0' : 'grid-rows-[1fr] opacity-100'}`}>
                                 <span className="min-h-0 overflow-hidden">
-                                    <span className={`block truncate text-xs font-semibold uppercase tracking-widest text-gray-400 ${scrolled ? 'mt-0' : 'mt-1'}`}>Ein Produkt der Schülervertretung</span>
+                                    <span className={`block truncate text-xs font-semibold uppercase tracking-widest text-black/70 lg:hidden ${scrolled ? 'mt-0' : 'mt-1'}`}>Ein Produkt der Schülervertretung</span>
                                 </span>
                             </span>
                         </span>
                     </Link>
-                    <div className="flex items-center gap-2 shrink-0 justify-self-end min-w-0">
-                        <Link to={user ? '/' : '/login'} className="press inline-flex items-center justify-center min-h-11 h-11 px-4 text-xs gap-1.5 rounded-full font-bold bg-primary text-black hover:bg-primary-hover shadow-md">
-                            Jetzt loslegen <ArrowRight size={16} aria-hidden />
-                        </Link>
+                    <nav className="hidden min-w-0 flex-1 items-center justify-end gap-3 text-[13px] font-semibold text-black lg:flex xl:gap-5 xl:text-sm" aria-label="Bereiche">
+                        <Link to="/welcome" className="press whitespace-nowrap transition-colors hover:text-black/60 active:text-black">Start</Link>
+                        <Link to="/welcome" onClick={goSection('wege')} className="press whitespace-nowrap transition-colors hover:text-black/60 active:text-black">Suchen &amp; Anbieten</Link>
+                        <Link to="/welcome" onClick={goSection('brett')} className="press whitespace-nowrap transition-colors hover:text-black/60 active:text-black">Schwarzes Brett</Link>
+                        <Link to="/coaching" className="press whitespace-nowrap transition-colors hover:text-black/60 active:text-black">Coaching-AG</Link>
+                        <Link to="/eltern-leitfaden" className="press whitespace-nowrap transition-colors hover:text-black/60 active:text-black">Eltern</Link>
+                    </nav>
+                    <div className="ml-auto flex min-w-0 shrink-0 items-center gap-2 lg:ml-4">
+                        <p className="hidden max-w-[11rem] text-right text-[11px] font-bold uppercase leading-tight tracking-wide text-black lg:block">Ein Produkt der Schülervertretung</p>
                         <button
                             ref={burgerRef}
                             type="button"
-                            className="press md:hidden inline-flex items-center justify-center w-11 h-11 min-h-11 min-w-11 rounded-full border border-white/20 text-white hover:bg-white/10"
+                            className="press inline-flex h-11 w-11 min-h-11 min-w-11 items-center justify-center rounded-full border border-black/20 text-black hover:bg-black/5 lg:hidden"
                             aria-expanded={menuOpen}
                             aria-controls="mobile-nav"
                             aria-label={menuOpen ? 'Menü schließen' : 'Menü öffnen'}
@@ -245,7 +234,7 @@ export default function SiteHeader() {
                 würde fixed-Descendants sonst zum Containing-Block machen. */}
             <AnimatePresence>
                 {menuOpen && (
-                    <div className="fixed inset-0 z-[60] md:hidden">
+                    <div className="fixed inset-0 z-[60] lg:hidden">
                         <motion.div
                             className="absolute inset-0 bg-black/70"
                             initial={{ opacity: 0 }}
@@ -309,23 +298,6 @@ export default function SiteHeader() {
                                     Ein Produkt der Schülervertretung
                                 </p>
                             </nav>
-
-                            {/* CTA fix am Daumenbereich des Sheets (Thumb-Reach), genau ein CTA — steigt verzögert auf. */}
-                            <motion.div
-                                initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={reduceMotion ? undefined : { opacity: 0, y: 8, transition: { duration: 0.2, ease: EASE } }}
-                                transition={{ duration: reduceMotion ? 0 : 0.32, delay: reduceMotion ? 0 : 0.18, ease: EASE }}
-                                className="shrink-0 border-t border-white/10 bg-black px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4"
-                            >
-                                <Link
-                                    to={user ? '/' : '/login'}
-                                    onClick={closeMenu}
-                                    className="press inline-flex h-14 w-full items-center justify-center gap-2 rounded-full bg-primary font-bold text-black hover:bg-primary-hover"
-                                >
-                                    Jetzt loslegen <ArrowRight size={17} aria-hidden />
-                                </Link>
-                            </motion.div>
                         </motion.div>
                     </div>
                 )}

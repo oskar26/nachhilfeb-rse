@@ -414,6 +414,11 @@ export default function Login() {
                         <Logo className="w-16 h-16 text-black dark:text-white mb-2 shrink-0 drop-shadow-md" />
                         <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">Nachhilfebörse</h1>
                         <p className="text-gray-500 mt-1 font-medium text-sm">Friedrich-Wilhelm-Gymnasium Köln</p>
+                        <ul className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-xs font-semibold text-gray-600 dark:text-gray-400" aria-label="Vertrauen auf einen Blick">
+                            <li className="flex items-center gap-1.5"><CheckCircle size={14} className="text-green-600 shrink-0" /> Von der SV organisiert</li>
+                            <li className="flex items-center gap-1.5"><CheckCircle size={14} className="text-green-600 shrink-0" /> Sicher und verifiziert</li>
+                            <li className="flex items-center gap-1.5"><CheckCircle size={14} className="text-green-600 shrink-0" /> Kostenlos fürs FWG</li>
+                        </ul>
                     </div>
 
                     <Card className="border-0 shadow-2xl shadow-black/5 dark:shadow-black/20 ring-1 ring-gray-200/50 dark:ring-gray-800/50 backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 overflow-hidden">
@@ -437,9 +442,9 @@ export default function Login() {
                                 {mode === 'login' ? 'Willkommen zurück' : 'Account erstellen'}
                             </h2>
                             <CardDescription>
-                                {mode === 'login' 
-                                    ? 'Melde dich mit deinen Zugangsdaten an.' 
-                                    : 'Fülle das Formular aus, um dich zu registrieren.'}
+                                {mode === 'login'
+                                    ? 'Melde dich mit deinen Zugangsdaten an.'
+                                    : 'Schritt 1 von 2 · dauert ca. 2 Minuten. Danach: E-Mail bestätigen.'}
                             </CardDescription>
                         </CardHeader>
                         
@@ -573,16 +578,20 @@ export default function Login() {
                                         )}
 
                                         <div className="space-y-1">
-                                            <label className="text-xs font-bold uppercase text-gray-500 ml-1 flex justify-between">
+                                            <label className="text-xs font-bold uppercase text-gray-500 ml-1 flex justify-between tracking-wider">
                                                 <span>SV-Einmalcode</span>
-                                                <span className="text-xs text-amber-700 dark:text-primary lowercase font-semibold">sofort verifiziert</span>
+                                                <span className="text-xs text-amber-700 dark:text-primary lowercase font-semibold">optional</span>
                                             </label>
                                             <Input
                                                 placeholder="SV-XXXX-XXXX-XXXX"
                                                 value={inviteCode}
                                                 onChange={e => setInviteCode(e.target.value)}
-                                                className="h-10 rounded-xl border-dashed"
+                                                className="h-11 rounded-xl border-dashed"
+                                                aria-describedby="sv-code-hint"
                                             />
+                                            <p id="sv-code-hint" className="text-[11px] text-gray-500 dark:text-gray-400 ml-1 leading-snug">
+                                                Ohne Code: Verifizierung vor Ort im SV-Raum. Mit Code: sofort freigeschaltet.
+                                            </p>
                                         </div>
                                     </div>
                                 )}
@@ -635,7 +644,7 @@ export default function Login() {
                                     className="w-full h-12 rounded-xl font-bold text-[15px] mt-6 shadow-md shadow-primary/20" 
                                     disabled={isLoading || isBlocked}
                                 >
-                                    {isLoading ? 'Bitte warten...' : (mode === 'login' ? 'Einloggen' : 'Registrieren & Beitreten')}
+                                    {isLoading ? 'Bitte warten...' : (mode === 'login' ? 'Einloggen' : 'Jetzt starten')}
                                 </Button>
                             </form>
                         </CardContent>

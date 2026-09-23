@@ -245,7 +245,7 @@ export default function AdminNews() {
                     ) : (
                         <div className="space-y-4">
                             {announcements.map((item) => (
-                                <Card key={item.id} className="border border-gray-100 dark:border-gray-850 bg-white dark:bg-gray-900 rounded-3xl overflow-hidden hover:shadow-sm transition-all duration-200">
+                                <Card key={item.id} className="border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 rounded-3xl overflow-hidden hover:shadow-sm transition-all duration-200">
                                     <CardContent className="p-5 flex items-start gap-4">
                                         <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-gray-500 shrink-0 mt-0.5">
                                             <NewsIcon value={item.icon} size={20} />

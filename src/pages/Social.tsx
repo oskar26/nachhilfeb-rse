@@ -70,9 +70,9 @@ export default function Social({ initialTab }: { initialTab?: 'requests' | 'matc
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-black tracking-tight text-gray-900 dark:text-white">Social Hub</h1>
+                    <h1 className="text-2xl font-black tracking-tight text-gray-900 dark:text-white">Anfragen & Matches</h1>
                     <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mt-0.5">
-                        Verwalte deine Kontakte, Merkliste und berechneten Matches.
+                        Kontakte, Merkliste und Vorschläge – alles an einem Ort.
                     </p>
                 </div>
             </div>

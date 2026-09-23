@@ -7,13 +7,13 @@ import { Card, CardContent } from '../components/ui/Card';
 import { 
     ChevronLeft, GraduationCap, 
     CheckCircle, MessageSquare, Star, 
-    Calendar, ShieldCheck, Share2, Award 
+    Calendar, Share2, Award 
 } from 'lucide-react';
 import { SubjectChip } from '../components/SubjectChip';
 import type { Subject } from '../components/SubjectChip';
 import { sanitizeHtml } from '../lib/sanitize';
 import { triggerHaptic } from '../lib/haptics';
-import { cn } from '../lib/utils';
+import { cn, formatAdPrice } from '../lib/utils';
 import ShareDialog from '../components/ShareDialog';
 import { extractDominantGradient, getDefaultGradient } from '../lib/colorExtractor';
 import { useAuth } from '../context/AuthContext';
@@ -152,13 +152,24 @@ export default function PublicProfile() {
                                 )}
                             </div>
                             <div className="text-center md:text-left pt-3 pb-1 flex-1">
-                                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-gray-900 dark:text-white flex items-center justify-center md:justify-start gap-2">
+                                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-gray-900 dark:text-white flex items-center justify-center md:justify-start gap-2 flex-wrap">
                                     {profile.display_name || 'FWG Nutzer'}
-                                    {profile.is_verified && <ShieldCheck className="text-blue-500" size={24} />}
+                                    {profile.is_verified && (
+                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-green-100 text-green-800 dark:bg-green-950/50 dark:text-green-300 px-2 py-0.5 rounded-full border border-green-200 dark:border-green-900">
+                                            <CheckCircle size={12} aria-hidden="true" /> Verifiziert
+                                        </span>
+                                    )}
                                 </h1>
                                 <p className="text-gray-500 dark:text-gray-400 font-semibold flex items-center justify-center md:justify-start gap-2 mt-1">
                                     <GraduationCap size={18} /> Klasse {profile.grade_level || '?'}
                                 </p>
+                                {reviewCount > 0 && (
+                                    <p className="mt-1.5 flex items-center justify-center md:justify-start gap-1.5 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                        <Star size={15} className="text-yellow-500 fill-yellow-500" aria-hidden="true" />
+                                        <span className="tabular-nums">{Number(profile.average_rating || 0).toFixed(1)}</span>
+                                        <span className="text-gray-500 dark:text-gray-400 font-normal">· {reviewCount} {reviewCount === 1 ? 'Bewertung' : 'Bewertungen'}</span>
+                                    </p>
+                                )}
                             </div>
                             <div className="flex flex-wrap gap-2 justify-center md:justify-end">
                                 {profile.is_coach && (
@@ -166,10 +177,14 @@ export default function PublicProfile() {
                                         <Award size={14} className="text-amber-600 dark:text-amber-400" /> Schüler-Coach (5./6. Klasse)
                                     </span>
                                 )}
-                                {profile.is_verified && (
-                                    <span className="bg-green-100 dark:bg-green-950/60 text-green-700 dark:text-green-300 text-xs font-bold px-3 py-1.5 rounded-full border border-green-200 dark:border-green-800/60 flex items-center gap-1.5 shadow-xs">
-                                        <CheckCircle size={14} /> Geprüft & Verifiziert
-                                    </span>
+                                {ads.length > 0 && (
+                                    <Button
+                                        size="sm"
+                                        className="rounded-full bg-primary text-primary-foreground hover:bg-primary-hover font-bold h-9 px-4"
+                                        onClick={() => navigate(`/ad/${ads[0].id}`)}
+                                    >
+                                        <MessageSquare size={14} className="mr-1.5" /> Anzeige öffnen
+                                    </Button>
                                 )}
                             </div>
                         </div>
@@ -179,7 +194,7 @@ export default function PublicProfile() {
                                 <div>
                                     <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-2">Über mich</h3>
                                     <div 
-                                        className="prose dark:prose-invert max-w-none text-sm text-gray-700 dark:text-gray-300 leading-relaxed bg-gray-50/60 dark:bg-gray-850/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-800/80"
+                                        className="prose dark:prose-invert max-w-none text-sm text-gray-700 dark:text-gray-300 leading-relaxed bg-gray-50/60 dark:bg-gray-800/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-800/80"
                                         dangerouslySetInnerHTML={{ __html: sanitizeHtml(profile.bio || '<p class="text-gray-400 italic">Keine Biografie angegeben.</p>') }}
                                     />
                                 </div>
@@ -189,20 +204,23 @@ export default function PublicProfile() {
                                 <div>
                                     <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-3">Statistiken</h3>
                                     <div className="space-y-2.5">
-                                        <div className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-850/50 rounded-2xl border border-gray-100 dark:border-gray-800">
+                                        <div className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
                                             <span className="text-xs text-gray-500 font-medium flex items-center gap-2"><Star size={14} className="text-yellow-500" /> Bewertung</span>
                                             <div className="flex items-center gap-1">
-                                                <span className="font-extrabold text-sm text-gray-900 dark:text-white">{reviewCount > 0 ? Number(profile.average_rating || 0).toFixed(1) : '-'}</span>
-                                                <span className="text-[10px] text-gray-400 font-bold">({reviewCount})</span>
+                                                <span className="font-extrabold text-sm text-gray-900 dark:text-white tabular-nums">{reviewCount > 0 ? Number(profile.average_rating || 0).toFixed(1) : '-'}</span>
+                                                <span className="text-xs text-gray-500 font-semibold">({reviewCount})</span>
                                             </div>
                                         </div>
-                                        <div className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-850/50 rounded-2xl border border-gray-100 dark:border-gray-800">
+                                        <div className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
                                             <span className="text-xs text-gray-500 font-medium flex items-center gap-2"><MessageSquare size={14} className="text-blue-500" /> Aktive Anzeigen</span>
                                             <span className="font-extrabold text-sm text-gray-900 dark:text-white">{ads.length}</span>
                                         </div>
-                                        <div className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-850/50 rounded-2xl border border-gray-100 dark:border-gray-800">
+                                        <div className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
                                             <span className="text-xs text-gray-500 font-medium flex items-center gap-2"><Calendar size={14} className="text-primary" /> Dabei seit</span>
-                                            <span className="font-extrabold text-sm text-gray-900 dark:text-white">{new Date(profile.created_at).getFullYear()}</span>
+                                            <span className="font-extrabold text-sm text-gray-900 dark:text-white">{(() => {
+                                                const y = new Date(profile.created_at || '').getFullYear();
+                                                return Number.isFinite(y) ? y : '—';
+                                            })()}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -261,7 +279,7 @@ export default function PublicProfile() {
                                 </div>
                                 <div className="text-right shrink-0">
                                     <span className="text-base font-extrabold text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-2xl">
-                                        {ad.price_details?.mode === 'free' ? 'Kostenlos' : `${ad.price_details?.value}€/h`}
+                                        {formatAdPrice(ad.price_details)}
                                     </span>
                                 </div>
                             </button>

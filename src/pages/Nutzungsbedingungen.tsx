@@ -217,7 +217,7 @@ export default function Nutzungsbedingungen() {
                     <Para id="p4" nr="04" title="§ 4 Regeln für Anzeigen">
                         <ParaList items={[
                             <span key="a">Anzeigen müssen <strong>wahr, konkret und aktuell</strong> sein (Fächer, Klassenstufen, Preise). Veraltete Anzeigen sind zu deaktivieren oder zu löschen.</span>,
-                            <span key="b"><strong>Richtpreise:</strong> Als fair gelten <span className="font-mono tabular-nums">ca. 10–15 € pro 45 Minuten</span>. Wucherpreise oder Lockangebote mit versteckten Kosten sind untersagt.</span>,
+                            <span key="b"><strong>Richtpreise:</strong> Als fair gelten <span className="font-mono tabular-nums">ca. 10–12 € pro 45–60 Minuten</span>. Wucherpreise oder Lockangebote mit versteckten Kosten sind untersagt.</span>,
                             <span key="c">Verboten sind: Beleidigungen, Diskriminierung, Werbung für externe kommerzielle Anbieter, Kettenbriefe, politische oder religiöse Agitation sowie Inhalte, die gegen Gesetze verstoßen.</span>,
                             <span key="d">Fotos dürfen nur hochgeladen werden, wenn du die <strong>Rechte daran hast</strong> und abgebildete Personen einverstanden sind.</span>,
                         ]} />

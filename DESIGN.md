@@ -129,3 +129,22 @@ Eltern-Feld. Eine Motion-Signatur: geneigte Tickets mit Klebeband + Fach-Tickerb
 - **Verify-Fix:** `wipeLine` initial scaleX(0)+margin:-80px ließ Chromium-IO degenerierte Rects erzeugen → Wipe auf clip-path + nur vertikalem margin in 13 Viewports umgestellt; alle Bars revealed.
 - Keine neuen Dependencies, genau 1 Marquee/Page, kein scroll-Listener, Sound/Haptik/loops: nein. Reduced-motion: sofort/opacity ohne räumliche Bewegung, Feedback-Muster bleiben.
 - `npx tsc --noEmit` + `vite build`: fehlerfrei. Playwright-Smoke Desktop/Mobile/RM: 0 pageerrors. `detect.mjs --json`: nur Baseline (`overused-font`, `codex-grid`) — keine neuen Findings.
+
+## Nachtrag 2026-09-23 — UX-Audit-Implementierung (24 Findings) + Feed-Card-Redesign
+- **Quelle:** `UX-AUDIT.md` (P0–P3, 24 Findings). Scope: Conversion-P0s, Preis-Dialekt, Feed-Header, Tokens, Copy-DE.
+- **Preis-Dialekt single-source (`src/lib/utils.ts`):** `unitLabel` / `formatAdPrice` → „12 € / 45 Min“ | „Kostenlos“ | „VB“ | „Preis auf Anfrage“; `hourlyRate` + `formatHourlyFromDetails` nur als Secondary („≈ 16 €/h“). Übernommen in Feed, AdDetails, Favorites, PublicProfile, CreateAd-Preview, Landing-Demo-Tickets. NIE 45-Min-Werte als `/h` labeln.
+- **Feed-Card neu (`Feed.tsx`):** Schwarzer `poster-grain`-CardHeader entfernt (Haupt-Mangel aus User-Screenshot). Non-boosted: weiß/`gray-900` + `border-gray-100`; Boosted: `yellow-50/70` + Ring + Sparkles-Ribbon. Header: Name · Typ-Badge (`Bietet`/`Suche`) · grüne Verifiziert-Pill · Coach-Pill · Klasse; Preis rechts `tabular-nums` + Secondary-Hourly. Footer-Duplikate (Coach-AG/Hervorgehoben) raus; h2→h3 in Empty-States; Touch-Targets ≥40px.
+- **AdDetails:** Sticky Bottom-Bar (Preis + CTA + „Unverbindlich · Kontakt nach Annahme“), Safety-Line, `pb-32`; durationMeta nur noch in Meta-Chips (nicht doppelt unter Preis); grüne Verifiziert-Pill; invalides `bg-gray-55/50` → `bg-gray-100/70`.
+- **Login:** Mobile Trust-Liste unter Logo, Schritt-Framing („1 von 2 · ca. 2 Minuten“), SV-Code optional + Helper.
+- **Requests:** Empty-States mit CTAs. **Profile:** Goal-Gradient „Profil-Stärke“ + 3-Schritte-CTA. **CreateAd:** Sticky Footer, Publish gelb, Richtwert-Copy vereinheitlicht. **Layout:** Menü/SV-Bereich (DE), aktiv `text-amber-950` auf `bg-primary/30` (gray-on-color gefixt), FAB-Icon `text-gray-950`. **Landing:** Demo-Preise mit Unit, `whitespace-nowrap` auf Ticket-Preis-Span.
+- **Invalid Tailwind tokens bereinigt:** `bg-gray-55/50`, `border-gray-150`, `dark:border-gray-850`, `dark:bg-gray-850*`, `border-red-150`, `text-red-350` → Standard-Steps.
+- **Verifikation:** `npx tsc --noEmit` grün · `detect.mjs --json` über alle geänderten Targets: `[]` · Playwright Mock-Feed Desktop/Mobil: 3 Ads, Preise/„Bietet“/„Suche“/Verifiziert sichtbar, 0 pageerrors. ESLint: nur pre-existing (`any`, `set-state-in-effect`) in angefassten Dateien, keine neuen aus dieser Runde. `npm run lint` global weiterhin legacy-noisy (~6k).
+- **Nicht fixbar im Code:** Test-Gibberish „Fdrgf hjklöv“ = DB-Inhalt. Chat-WhatsApp-Palette (F-020) als P2 geparkt.
+
+## Nachtrag 2026-09-23 — Verify-Runde (Regression- und Edge-Case-Fixes)
+- **AdDetails CTA/Sticky-Bar konnte verschwinden:** `.single()` auf `ad_requests` lieferte ohne passenden Request ein Array/leeres Objekt; `requestStatus` wurde auf `undefined` gesetzt → keine Inline-CTA, keine Sticky-Bar. Fix: Status-Guard nur bei gültigem String-Status + normalisierte `status`-Variable für alle Branches.
+- **API-Bridge (`src/lib/supabase.ts`):** `ad_requests` Select filtert jetzt auch `ad_id`; `.single()`/`.maybeSingle()` geben das erste Element (oder `null`) statt des Arrays zurück.
+- **SubjectChip Nested-Button:** Ohne `onClick` rendert die Chip jetzt als `<span>` (kein `button` in `button` auf PublicProfile/Feed/AdDetails-Listen). Interaktive Filter-Chips bleiben `motion.button`.
+- **PublicProfile NaN-Jahr:** Fehlt `created_at`, zeigt „Dabei seit“ jetzt `—` statt `NaN`.
+- **Verifikation:** `tsc -b` grün · `detect.mjs` `[]` · Build EXIT 0 · Playwright-Mocks: Sticky-Bar + Inline-CTA sichtbar (Unverbindlich-Zeile), Login Mobile Trust-Liste, Requests Empty-CTA, Profile „Profil-Stärke“, 0 pageerrors.
+

@@ -98,7 +98,7 @@ export default function Layout() {
                 </div>
 
                 <nav className="flex-1 space-y-1.5 px-4 py-4 overflow-y-auto overscroll-contain [scrollbar-width:thin]">
-                    <p className="px-4 text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mb-2">Menu</p>
+                    <p className="px-4 text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mb-2">Menü</p>
                     <NavLink to="/" end onClick={handleNavClick} className={({ isActive }) => getDesktopNavLinkClass('path', '/', isActive)}>
                         <Home size={20} /> Entdecken
                     </NavLink>
@@ -145,7 +145,7 @@ export default function Layout() {
                     {isCoachAdmin && (
                         <div className="mt-4 p-3 bg-primary/10 dark:bg-amber-950/20 border border-primary/25 dark:border-amber-900/30 rounded-2xl">
                             <p className="px-2 text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-[0.08em] mb-1.5">Schüler-Coaching</p>
-                            <NavLink to="/coach-panel" onClick={handleNavClick} className={({ isActive }) => `flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] dark:focus-visible:ring-primary ${isActive ? 'bg-primary/20 text-gray-900 dark:text-amber-100 font-extrabold' : 'text-amber-800 dark:text-amber-200 hover:bg-primary/10 dark:hover:bg-amber-900/40'}`}>
+                            <NavLink to="/coach-panel" onClick={handleNavClick} className={({ isActive }) => `flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] dark:focus-visible:ring-primary ${isActive ? 'bg-primary/30 text-amber-950 dark:text-amber-50 font-extrabold' : 'text-amber-800 dark:text-amber-200 hover:bg-primary/10 dark:hover:bg-amber-900/40'}`}>
                                 <Award size={18} className="text-amber-600 dark:text-amber-400 shrink-0" />
                                 <span className="font-bold">Coaching Panel</span>
                             </NavLink>
@@ -154,7 +154,7 @@ export default function Layout() {
 
                     {isAdmin && (
                         <div className="mt-4 p-3 bg-red-50/60 dark:bg-red-950/20 border border-red-200/60 dark:border-red-900/30 rounded-2xl">
-                            <p className="px-2 text-[10px] font-black text-red-600 dark:text-red-400 uppercase tracking-[0.08em] mb-1.5">Admin Area</p>
+                            <p className="px-2 text-[10px] font-black text-red-600 dark:text-red-400 uppercase tracking-[0.08em] mb-1.5">SV-Bereich</p>
                             <NavLink to="/sv-panel" onClick={handleNavClick} className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 ${isActive ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-200' : 'text-red-600 dark:text-red-400 hover:bg-red-100/70 dark:hover:bg-red-900/40'}`}>
                                 <span className="font-bold">SV Panel</span>
                             </NavLink>
@@ -215,7 +215,7 @@ export default function Layout() {
                                     whileHover={{ scale: 1.08 }}
                                     whileTap={{ scale: 0.92 }}
                                     transition={{ type: "spring", stiffness: 450, damping: 25 }}
-                                    className="bg-primary text-primary-foreground p-3.5 rounded-full shadow-lg shadow-primary/25 border-4 border-white dark:border-gray-950 ring-1 ring-black/5"
+                                    className="bg-primary text-gray-950 p-3.5 rounded-full shadow-lg shadow-primary/40 border-4 border-white dark:border-gray-950 ring-1 ring-black/10"
                                 >
                                     <PlusCircle size={24} strokeWidth={2.5} />
                                 </motion.div>
@@ -233,7 +233,7 @@ export default function Layout() {
                                 `relative flex flex-col items-center justify-center w-full min-w-0 h-full gap-1 text-[11px] font-bold transition-all px-1 ${
                                     isActive || (item.activateOnChat && (isSocialRoute || isChatRoute))
                                         ? 'text-gray-950 dark:text-white font-extrabold'
-                                        : 'text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300'
+                                        : 'text-gray-500 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300'
                                 }`
                             }
                             title={item.label}

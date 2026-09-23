@@ -457,7 +457,7 @@ export default function CoachPanel() {
                             ) : (
                                 <div className="divide-y divide-gray-100 dark:divide-gray-800">
                                     {coachCodes.map(code => (
-                                        <div key={code.id} className="p-4 flex items-center justify-between gap-3 hover:bg-gray-50/50 dark:hover:bg-gray-850/40 transition-colors">
+                                        <div key={code.id} className="p-4 flex items-center justify-between gap-3 hover:bg-gray-50/50 dark:hover:bg-gray-800/40 transition-colors">
                                             <div className="space-y-0.5">
                                                 <span className="font-mono font-black text-sm text-gray-900 dark:text-white tracking-wider">
                                                     {code.code}

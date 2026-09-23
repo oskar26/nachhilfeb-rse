@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
 import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/Card';
-import { SubjectChip, SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
+import { SubjectChip, SUBJECT_CATEGORIES, subjectLabelMap, type Subject } from '../components/SubjectChip';
 import { GraduationCap, MapPin, Clock, Filter, Search, CalendarDays, ShieldCheck, ChevronDown, ChevronUp, Share2, Sparkles, Bookmark, X, SearchX, Award, Users, ArrowUpDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
@@ -14,7 +14,7 @@ import { useAuth } from '../context/AuthContext';
 import { emptyAvailability, countMatches, type Availability } from '../components/AvailabilityCalendar';
 import { toast } from 'react-hot-toast';
 import ShareDialog from '../components/ShareDialog';
-import { cn } from '../lib/utils';
+import { cn, formatAdPrice, hourlyRate, type PriceDetails } from '../lib/utils';
 import { triggerHaptic } from '../lib/haptics';
 import { api } from '../lib/api';
 
@@ -25,7 +25,7 @@ interface Ad {
     subjects: Subject[];
     grade_levels: string[];
     locations: string[];
-    price_details: { mode?: string; value?: string | number; unit?: string } | null;
+    price_details: PriceDetails | null;
     duration_minutes?: number[];
     session_format?: 'single' | 'group' | 'any' | string;
     view_count?: number;
@@ -74,13 +74,15 @@ function getHourlyRate(ad: Ad): number | null {
     return Math.round(((val / minutes) * 60) * 100) / 100;
 }
 
-function formatHourlyRate(ad: Ad): string {
-    const mode = ad.price_details?.mode;
-    if (mode === 'free') return 'Kostenlos';
-    if (mode === 'vb') return 'VB';
-    const hourly = getHourlyRate(ad);
-    if (hourly === null) return 'Preis auf Anfrage';
-    return `${Number.isInteger(hourly) ? hourly : hourly.toFixed(2).replace('.', ',')}€/h`;
+function formatPrice(ad: Ad): string {
+    return formatAdPrice(ad.price_details);
+}
+
+function priceSecondary(ad: Ad): string | null {
+    const h = hourlyRate(ad.price_details);
+    if (h === null || h === 0) return null;
+    const text = Number.isInteger(h) ? String(h) : h.toFixed(1).replace('.', ',');
+    return `≈ ${text} €/h`;
 }
 
 interface SavedSearch {
@@ -432,7 +434,7 @@ export default function Feed() {
                             <button
                                 onClick={() => { setFilterByTime(!filterByTime); triggerHaptic('selection'); }}
                                 aria-pressed={filterByTime}
-                                className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-full border font-semibold transition-all cursor-pointer ${
+                                className={`flex items-center gap-1 text-xs px-3 min-h-[40px] py-1.5 rounded-full border font-semibold transition-all cursor-pointer ${
                                     filterByTime
                                         ? 'bg-primary text-black border-primary shadow-sm dark:bg-primary dark:text-black'
                                         : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-500'
@@ -446,7 +448,7 @@ export default function Feed() {
                         <button
                             onClick={() => { setFilterOnlyCoaches(!filterOnlyCoaches); triggerHaptic('selection'); }}
                             aria-pressed={filterOnlyCoaches}
-                            className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-full border font-semibold transition-all cursor-pointer ${
+                            className={`flex items-center gap-1 text-xs px-3 min-h-[40px] py-1.5 rounded-full border font-semibold transition-all cursor-pointer ${
                                 filterOnlyCoaches
                                     ? 'bg-primary text-black border-primary shadow-sm dark:bg-primary dark:text-black'
                                     : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-500'
@@ -496,13 +498,13 @@ export default function Feed() {
                             }}
                             aria-pressed={filterSubject === subj}
                             className={cn(
-                                "px-3 py-1 rounded-full border transition-all shrink-0 capitalize font-medium",
+                                "px-3 min-h-[40px] py-2 rounded-full border transition-all shrink-0 font-medium",
                                 filterSubject === subj
                                     ? "bg-primary text-black font-bold border-primary shadow-sm"
                                     : "bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-800 hover:border-gray-300"
                             )}
                         >
-                            {subj}
+                            {subjectLabelMap[subj] || subj}
                         </button>
                     ))}
                     {filterSubject && (
@@ -595,7 +597,7 @@ export default function Feed() {
                                 <div className="flex flex-col gap-4 max-h-64 overflow-y-auto pr-2">
                                     {SUBJECT_CATEGORIES.map(category => (
                                         <div key={category.title}>
-                                            <h2 className="inline-block rounded-md bg-gray-950 dark:bg-black px-2 py-1 text-xs font-bold text-white uppercase tracking-wide mb-2">{category.title}</h2>
+                                            <h3 className="inline-block rounded-md bg-gray-950 dark:bg-black px-2 py-1 text-xs font-bold text-white uppercase tracking-wide mb-2">{category.title}</h3>
                                             <div className="flex flex-wrap gap-2">
                                                 {category.subjects.map((s: Subject) => (
                                                     <SubjectChip
@@ -805,7 +807,7 @@ export default function Feed() {
                         </div>
                         {hasActiveFilters ? (
                             <>
-                                <h2 className="text-xl font-bold mb-2">Keine Treffer für diese Filter</h2>
+                                <h3 className="text-xl font-bold mb-2">Keine Treffer für diese Filter</h3>
                                 <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">Keine Anzeige passt zu deiner aktuellen Suche. Setze die Filter zurück oder erstelle selbst eine Anzeige!</p>
                                 <div className="flex flex-wrap justify-center gap-2">
                                     <Button variant="outline" onClick={() => { resetAllFilters(); triggerHaptic('light'); }} className="rounded-full shadow-sm">Filter zurücksetzen</Button>
@@ -814,7 +816,7 @@ export default function Feed() {
                             </>
                         ) : (
                             <>
-                                <h2 className="text-xl font-bold mb-2">Der Feed ist leer</h2>
+                                <h3 className="text-xl font-bold mb-2">Der Feed ist leer</h3>
                                 <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">Aktuell gibt es keine aktiven Anzeigen. Erstelle selbst etwas!</p>
                                 <Button onClick={() => navigate('/create-ad')} className="rounded-full shadow-md">Anzeige erstellen</Button>
                             </>
@@ -840,36 +842,48 @@ export default function Feed() {
                                 </div>
                             )}
                             <CardHeader className={cn(
-                                "p-4 border-b flex flex-row justify-between items-start gap-3 min-w-0",
+                                "p-4 pb-3 border-b flex flex-row justify-between items-start gap-3 min-w-0",
                                 boosted
-                                    ? "bg-yellow-50/60 dark:bg-yellow-900/10 border-yellow-400/30"
-                                    : "bg-gray-950 dark:bg-black poster-grain text-white border-white/10"
+                                    ? "bg-yellow-50/70 dark:bg-yellow-950/20 border-yellow-300/50"
+                                    : "bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800"
                             )}>
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-center gap-2 flex-wrap">
-                                        <h2 className="font-bold text-lg truncate">{ad.profiles?.display_name || 'Unbekannt'}</h2>
+                                        <h3 className="font-bold text-base sm:text-lg truncate text-gray-950 dark:text-white">{ad.profiles?.display_name || 'Unbekannt'}</h3>
+                                        <span className={cn(
+                                            "text-[11px] font-semibold px-2 py-0.5 rounded-full border shrink-0",
+                                            ad.type === 'search'
+                                                ? "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800"
+                                                : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
+                                        )}>
+                                            {ad.type === 'search' ? 'Suche' : 'Bietet'}
+                                        </span>
                                         {ad.profiles?.is_verified && (
-                                            <span className="stamp-ring bg-primary text-black text-xs font-black uppercase tracking-wider px-1.5 py-0.5 rounded -rotate-2">Verifiziert</span>
+                                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-green-500/12 text-green-700 dark:text-green-400 border border-green-500/25 px-2 py-0.5 rounded-full shrink-0">
+                                                <ShieldCheck size={12} aria-hidden="true" /> Verifiziert
+                                            </span>
                                         )}
                                         {ad.profiles?.is_coach && (
-                                            <span className="bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-xs px-2 py-0.5 rounded-full border border-amber-300 dark:border-amber-700 font-semibold flex items-center gap-1" title="Mitglied der Schüler-Coaching AG">
+                                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 px-2 py-0.5 rounded-full shrink-0" title="Mitglied der Schüler-Coaching AG">
                                                 <Award size={12} className="text-amber-600 dark:text-amber-400" />
                                                 Coach
                                             </span>
                                         )}
                                     </div>
-                                    <div className="text-sm opacity-70 flex items-center gap-1 mt-1">
-                                        <GraduationCap size={14} /> {ad.profiles?.grade_level || '?'}
+                                    <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1.5">
+                                        <GraduationCap size={13} /> Klasse {ad.profiles?.grade_level || '?'}
                                     </div>
                                 </div>
                                 <div className="flex flex-col items-end gap-1 shrink-0">
-                                    <div className={cn(
-                                        "px-2 py-1 rounded text-sm font-semibold shadow-sm border",
-                                        boosted
-                                            ? "bg-yellow-50 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700 text-yellow-800 dark:text-yellow-300"
-                                            : "bg-white dark:bg-gray-700 text-gray-950 dark:text-white border-gray-100 dark:border-gray-600"
-                                    )}>
-                                        {formatHourlyRate(ad)}
+                                    <div className="text-right">
+                                        <div className="text-sm sm:text-base font-bold tabular-nums text-gray-950 dark:text-white whitespace-nowrap">
+                                            {formatPrice(ad)}
+                                        </div>
+                                        {priceSecondary(ad) && (
+                                            <div className="text-[11px] tabular-nums text-gray-500 dark:text-gray-400 mt-0.5">
+                                                {priceSecondary(ad)}
+                                            </div>
+                                        )}
                                     </div>
                                     {filterByTime && matchScore > 0 && (
                                         <div className="flex items-center gap-1 text-xs font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded-full">
@@ -887,8 +901,8 @@ export default function Feed() {
                                 </p>
                             </CardContent>
                             <CardFooter className={cn(
-                                "p-3 text-xs text-gray-400 flex flex-wrap justify-between items-center gap-2",
-                                boosted ? "bg-yellow-50/40 dark:bg-yellow-900/5" : "bg-gray-50 dark:bg-gray-900/40"
+                                "p-3 text-xs text-gray-500 dark:text-gray-400 flex flex-wrap justify-between items-center gap-2 border-t border-gray-100 dark:border-gray-800",
+                                boosted ? "bg-yellow-50/40 dark:bg-yellow-950/10" : "bg-gray-50/80 dark:bg-gray-900/40"
                             )}>
                                 <div className="flex flex-wrap gap-x-3 gap-y-1 min-w-0">
                                     {ad.locations && ad.locations[0] && (
@@ -900,16 +914,6 @@ export default function Feed() {
                                     )}
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    {ad.profiles?.is_coach && (
-                                        <span className="text-amber-700 dark:text-amber-400 font-semibold text-xs flex items-center gap-0.5 bg-amber-50 dark:bg-amber-950/30 px-1.5 py-0.5 rounded border border-amber-200/60 dark:border-amber-800/40">
-                                            <Award size={12} /> Schüler-Coach AG
-                                        </span>
-                                    )}
-                                    {boosted && (
-                                        <span className="text-yellow-600 dark:text-yellow-500 font-semibold text-xs flex items-center gap-0.5" title="Hervorgehoben (z. B. Coach-Status oder Aktion)">
-                                            <Sparkles size={12} /> Hervorgehoben
-                                        </span>
-                                    )}
                                     <button
                                         type="button"
                                         onClick={(e) => {
@@ -917,7 +921,7 @@ export default function Feed() {
                                             triggerHaptic('light');
                                             setShareAd({ id: ad.id, title: `${ad.subjects?.[0]?.toUpperCase() || 'Nachhilfe'}: ${ad.profiles?.display_name || ''}` });
                                         }}
-                                        className="p-1.5 rounded-lg hover:bg-gray-200/60 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                                        className="p-1.5 rounded-lg hover:bg-gray-200/60 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors min-h-[36px] min-w-[36px]"
                                         title="Anzeige teilen"
                                     >
                                         <Share2 size={13} />

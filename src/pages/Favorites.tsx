@@ -8,6 +8,7 @@ import { Trash2, Heart, ExternalLink, Share2 } from 'lucide-react';
 import { SubjectChip } from '../components/SubjectChip';
 import ShareDialog from '../components/ShareDialog';
 import { toast } from 'react-hot-toast';
+import { formatAdPrice } from '../lib/utils';
 
 interface FavoriteAd {
     id: string;
@@ -110,7 +111,7 @@ export default function Favorites() {
                 <div className="text-center py-20 text-gray-500 animate-pulse">Lade gespeicherte Anzeigen...</div>
             ) : favorites.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-12 text-center bg-white dark:bg-gray-900 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm mt-8">
-                    <div className="w-20 h-20 mb-6 rounded-full bg-gray-50 dark:bg-gray-850 flex items-center justify-center">
+                    <div className="w-20 h-20 mb-6 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
                         <Heart size={36} className="text-gray-400" />
                     </div>
                     <h3 className="text-xl font-bold mb-2">Hier ist noch nichts</h3>
@@ -128,11 +129,11 @@ export default function Favorites() {
                                 key={fav.id}
                                 className="overflow-hidden hover:shadow-md transition-shadow relative border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex flex-col justify-between"
                             >
-                                <CardHeader className="p-4 bg-gray-50/30 dark:bg-gray-850/30 border-b border-gray-100 dark:border-gray-800 flex flex-row justify-between items-start">
+                                <CardHeader className="p-4 bg-gray-50/30 dark:bg-gray-800/30 border-b border-gray-100 dark:border-gray-800 flex flex-row justify-between items-start">
                                     <div>
                                         <div className="flex items-center gap-2">
                                             <h3 className="font-bold text-base line-clamp-1">{ad.profiles?.display_name || 'Unbekannt'}</h3>
-                                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${ad.type === 'offer' ? 'bg-primary/20 text-primary-hover dark:text-primary' : 'bg-secondary/20 text-secondary'}`}>
+                                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${ad.type === 'offer' ? 'bg-primary/20 text-primary-hover dark:text-primary' : 'bg-secondary/20 text-secondary'}`}>
                                                 {ad.type === 'offer' ? 'Biete' : 'Suche'}
                                             </span>
                                         </div>
@@ -177,9 +178,9 @@ export default function Favorites() {
                                         <p className="text-xs line-clamp-2 text-gray-600 dark:text-gray-400">{ad.short_description}</p>
                                     </div>
                                     
-                                    <div className="flex justify-between items-center mt-3 border-t pt-2.5 border-gray-150 dark:border-gray-800">
-                                        <span className="text-xs font-extrabold text-gray-900 dark:text-white">
-                                            {ad.price_details?.mode === 'free' ? 'Kostenlos' : (ad.price_details?.mode === 'vb' ? 'VB' : `${ad.price_details?.value}€ / Std`)}
+                                    <div className="flex justify-between items-center mt-3 border-t pt-2.5 border-gray-200 dark:border-gray-800">
+                                        <span className="text-xs font-extrabold text-gray-900 dark:text-white tabular-nums">
+                                            {formatAdPrice(ad.price_details)}
                                         </span>
                                         <Button 
                                             size="sm" 

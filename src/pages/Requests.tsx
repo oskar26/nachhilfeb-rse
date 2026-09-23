@@ -110,6 +110,9 @@ export default function Requests() {
                             </div>
                             <h3 className="text-xl font-bold mb-2">Posteingang ist leer</h3>
                             <p className="text-gray-500 dark:text-gray-400 max-w-sm">Du hast noch keine Anfragen zu deinen Anzeigen erhalten. Sobald jemand Interesse hat, taucht die Anfrage hier auf!</p>
+                            <Button className="mt-6 rounded-full bg-primary text-primary-foreground hover:bg-primary-hover" onClick={() => navigate('/create-ad')}>
+                                Anzeige erstellen
+                            </Button>
                         </div>
                     )}
                     {visibleIncoming.map(req => (
@@ -145,7 +148,7 @@ export default function Requests() {
                                     <div className="space-y-3">
                                         <div className="grid grid-cols-2 gap-2 text-sm">
                                             {req.requester?.phone_number && req.requester?.settings?.phone_visible ? (
-                                                <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-950/20 text-green-800 dark:text-green-300 rounded border border-green-200 dark:border-green-905">
+                                                <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-950/20 text-green-800 dark:text-green-300 rounded border border-green-200 dark:border-green-900">
                                                     <Phone size={14} /> {req.requester.phone_number}
                                                 </div>
                                             ) : (
@@ -154,7 +157,7 @@ export default function Requests() {
                                                 </div>
                                             )}
                                             {req.requester?.email && req.requester?.settings?.email_visible ? (
-                                                <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-950/20 text-green-800 dark:text-green-300 rounded border border-green-200 dark:border-green-905">
+                                                <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-950/20 text-green-800 dark:text-green-300 rounded border border-green-200 dark:border-green-900">
                                                     <Mail size={14} /> {req.requester.email}
                                                 </div>
                                             ) : (
@@ -186,6 +189,9 @@ export default function Requests() {
                             </div>
                             <h3 className="text-xl font-bold mb-2">Keine laufenden Anfragen</h3>
                             <p className="text-gray-500 dark:text-gray-400 max-w-sm">Du hast noch keine offenen Anfragen an andere Personen gestellt. Schau dich im Feed um und finde den perfekten Nachhilfe-Partner!</p>
+                            <Button className="mt-6 rounded-full bg-primary text-primary-foreground hover:bg-primary-hover" onClick={() => navigate('/')}>
+                                Anzeigen stöbern
+                            </Button>
                         </div>
                     )}
                     {visibleOutgoing.map(req => (
@@ -215,7 +221,7 @@ export default function Requests() {
                                                     <Phone size={16} /> {req.owner.phone_number}
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center gap-2 text-gray-550 dark:text-gray-400 text-xs italic">
+                                                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-xs italic">
                                                     <Phone size={16} className="text-gray-400" /> Telefonnummer privat
                                                 </div>
                                             )}
@@ -224,7 +230,7 @@ export default function Requests() {
                                                     <Mail size={16} /> {req.owner.email}
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center gap-2 text-gray-550 dark:text-gray-400 text-xs italic">
+                                                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-xs italic">
                                                     <Mail size={16} className="text-gray-400" /> E-Mail privat
                                                 </div>
                                             )}

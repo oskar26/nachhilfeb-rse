@@ -7,7 +7,7 @@ import { SubjectChip, SUBJECT_CATEGORIES, subjectLabelMap, type Subject } from '
 import { GradeSelector } from '../components/GradeSelector';
 import { RichTextEditor } from '../components/RichTextEditor';
 import { ChevronLeft, ChevronRight, CheckCircle, Plus, X, Link as LinkIcon, AlertCircle, Lock, GraduationCap, Search, Users, User, Shuffle, School, Wifi, Home, MapPin, Calculator, Info } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, formatAdPrice } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
@@ -960,21 +960,21 @@ export default function CreateAd() {
                                             {effectiveHourly.hourly >= 9 && effectiveHourly.hourly <= 14 && (
                                                 <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800/60">
                                                     <CheckCircle size={15} className="shrink-0 text-emerald-600 dark:text-emerald-400" />
-                                                    <span>Faire Preisempfehlung – ca. 12 €/h Richtwert am FWG</span>
+                                                    <span>Faire Preisempfehlung – ca. 10–12 € pro 45–60 Min Richtwert am FWG</span>
                                                 </div>
                                             )}
 
                                             {effectiveHourly.hourly < 9 && (
                                                 <div className="flex items-center gap-2 text-xs font-semibold text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/40 p-2.5 rounded-xl border border-sky-200 dark:border-sky-800/60">
                                                     <Info size={15} className="shrink-0 text-sky-600 dark:text-sky-400" />
-                                                    <span>Sehr günstig – unter dem 12 €/h Richtwert</span>
+                                                    <span>Sehr günstig – unter dem Richtwert ca. 10–12 € pro 45–60 Min</span>
                                                 </div>
                                             )}
 
                                             {effectiveHourly.hourly > 14 && effectiveHourly.hourly <= 18 && (
                                                 <div className="flex items-center gap-2 text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200 dark:border-amber-800/60">
                                                     <Info size={15} className="shrink-0 text-amber-600 dark:text-amber-400" />
-                                                    <span>Etwas über dem Durchschnitt – FWG-Richtwert: ca. 12 €/h</span>
+                                                    <span>Etwas über dem Durchschnitt – FWG-Richtwert: ca. 10–12 € pro 45–60 Min</span>
                                                 </div>
                                             )}
 
@@ -999,7 +999,7 @@ export default function CreateAd() {
                             {formData.price_mode === 'vb' && (
                                 <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 flex items-center gap-2.5 text-xs text-blue-800 dark:text-blue-300 font-medium animate-in fade-in">
                                     <Info size={16} className="text-blue-600 dark:text-blue-400 shrink-0" />
-                                    <span>Tipp zur Orientierung: Am FWG sind ca. 10–12 € pro 45–60 Minuten ein beliebter und erprobter Richtwert.</span>
+                                    <span>Tipp zur Orientierung: Am FWG sind ca. 10–12 € pro 45–60 Min ein beliebter und erprobter Richtwert.</span>
                                 </div>
                             )}
                         </div>
@@ -1080,8 +1080,12 @@ export default function CreateAd() {
                                 <div className="bg-gray-50 dark:bg-gray-900 p-6 border-b">
                                     <h2 className="text-2xl font-bold mb-2">{formData.title}</h2>
                                     <div className="flex flex-wrap gap-2 mb-4">
-                                        <span className="px-3 py-1 bg-primary text-black rounded-full text-sm font-bold">
-                                            {formData.price_mode === 'fixed' ? `${formData.price_value}€ / ${formData.price_unit}` : (formData.price_mode === 'free' ? 'Kostenlos' : 'VB')}
+                                        <span className="px-3 py-1 bg-primary text-black rounded-full text-sm font-bold tabular-nums">
+                                            {formatAdPrice({
+                                                mode: formData.price_mode,
+                                                value: Number(formData.price_value) || 0,
+                                                unit: formData.price_unit,
+                                            })}
                                         </span>
                                         <span className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-sm font-semibold">
                                             {formData.session_format === 'single' ? 'Einzelunterricht' : formData.session_format === 'group' ? 'Kleingruppe' : 'Format: Egal'}
@@ -1116,7 +1120,7 @@ export default function CreateAd() {
                     )}
 
                 </CardContent>
-                <CardFooter className="flex flex-col gap-2 border-t pt-4 sm:pt-6 p-4 sm:p-6">
+                <CardFooter className="sticky bottom-0 z-10 flex flex-col gap-2 border-t border-gray-100 dark:border-gray-800 pt-4 sm:pt-6 p-4 sm:p-6 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-b-3xl shadow-[0_-8px_24px_-16px_rgba(0,0,0,0.15)]">
                     {!isStepValid() && stepHint && currentStep < STEPS.length - 1 && (
                         <p className="w-full text-xs font-medium text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl px-3 py-2" role="status">
                             Noch offen: {stepHint}
@@ -1128,7 +1132,7 @@ export default function CreateAd() {
                     </Button>
 
                     {currentStep === STEPS.length - 1 ? (
-                        <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-600/20 px-4 sm:px-5">
+                        <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold px-4 sm:px-5 shadow-lg shadow-primary/25">
                             {isSubmitting ? 'Wird veröffentlicht...' : 'Jetzt veröffentlichen'} <CheckCircle size={16} className="ml-1 sm:ml-2 shrink-0" />
                         </Button>
                     ) : (

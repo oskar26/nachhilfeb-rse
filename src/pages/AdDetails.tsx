@@ -12,6 +12,7 @@ import ReportWizard from '../components/ReportWizard';
 import ShareDialog from '../components/ShareDialog';
 import { AvailabilityCalendar, emptyAvailability, countMatches, type Availability } from '../components/AvailabilityCalendar';
 import { sanitizeHtml } from '../lib/sanitize';
+import { formatAdPrice, formatHourlyFromDetails } from '../lib/utils';
 
 export default function AdDetails() {
     const { id } = useParams();
@@ -61,7 +62,7 @@ export default function AdDetails() {
                     .eq('requester_id', user.id)
                     .single();
 
-                if (req) setRequestStatus(req.status);
+                if (req && typeof req.status === 'string') setRequestStatus(req.status as typeof requestStatus);
             }
         }
         setLoading(false);
@@ -123,12 +124,22 @@ export default function AdDetails() {
 
     const isOwn = user?.id === ad.user_id;
 
-    const price = ad.price_details?.mode === 'fixed'
-        ? `${ad.price_details.value}€ / ${ad.price_details.unit}`
-        : (ad.price_details?.mode === 'free' ? 'Kostenlos' : 'VB');
+    const price = formatAdPrice(ad.price_details);
+    const hourly = formatHourlyFromDetails(ad.price_details);
+    const durations = (ad.duration_minutes || []).filter((d: number) => typeof d === 'number');
+    const hasFlexible = durations.some((d: number) => d === 0);
+    const concreteDurations = durations.filter((d: number) => d > 0);
+    const durationMeta = concreteDurations.length > 0
+        ? concreteDurations.map((d: number) => `${d} Min`).join(' · ') + (hasFlexible ? ' · nach Absprache' : '')
+        : 'Egal · nach Absprache';
+
+    const status: typeof requestStatus = requestStatus === 'pending' || requestStatus === 'accepted' || requestStatus === 'rejected' || requestStatus === 'completed'
+        ? requestStatus
+        : 'none';
+    const canRequest = !isOwn && status === 'none';
 
     return (
-        <div className="p-4 max-w-3xl mx-auto pb-24 space-y-6">
+        <div className="p-4 max-w-3xl mx-auto pb-32 space-y-6">
             <div className="flex justify-between items-center mb-4">
                 <Button variant="ghost" onClick={() => navigate(-1)} className="pl-0 hover:bg-transparent hover:text-primary-hover">
                     <ChevronLeft className="mr-2" /> Zurück
@@ -152,14 +163,23 @@ export default function AdDetails() {
                 {/* Header Card */}
                 <Card>
                     <CardHeader className="bg-gray-50 dark:bg-gray-900/50 border-b">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <h1 className="text-2xl font-bold mb-2">{ad.subjects?.[0]?.toUpperCase() || 'Nachhilfe'} - {profile?.display_name || 'Nutzer'}</h1>
+                        <div className="flex justify-between items-start gap-3">
+                            <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2 mb-2">
+                                    <h1 className="text-2xl font-bold">{ad.subjects?.[0]?.toUpperCase() || 'Nachhilfe'} - {profile?.display_name || 'Nutzer'}</h1>
+                                    {profile?.is_verified && (
+                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-green-100 text-green-800 dark:bg-green-950/50 dark:text-green-300 px-2 py-0.5 rounded-full border border-green-200 dark:border-green-900 shrink-0">
+                                            <CheckCircle size={12} aria-hidden="true" /> Verifiziert
+                                        </span>
+                                    )}
+                                </div>
                                 <p className="text-gray-500 text-lg">{ad.type === 'offer' ? 'Biete Nachhilfe' : 'Suche Nachhilfe'}</p>
                             </div>
-                            <div className="text-right">
-                                <div className="text-xl font-bold text-primary-hover">{price}</div>
-                                <div className="text-sm text-gray-400">{(ad.duration_minutes || []).map((d: number) => d === 0 ? 'Egal' : `${d} min`).join(', ') || 'Egal'}</div>
+                            <div className="text-right shrink-0">
+                                <div className="text-xl font-bold text-primary-hover" aria-label={`Preis: ${price}`}>{price}</div>
+                                {hourly && hourly !== price && (
+                                    <div className="text-xs text-gray-500 dark:text-gray-400 tabular-nums">≈ {hourly}</div>
+                                )}
                             </div>
                         </div>
                     </CardHeader>
@@ -171,8 +191,8 @@ export default function AdDetails() {
                                     <MapPin size={14} /> {loc}
                                 </span>
                             ))}
-                            <span className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-                                <Clock size={14} /> Flexibel
+                            <span className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded" title={durationMeta}>
+                                <Clock size={14} /> {durationMeta}
                             </span>
                             {ad.session_format && ad.session_format !== 'any' && (
                                 <span className="flex items-center gap-1 bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 px-2 py-1 rounded" title={ad.session_format === 'group' ? 'Kleingruppe (2–4 Schüler)' : 'Einzelunterricht'}>
@@ -230,27 +250,36 @@ export default function AdDetails() {
                             <div>
                                 <div className="font-bold text-lg">{profile?.display_name || 'Unbekannt'}</div>
                                 <div className="text-sm text-gray-500">Klasse {profile?.grade_level || '?'}</div>
-                                {profile?.is_verified && <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full border border-green-200 mt-1 inline-block">Verifiziert</span>}
                             </div>
                         </div>
 
                         {isOwn ? (
-                            <div className="bg-gray-100 p-4 rounded-lg text-center text-gray-500">
+                            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg text-center text-gray-500 dark:text-gray-400">
                                 Das ist deine eigene Anzeige.
                             </div>
                         ) : (
                             <div>
-                                {requestStatus === 'none' && (
-                                    <Button onClick={sendRequest} disabled={sending} className="w-full text-lg py-6 bg-primary hover:bg-primary-hover text-black font-bold">
-                                        <Send size={20} className="mr-2" /> Anfrage senden
-                                    </Button>
+                                {status === 'none' && (
+                                    <div className="space-y-2">
+                                        <Button
+                                            onClick={sendRequest}
+                                            disabled={sending}
+                                            className="w-full text-lg py-6 bg-primary hover:bg-primary-hover text-black font-bold"
+                                        >
+                                            <Send size={20} className="mr-2" /> Anfrage senden
+                                            <span className="ml-2 font-bold tabular-nums opacity-80">· {price}</span>
+                                        </Button>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 text-center leading-relaxed">
+                                            Unverbindlich · Kontakte erst nach Annahme der Anfrage sichtbar
+                                        </p>
+                                    </div>
                                 )}
-                                {requestStatus === 'pending' && (
+                                {status === 'pending' && (
                                     <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg text-center text-yellow-800 font-medium">
                                         Anfrage gesendet. Warte auf Antwort...
                                     </div>
                                 )}
-                                {(requestStatus === 'accepted' || requestStatus === 'completed') && (
+                                {(status === 'accepted' || status === 'completed') && (
                                     <div className="space-y-4 animate-in fade-in zoom-in-95">
                                         <div className="bg-green-50 border border-green-200 p-4 rounded-lg flex items-center gap-3 text-green-800">
                                             <CheckCircle size={24} />
@@ -279,14 +308,14 @@ export default function AdDetails() {
                                                 </a>
                                             )}
                                             {(!profile?.settings?.phone_visible && !profile?.settings?.email_visible) && (
-                                                <div className="p-4 bg-gray-55/50 text-gray-500 rounded-xl border dark:border-gray-800 col-span-2 text-center text-xs">
+                                                <div className="p-4 bg-gray-100/70 dark:bg-gray-800/60 text-gray-500 dark:text-gray-400 rounded-xl border border-gray-200 dark:border-gray-800 col-span-2 text-center text-xs">
                                                     Dieser Nutzer hat seine Kontaktdaten auf privat gestellt. Bitte kontaktiere ihn direkt über den Moodle-Namen ({profile?.moodle_name || 'Kein Moodle Name angegeben'}) oder im Chat.
                                                 </div>
                                             )}
                                         </div>
                                     </div>
                                 )}
-                                {requestStatus === 'rejected' && (
+                                {status === 'rejected' && (
                                     <div className="bg-red-50 border border-red-200 p-4 rounded-lg text-center text-red-800 font-medium">
                                         Anfrage wurde leider abgelehnt.
                                     </div>
@@ -298,7 +327,7 @@ export default function AdDetails() {
             </div>
 
             {/* Availability Calendar */}
-            {(!isOwn && (profile?.privacy_calendar === false || requestStatus === 'accepted')) && (
+            {(!isOwn && (profile?.privacy_calendar === false || status === 'accepted')) && (
                 <Card>
                     <CardHeader className="border-b bg-gray-50 dark:bg-gray-900/50 pb-4">
                         <div className="flex items-center justify-between">
@@ -359,6 +388,27 @@ export default function AdDetails() {
                 isOpen={isShareOpen}
                 onClose={() => setIsShareOpen(false)}
             />
+
+            {/* Sticky conversion bar (I2): CTA + price stay reachable while scrolling */}
+            {canRequest && (
+                <div className="fixed left-0 right-0 bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] z-40 px-4 md:sticky md:inset-auto md:bottom-4 md:px-0 md:z-auto md:w-full md:max-w-3xl md:mx-auto">
+                    <div className="rounded-2xl md:rounded-full border border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-soft px-3 py-2.5 flex items-center gap-3">
+                        <div className="min-w-0 flex-1 pl-1">
+                            <div className="text-sm font-bold text-gray-900 dark:text-white truncate tabular-nums">{price}</div>
+                            <div className="text-[11px] text-gray-500 dark:text-gray-400 truncate">Unverbindlich · Kontakt nach Annahme</div>
+                        </div>
+                        <Button
+                            onClick={sendRequest}
+                            disabled={sending}
+                            className="shrink-0 bg-primary hover:bg-primary-hover text-black font-bold h-12 px-5 rounded-full"
+                            aria-describedby="request-safety-line"
+                        >
+                            <Send size={18} className="mr-2" /> Anfrage senden
+                        </Button>
+                    </div>
+                    <span id="request-safety-line" className="sr-only">Unverbindlich. Kontaktdaten werden erst nach Annahme der Anfrage sichtbar.</span>
+                </div>
+            )}
         </div>
     );
 }

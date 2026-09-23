@@ -318,10 +318,12 @@ export class QueryBuilder<T = any[]> implements PromiseLike<QueryResult<T>> {
                     const idFilter = this.filters.find(f => f.col === 'id')?.val;
                     if (idFilter) {
                         const res = await api.requests.get(idFilter);
-                        return { data: res.data, count: res.data ? 1 : 0, error: res.error };
+                        const outData = this.isSingle || this.isMaybeSingle ? res.data : [res.data].filter(Boolean);
+                        return { data: outData, count: res.data ? 1 : 0, error: res.error };
                     }
                     const ownerFilter = this.filters.find(f => f.col === 'owner_id')?.val;
                     const reqFilter = this.filters.find(f => f.col === 'requester_id')?.val;
+                    const adFilter = this.filters.find(f => f.col === 'ad_id')?.val;
                     const res = await api.requests.list();
                     let list = res.data || [];
                     if (ownerFilter) {
@@ -329,6 +331,13 @@ export class QueryBuilder<T = any[]> implements PromiseLike<QueryResult<T>> {
                     }
                     if (reqFilter) {
                         list = list.filter((r: any) => r.requester_id === reqFilter);
+                    }
+                    if (adFilter) {
+                        list = list.filter((r: any) => r.ad_id === adFilter);
+                    }
+                    if (this.isSingle || this.isMaybeSingle) {
+                        const first = list[0] ?? null;
+                        return { data: first, count: first ? 1 : 0, error: first ? null : res.error };
                     }
                     return { data: list, count: list.length, error: res.error };
                 }

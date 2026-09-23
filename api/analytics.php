@@ -131,14 +131,17 @@ if ($action === 'summary' && $method === 'GET') {
         $users = (int)$pdo->query('SELECT COUNT(*) FROM profiles')->fetchColumn();
     } catch (Exception $e) {}
     $views = 0;
+    $views30 = 0;
     try {
         $views = (int)$pdo->query('SELECT COUNT(*) FROM page_analytics')->fetchColumn();
+        $views30 = (int)$pdo->query('SELECT COUNT(*) FROM page_analytics WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)')->fetchColumn();
     } catch (Exception $e) {}
 
     json_response([
         'active_ads' => $ads,
         'users' => $users,
         'page_views' => $views,
+        'page_views_30d' => $views30,
     ]);
 }
 
