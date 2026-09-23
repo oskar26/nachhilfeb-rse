@@ -9,7 +9,6 @@ Nachhilfe suchen und anbieten, direkt unter Mitschülern: ohne kommerzielle Plat
 [![Status](https://img.shields.io/badge/Status-Aktiv-22c55e?style=for-the-badge)](https://nachhilfe-sv.de)
 [![Open Source](https://img.shields.io/badge/Open%20Source-GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/oskar26/nachhilfeb-rse)
 [![DSGVO](https://img.shields.io/badge/DSGVO-Hosting%20in%20DE-0ea5e9?style=for-the-badge)](https://nachhilfe-sv.de/#/datenschutz)
-[![AI](https://img.shields.io/badge/Entwicklung-agentisches%20Coding-a855f7?style=for-the-badge)](#-transparenz)
 
 </div>
 
@@ -66,7 +65,6 @@ Die **FWG Nachhilfebörse** ist eine Progressive Web App (PWA) für das FWG Köl
 <summary><b>Für Eltern</b></summary>
 
 - **👨‍👩‍👧 Eltern-Dashboard:** Kind verknüpfen, Fortschritt einsehen
-- **📄 Einverständnis & Briefings:** Generierte, streng faktengebundene 3-Satz-Zusammenfassungen der Nachhilfe für Eltern (KI, NVIDIA NIM)
 - **🛡️ Leitfaden:** Was die Plattform kann, was sie nicht kann, wie Sicherheit funktioniert ([Eltern-Leitfaden](https://nachhilfe-sv.de/#/eltern-leitfaden))
 
 </details>
@@ -86,7 +84,6 @@ Die **FWG Nachhilfebörse** ist eine Progressive Web App (PWA) für das FWG Köl
 
 - **📱 PWA:** installierbar auf Handy und Desktop, Offline-Prompt, Bottom-Nav mobil / Sidebar Desktop
 - **🌗 Dark & Light Mode**
-- **🤖 KI-Assistenten:** Smart Inserat Assistant und Eltern-Briefing über NVIDIA NIM (serverseitig, kein Key im Browser)
 - **🔔 News-Widget & Push-Hinweise**
 
 </details>
@@ -97,10 +94,10 @@ Die **FWG Nachhilfebörse** ist eine Progressive Web App (PWA) für das FWG Köl
 
 <div align="center">
 
-| ![Code](https://img.shields.io/badge/Zeilen_Code_(src)-~27.500-0ea5e9?style=flat-square&labelColor=0f172a&color=0ea5e9) | ![Files](https://img.shields.io/badge/TS_TSX-Dateien-88-22c55e?style=flat-square&labelColor=0f172a&color=22c55e) | ![Components](https://img.shields.io/badge/UI--Components-34-f59e0b?style=flat-square&labelColor=0f172a&color=f59e0b) | ![API](https://img.shields.io/badge/API_/_Functions-27-a855f7?style=flat-square&labelColor=0f172a&color=a855f7) |
+| ![Code](https://img.shields.io/static/v1?label=Zeilen%20Code&message=~27.500&color=0ea5e9&style=flat-square&labelColor=0f172a) | ![Files](https://img.shields.io/static/v1?label=TS%2FTSX&message=89&color=22c55e&style=flat-square&labelColor=0f172a) | ![Components](https://img.shields.io/static/v1?label=UI-Components&message=34&color=f59e0b&style=flat-square&labelColor=0f172a) | ![API](https://img.shields.io/static/v1?label=API-Endpunkte&message=27&color=a855f7&style=flat-square&labelColor=0f172a) |
 |:---:|:---:|:---:|:---:|
 | **SQL-Migrationen** | **Seit Ende 2025** | **> 10 Monate** | **Agentisches Coding** |
-| ![SQL](https://img.shields.io/badge/15_Migrationen-14b8a6?style=flat-square&labelColor=0f172a&color=14b8a6) | ![Since](https://img.shields.io/badge/Start-Ende%202025-ec4899?style=flat-square&labelColor=0f172a&color=ec4899) | ![Duration](https://img.shields.io/badge/Dauer-%3E%2010%20Monate-ec4899?style=flat-square&labelColor=0f172a&color=ec4899) | ![AI](https://img.shields.io/badge/mehrere%20hundert%20Stunden-a855f7?style=flat-square&labelColor=0f172a&color=a855f7) |
+| ![SQL](https://img.shields.io/static/v1?label=Migrationen&message=7&color=14b8a6&style=flat-square&labelColor=0f172a) | ![Since](https://img.shields.io/static/v1?label=Start&message=Ende%202025&color=ec4899&style=flat-square&labelColor=0f172a) | ![Duration](https://img.shields.io/static/v1?label=Dauer&message=%3E%2010%20Monate&color=ec4899&style=flat-square&labelColor=0f172a) | ![AI](https://img.shields.io/static/v1?label=Zeitaufwand&message=mehrere%20hundert%20Std.&color=a855f7&style=flat-square&labelColor=0f172a) |
 
 </div>
 
@@ -121,10 +118,9 @@ Dieses Projekt ist **Open Source** und erklärt seine Entstehung offen, auch auf
 
 ## 🔒 Sicherheit & Datenschutz (DSGVO)
 
-1. **Kein API-Key im Browser:** `NVIDIA_API_KEY` und DB-Geheimnisse liegen ausschließlich serverseitig (Netlify Functions / Vercel / Express-Adapter). Das Frontend ruft nur geschützte Endpunkte wie `/api/ai/generate` auf.
+1. **Privatsphäre zuerst:** Inhalte sind nie automatisch öffentlich. Verifikation über den SV-Raum, 7-Tage-Aufräumjob für unverifizierte Konten.
 2. **Serverseitiger Inhaltsfilter:** Profanity-Trigger auf Datenbankebene.
-3. **Privatsphäre zuerst:** KI-Ergebnisse sind bearbeitbare Entwürfe, nie automatisch öffentlich. Verifikation über den SV-Raum, 7-Tage-Aufräumjob für unverifizierte Konten.
-4. **Kein Tracking-Müll:** keine externen Analyse-/Werbedienste, Hosting in Deutschland.
+3. **Kein Tracking-Müll:** keine externen Analyse-/Werbedienste, Hosting in Deutschland.
 
 Details: [Datenschutzerklärung](https://nachhilfe-sv.de/#/datenschutz) · [Cookies](https://nachhilfe-sv.de/#/cookies)
 
@@ -135,53 +131,15 @@ Details: [Datenschutzerklärung](https://nachhilfe-sv.de/#/datenschutz) · [Cook
 | Ebene | Technologien |
 |---|---|
 | **Frontend** | React 19, TypeScript, Vite, TailwindCSS, Framer Motion, Lucide Icons, Tiptap |
-| **Backend & DB** | Supabase (PostgreSQL, Row Level Security, Auth, Realtime) |
-| **KI** | NVIDIA NIM: `nemotron-3.5-lightning-30b-a3b` (Inserate), `nemotron-3-nano-30b-a3b` (Eltern-Briefings) |
-| **Serverless** | Netlify Functions · Vercel Serverless · Express-Adapter (`src/http/express-ai-routes.mjs`) |
+| **Backend & DB** | PHP-API (ALL-INKL MySQL) · Supabase-Adapter (PostgreSQL, RLS, Auth) |
 | **PWA** | vite-plugin-pwa, Workbox |
 
 ---
 
-## 🚀 Loslegen
+## 📁 Datenbank-Updates
 
-```bash
-git clone https://github.com/oskar26/nachhilfeb-rse.git
-cd nachhilfeb-rse
-npm install
-```
-
-`.env` anlegen (Vorlage: `.env.example`):
-
-```env
-VITE_SUPABASE_URL=https://dein-projekt.supabase.co
-VITE_SUPABASE_ANON_KEY=dein_anon_key
-
-# Nur serverseitig, nie mit VITE_ prefixen!
-NVIDIA_API_KEY=nvapi-...
-NVIDIA_LISTING_MODEL=nvidia/nemotron-3.5-lightning-30b-a3b
-NVIDIA_PARENT_BRIEFING_MODEL=nvidia/nemotron-3-nano-30b-a3b
-```
-
-```bash
-npm run dev          # Entwicklungsserver
-npm run build        # Produktions-Build
-npm run lint         # ESLint
-node --test test/ai-drafts.test.mjs
-```
-
-> ⚠️ Echte Keys niemals in `.env.example` oder ins Repository schreiben.
-
-Weitere Hinweise: [`DEPLOYMENT.md`](DEPLOYMENT.md) · [`PUBLISH.md`](PUBLISH.md) · [`ALL_INKL_ANLEITUNG.md`](ALL_INKL_ANLEITUNG.md)
-
----
-
-## 🌐 Deployment
-
-| Ziel | Konfiguration |
-|---|---|
-| **Netlify** (aktuell) | `netlify/functions/generate.js` · Env-Vars: `NVIDIA_API_KEY`, `NVIDIA_LISTING_MODEL`, `NVIDIA_PARENT_BRIEFING_MODEL` |
-| **Vercel** | `api/ai/generate.ts` · Env-Vars analog unter Settings → Environment |
-| **Eigener Node** | Adapter `src/http/express-ai-routes.mjs` einbinden |
+Schema und laufende Änderungen liegen unter [`sql/`](sql/) und [`sql-updates/`](sql-updates/).  
+Reihenfolge und Import-Schritte (phpMyAdmin / ALL-INKL): siehe [`sql-updates/README.md`](sql-updates/README.md).
 
 ---
 
@@ -193,10 +151,10 @@ nachhilfev2/
 │   ├── pages/          # Feed, Chat, Profile, Eltern, SV-Panel, Rechtliches …
 │   ├── components/     # UI, Layout, Modals
 │   ├── context/        # Auth, Theme
-│   └── lib/            # Supabase-Client, Analytics, Helpers
-├── api/                # Vercel Serverless (KI-Endpunkte)
+│   └── lib/            # API-Client, Analytics, Helpers
+├── api/                # PHP-API (ALL-INKL)
 ├── netlify/functions/  # Netlify Functions
-├── supabase/ + sql/    # Schema, RLS, Migrationen
+├── sql/ + sql-updates/ # Schema, Migrationen
 ├── test/               # Node-Tests
 └── docs/               # Briefings, Screenshots
 ```
@@ -223,6 +181,6 @@ Rechtliches: [Impressum](https://nachhilfe-sv.de/#/impressum) · [Nutzungsbeding
 
 <div align="center">
 
-**[nachhilfe-sv.de](https://nachhilfe-sv.de)** · von Schülern, für Schüler, mit KI im Backoffice und offenen Augen.
+**[nachhilfe-sv.de](https://nachhilfe-sv.de)** · von Schülern, für Schüler, mit offenen Augen.
 
 </div>

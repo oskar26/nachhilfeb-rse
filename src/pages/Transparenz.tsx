@@ -107,8 +107,8 @@ export default function Transparenz() {
                         <p className="flex gap-3">
                             <ShieldCheck className="text-green-600 dark:text-green-400 shrink-0 mt-0.5" size={20} aria-hidden="true" />
                             <span>
-                                Datenschutz, Jugendschutz und Sicherheitsregeln (z.&nbsp;B. kein API-Key im Browser,
-                                Verifikation über die SV, Meldefunktion) sind bewusst gebaut und gelten unabhängig
+                                Datenschutz, Jugendschutz und Sicherheitsregeln (z.&nbsp;B. Verifikation
+                                über die SV, Meldefunktion) sind bewusst gebaut und gelten unabhängig
                                 davon, wer den Code geschrieben hat.
                             </span>
                         </p>
