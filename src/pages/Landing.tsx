@@ -450,7 +450,6 @@ export default function Landing() {
                 <div className="relative border-b border-white/10 bg-gray-950">
                     <dl className="mx-auto flex max-w-7xl flex-wrap items-baseline gap-x-12 gap-y-3 px-4 py-5 sm:px-6" aria-label="Aktuelle Kennzahlen der Nachhilfebörse">
                         {[
-                            { value: liveStats?.page_views_30d, label: 'Monatliche Seitenaufrufe' },
                             { value: liveStats?.users, label: 'Nutzer' },
                         ].map(s => (
                             <div key={s.label} className="flex items-baseline gap-3">

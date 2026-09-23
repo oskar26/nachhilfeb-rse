@@ -676,7 +676,34 @@ if ($method === 'GET') {
         json_response($defaultInfo);
     }
 
-    // 1c. Einzelnes Profil
+    // 1d. Coaching-Seiten-Inhalte (öffentlich) – muss VOR dem Profil-Catch-All laufen
+    if ($action === 'coaching_page') {
+        $page = fwg_coaching_page_defaults();
+        try {
+            $stmt = $pdo->prepare('SELECT setting_value FROM app_settings WHERE setting_key = "coaching_page"');
+            $stmt->execute();
+            $row = $stmt->fetch();
+            if ($row && !empty($row['setting_value'])) {
+                $val = json_decode($row['setting_value'], true);
+                if (is_array($val)) {
+                    foreach ($page as $k => $v) {
+                        if (array_key_exists($k, $val) && is_string($val[$k])) {
+                            $page[$k] = $val[$k];
+                        }
+                    }
+                    if (isset($val['content_json']) && is_string($val['content_json']) && strlen($val['content_json']) <= 153600) {
+                        $content = json_decode($val['content_json']);
+                        if (is_object($content)) {
+                            $page['content_json'] = $val['content_json'];
+                        }
+                    }
+                }
+            }
+        } catch (Exception $e) {}
+        json_response($page);
+    }
+
+    // 1e. Einzelnes Profil
     if (!$id) {
         $currentUser = require_auth();
         $id = $currentUser['id'];
@@ -803,32 +830,6 @@ function fwg_coaching_page_defaults() {
         's_revoke_body' => "Bei Verstößen gegen diese Regeln oder die Nutzungsbedingungen (z. B. unzuverlässiges Verhalten, Missbrauch des Badges, unangemessene Inhalte) kann die AG-Leitung oder das SV-Team den Coach-Status entziehen – mit kurzer Begründung direkt in der App oder per E-Mail.\n\nDagegen kannst du Widerspruch einlegen: Schreibe an info@nachhilfe-sv.de oder komme im SV-Raum vorbei. Das SV-Team prüft jeden Fall erneut.",
         'contact_text' => 'AG-Leitung: Frau Balistreri · SV-Lehrer: Herr Schulz, Herr Steinberg',
     ];
-}
-
-if ($action === 'coaching_page' && $method === 'GET') {
-    $page = fwg_coaching_page_defaults();
-    try {
-        $stmt = $pdo->prepare('SELECT setting_value FROM app_settings WHERE setting_key = "coaching_page"');
-        $stmt->execute();
-        $row = $stmt->fetch();
-        if ($row && !empty($row['setting_value'])) {
-            $val = json_decode($row['setting_value'], true);
-            if (is_array($val)) {
-                foreach ($page as $k => $v) {
-                    if (array_key_exists($k, $val) && is_string($val[$k])) {
-                        $page[$k] = $val[$k];
-                    }
-                }
-                if (isset($val['content_json']) && is_string($val['content_json']) && strlen($val['content_json']) <= 153600) {
-                    $content = json_decode($val['content_json']);
-                    if (is_object($content)) {
-                        $page['content_json'] = $val['content_json'];
-                    }
-                }
-            }
-        }
-    } catch (Exception $e) {}
-    json_response($page);
 }
 
 if ($action === 'coaching_page' && ($method === 'POST' || $method === 'PUT')) {

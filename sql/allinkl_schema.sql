@@ -341,6 +341,17 @@ CREATE TABLE IF NOT EXISTS `email_verifications` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------------------------
+-- 18. Tabelle: app_settings (Coach-Info-Box, Coaching-Seiten-Inhalte als JSON)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `app_settings` (
+  `setting_key` VARCHAR(64) NOT NULL,
+  `setting_value` LONGTEXT NOT NULL,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_by` VARCHAR(36) NULL,
+  PRIMARY KEY (`setting_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------------------------
 -- Hinweis zu Einladungscodes: Es gibt bewusst KEINE vorinstallierten Codes.
 -- Jeder Code im Repository wäre öffentlich lesbar (auch 'SV-ADMIN-...'-Codes!).
 -- Einladungscodes erzeugt das SV-Team im SV-Panel (Registrierungs-Einladungen):
