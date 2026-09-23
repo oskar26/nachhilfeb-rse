@@ -1,14 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Award, ClipboardCheck, Scale, Megaphone, HeartHandshake, Gavel, Mail, School, Clock, MapPin, ChevronDown } from 'lucide-react';
+import { Award, ClipboardCheck, Scale, Megaphone, HeartHandshake, Gavel, Mail, School, Clock, MapPin, type LucideIcon } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import StaticLayout from '../components/StaticLayout';
-import VerifySteps from '../components/VerifySteps';
 import { api } from '../lib/api';
 
 const easeOut = [0.16, 1, 0.3, 1] as const;
 
-// Fallback-Texte (identisch zu den Backend-Defaults), falls die CMS-Texte nicht laden.
 export const FALLBACK: Record<string, string> = {
     hero_title: 'Schüler-Coaching am FWG',
     hero_subtitle: 'Große helfen Kleinen: Geschulte Schülerinnen und Schüler ab Klasse 8 unterstützen die Klassen 5 und 6 beim Ankommen am Friedrich-Wilhelm-Gymnasium Köln – ehrenamtlich, pädagogisch begleitet und für alle nach denselben fairen Regeln.',
@@ -17,461 +15,791 @@ export const FALLBACK: Record<string, string> = {
     s_school_title: 'Das Coaching an unserer Schule',
     s_school_body: 'Das Schüler-Coaching ist ein schulisches Angebot des FWG: Jede Woche dienstags von 13:45–14:30 Uhr in Raum H310 helfen geschulte Schülerinnen und Schüler der 8. Klassen den 5. und 6. Klassen – bei einzelnen Fächern oder der Lern- und Arbeitsorganisation allgemein. Die Coaches werden jeweils vor den Herbstferien geschult und engagieren sich ehrenamtlich bis zum Ende des Schuljahres. Dieses Angebot wird in der Regel sehr gerne angenommen, da die Coaches einen guten Blick auf die Probleme der jüngeren Schülerinnen und Schüler haben.\n\nMehr dazu auf der Schul-Website: fwg-koeln.de/lebendige-schule/foerdern-und-fordern/coaching. Diese Nachhilfebörse der SV ergänzt das Angebot: Hier finden alle Jahrgangsstufen individuelle Nachhilfe – die Coaches der AG sind dabei besonders sichtbar, damit man sie leicht findet.',
     s_who_title: 'Wer kann Coach werden?',
-    s_who_body: '• Schülerin oder Schüler des FWG ab Klasse 8\n• Teilnahme an der Coach-Schulung der AG-Leitung\n• Zuverlässigkeit und respektvoller Umgang – auch auf der Plattform\n• Verifizierter Account auf der Nachhilfebörse\n\nInteressiert? Wende dich an Frau Balistreri oder sprich das SV-Team im SV-Raum an.',
+    s_who_body: '• Schülerin oder Schüler des FWG ab Klasse 8\n• Teilnahme an der Coach-Schulung der AG-Leitung (findet jeweils vor den Herbstferien statt)\n• Zuverlässigkeit und respektvoller Umgang – auch auf der Plattform\n• Verifizierter Account auf der Nachhilfebörse\n\nInteressiert? Wende dich an Frau Balistreri oder sprich das SV-Team im SV-Raum an. Die Aufnahme erfolgt nach Schulung über einen persönlichen Coaching-Code – für alle mit denselben Kriterien.',
     s_boost_title: 'Warum stehen manche Anzeigen oben?',
-    s_boost_body: 'Anzeigen mit dem Hinweis „Hervorgehoben“ erhalten eine bessere Platzierung und eine gelbe Markierung – ausschließlich bei Coach-Status (30 Tage nach Coaching-Code) oder SV-Aktionen.\n\nSichtbarkeit ist bei uns nicht käuflich: Es gibt keine bezahlten Boosts und keine Werbung.',
+    s_boost_body: 'Anzeigen mit dem Hinweis „Hervorgehoben“ erhalten eine bessere Platzierung und eine gelbe Markierung. Das passiert ausschließlich in zwei Fällen:\n\n• Coach-Status: Nach Einlösen eines Coaching-Codes werden Anzeigen des Coaches für 30 Tage hervorgehoben.\n• SV-Aktionen: Zeitlich begrenzte Hinweise des SV-Teams (z. B. zum Schuljahresstart).\n\nSichtbarkeit ist bei uns nicht käuflich: Es gibt keine bezahlten Boosts und keine Werbung. Zusätzlich erhalten Coach-Anzeigen einen kleinen, öffentlich dokumentierten Ranking-Vorteil (etwa +24 Stunden Aktualität bzw. leicht bessere Match-Einordnung) – bewusst als Anerkennung für das Ehrenamt der Coaches, für alle Coaches gleich und nur solange der Coach-Status aktiv ist. Versteckte Bevorzugungen gibt es nicht: Alles steht auf dieser Seite.',
     s_fair_title: 'Gleiche Chancen für alle',
-    s_fair_body: '• Jede Schülerin und jeder Schüler kann kostenlos Anzeigen erstellen – mit oder ohne Badge.\n• Codes sind personenbezogen und begrenzt und werden nur nach Schulung vergeben.\n• Die Vergabe wird protokolliert und kann vom SV-Team geprüft werden.',
+    s_fair_body: '• Jede Schülerin und jeder Schüler kann kostenlos Anzeigen erstellen – mit oder ohne Badge.\n• Der Filter „Nur Coaches“ hilft beim Finden geprüfter Coaches, blendet aber niemanden aus: Alle Anzeigen bleiben für alle sichtbar.\n• Codes sind personenbezogen und begrenzt (in der Regel einmalig einlösbar) und werden nur nach Schulung vergeben – nicht auf Zuruf oder gegen Gegenleistung.\n• Die Vergabe von Codes und Coach-Status wird protokolliert und kann vom SV-Team geprüft werden.\n• Der kleine Ranking-Vorteil für Coaches steht öffentlich auf dieser Seite – es gibt keine versteckten Bevorzugungen.',
     s_conduct_title: 'Verhalten als Coach',
-    s_conduct_body: '• Respektvoller, geduldiger Umgang – besonders mit jüngeren Schülern\n• Keine falschen Versprechen (z. B. garantierte Notenverbesserung)\n• Treffen möglichst in der Schule; private Treffen nur mit Wissen der Eltern\n• Bei Problemen: frühzeitig die AG-Leitung oder das SV-Team ansprechen',
+    s_conduct_body: '• Respektvoller, geduldiger Umgang – besonders mit jüngeren Schülern\n• Keine falschen Versprechen (z. B. garantierte Notenverbesserung)\n• Treffen möglichst in der Schule (z. B. Bibliothek, Mensa); private Treffen nur mit Wissen der Eltern\n• Bei Problemen: frühzeitig die AG-Leitung oder das SV-Team ansprechen',
     s_revoke_title: 'Entzug des Status & Widerspruch',
-    s_revoke_body: 'Bei Verstößen gegen diese Regeln oder die Nutzungsbedingungen kann die AG-Leitung oder das SV-Team den Coach-Status entziehen – mit kurzer Begründung direkt in der App oder per E-Mail.\n\nDagegen kannst du Widerspruch einlegen: Schreibe an info@nachhilfe-sv.de oder komme im SV-Raum vorbei. Das SV-Team prüft jeden Fall erneut.',
-    contact_text: 'AG-Leitung: Frau Balistreri · SV-Team: persönlich im SV-Raum',
+    s_revoke_body: 'Bei Verstößen gegen diese Regeln oder die Nutzungsbedingungen (z. B. unzuverlässiges Verhalten, Missbrauch des Badges, unangemessene Inhalte) kann die AG-Leitung oder das SV-Team den Coach-Status entziehen – mit kurzer Begründung direkt in der App oder per E-Mail.\n\nDagegen kannst du Widerspruch einlegen: Schreibe an info@nachhilfe-sv.de oder komme im SV-Raum vorbei. Das SV-Team prüft jeden Fall erneut.',
+    contact_text: 'AG-Leitung: Frau Balistreri · SV-Lehrer: Herr Schulz, Herr Steinberg',
 };
-
-// Design-Config fuer den Seiten-Builder (Reihenfolge, Sichtbarkeit, Plakat, Regeln)
-export type PosterBg = 'gelb' | 'schwarz' | 'blau';
-export type RegelnStil = 'liste' | 'aufklappbar';
-export type CoachingSectionId = 'plakat' | 'ablauf' | 'nutzen' | 'regeln' | 'kontakt';
-export interface SectionConfig {
-    id: CoachingSectionId;
-    visible: boolean;
-}
-export interface DesignConfig {
-    sections: SectionConfig[];
-    posterBg: PosterBg;
-    regelnStil: RegelnStil;
-}
-
-export const DEFAULT_DESIGN: DesignConfig = {
-    sections: [
-        { id: 'plakat', visible: true },
-        { id: 'ablauf', visible: true },
-        { id: 'nutzen', visible: true },
-        { id: 'regeln', visible: true },
-        { id: 'kontakt', visible: true },
-    ],
-    posterBg: 'gelb',
-    regelnStil: 'liste',
-};
-
-const SECTION_IDS: CoachingSectionId[] = ['plakat', 'ablauf', 'nutzen', 'regeln', 'kontakt'];
-
-// Parst content.layout_json robust (ungueltig oder fremd fuellt Default auf, kein Crash)
-export function parseCoachingDesign(raw: unknown): DesignConfig {
-    const fallbackSections = DEFAULT_DESIGN.sections.map(s => ({ ...s }));
-    if (typeof raw !== 'string' || !raw.trim()) {
-        return { sections: fallbackSections, posterBg: 'gelb', regelnStil: 'liste' };
-    }
-    try {
-        const parsed = JSON.parse(raw) as Partial<DesignConfig>;
-        let sections: SectionConfig[] = fallbackSections;
-        if (Array.isArray(parsed.sections)) {
-            const mapped: SectionConfig[] = [];
-            for (const entry of parsed.sections) {
-                if (entry && typeof entry.id === 'string' && (SECTION_IDS as string[]).includes(entry.id)) {
-                    mapped.push({ id: entry.id as CoachingSectionId, visible: entry.visible !== false });
-                }
-            }
-            for (const id of SECTION_IDS) {
-                if (!mapped.some(m => m.id === id)) mapped.push({ id, visible: true });
-            }
-            sections = mapped;
-        }
-        const posterBg: PosterBg =
-            parsed.posterBg === 'schwarz' || parsed.posterBg === 'blau' || parsed.posterBg === 'gelb'
-                ? parsed.posterBg
-                : 'gelb';
-        const regelnStil: RegelnStil = parsed.regelnStil === 'aufklappbar' ? 'aufklappbar' : 'liste';
-        return { sections, posterBg, regelnStil };
-    } catch {
-        return { sections: fallbackSections, posterBg: 'gelb', regelnStil: 'liste' };
-    }
-}
 
 const COACH_MAIL = 'Rosalia.Balistreri@fwg-koeln.nrw.schule';
-
-// Gelb auf Weiß ist zu blass, Links daher dunkel fassen (amber-700 light / primary dark).
+const COACHING_DOCUMENT_VERSION = 1 as const;
 const LINK_CLS = 'font-bold text-amber-700 dark:text-primary hover:underline';
 
-// Einfaches Auto-Link für fwg-koeln.de in Fließtext-Absätzen
-function linkify(text: string) {
-    const parts = text.split(/(fwg-koeln\.de(?:\/\S*)?)/g);
-    return parts.map((p, i) =>
-        /^fwg-koeln\.de/.test(p)
-            ? <a key={i} href={`https://${p}`} target="_blank" rel="noreferrer" className={LINK_CLS}>{p}</a>
-            : <span key={i}>{p}</span>
-    );
+export interface CoachingListItem {
+    id: string;
+    title: string;
+    body: string;
 }
 
-// Absätze (Leerzeile) → <p>; Aufzählungs-Blöcke (Zeilen mit •) → <ul>
-function renderBody(body: string) {
-    const blocks = body.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean);
-    return blocks.map((block, i) => {
-        const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
-        if (lines.length > 0 && lines.every(l => l.startsWith('•'))) {
-            return (
-                <ul key={i} className="list-disc pl-4 space-y-1">
-                    {lines.map((l, j) => <li key={j}>{linkify(l.replace(/^•\s*/, ''))}</li>)}
-                </ul>
-            );
+export interface CoachingScheduleDay {
+    id: string;
+    label: string;
+}
+
+export interface CoachingScheduleCell {
+    id: string;
+    text: string;
+}
+
+export interface CoachingScheduleRow {
+    id: string;
+    cells: CoachingScheduleCell[];
+}
+
+export interface CoachingHeaderBlock {
+    id: string;
+    type: 'header';
+    title: string;
+    intro: string;
+}
+
+export interface CoachingPosterBlock {
+    id: string;
+    type: 'poster';
+    stamp: string;
+    title: string;
+    time: string;
+    room: string;
+    contactText: string;
+    email: string;
+    mailSubject: string;
+    ctaLabel: string;
+    hint: string;
+}
+
+export interface CoachingStepsBlock {
+    id: string;
+    type: 'steps';
+    title: string;
+    items: CoachingListItem[];
+    note: string;
+    verificationTitle: string;
+    verificationItems: CoachingListItem[];
+}
+
+export interface CoachingBenefitsBlock {
+    id: string;
+    type: 'benefits';
+    title: string;
+    items: CoachingListItem[];
+}
+
+export interface CoachingRulesBlock {
+    id: string;
+    type: 'rules';
+    title: string;
+    items: CoachingListItem[];
+}
+
+export interface CoachingContactBlock {
+    id: string;
+    type: 'contact';
+    title: string;
+    text: string;
+    email: string;
+    parentText: string;
+    parentLinkLabel: string;
+    parentLinkPath: string;
+}
+
+export interface CoachingSupportBlock {
+    id: string;
+    type: 'support';
+    title: string;
+    paragraphs: string[];
+    registrationText: string;
+    registrationEmail: string;
+    days: CoachingScheduleDay[];
+    rows: CoachingScheduleRow[];
+    learnCoachingText: string;
+    learnCoachingEmail: string;
+}
+
+export interface CoachingTextBlock {
+    id: string;
+    type: 'text';
+    title: string;
+    body: string;
+}
+
+export type CoachingBlock =
+    | CoachingPosterBlock
+    | CoachingStepsBlock
+    | CoachingBenefitsBlock
+    | CoachingRulesBlock
+    | CoachingContactBlock
+    | CoachingSupportBlock
+    | CoachingTextBlock;
+
+export type CoachingBlockType = CoachingBlock['type'];
+
+export interface CoachingDocument {
+    version: typeof COACHING_DOCUMENT_VERSION;
+    header: CoachingHeaderBlock | null;
+    blocks: CoachingBlock[];
+}
+
+const RULE_KEYS = [
+    ['rule-badge', 's_badge'],
+    ['rule-school', 's_school'],
+    ['rule-who', 's_who'],
+    ['rule-boost', 's_boost'],
+    ['rule-fair', 's_fair'],
+    ['rule-conduct', 's_conduct'],
+    ['rule-revoke', 's_revoke'],
+] as const;
+
+function createId(prefix: string): string {
+    const random = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    return `${prefix}-${random}`;
+}
+
+function valueFrom(legacy: Record<string, string>, key: string): string {
+    return typeof legacy[key] === 'string' ? legacy[key] : FALLBACK[key] ?? '';
+}
+
+function listItem(id: string, title: string, body: string): CoachingListItem {
+    return { id, title, body };
+}
+
+export function createDefaultCoachingDocument(legacy: Record<string, string> = FALLBACK): CoachingDocument {
+    const text = (key: string) => valueFrom(legacy, key);
+    return {
+        version: COACHING_DOCUMENT_VERSION,
+        header: {
+            id: 'header',
+            type: 'header',
+            title: text('hero_title'),
+            intro: text('hero_subtitle'),
+        },
+        blocks: [
+            {
+                id: 'poster',
+                type: 'poster',
+                stamp: 'Ehrenamtlich',
+                title: 'Direkt dabei sein',
+                time: 'Di 13:45–14:30',
+                room: 'Raum H310',
+                contactText: text('contact_text'),
+                email: COACH_MAIL,
+                mailSubject: 'Anmeldung Schüler-Coaching AG',
+                ctaLabel: 'Per Mail anmelden',
+                hint: 'oder das SV-Team im SV-Raum ansprechen',
+            },
+            {
+                id: 'steps',
+                type: 'steps',
+                title: 'In 3 Schritten Coach werden',
+                items: [
+                    listItem('step-1', 'Melden', 'Schreib eine Mail an Frau Balistreri oder sprich das SV-Team im SV-Raum an.'),
+                    listItem('step-2', 'Schulung', 'Nimm an der Coach-Schulung der AG-Leitung vor den Herbstferien teil.'),
+                    listItem('step-3', 'Badge & Start', 'Erhalte das Coach-Badge und starte dienstags in H310.'),
+                ],
+                note: 'Die AG-Stunde dienstags in H310 ist ehrenamtlich. Private Nachhilfe über die Börse vereinbaren Familien direkt — Richtwert ca. 10–12 € pro 45–60 Min.',
+                verificationTitle: 'Verifizierung in der App',
+                verificationItems: [
+                    listItem('verify-1', 'Melde dich an', 'Account anlegen — dauert keine große Pause.'),
+                    listItem('verify-2', 'Komm in den SV-Raum', 'Sag einfach: „Hey, ich habe mich angemeldet, ich möchte mich verifizieren lassen.“'),
+                    listItem('verify-3', 'Wir schalten dich frei — du bist verifiziert.', 'Erst dann kannst du Anzeigen erstellen und Kontakt aufnehmen.'),
+                ],
+            },
+            {
+                id: 'benefits',
+                type: 'benefits',
+                title: 'Darum lohnt sich das Coaching',
+                items: [
+                    listItem('benefit-1', 'Große helfen Kleinen', 'Klassen 5 und 6 erhalten Hilfe von geschulten Coaches ab Klasse 8.'),
+                    listItem('benefit-2', 'Begleitet & ehrenamtlich', 'Pädagogisch begleitet durch Frau Balistreri — ehrenamtlich bis zum Schuljahresende.'),
+                    listItem('benefit-3', 'Fester Treffpunkt', 'Jeden Dienstag 13:45–14:30 Uhr in Raum H310 — einfach vorbeikommen.'),
+                ],
+            },
+            {
+                id: 'rules',
+                type: 'rules',
+                title: 'Die 7 Fairness-Regeln',
+                items: RULE_KEYS.map(([id, key]) => listItem(id, text(`${key}_title`), text(`${key}_body`))),
+            },
+            {
+                id: 'contact',
+                type: 'contact',
+                title: 'Fragen zum Coaching?',
+                text: text('contact_text'),
+                email: COACH_MAIL,
+                parentText: 'Mehr für Eltern:',
+                parentLinkLabel: 'Eltern-Leitfaden',
+                parentLinkPath: '/eltern-leitfaden',
+            },
+            {
+                id: 'foerderung',
+                type: 'support',
+                title: 'Förderunterricht Sek. I (2. HJ)',
+                paragraphs: [
+                    'Förderunterricht wird in den Jahrgangsstufen 5-10 in den Fächern Deutsch, Mathematik, Englisch und Latein erteilt. Die Entscheidung über eine Anmeldung liegt bei den Eltern.',
+                    'Start: Mittwoch, 18.02. in der 7. Stunde (Kick-off in H408). Danach regulär in H402.',
+                ],
+                registrationText: 'Anmeldung verbindlich über:',
+                registrationEmail: 'foerderunterricht@fwg-koeln.nrw.schule',
+                days: [
+                    { id: 'day-monday', label: 'Montag' },
+                    { id: 'day-tuesday', label: 'Dienstag' },
+                    { id: 'day-wednesday', label: 'Mittwoch' },
+                    { id: 'day-thursday', label: 'Donnerstag' },
+                ],
+                rows: [
+                    {
+                        id: 'schedule-row-1',
+                        cells: [
+                            { id: 'r1c1', text: 'D' },
+                            { id: 'r1c2', text: 'D' },
+                            { id: 'r1c3', text: 'M' },
+                            { id: 'r1c4', text: 'M' },
+                        ],
+                    },
+                    {
+                        id: 'schedule-row-2',
+                        cells: [
+                            { id: 'r2c1', text: 'E' },
+                            { id: 'r2c2', text: 'L' },
+                            { id: 'r2c3', text: 'L' },
+                            { id: 'r2c4', text: 'E' },
+                        ],
+                    },
+                    {
+                        id: 'schedule-row-3',
+                        cells: [
+                            { id: 'r3c1', text: 'D/LRS' },
+                            { id: 'r3c2', text: '' },
+                            { id: 'r3c3', text: '' },
+                            { id: 'r3c4', text: 'D/LRS' },
+                        ],
+                    },
+                ],
+                learnCoachingText: 'Terminabsprachen für ein Lerncoaching trefft ihr gerne individuell persönlich oder per Mail mit Herr Gampp, Frau Hallerbach, Frau Trottmann oder Frau Weyers:',
+                learnCoachingEmail: 'lerncoaching@fwg-koeln.nrw.schule',
+            },
+        ],
+    };
+}
+
+export function createDefaultCoachingBlock(type: CoachingBlockType, legacy: Record<string, string> = FALLBACK): CoachingBlock {
+    const document = createDefaultCoachingDocument(legacy);
+    if (type === 'text') {
+        return {
+            id: createId('text'),
+            type: 'text',
+            title: 'Neuer Textabschnitt',
+            body: 'Hier steht der Text des Abschnitts.',
+        };
+    }
+    const block = document.blocks.find(candidate => candidate.type === type);
+    if (!block) throw new Error(`Unbekannter Coaching-Block: ${type}`);
+    return structuredClone(block);
+}
+
+export function createCoachingTextBlock(): CoachingTextBlock {
+    return {
+        id: createId('text'),
+        type: 'text',
+        title: 'Neuer Textabschnitt',
+        body: 'Hier steht der Text des Abschnitts.',
+    };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function textValue(value: unknown, fallback: string): string {
+    return typeof value === 'string' ? value : fallback;
+}
+
+function uniqueId(value: unknown, prefix: string, used: Set<string>): string {
+    const base = typeof value === 'string' && value.trim() ? value : createId(prefix);
+    let id = base;
+    let suffix = 2;
+    while (used.has(id)) {
+        id = `${base}-${suffix}`;
+        suffix += 1;
+    }
+    used.add(id);
+    return id;
+}
+
+function normalizeList(value: unknown, fallback: CoachingListItem[], prefix: string): CoachingListItem[] {
+    if (!Array.isArray(value)) return fallback.map(item => ({ ...item }));
+    const used = new Set<string>();
+    const items: CoachingListItem[] = [];
+    for (const [index, raw] of value.entries()) {
+        if (!isRecord(raw)) continue;
+        const source = fallback[index % Math.max(fallback.length, 1)] ?? { id: '', title: '', body: '' };
+        items.push({
+            id: uniqueId(raw.id, `${prefix}-${index + 1}`, used),
+            title: textValue(raw.title, source.title),
+            body: textValue(raw.body, source.body),
+        });
+    }
+    return items;
+}
+
+function normalizeDays(value: unknown, fallback: CoachingScheduleDay[]): CoachingScheduleDay[] {
+    if (!Array.isArray(value)) return fallback.map(day => ({ ...day }));
+    const used = new Set<string>();
+    return value.flatMap((raw, index) => {
+        if (typeof raw === 'string') {
+            return [{ id: uniqueId(raw, `day-${index + 1}`, used), label: raw }];
         }
-        return <p key={i}>{linkify(block)}</p>;
+        if (!isRecord(raw)) return [];
+        return [{
+            id: uniqueId(raw.id, `day-${index + 1}`, used),
+            label: textValue(raw.label, fallback[index % Math.max(fallback.length, 1)]?.label ?? ''),
+        }];
     });
 }
 
-const NUTZEN = [
-    { title: 'Große helfen Kleinen', text: 'Klassen 5 und 6 erhalten Hilfe von geschulten Coaches ab Klasse 8.' },
-    { title: 'Begleitet & ehrenamtlich', text: 'Pädagogisch begleitet durch Frau Balistreri — ehrenamtlich bis zum Schuljahresende.' },
-    { title: 'Fester Treffpunkt', text: 'Jeden Dienstag 13:45–14:30 Uhr in Raum H310 — einfach vorbeikommen.' },
-];
+function normalizeRows(value: unknown, fallback: CoachingScheduleRow[]): CoachingScheduleRow[] {
+    if (!Array.isArray(value)) return fallback.map(row => ({ ...row, cells: row.cells.map(cell => ({ ...cell })) }));
+    const usedRows = new Set<string>();
+    const usedCells = new Set<string>();
+    return value.flatMap((raw, rowIndex) => {
+        if (!isRecord(raw) || !Array.isArray(raw.cells)) return [];
+        const source = fallback[rowIndex % Math.max(fallback.length, 1)];
+        return [{
+            id: uniqueId(raw.id, `schedule-row-${rowIndex + 1}`, usedRows),
+            cells: raw.cells.flatMap((cell, cellIndex) => {
+                const cellText = typeof cell === 'string'
+                    ? cell
+                    : isRecord(cell) ? textValue(cell.text, source?.cells[cellIndex]?.text ?? '') : null;
+                if (cellText === null) return [];
+                return [{
+                    id: uniqueId(
+                        isRecord(cell) ? cell.id : `cell-${rowIndex + 1}-${cellIndex + 1}`,
+                        `cell-${rowIndex + 1}-${cellIndex + 1}`,
+                        usedCells
+                    ),
+                    text: cellText,
+                }];
+            }),
+        }];
+    });
+}
 
-const SCHRITTE = [
-    { n: '1', title: 'Melden', text: 'Schreib eine Mail an Frau Balistreri oder sprich das SV-Team im SV-Raum an.' },
-    { n: '2', title: 'Schulung', text: 'Nimm an der Coach-Schulung der AG-Leitung vor den Herbstferien teil.' },
-    { n: '3', title: 'Badge & Start', text: 'Erhalte das Coach-Badge und starte dienstags in H310.' },
-];
+function normalizeBlock(raw: unknown, fallback: CoachingBlock): CoachingBlock | null {
+    if (!isRecord(raw) || raw.type !== fallback.type) return null;
+    if (fallback.type === 'poster') {
+        return {
+            ...fallback,
+            stamp: textValue(raw.stamp, fallback.stamp),
+            title: textValue(raw.title, fallback.title),
+            time: textValue(raw.time, fallback.time),
+            room: textValue(raw.room, fallback.room),
+            contactText: textValue(raw.contactText, fallback.contactText),
+            email: textValue(raw.email, fallback.email),
+            mailSubject: textValue(raw.mailSubject, fallback.mailSubject),
+            ctaLabel: textValue(raw.ctaLabel, fallback.ctaLabel),
+            hint: textValue(raw.hint, fallback.hint),
+        };
+    }
+    if (fallback.type === 'steps') {
+        return {
+            ...fallback,
+            title: textValue(raw.title, fallback.title),
+            items: normalizeList(raw.items, fallback.items, 'step'),
+            note: textValue(raw.note, fallback.note),
+            verificationTitle: textValue(raw.verificationTitle, fallback.verificationTitle),
+            verificationItems: normalizeList(raw.verificationItems, fallback.verificationItems, 'verify'),
+        };
+    }
+    if (fallback.type === 'benefits' || fallback.type === 'rules') {
+        return {
+            ...fallback,
+            title: textValue(raw.title, fallback.title),
+            items: normalizeList(raw.items, fallback.items, fallback.type === 'rules' ? 'rule' : 'benefit'),
+        };
+    }
+    if (fallback.type === 'contact') {
+        return {
+            ...fallback,
+            title: textValue(raw.title, fallback.title),
+            text: textValue(raw.text, fallback.text),
+            email: textValue(raw.email, fallback.email),
+            parentText: textValue(raw.parentText, fallback.parentText),
+            parentLinkLabel: textValue(raw.parentLinkLabel, fallback.parentLinkLabel),
+            parentLinkPath: textValue(raw.parentLinkPath, fallback.parentLinkPath),
+        };
+    }
+    if (fallback.type === 'support') {
+        const paragraphs = Array.isArray(raw.paragraphs)
+            ? raw.paragraphs.map((paragraph, index) => textValue(paragraph, fallback.paragraphs[index] ?? ''))
+            : [...fallback.paragraphs];
+        return {
+            ...fallback,
+            title: textValue(raw.title, fallback.title),
+            paragraphs,
+            registrationText: textValue(raw.registrationText, fallback.registrationText),
+            registrationEmail: textValue(raw.registrationEmail, fallback.registrationEmail),
+            days: normalizeDays(raw.days, fallback.days),
+            rows: normalizeRows(raw.rows, fallback.rows),
+            learnCoachingText: textValue(raw.learnCoachingText, fallback.learnCoachingText),
+            learnCoachingEmail: textValue(raw.learnCoachingEmail, fallback.learnCoachingEmail),
+        };
+    }
+    return {
+        ...fallback,
+        id: typeof raw.id === 'string' && raw.id.trim() ? raw.id : fallback.id,
+        title: textValue(raw.title, fallback.title),
+        body: textValue(raw.body, fallback.body),
+    };
+}
 
-// Praesentative Ansicht der Coaching-Seite (wird öffentlich und in der Builder-Preview genutzt)
-export function CoachingView({ content, design }: { content: Record<string, string>; design: DesignConfig }) {
+function normalizeCoachingDocument(raw: Record<string, unknown>, legacy: Record<string, string>): CoachingDocument {
+    const fallback = createDefaultCoachingDocument(legacy);
+    let header = fallback.header;
+    if (Object.prototype.hasOwnProperty.call(raw, 'header')) {
+        if (raw.header === null) {
+            header = null;
+        } else if (isRecord(raw.header)) {
+            header = {
+                id: typeof raw.header.id === 'string' ? raw.header.id : 'header',
+                type: 'header',
+                title: textValue(raw.header.title, fallback.header?.title ?? ''),
+                intro: textValue(raw.header.intro, fallback.header?.intro ?? ''),
+            };
+        }
+    }
+    let blocks = fallback.blocks;
+    if (Array.isArray(raw.blocks)) {
+        const byType = new Map(fallback.blocks.map(block => [block.type, block]));
+        const used = new Set<string>();
+        blocks = raw.blocks.flatMap((entry, index) => {
+            if (!isRecord(entry) || typeof entry.type !== 'string') return [];
+            const type = entry.type as CoachingBlockType;
+            const fallbackBlock = type === 'text' ? createCoachingTextBlock() : byType.get(type);
+            if (!fallbackBlock) return [];
+            const block = normalizeBlock(entry, fallbackBlock);
+            if (!block) return [];
+            return [{ ...block, id: uniqueId(block.id, `block-${index + 1}`, used) }];
+        });
+    }
+    return {
+        version: COACHING_DOCUMENT_VERSION,
+        header,
+        blocks,
+    };
+}
+
+function legacyFromData(data: Record<string, unknown>): Record<string, string> {
+    const legacy: Record<string, string> = {};
+    for (const [key, value] of Object.entries(data)) {
+        if (typeof value === 'string') legacy[key] = value;
+    }
+    return legacy;
+}
+
+export function parseCoachingDocument(data: Record<string, unknown>): CoachingDocument {
+    const legacy = legacyFromData(data);
+    const fallback = createDefaultCoachingDocument(legacy);
+    const rawContent = data.content_json;
+    if (typeof rawContent !== 'string' || !rawContent.trim()) return fallback;
+    try {
+        const parsed: unknown = JSON.parse(rawContent);
+        return isRecord(parsed) ? normalizeCoachingDocument(parsed, legacy) : fallback;
+    } catch {
+        return fallback;
+    }
+}
+
+export function documentToLegacy(document: CoachingDocument): Record<string, string> {
+    const rules = document.blocks.find((block): block is CoachingRulesBlock => block.type === 'rules');
+    const legacy: Record<string, string> = {
+        hero_title: document.header?.title ?? '',
+        hero_subtitle: document.header?.intro ?? '',
+        contact_text: '',
+    };
+    for (const [id, key] of RULE_KEYS) {
+        const item = rules?.items.find(candidate => candidate.id === id);
+        legacy[`${key}_title`] = item?.title ?? '';
+        legacy[`${key}_body`] = item?.body ?? '';
+    }
+    const poster = document.blocks.find((block): block is CoachingPosterBlock => block.type === 'poster');
+    const contact = document.blocks.find((block): block is CoachingContactBlock => block.type === 'contact');
+    legacy.contact_text = poster ? poster.contactText : contact?.text ?? '';
+    return legacy;
+}
+
+function linkify(text: string) {
+    const parts = text.split(/([\w.+-]+@[\w.-]+\.[A-Za-z]{2,}|fwg-koeln\.de(?:\/\S*)?)/g);
+    return parts.map((part, index) => {
+        if (/^[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}$/.test(part)) {
+            return <a key={index} href={`mailto:${part}`} className={LINK_CLS}>{part}</a>;
+        }
+        if (/^fwg-koeln\.de/.test(part)) {
+            return <a key={index} href={`https://${part}`} target="_blank" rel="noreferrer" className={LINK_CLS}>{part}</a>;
+        }
+        return <span key={index}>{part}</span>;
+    });
+}
+
+function renderBody(body: string): ReactNode {
+    const blocks = body.split(/\n\s*\n/).map(block => block.trim()).filter(Boolean);
+    if (blocks.length === 0) return null;
+    return blocks.map((block, index) => {
+        const lines = block.split('\n').map(line => line.trim()).filter(Boolean);
+        if (lines.length > 0 && lines.every(line => line.startsWith('•'))) {
+            return (
+                <ul key={index} className="list-disc pl-4 space-y-1">
+                    {lines.map((line, lineIndex) => <li key={lineIndex}>{linkify(line.replace(/^•\s*/, ''))}</li>)}
+                </ul>
+            );
+        }
+        return <p key={index}>{linkify(block)}</p>;
+    });
+}
+
+const RULE_ICONS: LucideIcon[] = [Award, School, ClipboardCheck, Megaphone, Scale, HeartHandshake, Gavel];
+
+function scheduleCellClass(text: string): string {
+    const value = text.trim();
+    if (!value) return 'border p-2 border-gray-200 dark:border-gray-800';
+    if (/^E(?:\s|$)/i.test(value)) {
+        return 'border p-2 bg-blue-200/50 dark:bg-blue-900/50 border-gray-200 dark:border-gray-800 text-blue-800 dark:text-blue-200 font-bold';
+    }
+    if (/^L(?:\s|$)/i.test(value)) {
+        return 'border p-2 bg-pink-200/50 dark:bg-pink-900/50 border-gray-200 dark:border-gray-800 text-pink-800 dark:text-pink-200 font-bold';
+    }
+    if (/^M(?:\s|$)/i.test(value)) {
+        return 'border p-2 bg-green-200/50 dark:bg-green-900/50 border-gray-200 dark:border-gray-800 text-green-800 dark:text-green-200 font-bold';
+    }
+    return 'border p-2 bg-yellow-200/50 dark:bg-yellow-900/50 border-gray-200 dark:border-gray-800 text-yellow-800 dark:text-yellow-200 font-bold';
+}
+
+export function CoachingView({ document, preview = false }: { document: CoachingDocument; preview?: boolean }) {
     const reduceMotion = useReducedMotion();
-    /* Read-Modus: ruhiger als die Landing — dezenter Authored Reveal (y 18, 0.55 s). */
+    const idPrefix = preview ? 'preview-' : '';
     const anim = (delay = 0) => reduceMotion ? {} : {
         initial: { opacity: 0, y: 18 },
         whileInView: { opacity: 1, y: 0 },
         viewport: { once: true, margin: '-80px 0px' },
         transition: { duration: 0.55, delay, ease: easeOut },
     };
-    /* clip-path statt scaleX(0): zero-width-Rects blockieren IntersectionObserver (Chromium). */
     const wipeLine = (delay = 0.2) => reduceMotion ? {} : {
         initial: { clipPath: 'inset(0 100% 0 0)' },
         whileInView: { clipPath: 'inset(0 0% 0 0)' },
         viewport: { once: true, margin: '-80px 0px' },
         transition: { duration: 0.5, delay, ease: easeOut },
     };
+    const supportAnchorId = document.blocks.find(block => block.type === 'support')?.id;
 
-    const sections = [
-        { icon: <Award size={22} aria-hidden />, title: content.s_badge_title, body: content.s_badge_body },
-        { icon: <School size={22} aria-hidden />, title: content.s_school_title, body: content.s_school_body },
-        { icon: <ClipboardCheck size={22} aria-hidden />, title: content.s_who_title, body: content.s_who_body },
-        { icon: <Megaphone size={22} aria-hidden />, title: content.s_boost_title, body: content.s_boost_body },
-        { icon: <Scale size={22} aria-hidden />, title: content.s_fair_title, body: content.s_fair_body },
-        { icon: <HeartHandshake size={22} aria-hidden />, title: content.s_conduct_title, body: content.s_conduct_body },
-        { icon: <Gavel size={22} aria-hidden />, title: content.s_revoke_title, body: content.s_revoke_body },
-    ];
-
-    // Plakat-Farbvarianten mit geprueften Kontrasten (kein text-primary Fliesstext)
-    const posterCls =
-        design.posterBg === 'schwarz'
-            ? 'relative overflow-hidden rounded-3xl bg-gray-950 text-white p-6 sm:p-10 shadow-soft border border-white/10'
-            : design.posterBg === 'blau'
-                ? 'relative overflow-hidden rounded-3xl bg-blue-700 text-white p-6 sm:p-10 shadow-soft'
-                : 'relative overflow-hidden rounded-3xl bg-primary text-black p-6 sm:p-10 shadow-soft';
-    const grainCls = design.posterBg === 'gelb' ? 'absolute inset-0 poster-grain-dark' : 'absolute inset-0 poster-grain';
-    const stampCls =
-        design.posterBg === 'gelb'
-            ? 'rotate-6 rounded border-2 border-black/60 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.2em] text-black/70 stamp-ring'
-            : 'rotate-6 rounded border-2 border-white/50 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.2em] text-white/70 stamp-ring';
-    const headlineCls =
-        'mt-3 font-display uppercase leading-[0.95] tracking-tight text-3xl sm:text-5xl' +
-        (design.posterBg === 'schwarz' ? ' text-primary' : '');
-    const contactCls =
-        design.posterBg === 'gelb'
-            ? 'mt-3 text-[15px] leading-7 font-medium text-black/75 max-w-prose'
-            : design.posterBg === 'schwarz'
-                ? 'mt-3 text-[15px] leading-7 font-medium text-gray-300 max-w-prose'
-                : 'mt-3 text-[15px] leading-7 font-medium text-blue-100 max-w-prose';
-    const ctaCls =
-        design.posterBg === 'gelb'
-            ? 'press inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-black px-8 py-3 text-sm font-bold text-white hover:bg-gray-900 w-full sm:w-auto'
-            : design.posterBg === 'schwarz'
-                ? 'press inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-primary px-8 py-3 text-sm font-bold text-black hover:bg-yellow-300 w-full sm:w-auto'
-                : 'press inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-white px-8 py-3 text-sm font-bold text-blue-900 hover:bg-blue-50 w-full sm:w-auto';
-    const hintCls =
-        design.posterBg === 'gelb'
-            ? 'text-sm font-semibold text-black/70 text-center sm:text-left'
-            : design.posterBg === 'schwarz'
-                ? 'text-sm font-semibold text-gray-300 text-center sm:text-left'
-                : 'text-sm font-semibold text-blue-100 text-center sm:text-left';
-    const hintStrongCls = design.posterBg === 'gelb' ? 'text-black' : 'text-white';
-
-    const plakat = (
-        <motion.section
-            key="plakat"
-            aria-labelledby="coaching-plakat"
-            {...anim()}
-            className={posterCls}
-        >
-            <div className={grainCls} aria-hidden />
-            <div className="relative">
-                <div className="flex flex-wrap items-start justify-end gap-4">
-                    <span className={stampCls} aria-hidden>
-                        Ehrenamtlich
-                    </span>
-                </div>
-                <h2 id="coaching-plakat" className={headlineCls}>
-                    Direkt dabei sein
-                </h2>
-                <p className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[15px] font-bold">
-                    <span className="inline-flex items-center gap-1.5">
-                        <Clock size={16} aria-hidden />
-                        <span className="font-mono tabular-nums">Di 13:45–14:30</span>
-                    </span>
-                    <span className="inline-flex items-center gap-1.5">
-                        <MapPin size={16} aria-hidden />
-                        <span className="font-mono tabular-nums">Raum H310</span>
-                    </span>
-                </p>
-                <p className={contactCls}>
-                    {content.contact_text}
-                </p>
-                <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-                    <a
-                        href={`mailto:${COACH_MAIL}?subject=${encodeURIComponent('Anmeldung Schüler-Coaching AG')}`}
-                        className={ctaCls}
-                    >
-                        <Mail size={18} aria-hidden /> Per Mail anmelden
-                    </a>
-                    <span className={hintCls}>
-                        oder das SV-Team im <strong className={hintStrongCls}>SV-Raum</strong> ansprechen
-                    </span>
-                </div>
-            </div>
-        </motion.section>
-    );
-
-    const ablauf = (
-        <motion.section
-            key="ablauf"
-            aria-labelledby="coaching-ablauf"
-            {...anim()}
-            className="rounded-3xl bg-white dark:bg-gray-900 p-6 sm:p-8 border border-gray-100 dark:border-gray-800 shadow-soft"
-        >
-            <h2 id="coaching-ablauf" className="font-display uppercase text-2xl sm:text-3xl tracking-tight text-gray-900 dark:text-white">
-                In 3 Schritten Coach werden
-            </h2>
-            <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
-            <ol className="mt-6 divide-y-2 divide-dashed divide-gray-300 dark:divide-gray-700 border-y-2 border-dashed border-gray-300 dark:border-gray-700">
-                {SCHRITTE.map(s => (
-                    <li key={s.n} className="grid gap-1 py-5 sm:grid-cols-[3.5rem_1fr] sm:gap-4 sm:items-start">
-                        <span className="font-mono tabular-nums text-3xl font-bold text-gray-900 dark:text-white" aria-hidden>
-                            {s.n.padStart(2, '0')}
-                        </span>
-                        <div className="min-w-0">
-                            <p className="font-bold text-gray-900 dark:text-white text-[15px]">{s.title}</p>
-                            <p className="mt-1 text-[15px] leading-7 text-gray-600 dark:text-gray-300 max-w-prose">{s.text}</p>
-                        </div>
-                    </li>
-                ))}
-            </ol>
-            <p className="mt-5 text-[15px] leading-7 text-gray-600 dark:text-gray-300 max-w-prose">
-                Die AG-Stunde dienstags in <span className="font-mono tabular-nums">H310</span> ist{' '}
-                <strong>ehrenamtlich</strong>. Private Nachhilfe über die Börse vereinbaren Familien direkt —
-                Richtwert <span className="font-mono tabular-nums font-bold">ca. 10–12 € pro 45–60 Min</span>.
-            </p>
-            <div className="mt-5 border-t border-gray-100 dark:border-gray-800 pt-5">
-                <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-gray-500 dark:text-gray-400">
-                    Verifizierung in der App
-                </h3>
-                <VerifySteps tone="du" variant="chips" />
-            </div>
-        </motion.section>
-    );
-
-    const nutzen = (
-        <motion.section
-            key="nutzen"
-            aria-labelledby="coaching-nutzen"
-            {...anim()}
-            className="rounded-3xl bg-gray-950 dark:bg-gray-900 text-white p-6 sm:p-8 shadow-soft"
-        >
-            <h2 id="coaching-nutzen" className="font-display uppercase text-2xl sm:text-3xl tracking-tight">
-                Darum lohnt sich das Coaching
-            </h2>
-            <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
-            <ul className="mt-6 grid gap-4 sm:grid-cols-3">
-                {NUTZEN.map((n, i) => (
-                    <li key={n.title} className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                        <span className="font-mono tabular-nums text-sm font-bold text-primary" aria-hidden>
-                            {String(i + 1).padStart(2, '0')}
-                        </span>
-                        <p className="mt-2 font-display uppercase text-lg tracking-tight">{n.title}</p>
-                        <p className="mt-2 text-sm leading-relaxed text-gray-300">{n.text}</p>
-                    </li>
-                ))}
-            </ul>
-        </motion.section>
-    );
-
-    const regeln = (
-        <motion.section
-            key="regeln"
-            aria-labelledby="coaching-regeln"
-            {...anim()}
-            className="rounded-3xl bg-white dark:bg-gray-900 p-6 sm:p-8 border border-gray-100 dark:border-gray-800 shadow-soft"
-        >
-            <h2 id="coaching-regeln" className="font-display uppercase text-2xl sm:text-3xl tracking-tight text-gray-900 dark:text-white">
-                Die 7 Fairness-Regeln
-            </h2>
-            <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
-            {design.regelnStil === 'aufklappbar' ? (
-                <div className="mt-6 border-t-2 border-gray-900 dark:border-white">
-                    {sections.map((s, idx) => (
-                        <details
-                            key={s.title}
-                            open={idx === 0}
-                            className="group border-b border-gray-100 dark:border-gray-800"
-                        >
-                            <summary className="flex min-h-[44px] cursor-pointer items-center gap-4 py-3 font-display uppercase text-xl tracking-tight text-gray-900 dark:text-white [&::-webkit-details-marker]:hidden">
-                                <span className="grid place-items-center w-11 h-11 rounded-2xl bg-black text-primary dark:bg-primary dark:text-black shrink-0" aria-hidden>
-                                    {s.icon}
-                                </span>
-                                <span className="min-w-0 flex-1">{s.title}</span>
-                                <ChevronDown size={18} className="shrink-0 text-amber-700 transition-transform duration-200 ease-out group-open:rotate-180 dark:text-primary" aria-hidden />
-                            </summary>
-                            <div className="accordion-body pb-6 sm:pl-[3.75rem] mt-1 text-[15px] leading-7 text-gray-600 dark:text-gray-300 space-y-2 max-w-prose">
-                                {renderBody(s.body)}
+    const renderBlock = (block: CoachingBlock): ReactNode => {
+        if (block.type === 'poster') {
+            return (
+                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="relative overflow-hidden rounded-3xl bg-primary p-6 text-black shadow-soft sm:p-10">
+                    <div className="absolute inset-0 poster-grain-dark" aria-hidden />
+                    <div className="relative">
+                        {block.stamp ? (
+                            <div className="flex flex-wrap items-start justify-end gap-4">
+                                <span className="stamp-ring rotate-6 rounded border-2 border-black/60 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.2em] text-black/70" aria-hidden>{block.stamp}</span>
                             </div>
-                        </details>
-                    ))}
-                </div>
-            ) : (
-                <div className="mt-6 border-t-2 border-gray-900 dark:border-white">
-                    {sections.map(s => (
-                        <article key={s.title} className="grid gap-3 py-6 border-b border-gray-100 dark:border-gray-800 last:border-b-0 sm:grid-cols-[3rem_1fr] sm:gap-5">
-                            <span className="grid place-items-center w-11 h-11 rounded-2xl bg-black text-primary dark:bg-primary dark:text-black shrink-0" aria-hidden>
-                                {s.icon}
-                            </span>
-                            <div className="min-w-0">
-                                <h3 className="font-display uppercase text-xl tracking-tight text-gray-900 dark:text-white">{s.title}</h3>
-                                <div className="mt-2 text-[15px] leading-7 text-gray-600 dark:text-gray-300 space-y-2 max-w-prose">
-                                    {renderBody(s.body)}
-                                </div>
+                        ) : null}
+                        <h2 id={`${idPrefix}${block.id}-title`} className="mt-3 font-display text-3xl uppercase leading-[0.95] tracking-tight sm:text-5xl">{block.title}</h2>
+                        {(block.time || block.room) ? (
+                            <p className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[15px] font-bold">
+                                {block.time ? <span className="inline-flex items-center gap-1.5"><Clock size={16} aria-hidden /><span className="font-mono tabular-nums">{block.time}</span></span> : null}
+                                {block.room ? <span className="inline-flex items-center gap-1.5"><MapPin size={16} aria-hidden /><span className="font-mono tabular-nums">{block.room}</span></span> : null}
+                            </p>
+                        ) : null}
+                        {block.contactText ? <p className="mt-3 max-w-prose text-[15px] font-medium leading-7 text-black/75">{block.contactText}</p> : null}
+                        {block.ctaLabel || block.hint ? (
+                            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+                                {block.ctaLabel ? (
+                                    <a href={`mailto:${block.email}?subject=${encodeURIComponent(block.mailSubject)}`} className="press inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-black px-8 py-3 text-sm font-bold text-white hover:bg-gray-900 sm:w-auto">
+                                        <Mail size={18} aria-hidden /> {block.ctaLabel}
+                                    </a>
+                                ) : null}
+                                {block.hint ? <span className="text-center text-sm font-semibold text-black/70 sm:text-left">{block.hint}</span> : null}
                             </div>
-                        </article>
-                    ))}
-                </div>
-            )}
-        </motion.section>
-    );
-
-    const kontakt = (
-        <motion.section
-            key="kontakt"
-            aria-labelledby="coaching-kontakt"
-            {...anim()}
-            className="rounded-3xl bg-white dark:bg-gray-900 p-6 sm:p-8 border border-gray-100 dark:border-gray-800 shadow-soft"
-        >
-            <h2 id="coaching-kontakt" className="font-display uppercase text-xl tracking-tight text-gray-900 dark:text-white">
-                Fragen zum Coaching?
-            </h2>
-            <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
-            <p className="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300 max-w-prose">
-                {content.contact_text} · E-Mail:{' '}
-                <a href={`mailto:${COACH_MAIL}`} className={`${LINK_CLS} break-anywhere`}>{COACH_MAIL}</a>
-            </p>
-            <p className="mt-2 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
-                Mehr für Eltern: <Link to="/eltern-leitfaden" className={LINK_CLS}>Eltern-Leitfaden</Link>
-            </p>
-        </motion.section>
-    );
-
-    const byId: Record<CoachingSectionId, React.ReactNode> = {
-        plakat,
-        ablauf,
-        nutzen,
-        regeln,
-        kontakt,
-    };
-
-    // Förderunterricht-Stundenplan (vom Feed hierher umgezogen, immer sichtbar, nicht Builder-gesteuert).
-    const foerderung = (
-        <motion.section
-            key="foerderung"
-            id="foerderung"
-            aria-labelledby="foerderung-titel"
-            {...anim()}
-            className="rounded-3xl bg-white dark:bg-gray-900 p-6 sm:p-8 border border-gray-100 dark:border-gray-800 shadow-soft scroll-mt-24"
-        >
-            <h2 id="foerderung-titel" className="font-display uppercase text-2xl sm:text-3xl tracking-tight text-gray-900 dark:text-white">
-                Förderunterricht Sek. I (2. HJ)
-            </h2>
-            <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
-            <div className="mt-4 text-[15px] leading-7 text-gray-600 dark:text-gray-300 space-y-2 max-w-prose">
-                <p>Förderunterricht wird in den Jahrgangsstufen 5-10 in den Fächern Deutsch, Mathematik, Englisch und Latein erteilt. Die Entscheidung über eine Anmeldung liegt bei den Eltern.</p>
-                <p><strong>Start:</strong> Mittwoch, 18.02. in der 7. Stunde (Kick-off in H408). Danach regulär in H402.</p>
-                <p>
-                    Anmeldung verbindlich über:{' '}
-                    <a href="mailto:foerderunterricht@fwg-koeln.nrw.schule" className={LINK_CLS}>foerderunterricht@fwg-koeln.nrw.schule</a>
-                </p>
-            </div>
-            <div className="overflow-x-auto max-w-full mt-4 rounded-xl border border-gray-100 dark:border-gray-800">
-                <table className="w-full min-w-[440px] text-center text-xs md:text-sm border-collapse">
-                    <thead>
-                        <tr>
-                            <th className="border p-2 border-gray-200 dark:border-gray-800 font-mono tabular-nums">Montag</th>
-                            <th className="border p-2 border-gray-200 dark:border-gray-800 font-mono tabular-nums">Dienstag</th>
-                            <th className="border p-2 border-gray-200 dark:border-gray-800 font-mono tabular-nums">Mittwoch</th>
-                            <th className="border p-2 border-gray-200 dark:border-gray-800 font-mono tabular-nums">Donnerstag</th>
-                        </tr>
-                    </thead>
-                    <tbody className="font-mono tabular-nums">
-                        <tr>
-                            <td className="border p-2 bg-yellow-200/50 dark:bg-yellow-900/50 border-gray-200 dark:border-gray-800 text-yellow-800 dark:text-yellow-200 font-bold">D</td>
-                            <td className="border p-2 bg-yellow-200/50 dark:bg-yellow-900/50 border-gray-200 dark:border-gray-800 text-yellow-800 dark:text-yellow-200 font-bold">D</td>
-                            <td className="border p-2 bg-green-200/50 dark:bg-green-900/50 border-gray-200 dark:border-gray-800 text-green-800 dark:text-green-200 font-bold">M</td>
-                            <td className="border p-2 bg-green-200/50 dark:bg-green-900/50 border-gray-200 dark:border-gray-800 text-green-800 dark:text-green-200 font-bold">M</td>
-                        </tr>
-                        <tr>
-                            <td className="border p-2 bg-blue-200/50 dark:bg-blue-900/50 border-gray-200 dark:border-gray-800 text-blue-800 dark:text-blue-200 font-bold">E</td>
-                            <td className="border p-2 bg-pink-200/50 dark:bg-pink-900/50 border-gray-200 dark:border-gray-800 text-pink-800 dark:text-pink-200 font-bold">L</td>
-                            <td className="border p-2 bg-pink-200/50 dark:bg-pink-900/50 border-gray-200 dark:border-gray-800 text-pink-800 dark:text-pink-200 font-bold">L</td>
-                            <td className="border p-2 bg-blue-200/50 dark:bg-blue-900/50 border-gray-200 dark:border-gray-800 text-blue-800 dark:text-blue-200 font-bold">E</td>
-                        </tr>
-                        <tr>
-                            <td className="border p-2 bg-yellow-200/50 dark:bg-yellow-900/50 border-gray-200 dark:border-gray-800 text-yellow-800 dark:text-yellow-200 font-bold">D/LRS</td>
-                            <td className="border p-2 border-gray-200 dark:border-gray-800"></td>
-                            <td className="border p-2 border-gray-200 dark:border-gray-800"></td>
-                            <td className="border p-2 bg-yellow-200/50 dark:bg-yellow-900/50 border-gray-200 dark:border-gray-800 text-yellow-800 dark:text-yellow-200 font-bold">D/LRS</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <p className="mt-4 text-[15px] leading-7 text-gray-600 dark:text-gray-300 max-w-prose">
-                Terminabsprachen für ein Lerncoaching trefft ihr gerne individuell persönlich oder per Mail mit Herr Gampp, Frau Hallerbach, Frau Trottmann oder Frau Weyers:<br />
-                <a href="mailto:lerncoaching@fwg-koeln.nrw.schule" className={LINK_CLS}>lerncoaching@fwg-koeln.nrw.schule</a>
-            </p>
-        </motion.section>
-    );
-
-    const ordered: CoachingSectionId[] = [];
-    for (const entry of design.sections) {
-        if ((SECTION_IDS as string[]).includes(entry.id) && entry.visible && !ordered.includes(entry.id)) {
-            ordered.push(entry.id);
+                        ) : null}
+                    </div>
+                </motion.section>
+            );
         }
-    }
-    for (const id of SECTION_IDS) {
-        const inDesign = design.sections.find(s => s.id === id);
-        if (!inDesign && !ordered.includes(id)) ordered.push(id);
-    }
+
+        if (block.type === 'steps') {
+            return (
+                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-3xl border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900 sm:p-8">
+                    <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-2xl uppercase tracking-tight text-gray-900 dark:text-white sm:text-3xl">{block.title}</h2>
+                    <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
+                    {block.items.length > 0 ? (
+                        <ol className="mt-6 divide-y-2 divide-dashed divide-gray-300 border-y-2 border-dashed border-gray-300 dark:divide-gray-700 dark:border-gray-700">
+                            {block.items.map((item, index) => (
+                                <li key={item.id} className="grid gap-1 py-5 sm:grid-cols-[3.5rem_1fr] sm:items-start sm:gap-4">
+                                    <span className="font-mono text-3xl font-bold tabular-nums text-gray-900 dark:text-white" aria-hidden>{String(index + 1).padStart(2, '0')}</span>
+                                    <div className="min-w-0">
+                                        <p className="text-[15px] font-bold text-gray-900 dark:text-white">{item.title}</p>
+                                        <div className="mt-1 max-w-prose text-[15px] leading-7 text-gray-600 dark:text-gray-300">{renderBody(item.body)}</div>
+                                    </div>
+                                </li>
+                            ))}
+                        </ol>
+                    ) : null}
+                    {block.note ? <div className="mt-5 max-w-prose text-[15px] leading-7 text-gray-600 dark:text-gray-300">{renderBody(block.note)}</div> : null}
+                    {block.verificationTitle || block.verificationItems.length > 0 ? (
+                        <div className="mt-5 border-t border-gray-100 pt-5 dark:border-gray-800">
+                            {block.verificationTitle ? <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-gray-500 dark:text-gray-400">{block.verificationTitle}</h3> : null}
+                            {block.verificationItems.length > 0 ? (
+                                <ol className="mt-3 flex flex-wrap gap-2">
+                                    {block.verificationItems.map((item, index) => (
+                                        <li key={item.id} className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-2 text-sm text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                                            <span className="font-mono font-bold tabular-nums text-gray-900 dark:text-white" aria-hidden>{index + 1}</span>
+                                            <span><strong className="text-gray-900 dark:text-white">{item.title}:</strong> {item.body}</span>
+                                        </li>
+                                    ))}
+                                </ol>
+                            ) : null}
+                        </div>
+                    ) : null}
+                </motion.section>
+            );
+        }
+
+        if (block.type === 'benefits') {
+            return (
+                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-3xl bg-gray-950 p-6 text-white shadow-soft dark:bg-gray-900 sm:p-8">
+                    <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-2xl uppercase tracking-tight sm:text-3xl">{block.title}</h2>
+                    <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
+                    {block.items.length > 0 ? (
+                        <ul className="mt-6 grid gap-4 sm:grid-cols-3">
+                            {block.items.map((item, index) => (
+                                <li key={item.id} className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                                    <span className="font-mono text-sm font-bold tabular-nums text-primary" aria-hidden>{String(index + 1).padStart(2, '0')}</span>
+                                    <p className="mt-2 font-display text-lg uppercase tracking-tight">{item.title}</p>
+                                    <div className="mt-2 text-sm leading-relaxed text-gray-300">{renderBody(item.body)}</div>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : null}
+                </motion.section>
+            );
+        }
+
+        if (block.type === 'rules') {
+            return (
+                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-3xl border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900 sm:p-8">
+                    <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-2xl uppercase tracking-tight text-gray-900 dark:text-white sm:text-3xl">{block.title}</h2>
+                    <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
+                    {block.items.length > 0 ? (
+                        <div className="mt-6 border-t-2 border-gray-900 dark:border-white">
+                            {block.items.map((item, index) => {
+                                const Icon = RULE_ICONS[index] ?? Scale;
+                                return (
+                                    <article key={item.id} className="grid gap-3 border-b border-gray-100 py-6 last:border-b-0 dark:border-gray-800 sm:grid-cols-[3rem_1fr] sm:gap-5">
+                                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-black text-primary dark:bg-primary dark:text-black" aria-hidden><Icon size={22} /></span>
+                                        <div className="min-w-0">
+                                            <h3 className="font-display text-xl uppercase tracking-tight text-gray-900 dark:text-white">{item.title}</h3>
+                                            <div className="mt-2 max-w-prose space-y-2 text-[15px] leading-7 text-gray-600 dark:text-gray-300">{renderBody(item.body)}</div>
+                                        </div>
+                                    </article>
+                                );
+                            })}
+                        </div>
+                    ) : null}
+                </motion.section>
+            );
+        }
+
+        if (block.type === 'contact') {
+            return (
+                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-3xl border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900 sm:p-8">
+                    <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-xl uppercase tracking-tight text-gray-900 dark:text-white">{block.title}</h2>
+                    <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
+                    {block.text || block.email ? (
+                        <p className="mt-3 max-w-prose text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+                            {block.text}{block.text && block.email ? ' · ' : ''}{block.email ? <>E-Mail: <a href={`mailto:${block.email}`} className={`${LINK_CLS} break-anywhere`}>{block.email}</a></> : null}
+                        </p>
+                    ) : null}
+                    {block.parentText || block.parentLinkLabel ? (
+                        <p className="mt-2 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+                            {block.parentText}{block.parentText && block.parentLinkLabel ? ' ' : ''}
+                            {block.parentLinkLabel ? <Link to={block.parentLinkPath} className={LINK_CLS}>{block.parentLinkLabel}</Link> : null}
+                        </p>
+                    ) : null}
+                </motion.section>
+            );
+        }
+
+        if (block.type === 'support') {
+            return (
+                <motion.section key={block.id} id={block.id === supportAnchorId ? `${idPrefix}foerderung` : undefined} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="scroll-mt-24 rounded-3xl border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900 sm:p-8">
+                    <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-2xl uppercase tracking-tight text-gray-900 dark:text-white sm:text-3xl">{block.title}</h2>
+                    <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
+                    <div className="mt-4 max-w-prose space-y-2 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+                        {block.paragraphs.filter(paragraph => paragraph.trim()).map((paragraph, index) => <p key={`${block.id}-paragraph-${index}`}>{linkify(paragraph)}</p>)}
+                        {block.registrationText || block.registrationEmail ? (
+                            <p>
+                                {block.registrationText}{block.registrationText && block.registrationEmail ? ' ' : ''}
+                                {block.registrationEmail ? <a href={`mailto:${block.registrationEmail}`} className={LINK_CLS}>{block.registrationEmail}</a> : null}
+                            </p>
+                        ) : null}
+                    </div>
+                    {block.days.length > 0 ? (
+                        <div className="mt-4 max-w-full overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800">
+                            <table className="w-full min-w-[440px] border-collapse text-center text-xs md:text-sm">
+                                <thead>
+                                    <tr>{block.days.map(day => <th key={day.id} className="border border-gray-200 p-2 font-mono tabular-nums dark:border-gray-800">{day.label}</th>)}</tr>
+                                </thead>
+                                <tbody className="font-mono tabular-nums">
+                                    {block.rows.map(row => (
+                                        <tr key={row.id}>{row.cells.map(cell => <td key={cell.id} className={scheduleCellClass(cell.text)}>{cell.text}</td>)}</tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : null}
+                    {block.learnCoachingText || block.learnCoachingEmail ? (
+                        <p className="mt-4 max-w-prose text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+                            {block.learnCoachingText}{block.learnCoachingText && block.learnCoachingEmail ? ' ' : ''}
+                            {block.learnCoachingEmail ? <a href={`mailto:${block.learnCoachingEmail}`} className={LINK_CLS}>{block.learnCoachingEmail}</a> : null}
+                        </p>
+                    ) : null}
+                </motion.section>
+            );
+        }
+
+        return (
+            <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-3xl border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900 sm:p-8">
+                <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-2xl uppercase tracking-tight text-gray-900 dark:text-white sm:text-3xl">{block.title}</h2>
+                <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
+                {block.body ? <div className="mt-5 max-w-prose space-y-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">{renderBody(block.body)}</div> : null}
+            </motion.section>
+        );
+    };
 
     return (
         <StaticLayout
-            title={content.hero_title}
-            intro={content.hero_subtitle}
+            title={document.header?.title ?? ''}
+            intro={document.header?.intro}
+            showHeader={document.header !== null}
+            embedded={preview}
+            idPrefix={idPrefix}
         >
-            {/* Sektions-Rhythmus wie alle StaticLayout-Seiten: eng innen, weit zwischen Sektionen. */}
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-16 min-w-0 flex flex-col gap-10 sm:gap-12">
-                {ordered.map(id => byId[id])}
-                {foerderung}
+            <div className="mx-auto flex min-w-0 max-w-4xl flex-col gap-10 px-4 pb-16 sm:gap-12 sm:px-6">
+                {!document.header ? <h1 className="sr-only">Coaching</h1> : null}
+                {!supportAnchorId ? <span id={`${idPrefix}foerderung`} className="block scroll-mt-24" aria-hidden /> : null}
+                {document.blocks.map(renderBlock)}
             </div>
         </StaticLayout>
     );
 }
 
 export default function Coaching() {
-    const [content, setContent] = useState<Record<string, string>>(FALLBACK);
-    const [design, setDesign] = useState<DesignConfig>(DEFAULT_DESIGN);
+    const [coachingDocument, setCoachingDocument] = useState<CoachingDocument>(() => createDefaultCoachingDocument());
     const location = useLocation();
 
     useEffect(() => {
@@ -479,31 +807,24 @@ export default function Coaching() {
         api.coach.getCoachingPage()
             .then(res => {
                 if (!cancelled && res?.data && typeof res.data === 'object') {
-                    const data = res.data as Record<string, unknown>;
-                    const texts: Record<string, string> = {};
-                    for (const [k, v] of Object.entries(data)) {
-                        if (typeof v === 'string') texts[k] = v;
-                    }
-                    setContent({ ...FALLBACK, ...texts });
-                    setDesign(parseCoachingDesign(data.layout_json));
+                    setCoachingDocument(parseCoachingDocument(res.data as Record<string, unknown>));
                 }
             })
-            .catch(() => { /* Fallback-Texte bleiben */ });
+            .catch(() => undefined);
         return () => { cancelled = true; };
     }, []);
 
-    // HashRouter-sicherer Tiefensprung (z. B. vom Feed: navigate('/coaching', { state: { section: 'foerderung' } })).
     useEffect(() => {
         const section = (location.state as { section?: string } | null)?.section;
         if (!section) return;
-        const t = setTimeout(() => {
-            const el = document.getElementById(section);
-            if (!el) return;
-            const reduce = typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+        const timer = window.setTimeout(() => {
+            const element = document.getElementById(section);
+            if (!element) return;
+            const reduce = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            element.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
         }, 150);
-        return () => clearTimeout(t);
-    }, [location.state]);
+        return () => window.clearTimeout(timer);
+    }, [location.state, coachingDocument]);
 
-    return <CoachingView content={content} design={design} />;
+    return <CoachingView document={coachingDocument} />;
 }

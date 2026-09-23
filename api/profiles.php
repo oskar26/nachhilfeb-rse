@@ -781,7 +781,7 @@ if ($action === 'coach_info' && ($method === 'POST' || $method === 'PUT')) {
 
 // ------------------------------------------------------------------------------
 // 2b. COACHING-SEITEN-TEXTE (öffentlich lesen, NUR COACH-ADMIN/SV-ADMIN schreiben)
-// Alle Texte der /coaching-Seite, editierbar über das Coach-Panel (Tab Info).
+// Alle Inhalte der /coaching-Seite, editierbar über das Coach-Panel (Tab Seite).
 // ------------------------------------------------------------------------------
 function fwg_coaching_page_defaults() {
     return [
@@ -815,8 +815,14 @@ if ($action === 'coaching_page' && $method === 'GET') {
             $val = json_decode($row['setting_value'], true);
             if (is_array($val)) {
                 foreach ($page as $k => $v) {
-                    if (isset($val[$k]) && is_string($val[$k]) && $val[$k] !== '') {
+                    if (array_key_exists($k, $val) && is_string($val[$k])) {
                         $page[$k] = $val[$k];
+                    }
+                }
+                if (isset($val['content_json']) && is_string($val['content_json']) && strlen($val['content_json']) <= 153600) {
+                    $content = json_decode($val['content_json']);
+                    if (is_object($content)) {
+                        $page['content_json'] = $val['content_json'];
                     }
                 }
             }
@@ -831,12 +837,44 @@ if ($action === 'coaching_page' && ($method === 'POST' || $method === 'PUT')) {
     $defaults = fwg_coaching_page_defaults();
     $page = [];
     foreach ($defaults as $k => $v) {
-        $raw = trim((string)($data[$k] ?? ''));
-        if ($raw === '') {
+        if (!array_key_exists($k, $data)) {
             $raw = $v;
+        } elseif (!is_string($data[$k])) {
+            json_error('Ungültiger Textwert für ' . $k . '.', 400);
+            $raw = '';
+        } else {
+            $raw = trim($data[$k]);
         }
         $isTitle = (bool)preg_match('/(_title|^hero_title|contact_text)$/', $k);
         $page[$k] = mb_substr($raw, 0, $isTitle ? 200 : 8000);
+    }
+    if (!array_key_exists('content_json', $data)) {
+        try {
+            $stmt = $pdo->prepare('SELECT setting_value FROM app_settings WHERE setting_key = "coaching_page"');
+            $stmt->execute();
+            $row = $stmt->fetch();
+            $stored = $row ? json_decode($row['setting_value'], true) : null;
+            if (is_array($stored) && isset($stored['content_json']) && is_string($stored['content_json']) && strlen($stored['content_json']) <= 153600) {
+                $content = json_decode($stored['content_json']);
+                if (is_object($content)) {
+                    $page['content_json'] = $stored['content_json'];
+                }
+            }
+        } catch (Exception $e) {}
+    }
+    if (array_key_exists('content_json', $data)) {
+        if (!is_string($data['content_json'])) {
+            json_error('Coaching-Inhalte müssen als JSON-Objekt übermittelt werden.', 400);
+        }
+        $contentJson = trim($data['content_json']);
+        if (strlen($contentJson) > 153600) {
+            json_error('Die Coaching-Inhalte sind zu umfangreich.', 413);
+        }
+        $content = json_decode($contentJson);
+        if (!is_object($content)) {
+            json_error('Coaching-Inhalte müssen als gültiges JSON-Objekt übermittelt werden.', 400);
+        }
+        $page['content_json'] = $contentJson;
     }
     $jsonVal = json_encode($page, JSON_UNESCAPED_UNICODE);
     $stmt = $pdo->prepare('
@@ -860,7 +898,7 @@ if ($action === 'coaching_page' && ($method === 'POST' || $method === 'PUT')) {
     } catch (Exception $e) {
         error_log('Audit log error on coach_page_update: ' . $e->getMessage());
     }
-    json_response(['message' => 'Coaching-Seiten-Texte erfolgreich aktualisiert.', 'page' => $page]);
+    json_response(['message' => 'Coaching-Inhalte erfolgreich aktualisiert.', 'page' => $page]);
 }
 
 // ------------------------------------------------------------------------------
