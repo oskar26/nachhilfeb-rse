@@ -1,6 +1,6 @@
 <?php
 // ==============================================================================
-// FWG Nachhilfebörse - Page Analytics API (Consent-gated, ohne IPs)
+// FWG Nachhilfebörse - Page Analytics API (anonym, ohne IPs, immer aktiv)
 // POST ?action=track  – öffentlich, speichert einen Seitenaufruf
 // GET  ?action=stats  – nur SV-Admin, aggregierte Auswertung (30 Tage)
 // ==============================================================================
@@ -17,7 +17,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 $pdo = DB::getConnection();
 
 // ------------------------------------------------------------------------------
-// 1. TRACK (öffentlich – Consent wird frontendseitig geprüft)
+// 1. TRACK (öffentlich – anonyme Statistik, kein Consent nötig)
 // ------------------------------------------------------------------------------
 if ($action === 'track' && $method === 'POST') {
     // Flood-Schutz: max. 200 Hits pro Minute und IP (generös, blockt nur Bots)

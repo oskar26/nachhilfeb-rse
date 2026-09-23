@@ -40,9 +40,8 @@ export function useAnalyticsTracker() {
     const lastTracked = useRef<string>('');
 
     useEffect(() => {
-        const consent = localStorage.getItem('cookie_consent');
-        // Nur bei ausdrücklicher Zustimmung zählen („accepted“, nicht „essential_only“)
-        if (consent !== 'accepted') return;
+        // Anonyme Server-Statistik läuft immer mit (Art. 6 Abs. 1 lit. f DSGVO,
+        // ohne IP/Personenbezug – siehe Datenschutz-/Cookies-Seite). Kein Consent-Gate.
 
         // HashRouter-sicher: React Router liefert den Pfad bereits geparst,
         // Fallback auf window.location.hash für volle Hash-Pfade.

@@ -6,7 +6,6 @@ export default function Cookies() {
     const showNoticeAgain = () => {
         try {
             localStorage.removeItem('cookie_notice_seen');
-            localStorage.removeItem('cookie_consent');
         } catch {
             /* ignore */
         }

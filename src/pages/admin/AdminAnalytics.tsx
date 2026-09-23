@@ -489,7 +489,7 @@ export default function AdminAnalytics() {
                                 <TrendingUp size={18} className="text-primary-hover" /> Aufrufe-Verlauf
                             </CardTitle>
                             <CardDescription>
-                                Seitenaufrufe pro Tag ({rangeLabel}) · nur mit Cookie-Einwilligung gezählt
+                                Seitenaufrufe pro Tag ({rangeLabel}) · anonyme Server-Statistik (ohne IP)
                             </CardDescription>
                         </div>
                         <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl shrink-0" role="group" aria-label="Zeitraum wählen">
@@ -513,7 +513,7 @@ export default function AdminAnalytics() {
                         <div className="py-12 text-center text-gray-400 text-xs font-bold uppercase tracking-wider">Lade Verlauf…</div>
                     ) : dailyViews.every(d => d.count === 0) ? (
                         <div className="text-center py-12 text-gray-400 text-xs italic">
-                            Noch keine Aufrufdaten im Zeitraum. Sobald Nutzer mit Einwilligung Seiten aufrufen, erscheint hier der Verlauf.
+                            Noch keine Aufrufdaten im Zeitraum. Sobald Nutzer Seiten aufrufen, erscheint hier der Verlauf.
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
