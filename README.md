@@ -1,113 +1,228 @@
-# 🎓 FWG Nachhilfebörse v2
+<div align="center">
 
-Eine moderne, sichere und KI-gestützte Nachhilfe-Plattform für Schülerinnen, Schüler und Eltern des Friedrich-Wilhelm-Gymnasiums Köln.
+# 🎓 FWG Nachhilfebörse
 
-![FWG Nachhilfebörse](https://img.shields.io/badge/Status-Aktiv-brightgreen.svg)
-![React](https://img.shields.io/badge/Frontend-React_19-blue.svg)
-![TypeScript](https://img.shields.io/badge/Language-TypeScript-blue.svg)
-![TailwindCSS](https://img.shields.io/badge/Styling-TailwindCSS-38bdf8.svg)
-![Supabase](https://img.shields.io/badge/Backend-Supabase-3ecf8e.svg)
-![NVIDIA AI](https://img.shields.io/badge/AI-NVIDIA_NIM_Nemotron-green.svg)
+**Die schulinterne Nachhilfe-Plattform des Friedrich-Wilhelm-Gymnasiums Köln**  
+Nachhilfe suchen und anbieten, direkt unter Mitschülern: ohne kommerzielle Plattform, moderiert von der SV.
 
----
+[![Live](https://img.shields.io/badge/Live-nachhilfe--sv.de-brightgreen?style=for-the-badge&logo=googlechrome&logoColor=white)](https://nachhilfe-sv.de)
+[![Status](https://img.shields.io/badge/Status-Aktiv-22c55e?style=for-the-badge)](https://nachhilfe-sv.de)
+[![Open Source](https://img.shields.io/badge/Open%20Source-GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/oskar26/nachhilfeb-rse)
+[![DSGVO](https://img.shields.io/badge/DSGVO-Hosting%20in%20DE-0ea5e9?style=for-the-badge)](https://nachhilfe-sv.de/#/datenschutz)
+[![AI](https://img.shields.io/badge/Entwicklung-agentisches%20Coding-a855f7?style=for-the-badge)](#-transparenz)
 
-## 🌟 Hauptfunktionen
-
-- **🔍 Smart Matching & Suche**: Gezielte Suche nach Fächern (nach Aufgabenfeldern sortiert), Klassenstufen (5 bis Q2) und Verfügbarkeit.
-- **✨ KI-Assistenten (NVIDIA NIM)**:
-  - **Smart Inserat Assistant**: Formuliert aus Stichpunkten professionelle Inseratentwürfe (`nvidia/nemotron-3.5-lightning-30b-a3b`).
-  - **KI-Eltern-Fortschritts-Synthese**: Generiert streng faktengebundene 3-Satz-Zusammenfassungen von Nachhilfestunden für Eltern (`nvidia/nemotron-3-nano-30b-a3b`).
-- **👨‍👩‍👧 Eltern-Dashboard & Verknüpfung**: Eltern können Schülerkonten verknüpfen, Fortschritte einsehen, Einverständniserklärungen generieren und Benachrichtigungen verwalten.
-- **🛡️ SV-Admin-Panel & Code-System**: SV-Schülerausweis-Verifizierung, Promotion-Codes (`BANANE`), Benutzerverwaltung und Aktivitäts-Audit-Logs.
-- **📱 Progressive Web App (PWA)**: Installierbar auf Mobilgeräten und Desktops mit Offline-Unterstützung und Schnellzugriffen.
-- **💬 Echtzeit-Chat & Anfragen**: Integriertes Nachrichtensystem für Terminabsprachen.
+</div>
 
 ---
 
-## 🔒 Sicherheitskonzept & Datenschutz (DSGVO)
+## 📌 Was ist das?
 
-Die Anwendung wurde mit Fokus auf **Jugendschutz, Datenschutz und Sicherheit** entwickelt:
+Die **FWG Nachhilfebörse** ist eine Progressive Web App (PWA) für das FWG Köln: Schüler:innen der Klassen 5 bis 13 finden Nachhilfe oder bieten sie an. Dazu kommen Verifikation über die Schülervertretung, Chat, Eltern-Dashboard und Pflicht zum Jugendschutz.
 
-1. **Keine API-Schlüssel im Frontend**:
-   - Der `NVIDIA_API_KEY` und Datenbank-Geheimnisse verbleiben **ausschließlich in der Serverumgebung** (Netlify Functions / Vercel Serverless / Node.js Backend).
-   - Der Browser ruft nur geschützte Server-API-Endpunkte (`/api/ai/generate`) auf.
-2. **Serverseitiger Inhaltsfilter**:
-   - Automatische Profanity-Filter-Trigger auf Datenbankebene verhindern unangemessene Nachrichten.
-3. **Schutz der Privatsphäre**:
-   - Keine automatische KI-Veröffentlichung: KI-Ergebnisse sind stets **bearbeitbare Entwürfe**, die vom Nutzer erst geprüft und manuell freigegeben werden müssen.
-   - Verifizierungs-System über den SV-Raum verhindert unbefugte Anmeldungen.
-   - 7-Tage-Aufräumfunktion für unverifizierte Konten.
-4. **Umgebungsvariablen-Sicherheit**:
-   - Alle `.env`-Dateien mit echten Schlüsseln sind über `.gitignore` vom Git-Repository ausgeschlossen.
+| | |
+|---|---|
+| 🌐 **Website** | [https://nachhilfe-sv.de](https://nachhilfe-sv.de) |
+| 💻 **Quellcode** | [github.com/oskar26/nachhilfeb-rse](https://github.com/oskar26/nachhilfeb-rse) |
+| 🏫 **Träger** | Schülervertretung (SV) des Friedrich-Wilhelm-Gymnasiums Köln |
+| 📄 **Rechtliches** | [Impressum](https://nachhilfe-sv.de/#/impressum) · [Datenschutz](https://nachhilfe-sv.de/#/datenschutz) · [Transparenz](https://nachhilfe-sv.de/#/transparenz) |
+
+---
+
+## 📸 Screenshots
+
+> **Platzhalter:** Legt die Bilder unter `docs/screenshots/` ab. Dann erscheinen sie hier automatisch.  
+> Benennung und Motive siehe [`docs/screenshots/README.md`](docs/screenshots/README.md).
+
+| Startseite | Feed & Suche | Anfrage & Chat |
+|:---:|:---:|:---:|
+| ![Welcome](docs/screenshots/01-welcome.png) | ![Feed](docs/screenshots/02-feed.png) | ![Chat](docs/screenshots/04-anfrage-chat.png) |
+
+| Anzeige erstellen | Eltern-Dashboard | SV-Panel |
+|:---:|:---:|:---:|
+| ![Anzeige erstellen](docs/screenshots/03-anzeige-erstellen.png) | ![Eltern](docs/screenshots/06-eltern-dashboard.png) | ![SV-Panel](docs/screenshots/07-sv-panel.png) |
+
+| Profil & Bewertung | Coaching | Dark Mode / PWA |
+|:---:|:---:|:---:|
+| ![Profil](docs/screenshots/05-profil.png) | ![Coaching](docs/screenshots/08-coaching.png) | ![Dark Mode](docs/screenshots/09-dark-mode-pwa.png) |
+
+---
+
+## ✨ Funktionen
+
+<details>
+<summary><b>Für Schüler:innen</b></summary>
+
+- **🔍 Smart Matching:** Suche nach Fächern (nach Aufgabenfeldern farbcodiert), Klassenstufe (5–Q2), Preis, Ort und Verfügbarkeit
+- **📝 Anzeigen in Minuten:** Stepper für „biete“ und „suche“, inkl. Bilder und Zeitfenstern
+- **💬 Anfragen & Chat:** Terminabsprachen mit Match-Übersicht und Kalender-Export (ICS)
+- **⭐ Bewertungen:** nur nach echtem Kontakt, keine Fake-Reviews
+- **📌 Merkliste:** Anzeigen speichern und später vergleichen
+- **👤 Profile mit Bio:** Rich-Text-Bio, Fach-Tags, Verifizierungs-Hinweis
+- **🏅 Schüler-Coaching AG:** Badge für verifizierte Coaches ab Klasse 8
+
+</details>
+
+<details>
+<summary><b>Für Eltern</b></summary>
+
+- **👨‍👩‍👧 Eltern-Dashboard:** Kind verknüpfen, Fortschritt einsehen
+- **📄 Einverständnis & Briefings:** Generierte, streng faktengebundene 3-Satz-Zusammenfassungen der Nachhilfe für Eltern (KI, NVIDIA NIM)
+- **🛡️ Leitfaden:** Was die Plattform kann, was sie nicht kann, wie Sicherheit funktioniert ([Eltern-Leitfaden](https://nachhilfe-sv.de/#/eltern-leitfaden))
+
+</details>
+
+<details>
+<summary><b>Für die SV (Administration)</b></summary>
+
+- **✅ Verifikation:** SV-Raum, Codes/QR, Vor-Ort-Freischaltung
+- **🎟️ Promotion-Codes:** z. B. `BANANE` für den Start
+- **📣 Moderation:** Reports, Nutzerverwaltung, Audit-Log
+- **📊 Analytics:** Live-Stats (Anzeigen, Nutzer, Seitenaufrufe) ohne externe Tracker
+
+</details>
+
+<details>
+<summary><b>Technisch</b></summary>
+
+- **📱 PWA:** installierbar auf Handy und Desktop, Offline-Prompt, Bottom-Nav mobil / Sidebar Desktop
+- **🌗 Dark & Light Mode**
+- **🤖 KI-Assistenten:** Smart Inserat Assistant und Eltern-Briefing über NVIDIA NIM (serverseitig, kein Key im Browser)
+- **🔔 News-Widget & Push-Hinweise**
+
+</details>
+
+---
+
+## 📊 Projekt in Zahlen
+
+<div align="center">
+
+| ![Code](https://img.shields.io/badge/Zeilen_Code_(src)-~27.500-0ea5e9?style=flat-square&labelColor=0f172a&color=0ea5e9) | ![Files](https://img.shields.io/badge/TS_TSX-Dateien-88-22c55e?style=flat-square&labelColor=0f172a&color=22c55e) | ![Components](https://img.shields.io/badge/UI--Components-34-f59e0b?style=flat-square&labelColor=0f172a&color=f59e0b) | ![API](https://img.shields.io/badge/API_/_Functions-27-a855f7?style=flat-square&labelColor=0f172a&color=a855f7) |
+|:---:|:---:|:---:|:---:|
+| **SQL-Migrationen** | **Seit Ende 2025** | **> 10 Monate** | **Agentisches Coding** |
+| ![SQL](https://img.shields.io/badge/15_Migrationen-14b8a6?style=flat-square&labelColor=0f172a&color=14b8a6) | ![Since](https://img.shields.io/badge/Start-Ende%202025-ec4899?style=flat-square&labelColor=0f172a&color=ec4899) | ![Duration](https://img.shields.io/badge/Dauer-%3E%2010%20Monate-ec4899?style=flat-square&labelColor=0f172a&color=ec4899) | ![AI](https://img.shields.io/badge/mehrere%20hundert%20Stunden-a855f7?style=flat-square&labelColor=0f172a&color=a855f7) |
+
+</div>
+
+---
+
+## 🤖 Transparenz: KI-gestützte Entwicklung
+
+Dieses Projekt ist **Open Source** und erklärt seine Entstehung offen, auch auf der Website: [Transparenzhinweis](https://nachhilfe-sv.de/#/transparenz).
+
+- **Seit Ende 2025**, also **über zehn Monate**, entsteht die Nachhilfebörse im Wesentlichen durch **agentisches Coding**: KI-Agenten schreiben und iterieren den Code, ein Mensch setzt Ziele, prüft, entscheidet und dirigiert.
+- Der Aufwand beläuft sich auf **mehrere hundert Stunden**. Oft laufen dafür lange Workflows über viele Tage und Wochen.
+- Ein **großer Teil des Codes und der Texte ist AI-generated**. Das ist Absicht und wird hier nicht beschönigt: Die Plattform ist ein Schülerprojekt, das mit modernen Werkzeugen gebaut wird, nicht das Ergebnis eines klassischen Entwicklerteams.
+- **Verantwortung bleibt menschlich:** Inhalte, Sicherheitskonzept, Datenschutz und Entscheidungen über Features prüft und trägt das SV-Team. Fehler und Lücken können trotzdem vorkommen. Feedback an [technik@nachhilfe-sv.de](mailto:technik@nachhilfe-sv.de) oder als [Issue auf GitHub](https://github.com/oskar26/nachhilfeb-rse/issues).
+
+> Weniger Maschine. Mehr Haltung: Wir sagen, woher der Code kommt, damit ihr einschätzen könnt, was ihr benutzt.
+
+---
+
+## 🔒 Sicherheit & Datenschutz (DSGVO)
+
+1. **Kein API-Key im Browser:** `NVIDIA_API_KEY` und DB-Geheimnisse liegen ausschließlich serverseitig (Netlify Functions / Vercel / Express-Adapter). Das Frontend ruft nur geschützte Endpunkte wie `/api/ai/generate` auf.
+2. **Serverseitiger Inhaltsfilter:** Profanity-Trigger auf Datenbankebene.
+3. **Privatsphäre zuerst:** KI-Ergebnisse sind bearbeitbare Entwürfe, nie automatisch öffentlich. Verifikation über den SV-Raum, 7-Tage-Aufräumjob für unverifizierte Konten.
+4. **Kein Tracking-Müll:** keine externen Analyse-/Werbedienste, Hosting in Deutschland.
+
+Details: [Datenschutzerklärung](https://nachhilfe-sv.de/#/datenschutz) · [Cookies](https://nachhilfe-sv.de/#/cookies)
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: React 19, TypeScript, Vite, TailwindCSS, Framer Motion, Lucide Icons, Tiptap Rich Text Editor
-- **Backend & Datenbank**: Supabase (PostgreSQL, Row Level Security, Auth, Realtime)
-- **KI-Integration**: NVIDIA NIM Microservices (Nemotron 3.5 Lightning & Nemotron 3 Nano) über OpenAI-kompatible REST API
-- **Serverless / Hosting**: Netlify Functions / Vercel Serverless API Handlers / Express Node.js Server Adapter
+| Ebene | Technologien |
+|---|---|
+| **Frontend** | React 19, TypeScript, Vite, TailwindCSS, Framer Motion, Lucide Icons, Tiptap |
+| **Backend & DB** | Supabase (PostgreSQL, Row Level Security, Auth, Realtime) |
+| **KI** | NVIDIA NIM: `nemotron-3.5-lightning-30b-a3b` (Inserate), `nemotron-3-nano-30b-a3b` (Eltern-Briefings) |
+| **Serverless** | Netlify Functions · Vercel Serverless · Express-Adapter (`src/http/express-ai-routes.mjs`) |
+| **PWA** | vite-plugin-pwa, Workbox |
 
 ---
 
-## 🚀 Erste Schritte (Lokale Entwicklung)
+## 🚀 Loslegen
 
-### 1. Repository klonen & Abhängigkeiten installieren
 ```bash
 git clone https://github.com/oskar26/nachhilfeb-rse.git
 cd nachhilfeb-rse
 npm install
 ```
 
-### 2. Umgebungsvariablen konfigurieren
-Erstelle eine `.env`-Datei im Stammverzeichnis basierend auf `.env.example`:
+`.env` anlegen (Vorlage: `.env.example`):
 
 ```env
-# Supabase Konfiguration (Öffentlich)
 VITE_SUPABASE_URL=https://dein-projekt.supabase.co
-VITE_SUPABASE_ANON_KEY=dein_oeffentlicher_anon_key
+VITE_SUPABASE_ANON_KEY=dein_anon_key
 
-# NVIDIA API Konfiguration (NUR Serverseitig – NICHT mit VITE_ prefixen!)
-NVIDIA_API_KEY=nvapi-dein_nvidia_api_key
+# Nur serverseitig, nie mit VITE_ prefixen!
+NVIDIA_API_KEY=nvapi-...
 NVIDIA_LISTING_MODEL=nvidia/nemotron-3.5-lightning-30b-a3b
 NVIDIA_PARENT_BRIEFING_MODEL=nvidia/nemotron-3-nano-30b-a3b
 ```
 
-> ⚠️ **Sicherheitshinweis**: Trage NIEMALS echte API-Keys in die `.env.example` ein!
-
-### 3. Entwicklungsserver starten
 ```bash
-npm run dev
-```
-
-### 4. Tests ausführen
-```bash
+npm run dev          # Entwicklungsserver
+npm run build        # Produktions-Build
+npm run lint         # ESLint
 node --test test/ai-drafts.test.mjs
 ```
 
-### 5. Produktions-Build erstellen
-```bash
-npm run build
+> ⚠️ Echte Keys niemals in `.env.example` oder ins Repository schreiben.
+
+Weitere Hinweise: [`DEPLOYMENT.md`](DEPLOYMENT.md) · [`PUBLISH.md`](PUBLISH.md) · [`ALL_INKL_ANLEITUNG.md`](ALL_INKL_ANLEITUNG.md)
+
+---
+
+## 🌐 Deployment
+
+| Ziel | Konfiguration |
+|---|---|
+| **Netlify** (aktuell) | `netlify/functions/generate.js` · Env-Vars: `NVIDIA_API_KEY`, `NVIDIA_LISTING_MODEL`, `NVIDIA_PARENT_BRIEFING_MODEL` |
+| **Vercel** | `api/ai/generate.ts` · Env-Vars analog unter Settings → Environment |
+| **Eigener Node** | Adapter `src/http/express-ai-routes.mjs` einbinden |
+
+---
+
+## 🗺️ Projektstruktur
+
+```
+nachhilfev2/
+├── src/
+│   ├── pages/          # Feed, Chat, Profile, Eltern, SV-Panel, Rechtliches …
+│   ├── components/     # UI, Layout, Modals
+│   ├── context/        # Auth, Theme
+│   └── lib/            # Supabase-Client, Analytics, Helpers
+├── api/                # Vercel Serverless (KI-Endpunkte)
+├── netlify/functions/  # Netlify Functions
+├── supabase/ + sql/    # Schema, RLS, Migrationen
+├── test/               # Node-Tests
+└── docs/               # Briefings, Screenshots
 ```
 
 ---
 
-## 🌐 Deployment Options
+## 🤝 Mitmachen
 
-### Netlify (Aktuell verwendet)
-Die Netlify Function unter `netlify/functions/generate.js` ist vorkonfiguriert.
-Trage in Netlify unter **Site configuration → Environment variables** die Schlüssel `NVIDIA_API_KEY`, `NVIDIA_LISTING_MODEL` und `NVIDIA_PARENT_BRIEFING_MODEL` ein.
+1. Fork erzeugen und Branch anlegen
+2. Änderung mit klarem Commit-Message
+3. PR aufmachen und kurz beschreiben, was sich warum ändert
 
-### Vercel
-Der Serverless API Handler unter `api/ai/generate.ts` ist vorkonfiguriert.
-Trage in Vercel unter **Settings → Environment Variables** den `NVIDIA_API_KEY` ein.
-
-### Eigener Node.js / Express Server
-Verwende das mitgelieferte Adapter-Modul `src/http/express-ai-routes.mjs` in deiner eigenen Node.js-Serverdatei.
+Issues und Fehler: [github.com/oskar26/nachhilfeb-rse/issues](https://github.com/oskar26/nachhilfeb-rse/issues)
 
 ---
 
-## 📄 Lizenz
+## 📄 Lizenz & Rechte
 
-Dieses Projekt ist für das **Friedrich-Wilhelm-Gymnasium Köln** entwickelt. Alle Rechte vorbehalten.
+Entwickelt für das **Friedrich-Wilhelm-Gymnasium Köln**, Betrieb durch die **Schülervertretung**.  
+Quellcode öffentlich auf GitHub; die Plattform selbst ist ein **nicht-kommerzielles Schülerprojekt**.  
+Rechtliches: [Impressum](https://nachhilfe-sv.de/#/impressum) · [Nutzungsbedingungen](https://nachhilfe-sv.de/#/nutzungsbedingungen)
+
+---
+
+<div align="center">
+
+**[nachhilfe-sv.de](https://nachhilfe-sv.de)** · von Schülern, für Schüler, mit KI im Backoffice und offenen Augen.
+
+</div>

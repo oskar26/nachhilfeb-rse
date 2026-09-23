@@ -673,6 +673,7 @@ export default function Landing() {
                             {[
                                 ['Impressum', '/impressum'], ['Datenschutz', '/datenschutz'], ['Cookies', '/cookies'],
                                 ['Schüler-Coaching', '/coaching'], ['Nutzungsbedingungen', '/nutzungsbedingungen'], ['Eltern-Leitfaden', '/eltern-leitfaden'],
+                                ['Transparenz', '/transparenz'],
                             ].map(([label, path]) => (
                                 <Link key={path} to={path} className="hover:text-primary transition-colors">{label}</Link>
                             ))}

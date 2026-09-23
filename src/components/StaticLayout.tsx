@@ -14,6 +14,7 @@ const FOOTER_LINKS: Array<[string, string]> = [
     ['Schüler-Coaching', '/coaching'],
     ['Nutzungsbedingungen', '/nutzungsbedingungen'],
     ['Eltern-Leitfaden', '/eltern-leitfaden'],
+    ['Transparenz', '/transparenz'],
 ];
 
 // Spacing-Scale (4er-Basis, dokumentiert — keine One-off-Werte):

@@ -26,6 +26,7 @@ import VerifyEmail from './pages/VerifyEmail';
 import ParentGuide from './pages/ParentGuide';
 import Coaching from './pages/Coaching';
 import Nutzungsbedingungen from './pages/Nutzungsbedingungen';
+import Transparenz from './pages/Transparenz';
 import CoachPanel from './pages/coach/CoachPanel';
 import NotFound from './pages/NotFound';
 import { Logo } from './components/ui/Logo';
@@ -155,6 +156,7 @@ function App() {
             <Route path="/eltern-leitfaden" element={<ParentGuide />} />
             <Route path="/coaching" element={<Coaching />} />
             <Route path="/nutzungsbedingungen" element={<Nutzungsbedingungen />} />
+            <Route path="/transparenz" element={<Transparenz />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <CookieBanner />
