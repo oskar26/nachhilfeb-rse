@@ -85,6 +85,7 @@ export default function ParentDashboard() {
     const { user, profile } = useAuth();
     const [children, setChildren] = useState<ChildData[]>([]);
     const [loading, setLoading] = useState(true);
+    const [fetchError, setFetchError] = useState(false);
     const [isLinkFlowOpen, setIsLinkFlowOpen] = useState(false);
     const [selectedLinkToDelete, setSelectedLinkToDelete] = useState<{ id: string; name: string } | null>(null);
     const [selectedConsentChild, setSelectedConsentChild] = useState<ChildData | null>(null);
@@ -97,6 +98,7 @@ export default function ParentDashboard() {
 
     const fetchChildrenData = async () => {
         setLoading(true);
+        setFetchError(false);
         try {
             const { data, error } = await api.parentLinks.list();
             if (error) throw error;
@@ -139,7 +141,7 @@ export default function ParentDashboard() {
             setChildren(mapped);
         } catch (error: any) {
             console.error('Error loading parent dashboard data:', error);
-            toast.error('Daten konnten nicht geladen werden.');
+            setFetchError(true);
         } finally {
             setLoading(false);
         }
@@ -193,7 +195,7 @@ export default function ParentDashboard() {
                 </div>
                 <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Zugriff verweigert</h2>
                 <p className="text-gray-500 text-sm">
-                    Du musst als Elternteil registriert sein, um das Eltern-Dashboard zu nutzen.
+                    Sie müssen als Elternteil registriert sein, um das Eltern-Dashboard zu nutzen.
                 </p>
             </div>
         );
@@ -202,15 +204,16 @@ export default function ParentDashboard() {
     return (
         <div className="p-6 max-w-7xl mx-auto pb-24 space-y-8 animate-in fade-in duration-500">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-gray-900 p-6 rounded-3xl border dark:border-gray-800 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gray-950 dark:bg-black poster-grain dark-glow text-white p-6 rounded-3xl border border-white/10 shadow-sm">
                 <div>
                     <div className="flex items-center gap-2 mb-1">
-                        <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center text-primary-hover">
+                        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-black">
                             <Users size={20} />
                         </div>
-                        <h1 className="text-2xl font-bold tracking-tight">Eltern-Dashboard</h1>
+                        <h1 className="text-2xl font-display uppercase leading-none tracking-tight">Eltern-Dashboard</h1>
                     </div>
-                    <p className="text-gray-500 text-sm">Behalte den Überblick über die Nachhilfe-Aktivitäten deines Kindes.</p>
+                    <div className="h-1 w-10 rounded-full bg-primary mb-2" aria-hidden />
+                    <p className="text-sm text-white/70 max-w-[95ch]">Behalten Sie den Überblick über die Nachhilfe-Aktivitäten Ihres Kindes.</p>
                 </div>
                 <Button onClick={() => setIsLinkFlowOpen(true)} className="rounded-2xl gap-2 font-bold h-11 bg-primary text-black">
                     <Plus size={18} /> Kind verknüpfen
@@ -222,6 +225,17 @@ export default function ParentDashboard() {
                     <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
                     <p className="text-gray-500 font-medium">Lade Kinder-Aktivitäten...</p>
                 </div>
+            ) : fetchError ? (
+                <div role="alert" className="py-16 text-center space-y-4 bg-white dark:bg-gray-900 rounded-3xl border border-red-100 dark:border-red-900/40 shadow-sm">
+                    <div className="w-16 h-16 bg-red-50 dark:bg-red-950/30 text-red-500 rounded-full flex items-center justify-center mx-auto">
+                        <Shield size={32} />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Daten konnten nicht geladen werden</h2>
+                    <p className="text-gray-500 text-sm">Prüfe deine Internetverbindung und versuche es erneut.</p>
+                    <Button onClick={() => fetchChildrenData()} className="rounded-2xl font-bold bg-primary text-black">
+                        Erneut versuchen
+                    </Button>
+                </div>
             ) : children.length === 0 ? (
                 <Card className="rounded-3xl border-none shadow-sm bg-white dark:bg-gray-900 py-12 text-center">
                     <CardContent className="space-y-4 max-w-md mx-auto">
@@ -230,13 +244,13 @@ export default function ParentDashboard() {
                         </div>
                         <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Keine Kinder verknüpft</h2>
                         <p className="text-gray-500 text-sm leading-relaxed">
-                            Du hast noch kein Schülerkonto verknüpft. Dein Kind zeigt dir seinen persönlichen Code an –
-                            du gibst ihn hier ein.
+                            Sie haben noch kein Schülerkonto verknüpft. Ihr Kind zeigt Ihnen seinen persönlichen Code an –
+                            Sie geben ihn hier ein.
                         </p>
                         <ol className="text-left text-xs text-gray-500 dark:text-gray-400 space-y-2 bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-4 border border-gray-100 dark:border-gray-800">
                             <li><strong className="text-gray-700 dark:text-gray-200">1.</strong> Kind meldet sich als Schüler/in an</li>
                             <li><strong className="text-gray-700 dark:text-gray-200">2.</strong> Kind öffnet <span className="font-mono font-bold">Einstellungen → Eltern-Verknüpfung</span></li>
-                            <li><strong className="text-gray-700 dark:text-gray-200">3.</strong> Du klickst unten auf „Kind verknüpfen" und gibst den 6-stelligen Code ein</li>
+                            <li><strong className="text-gray-700 dark:text-gray-200">3.</strong> Sie klicken unten auf „Kind verknüpfen" und geben den 6-stelligen Code ein</li>
                         </ol>
                         <Button onClick={() => setIsLinkFlowOpen(true)} className="rounded-2xl font-bold bg-primary text-black">
                             <Plus size={16} className="mr-1" /> Jetzt Kind verknüpfen
@@ -251,7 +265,7 @@ export default function ParentDashboard() {
                             <Card className="rounded-3xl border-none shadow-sm bg-white dark:bg-gray-900 lg:col-span-1">
                                 <CardContent className="p-6 space-y-6">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 text-white font-bold text-xl flex items-center justify-center shrink-0">
+                                        <div className="w-14 h-14 rounded-2xl bg-gray-950 text-primary font-bold text-xl flex items-center justify-center shrink-0">
                                             {child.profile.avatar_url ? (
                                                 <img src={child.profile.avatar_url} className="w-14 h-14 rounded-2xl object-cover" />
                                             ) : (
@@ -259,7 +273,7 @@ export default function ParentDashboard() {
                                             )}
                                         </div>
                                         <div>
-                                            <h3 className="font-extrabold text-lg">{child.profile.display_name}</h3>
+                                            <h2 className="font-extrabold text-lg">{child.profile.display_name}</h2>
                                             <p className="text-xs text-gray-400 font-semibold mt-0.5">Klassenstufe: {child.profile.grade_level || '--'}</p>
                                         </div>
                                     </div>
@@ -297,9 +311,9 @@ export default function ParentDashboard() {
 
                                     {/* Notification setting for this child */}
                                     <div className="space-y-4">
-                                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                                        <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                                             <Bell size={14} /> Benachrichtigungen
-                                        </h4>
+                                        </h3>
                                         <label className="flex justify-between items-center text-sm cursor-pointer select-none">
                                             <span className="font-medium text-gray-600 dark:text-gray-400">
                                                 Bei neuen Anzeigen, Anfragen & Bewertungen benachrichtigen
@@ -335,9 +349,9 @@ export default function ParentDashboard() {
 
                             {/* Right card: Activity feed */}
                             <Card className="rounded-3xl border-none shadow-sm bg-white dark:bg-gray-900 lg:col-span-2">
-                                <CardHeader className="border-b dark:border-gray-800">
-                                    <h3 className="font-bold text-sm text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
-                                        <TrendingUp size={16} className="text-primary-hover" />
+                                <CardHeader className="bg-gray-950 dark:bg-black poster-grain text-white border-b border-white/10">
+                                    <h3 className="font-bold text-sm text-white flex items-center gap-1.5">
+                                        <TrendingUp size={16} className="text-primary" />
                                         Aktivitäts-Verlauf (Letzte Aktionen)
                                     </h3>
                                 </CardHeader>
@@ -365,8 +379,8 @@ export default function ParentDashboard() {
                                                         <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                                                             {act.description}
                                                         </p>
-                                                        <span className="text-[10px] text-gray-400 flex items-center gap-1 pt-1 font-semibold">
-                                                            <Calendar size={10} />
+                                                        <span className="text-xs text-gray-400 flex items-center gap-1 pt-1 font-semibold">
+                                                            <Calendar size={12} />
                                                             {new Date(act.timestamp).toLocaleString('de-DE')}
                                                         </span>
                                                     </div>
@@ -401,8 +415,8 @@ export default function ParentDashboard() {
                             Verknüpfung aufheben?
                         </DialogTitle>
                         <DialogDescription>
-                            Bist du sicher, dass du die Verknüpfung zu {selectedLinkToDelete?.name} löschen möchtest? 
-                            Du kannst danach keine Statistiken oder Verläufe mehr einsehen.
+                            Sind Sie sicher, dass Sie die Verknüpfung zu {selectedLinkToDelete?.name} löschen möchten?
+                            Sie können danach keine Statistiken oder Verläufe mehr einsehen.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>

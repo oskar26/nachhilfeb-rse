@@ -306,14 +306,14 @@ export default function Profile() {
                                 <button
                                     type="button"
                                     onClick={() => setShowColorPicker(false)}
-                                    className="p-1 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                                    className="p-2 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
                                 >
                                     <X size={14} />
                                 </button>
                             </div>
                             <div className="flex flex-wrap items-center justify-between gap-2.5">
                                 <div className="flex items-center gap-1.5 flex-wrap">
-                                    <span className="text-[10px] font-bold text-gray-400 uppercase">Presets:</span>
+                                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Presets:</span>
                                     {PRESET_GRADIENTS.map((p) => (
                                         <button
                                             key={p.name}
@@ -334,7 +334,7 @@ export default function Profile() {
                                     ))}
                                 </div>
                                 <div className="flex items-center gap-1.5">
-                                    <span className="text-[10px] font-bold text-gray-400 uppercase">Eigene:</span>
+                                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Eigene:</span>
                                     <input
                                         type="color"
                                         value={customColor}
@@ -399,9 +399,10 @@ export default function Profile() {
                         </button>
                     </div>
 
-                    <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+                    <h1 className="text-2xl font-display uppercase leading-none tracking-tight text-gray-900 dark:text-white">
                         {profile.first_name ? `${profile.first_name} ${profile.last_name}` : 'Profil einrichten'}
                     </h1>
+                    <div className="mt-2 h-1 w-10 rounded-full bg-primary mx-auto" aria-hidden />
                     <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mt-0.5">
                         {profile.grade_level 
                             ? ['EF', 'Q1', 'Q2'].includes(profile.grade_level)
@@ -417,7 +418,7 @@ export default function Profile() {
                             </div>
                         )}
                         {profile.is_verified ? (
-                            <div className="flex items-center text-green-700 dark:text-green-300 text-xs font-bold gap-1 bg-green-100/80 dark:bg-green-950/60 px-3 py-1 rounded-full border border-green-200 dark:border-green-800/80 shadow-xs">
+                            <div className="stamp-ring -rotate-2 flex items-center gap-1 text-xs font-black uppercase tracking-wider text-black bg-primary px-3 py-1 rounded">
                                 <BadgeCheck size={14} /> Verifiziert
                             </div>
                         ) : (
@@ -455,9 +456,9 @@ export default function Profile() {
             {/* Profile Data Card */}
             <motion.div variants={itemVariants}>
                 <Card className="overflow-hidden rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft">
-                    <CardHeader className="bg-gray-50/70 dark:bg-gray-800/40 border-b border-gray-100 dark:border-gray-800/80 px-6 py-4">
+                    <CardHeader className="bg-gray-950 dark:bg-black poster-grain text-white border-b border-white/10 px-6 py-4">
                         <div className="flex justify-between items-center">
-                            <CardTitle className="text-base font-extrabold">Persönliche Angaben</CardTitle>
+                            <h2 className="text-base font-extrabold leading-tight tracking-tight text-white dark:text-gray-100">Persönliche Angaben</h2>
                             <Button
                                 variant={isEditing ? "primary" : "secondary"}
                                 size="sm"
@@ -477,7 +478,7 @@ export default function Profile() {
                         {/* Names */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-1.5 block">Vorname</label>
+                                <label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1.5 block">Vorname</label>
                                 <Input
                                     placeholder="Max"
                                     value={profile.first_name}
@@ -486,7 +487,7 @@ export default function Profile() {
                                 />
                             </div>
                             <div>
-                                <label className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-1.5 block">Nachname</label>
+                                <label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1.5 block">Nachname</label>
                                 <Input
                                     placeholder="Mustermann"
                                     value={profile.last_name}
@@ -498,7 +499,7 @@ export default function Profile() {
 
                         {/* Grade & Bio */}
                         <div>
-                            <label className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-2 block">Klasse / Jahrgangsstufe</label>
+                            <label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-2 block">Klasse / Jahrgangsstufe</label>
                             {isEditing ? (
                                 <RefinedGradeSelector
                                     grade={profile.grade_level}
@@ -513,7 +514,7 @@ export default function Profile() {
                         </div>
 
                         <div>
-                            <label className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-1.5 block">Über mich (Bio)</label>
+                            <label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1.5 block">Über mich (Bio)</label>
                             {isEditing ? (
                                 <RichTextEditor
                                     value={profile.bio}
@@ -521,7 +522,7 @@ export default function Profile() {
                                     placeholder="Schreib kurz etwas über deine Fächer & Erfahrung..."
                                 />
                             ) : (
-                                <div className="text-sm text-gray-700 dark:text-gray-300 bg-gray-50/60 dark:bg-gray-800/40 p-4 rounded-xl border border-gray-100 dark:border-gray-800/80 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(profile.bio || "<i>Keine Beschreibung hinterlegt.</i>") }} />
+                                <div className="text-sm text-gray-700 dark:text-gray-300 bg-gray-50/60 dark:bg-gray-800/40 p-4 rounded-xl border border-gray-100 dark:border-gray-800/80 leading-relaxed max-w-[95ch]" dangerouslySetInnerHTML={{ __html: sanitizeHtml(profile.bio || "<i>Keine Beschreibung hinterlegt.</i>") }} />
                             )}
                         </div>
 
@@ -584,7 +585,7 @@ export default function Profile() {
 
                         {/* Read Only Offered Subjects */}
                         <div>
-                            <label className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-2.5 block">Meine Angebote (aus aktiven Anzeigen)</label>
+                            <label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-2.5 block">Meine Angebote (aus aktiven Anzeigen)</label>
                             <div className="flex flex-wrap gap-2">
                                 {profile.offered_subjects.length > 0 ? (
                                     profile.offered_subjects.map(s => <SubjectChip key={s} subject={s} />)

@@ -95,15 +95,15 @@ export default function Social({ initialTab }: { initialTab?: 'requests' | 'matc
                             onKeyDown={event => handleTabKeyDown(event, index)}
                             onClick={() => selectTab(tab.id)}
                             className={cn(
-                                "min-w-0 flex-1 flex items-center justify-center py-3 px-1 sm:px-3 rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer select-none transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] dark:focus-visible:ring-primary",
+                                "min-w-0 max-w-full overflow-hidden flex-1 flex items-center justify-center py-3 px-1 sm:px-3 rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer select-none transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] dark:focus-visible:ring-primary",
                                 isActive
                                     ? "bg-primary text-amber-950 shadow-xs"
                                     : "text-gray-500 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/60"
                             )}
                         >
-                            <span className="flex items-center gap-1 sm:gap-2 whitespace-nowrap">
+                            <span className="flex items-center gap-1 sm:gap-2 whitespace-nowrap min-w-0 max-w-full overflow-hidden">
                                 <Icon aria-hidden="true" size={16} className={cn("shrink-0", !isActive && "text-gray-400")} />
-                                <span>{tab.label}</span>
+                                <span className="truncate">{tab.label}</span>
                             </span>
                         </button>
                     );

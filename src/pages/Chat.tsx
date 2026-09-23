@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { ChevronLeft, Send, Trash2, Check, CheckCheck, Pencil, MoreVertical, ShieldAlert, Ban, Calendar, CalendarDays, Download } from 'lucide-react';
+import { ChevronLeft, Send, Trash2, Check, CheckCheck, Pencil, MoreVertical, Ban, Calendar, CalendarDays, Download, EyeOff, Flag } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { cn } from '../lib/utils';
 import ReportWizard from '../components/ReportWizard';
@@ -24,9 +24,35 @@ interface Message {
     edited_at?: string | null;
 }
 
+// Auf diesem Gerät verborgene Chats (Anfrage-IDs). Honest client-side hide: Die Anfrage
+// und der Verlauf bleiben für die SV-Moderation gespeichert, nur die Liste wird aufgeräumt.
+const HIDDEN_CHATS_KEY = 'fwg_hidden_chats';
+
+export function getHiddenChatIds(): string[] {
+    try {
+        const parsed: unknown = JSON.parse(localStorage.getItem(HIDDEN_CHATS_KEY) ?? '[]');
+        return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === 'string') : [];
+    } catch {
+        return [];
+    }
+}
+
+export function hideChatId(id: string): void {
+    try {
+        const next = new Set(getHiddenChatIds());
+        next.add(id);
+        localStorage.setItem(HIDDEN_CHATS_KEY, JSON.stringify([...next]));
+    } catch { /* Storage darf den Flow nie stoppen */ }
+}
+
+export function unhideChatId(id: string): void {
+    try {
+        localStorage.setItem(HIDDEN_CHATS_KEY, JSON.stringify(getHiddenChatIds().filter(x => x !== id)));
+    } catch { /* ignore */ }
+}
+
 export default function Chat() {
-    const { requestId } = useParams();
-    const navigate = useNavigate();
+    const { requestId } = useParams();    const navigate = useNavigate();
     const { user } = useAuth();
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
@@ -194,17 +220,31 @@ export default function Chat() {
     const handleBlockUser = async () => {
         if (!otherUserId || !user) return;
         setMenuOpen(false);
-        // Insert into user_blocks if table exists, otherwise show info
+        if (!window.confirm(`${otherUser?.display_name || 'Diesen Nutzer'} blockieren? Der Chat wird auf diesem Gerät verborgen. Zum Schutz aller bleibt der Verlauf für die SV-Moderation gespeichert.`)) return;
         const { error } = await supabase.from('user_blocks').insert({
             blocker_id: user.id,
             blocked_id: otherUserId
         });
+        if (requestId) hideChatId(requestId);
         if (error) {
-            // Table may not exist yet – show guidance
-            toast('Bitte melde diesen Nutzer, um ihn zu blockieren. Die Blockier-Funktion ist noch in Einrichtung.', { duration: 5000 });
+            toast('Blockieren ist hier noch in Einrichtung – melde den Nutzer stattdessen, die SV prüft jede Meldung.', { duration: 6000 });
+            setReportOpen(true);
         } else {
-            toast.success(`${otherUser?.display_name || 'Nutzer'} wurde blockiert. Du wirst keine Nachrichten mehr von dieser Person sehen.`);
+            toast.success('Nutzer blockiert und Chat auf diesem Gerät verborgen.');
         }
+        navigate('/requests');
+    };
+
+    const hideChatAndLeave = () => {
+        setMenuOpen(false);
+        if (!requestId) {
+            navigate('/requests');
+            return;
+        }
+        if (!window.confirm('Chat auf diesem Gerät verbergen? Deine Anfrage bleibt bestehen, der Verlauf bleibt für die SV-Moderation gespeichert.')) return;
+        hideChatId(requestId);
+        toast.success('Chat auf diesem Gerät verborgen. Über „Verborgene Chats einblenden“ in den Anfragen holst du ihn zurück.');
+        navigate('/requests');
     };
 
     const startEditing = (msg: Message) => {
@@ -279,6 +319,28 @@ export default function Chat() {
                     <span className="hidden sm:inline">Termin vereinbaren</span>
                 </button>
                 
+                {/* Safety: Melden & Blockieren stehen direkt im Header, nicht versteckt im Menü */}
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setReportOpen(true)}
+                    title="Nutzer melden"
+                    aria-label="Nutzer melden"
+                    className="rounded-full shrink-0 hover:bg-gray-100 dark:hover:bg-[#2a3942] text-orange-600 dark:text-orange-400"
+                >
+                    <Flag size={19} />
+                </Button>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleBlockUser}
+                    title="Nutzer blockieren"
+                    aria-label="Nutzer blockieren"
+                    className="rounded-full shrink-0 hover:bg-gray-100 dark:hover:bg-[#2a3942] text-red-600 dark:text-red-400"
+                >
+                    <Ban size={19} />
+                </Button>
+
                 {/* 3-dot menu */}
                 <div className="relative" ref={menuRef}>
                     <Button 
@@ -292,32 +354,11 @@ export default function Chat() {
                     {menuOpen && (
                         <div className="absolute right-0 top-full mt-1 w-56 bg-white dark:bg-[#233138] rounded-xl shadow-xl border border-gray-200 dark:border-[#2a3942] py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                             <button 
-                                onClick={() => {
-                                    setMenuOpen(false);
-                                    setReportOpen(true);
-                                }}
+                                onClick={hideChatAndLeave}
                                 className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-[#2a3942] text-gray-700 dark:text-gray-200 transition-colors flex items-center gap-2"
                             >
-                                <ShieldAlert size={15} className="text-orange-500" />
-                                Nutzer melden
-                            </button>
-                            <button 
-                                onClick={handleBlockUser}
-                                className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-[#2a3942] text-orange-600 dark:text-orange-400 transition-colors flex items-center gap-2"
-                            >
-                                <Ban size={15} />
-                                Nutzer blockieren
-                            </button>
-                            <div className="h-px bg-gray-100 dark:bg-[#2a3942] my-1" />
-                            <button 
-                                onClick={() => {
-                                    setMenuOpen(false);
-                                    toast('Bitte kontaktiere die SV, um den Chat löschen zu lassen.');
-                                }}
-                                className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-[#2a3942] text-red-600 dark:text-red-400 transition-colors flex items-center gap-2"
-                            >
-                                <Trash2 size={15} />
-                                Chat löschen
+                                <EyeOff size={15} />
+                                Chat verbergen
                             </button>
                         </div>
                     )}

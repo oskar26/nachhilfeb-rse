@@ -1,131 +1,194 @@
-import { ChevronLeft, ShieldCheck, Heart, BookOpen, AlertCircle, Users } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { ShieldCheck, BadgeCheck, KeyRound, Mail, Check } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
+import StaticLayout from '../components/StaticLayout';
+import VerifySteps from '../components/VerifySteps';
+
+const easeOut = [0.16, 1, 0.3, 1] as const;
+
+type AnimFn = (delay?: number) => Record<string, unknown>;
+
+function SpecRowDark({ label, children, mono = false }: { label: string; children: React.ReactNode; mono?: boolean }) {
+    return (
+        <div className="grid gap-1 py-3 first:pt-0 last:pb-0 sm:grid-cols-[11rem_1fr] sm:gap-4 border-t border-white/10 first:border-t-0">
+            <dt className="text-xs font-bold uppercase tracking-wider text-gray-400">{label}</dt>
+            <dd className={`text-[15px] leading-7 text-gray-200 ${mono ? 'font-mono tabular-nums' : ''}`}>{children}</dd>
+        </div>
+    );
+}
+
+function CheckRow({ children }: { children: React.ReactNode }) {
+    return (
+        <li className="flex gap-3 py-3 border-t border-gray-100 dark:border-gray-800 first:border-t-0">
+            <span className="grid place-items-center w-7 h-7 rounded-full bg-black text-primary dark:bg-primary dark:text-black shrink-0 mt-0.5" aria-hidden>
+                <Check size={15} />
+            </span>
+            <span className="text-[15px] leading-7 text-gray-600 dark:text-gray-300">{children}</span>
+        </li>
+    );
+}
+
+const PARENT_STEPS = [
+    { n: '1', t: 'Registrieren', d: 'Elternkonto mit dem SV-Einladungscode für Eltern erstellen.' },
+    { n: '2', t: 'Code anfragen', d: '6-stelligen Freigabe-Code unter „Einstellungen“ Ihres Kindes zeigen lassen.' },
+    { n: '3', t: 'Verknüpfen', d: 'Code im Eltern-Dashboard eingeben — sofort aktiv.' },
+];
 
 export default function ParentGuide() {
     const navigate = useNavigate();
+    const reduceMotion = useReducedMotion();
+    /* Read-Modus: ruhiger als die Landing — dezenter Authored Reveal (y 18, 0.55 s). */
+    const anim: AnimFn = (delay = 0) => reduceMotion ? {} : {
+        initial: { opacity: 0, y: 18 },
+        whileInView: { opacity: 1, y: 0 },
+        viewport: { once: true, margin: '-80px 0px' },
+        transition: { duration: 0.55, delay, ease: easeOut },
+    };
+    /* clip-path statt scaleX(0): zero-width-Rects blockieren IntersectionObserver (Chromium). */
+    const wipeLine = (delay = 0.2) => reduceMotion ? {} : {
+        initial: { clipPath: 'inset(0 100% 0 0)' },
+        whileInView: { clipPath: 'inset(0 0% 0 0)' },
+        viewport: { once: true, margin: '-80px 0px' },
+        transition: { duration: 0.5, delay, ease: easeOut },
+    };
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-6 md:p-12 animate-in fade-in duration-500">
-            <div className="max-w-4xl mx-auto space-y-8">
-                
-                <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
-                    <ChevronLeft className="mr-2" /> Zurück
-                </Button>
+        <StaticLayout
+            title="Leitfaden für Eltern"
+            intro="Verifizierte Accounts, SV-Moderation und faire Preise halten Nachhilfe sicher."
+        >
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-16 min-w-0 flex flex-col gap-10 sm:gap-12">
 
-                <div className="text-center space-y-4 mb-12">
-                    <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Leitfaden für Eltern</h1>
-                    <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                        Transparenz und Sicherheit stehen bei der FWG Nachhilfebörse an erster Stelle. Erfahren Sie, wie wir Ihr Kind schützen und den Vermittlungsprozess begleiten.
-                    </p>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-8">
-                    {/* Security Section */}
-                    <div className="bg-white dark:bg-gray-900 p-8 rounded-3xl border dark:border-gray-800 shadow-sm">
-                        <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-2xl flex items-center justify-center mb-6">
-                            <ShieldCheck size={24} />
-                        </div>
-                        <h3 className="text-xl font-bold mb-4">Sicherheit & Verifizierung</h3>
-                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
-                            Die Nachhilfebörse ist ein geschützter Raum. Nur Schülerinnen und Schüler des Friedrich-Wilhelms-Gymnasiums haben Zugang.
-                        </p>
-                        <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400 list-disc pl-4">
-                            <li>Jeder Account muss persönlich im SV-Raum per Schülerausweis oder SV-Code verifiziert werden, bevor Anzeigen erstellt oder Nachrichten geschrieben werden können.</li>
-                            <li><strong>Spam-Schutz:</strong> Nicht verifizierte Konten bleiben eingeschränkt und können vom SV-Team deaktiviert werden – so bleibt die Plattform frei von Fake-Accounts.</li>
-                            <li>Die Plattform ist nicht für schulfremde Personen zugänglich.</li>
-                            <li>Nachhilfe-Treffen finden meist direkt in der Schule statt (z.B. Bibliothek, Mensa).</li>
-                        </ul>
+                {/* A: Schwarze Spec-Karte im Plakat-Stil (ohne Eyebrow — die H2 trägt das Gewicht) */}
+                <motion.section
+                    aria-labelledby="eltern-sicherheit"
+                    {...anim()}
+                    className="rounded-3xl bg-zinc-900 dark:bg-zinc-900 text-white p-6 sm:p-8 shadow-soft border border-white/15"
+                >
+                    <div className="flex items-center gap-3">
+                        <span className="grid place-items-center w-11 h-11 rounded-2xl bg-primary text-black shrink-0" aria-hidden>
+                            <ShieldCheck size={22} />
+                        </span>
+                        <h2 id="eltern-sicherheit" className="font-display uppercase text-2xl sm:text-3xl tracking-tight">
+                            Sicherheit & Verifizierung
+                        </h2>
                     </div>
-
-                    {/* Quality Section */}
-                    <div className="bg-white dark:bg-gray-900 p-8 rounded-3xl border dark:border-gray-800 shadow-sm">
-                        <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center mb-6">
-                            <BookOpen size={24} />
-                        </div>
-                        <h3 className="text-xl font-bold mb-4">Qualität der Nachhilfe</h3>
-                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
-                            Wir fördern das Prinzip "Schüler helfen Schülern". Dies stärkt nicht nur das Wissen, sondern auch die Schulgemeinschaft.
-                        </p>
-                        <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400 list-disc pl-4">
-                            <li>Anbieter sind in der Regel engagierte Schülerinnen und Schüler ab Klasse 8 – viele davon geschulte Coaches der Schüler-Coaching AG.</li>
-                            <li>Zusätzlich gibt es die <strong>Schüler-Coaching AG von Frau Balistreri</strong> für die Stufen 5 und 6 (alle Regeln dazu auf der <a href="#/coaching" className="font-bold text-primary hover:underline">Coaching-Seite</a>).</li>
-                            <li>Preise werden fair von Schülern für Schüler gestaltet (oft Festpreise um 10-15€ pro 45 Min).</li>
-                        </ul>
-                    </div>
-
-                    {/* Awareness Section */}
-                    <div className="bg-white dark:bg-gray-900 p-8 rounded-3xl border dark:border-gray-800 shadow-sm">
-                        <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-2xl flex items-center justify-center mb-6">
-                            <Heart size={24} />
-                        </div>
-                        <h3 className="text-xl font-bold mb-4">Awareness & Jugendschutz</h3>
-                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
-                            Wir dulden kein unangemessenes Verhalten auf unserer Plattform. Das SV-Team moderiert aktiv.
-                        </p>
-                        <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400 list-disc pl-4">
-                            <li>Integrierter Meldungskatalog: Jede Anzeige und jedes Profil kann bei Auffälligkeiten mit ausführlicher Begründung gemeldet werden.</li>
-                            <li>Das SV-Admin-Team sichtet Meldungen täglich und kann Nutzer verwarnen oder sofort sperren.</li>
-                        </ul>
-                    </div>
-
-                    {/* Contact Section */}
-                    <div className="bg-white dark:bg-gray-900 p-8 rounded-3xl border dark:border-gray-800 shadow-sm">
-                        <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 rounded-2xl flex items-center justify-center mb-6">
-                            <AlertCircle size={24} />
-                        </div>
-                        <h3 className="text-xl font-bold mb-4">Kontakt für Eltern</h3>
-                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
-                            Haben Sie Fragen zur Plattform, zum Förderunterricht oder ein konkretes Anliegen bezüglich des Jugendschutzes?
-                        </p>
-                        <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                            <p><strong>E-Mail SV-Team (Organisation):</strong> <a href="mailto:info@sv-fwg.de" className="font-bold text-primary hover:underline">info@sv-fwg.de</a></p>
-                            <p><strong>Fragen & Hilfe (alles rund um die Börse):</strong> <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-primary hover:underline">info@nachhilfe-sv.de</a></p>
-                            <p><strong>Schüler-Coaching AG</strong> (dienstags 13:45–14:30 Uhr, Raum H310): <a href="mailto:Rosalia.Balistreri@fwg-koeln.nrw.schule" className="font-bold text-primary hover:underline">Rosalia.Balistreri@fwg-koeln.nrw.schule</a> (Frau Balistreri, Herr Schulz, Herr Steinberg)</p>
-                            <p><strong>Technische Probleme:</strong> <a href="mailto:technik@nachhilfe-sv.de" className="font-bold text-primary hover:underline">technik@nachhilfe-sv.de</a></p>
-                            <p className="text-xs">Bitte beachten Sie: Vergütung und Umfang der Nachhilfe vereinbaren Sie direkt mit der Anbieter-Familie – das SV-Team vermittelt nur den Kontakt.</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Parent account steps and CTA */}
-                <div className="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-gray-900 dark:to-gray-900/40 p-8 rounded-3xl border dark:border-gray-800 shadow-sm space-y-6 text-center">
-                    <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center justify-center gap-2">
-                        <Users className="text-primary-hover" size={24} /> Eltern-Account einrichten
+                    <motion.span {...wipeLine()} className="mt-2 ml-14 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
+                    <dl className="mt-5">
+                        <SpecRowDark label="Zugang">Nur Schülerinnen und Schüler des Friedrich-Wilhelm-Gymnasiums.</SpecRowDark>
+                        <SpecRowDark label="Verifizierung">Persönlich im SV-Raum — ohne Code, einfach melden.</SpecRowDark>
+                        <SpecRowDark label="Treffen">Meist direkt in der Schule, z. B. Bibliothek oder Mensa.</SpecRowDark>
+                        <SpecRowDark label="Schutz">Unverifizierte Konten bleiben eingeschränkt und können deaktiviert werden.</SpecRowDark>
+                    </dl>
+                    <h3 className="mt-6 text-xs font-bold uppercase tracking-[0.14em] text-gray-400">
+                        Verifizierung in 3 Schritten
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm max-w-2xl mx-auto leading-relaxed">
-                        Sie können als Elternteil einen Account registrieren und diesen mit dem Konto Ihres Kindes verknüpfen.
-                        Dadurch behalten Sie den Überblick über die Anzeigen und Anfragen Ihres Kindes.
-                    </p>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto text-left py-4">
-                        <div className="bg-white dark:bg-gray-950 p-4 rounded-2xl border dark:border-gray-800 space-y-2">
-                            <span className="w-7 h-7 bg-primary text-black font-bold rounded-full flex items-center justify-center text-xs">1</span>
-                            <span className="font-bold text-sm block">Registrieren</span>
-                            <span className="text-xs text-gray-500 block leading-normal">Erstellen Sie ein Elternkonto mit dem SV-Einladungscode für Eltern.</span>
-                        </div>
-                        <div className="bg-white dark:bg-gray-950 p-4 rounded-2xl border dark:border-gray-800 space-y-2">
-                            <span className="w-7 h-7 bg-primary text-black font-bold rounded-full flex items-center justify-center text-xs">2</span>
-                            <span className="font-bold text-sm block">Code anfragen</span>
-                            <span className="text-xs text-gray-500 block leading-normal">Lassen Sie sich den 6-stelligen Freigabe-Code unter 'Einstellungen' Ihres Kindes zeigen.</span>
-                        </div>
-                        <div className="bg-white dark:bg-gray-950 p-4 rounded-2xl border dark:border-gray-800 space-y-2">
-                            <span className="w-7 h-7 bg-primary text-black font-bold rounded-full flex items-center justify-center text-xs">3</span>
-                            <span className="font-bold text-sm block">Verknüpfen</span>
-                            <span className="text-xs text-gray-500 block leading-normal">Geben Sie den Code im Eltern-Dashboard ein. Die Verknüpfung ist sofort aktiv!</span>
-                        </div>
+                    <VerifySteps tone="sie" variant="rows-dark" parentNote />
+                </motion.section>
+
+                {/* B: Helle Preis-Tafel mit Preis in Mono */}
+                <motion.section
+                    aria-labelledby="eltern-qualitaet"
+                    {...anim()}
+                    className="rounded-3xl bg-white dark:bg-gray-900 p-6 sm:p-8 border border-gray-100 dark:border-gray-800 shadow-soft"
+                >
+                    <h2 id="eltern-qualitaet" className="font-display uppercase text-2xl sm:text-3xl tracking-tight text-gray-900 dark:text-white">
+                        Qualität der Nachhilfe
+                    </h2>
+                    <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
+                    <div className="mt-5 space-y-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300 max-w-prose">
+                        <p>
+                            <strong className="text-gray-900 dark:text-white">Wer hilft:</strong> Engagierte Schülerinnen und Schüler ab Klasse 8 — viele aus der Coaching-AG.
+                        </p>
+                        <p>
+                            <strong className="text-gray-900 dark:text-white">Coaching-AG:</strong> Schüler-Coaching AG von Frau Balistreri für die Stufen 5 und 6 — alle Regeln auf der{' '}
+                            <Link to="/coaching" className="font-bold text-amber-700 dark:text-primary hover:underline">Coaching-Seite</Link>.
+                        </p>
                     </div>
-                    
-                    <Button onClick={() => navigate('/login')} className="bg-primary hover:bg-primary/95 text-black font-extrabold px-8 h-12 shadow-md transition-all">
+                    <div className="mt-6 rounded-2xl bg-gray-950 dark:bg-black p-5 sm:p-6">
+                        <p className="text-xs font-bold uppercase tracking-[0.14em] text-gray-400">Faire Preise</p>
+                        <p className="mt-2 font-mono tabular-nums text-2xl sm:text-3xl font-bold text-primary">
+                            ca. 10–15 € / 45 Min
+                        </p>
+                        <p className="mt-2 text-sm leading-relaxed text-gray-300">
+                            Fair von Schülern für Schüler.
+                        </p>
+                    </div>
+                </motion.section>
+
+                {/* C: Awareness & Kontakt als schlichte Checkliste */}
+                <motion.section
+                    aria-labelledby="eltern-awareness"
+                    {...anim()}
+                    className="rounded-3xl bg-white dark:bg-gray-900 p-6 sm:p-8 border border-gray-100 dark:border-gray-800 shadow-soft"
+                >
+                    <div className="flex items-center gap-3">
+                        <span className="grid place-items-center w-11 h-11 rounded-2xl bg-black text-primary dark:bg-primary dark:text-black shrink-0" aria-hidden>
+                            <BadgeCheck size={22} />
+                        </span>
+                        <h2 id="eltern-awareness" className="font-display uppercase text-2xl sm:text-3xl tracking-tight text-gray-900 dark:text-white">
+                            Awareness & Kontakt
+                        </h2>
+                    </div>
+                    <motion.span {...wipeLine()} className="mt-2 ml-14 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
+                    <ul className="mt-5">
+                        <CheckRow>
+                            <strong className="text-gray-900 dark:text-white">Melden:</strong> Jede Anzeige und jedes Profil lässt sich mit Begründung melden.
+                        </CheckRow>
+                        <CheckRow>
+                            <strong className="text-gray-900 dark:text-white">Prüfen:</strong> Das SV-Team sichtet Meldungen täglich.
+                        </CheckRow>
+                        <CheckRow>
+                            <strong className="text-gray-900 dark:text-white">Konsequenz:</strong> Verwarnung oder sofortige Sperrung bei Verstößen.
+                        </CheckRow>
+                        <CheckRow>
+                            <strong className="text-gray-900 dark:text-white">Primär-Kontakt:</strong>{' '}
+                            <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-amber-700 dark:text-primary hover:underline break-anywhere">info@nachhilfe-sv.de</a>
+                            {' '}— Fragen und Hilfe rund um die Börse.
+                        </CheckRow>
+                        <CheckRow>
+                            <strong className="text-gray-900 dark:text-white">Hinweis:</strong> Vergütung und Umfang vereinbaren Sie direkt mit der Anbieter-Familie — das SV-Team vermittelt nur den Kontakt.
+                        </CheckRow>
+                    </ul>
+                </motion.section>
+
+                {/* D: Schwarzer CTA-Block mit der einzigen CTA der Seite */}
+                <motion.section
+                    aria-labelledby="eltern-konto"
+                    {...anim()}
+                    className="rounded-3xl bg-gray-950 dark:bg-gray-900 text-white p-6 sm:p-10 shadow-soft text-center"
+                >
+                    <h2 id="eltern-konto" className="font-display uppercase text-2xl sm:text-3xl tracking-tight flex items-center justify-center gap-2">
+                        <KeyRound className="text-primary" size={24} aria-hidden /> Eltern-Account einrichten
+                    </h2>
+                    <motion.span {...wipeLine()} className="mx-auto mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
+                    <p className="mt-4 text-[15px] leading-7 text-gray-300 max-w-2xl mx-auto">
+                        Verknüpfen Sie Ihr Elternkonto mit dem Konto Ihres Kindes und behalten Sie Anzeigen und Anfragen im Blick.
+                    </p>
+                    <ol className="mt-6 grid gap-3 text-left max-w-2xl mx-auto">
+                        {PARENT_STEPS.map(s => (
+                            <li key={s.n} className="flex gap-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                                <span className="grid place-items-center w-8 h-8 rounded-full bg-primary text-black font-bold text-xs font-mono tabular-nums shrink-0" aria-hidden>
+                                    {s.n}
+                                </span>
+                                <span className="min-w-0">
+                                    <span className="font-bold text-[15px] block">{s.t}</span>
+                                    <span className="text-sm text-gray-300 block leading-relaxed">{s.d}</span>
+                                </span>
+                            </li>
+                        ))}
+                    </ol>
+                    <p className="mt-6 flex items-center justify-center gap-2 text-sm text-gray-400">
+                        <Mail size={15} className="text-primary" aria-hidden />
+                        Fragen dazu: <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-primary hover:underline break-anywhere">info@nachhilfe-sv.de</a>
+                    </p>
+                    <Button onClick={() => navigate('/login')} size="lg" className="mt-5 bg-primary hover:bg-primary-hover text-black font-extrabold px-8 shadow-glow transition-all rounded-full min-h-[48px]">
                         Jetzt Eltern-Account erstellen
                     </Button>
-                </div>
-
-                <div className="text-center text-sm text-gray-500 mt-12">
-                    &copy; {new Date().getFullYear()} Schülervertretung des Friedrich-Wilhelms-Gymnasiums
-                </div>
+                </motion.section>
 
             </div>
-        </div>
+        </StaticLayout>
     );
 }

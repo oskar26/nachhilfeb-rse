@@ -4,7 +4,7 @@
 export function downloadICSFile({
     title,
     description,
-    location = 'Friedrich-Wilhelms-Gymnasium Köln',
+    location = 'Friedrich-Wilhelm-Gymnasium Köln',
     startDate,
     durationMinutes = 45,
 }: {

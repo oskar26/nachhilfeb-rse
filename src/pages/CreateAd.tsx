@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../components/ui/Card';
-import { SubjectChip, SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
+import { SubjectChip, SUBJECT_CATEGORIES, subjectLabelMap, type Subject } from '../components/SubjectChip';
 import { GradeSelector } from '../components/GradeSelector';
 import { RichTextEditor } from '../components/RichTextEditor';
 import { ChevronLeft, ChevronRight, CheckCircle, Plus, X, Link as LinkIcon, AlertCircle, Lock, GraduationCap, Search, Users, User, Shuffle, School, Wifi, Home, MapPin, Calculator, Info } from 'lucide-react';
@@ -42,6 +42,26 @@ const LOCATION_GROUPS: { title: string; locations: LocationPreset[] }[] = [
 const DURATION_PRESETS = [30, 45, 60, 90];
 const DURATION_EGAL = 0; // 0 = „Egal / nach Absprache" (wird so im Feed angezeigt)
 
+const DRAFT_KEY = 'fwg_draft_ad';
+const INITIAL_FORM = {
+    type: 'offer' as 'offer' | 'search',
+    title: '',
+    session_format: 'any' as SessionFormat,
+    subjects: [] as Subject[],
+    grade_levels: [] as string[],
+    locations: [] as string[],
+    custom_location: '',
+    duration_minutes: [DURATION_EGAL] as number[],
+    custom_duration: '',
+    price_mode: 'fixed' as PriceMode,
+    price_value: '' as string | number,
+    price_unit: '45min',
+    short_description: '',
+    long_description: '',
+    image_urls: [] as string[],
+    new_image_url: ''
+};
+
 export default function CreateAd() {
     const navigate = useNavigate();
     const location = useLocation();
@@ -56,29 +76,10 @@ export default function CreateAd() {
     const [selectedChildId, setSelectedChildId] = useState<string>('');
 
     // Form Data
-    const [formData, setFormData] = useState({
-        type: 'offer' as 'offer' | 'search',
-        title: '',
-        session_format: 'any' as SessionFormat,
-        subjects: [] as Subject[],
-        grade_levels: [] as string[],
-
-        locations: [] as string[],
-        custom_location: '',
-
-        duration_minutes: [] as number[],
-        custom_duration: '',
-
-        price_mode: 'fixed' as PriceMode,
-        price_value: '' as string | number, // number or string for input
-        price_unit: '45min', // default base
-
-        short_description: '',
-        long_description: '',
-
-        image_urls: [] as string[],
-        new_image_url: ''
-    });
+    const [formData, setFormData] = useState({ ...INITIAL_FORM });
+    const [subjectQuery, setSubjectQuery] = useState('');
+    const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
+    const [draftRestored, setDraftRestored] = useState(false);
 
     const getEffectiveHourlyRate = () => {
         if (formData.price_mode !== 'fixed' || !formData.price_value) {
@@ -114,7 +115,7 @@ export default function CreateAd() {
                 grade_levels: d.grade_levels || [],
                 locations: d.locations || [],
                 custom_location: '',
-                duration_minutes: d.duration_minutes || [],
+                duration_minutes: d.duration_minutes?.length ? d.duration_minutes : [DURATION_EGAL],
                 custom_duration: '',
                 price_mode: d.price_details?.mode || 'fixed',
                 price_value: d.price_details?.value ?? '',
@@ -165,7 +166,111 @@ export default function CreateAd() {
     }, [formData.type, profile]);
 
 
+    // Validation
+    const isStepValid = () => {
+        switch (currentStep) {
+            case 0: return formData.title.trim().length > 3;
+            case 1: return formData.subjects.length > 0 && formData.grade_levels.length > 0;
+            case 2: return (formData.locations.length > 0 || formData.custom_location.trim().length > 0) && (formData.duration_minutes.length > 0 || formData.custom_duration.trim().length > 0);
+            case 3:
+                if (formData.price_mode === 'free' || formData.price_mode === 'vb') return true;
+                return Number(formData.price_value) > 0; // fixed needs value
+            case 4: return formData.short_description.trim().length > 10;
+            default: return true;
+        }
+    };
+
+    // Konkreter Hinweis pro Schritt: sagt, was fehlt und wie es weitergeht.
+    const getStepHint = (step: number = currentStep): string | null => {
+        switch (step) {
+            case 0:
+                return formData.title.trim().length > 3
+                    ? null
+                    : 'Gib einen Titel mit mindestens 4 Zeichen ein – z. B. „Mathe-Hilfe für Klasse 6“.';
+            case 1:
+                if (formData.subjects.length === 0) return 'Wähle mindestens 1 Fach – nutze die Suche, wenn du es nicht findest.';
+                if (formData.grade_levels.length === 0) return 'Wähle mindestens 1 Klassenstufe, für die die Anzeige gilt.';
+                return null;
+            case 2: {
+                const hasPlace = formData.locations.length > 0 || formData.custom_location.trim().length > 0;
+                const hasDuration = formData.duration_minutes.length > 0 || formData.custom_duration.trim().length > 0;
+                if (!hasPlace) return 'Wähle mindestens 1 Ort oder trage einen eigenen Ort ein.';
+                if (!hasDuration) return 'Wähle eine Dauer oder „Egal / nach Absprache“, wenn ihr das im Chat klärt.';
+                return null;
+            }
+            case 3:
+                if (formData.price_mode === 'fixed' && !(Number(formData.price_value) > 0))
+                    return 'Gib einen Preis über 0 € ein – oder wähle „Verhandlungsbasis“ bzw. „Kostenlos“.';
+                return null;
+            case 4:
+                return formData.short_description.trim().length > 10
+                    ? null
+                    : 'Schreibe einen Feed-Teaser mit mindestens 11 Zeichen (max. 100) – so erscheinen deine ersten Worte im Feed.';
+            default:
+                return null;
+        }
+    };
+    const stepHint = getStepHint();
+
+    // Entwurf aus localStorage wiederherstellen (einmalig; Duplikat-Vorlage hat Vorrang).
+    useEffect(() => {
+        if (location.state?.duplicateAd) {
+            setDraftRestored(true);
+            return;
+        }
+        try {
+            const raw = localStorage.getItem(DRAFT_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed && typeof parsed === 'object' && parsed.formData) {
+                    setFormData(prev => ({ ...prev, ...parsed.formData, duration_minutes: parsed.formData.duration_minutes?.length ? parsed.formData.duration_minutes : [DURATION_EGAL] }));
+                    if (typeof parsed.currentStep === 'number' && parsed.currentStep >= 0 && parsed.currentStep < STEPS.length) {
+                        setCurrentStep(parsed.currentStep);
+                    }
+                    if (typeof parsed.selectedChildId === 'string') setSelectedChildId(parsed.selectedChildId);
+                    if (typeof parsed.savedAt === 'string') setDraftSavedAt(parsed.savedAt);
+                    toast.success('Entwurf wiederhergestellt – du machst weiter, wo du aufgehört hast.');
+                }
+            }
+        } catch {
+            // Kaputter Entwurf blockiert nie den Start.
+        } finally {
+            setDraftRestored(true);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Entwurf automatisch speichern (fwg_draft_ad).
+    useEffect(() => {
+        if (!draftRestored) return;
+        try {
+            const savedAt = new Date().toISOString();
+            localStorage.setItem(DRAFT_KEY, JSON.stringify({ formData, currentStep, selectedChildId, savedAt }));
+            setDraftSavedAt(savedAt);
+        } catch {
+            // Voller/blockierter Storage darf den Flow nie stoppen.
+        }
+    }, [formData, currentStep, selectedChildId, draftRestored]);
+
+    const discardDraft = () => {
+        try {
+            localStorage.removeItem(DRAFT_KEY);
+        } catch { /* ignore */ }
+        setFormData({ ...INITIAL_FORM });
+        setSelectedChildId(children[0]?.id ?? '');
+        setCurrentStep(0);
+        setSubjectQuery('');
+        setDraftSavedAt(null);
+        toast.success('Entwurf verworfen – du startest mit einem leeren Formular.');
+    };
+
     const handleNext = () => {
+        const hint = getStepHint();
+        if (hint) {
+            triggerHaptic('error');
+            toast.error(hint);
+            return;
+        }
         triggerHaptic('selection');
         if (currentStep < STEPS.length - 1) setCurrentStep(prev => prev + 1);
     };
@@ -236,6 +341,10 @@ export default function CreateAd() {
             console.error(error);
             toast.error("Fehler beim Erstellen der Anzeige: " + error.message);
         } else {
+            try {
+                localStorage.removeItem(DRAFT_KEY);
+            } catch { /* ignore */ }
+            setDraftSavedAt(null);
             toast.success("Anzeige erfolgreich erstellt!");
             navigate('/');
         }
@@ -261,12 +370,20 @@ export default function CreateAd() {
     };
 
     const toggleDuration = (min: number) => {
-        setFormData(prev => ({
-            ...prev,
-            duration_minutes: prev.duration_minutes.includes(min)
-                ? prev.duration_minutes.filter(m => m !== min)
-                : [...prev.duration_minutes, min]
-        }));
+        setFormData(prev => {
+            // „Egal" ist exklusiv: steht für „Dauer klären wir im Chat" statt einer festen Minutenzahl.
+            if (min === DURATION_EGAL) {
+                const hasEgal = prev.duration_minutes.includes(DURATION_EGAL);
+                return { ...prev, duration_minutes: hasEgal ? [] : [DURATION_EGAL], custom_duration: '' };
+            }
+            const withoutEgal = prev.duration_minutes.filter(m => m !== DURATION_EGAL);
+            return {
+                ...prev,
+                duration_minutes: withoutEgal.includes(min)
+                    ? withoutEgal.filter(m => m !== min)
+                    : [...withoutEgal, min]
+            };
+        });
     };
 
     const addImageUrl = () => {
@@ -279,19 +396,21 @@ export default function CreateAd() {
         }
     };
 
-    // Validation
-    const isStepValid = () => {
-        switch (currentStep) {
-            case 0: return formData.title.length > 3;
-            case 1: return formData.subjects.length > 0 && formData.grade_levels.length > 0;
-            case 2: return (formData.locations.length > 0 || formData.custom_location.length > 0) && (formData.duration_minutes.length > 0 || formData.custom_duration.length > 0);
-            case 3:
-                if (formData.price_mode === 'free' || formData.price_mode === 'vb') return true;
-                return Number(formData.price_value) > 0; // fixed needs value
-            case 4: return formData.short_description.length > 10;
-            default: return true;
-        }
-    };
+    const filteredSubjectGroups = useMemo(() => {
+        const q = subjectQuery.trim().toLowerCase();
+        if (!q) return SUBJECT_CATEGORIES;
+        return SUBJECT_CATEGORIES.map(category => ({
+            ...category,
+            subjects: category.subjects.filter(s =>
+                s.toLowerCase().includes(q) || (subjectLabelMap[s] ?? '').toLowerCase().includes(q)
+            )
+        })).filter(category => category.subjects.length > 0);
+    }, [subjectQuery]);
+
+    const subjectMatchCount = useMemo(
+        () => filteredSubjectGroups.reduce((n, g) => n + g.subjects.length, 0),
+        [filteredSubjectGroups]
+    );
 
     if (loadingProfile) return <div className="p-10 text-center">Laden...</div>;
 
@@ -316,7 +435,21 @@ export default function CreateAd() {
 
     return (
         <div className="w-full max-w-3xl mx-auto px-3 sm:px-4 py-4 pb-24 min-w-0 box-border overflow-x-hidden">
-            <h1 className="text-2xl font-bold mb-4 sm:mb-6">Anzeige aufgeben</h1>
+            <div className="flex items-start justify-between gap-3 mb-2">
+                <h1 className="text-2xl font-bold">Anzeige aufgeben</h1>
+                <button
+                    type="button"
+                    onClick={discardDraft}
+                    className="text-xs font-semibold text-gray-400 hover:text-red-600 dark:hover:text-red-400 underline underline-offset-4 shrink-0 mt-1.5"
+                >
+                    Entwurf verwerfen
+                </button>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 sm:mb-6" aria-live="polite">
+                Entwurf wird automatisch auf diesem Gerät gespeichert
+                {draftSavedAt ? ` · Stand ${new Date(draftSavedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr` : ''}
+                . Er verschwindet nach dem Veröffentlichen.
+            </p>
 
             {/* Stepper */}
             <div className="bg-white dark:bg-gray-900 p-4 rounded-3xl shadow-sm border dark:border-gray-800 mb-6">
@@ -490,14 +623,20 @@ export default function CreateAd() {
                                     </div>
 
                                     <div>
-                                        <label className="text-sm font-medium mb-2 block">Titel der Anzeige</label>
+                                        <div className="flex items-baseline justify-between gap-3 mb-2">
+                                            <label htmlFor="ad-title" className="text-sm font-medium">Titel der Anzeige</label>
+                                            <span className="text-[11px] text-gray-500 shrink-0">Mind. 4 Zeichen</span>
+                                        </div>
                                         <Input
-                                            placeholder="z.B. Mathe Hilfe für Klasse 6 gesucht!"
+                                            id="ad-title"
+                                            placeholder="z. B. Mathe-Hilfe für Klasse 6 gesucht!"
                                             value={formData.title}
                                             onChange={e => setFormData({ ...formData, title: e.target.value })}
                                             autoFocus
                                             className="text-base sm:text-lg py-5 sm:py-6"
+                                            maxLength={80}
                                         />
+                                        <p className="text-[11px] text-gray-500 mt-1.5">So erscheint deine Anzeige im Feed – Fach + Klasse im Titel helfen beim Finden.</p>
                                     </div>
                                 </>
                             )}
@@ -508,9 +647,52 @@ export default function CreateAd() {
                     {currentStep === 1 && (
                         <div className="space-y-6">
                             <div>
-                                <label className="text-sm font-medium mb-4 block">Welche Fächer?</label>
-                                <div className="space-y-6">
-                                    {SUBJECT_CATEGORIES.map(category => (
+                                <div className="flex items-baseline justify-between gap-3 mb-2">
+                                    <label htmlFor="subject-search" className="text-sm font-medium">Welche Fächer?</label>
+                                    <span className="text-[11px] text-gray-500 shrink-0" aria-live="polite">
+                                        {formData.subjects.length > 0
+                                            ? `${formData.subjects.length} gewählt`
+                                            : subjectQuery.trim()
+                                                ? `${subjectMatchCount} von 25 Fächern`
+                                                : '25 Fächer in 4 Gruppen'}
+                                    </span>
+                                </div>
+                                <p className="text-[11px] text-gray-500 mb-3">Mindestens 1 Fach wählen – tippe zum Filtern, statt lange zu scrollen.</p>
+                                <div className="relative mb-4">
+                                    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                    <Input
+                                        id="subject-search"
+                                        placeholder="Fach suchen – z. B. Mathe …"
+                                        value={subjectQuery}
+                                        onChange={e => setSubjectQuery(e.target.value)}
+                                        className="pl-10"
+                                        autoComplete="off"
+                                    />
+                                    {subjectQuery && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setSubjectQuery('')}
+                                            className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                                            aria-label="Fächersuche löschen"
+                                        >
+                                            <X size={15} />
+                                        </button>
+                                    )}
+                                </div>
+                                {subjectMatchCount === 0 ? (
+                                    <div className="p-4 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 text-sm text-gray-500 text-center space-y-2">
+                                        <p>Kein Fach gefunden für „{subjectQuery.trim()}“.</p>
+                                        <button
+                                            type="button"
+                                            onClick={() => setSubjectQuery('')}
+                                            className="text-xs font-bold underline underline-offset-4 hover:text-gray-900 dark:hover:text-white"
+                                        >
+                                            Suche zurücksetzen
+                                        </button>
+                                    </div>
+                                ) : (
+                                <div className="space-y-4">
+                                    {filteredSubjectGroups.map(category => (
                                         <div key={category.title} className="bg-gray-50 dark:bg-gray-900/30 p-4 rounded-xl border border-gray-100 dark:border-gray-800/50">
                                             <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">{category.title}</h4>
                                             <div className="flex flex-wrap gap-2">
@@ -527,6 +709,12 @@ export default function CreateAd() {
                                         </div>
                                     ))}
                                 </div>
+                                )}
+                                {formData.subjects.length > 0 && (
+                                    <p className="text-[11px] text-gray-500 mt-3">
+                                        Ausgewählt: {formData.subjects.map(s => subjectLabelMap[s] ?? s).join(' • ')}
+                                    </p>
+                                )}
                             </div>
                             <div>
                                 <label className="text-sm font-medium mb-3 block">Für welche Klassenstufen? (Mehrfachauswahl)</label>
@@ -548,15 +736,30 @@ export default function CreateAd() {
                     {currentStep === 2 && (
                         <div className="space-y-6">
                             <div>
-                                <label className="text-sm font-medium mb-1 block">Wo findet die Nachhilfe statt?</label>
-                                <p className="text-[11px] text-gray-500 mb-3">Wähle alle Orte, die für dich passen (Mehrfachauswahl).</p>
+                                <div className="flex items-baseline justify-between gap-3 mb-1">
+                                    <label className="text-sm font-medium">Wo findet die Nachhilfe statt?</label>
+                                    {(formData.locations.length > 0 || formData.custom_location.trim()) && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData(prev => ({ ...prev, locations: [], custom_location: '' }))}
+                                            className="text-[11px] font-bold text-gray-400 hover:text-red-600 underline underline-offset-4 shrink-0"
+                                        >
+                                            Auswahl löschen
+                                        </button>
+                                    )}
+                                </div>
+                                <p className="text-[11px] text-gray-500 mb-3">Wähle alle Orte, die für dich passen – 19 Orte in 4 Gruppen, Mehrfachauswahl möglich.</p>
                                 <div className="space-y-4">
                                     {LOCATION_GROUPS.map(group => {
-                                        const GroupIcon = group.title === 'In der Schule' ? School : group.title === 'Online' ? Wifi : Home;
+                                        const GroupIcon = group.title === 'In der Schule' ? School : group.title === 'Online' ? Wifi : group.title === 'Außerhalb (öffentlich)' ? MapPin : Home;
+                                        const selectedInGroup = group.locations.filter(l => formData.locations.includes(l)).length;
                                         return (
                                             <div key={group.title}>
                                                 <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 flex items-center gap-1.5">
                                                     <GroupIcon size={13} /> {group.title}
+                                                    <span className="font-medium normal-case tracking-normal opacity-70">
+                                                        · {group.locations.length} Orte{selectedInGroup > 0 ? `, ${selectedInGroup} gewählt` : ''}
+                                                    </span>
                                                 </p>
                                                 <div className="flex flex-wrap gap-2">
                                                     {group.locations.map(loc => {
@@ -568,7 +771,7 @@ export default function CreateAd() {
                                                                 onClick={() => toggleLocation(loc)}
                                                                 aria-pressed={active}
                                                                 className={cn(
-                                                                    "px-3.5 py-2 rounded-full text-sm border transition-colors font-medium",
+                                                                    "px-3.5 min-h-[44px] py-2 rounded-full text-sm border transition-colors font-medium",
                                                                     active
                                                                         ? "bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-black"
                                                                         : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
@@ -583,25 +786,30 @@ export default function CreateAd() {
                                         );
                                     })}
                                 </div>
-                                <div className="flex gap-2 items-center mt-3">
-                                    <MapPin size={15} className="text-gray-400 shrink-0" />
-                                    <Input
-                                        placeholder="Oder eigener Ort (z. B. Stadtbibliothek)..."
-                                        value={formData.custom_location}
-                                        onChange={e => setFormData({ ...formData, custom_location: e.target.value })}
-                                        className="max-w-xs"
-                                    />
+                                <div className="mt-4 space-y-1.5">
+                                    <label htmlFor="custom-location" className="text-xs font-semibold text-gray-600 dark:text-gray-300">Eigener Ort (optional)</label>
+                                    <div className="flex gap-2 items-center">
+                                        <MapPin size={15} className="text-gray-400 shrink-0" aria-hidden="true" />
+                                        <Input
+                                            id="custom-location"
+                                            placeholder="z. B. Stadtbibliothek am Neumarkt …"
+                                            value={formData.custom_location}
+                                            onChange={e => setFormData({ ...formData, custom_location: e.target.value })}
+                                            className="max-w-xs"
+                                            autoComplete="off"
+                                        />
+                                    </div>
                                 </div>
-                                {(formData.locations.length > 0 || formData.custom_location) && (
-                                    <p className="text-[11px] text-gray-500 mt-2">
-                                        Ausgewählt: {[ ...formData.locations, ...(formData.custom_location ? [formData.custom_location] : []) ].join(' • ')}
+                                {(formData.locations.length > 0 || formData.custom_location.trim()) && (
+                                    <p className="text-[11px] text-gray-500 mt-2" aria-live="polite">
+                                        Ausgewählt ({formData.locations.length + (formData.custom_location.trim() ? 1 : 0)}): {[ ...formData.locations, ...(formData.custom_location.trim() ? [formData.custom_location.trim()] : []) ].join(' • ')}
                                     </p>
                                 )}
                             </div>
 
                             <div>
                                 <label className="text-sm font-medium mb-1 block">Wie lange dauert eine Einheit?</label>
-                                <p className="text-[11px] text-gray-500 mb-3">Eine Dauer wählen oder „Egal" für Absprache im Chat.</p>
+                                <p className="text-[11px] text-gray-500 mb-3">Standard ist „Egal / nach Absprache“ – ihr klärt die Dauer dann im Chat. Feste Minuten sind exklusiv dazu.</p>
                                 <div className="flex flex-wrap gap-2 mb-3">
                                     {DURATION_PRESETS.map(dur => {
                                         const active = formData.duration_minutes.includes(dur);
@@ -636,16 +844,27 @@ export default function CreateAd() {
                                         Egal / nach Absprache
                                     </button>
                                 </div>
-                                <div className="flex gap-2 items-center">
-                                    <Input
-                                        type="number"
-                                        min={5}
-                                        max={480}
-                                        placeholder="Andere Dauer (Min.)"
-                                        value={formData.custom_duration}
-                                        onChange={e => setFormData({ ...formData, custom_duration: e.target.value })}
-                                        className="max-w-[170px]"
-                                    />
+                                <div className="space-y-1.5">
+                                    <label htmlFor="custom-duration" className="text-xs font-semibold text-gray-600 dark:text-gray-300">Andere Dauer in Minuten (optional, ersetzt „Egal“)</label>
+                                    <div className="flex gap-2 items-center">
+                                        <Input
+                                            id="custom-duration"
+                                            type="number"
+                                            min={5}
+                                            max={480}
+                                            placeholder="z. B. 50"
+                                            value={formData.custom_duration}
+                                            onChange={e => setFormData(prev => ({
+                                                ...prev,
+                                                custom_duration: e.target.value,
+                                                duration_minutes: e.target.value.trim()
+                                                    ? prev.duration_minutes.filter(m => m !== DURATION_EGAL)
+                                                    : prev.duration_minutes
+                                            }))}
+                                            className="max-w-[170px]"
+                                        />
+                                        <span className="text-[11px] text-gray-500">Minuten, 5–480</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -790,14 +1009,18 @@ export default function CreateAd() {
                     {currentStep === 4 && (
                         <div className="space-y-6">
                             <div>
-                                <label className="text-sm font-medium mb-2 block">Kurzbeschreibung (für den Feed)</label>
+                                <div className="flex items-baseline justify-between gap-3 mb-2">
+                                    <label htmlFor="short-description" className="text-sm font-medium">Kurzbeschreibung (für den Feed)</label>
+                                    <span className="text-[11px] text-gray-500 shrink-0">11–100 Zeichen</span>
+                                </div>
                                 <Input
+                                    id="short-description"
                                     maxLength={100}
-                                    placeholder="Kurzer Teaser (max 100 Zeichen)..."
+                                    placeholder="Ein Satz, der Lust aufs Antippen macht …"
                                     value={formData.short_description}
                                     onChange={e => setFormData({ ...formData, short_description: e.target.value })}
                                 />
-                                <span className="text-xs text-gray-400 float-right mt-1">{formData.short_description.length}/100</span>
+                                <span className="text-xs text-gray-400 float-right mt-1">{formData.short_description.trim().length}/100 · mind. 11</span>
                             </div>
 
                             <div className="clear-both pt-4">
@@ -893,7 +1116,13 @@ export default function CreateAd() {
                     )}
 
                 </CardContent>
-                <CardFooter className="flex flex-row justify-between items-center border-t pt-4 sm:pt-6 p-4 sm:p-6 gap-2">
+                <CardFooter className="flex flex-col gap-2 border-t pt-4 sm:pt-6 p-4 sm:p-6">
+                    {!isStepValid() && stepHint && currentStep < STEPS.length - 1 && (
+                        <p className="w-full text-xs font-medium text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl px-3 py-2" role="status">
+                            Noch offen: {stepHint}
+                        </p>
+                    )}
+                    <div className="flex flex-row justify-between items-center w-full gap-2">
                     <Button variant="ghost" onClick={handleBack} disabled={currentStep === 0} className="px-3 sm:px-4">
                         <ChevronLeft size={16} className="mr-1 sm:mr-2 shrink-0" /> Zurück
                     </Button>
@@ -903,10 +1132,16 @@ export default function CreateAd() {
                             {isSubmitting ? 'Wird veröffentlicht...' : 'Jetzt veröffentlichen'} <CheckCircle size={16} className="ml-1 sm:ml-2 shrink-0" />
                         </Button>
                     ) : (
-                        <Button onClick={handleNext} disabled={!isStepValid()} className="px-4 sm:px-5">
+                        <Button
+                            onClick={handleNext}
+                            disabled={!isStepValid()}
+                            title={!isStepValid() && stepHint ? stepHint : 'Weiter zum nächsten Schritt'}
+                            className="px-4 sm:px-5"
+                        >
                             Weiter <ChevronRight size={16} className="ml-1 sm:ml-2 shrink-0" />
                         </Button>
                     )}
+                    </div>
                 </CardFooter>
             </Card>
         </div>

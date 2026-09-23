@@ -1,5 +1,5 @@
 # Gespräch mit der Schulleitung: FWG Nachhilfebörse
-**Vorbereitungsdokument der Schülervertretung (SV) des Friedrich-Wilhelms-Gymnasiums Köln**
+**Vorbereitungsdokument der Schülervertretung (SV) des Friedrich-Wilhelm-Gymnasiums Köln**
 Stand: 2026 · Verfasser: SV-Team Nachhilfebörse · Hinweis: Dieses Dokument fasst die Rechtslage nach bestem Wissen zusammen und ersetzt keine anwaltliche Beratung.
 
 ---
@@ -196,7 +196,7 @@ Weil die Börse *mehr* Schutz bietet: Verifizierung statt unbekannter Nummern, M
 
 ### 10.3 Vereinbarungsvorlage
 
-> **Vereinbarung zwischen der Schulleitung des Friedrich-Wilhelms-Gymnasiums Köln und der Schülervertretung zur Nachhilfebörse**
+> **Vereinbarung zwischen der Schulleitung des Friedrich-Wilhelm-Gymnasiums Köln und der Schülervertretung zur Nachhilfebörse**
 >
 > 1. Die SV betreibt die schulinterne Nachhilfebörse (Vermittlungs-Plattform + Coaching-AG-Einbindung) als SV-Veranstaltung im Sinne des § 74 Abs. 5 SchulG NRW. Die Schulleitung stimmt dem zu.
 > 2. Der Betrieb erfolgt ehrenamtlich durch das SV-Team; pädagogische Ansprechpartner sind die Verbindungslehrkräfte.

@@ -19,6 +19,16 @@ import { toast } from 'react-hot-toast';
 import { cn } from '../../lib/utils';
 import { api } from '../../lib/api';
 
+// Getrennte Status-Farben: aktiv (Farbe auf Farbe) und ruhig (grau auf grau) teilen sich nie ein Element.
+const REPORT_ICON_OPEN = 'bg-red-50 text-red-600 dark:bg-red-950/20';
+const REPORT_ICON_CLOSED = 'bg-gray-100 text-gray-500 dark:bg-gray-800';
+const PRIO_BADGE_KRITISCH = 'bg-red-100 text-red-700 animate-pulse';
+const PRIO_BADGE_HOCH = 'bg-amber-100 text-amber-700';
+const PRIO_BADGE_NORMAL = 'bg-gray-100 text-gray-700';
+const PRIO_BAR_KRITISCH = 'bg-red-600 text-white animate-pulse';
+const PRIO_BAR_HOCH = 'bg-amber-700 text-white';
+const PRIO_BAR_NORMAL = 'bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
+
 /** Evidenz einer automatischen Filtermeldung (Profanity 2.0, Quelle 'auto_filter'). */
 interface AutoFilterEvidence {
     source: string;
@@ -459,7 +469,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                                     <div className="flex items-center gap-3 min-w-0">
                                         <div className={cn(
                                             'w-10 h-10 rounded-2xl flex items-center justify-center shrink-0',
-                                            r.status === 'open' ? 'bg-red-50 text-red-500 dark:bg-red-950/20' : 'bg-gray-100 text-gray-500 dark:bg-gray-800'
+                                            r.status === 'open' ? REPORT_ICON_OPEN : REPORT_ICON_CLOSED
                                         )}>
                                             <AlertTriangle size={18} />
                                         </div>
@@ -475,7 +485,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                                     <div className="flex items-center gap-2">
                                         <span className={cn(
                                             'text-[10px] font-bold px-2 py-0.5 rounded-full uppercase',
-                                            r.priority === 'kritisch' ? 'bg-red-100 text-red-700 animate-pulse' : r.priority === 'hoch' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700'
+                                            r.priority === 'kritisch' ? PRIO_BADGE_KRITISCH : r.priority === 'hoch' ? PRIO_BADGE_HOCH : PRIO_BADGE_NORMAL
                                         )}>
                                             {r.priority}
                                         </span>
@@ -540,7 +550,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                                     )}
                                     <span className={cn(
                                         'px-2.5 py-1 rounded-xl text-xs font-bold uppercase',
-                                        selectedReport.priority === 'kritisch' ? 'bg-red-500 text-white animate-pulse' : selectedReport.priority === 'hoch' ? 'bg-amber-500 text-white' : 'bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                                        selectedReport.priority === 'kritisch' ? PRIO_BAR_KRITISCH : selectedReport.priority === 'hoch' ? PRIO_BAR_HOCH : PRIO_BAR_NORMAL
                                     )}>
                                         Prio: {selectedReport.priority}
                                     </span>

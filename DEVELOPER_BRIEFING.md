@@ -6,7 +6,7 @@
 
 ## 1) Kurz-Kontext / Zweck (1 Satz)
 
-Mobile-zentrierte, installierbare PWA (Desktop + Mobile) für das Friedrich-Willem-Gymnasium (FWG): eine sichere, datensparsame Nachhilfebörse, in der Schülerinnen und Schüler Nachhilfe anbieten/finden, Termine vereinbaren, sich durch die Schülervertretung (SV) verifizieren lassen und die SV die Moderation übernimmt.
+Mobile-zentrierte, installierbare PWA (Desktop + Mobile) für das Friedrich-Wilhelm-Gymnasium (FWG): eine sichere, datensparsame Nachhilfebörse, in der Schülerinnen und Schüler Nachhilfe anbieten/finden, Termine vereinbaren, sich durch die Schülervertretung (SV) verifizieren lassen und die SV die Moderation übernimmt.
 
 ---
 

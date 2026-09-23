@@ -1,6 +1,6 @@
 # 🎓 FWG Nachhilfebörse v2
 
-Eine moderne, sichere und KI-gestützte Nachhilfe-Plattform für Schülerinnen, Schüler und Eltern des Friedrich-Wilhelms-Gymnasiums Köln.
+Eine moderne, sichere und KI-gestützte Nachhilfe-Plattform für Schülerinnen, Schüler und Eltern des Friedrich-Wilhelm-Gymnasiums Köln.
 
 ![FWG Nachhilfebörse](https://img.shields.io/badge/Status-Aktiv-brightgreen.svg)
 ![React](https://img.shields.io/badge/Frontend-React_19-blue.svg)
@@ -110,4 +110,4 @@ Verwende das mitgelieferte Adapter-Modul `src/http/express-ai-routes.mjs` in dei
 
 ## 📄 Lizenz
 
-Dieses Projekt ist für das **Friedrich-Wilhelms-Gymnasium Köln** entwickelt. Alle Rechte vorbehalten.
+Dieses Projekt ist für das **Friedrich-Wilhelm-Gymnasium Köln** entwickelt. Alle Rechte vorbehalten.

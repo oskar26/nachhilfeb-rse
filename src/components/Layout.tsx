@@ -170,15 +170,17 @@ export default function Layout() {
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 overflow-hidden relative md:p-4 flex flex-col min-w-0">
+            <main className="flex-1 overflow-hidden relative md:p-4 flex flex-col min-w-0 min-h-0">
                 {/* Mobile Header — aligns with desktop glass (90% + blur-xl) */}
-                <div className="md:hidden flex items-center justify-between px-5 pt-[max(0.875rem,env(safe-area-inset-top))] pb-3.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl sticky top-0 z-30 border-b border-gray-200/60 dark:border-gray-800/80 shrink-0 shadow-sm">
-                    <NavLink to="/welcome" onClick={handleNavClick} className="flex items-center gap-2.5">
+                <div className="md:hidden flex items-center justify-between gap-2 px-4 sm:px-5 pt-[max(0.875rem,env(safe-area-inset-top))] pb-3.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl sticky top-0 z-30 border-b border-gray-200/60 dark:border-gray-800/80 shrink-0 shadow-sm">
+                    <NavLink to="/welcome" onClick={handleNavClick} className="flex items-center gap-2.5 min-w-0 flex-1">
                         <Logo className="w-8 h-8 text-black dark:text-white shrink-0" />
-                        <span className="font-black text-lg tracking-tight text-gray-900 dark:text-white">Nachhilfebörse</span>
+                        <span className="font-black text-lg tracking-tight text-gray-900 dark:text-white truncate">Nachhilfebörse</span>
                     </NavLink>
                     {/* Notification bell on mobile */}
+                    <div className="shrink-0">
                     <NotificationCenter unreadCount={unreadCount} onCountChange={setUnreadCount} />
+                    </div>
                 </div>
 
                 {/* Main View Wrapper with Fast, Native-feeling Rendering (No stutter/freeze) */}
@@ -186,7 +188,7 @@ export default function Layout() {
                     ref={mainContentRef}
                     tabIndex={-1}
                     aria-label="Hauptinhalt"
-                    className="flex-1 w-full md:rounded-3xl md:bg-white/80 md:dark:bg-gray-900/80 md:backdrop-blur-md md:border md:border-gray-100/80 md:dark:border-gray-800/60 md:shadow-soft flex flex-col min-h-0 overflow-y-auto overflow-x-hidden focus:outline-none"
+                    className="flex-1 w-full md:rounded-3xl md:bg-white/80 md:dark:bg-gray-900/80 md:backdrop-blur-md md:border md:border-gray-100/80 md:dark:border-gray-800/60 md:shadow-soft flex flex-col min-h-0 min-w-0 overflow-y-auto overflow-x-clip focus:outline-none"
                 >
                     <Outlet />
                     {/* Spacer for bottom nav on mobile */}
@@ -228,7 +230,7 @@ export default function Layout() {
                             end={item.end || (item.activateOnChat ? false : undefined)}
                             onClick={handleNavClick}
                             className={({ isActive }) =>
-                                `relative flex flex-col items-center justify-center w-full h-full gap-1 text-[11px] font-bold transition-all ${
+                                `relative flex flex-col items-center justify-center w-full min-w-0 h-full gap-1 text-[11px] font-bold transition-all px-1 ${
                                     isActive || (item.activateOnChat && (isSocialRoute || isChatRoute))
                                         ? 'text-gray-950 dark:text-white font-extrabold'
                                         : 'text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300'
@@ -239,7 +241,7 @@ export default function Layout() {
                             {({ isActive }) => (
                                 <>
                                     <Icon size={20} strokeWidth={isActive || (item.activateOnChat && (isSocialRoute || isChatRoute)) ? 2.5 : 2} />
-                                    <span>{item.label}</span>
+                                    <span className="truncate max-w-full">{item.label}</span>
                                     {(isActive || (item.activateOnChat && (isSocialRoute || isChatRoute))) && (
                                         <motion.div
                                             layoutId="mobileNavActiveDot"

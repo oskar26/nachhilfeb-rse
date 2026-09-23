@@ -255,7 +255,7 @@ export default function AdminNews() {
                                                 <h4 className="font-bold text-base text-gray-900 dark:text-white leading-snug">{item.title}</h4>
                                                 <button
                                                     onClick={() => handleDelete(item.id)}
-                                                    className="p-2 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all shrink-0 -mt-1"
+                                                    className="p-2 rounded-xl text-gray-400 hover:text-red-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0 -mt-1"
                                                     title="Löschen"
                                                 >
                                                     <Trash2 size={16} />

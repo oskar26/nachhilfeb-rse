@@ -89,7 +89,7 @@ function render_email_template(array $params): string {
                                             FWG <span style='background-color: #FACC15; padding: 2px 8px; border-radius: 6px; color: #000;'>Nachhilfe</span>
                                         </div>
                                         <div style='font-size: 12px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.8px;'>
-                                            Friedrich-Wilhelms-Gymnasium Köln
+                                            Friedrich-Wilhelm-Gymnasium Köln
                                         </div>
                                     </td>
                                 </tr>
@@ -152,7 +152,7 @@ function render_email_template(array $params): string {
                                 FWG Nachhilfebörse – Eine Initiative der Schülervertretung (SV)
                             </div>
                             <div>
-                                Friedrich-Wilhelms-Gymnasium Köln • Severinstraße 241 • 50676 Köln
+                                Friedrich-Wilhelm-Gymnasium Köln • Severinstraße 241 • 50676 Köln
                             </div>
                             <div style='margin-top: 12px;'>
                                 <a href='$appUrl' style='color: #64748B; margin: 0 8px;'>Plattform öffnen</a> • 
@@ -164,7 +164,7 @@ function render_email_template(array $params): string {
                                 Fragen dazu? Schreib uns an <a href='mailto:info@nachhilfe-sv.de' style='color: #64748B;'>info@nachhilfe-sv.de</a>.
                             </div>
                             <div style='margin-top: 8px; font-size: 11px; color: #94A3B8;'>
-                                © $year Schülervertretung · Friedrich-Wilhelms-Gymnasium Köln
+                                © $year Schülervertretung · Friedrich-Wilhelm-Gymnasium Köln
                             </div>
                         </td>
                     </tr>

@@ -1,33 +1,21 @@
-import { ChevronLeft, Mail, MapPin, Building2, Newspaper } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '../components/ui/Button';
+import { Mail, MapPin, Building2, Newspaper, Phone } from 'lucide-react';
+import StaticLayout from '../components/StaticLayout';
 
 export default function Impressum() {
-    const navigate = useNavigate();
-
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-6 md:p-12">
-            <div className="max-w-3xl mx-auto space-y-8">
-                <Button variant="ghost" onClick={() => navigate(-1)} className="mb-2">
-                    <ChevronLeft className="mr-2" /> Zurück
-                </Button>
-
-                <div className="space-y-4">
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-primary/10 text-primary-hover">
-                        Rechtliches
-                    </div>
-                    <h1 className="text-4xl font-black tracking-tight text-gray-900 dark:text-white">Impressum</h1>
-                    <p className="text-gray-500 dark:text-gray-400">Anbieterkennzeichnung nach § 5 Digitale-Dienste-Gesetz (DDG)</p>
-                </div>
-
-                <div className="bg-white dark:bg-gray-900 p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft space-y-6">
+        <StaticLayout
+            title="Impressum"
+            intro="Stand: September 2026 · Betreiber: SV FWG Köln — Anbieterkennzeichnung nach § 5 Digitale-Dienste-Gesetz (DDG)."
+        >
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 pb-16 space-y-6">
+                <div className="bg-white dark:bg-gray-900 p-6 sm:p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm space-y-6">
                     <div className="flex gap-4">
-                        <Building2 className="text-primary shrink-0 mt-1" size={22} />
+                        <Building2 className="text-primary shrink-0 mt-1" size={22} aria-hidden="true" />
                         <div>
                             <h2 className="font-bold text-lg mb-2 text-gray-900 dark:text-white">Diensteanbieter</h2>
-                            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                            <p className="text-[15px] leading-7 text-gray-600 dark:text-gray-300">
                                 Schülervertretung (SV) des<br />
-                                <strong>Friedrich-Wilhelms-Gymnasiums Köln</strong><br />
+                                <strong>Friedrich-Wilhelm-Gymnasiums Köln</strong><br />
                                 Severinstraße 241<br />
                                 50676 Köln<br />
                                 Deutschland
@@ -36,14 +24,29 @@ export default function Impressum() {
                     </div>
 
                     <div className="flex gap-4">
-                        <Mail className="text-primary shrink-0 mt-1" size={22} />
+                        <Mail className="text-primary shrink-0 mt-1" size={22} aria-hidden="true" />
                         <div>
                             <h2 className="font-bold text-lg mb-2 text-gray-900 dark:text-white">Kontakt</h2>
-                            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                                E-Mail (SV-Organisation): <a href="mailto:info@sv-fwg.de" className="font-bold text-primary hover:underline">info@sv-fwg.de</a><br />
-                                Hilfe & Fragen (Nachhilfebörse): <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-primary hover:underline">info@nachhilfe-sv.de</a><br />
-                                Schüler-Coaching: <a href="mailto:Rosalia.Balistreri@fwg-koeln.nrw.schule" className="font-bold text-primary hover:underline">Rosalia.Balistreri@fwg-koeln.nrw.schule</a> (Frau Balistreri)<br />
-                                Technik & Fehlermeldungen: <a href="mailto:technik@nachhilfe-sv.de" className="font-bold text-primary hover:underline">technik@nachhilfe-sv.de</a><br />
+                            <ul className="text-[15px] leading-7 text-gray-600 dark:text-gray-300 space-y-1">
+                                <li>
+                                    E-Mail (SV-Team & Nachhilfebörse):{' '}
+                                    <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-amber-700 dark:text-primary hover:underline break-anywhere">info@nachhilfe-sv.de</a>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <Phone size={16} className="shrink-0 mt-1.5" aria-hidden="true" />
+                                    <span>Telefon: <strong>[Telefon – wird ergänzt]</strong></span>
+                                </li>
+                                <li>
+                                    Schüler-Coaching:{' '}
+                                    <a href="mailto:Rosalia.Balistreri@fwg-koeln.nrw.schule" className="font-bold text-amber-700 dark:text-primary hover:underline break-anywhere">Rosalia.Balistreri@fwg-koeln.nrw.schule</a>{' '}
+                                    (Frau Balistreri)
+                                </li>
+                                <li>
+                                    Technik & Fehlermeldungen:{' '}
+                                    <a href="mailto:technik@nachhilfe-sv.de" className="font-bold text-amber-700 dark:text-primary hover:underline break-anywhere">technik@nachhilfe-sv.de</a>
+                                </li>
+                            </ul>
+                            <p className="text-[15px] leading-7 text-gray-600 dark:text-gray-300 mt-2">
                                 Die Nachhilfebörse ist ein nicht-kommerzielles Schülerprojekt der SV.
                                 Ansprechpartner für Inhalte dieser Plattform ist das SV-Team.
                             </p>
@@ -51,10 +54,10 @@ export default function Impressum() {
                     </div>
 
                     <div className="flex gap-4">
-                        <MapPin className="text-primary shrink-0 mt-1" size={22} />
+                        <MapPin className="text-primary shrink-0 mt-1" size={22} aria-hidden="true" />
                         <div>
                             <h2 className="font-bold text-lg mb-2 text-gray-900 dark:text-white">Schulträger</h2>
-                            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                            <p className="text-[15px] leading-7 text-gray-600 dark:text-gray-300">
                                 Stadt Köln – Amt für Schulentwicklung<br />
                                 Die Schule in Trägerschaft der Stadt Köln ist eine öffentliche Einrichtung
                                 des Landes Nordrhein-Westfalen.
@@ -63,14 +66,15 @@ export default function Impressum() {
                     </div>
 
                     <div className="flex gap-4">
-                        <Newspaper className="text-primary shrink-0 mt-1" size={22} />
+                        <Newspaper className="text-primary shrink-0 mt-1" size={22} aria-hidden="true" />
                         <div>
                             <h2 className="font-bold text-lg mb-2 text-gray-900 dark:text-white">Verantwortlich für redaktionelle Inhalte (§ 18 Abs. 2 MStV)</h2>
-                            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                                Das SV-Team des Friedrich-Wilhelms-Gymnasiums Köln,<br />
+                            <p className="text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+                                <strong>[Name, Funktion – wird ergänzt]</strong>, für das SV-Team des
+                                Friedrich-Wilhelm-Gymnasiums Köln,<br />
                                 Severinstraße 241, 50676 Köln.
                             </p>
-                            <p className="text-gray-600 dark:text-gray-400 leading-relaxed mt-3">
+                            <p className="text-[15px] leading-7 text-gray-600 dark:text-gray-300 mt-3">
                                 Für <strong>nutzergenerierte Inhalte</strong> (Anzeigen, Profile, Nachrichten)
                                 sind die jeweiligen Nutzerinnen und Nutzer verantwortlich. Das SV-Team prüft
                                 gemeldete Inhalte und entfernt rechtswidrige Inhalte nach Kenntnis
@@ -87,11 +91,7 @@ export default function Impressum() {
                     jeweiligen Nutzerinnen und Nutzern zustande – das SV-Team ist daran nicht beteiligt
                     und übernimmt dafür keine Gewähr (Details in den Nutzungsbedingungen).
                 </div>
-
-                <div className="text-center text-sm text-gray-500">
-                    &copy; {new Date().getFullYear()} Schülervertretung des Friedrich-Wilhelms-Gymnasiums Köln
-                </div>
             </div>
-        </div>
+        </StaticLayout>
     );
 }

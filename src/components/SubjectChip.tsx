@@ -44,7 +44,7 @@ const subjectColorMap: Record<Subject, string> = {
 };
 
 // Human readable labels
-const subjectLabelMap: Record<Subject, string> = {
+export const subjectLabelMap: Record<Subject, string> = {
     // Aufgabenfeld 1
     deutsch: 'Deutsch',
     englisch: 'Englisch',

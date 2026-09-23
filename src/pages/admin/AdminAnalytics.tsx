@@ -436,7 +436,7 @@ export default function AdminAnalytics() {
 
             {/* Top Stat Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card className="rounded-3xl border-none shadow-sm bg-gradient-to-br from-blue-50/50 to-indigo-50/30 dark:from-indigo-950/10 dark:to-blue-950/5">
+                <Card className="rounded-3xl border-none shadow-sm bg-blue-50/60 dark:bg-indigo-950/20">
                     <CardContent className="p-5 space-y-1">
                         <span className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider block">Registrierte Nutzer</span>
                         <div className="text-3xl font-black">{userStats.total}</div>
@@ -446,7 +446,7 @@ export default function AdminAnalytics() {
                     </CardContent>
                 </Card>
 
-                <Card className="rounded-3xl border-none shadow-sm bg-gradient-to-br from-emerald-50/50 to-green-50/30 dark:from-emerald-950/10 dark:to-green-950/5">
+                <Card className="rounded-3xl border-none shadow-sm bg-emerald-50/60 dark:bg-emerald-950/20">
                     <CardContent className="p-5 space-y-1">
                         <span className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider block">Aktive Anzeigen</span>
                         <div className="text-3xl font-black">{adStats.active}</div>
@@ -456,7 +456,7 @@ export default function AdminAnalytics() {
                     </CardContent>
                 </Card>
 
-                <Card className="rounded-3xl border-none shadow-sm bg-gradient-to-br from-purple-50/50 to-pink-50/30 dark:from-purple-950/10 dark:to-pink-950/5">
+                <Card className="rounded-3xl border-none shadow-sm bg-purple-50/60 dark:bg-purple-950/20">
                     <CardContent className="p-5 space-y-1">
                         <span className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider block">Erfasste Aufrufe</span>
                         <div className="text-3xl font-black">{totalPageViews}</div>
@@ -466,7 +466,7 @@ export default function AdminAnalytics() {
                     </CardContent>
                 </Card>
 
-                <Card className="rounded-3xl border-none shadow-sm bg-gradient-to-br from-amber-50/50 to-orange-50/30 dark:from-amber-950/10 dark:to-orange-950/5">
+                <Card className="rounded-3xl border-none shadow-sm bg-amber-50/60 dark:bg-amber-950/20">
                     <CardContent className="p-5 space-y-1">
                         <span className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider block">Durchschn. Bewertung</span>
                         <div className="text-3xl font-black flex items-center gap-1.5">

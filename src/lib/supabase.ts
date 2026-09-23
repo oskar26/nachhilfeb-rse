@@ -285,7 +285,7 @@ export class QueryBuilder<T = any[]> implements PromiseLike<QueryResult<T>> {
                         const outData = this.isSingle || this.isMaybeSingle ? res.data : [res.data].filter(Boolean);
                         return { data: outData, count: outData ? 1 : 0, error: res.error };
                     }
-                    const idFilter = this.filters.find(f => f.col === 'id')?.val;
+                    const idFilter = this.filters.find(f => f.col === 'id' && f.op === 'eq')?.val;
                     const inFilter = this.filters.find(f => f.col === 'id' && f.op === 'in')?.val;
                     if (idFilter) {
                         const res = await api.profiles.get(idFilter);

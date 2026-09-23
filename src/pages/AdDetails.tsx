@@ -7,7 +7,7 @@ import { Button } from '../components/ui/Button';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { SubjectChip } from '../components/SubjectChip';
 import { toast } from 'react-hot-toast';
-import { ChevronLeft, MapPin, Clock, Heart, Send, CheckCircle, Phone, Mail, CalendarDays, Share2, Copy, Eye, Users, User, Shuffle } from 'lucide-react';
+import { ChevronLeft, MapPin, Clock, Heart, Send, CheckCircle, Phone, Mail, CalendarDays, Share2, Copy, Eye, Users, User, Shuffle, Flag, ShieldAlert } from 'lucide-react';
 import ReportWizard from '../components/ReportWizard';
 import ShareDialog from '../components/ShareDialog';
 import { AvailabilityCalendar, emptyAvailability, countMatches, type Availability } from '../components/AvailabilityCalendar';
@@ -259,6 +259,14 @@ export default function AdDetails() {
                                                 <p className="text-sm">Hier sind die Kontaktdaten:</p>
                                             </div>
                                         </div>
+                                        <div className="flex gap-2.5 p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-xs leading-relaxed text-amber-900 dark:text-amber-200">
+                                            <ShieldAlert size={16} className="shrink-0 mt-0.5" aria-hidden="true" />
+                                            <p>
+                                                <strong>Sicherheit geht vor:</strong> Trefft euch möglichst in der Schule,
+                                                informiert eure Eltern und teilt nur Kontakte, die ihr freigegeben habt.
+                                                Bei Problemen melde die Anzeige über den Button unten oder sprich das SV-Team an.
+                                            </p>
+                                        </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             {profile?.phone_number && profile?.settings?.phone_visible && (
                                                 <a href={`tel:${profile.phone_number}`} className="flex items-center justify-center gap-2 p-4 bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
@@ -328,10 +336,13 @@ export default function AdDetails() {
             {/* Report Button */}
             {!isOwn && (
                 <div className="text-center mt-12">
-                    <button onClick={() => setIsReportOpen(true)} className="text-sm text-gray-400 hover:text-red-500 transition-colors flex items-center justify-center gap-2 mx-auto">
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>
-                        Anzeige melden
-                    </button>
+                    <Button
+                        variant="outline"
+                        onClick={() => setIsReportOpen(true)}
+                        className="rounded-full border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 font-semibold"
+                    >
+                        <Flag size={15} /> Anzeige melden
+                    </Button>
                     <ReportWizard 
                         isOpen={isReportOpen} 
                         onClose={() => setIsReportOpen(false)} 

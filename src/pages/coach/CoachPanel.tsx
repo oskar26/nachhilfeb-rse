@@ -15,15 +15,17 @@ import {
     GraduationCap,
     Users,
     Key,
-    Megaphone
+    Megaphone,
+    LayoutTemplate
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { cn } from '../../lib/utils';
 import { triggerHaptic } from '../../lib/haptics';
+import CoachingPageBuilder from './CoachingPageBuilder';
 
 export default function CoachPanel() {
     const { isCoachAdmin } = useAuth();
-    const [activeTab, setActiveTab] = useState<'students' | 'codes' | 'info' | 'logs'>('students');
+    const [activeTab, setActiveTab] = useState<'students' | 'codes' | 'info' | 'logs' | 'seite'>('students');
 
     // Students state
     const [students, setStudents] = useState<any[]>([]);
@@ -296,12 +298,22 @@ export default function CoachPanel() {
                 <button
                     onClick={() => { triggerHaptic('selection'); setActiveTab('logs'); }}
                     className={cn(
-                        "flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
+                        "flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[44px]",
                         activeTab === 'logs' ? "bg-primary text-primary-foreground shadow-xs font-extrabold" : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
                     )}
                 >
                     <History size={16} />
                     <span>Mein Protokoll</span>
+                </button>
+                <button
+                    onClick={() => { triggerHaptic('selection'); setActiveTab('seite'); }}
+                    className={cn(
+                        "flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[44px]",
+                        activeTab === 'seite' ? "bg-primary text-primary-foreground shadow-xs font-extrabold" : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                    )}
+                >
+                    <LayoutTemplate size={16} />
+                    <span>Seite</span>
                 </button>
             </div>
 
@@ -672,6 +684,13 @@ export default function CoachPanel() {
                         )}
                     </CardContent>
                 </Card>
+                </div>
+            )}
+
+            {/* TAB 5: SEITE (Builder mit Live-Preview) */}
+            {activeTab === 'seite' && (
+                <div className="min-h-[480px]">
+                    <CoachingPageBuilder />
                 </div>
             )}
         </div>

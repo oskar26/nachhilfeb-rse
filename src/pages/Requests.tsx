@@ -4,9 +4,10 @@ import { useAuth } from '../context/AuthContext';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/Tabs';
-import { CheckCircle, XCircle, Phone, Mail, Star, Inbox, Search, MessageSquare } from 'lucide-react';
+import { CheckCircle, XCircle, Phone, Mail, Star, Inbox, Search, MessageSquare, EyeOff } from 'lucide-react';
 import { RatingDialog } from '../components/RatingDialog';
 import { useNavigate } from 'react-router-dom';
+import { getHiddenChatIds, unhideChatId } from './Chat';
 
 export default function Requests() {
     const { user } = useAuth();
@@ -14,6 +15,15 @@ export default function Requests() {
     const [incoming, setIncoming] = useState<any[]>([]);
     const [outgoing, setOutgoing] = useState<any[]>([]);
     const [stats, setStats] = useState({ incoming: 0, outgoing: 0 });
+    // Auf diesem Gerät verborgene Chats (siehe Chat.tsx) – Anfragen bleiben bestehen, nur die Liste wird aufgeräumt.
+    const [hiddenIds, setHiddenIds] = useState<string[]>(() => getHiddenChatIds());
+    const visibleIncoming = incoming.filter(r => !hiddenIds.includes(r.id));
+    const visibleOutgoing = outgoing.filter(r => !hiddenIds.includes(r.id));
+
+    const unhideAll = () => {
+        hiddenIds.forEach(unhideChatId);
+        setHiddenIds([]);
+    };
 
 
     // Rating State
@@ -41,7 +51,8 @@ export default function Requests() {
 
         if (inc) setIncoming(inc);
         if (out) setOutgoing(out);
-        setStats({ incoming: inc?.filter(r => r.status === 'pending').length || 0, outgoing: 0 });
+        const hid = getHiddenChatIds();
+        setStats({ incoming: (inc || []).filter(r => r.status === 'pending' && !hid.includes(r.id)).length || 0, outgoing: 0 });
     };
 
     useEffect(() => {
@@ -73,6 +84,15 @@ export default function Requests() {
 
     return (
         <div className="space-y-6">
+            {hiddenIds.length > 0 && (
+                <button
+                    type="button"
+                    onClick={unhideAll}
+                    className="w-full flex items-center justify-center gap-2 px-4 min-h-[44px] rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+                >
+                    <EyeOff size={14} /> Verborgene Chats einblenden ({hiddenIds.length})
+                </button>
+            )}
             <Tabs defaultValue="incoming">
                 <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="incoming">
@@ -83,7 +103,7 @@ export default function Requests() {
                 </TabsList>
 
                 <TabsContent value="incoming" className="space-y-4 mt-4">
-                    {incoming.length === 0 && (
+                    {visibleIncoming.length === 0 && (
                         <div className="flex flex-col items-center justify-center p-12 text-center bg-white dark:bg-gray-900 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm mt-8 animate-in fade-in zoom-in-95 duration-500">
                             <div className="w-24 h-24 mb-6 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
                                 <Inbox size={40} className="text-blue-400 dark:text-blue-500" />
@@ -92,7 +112,7 @@ export default function Requests() {
                             <p className="text-gray-500 dark:text-gray-400 max-w-sm">Du hast noch keine Anfragen zu deinen Anzeigen erhalten. Sobald jemand Interesse hat, taucht die Anfrage hier auf!</p>
                         </div>
                     )}
-                    {incoming.map(req => (
+                    {visibleIncoming.map(req => (
                         <Card key={req.id}>
                             <CardHeader className="bg-gray-50 dark:bg-gray-900/50 p-4 border-b">
                                 <div className="flex justify-between items-start">
@@ -159,7 +179,7 @@ export default function Requests() {
                 </TabsContent>
 
                 <TabsContent value="outgoing" className="space-y-4 mt-4">
-                    {outgoing.length === 0 && (
+                    {visibleOutgoing.length === 0 && (
                         <div className="flex flex-col items-center justify-center p-12 text-center bg-white dark:bg-gray-900 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm mt-8 animate-in fade-in zoom-in-95 duration-500">
                             <div className="w-24 h-24 mb-6 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
                                 <Search size={40} className="text-green-400 dark:text-green-500" />
@@ -168,7 +188,7 @@ export default function Requests() {
                             <p className="text-gray-500 dark:text-gray-400 max-w-sm">Du hast noch keine offenen Anfragen an andere Personen gestellt. Schau dich im Feed um und finde den perfekten Nachhilfe-Partner!</p>
                         </div>
                     )}
-                    {outgoing.map(req => (
+                    {visibleOutgoing.map(req => (
                         <Card key={req.id}>
                             <CardHeader className="bg-gray-50 dark:bg-gray-900/50 p-4 border-b">
                                 <div className="flex justify-between items-start">

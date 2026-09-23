@@ -134,6 +134,23 @@
 }
 
 @layer utilities {
+  /* Horizontale Chip-/Scroll-Leisten ohne sichtbare Scrollbar (wird benutzt, war aber nie definiert) */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Generelle Overflow-Sicherheit: Medien + lange Wörter sprengen kein Mobile-Layout */
+  img, video, svg {
+    max-width: 100%;
+  }
+  .break-anywhere {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
   .shadow-soft {
     box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
   }
@@ -179,6 +196,300 @@
   .boosted-glow {
     box-shadow: 0 0 20px rgba(250, 204, 21, 0.15);
   }
+
+  /* ——— PLAKATWAND world (Welcome) ——— */
+  /* Poster-in App: schwarze Plakatbänder heben sich vom Papiergrund ab.
+     Gelber Rand-Streifen links + versetzter weicher Schwarzschatten. */
+  .dark-glow {
+    box-shadow:
+      4px 0 0 0 #facc15,
+      0 18px 36px -14px rgba(0, 0, 0, 0.6);
+  }
+  .poster-grain {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .poster-grain-dark {
+    background-image: radial-gradient(rgba(0, 0, 0, 0.07) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .poster-outline {
+    -webkit-text-stroke: 2px #facc15;
+    color: transparent;
+  }
+  @media (min-width: 640px) {
+    .poster-outline { -webkit-text-stroke-width: 3px; }
+  }
+  .ticker-track {
+    animation: poster-ticker 32s linear infinite;
+    will-change: transform;
+  }
+  .ticker-track:hover, .ticker-paused .ticker-track {
+    animation-play-state: paused;
+  }
+  @keyframes poster-ticker {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .ticket-perf {
+    background-image: linear-gradient(to bottom, currentColor 45%, transparent 45%);
+    background-size: 2px 10px;
+    background-repeat: repeat-y;
+  }
+  .tape::before,
+  .tape::after {
+    content: "";
+    position: absolute;
+    top: -12px;
+    width: 84px;
+    height: 24px;
+    background: rgba(250, 204, 21, 0.85);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  }
+  .tape::before { left: 18px; transform: rotate(-6deg); }
+  .tape::after { right: 18px; transform: rotate(5deg); }
+  .stamp-ring {
+    box-shadow: inset 0 0 0 2px currentColor;
+  }
+  /* Schwarzes Brett: Pinn-Nadel mit glänzendem Kopf + Nadelstift + geworfenem Schatten, rein dekorativ */
+  .board-pin {
+    width: 18px;
+    height: 18px;
+    border-radius: 9999px;
+    background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.75) 0%, #dc2626 42%, #7f1d1d 100%);
+    border: 2px solid #7f1d1d;
+    box-shadow:
+      0 4px 8px rgba(0, 0, 0, 0.6),
+      inset 0 2px 3px rgba(255, 255, 255, 0.55),
+      inset 0 -2px 3px rgba(0, 0, 0, 0.35);
+  }
+  /* Nadelstift: steckt im Kartenkarton (Metall-Material, nur Grau) */
+  .board-pin::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    width: 3px;
+    height: 7px;
+    transform: translate(-50%, -1px);
+    background: linear-gradient(to bottom, #71717a, #18181b);
+    border-radius: 0 0 2px 2px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+  }
+  .board-pin::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    width: 26px;
+    height: 9px;
+    /* Licht von oben-links → Schatten leicht nach rechts-unten versetzt */
+    transform: translate(-38%, -2px);
+    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.55) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  /* Schwarzes Brett: tieferes Filz-Korn (zweistufig) — Rest der Seite nutzt weiter .poster-grain */
+  #brett .poster-grain {
+    background-image:
+      radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1.4px),
+      radial-gradient(rgba(255, 255, 255, 0.032) 1px, transparent 1px);
+    background-size: 22px 22px, 7px 7px;
+  }
+  /* Schwarzes Brett: Holzrahmen mit Maserung — nur Brauntöne, reine Material-Textur */
+  .board-frame {
+    border: 10px solid transparent;
+    background:
+      linear-gradient(#0c0c10, #0c0c10) padding-box,
+      repeating-linear-gradient(94deg, rgba(0, 0, 0, 0.25) 0 2px, rgba(255, 255, 255, 0.06) 2px 3px, transparent 3px 9px) border-box,
+      linear-gradient(135deg, #4a3421 0%, #2a2118 28%, #5d452c 48%, #241b12 72%, #3d2c1c 100%) border-box;
+    box-shadow:
+      inset 0 2px 5px rgba(0, 0, 0, 0.65),
+      inset 0 0 0 1px rgba(0, 0, 0, 0.5),
+      0 24px 80px -24px rgba(0, 0, 0, 0.8);
+  }
+  /* Schwarzes Brett: Filz-Vignette — dunkelt nur die Ränder ab, Fläche bleibt schwarz */
+  .board-vignette {
+    background: radial-gradient(115% 90% at 50% 42%, transparent 55%, rgba(0, 0, 0, 0.52) 100%);
+  }
+  /* Schwarzes Brett: Papier-Caption mit Tape-Lippe (Papier + Gelb aus der Plakatwelt).
+     Papier-Faser als reine Material-Textur, Grundfläche bleibt #faf7ef. */
+  .board-caption {
+    position: relative;
+    display: inline-block;
+    background:
+      repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.03) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.025) 0 1px, transparent 1px 4px),
+      #faf7ef;
+    color: #1c1917;
+    padding: 0.3rem 0.9rem;
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.5) inset,
+      0 3px 8px rgba(0, 0, 0, 0.45),
+      0 12px 24px -12px rgba(0, 0, 0, 0.5);
+  }
+  .board-caption::before {
+    content: "";
+    position: absolute;
+    top: -9px;
+    left: 50%;
+    width: 58px;
+    height: 16px;
+    transform: translateX(-50%) rotate(-2deg);
+    background: rgba(250, 204, 21, 0.7);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  }
+  /* Schwarzes Brett: Handy-Karte — physikalisch geschichteter Schlagschatten
+     (Kante, Kontakt, Fern), nur Schwarz. Keine Deko-Offsets, keine Farbflächen. */
+  .board-card {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.07),
+      0 2px 6px rgba(0, 0, 0, 0.45),
+      0 20px 44px -14px rgba(0, 0, 0, 0.68),
+      0 48px 90px -36px rgba(0, 0, 0, 0.55);
+  }
+  /* Tiefenstaffelung: vorn satt, hinten leiser — gleiche Farbe, nur Lichtmenge. */
+  .board-card--0 {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .board-card--1 {
+    background: rgba(255, 255, 255, 0.04);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 2px 6px rgba(0, 0, 0, 0.42),
+      0 16px 36px -14px rgba(0, 0, 0, 0.62),
+      0 36px 70px -32px rgba(0, 0, 0, 0.5);
+  }
+  .board-card--2 {
+    background: rgba(255, 255, 255, 0.03);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 2px 5px rgba(0, 0, 0, 0.4),
+      0 12px 28px -12px rgba(0, 0, 0, 0.58),
+      0 28px 56px -28px rgba(0, 0, 0, 0.46);
+  }
+  /* Tape an den Handy-Cards: Papier-Klebeband mit Faser (Material), je ein
+     Streifen links/rechts oben. Pin sitzt mittig dazwischen. */
+  .board-card::before,
+  .board-card::after {
+    content: "";
+    position: absolute;
+    top: -12px;
+    width: 92px;
+    height: 26px;
+    background:
+      repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.045) 0 2px, transparent 2px 4px),
+      rgba(250, 247, 239, 0.88);
+    box-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.35),
+      inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+    opacity: 0.95;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .board-card::before { left: 18px; transform: rotate(-7deg); }
+  .board-card::after { right: 18px; transform: rotate(6deg); }
+  /* Handy-Breite folgt der kleineren Achse: passt in 100svh-Sticky (kein Cut),
+     kein horizontales Page-Overflow (vw-gedeckelt). */
+  .board-phone {
+    width: min(250px, 68vw);
+    width: min(250px, 68vw, 26svh);
+    margin-inline: auto;
+  }
+  /* Sticky-Pin-Showcase: Außen Höhe = Scroll-Strecke, innen klemmt das Board. */
+  .board-journey {
+    height: 280vh;
+  }
+  .board-sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100svh;
+    min-height: 100vh;
+    min-height: 100svh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding-block: 12px;
+  }
+  .board-viewport {
+    overflow: hidden;
+    max-width: 100%;
+  }
+  /* Nur im Journey will-change (sparsam): reine transform-Fahrt, kein Layout. */
+  .board-journey .board-track {
+    will-change: transform;
+  }
+  /* Faden-Netz-Nähte (Landing Hero → Wege → Brett): reines SVG, statisch.
+     Bewegung nur per Parallax-Transform vom React-Wrapper (transform-only,
+     kein Layout, kein Overflow: Nahtfenster clippt selbst). Farben strikt
+     Posterwelt (Gelb #FACC15, Pin-Rot #dc2626, Weiß / Papier-Tinte #1c1917).
+     Deko-only: Text-Kontrast (≥4.5:1) unberührt. */
+  .thread-seam {
+    max-width: 100%;
+    overflow: hidden;
+  }
+  /* Mobile-Perf: Extra-Pins/Fäden ausblenden (weniger Nodes, weniger Paint). */
+  @media (max-width: 639px) {
+    .thread-seam .thread-extra {
+      display: none;
+    }
+  }
+
+  /* Motion: Press-Feedback (140 ms) für Buttons, Nav, TOC, Dots, Switches.
+     Hover-Scale nur auf echten Hover-Geräten; unter reduced-motion stirbt die
+     Skalierung, Farbe/State-Feedback bleibt sichtbar. */
+  .press {
+    transition:
+      transform 140ms cubic-bezier(0.16, 1, 0.3, 1),
+      color 140ms ease,
+      background-color 140ms ease,
+      border-color 140ms ease,
+      box-shadow 140ms ease;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .press:hover { transform: scale(1.02); }
+  }
+  .press:active { transform: scale(0.97); }
+
+  /* Motion: Details/Accordion öffnet mit kurzem Content-Fade —
+     reine Transform/Opacity-Animation, kein height/top (kein Layout-Treiber). */
+  @keyframes accordion-unfurl {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: none; }
+  }
+  details[open] > .accordion-body {
+    animation: accordion-unfurl 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ticker-track { animation: none; }
+    details[open] > .accordion-body { animation: none; }
+    .press:hover,
+    .press:active { transform: none; }
+    /* Netz + Parallax aus: Nähte starr sichtbar, Parallax-Transforms sicher
+       gekappt (falls JS-Erkennung und CSS-Media auseinanderlaufen). Inhalt
+       bleibt identisch lesbar. */
+    .thread-seam svg,
+    .parallax-layer { transform: none !important; }
+    /* Brett-Fallback: kein Sticky, keine Transform-Fahrt — Karten im Grid lesbar. */
+    .board-journey { height: auto; }
+    .board-sticky {
+      position: static;
+      height: auto;
+      min-height: 0;
+      overflow: visible;
+      display: block;
+      padding-block: 0;
+    }
+    .board-track {
+      transform: none !important;
+      will-change: auto;
+    }
+  }
 }
 
 /* TipTap & Prose Typography Styles */
@@ -207,7 +518,7 @@
   text-wrap: balance;
 }
 .prose blockquote, .ProseMirror blockquote {
-  border-left: 4px solid #f59e0b;
+  border-left: 1px solid #f59e0b;
   padding-left: 1rem;
   font-style: italic;
   color: #4b5563;
@@ -215,7 +526,7 @@
   background: rgba(245, 158, 11, 0.06);
   padding-top: 0.35rem;
   padding-bottom: 0.35rem;
-  border-radius: 0 0.5rem 0.5rem 0;
+  border-radius: 0.5rem;
 }
 .dark .prose blockquote, .dark .ProseMirror blockquote {
   color: #9ca3af;

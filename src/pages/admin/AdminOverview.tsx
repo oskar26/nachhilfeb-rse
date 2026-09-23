@@ -16,6 +16,10 @@ import {
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
+// Getrennte Status-Farben: offen (rot auf rot) und erledigt (grau auf grau) teilen sich nie ein Element.
+const REPORT_STATUS_OPEN = 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+const REPORT_STATUS_CLOSED = 'bg-gray-100 text-gray-500 dark:bg-gray-800';
+
 interface Stats {
     users: number;
     ads: number;
@@ -268,7 +272,7 @@ export default function AdminOverview() {
                                         </div>
                                         <span className={cn(
                                             'text-[10px] font-bold px-2 py-0.5 rounded-full uppercase',
-                                            r.status === 'open' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-800'
+                                            r.status === 'open' ? REPORT_STATUS_OPEN : REPORT_STATUS_CLOSED
                                         )}>
                                             {r.status}
                                         </span>

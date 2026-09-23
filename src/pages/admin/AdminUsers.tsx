@@ -21,6 +21,10 @@ import {
 import { toast } from 'react-hot-toast';
 import { cn } from '../../lib/utils';
 
+// Getrennte Sperr-Typ-Farben: aktiv (weiß auf rot) und ruhig (grau auf transparent) teilen sich nie ein Element.
+const BAN_TYPE_ACTIVE = 'bg-red-600 text-white border-red-600';
+const BAN_TYPE_IDLE = 'bg-transparent text-gray-500 border-gray-200 dark:border-gray-800';
+
 interface Profile {
     id: string;
     first_name: string | null;
@@ -673,13 +677,13 @@ export default function AdminUsers() {
                             <div className="flex gap-2 mt-1">
                                 <button
                                     onClick={() => setBanType('permanent')}
-                                    className={cn('flex-1 py-2 px-3 text-xs rounded-xl border text-center font-bold transition-all', banType === 'permanent' ? 'bg-red-500 text-white border-red-500' : 'bg-transparent text-gray-500 border-gray-200 dark:border-gray-800')}
+                                    className={cn('flex-1 py-2 px-3 text-xs rounded-xl border text-center font-bold transition-all', banType === 'permanent' ? BAN_TYPE_ACTIVE : BAN_TYPE_IDLE)}
                                 >
                                     Permanent
                                 </button>
                                 <button
                                     onClick={() => setBanType('temporary')}
-                                    className={cn('flex-1 py-2 px-3 text-xs rounded-xl border text-center font-bold transition-all', banType === 'temporary' ? 'bg-red-500 text-white border-red-500' : 'bg-transparent text-gray-500 border-gray-200 dark:border-gray-800')}
+                                    className={cn('flex-1 py-2 px-3 text-xs rounded-xl border text-center font-bold transition-all', banType === 'temporary' ? BAN_TYPE_ACTIVE : BAN_TYPE_IDLE)}
                                 >
                                     Temporär
                                 </button>

@@ -786,7 +786,7 @@ if ($action === 'coach_info' && ($method === 'POST' || $method === 'PUT')) {
 function fwg_coaching_page_defaults() {
     return [
         'hero_title' => 'Schüler-Coaching am FWG',
-        'hero_subtitle' => "Große helfen Kleinen: Geschulte Schülerinnen und Schüler ab Klasse 8 unterstützen die Klassen 5 und 6 beim Ankommen am Friedrich-Wilhelms-Gymnasium Köln – ehrenamtlich, pädagogisch begleitet und für alle nach denselben fairen Regeln.",
+        'hero_subtitle' => "Große helfen Kleinen: Geschulte Schülerinnen und Schüler ab Klasse 8 unterstützen die Klassen 5 und 6 beim Ankommen am Friedrich-Wilhelm-Gymnasium Köln – ehrenamtlich, pädagogisch begleitet und für alle nach denselben fairen Regeln.",
         's_badge_title' => 'Was bedeutet das Coach-Abzeichen?',
         's_badge_body' => "Das goldene Coach-Badge auf Profilen und Anzeigen zeigt: Diese Person ist aktives Mitglied der Schüler-Coaching AG, wurde von der AG-Leitung geschult und vom SV-Team verifiziert.\n\nDas Badge steht für Vertrauenswürdigkeit als Person – nicht für Erfolgsgarantien und nicht für kostenlose Nachhilfe. Preise und Absprachen bleiben Sache der Beteiligten (siehe Nutzungsbedingungen).",
         's_school_title' => 'Das Coaching an unserer Schule',

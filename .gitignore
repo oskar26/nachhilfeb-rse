@@ -30,3 +30,6 @@ dev-dist
 # Credentials & Local Config
 api/db_credentials.php
 db_credentials.php
+
+# Externes Design-Repo (eigenes .git)
+open-design/

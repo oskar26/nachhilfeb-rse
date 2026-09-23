@@ -41,6 +41,9 @@ interface Ad {
 
 const PRICE_SLIDER_MIN = 0;
 const PRICE_SLIDER_MAX = 30;
+// Getrennte Konstanten: aktive (weiß auf Farbe) und inaktive (grau auf grau) States teilen sich nie ein Element.
+const GESUCHE_PILL_ACTIVE = 'bg-blue-600 text-white shadow-sm';
+const GESUCHE_PILL_IDLE = 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300';
 const SAVED_SEARCH_KEY = 'fwg_saved_search';
 const GRADE_VALUES = ['5', '6', '7', '8', '9', '10', 'EF', 'Q1', 'Q2'];
 
@@ -184,9 +187,10 @@ export default function Feed() {
     const [showFilters, setShowFilters] = useState(false);
     const [showBanners, setShowBanners] = useState(() => {
         try {
-            return localStorage.getItem('feed_show_banners') !== 'false';
+            // Zugeklappt als Standard (distill): eine schlanke Infos-Zeile genügt, Details erst auf Wunsch.
+            return localStorage.getItem('feed_show_banners') === 'true';
         } catch {
-            return true;
+            return false;
         }
     });
     const [myAvailability, setMyAvailability] = useState<Availability>(emptyAvailability());
@@ -414,13 +418,16 @@ export default function Feed() {
     });
 
     return (
-        <div className="p-4 space-y-4 max-w-3xl mx-auto pb-24">
+        <div className="w-full min-w-0 max-w-3xl mx-auto p-4 sm:p-6 space-y-4 sm:space-y-5 pb-24 overflow-x-clip">
             {/* Eingeklappte News-Sektion auf der Startseite */}
             <CollapsedNewsWidget />
-            <div className="flex flex-col gap-4 mb-6">
+            <div className="flex flex-col gap-4 mb-6 min-w-0">
                 <div className="flex flex-wrap items-center justify-between gap-2.5">
-                    <h1 className="text-xl sm:text-2xl font-black tracking-tight">Aktuelle Anzeigen</h1>
-                    <div className="flex items-center gap-1.5 flex-wrap">
+                    <div className="min-w-0">
+                        <h1 className="font-display uppercase text-xl sm:text-2xl leading-none tracking-tight min-w-0">Aktuelle Anzeigen</h1>
+                        <div className="mt-1.5 h-1 w-10 rounded-full bg-primary" aria-hidden />
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-wrap min-w-0">
                         {user && (
                             <button
                                 onClick={() => { setFilterByTime(!filterByTime); triggerHaptic('selection'); }}
@@ -478,8 +485,8 @@ export default function Feed() {
                 </div>
 
                 {/* Quick Subject Filter Chips */}
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
-                    <span className="text-gray-400 font-bold shrink-0 text-[10px] uppercase mr-1">Beliebt:</span>
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 no-scrollbar text-xs min-w-0">
+                    <span className="text-gray-900 dark:text-white font-extrabold shrink-0 text-xs uppercase mr-1">Beliebt:</span>
                     {(['mathematik', 'deutsch', 'englisch', 'physik', 'latein', 'franzoesisch', 'chemie', 'informatik'] as Subject[]).map((subj) => (
                         <button
                             key={subj}
@@ -509,7 +516,7 @@ export default function Feed() {
                     )}
                 </div>
 
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-2 min-w-0">
                     <p className="text-xs font-bold text-gray-400" aria-live="polite">
                         {loading
                             ? 'Ergebnisse werden geladen…'
@@ -549,22 +556,22 @@ export default function Feed() {
                             animate={{ opacity: 1, height: 'auto', overflow: 'visible' }}
                             exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
                             transition={{ duration: 0.25, ease: 'easeOut' }}
-                            className="bg-white dark:bg-gray-900 p-5 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft space-y-6"
+                            className="bg-white dark:bg-gray-900 p-4 sm:p-5 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft space-y-6 min-w-0 overflow-x-clip"
                         >
 
                             {/* Type & Price */}
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-2 block">Typ</label>
+                                    <label className="text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-white mb-2 block">Typ</label>
                                     <div className="flex gap-2">
                                         <button onClick={() => { triggerHaptic('selection'); setFilterType('all'); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${filterType === 'all' ? 'bg-black text-white dark:bg-white dark:text-black shadow-sm' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>Alle</button>
                                         <button onClick={() => { triggerHaptic('selection'); setFilterType('offer'); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${filterType === 'offer' ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>Angebote</button>
-                                        <button onClick={() => { triggerHaptic('selection'); setFilterType('search'); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${filterType === 'search' ? 'bg-blue-500 text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>Gesuche</button>
+                                        <button onClick={() => { triggerHaptic('selection'); setFilterType('search'); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${filterType === 'search' ? GESUCHE_PILL_ACTIVE : GESUCHE_PILL_IDLE}`}>Gesuche</button>
                                     </div>
                                 </div>
                                 <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 px-3.5 pt-2.5 pb-8">
                                     <div className="flex items-baseline justify-between mb-1">
-                                        <label className="text-xs font-extrabold uppercase tracking-wider text-gray-400">Preis pro Stunde</label>
+                                        <label className="text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Preis pro Stunde</label>
                                         <span className="text-xs font-bold text-gray-600 dark:text-gray-300">{minPrice}€ – {maxPrice}€</span>
                                     </div>
                                     <PriceRangeSlider
@@ -578,17 +585,17 @@ export default function Feed() {
 
                             {/* Grade */}
                             <div>
-                                <label className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-2 block">Klassenstufe</label>
+                                <label className="text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-white mb-2 block">Klassenstufe</label>
                                 <GradeSelector selectedGrades={filterGrade} onChange={setFilterGrade} className="justify-start" />
                             </div>
 
                             {/* Subjects */}
                             <div>
-                                <label className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-2 block">Fach</label>
+                                <label className="text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-white mb-2 block">Fach</label>
                                 <div className="flex flex-col gap-4 max-h-64 overflow-y-auto pr-2">
                                     {SUBJECT_CATEGORIES.map(category => (
                                         <div key={category.title}>
-                                            <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-2">{category.title}</h4>
+                                            <h2 className="inline-block rounded-md bg-gray-950 dark:bg-black px-2 py-1 text-xs font-bold text-white uppercase tracking-wide mb-2">{category.title}</h2>
                                             <div className="flex flex-wrap gap-2">
                                                 {category.subjects.map((s: Subject) => (
                                                     <SubjectChip
@@ -610,7 +617,7 @@ export default function Feed() {
             </div>
 
             {savedSearch && !loading && !fetchError && (
-                <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 rounded-2xl border border-primary/20 bg-primary/5 dark:bg-primary/10">
+                <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 rounded-2xl border border-primary/20 bg-primary/5 dark:bg-primary/10 min-w-0 overflow-x-clip">
                     <div className="flex items-center gap-2 min-w-0 text-sm">
                         <Bookmark size={15} className="text-primary-hover dark:text-primary shrink-0 fill-current" />
                         <span className="font-bold text-gray-700 dark:text-gray-200 shrink-0">Gemerkte Suche:</span>
@@ -645,34 +652,56 @@ export default function Feed() {
                 </div>
             )}
 
-            {/* Banner Section */}
+            {/* Infos: eine schlanke Zeile mit den drei Zielen, Details erst auf Wunsch */}
             <div className="mb-6">
-                                <div className="flex items-center justify-between mb-3 px-2">
-                    <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Aktuelles & Infos</h2>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className={cn(
-                            "h-8 text-xs rounded-full font-bold transition-all shadow-sm flex items-center gap-1",
-                            showBanners
-                                ? "bg-primary text-black border-primary hover:bg-primary-hover dark:bg-primary dark:text-black"
-                                : "bg-primary border-primary text-black hover:bg-primary/95"
-                        )}
-                        onClick={() => { const next = !showBanners; setShowBanners(next); localStorage.setItem('feed_show_banners', String(next)); }}
-                    >
-                        {showBanners ? (
-                            <><span>Infos ausblenden</span><ChevronUp size={14} /></>
-                        ) : (
-                            <><span>Infos anzeigen</span><ChevronDown size={14} /></>
-                        )}
-                    </Button>
-                </div>
+            <div className="flex items-center gap-1.5 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 pl-3 pr-1.5 py-1.5 shadow-sm overflow-x-auto">
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-gray-400 shrink-0">Infos</span>
+                <button
+                    type="button"
+                    onClick={() => navigate('/coaching')}
+                    className="shrink-0 inline-flex items-center min-h-[40px] px-3 rounded-full text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                    Coaching · Di 13:45 H310
+                </button>
+                <button
+                    type="button"
+                    onClick={() => navigate('/coaching', { state: { section: 'foerderung' } })}
+                    className="shrink-0 inline-flex items-center min-h-[40px] px-3 rounded-full text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                    Förderunterricht
+                </button>
+                <button
+                    type="button"
+                    onClick={() => navigate('/eltern-leitfaden')}
+                    className="shrink-0 inline-flex items-center min-h-[40px] px-3 rounded-full text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                    Eltern
+                </button>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    aria-expanded={showBanners}
+                    className={cn(
+                        "ml-auto h-8 text-xs rounded-full font-bold transition-all shadow-sm flex items-center gap-1 shrink-0",
+                        showBanners
+                            ? "bg-primary text-black border-primary hover:bg-primary-hover dark:bg-primary dark:text-black"
+                            : "bg-primary border-primary text-black hover:bg-primary/95"
+                    )}
+                    onClick={() => { const next = !showBanners; setShowBanners(next); try { localStorage.setItem('feed_show_banners', String(next)); } catch { /* ignore */ } }}
+                >
+                    {showBanners ? (
+                        <><span>Details verbergen</span><ChevronUp size={14} /></>
+                    ) : (
+                        <><span>Details</span><ChevronDown size={14} /></>
+                    )}
+                </Button>
+            </div>
 
                 {showBanners && (
-                    <div className="space-y-4 animate-in slide-in-from-top-2">
+                    <div className="mt-3 space-y-4 animate-in slide-in-from-top-2">
                             {/* Info Block für Schüler-Coaching (editierbar im Coach-Panel) */}
                         {coachInfo.is_visible && (
-                            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-950/40 border border-blue-200 dark:border-blue-900/50 shadow-sm overflow-hidden relative">
+                            <Card className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 shadow-sm overflow-hidden relative">
                                 <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none" aria-hidden="true">
                                     <GraduationCap size={96} />
                                 </div>
@@ -686,7 +715,7 @@ export default function Feed() {
                                     <p className="text-sm text-blue-900 dark:text-blue-200 leading-relaxed whitespace-pre-line">
                                         {coachInfo.description}
                                     </p>
-                                    <div className="flex flex-wrap items-center gap-3 sm:gap-4 bg-white/60 dark:bg-black/20 p-3 rounded-xl inline-flex text-sm font-semibold text-blue-800 dark:text-blue-300">
+                                    <div className="flex flex-wrap items-center gap-3 sm:gap-4 bg-white/60 dark:bg-black/20 p-3 rounded-xl text-sm font-semibold text-blue-800 dark:text-blue-300 min-w-0">
                                         {coachInfo.time && (
                                             <span className="flex items-center gap-1.5"><Clock size={16} /> {coachInfo.time}</span>
                                         )}
@@ -698,8 +727,8 @@ export default function Feed() {
                             </Card>
                         )}
 
-                        {/* Förderunterricht Info Block */}
-                        <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 border border-indigo-100 dark:border-indigo-900/50 shadow-sm overflow-hidden relative">
+                        {/* Förderunterricht Info Block (Stundenplan steht auf der Coaching-Seite) */}
+                        <Card className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 shadow-sm overflow-hidden relative">
                             <CardContent className="p-6 relative z-10 space-y-4">
                                 <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400">
                                     <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl">
@@ -711,49 +740,26 @@ export default function Feed() {
                                     <p>Förderunterricht wird in den Jahrgangsstufen 5-10 in den Fächern Deutsch, Mathematik, Englisch und Latein erteilt. Die Entscheidung über eine Anmeldung liegt bei den Eltern.</p>
                                     <p><strong>Start:</strong> Mittwoch, 18.02. in der 7. Stunde (Kick-off in H408). Danach regulär in H402.</p>
                                     <p>Anmeldung verbindlich über: <a href="mailto:foerderunterricht@fwg-koeln.nrw.schule" className="underline font-bold">foerderunterricht@fwg-koeln.nrw.schule</a></p>
+                                    <p>
+                                        <button
+                                            type="button"
+                                            onClick={() => navigate('/coaching', { state: { section: 'foerderung' } })}
+                                            className="underline font-bold"
+                                        >
+                                            Stundenplan auf der Coaching-Seite ansehen
+                                        </button>
+                                    </p>
                                 </div>
 
-                                <div className="overflow-x-auto mt-4 bg-white dark:bg-gray-950 rounded-xl p-2 border border-indigo-100 dark:border-indigo-900/50">
-                                    <table className="w-full text-center text-xs md:text-sm border-collapse">
-                                        <thead>
-                                            <tr>
-                                                <th className="border p-2 border-gray-200 dark:border-gray-800">Montag</th>
-                                                <th className="border p-2 border-gray-200 dark:border-gray-800">Dienstag</th>
-                                                <th className="border p-2 border-gray-200 dark:border-gray-800">Mittwoch</th>
-                                                <th className="border p-2 border-gray-200 dark:border-gray-800">Donnerstag</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td className="border p-2 bg-yellow-200/50 dark:bg-yellow-900/50 border-gray-200 dark:border-gray-800 text-yellow-800 dark:text-yellow-200 font-bold">D</td>
-                                                <td className="border p-2 bg-yellow-200/50 dark:bg-yellow-900/50 border-gray-200 dark:border-gray-800 text-yellow-800 dark:text-yellow-200 font-bold">D</td>
-                                                <td className="border p-2 bg-green-200/50 dark:bg-green-900/50 border-gray-200 dark:border-gray-800 text-green-800 dark:text-green-200 font-bold">M</td>
-                                                <td className="border p-2 bg-green-200/50 dark:bg-green-900/50 border-gray-200 dark:border-gray-800 text-green-800 dark:text-green-200 font-bold">M</td>
-                                            </tr>
-                                            <tr>
-                                                <td className="border p-2 bg-blue-200/50 dark:bg-blue-900/50 border-gray-200 dark:border-gray-800 text-blue-800 dark:text-blue-200 font-bold">E</td>
-                                                <td className="border p-2 bg-pink-200/50 dark:bg-pink-900/50 border-gray-200 dark:border-gray-800 text-pink-800 dark:text-pink-200 font-bold">L</td>
-                                                <td className="border p-2 bg-pink-200/50 dark:bg-pink-900/50 border-gray-200 dark:border-gray-800 text-pink-800 dark:text-pink-200 font-bold">L</td>
-                                                <td className="border p-2 bg-blue-200/50 dark:bg-blue-900/50 border-gray-200 dark:border-gray-800 text-blue-800 dark:text-blue-200 font-bold">E</td>
-                                            </tr>
-                                            <tr>
-                                                <td className="border p-2 bg-yellow-200/50 dark:bg-yellow-900/50 border-gray-200 dark:border-gray-800 text-yellow-800 dark:text-yellow-200 font-bold">D/LRS</td>
-                                                <td className="border p-2 border-gray-200 dark:border-gray-800"></td>
-                                                <td className="border p-2 border-gray-200 dark:border-gray-800"></td>
-                                                <td className="border p-2 bg-yellow-200/50 dark:bg-yellow-900/50 border-gray-200 dark:border-gray-800 text-yellow-800 dark:text-yellow-200 font-bold">D/LRS</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                    <div className="text-[10px] md:text-xs text-center mt-3 text-gray-500">
-                                        Terminabsprachen für ein Lerncoaching trefft ihr gerne individuell persönlich oder per Mail mit Herr Gampp, Frau Hallerbach, Frau Trottmann oder Frau Weyers:<br/>
-                                        <a href="mailto:lerncoaching@fwg-koeln.nrw.schule" className="underline font-bold">lerncoaching@fwg-koeln.nrw.schule</a>
-                                    </div>
+                                <div className="mt-4 text-xs text-center text-gray-500">
+                                    Terminabsprachen für ein Lerncoaching trefft ihr gerne individuell persönlich oder per Mail mit Herr Gampp, Frau Hallerbach, Frau Trottmann oder Frau Weyers:<br />
+                                    <a href="mailto:lerncoaching@fwg-koeln.nrw.schule" className="underline font-bold">lerncoaching@fwg-koeln.nrw.schule</a>
                                 </div>
                             </CardContent>
                         </Card>
 
                         {/* Eltern-Leitfaden Info Block */}
-                        <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 border border-emerald-100 dark:border-emerald-900/50 shadow-sm overflow-hidden relative">
+                        <Card className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50 shadow-sm overflow-hidden relative">
                             <CardContent className="p-6 relative z-10 space-y-4">
                                 <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
                                     <div className="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-xl">
@@ -769,7 +775,7 @@ export default function Feed() {
                                         variant="outline" 
                                         size="sm" 
                                         onClick={() => navigate('/eltern-leitfaden')}
-                                        className="rounded-full border-emerald-200 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 text-emerald-850 dark:text-emerald-300 font-semibold"
+                                        className="rounded-full border-emerald-200 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 font-semibold"
                                     >
                                         Eltern-Leitfaden lesen
                                     </Button>
@@ -780,7 +786,7 @@ export default function Feed() {
                 )}
             </div>
 
-            <div className="grid gap-4">
+            <div className="grid gap-4 min-w-0">
                 {loading ? (
                     <div className="text-center py-20 text-gray-500 animate-pulse">Lade Anzeigen...</div>
                 ) : fetchError ? (
@@ -788,7 +794,7 @@ export default function Feed() {
                         <div className="w-24 h-24 mb-6 rounded-full bg-red-50 dark:bg-red-950/30 flex items-center justify-center">
                             <SearchX size={40} className="text-red-400 dark:text-red-500" />
                         </div>
-                        <h3 className="text-xl font-bold mb-2">Anzeigen konnten nicht geladen werden</h3>
+                        <h2 className="text-xl font-bold mb-2">Anzeigen konnten nicht geladen werden</h2>
                         <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">Prüfe deine Internetverbindung und versuche es erneut.</p>
                         <Button onClick={() => fetchAds()} className="rounded-full shadow-md">Erneut versuchen</Button>
                     </div>
@@ -799,7 +805,7 @@ export default function Feed() {
                         </div>
                         {hasActiveFilters ? (
                             <>
-                                <h3 className="text-xl font-bold mb-2">Keine Treffer für diese Filter</h3>
+                                <h2 className="text-xl font-bold mb-2">Keine Treffer für diese Filter</h2>
                                 <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">Keine Anzeige passt zu deiner aktuellen Suche. Setze die Filter zurück oder erstelle selbst eine Anzeige!</p>
                                 <div className="flex flex-wrap justify-center gap-2">
                                     <Button variant="outline" onClick={() => { resetAllFilters(); triggerHaptic('light'); }} className="rounded-full shadow-sm">Filter zurücksetzen</Button>
@@ -808,7 +814,7 @@ export default function Feed() {
                             </>
                         ) : (
                             <>
-                                <h3 className="text-xl font-bold mb-2">Der Feed ist leer</h3>
+                                <h2 className="text-xl font-bold mb-2">Der Feed ist leer</h2>
                                 <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">Aktuell gibt es keine aktiven Anzeigen. Erstelle selbst etwas!</p>
                                 <Button onClick={() => navigate('/create-ad')} className="rounded-full shadow-md">Anzeige erstellen</Button>
                             </>
@@ -822,7 +828,7 @@ export default function Feed() {
                         <Card
                             key={ad.id}
                             className={cn(
-                                "overflow-hidden hover:shadow-md transition-all cursor-pointer",
+                                "overflow-hidden hover:shadow-md transition-all cursor-pointer min-w-0 w-full",
                                 boosted && "ring-1 ring-yellow-400/60 boosted-glow"
                             )}
                             onClick={() => navigate(`/ad/${ad.id}`)}
@@ -834,40 +840,40 @@ export default function Feed() {
                                 </div>
                             )}
                             <CardHeader className={cn(
-                                "p-4 border-b border-gray-100 dark:border-gray-800 flex flex-row justify-between items-start",
+                                "p-4 border-b flex flex-row justify-between items-start gap-3 min-w-0",
                                 boosted
-                                    ? "bg-yellow-50/60 dark:bg-yellow-900/10"
-                                    : "bg-gray-50/50 dark:bg-gray-800/50"
+                                    ? "bg-yellow-50/60 dark:bg-yellow-900/10 border-yellow-400/30"
+                                    : "bg-gray-950 dark:bg-black poster-grain text-white border-white/10"
                             )}>
-                                <div className="min-w-0">
+                                <div className="min-w-0 flex-1">
                                     <div className="flex items-center gap-2 flex-wrap">
-                                        <h3 className="font-bold text-lg truncate">{ad.profiles?.display_name || 'Unbekannt'}</h3>
+                                        <h2 className="font-bold text-lg truncate">{ad.profiles?.display_name || 'Unbekannt'}</h2>
                                         {ad.profiles?.is_verified && (
-                                            <span className="bg-green-100 text-green-700 text-[10px] px-1.5 py-0.5 rounded-full border border-green-200">Verifiziert</span>
+                                            <span className="stamp-ring bg-primary text-black text-xs font-black uppercase tracking-wider px-1.5 py-0.5 rounded -rotate-2">Verifiziert</span>
                                         )}
                                         {ad.profiles?.is_coach && (
-                                            <span className="bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-[10px] px-2 py-0.5 rounded-full border border-amber-300 dark:border-amber-700 font-semibold flex items-center gap-1" title="Mitglied der Schüler-Coaching AG">
-                                                <Award size={11} className="text-amber-600 dark:text-amber-400" />
+                                            <span className="bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-xs px-2 py-0.5 rounded-full border border-amber-300 dark:border-amber-700 font-semibold flex items-center gap-1" title="Mitglied der Schüler-Coaching AG">
+                                                <Award size={12} className="text-amber-600 dark:text-amber-400" />
                                                 Coach
                                             </span>
                                         )}
                                     </div>
-                                    <div className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                                    <div className="text-sm opacity-70 flex items-center gap-1 mt-1">
                                         <GraduationCap size={14} /> {ad.profiles?.grade_level || '?'}
                                     </div>
                                 </div>
-                                <div className="flex flex-col items-end gap-1">
+                                <div className="flex flex-col items-end gap-1 shrink-0">
                                     <div className={cn(
                                         "px-2 py-1 rounded text-sm font-semibold shadow-sm border",
                                         boosted
                                             ? "bg-yellow-50 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700 text-yellow-800 dark:text-yellow-300"
-                                            : "bg-white dark:bg-gray-700 border-gray-100 dark:border-gray-600"
+                                            : "bg-white dark:bg-gray-700 text-gray-950 dark:text-white border-gray-100 dark:border-gray-600"
                                     )}>
                                         {formatHourlyRate(ad)}
                                     </div>
                                     {filterByTime && matchScore > 0 && (
-                                        <div className="flex items-center gap-1 text-[10px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded-full">
-                                            <CalendarDays size={10} /> {matchScore} Übereinstimmung{matchScore !== 1 ? 'en' : ''}
+                                        <div className="flex items-center gap-1 text-xs font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded-full">
+                                            <CalendarDays size={12} /> {matchScore} Übereinstimmung{matchScore !== 1 ? 'en' : ''}
                                         </div>
                                     )}
                                 </div>
@@ -881,7 +887,7 @@ export default function Feed() {
                                 </p>
                             </CardContent>
                             <CardFooter className={cn(
-                                "p-3 text-xs text-gray-400 flex justify-between items-center",
+                                "p-3 text-xs text-gray-400 flex flex-wrap justify-between items-center gap-2",
                                 boosted ? "bg-yellow-50/40 dark:bg-yellow-900/5" : "bg-gray-50 dark:bg-gray-900/40"
                             )}>
                                 <div className="flex flex-wrap gap-x-3 gap-y-1 min-w-0">
@@ -895,13 +901,13 @@ export default function Feed() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     {ad.profiles?.is_coach && (
-                                        <span className="text-amber-700 dark:text-amber-400 font-semibold text-[10px] flex items-center gap-0.5 bg-amber-50 dark:bg-amber-950/30 px-1.5 py-0.5 rounded border border-amber-200/60 dark:border-amber-800/40">
-                                            <Award size={10} /> Schüler-Coach AG
+                                        <span className="text-amber-700 dark:text-amber-400 font-semibold text-xs flex items-center gap-0.5 bg-amber-50 dark:bg-amber-950/30 px-1.5 py-0.5 rounded border border-amber-200/60 dark:border-amber-800/40">
+                                            <Award size={12} /> Schüler-Coach AG
                                         </span>
                                     )}
                                     {boosted && (
-                                        <span className="text-yellow-600 dark:text-yellow-500 font-semibold text-[10px] flex items-center gap-0.5" title="Hervorgehoben (z. B. Coach-Status oder Aktion)">
-                                            <Sparkles size={10} /> Hervorgehoben
+                                        <span className="text-yellow-600 dark:text-yellow-500 font-semibold text-xs flex items-center gap-0.5" title="Hervorgehoben (z. B. Coach-Status oder Aktion)">
+                                            <Sparkles size={12} /> Hervorgehoben
                                         </span>
                                     )}
                                     <button

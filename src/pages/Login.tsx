@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../components/ui/Card';
+import { Card, CardContent, CardDescription, CardHeader, CardFooter } from '../components/ui/Card';
 import { toast } from 'react-hot-toast';
 import { useTheme } from '../components/ThemeProvider';
 import { Sun, Moon, GraduationCap, CheckCircle, ShieldAlert, Users } from 'lucide-react';
@@ -129,7 +129,6 @@ export default function Login() {
         if (data.attempts >= MAX_ATTEMPTS) {
             data.blockedUntil = now + COOLDOWN_MS;
             setIsBlocked(true);
-            toast.error("Zu viele Fehlversuche. Bitte warte 5 Minuten, dann geht es weiter.");
         }
 
         localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify(data));
@@ -144,22 +143,21 @@ export default function Login() {
         e.preventDefault();
 
         if (isBlocked) {
-            toast.error(`Bitte warte noch ${formatWaitTime(timeLeft)}.`);
             return;
         }
         
         if (mode === 'register' && !acceptedTerms) {
-            toast.error("Bitte stimme den Nutzungsbedingungen zu.");
+            setError("Bitte stimme den Nutzungsbedingungen zu.");
             return;
         }
 
         if (mode === 'register') {
             if (!firstName || !lastName || !birthDate) {
-                toast.error("Bitte fülle alle Pflichtfelder (Name, Nachname, Geburtsdatum) aus.");
+                setError("Bitte fülle alle Pflichtfelder (Name, Nachname, Geburtsdatum) aus.");
                 return;
             }
             if (isUnder16 && !parentalConsent) {
-                toast.error("Für Nutzer unter 16 Jahren ist die Einwilligung der Erziehungsberechtigten erforderlich.");
+                setError("Für Nutzer unter 16 Jahren ist die Einwilligung der Erziehungsberechtigten erforderlich.");
                 return;
             }
         }
@@ -195,7 +193,7 @@ export default function Login() {
         } else {
             // Register Mode
             if (password.length < 8) {
-                toast.error("Dein Passwort muss mindestens 8 Zeichen haben.");
+                setError("Dein Passwort muss mindestens 8 Zeichen haben.");
                 setIsLoading(false);
                 return;
             }
@@ -206,7 +204,7 @@ export default function Login() {
                     .rpc('check_invite_code', { code_val: inviteCode.trim() });
 
                 if (codeErr || !isValidCode) {
-                    toast.error("Ungültiger oder abgelaufener SV-Code.");
+                    setError("Ungültiger oder abgelaufener SV-Code.");
                     setIsLoading(false);
                     return;
                 }
@@ -362,7 +360,7 @@ export default function Login() {
                     </motion.div>
                 </div>
 
-                <div className="relative z-10 max-w-lg">
+                <div className="relative z-10 max-w-[95ch]">
                     <motion.h1 
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -377,7 +375,7 @@ export default function Login() {
                         transition={{ delay: 0.2 }}
                         className="text-lg text-gray-800 font-medium mb-8"
                     >
-                        Finde Nachhilfe oder biete dein Wissen an. Exklusiv für Schülerinnen, Schüler und Eltern des Friedrich-Wilhelms-Gymnasiums.
+                        Finde Nachhilfe oder biete dein Wissen an. Exklusiv für Schülerinnen, Schüler und Eltern des Friedrich-Wilhelm-Gymnasiums.
                     </motion.p>
                     
                     <motion.div 
@@ -415,7 +413,7 @@ export default function Login() {
                     <div className="lg:hidden flex flex-col items-center mb-6 text-center">
                         <Logo className="w-16 h-16 text-black dark:text-white mb-2 shrink-0 drop-shadow-md" />
                         <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">Nachhilfebörse</h1>
-                        <p className="text-gray-500 mt-1 font-medium text-sm">Friedrich-Wilhelms-Gymnasium Köln</p>
+                        <p className="text-gray-500 mt-1 font-medium text-sm">Friedrich-Wilhelm-Gymnasium Köln</p>
                     </div>
 
                     <Card className="border-0 shadow-2xl shadow-black/5 dark:shadow-black/20 ring-1 ring-gray-200/50 dark:ring-gray-800/50 backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 overflow-hidden">
@@ -435,9 +433,9 @@ export default function Login() {
                         </div>
 
                         <CardHeader className="pt-6">
-                            <CardTitle className="text-2xl">
+                            <h2 className="text-2xl font-bold leading-tight tracking-tight text-gray-900 dark:text-gray-100">
                                 {mode === 'login' ? 'Willkommen zurück' : 'Account erstellen'}
-                            </CardTitle>
+                            </h2>
                             <CardDescription>
                                 {mode === 'login' 
                                     ? 'Melde dich mit deinen Zugangsdaten an.' 
@@ -447,7 +445,7 @@ export default function Login() {
                         
                         <CardContent className="space-y-4">
                             {isBlocked && (
-                                <div className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800/50 flex items-start gap-2">
+                                <div role="alert" className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800/50 flex items-start gap-2">
                                     <ShieldAlert size={16} className="mt-0.5" />
                                     <div>
                                         <p className="font-bold">Anmeldung vorübergehend gesperrt</p>
@@ -457,7 +455,7 @@ export default function Login() {
                             )}
 
                             {error && (
-                                <div className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800/50 flex items-start gap-2">
+                                <div role="alert" className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800/50 flex items-start gap-2">
                                     <ShieldAlert size={16} className="shrink-0 mt-0.5" /> <span>{error}</span>
                                 </div>
                             )}
@@ -577,7 +575,7 @@ export default function Login() {
                                         <div className="space-y-1">
                                             <label className="text-xs font-bold uppercase text-gray-500 ml-1 flex justify-between">
                                                 <span>SV-Einmalcode</span>
-                                                <span className="text-[10px] text-primary lowercase font-semibold">sofort verifiziert</span>
+                                                <span className="text-xs text-amber-700 dark:text-primary lowercase font-semibold">sofort verifiziert</span>
                                             </label>
                                             <Input
                                                 placeholder="SV-XXXX-XXXX-XXXX"
