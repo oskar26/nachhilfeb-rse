@@ -9,9 +9,13 @@ export interface DialogProps {
     open?: boolean;
     onClose?: () => void;
     onOpenChange?: (open: boolean) => void;
+    /** Optionale Klassen für den Panel-Container (z. B. größere max-width für Lightboxen). */
+    panelClassName?: string;
+    /** Barrierefreier Name für role="dialog". */
+    ariaLabel?: string;
 }
 
-const Dialog = ({ children, open, onClose, onOpenChange }: DialogProps) => {
+const Dialog = ({ children, open, onClose, onOpenChange, panelClassName, ariaLabel }: DialogProps) => {
     const [mounted, setMounted] = React.useState(false);
 
     React.useEffect(() => {
@@ -65,9 +69,10 @@ const Dialog = ({ children, open, onClose, onOpenChange }: DialogProps) => {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.96, y: 10 }}
                         transition={{ type: "spring", stiffness: 350, damping: 26 }}
-                        className="relative z-10 w-full max-w-lg my-auto max-h-[90vh] overflow-y-auto"
+                        className={cn("relative z-10 w-full max-w-lg my-auto max-h-[90vh] overflow-y-auto", panelClassName)}
                         role="dialog"
                         aria-modal="true"
+                        aria-label={ariaLabel}
                     >
                         {children}
                     </motion.div>
