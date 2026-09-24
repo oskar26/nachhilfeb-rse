@@ -16,7 +16,8 @@ import { toast } from 'react-hot-toast';
 import ShareDialog from '../components/ShareDialog';
 import { cn, formatAdPrice, hourlyRate, type PriceDetails } from '../lib/utils';
 import { triggerHaptic } from '../lib/haptics';
-import { api } from '../lib/api';
+import { api, apiErrorMessage } from '../lib/api';
+import { VerifiedPill } from '../components/ui/VerifiedPill';
 
 interface Ad {
     id: string;
@@ -45,6 +46,9 @@ const PRICE_SLIDER_MAX = 30;
 const GESUCHE_PILL_ACTIVE = 'bg-blue-600 text-white shadow-sm';
 const GESUCHE_PILL_IDLE = 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300';
 const SAVED_SEARCH_KEY = 'fwg_saved_search';
+// „Beliebt:“-Fächer (B2): Standardliste, bis echte Klicks ein Ranking liefern
+const POPULAR_FALLBACK: Subject[] = ['mathematik', 'deutsch', 'englisch', 'physik', 'latein', 'franzoesisch', 'chemie', 'informatik'];
+let popularSubjectsMemory: Subject[] | null = null;
 const GRADE_VALUES = ['5', '6', '7', '8', '9', '10', 'EF', 'Q1', 'Q2'];
 
 type SortKey = 'newest' | 'oldest' | 'cheapest' | 'priciest' | 'popular' | 'saved';
@@ -113,36 +117,39 @@ function isValidSubject(value: unknown): value is Subject {
     return SUBJECT_CATEGORIES.some(category => category.subjects.includes(value as Subject));
 }
 
+function parseSavedSearch(value: unknown): SavedSearch | null {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+    const record = value as Record<string, unknown>;
+    if (
+        typeof record.query !== 'string' ||
+        !['all', 'offer', 'search'].includes(String(record.type)) ||
+        (record.subject !== null && !isValidSubject(record.subject)) ||
+        !Array.isArray(record.grades) ||
+        !record.grades.every(g => typeof g === 'string' && GRADE_VALUES.includes(g)) ||
+        typeof record.minPrice !== 'number' || !Number.isInteger(record.minPrice) ||
+        typeof record.maxPrice !== 'number' || !Number.isInteger(record.maxPrice) ||
+        record.minPrice < PRICE_SLIDER_MIN || record.maxPrice > PRICE_SLIDER_MAX ||
+        record.minPrice >= record.maxPrice ||
+        typeof record.onlyCoaches !== 'boolean' || typeof record.filterByTime !== 'boolean'
+    ) return null;
+    return {
+        query: record.query,
+        type: record.type as SavedSearch['type'],
+        subject: record.subject as Subject | null,
+        grades: [...new Set(record.grades as string[])],
+        minPrice: record.minPrice,
+        maxPrice: record.maxPrice,
+        onlyCoaches: record.onlyCoaches,
+        filterByTime: record.filterByTime,
+        sortKey: isValidSortKey(record.sortKey) ? record.sortKey : 'newest',
+    };
+}
+
 function loadSavedSearch(): SavedSearch | null {
     try {
         const raw = localStorage.getItem(SAVED_SEARCH_KEY);
         if (!raw) return null;
-        const parsed: unknown = JSON.parse(raw);
-        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null;
-        const record = parsed as Record<string, unknown>;
-        if (
-            typeof record.query !== 'string' ||
-            !['all', 'offer', 'search'].includes(String(record.type)) ||
-            (record.subject !== null && !isValidSubject(record.subject)) ||
-            !Array.isArray(record.grades) ||
-            !record.grades.every(g => typeof g === 'string' && GRADE_VALUES.includes(g)) ||
-            typeof record.minPrice !== 'number' || !Number.isInteger(record.minPrice) ||
-            typeof record.maxPrice !== 'number' || !Number.isInteger(record.maxPrice) ||
-            record.minPrice < PRICE_SLIDER_MIN || record.maxPrice > PRICE_SLIDER_MAX ||
-            record.minPrice >= record.maxPrice ||
-            typeof record.onlyCoaches !== 'boolean' || typeof record.filterByTime !== 'boolean'
-        ) return null;
-        return {
-            query: record.query,
-            type: record.type as SavedSearch['type'],
-            subject: record.subject as Subject | null,
-            grades: [...new Set(record.grades as string[])],
-            minPrice: record.minPrice,
-            maxPrice: record.maxPrice,
-            onlyCoaches: record.onlyCoaches,
-            filterByTime: record.filterByTime,
-            sortKey: isValidSortKey(record.sortKey) ? record.sortKey : 'newest',
-        };
+        return parseSavedSearch(JSON.parse(raw));
     } catch {
         return null;
     }
@@ -185,7 +192,7 @@ export default function Feed() {
     const navigate = useNavigate();
     const [ads, setAds] = useState<Ad[]>([]);
     const [loading, setLoading] = useState(true);
-    const [fetchError, setFetchError] = useState(false);
+    const [fetchError, setFetchError] = useState<unknown>(null);
     const [showFilters, setShowFilters] = useState(false);
     const [showBanners, setShowBanners] = useState(() => {
         try {
@@ -199,6 +206,50 @@ export default function Feed() {
     const [filterByTime, setFilterByTime] = useState(false);
     const [shareAd, setShareAd] = useState<{ id: string; title: string } | null>(null);
     const [savedSearch, setSavedSearch] = useState<SavedSearch | null>(() => loadSavedSearch());
+    const [savedSearchId, setSavedSearchId] = useState<string | null>(null);
+    const [popularSubjects, setPopularSubjects] = useState<Subject[]>(POPULAR_FALLBACK);
+
+    // „Beliebt:“-Fächer: 1 Fetch pro Session (Memory-Cache), Fallback bleibt die Standardliste
+    useEffect(() => {
+        if (popularSubjectsMemory) {
+            setPopularSubjects(popularSubjectsMemory);
+            return;
+        }
+        api.analytics.popularSubjects()
+            .then(({ data, error }) => {
+                if (error || !data) return;
+                const list = (((data as any)?.subjects ?? []) as string[]).filter((s): s is Subject => s in subjectLabelMap);
+                if (list.length === 0) return;
+                popularSubjectsMemory = list;
+                setPopularSubjects(list);
+            })
+            .catch(() => { /* Fallback-Liste bleibt */ });
+    }, []);
+
+    // Gemerkte Suche: Server als Quelle der Wahrheit, localStorage als Offline-Fallback (B4)
+    useEffect(() => {
+        let cancelled = false;
+        api.savedSearches.list()
+            .then(({ data, error }) => {
+                if (cancelled) return;
+                if (error || !data) return;
+                const first = ((data as any)?.searches ?? [])[0];
+                const parsed = first ? parseSavedSearch(first.query) : null;
+                if (parsed) {
+                    setSavedSearchId(first?.id ?? null);
+                    setSavedSearch(parsed);
+                    try { localStorage.setItem(SAVED_SEARCH_KEY, JSON.stringify(parsed)); } catch { /* ignore */ }
+                } else {
+                    setSavedSearchId(null);
+                    setSavedSearch((current) => {
+                        if (current) void api.savedSearches.save(current).catch(() => { /* offline */ });
+                        return current;
+                    });
+                }
+            })
+            .catch(() => { /* offline: localStorage-Stand bleibt */ });
+        return () => { cancelled = true; };
+    }, []);
 
     // Coaching Startseiten-Info
     const [coachInfo, setCoachInfo] = useState<{
@@ -231,8 +282,8 @@ export default function Feed() {
         let cancelled = false;
         loadAds().then(data => {
             if (!cancelled) setAds(data);
-        }).catch(() => {
-            if (!cancelled) setFetchError(true);
+        }).catch((err: unknown) => {
+            if (!cancelled) setFetchError(err);
         }).finally(() => {
             if (!cancelled) setLoading(false);
         });
@@ -276,6 +327,16 @@ export default function Feed() {
         sortKey !== 'newest'
     );
 
+    const activeFilterCount = [
+        Boolean(searchQuery),
+        Boolean(filterSubject),
+        filterGrade.length > 0,
+        filterType !== 'all',
+        minPrice !== PRICE_SLIDER_MIN || maxPrice !== PRICE_SLIDER_MAX,
+        filterOnlyCoaches,
+        filterByTime,
+    ].filter(Boolean).length;
+
     const resetAllFilters = () => {
         setSearchQuery(FILTER_DEFAULTS.query);
         setFilterType(FILTER_DEFAULTS.type);
@@ -310,8 +371,14 @@ export default function Feed() {
             toast.error('Gespeicherte Suche konnte nicht gelöscht werden. Bitte erneut versuchen.');
             return;
         }
+        if (savedSearchId) {
+            const id = savedSearchId;
+            setSavedSearchId(null);
+            void api.savedSearches.remove(id).catch(() => { /* offline: wird beim nächsten Speichern ersetzt */ });
+        }
         setSavedSearch(null);
         triggerHaptic('light');
+        toast.success('Gespeicherte Suche entfernt.');
     };
 
     const saveCurrentSearch = () => {
@@ -334,7 +401,15 @@ export default function Feed() {
         } catch (err) {
             console.error('Could not save search', err);
             toast.error('Suche konnte nicht gespeichert werden.');
+            return;
         }
+        setSavedSearchId(null);
+        void api.savedSearches.save(entry)
+            .then(({ data, error }) => {
+                const saved = (data as any)?.search;
+                if (!error && saved?.id) setSavedSearchId(saved.id);
+            })
+            .catch(() => { /* offline: localStorage-Fallback greift */ });
     };
 
     const filteredAds = ads.filter(ad => {
@@ -423,7 +498,7 @@ export default function Feed() {
         <div className="w-full min-w-0 max-w-3xl mx-auto p-4 sm:p-6 space-y-4 sm:space-y-5 pb-24 overflow-x-clip">
             {/* Eingeklappte News-Sektion auf der Startseite */}
             <CollapsedNewsWidget />
-            <div className="flex flex-col gap-4 mb-6 min-w-0">
+            <div className="relative flex flex-col gap-4 mb-6 min-w-0">
                 <div className="flex flex-wrap items-center justify-between gap-2.5">
                     <div className="min-w-0">
                         <h1 className="font-display uppercase text-xl sm:text-2xl leading-none tracking-tight min-w-0">Aktuelle Anzeigen</h1>
@@ -434,7 +509,7 @@ export default function Feed() {
                             <button
                                 onClick={() => { setFilterByTime(!filterByTime); triggerHaptic('selection'); }}
                                 aria-pressed={filterByTime}
-                                className={`flex items-center gap-1 text-xs px-3 min-h-[40px] py-1.5 rounded-full border font-semibold transition-all cursor-pointer ${
+                                className={`flex items-center gap-1 text-xs px-3 min-h-[44px] py-1.5 rounded-full border font-semibold transition-all cursor-pointer ${
                                     filterByTime
                                         ? 'bg-primary text-black border-primary shadow-sm dark:bg-primary dark:text-black'
                                         : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-500'
@@ -448,7 +523,7 @@ export default function Feed() {
                         <button
                             onClick={() => { setFilterOnlyCoaches(!filterOnlyCoaches); triggerHaptic('selection'); }}
                             aria-pressed={filterOnlyCoaches}
-                            className={`flex items-center gap-1 text-xs px-3 min-h-[40px] py-1.5 rounded-full border font-semibold transition-all cursor-pointer ${
+                            className={`flex items-center gap-1 text-xs px-3 min-h-[44px] py-1.5 rounded-full border font-semibold transition-all cursor-pointer ${
                                 filterOnlyCoaches
                                     ? 'bg-primary text-black border-primary shadow-sm dark:bg-primary dark:text-black'
                                     : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-500'
@@ -459,17 +534,21 @@ export default function Feed() {
                             <span className="hidden sm:inline">Schüler-Coaches</span>
                             <span className="sm:hidden">Coaches</span>
                         </button>
-                        <Button variant="outline" size="sm" className="h-8 px-3 rounded-full text-xs font-bold gap-1 border-gray-200 dark:border-gray-800 shadow-2xs" onClick={() => setShowFilters(!showFilters)}>
-                            <Filter size={13} /> Filter
+                        <Button variant="outline" size="sm" className="h-11 px-4 rounded-full text-sm font-bold gap-1.5 border-gray-200 dark:border-gray-800 shadow-2xs" onClick={() => setShowFilters(!showFilters)} aria-expanded={showFilters} aria-haspopup="dialog">
+                            <Filter size={15} /> Filter
+                            {activeFilterCount > 0 && (
+                                <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-black leading-none text-amber-950">{activeFilterCount}</span>
+                            )}
                         </Button>
                         <Button
                             variant="ghost"
                             size="sm"
-                            onClick={saveCurrentSearch}
-                            className="h-8 px-2.5 text-xs text-primary-hover dark:text-primary font-bold rounded-full border border-primary/20 bg-primary/10 hover:bg-primary/20 shadow-2xs"
-                            title="Aktuelle Filter nur in diesem Browser speichern; ersetzt die bisherige Suche"
+                            onClick={savedSearch ? discardSavedSearch : saveCurrentSearch}
+                            className="h-11 px-3.5 text-sm text-primary-hover dark:text-primary font-bold rounded-full border border-primary/20 bg-primary/10 hover:bg-primary/20 shadow-2xs"
+                            title={savedSearch ? 'Gespeicherte Suche entfernen' : 'Aktuelle Filter speichern (ersetzt die bisherige Suche)'}
+                            aria-pressed={!!savedSearch}
                         >
-                            {savedSearch ? <><Bookmark size={13} className="fill-current" /> Gemerkt</> : <><Bookmark size={13} /> Merken</>}
+                            {savedSearch ? <><Bookmark size={15} className="fill-current" /> Gemerkt</> : <><Bookmark size={15} /> Merken</>}
                         </Button>
                     </div>
                 </div>
@@ -489,16 +568,17 @@ export default function Feed() {
                 {/* Quick Subject Filter Chips */}
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 no-scrollbar text-xs min-w-0">
                     <span className="text-gray-900 dark:text-white font-extrabold shrink-0 text-xs uppercase mr-1">Beliebt:</span>
-                    {(['mathematik', 'deutsch', 'englisch', 'physik', 'latein', 'franzoesisch', 'chemie', 'informatik'] as Subject[]).map((subj) => (
+                    {popularSubjects.map((subj) => (
                         <button
                             key={subj}
                             onClick={() => {
                                 setFilterSubject(filterSubject === subj ? null : subj);
+                                void api.analytics.trackCategory(subj).catch(() => { /* fire-and-forget */ });
                                 if ('vibrate' in navigator) navigator.vibrate([15]);
                             }}
                             aria-pressed={filterSubject === subj}
                             className={cn(
-                                "px-3 min-h-[40px] py-2 rounded-full border transition-all shrink-0 font-medium",
+                                "px-3 min-h-[44px] py-2 rounded-full border transition-all shrink-0 font-medium",
                                 filterSubject === subj
                                     ? "bg-primary text-black font-bold border-primary shadow-sm"
                                     : "bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-800 hover:border-gray-300"
@@ -518,15 +598,27 @@ export default function Feed() {
                     )}
                 </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-2 min-w-0">
-                    <p className="text-xs font-bold text-gray-400" aria-live="polite">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 min-w-0">
+                    <p className="text-xs font-bold text-gray-400 shrink-0" aria-live="polite">
                         {loading
                             ? 'Ergebnisse werden geladen…'
                             : fetchError
                                 ? 'Ergebnisse konnten nicht geladen werden'
                                 : `${sortedAds.length} ${sortedAds.length === 1 ? 'Anzeige' : 'Anzeigen'}`}
                     </p>
-                    <label className="flex items-center gap-1.5 text-xs font-bold text-gray-500 dark:text-gray-400 shrink-0">
+                    <button
+                        type="button"
+                        onClick={() => { resetAllFilters(); triggerHaptic('light'); }}
+                        aria-hidden={!hasActiveFilters || loading}
+                        tabIndex={hasActiveFilters && !loading ? 0 : -1}
+                        className={cn(
+                            "flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-opacity duration-200 shrink-0 cursor-pointer",
+                            hasActiveFilters && !loading ? 'opacity-100' : 'pointer-events-none opacity-0'
+                        )}
+                    >
+                        <X size={12} /> Filter zurücksetzen
+                    </button>
+                    <label className="flex items-center gap-1.5 text-xs font-bold text-gray-500 dark:text-gray-400 shrink-0 ml-auto">
                         <ArrowUpDown size={13} className="shrink-0" />
                         <span className="sr-only">Sortierung</span>
                         <select
@@ -540,26 +632,51 @@ export default function Feed() {
                             ))}
                         </select>
                     </label>
-                    {hasActiveFilters && !loading && (
-                        <button
-                            type="button"
-                            onClick={() => { resetAllFilters(); triggerHaptic('light'); }}
-                            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shrink-0 cursor-pointer"
-                        >
-                            <X size={12} /> Filter zurücksetzen
-                        </button>
-                    )}
                 </div>
 
                 <AnimatePresence>
                     {showFilters && (
                         <motion.div
-                            initial={{ opacity: 0, height: 0, overflow: 'hidden' }}
-                            animate={{ opacity: 1, height: 'auto', overflow: 'visible' }}
-                            exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
+                            key="filters-backdrop"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="md:hidden fixed inset-0 z-[70] bg-black/40"
+                            onClick={() => setShowFilters(false)}
+                            aria-hidden
+                        />
+                    )}
+                    {showFilters && (
+                        <motion.div
+                            key="filters-panel"
+                            initial={{ opacity: 0, y: '100%' }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: '100%' }}
                             transition={{ duration: 0.25, ease: 'easeOut' }}
-                            className="bg-white dark:bg-gray-900 p-4 sm:p-5 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft space-y-6 min-w-0 overflow-x-clip"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-label="Filter"
+                            className="fixed bottom-0 left-0 right-0 z-[80] max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-soft md:absolute md:bottom-auto md:left-0 md:right-0 md:top-full md:mt-2 md:z-30 md:max-h-[70vh] md:rounded-3xl md:border"
                         >
+                            {/* Kopf nur im mobilen Bottom-Sheet */}
+                            <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 md:hidden">
+                                <div className="flex justify-center pt-3 pb-1">
+                                    <div className="h-1.5 w-10 rounded-full bg-gray-200 dark:bg-gray-700" aria-hidden />
+                                </div>
+                                <div className="flex items-center justify-between px-5 pb-2">
+                                    <h2 className="font-display text-lg font-bold uppercase">Filter</h2>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowFilters(false)}
+                                        aria-label="Filter schließen"
+                                        className="-mr-2 rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200 cursor-pointer"
+                                    >
+                                        <X size={20} />
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="p-4 sm:p-5 space-y-6 min-w-0 overflow-x-clip pb-[calc(1.5rem+env(safe-area-inset-bottom))] md:pb-5">
 
                             {/* Type & Price */}
                             <div className="grid md:grid-cols-2 gap-6">
@@ -597,7 +714,7 @@ export default function Feed() {
                                 <div className="flex flex-col gap-4 max-h-64 overflow-y-auto pr-2">
                                     {SUBJECT_CATEGORIES.map(category => (
                                         <div key={category.title}>
-                                            <h3 className="inline-block rounded-md bg-gray-950 dark:bg-black px-2 py-1 text-xs font-bold text-white uppercase tracking-wide mb-2">{category.title}</h3>
+                                            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{category.title}</h3>
                                             <div className="flex flex-wrap gap-2">
                                                 {category.subjects.map((s: Subject) => (
                                                     <SubjectChip
@@ -612,6 +729,7 @@ export default function Feed() {
                                         </div>
                                     ))}
                                 </div>
+                            </div>
                             </div>
                         </motion.div>
                     )}
@@ -797,7 +915,7 @@ export default function Feed() {
                             <SearchX size={40} className="text-red-400 dark:text-red-500" />
                         </div>
                         <h2 className="text-xl font-bold mb-2">Anzeigen konnten nicht geladen werden</h2>
-                        <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">Prüfe deine Internetverbindung und versuche es erneut.</p>
+                        <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">{apiErrorMessage(fetchError, 'Prüfe deine Internetverbindung und versuche es erneut.')}</p>
                         <Button onClick={() => fetchAds()} className="rounded-full shadow-md">Erneut versuchen</Button>
                     </div>
                 ) : sortedAds.length === 0 ? (
@@ -859,9 +977,7 @@ export default function Feed() {
                                             {ad.type === 'search' ? 'Suche' : 'Bietet'}
                                         </span>
                                         {ad.profiles?.is_verified && (
-                                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-green-500/12 text-green-700 dark:text-green-400 border border-green-500/25 px-2 py-0.5 rounded-full shrink-0">
-                                                <ShieldCheck size={12} aria-hidden="true" /> Verifiziert
-                                            </span>
+                                            <VerifiedPill />
                                         )}
                                         {ad.profiles?.is_coach && (
                                             <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 px-2 py-0.5 rounded-full shrink-0" title="Mitglied der Schüler-Coaching AG">

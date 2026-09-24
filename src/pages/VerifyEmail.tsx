@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Card, CardContent } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
+import { OtpInput } from '../components/ui/OtpInput';
 import { Button } from '../components/ui/Button';
 import { MailCheck, RefreshCw, ArrowLeft } from 'lucide-react';
 import { api } from '../lib/api';
@@ -22,15 +23,17 @@ export default function VerifyEmail() {
         return () => clearTimeout(t);
     }, [cooldown]);
 
-    const handleVerify = async (e?: React.FormEvent) => {
+    const handleVerify = async (e?: React.FormEvent, codeOverride?: string) => {
         e?.preventDefault();
-        if (!email || code.trim().length !== 6) {
+        if (codeOverride !== undefined) setCode(codeOverride);
+        const rawCode = (codeOverride ?? code).trim();
+        if (!email || rawCode.length !== 6) {
             setError('Bitte gib deine E-Mail-Adresse und den 6-stelligen Code ein.');
             return;
         }
         setIsLoading(true);
         setError(null);
-        const res = await api.auth.verifyEmail(email.trim(), code.trim());
+        const res = await api.auth.verifyEmail(email.trim(), rawCode);
         setIsLoading(false);
         if (res.error) {
             const msg = res.error.message || '';
@@ -90,14 +93,13 @@ export default function VerifyEmail() {
                         </div>
                         <div>
                             <label className="text-sm font-medium mb-1.5 block">Bestätigungs-Code</label>
-                            <Input
+                            <OtpInput
                                 value={code}
-                                onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                placeholder="123456"
-                                inputMode="numeric"
-                                autoComplete="one-time-code"
-                                className="text-center text-2xl font-mono tracking-[0.5em] py-3"
+                                onChange={setCode}
+                                onComplete={value => handleVerify(undefined, value)}
+                                numeric
                                 autoFocus
+                                ariaLabel="Bestätigungs-Code"
                             />
                         </div>
 

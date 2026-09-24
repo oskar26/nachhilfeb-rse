@@ -1,5 +1,6 @@
 import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Home, PlusCircle, User, LogOut, Settings, Users, MessageSquare, Inbox, Zap, Heart, Sparkles, Award } from 'lucide-react';
+import AccessGuard from './AccessGuard';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/Button';
@@ -190,7 +191,9 @@ export default function Layout() {
                     aria-label="Hauptinhalt"
                     className="flex-1 w-full md:rounded-3xl md:bg-white/80 md:dark:bg-gray-900/80 md:backdrop-blur-md md:border md:border-gray-100/80 md:dark:border-gray-800/60 md:shadow-soft flex flex-col min-h-0 min-w-0 overflow-y-auto overflow-x-clip focus:outline-none"
                 >
-                    <Outlet />
+                    <AccessGuard>
+                        <Outlet />
+                    </AccessGuard>
                     {/* Spacer for bottom nav on mobile */}
                     <div className="h-[calc(6.5rem+env(safe-area-inset-bottom,0px))] md:hidden shrink-0" />
                 </div>
@@ -198,28 +201,25 @@ export default function Layout() {
 
             {/* Mobile Bottom Navigation — pill, consistent radius + border */}
             <nav aria-label="Hauptnavigation" className="md:hidden fixed bottom-[max(1rem,calc(0.75rem+env(safe-area-inset-bottom,0px)))] left-4 right-4 h-16 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-full shadow-2xl flex items-center justify-around z-50 px-2 border border-gray-200/60 dark:border-gray-800/80 ring-1 ring-black/[0.04] dark:ring-white/5">
-                {mobileNavItems.map((item) => {
+                {mobileNavItems.filter((item) => !item.isAction || showCreateAd).map((item) => {
                     const Icon = item.icon;
                     if (item.isAction) {
-                        if (!showCreateAd) return null;
                         return (
-                            <NavLink
+                            <button
                                 key={item.to}
-                                to={item.to}
-                                onClick={handleNavClick}
-                                className="flex flex-col items-center justify-center -mt-6"
+                                type="button"
+                                onClick={() => {
+                                    handleNavClick();
+                                    navigate('/create-ad');
+                                }}
+                                className="relative flex h-full w-full flex-col items-center justify-center"
                                 title={item.label}
-                                aria-label={`Neue Anzeige erstellen`}
+                                aria-label="Neue Anzeige erstellen"
                             >
-                                <motion.div
-                                    whileHover={{ scale: 1.08 }}
-                                    whileTap={{ scale: 0.92 }}
-                                    transition={{ type: "spring", stiffness: 450, damping: 25 }}
-                                    className="bg-primary text-gray-950 p-3.5 rounded-full shadow-lg shadow-primary/40 border-4 border-white dark:border-gray-950 ring-1 ring-black/10"
-                                >
-                                    <PlusCircle size={24} strokeWidth={2.5} />
-                                </motion.div>
-                            </NavLink>
+                                <span className="press -mt-6 grid h-16 w-16 place-items-center rounded-full bg-primary text-gray-950 shadow-lg shadow-primary/40 border-4 border-white dark:border-gray-950 ring-1 ring-black/10">
+                                    <PlusCircle size={26} strokeWidth={2.5} />
+                                </span>
+                            </button>
                         );
                     }
 

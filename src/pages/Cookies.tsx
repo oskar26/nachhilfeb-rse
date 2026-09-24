@@ -28,7 +28,8 @@ export default function Cookies() {
                         <p>
                             Eine <strong>anonyme Server-Statistik</strong> (welche Seiten werden aufgerufen,{' '}
                             <strong>ohne IP-Adresse, ohne Personenbezug</strong>) läuft immer mit, damit wir die
-                            App verbessern können. Sie lässt sich nicht abschalten, weil dabei keine
+                            App verbessern können. Dasselbe gilt für Klicks auf die „Beliebt“-Fächer im Feed:
+                            Gezählt wird nur der Fachname, ohne IP- oder Nutzerbezug. Sie lässt sich nicht abschalten, weil dabei keine
                             personenbezogenen Daten anfallen.
                         </p>
                     </div>
@@ -66,8 +67,8 @@ export default function Cookies() {
                                     <td className="py-2">§ 25 Abs. 2 TDDDG (technisch erforderlich)</td>
                                 </tr>
                                 <tr>
-                                    <td className="py-2 pr-4">Server: anonyme Seitenstatistik (ohne IP)</td>
-                                    <td className="py-2 pr-4">App verbessern; läuft immer mit</td>
+                                    <td className="py-2 pr-4">Server: anonyme Nutzungsstatistik (ohne IP)</td>
+                                    <td className="py-2 pr-4">App verbessern, beliebteste Fächer ermitteln; läuft immer mit</td>
                                     <td className="py-2 pr-4">Aggregiert, unbefristet (kein Personenbezug)</td>
                                     <td className="py-2">Art. 6 Abs. 1 lit. f DSGVO</td>
                                 </tr>

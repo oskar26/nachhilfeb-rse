@@ -10,11 +10,11 @@ export const DAY_LABELS: Record<DayKey, string> = {
 };
 export const DAYS: DayKey[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
-// Generate slots from 13:30 to 22:00 in 30min steps
+// Generate slots from 08:00 to 21:30 (28 slots x 30min; day window ends 22:00)
 export function generateSlots(): string[] {
     const all: string[] = [];
-    let hour = 13, min = 30;
-    while (hour < 22 || (hour === 22 && min === 0)) {
+    let hour = 8, min = 0;
+    while (hour < 22) {
         all.push(`${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`);
         min += 30;
         if (min === 60) { min = 0; hour++; }
@@ -105,7 +105,7 @@ export function AvailabilityCalendar({
                     style={{ gridTemplateColumns: `56px repeat(${visibleDays.length}, 1fr)` }}
                 >
                     {/* Header Row */}
-                    <div className="bg-gray-50 dark:bg-gray-900 p-2" />
+                    <div className="bg-gray-50 dark:bg-gray-900 p-2 sticky left-0 z-10" />
                     {visibleDays.map(d => (
                         <div key={d} className="bg-gray-50 dark:bg-gray-900 py-2.5 font-bold text-gray-600 dark:text-gray-300">
                             {DAY_LABELS[d]}
@@ -119,7 +119,7 @@ export function AvailabilityCalendar({
                             <div key={slot} className="contents">
                                 <div
                                     className={cn(
-                                        "bg-gray-50 dark:bg-gray-900 flex items-center justify-end pr-2 text-gray-400 font-mono select-none",
+                                        "bg-gray-50 dark:bg-gray-900 flex items-center justify-end pr-2 text-gray-400 font-mono select-none sticky left-0 z-10",
                                         isEvenHour ? (compact ? "py-1 text-[10px] font-semibold" : "py-1.5 text-xs font-semibold") : (compact ? "py-0.5 text-[8px]" : "py-1 text-[9px] text-gray-300 dark:text-gray-600")
                                     )}
                                 >
@@ -190,7 +190,7 @@ export function AvailabilityCalendar({
 
                 {isEditable && (
                     <p className="text-[11px] text-gray-400 text-center mt-2.5">
-                        Tippe auf eine Zelle, um deine Verfügbarkeit zu markieren (13:30 – 22:00 Uhr)
+                        Tippe auf eine Zelle, um deine Verfügbarkeit zu markieren (8:00 – 22:00 Uhr)
                     </p>
                 )}
 

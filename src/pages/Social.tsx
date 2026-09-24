@@ -1,17 +1,15 @@
-import { useRef, useState, type KeyboardEvent } from 'react';
+import { useState } from 'react';
 import { useSearchParams, useLocation } from 'react-router-dom';
 import { MessageSquare, Heart, Zap } from 'lucide-react';
 import Favorites from './Favorites';
 import Requests from './Requests';
 import Matching from './Matching';
-import { cn } from '../lib/utils';
-import { triggerHaptic } from '../lib/haptics';
+import { TabBar } from '../components/ui/TabBar';
 
 export default function Social({ initialTab }: { initialTab?: 'requests' | 'matches' | 'watchlist' }) {
     const [searchParams, setSearchParams] = useSearchParams();
     const location = useLocation();
 
-    const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
     const pathname = location.pathname.replace(/\/+$/, '') || '/';
     const pathTab = pathname === '/matches' || pathname === '/matching' ? 'matches'
         : pathname === '/favorites' || pathname === '/watchlist' ? 'watchlist'
@@ -33,36 +31,12 @@ export default function Social({ initialTab }: { initialTab?: 'requests' | 'matc
     ] as const;
 
     const selectTab = (tabId: string) => {
-        triggerHaptic('selection');
         setVisitedTabs(prev => (prev.includes(tabId) ? prev : [...prev, tabId]));
         setSearchParams(params => {
             const nextParams = new URLSearchParams(params);
             nextParams.set('tab', tabId);
             return nextParams;
         });
-    };
-
-    const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
-        let nextIndex: number;
-        switch (event.key) {
-            case 'ArrowRight':
-                nextIndex = (index + 1) % tabs.length;
-                break;
-            case 'ArrowLeft':
-                nextIndex = (index - 1 + tabs.length) % tabs.length;
-                break;
-            case 'Home':
-                nextIndex = 0;
-                break;
-            case 'End':
-                nextIndex = tabs.length - 1;
-                break;
-            default:
-                return;
-        }
-        event.preventDefault();
-        tabRefs.current[nextIndex]?.focus();
-        selectTab(tabs[nextIndex].id);
     };
 
     return (
@@ -77,38 +51,13 @@ export default function Social({ initialTab }: { initialTab?: 'requests' | 'matc
                 </div>
             </div>
 
-            {/* Tab Bar (reines CSS, keine Layout-Animationen -> kein Ruckeln) */}
-            <div role="tablist" aria-label="Social" className="bg-white dark:bg-gray-900 border border-gray-200/80 dark:border-gray-800 p-1 sm:p-1.5 rounded-2xl flex w-full justify-between shadow-xs">
-                {tabs.map((tab, index) => {
-                    const Icon = tab.icon;
-                    const isActive = tab.id === activeTab;
-                    return (
-                        <button
-                            key={tab.id}
-                            ref={element => { tabRefs.current[index] = element; }}
-                            type="button"
-                            role="tab"
-                            id={`social-tab-${tab.id}`}
-                            aria-selected={isActive}
-                            aria-controls={`social-tabpanel-${tab.id}`}
-                            tabIndex={isActive ? 0 : -1}
-                            onKeyDown={event => handleTabKeyDown(event, index)}
-                            onClick={() => selectTab(tab.id)}
-                            className={cn(
-                                "min-w-0 max-w-full overflow-hidden flex-1 flex items-center justify-center py-3 px-1 sm:px-3 rounded-xl text-xs sm:text-sm font-extrabold cursor-pointer select-none transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] dark:focus-visible:ring-primary",
-                                isActive
-                                    ? "bg-primary text-amber-950 shadow-xs"
-                                    : "text-gray-500 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/60"
-                            )}
-                        >
-                            <span className="flex items-center gap-1 sm:gap-2 whitespace-nowrap min-w-0 max-w-full overflow-hidden">
-                                <Icon aria-hidden="true" size={16} className={cn("shrink-0", !isActive && "text-gray-400")} />
-                                <span className="truncate">{tab.label}</span>
-                            </span>
-                        </button>
-                    );
-                })}
-            </div>
+            <TabBar
+                ariaLabel="Anfragen & Matches"
+                idPrefix="social"
+                items={tabs.map(tab => ({ key: tab.id, label: tab.label, icon: tab.icon }))}
+                value={activeTab}
+                onChange={selectTab}
+            />
 
             {/* Alle besuchten Tabs bleiben gemountet, nur das aktive ist sichtbar */}
             {visitedTabs.includes('requests') && (

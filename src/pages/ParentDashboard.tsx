@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { api } from '../lib/api';
+import { api, apiErrorMessage } from '../lib/api';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/Dialog';
@@ -82,10 +82,10 @@ interface ChildData {
 }
 
 export default function ParentDashboard() {
-    const { user, profile } = useAuth();
+    const { user, profile, refreshParentLink } = useAuth();
     const [children, setChildren] = useState<ChildData[]>([]);
     const [loading, setLoading] = useState(true);
-    const [fetchError, setFetchError] = useState(false);
+    const [fetchError, setFetchError] = useState<unknown>(null);
     const [isLinkFlowOpen, setIsLinkFlowOpen] = useState(false);
     const [selectedLinkToDelete, setSelectedLinkToDelete] = useState<{ id: string; name: string } | null>(null);
     const [selectedConsentChild, setSelectedConsentChild] = useState<ChildData | null>(null);
@@ -141,7 +141,7 @@ export default function ParentDashboard() {
             setChildren(mapped);
         } catch (error: any) {
             console.error('Error loading parent dashboard data:', error);
-            setFetchError(true);
+            setFetchError(error);
         } finally {
             setLoading(false);
         }
@@ -182,6 +182,7 @@ export default function ParentDashboard() {
             toast.success(`Verknüpfung zu ${selectedLinkToDelete.name} aufgehoben.`);
             setChildren(children.filter(c => c.link_id !== selectedLinkToDelete.id));
             setSelectedLinkToDelete(null);
+            void refreshParentLink();
         } catch (err: any) {
             toast.error('Aufheben fehlgeschlagen: ' + (err?.message || 'Unbekannter Fehler'));
         }
@@ -231,7 +232,7 @@ export default function ParentDashboard() {
                         <Shield size={32} />
                     </div>
                     <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Daten konnten nicht geladen werden</h2>
-                    <p className="text-gray-500 text-sm">Prüfe deine Internetverbindung und versuche es erneut.</p>
+                    <p className="text-gray-500 text-sm">{apiErrorMessage(fetchError, 'Prüfe deine Internetverbindung und versuche es erneut.')}</p>
                     <Button onClick={() => fetchChildrenData()} className="rounded-2xl font-bold bg-primary text-black">
                         Erneut versuchen
                     </Button>
@@ -399,7 +400,10 @@ export default function ParentDashboard() {
             <ParentLinkFlow
                 isOpen={isLinkFlowOpen}
                 onClose={() => setIsLinkFlowOpen(false)}
-                onSuccess={fetchChildrenData}
+                onSuccess={() => {
+                    fetchChildrenData();
+                    void refreshParentLink();
+                }}
             />
 
             {/* Delete verification Dialog */}

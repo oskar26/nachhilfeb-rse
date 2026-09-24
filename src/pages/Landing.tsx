@@ -33,6 +33,8 @@ import {
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
+import { Switch } from '../components/ui/Switch';
+import { VerifiedPill } from '../components/ui/VerifiedPill';
 
 /* Single Source of Truth für alle Fächer: SUBJECT_CATEGORIES aus SubjectChip.tsx
    (dieselbe Quelle nutzen CreateAd + Feed). Labels 1:1 aus subjectLabelMap. */
@@ -266,6 +268,36 @@ export default function Landing() {
     const heroHeadY = useTransform(heroProgress, [0, 1], [0, 36]);
     const heroTicketY = useTransform(heroProgress, [0, 1], [0, -46]);
 
+    /* „Schwarzes Brett“: mobil treibt vertikales Scrollen die Ansichten horizontal */
+    const boardScrollRef = useRef<HTMLDivElement | null>(null);
+    const boardPhonesRef = useRef<HTMLDivElement | null>(null);
+    const [boardDriven, setBoardDriven] = useState(false);
+    const [boardDistance, setBoardDistance] = useState(0);
+    const { scrollYProgress: boardProgress } = useScroll({ target: boardScrollRef, offset: ['start start', 'end end'] });
+    const boardX = useTransform(boardProgress, [0, 1], [0, -boardDistance]);
+
+    useEffect(() => {
+        const mq = window.matchMedia('(max-width: 1023px)');
+        const update = () => setBoardDriven(mq.matches && !reduceMotion);
+        update();
+        mq.addEventListener('change', update);
+        return () => mq.removeEventListener('change', update);
+    }, [reduceMotion]);
+
+    useEffect(() => {
+        const el = boardPhonesRef.current;
+        if (!el) return;
+        const measure = () => setBoardDistance(Math.max(0, el.scrollWidth - el.clientWidth));
+        measure();
+        const observer = new ResizeObserver(measure);
+        observer.observe(el);
+        window.addEventListener('resize', measure);
+        return () => {
+            observer.disconnect();
+            window.removeEventListener('resize', measure);
+        };
+    }, []);
+
     useEffect(() => {
         api.analytics.summary().then(({ data, error }) => {
             if (!error && data) {
@@ -398,7 +430,7 @@ export default function Landing() {
                                 <div className="tape relative rounded-2xl bg-[#faf7ef] text-gray-900 p-6 pt-8 shadow-2xl rotate-[-4deg]">
                                     <div className="flex items-center justify-between gap-3">
                                         <span className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wider text-white" style={{ background: '#D62728' }}>Mathematik</span>
-                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-green-700"><BadgeCheck size={14} aria-hidden /> Verifiziert</span>
+                                        <VerifiedPill size="sm" />
                                     </div>
                                     <p className="mt-4 font-display uppercase text-2xl sm:text-3xl leading-none break-words">Analysis-Crash vor der Klausur</p>
                                     <p className="mt-2 text-sm text-gray-600">Lena K. · Q1 · SV-Raum · <strong className="text-gray-900">12 € / 45 Min</strong></p>
@@ -422,7 +454,7 @@ export default function Landing() {
                             </motion.div>
                             <motion.div {...rise(0.5, 14)} className="mt-5 flex items-center gap-2 text-xs text-gray-400">
                                 <span className="w-2 h-2 rounded-full bg-green-400" aria-hidden />
-                                <span className="font-mono tabular-nums">{liveStats ? `${liveStats.page_views_30d.toLocaleString('de-DE')} monatliche Seitenaufrufe` : '—'}</span>
+                                <span className="font-mono tabular-nums">{liveStats && liveStats.page_views_30d > 0 ? `${liveStats.page_views_30d.toLocaleString('de-DE')} Seitenaufrufe (letzte 30 Tage)` : '— Seitenaufrufe (letzte 30 Tage)'}</span>
                             </motion.div>
                         </motion.div>
                     </motion.div>
@@ -519,23 +551,34 @@ export default function Landing() {
                         <motion.span {...wipeLine()} className="mt-4 block h-1.5 w-16 origin-left rounded-full bg-primary" aria-hidden />
                         <p className="mt-4 text-lg leading-relaxed text-gray-300">Stöbern, anfragen, Profil zeigen: alles direkt am Handy, alles vom FWG. Ohne Katalog, ohne Kleingedrucktes.</p>
                     </motion.div>
-                    <div className="board-stage relative mt-10">
-                        <div className="board-phones" aria-label="App-Ansichten horizontal durchscrollen" tabIndex={0}>
-                            {BOARD_SCREENS.map((m) => {
-                                const Screen = SCREEN_BY_KEY[m.key];
-                                return (
-                                    <figure key={m.key} className="board-sheet">
-                                        <PhoneFrame alt={m.alt}>
-                                            <Screen />
-                                        </PhoneFrame>
-                                        <figcaption className="mt-4 text-center">
-                                            <span className="board-caption text-sm font-bold">{m.caption}</span>
-                                        </figcaption>
-                                    </figure>
-                                );
-                            })}
+                    <div ref={boardScrollRef} className={boardDriven ? 'board-scroll' : undefined}>
+                        <div className={boardDriven ? 'board-sticky' : undefined}>
+                            <div className="board-stage relative mt-10">
+                                <div
+                                    ref={boardPhonesRef}
+                                    className={`board-phones${boardDriven ? ' board-phones--driven' : ''}`}
+                                    aria-label="App-Ansichten — beim Scrollen durchblättern"
+                                    tabIndex={boardDriven ? -1 : 0}
+                                >
+                                    <motion.div className="board-track" style={boardDriven ? { x: boardX } : undefined}>
+                                        {BOARD_SCREENS.map((m) => {
+                                            const Screen = SCREEN_BY_KEY[m.key];
+                                            return (
+                                                <figure key={m.key} className="board-sheet">
+                                                    <PhoneFrame alt={m.alt}>
+                                                        <Screen />
+                                                    </PhoneFrame>
+                                                    <figcaption className="mt-4 text-center">
+                                                        <span className="board-caption text-sm font-bold">{m.caption}</span>
+                                                    </figcaption>
+                                                </figure>
+                                            );
+                                        })}
+                                    </motion.div>
+                                </div>
+                                <p className="board-swipe-hint" aria-hidden>{boardDriven ? 'Weiterscrollen für weitere Ansichten →' : 'Wischen für weitere Ansichten →'}</p>
+                            </div>
                         </div>
-                        <p className="board-swipe-hint" aria-hidden>Wischen für weitere Ansichten →</p>
                     </div>
                     <motion.div {...anim()} className="mt-8">
                         <Link to={ziel} className="press inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-primary px-8 text-base font-bold text-black shadow-md hover:bg-primary-hover">Jetzt loslegen <ArrowRight size={18} aria-hidden /></Link>
@@ -590,13 +633,11 @@ export default function Landing() {
                                         <p className="font-bold text-sm">{r.label}</p>
                                         <p className="text-xs text-gray-500">{r.on ? r.desc : 'Versteckt: niemand sieht das'}</p>
                                     </div>
-                                    <button
-                                        role="switch" aria-checked={r.on} aria-label={`${r.label} Sichtbarkeit`}
-                                        onClick={() => r.set(v => !v)}
-                                        className={`press relative h-7 w-12 rounded-full shrink-0 ${r.on ? 'bg-green-500' : 'bg-gray-300'}`}
-                                    >
-                                        <span className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ease-out ${r.on ? 'translate-x-5' : 'translate-x-0'}`} />
-                                    </button>
+                                    <Switch
+                                        checked={r.on}
+                                        onChange={() => r.set(v => !v)}
+                                        label={`${r.label} Sichtbarkeit`}
+                                    />
                                 </div>
                             ))}
                         </div>

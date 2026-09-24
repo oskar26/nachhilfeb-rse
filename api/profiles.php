@@ -54,6 +54,42 @@ try {
     } catch (Exception $ex3) {}
 }
 
+// Auto-Migration: parent_links Tabelle (Eltern-Verknüpfung, fehlte in sql-updates 001-008)
+try {
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS parent_links (
+            id VARCHAR(36) NOT NULL,
+            parent_id VARCHAR(36) NOT NULL,
+            child_id VARCHAR(36) NOT NULL,
+            status ENUM('pending', 'active', 'revoked') NOT NULL DEFAULT 'pending',
+            permissions JSON DEFAULT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            linked_at DATETIME DEFAULT NULL,
+            PRIMARY KEY (id),
+            UNIQUE KEY idx_parent_child (parent_id, child_id),
+            CONSTRAINT fk_pl_parent FOREIGN KEY (parent_id) REFERENCES profiles (id) ON DELETE CASCADE,
+            CONSTRAINT fk_pl_child FOREIGN KEY (child_id) REFERENCES profiles (id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ");
+} catch (Exception $ex) {
+    // Fallback ohne FK-Constraints (falls Constraint-Namen im Schema kollidieren)
+    try {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS parent_links (
+                id VARCHAR(36) NOT NULL,
+                parent_id VARCHAR(36) NOT NULL,
+                child_id VARCHAR(36) NOT NULL,
+                status ENUM('pending', 'active', 'revoked') NOT NULL DEFAULT 'pending',
+                permissions JSON DEFAULT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                linked_at DATETIME DEFAULT NULL,
+                PRIMARY KEY (id),
+                UNIQUE KEY idx_parent_child (parent_id, child_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        ");
+    } catch (Exception $ex2) {}
+}
+
 // Fehlende Codes für Bestandsprofile nachtragen (bounded, damit Request nicht hängt)
 // Limit 10 pro Request + nur Schüler (parent braucht keinen Code) -> kein Timeout.
 // Einzelne Fehler (z. B. Unique-Kollision) dürfen den Haupt-Request nie killen (500 vermeiden).
@@ -312,11 +348,16 @@ if ($method === 'GET' && $action === 'parent_links') {
     $user = require_auth();
 
     if ($user['role'] === 'parent') {
-        $linksStmt = $pdo->prepare('
-            SELECT pl.* FROM parent_links pl WHERE pl.parent_id = ? ORDER BY pl.created_at DESC
-        ');
-        $linksStmt->execute([$user['id']]);
-        $links = $linksStmt->fetchAll();
+        try {
+            $linksStmt = $pdo->prepare('
+                SELECT pl.* FROM parent_links pl WHERE pl.parent_id = ? ORDER BY pl.created_at DESC
+            ');
+            $linksStmt->execute([$user['id']]);
+            $links = $linksStmt->fetchAll();
+        } catch (Throwable $e) {
+            error_log('parent_links list (parent) failed: ' . $e->getMessage());
+            json_error('Eltern-Verknüpfungen konnten nicht geladen werden. Bitte später erneut versuchen.', 500);
+        }
         $result = [];
 
         foreach ($links as $link) {
@@ -422,11 +463,16 @@ if ($method === 'GET' && $action === 'parent_links') {
     }
 
     // Kind / andere Rollen: Elternteile, die dieses Konto verknüpft haben
-    $linksStmt = $pdo->prepare('
-        SELECT pl.* FROM parent_links pl WHERE pl.child_id = ? ORDER BY pl.created_at DESC
-    ');
-    $linksStmt->execute([$user['id']]);
-    $links = $linksStmt->fetchAll();
+    try {
+        $linksStmt = $pdo->prepare('
+            SELECT pl.* FROM parent_links pl WHERE pl.child_id = ? ORDER BY pl.created_at DESC
+        ');
+        $linksStmt->execute([$user['id']]);
+        $links = $linksStmt->fetchAll();
+    } catch (Throwable $e) {
+        error_log('parent_links list (child) failed: ' . $e->getMessage());
+        json_error('Eltern-Verknüpfungen konnten nicht geladen werden. Bitte später erneut versuchen.', 500);
+    }
     $result = [];
     foreach ($links as $link) {
         $peopleStmt = $pdo->prepare('SELECT id, first_name, last_name, display_name FROM profiles WHERE id = ?');
@@ -481,10 +527,15 @@ if ($method === 'POST' && $action === 'parent_links') {
         json_error('Dieses Profil ist selbst ein Elternteil-Konto.', 400);
     }
 
-    $dup = $pdo->prepare('SELECT id FROM parent_links WHERE parent_id = ? AND child_id = ?');
-    $dup->execute([$user['id'], $childId]);
-    if ($dup->fetchColumn()) {
-        json_error('Dieses Kind ist bereits mit deinem Account verknüpft.', 409);
+    try {
+        $dup = $pdo->prepare('SELECT id FROM parent_links WHERE parent_id = ? AND child_id = ?');
+        $dup->execute([$user['id'], $childId]);
+        if ($dup->fetchColumn()) {
+            json_error('Dieses Kind ist bereits mit deinem Account verknüpft.', 409);
+        }
+    } catch (Throwable $e) {
+        error_log('parent_links dup check failed: ' . $e->getMessage());
+        json_error('Verknüpfung konnte nicht geprüft werden. Bitte später erneut versuchen.', 500);
     }
 
     $perms = $parentPermissionsDefaults;
@@ -502,8 +553,14 @@ if ($method === 'POST' && $action === 'parent_links') {
             VALUES (?, ?, ?, "active", ?, ?, ?)
         ');
         $ins->execute([$linkId, $user['id'], $childId, json_encode($perms, JSON_UNESCAPED_UNICODE), $now, $now]);
-    } catch (Exception $e) {
-        json_error('Diese Verknüpfung existiert bereits.', 409);
+    } catch (Throwable $e) {
+        error_log('parent_links insert failed: ' . $e->getMessage());
+        // Nur echte Duplikate (UNIQUE idx_parent_child) sind ein 409 – alles andere ist ein Serverfehler.
+        $isDuplicate = ($e instanceof PDOException) && (($e->errorInfo[1] ?? null) === 1062);
+        if ($isDuplicate) {
+            json_error('Dieses Kind ist bereits mit deinem Account verknüpft.', 409);
+        }
+        json_error('Verknüpfung fehlgeschlagen. Bitte später erneut versuchen.', 500);
     }
 
     json_response([
@@ -528,9 +585,14 @@ if ($method === 'PATCH' && $action === 'parent_links') {
     if ($linkId === '') {
         json_error('link_id fehlt.', 400);
     }
-    $linkStmt = $pdo->prepare('SELECT * FROM parent_links WHERE id = ?');
-    $linkStmt->execute([$linkId]);
-    $link = $linkStmt->fetch();
+    try {
+        $linkStmt = $pdo->prepare('SELECT * FROM parent_links WHERE id = ?');
+        $linkStmt->execute([$linkId]);
+        $link = $linkStmt->fetch();
+    } catch (Throwable $e) {
+        error_log('parent_links select (PATCH) failed: ' . $e->getMessage());
+        json_error('Verknüpfung konnte nicht geladen werden. Bitte später erneut versuchen.', 500);
+    }
     if (!$link) {
         json_error('Verknüpfung nicht gefunden.', 404);
     }
@@ -570,7 +632,12 @@ if ($method === 'PATCH' && $action === 'parent_links') {
     }
 
     $params[] = $linkId;
-    $pdo->prepare('UPDATE parent_links SET ' . implode(', ', $fields) . ' WHERE id = ?')->execute($params);
+    try {
+        $pdo->prepare('UPDATE parent_links SET ' . implode(', ', $fields) . ' WHERE id = ?')->execute($params);
+    } catch (Throwable $e) {
+        error_log('parent_links update failed: ' . $e->getMessage());
+        json_error('Verknüpfung konnte nicht aktualisiert werden.', 500);
+    }
     json_response(['message' => 'Verknüpfung aktualisiert.']);
 }
 
@@ -582,9 +649,14 @@ if ($method === 'DELETE' && $action === 'parent_links') {
     if ($linkId === '') {
         json_error('link_id fehlt.', 400);
     }
-    $linkStmt = $pdo->prepare('SELECT * FROM parent_links WHERE id = ?');
-    $linkStmt->execute([$linkId]);
-    $link = $linkStmt->fetch();
+    try {
+        $linkStmt = $pdo->prepare('SELECT * FROM parent_links WHERE id = ?');
+        $linkStmt->execute([$linkId]);
+        $link = $linkStmt->fetch();
+    } catch (Throwable $e) {
+        error_log('parent_links select (DELETE) failed: ' . $e->getMessage());
+        json_error('Verknüpfung konnte nicht geladen werden. Bitte später erneut versuchen.', 500);
+    }
     if (!$link) {
         json_error('Verknüpfung nicht gefunden.', 404);
     }
@@ -594,7 +666,12 @@ if ($method === 'DELETE' && $action === 'parent_links') {
     if (!$isParent && !$isChild && !$isAdmin) {
         json_error('Keine Berechtigung für diese Verknüpfung.', 403);
     }
-    $pdo->prepare('DELETE FROM parent_links WHERE id = ?')->execute([$linkId]);
+    try {
+        $pdo->prepare('DELETE FROM parent_links WHERE id = ?')->execute([$linkId]);
+    } catch (Throwable $e) {
+        error_log('parent_links delete failed: ' . $e->getMessage());
+        json_error('Verknüpfung konnte nicht aufgehoben werden.', 500);
+    }
     json_response(['message' => 'Verknüpfung aufgehoben.']);
 }
 
@@ -749,6 +826,14 @@ if ($method === 'GET') {
         }
         if (empty($profile['settings']['phone_visible'])) {
             $profile['phone_number'] = null;
+        }
+        // A4: private Zusatzkontakte auch serverseitig nullen
+        if (!empty($profile['settings']['custom_contacts']) && is_array($profile['settings']['custom_contacts'])) {
+            foreach ($profile['settings']['custom_contacts'] as $i => $contact) {
+                if (empty($contact['is_public'])) {
+                    $profile['settings']['custom_contacts'][$i]['value'] = null;
+                }
+            }
         }
     }
 

@@ -8,6 +8,7 @@ import { Trash2, Heart, ExternalLink, Share2 } from 'lucide-react';
 import { SubjectChip } from '../components/SubjectChip';
 import ShareDialog from '../components/ShareDialog';
 import { toast } from 'react-hot-toast';
+import { apiErrorMessage } from '../lib/api';
 import { formatAdPrice } from '../lib/utils';
 
 interface FavoriteAd {
@@ -34,12 +35,14 @@ export default function Favorites() {
 
     const [favorites, setFavorites] = useState<FavoriteAd[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<unknown>(null);
 
     // Share Dialog States
     const [sharingAd, setSharingAd] = useState<{ id: string; title: string } | null>(null);
 
     const fetchFavorites = async () => {
         setLoading(true);
+        setError(null);
         try {
             const { data, error } = await supabase
                 .from('favorites')
@@ -49,7 +52,7 @@ export default function Favorites() {
 
             if (error) {
                 console.error('Error fetching favorites:', error);
-                toast.error("Gespeicherte Anzeigen konnten nicht geladen werden.");
+                setError(error);
             } else if (data) {
                 const mapped: FavoriteAd[] = data.map((f: any) => {
                     const adData = f.ads || f;
@@ -73,6 +76,7 @@ export default function Favorites() {
             }
         } catch (err) {
             console.error('Catch error fetching favorites:', err);
+            setError(err);
         }
         setLoading(false);
     };
@@ -109,6 +113,15 @@ export default function Favorites() {
 
             {loading ? (
                 <div className="text-center py-20 text-gray-500 animate-pulse">Lade gespeicherte Anzeigen...</div>
+            ) : error ? (
+                <div role="alert" className="flex flex-col items-center justify-center p-12 text-center bg-white dark:bg-gray-900 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm mt-8">
+                    <div className="w-20 h-20 mb-6 rounded-full bg-red-50 dark:bg-red-950/30 flex items-center justify-center">
+                        <Heart size={36} className="text-red-400 dark:text-red-500" />
+                    </div>
+                    <h3 className="text-xl font-bold mb-2">Gespeicherte Anzeigen konnten nicht geladen werden</h3>
+                    <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">{apiErrorMessage(error, 'Prüfe deine Internetverbindung und versuche es erneut.')}</p>
+                    <Button onClick={() => fetchFavorites()} className="rounded-full shadow-md">Erneut versuchen</Button>
+                </div>
             ) : favorites.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-12 text-center bg-white dark:bg-gray-900 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm mt-8">
                     <div className="w-20 h-20 mb-6 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center">

@@ -35,6 +35,29 @@ export function setStoredUser(user: any | null) {
     }
 }
 
+// Übersetzt einen HTTP-Status in eine anzeigbare Standardmeldung (nur wenn das Backend keine liefert).
+function defaultHttpMessage(status: number): string {
+    if (status === 401) return 'Nicht angemeldet. Bitte melde dich erneut an.';
+    if (status === 403) return 'Zugriff nicht erlaubt.';
+    if (status === 404) return 'Nicht gefunden.';
+    if (status === 429) return 'Zu viele Anfragen. Bitte kurz warten.';
+    if (status >= 500) return `Server-Fehler (HTTP ${status}). Bitte später erneut versuchen.`;
+    return `Fehler (${status}).`;
+}
+
+// Liefert die konkrete, anzeigbare Fehlermeldung für Fehler-Cards:
+// Netz/Timeout vs. 403 vs. 5xx werden unterschieden (D4).
+export function apiErrorMessage(error: any, fallback: string = 'Es ist ein Fehler aufgetreten. Bitte erneut versuchen.'): string {
+    if (!error) return fallback;
+    if (typeof error.message === 'string' && error.message.trim() !== '') {
+        return error.message;
+    }
+    if (typeof error.status === 'number') {
+        return defaultHttpMessage(error.status);
+    }
+    return fallback;
+}
+
 export async function apiRequest<T = any>(
     endpoint: string,
     options: RequestInit = {}
@@ -69,7 +92,7 @@ export async function apiRequest<T = any>(
         } else {
             const text = await response.text();
             if (!response.ok) {
-                return { data: null, error: { message: text || `HTTP Fehler ${response.status}` } };
+                return { data: null, error: { message: defaultHttpMessage(response.status), status: response.status, code: null, rawText: text || null } };
             }
             // 200, aber kein JSON (z. B. PHP-Quelle bei fehlendem PHP-Runtime oder Proxy-Fehlerseite):
             // Niemals Rohtext als data durchreichen – das vergiftet alle Consumer (z. B. News-Modal).
@@ -87,11 +110,18 @@ export async function apiRequest<T = any>(
                     localStorage.removeItem(USER_KEY);
                 } catch { /* ignore */ }
             }
+            const code = json?.code || json?.details?.code || null;
+            // Belt-and-Braces (D5): Backend-Guard hat zugeschlagen, obwohl der Client-State
+            // noch „ok“ sagt -> Gate-UI über das Custom-Event sofort nachziehen.
+            if ((code === 'not_verified' || code === 'parent_link_required') && typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('fwg:access-denied', { detail: { code } }));
+            }
             return {
                 data: null,
                 error: {
-                    message: json?.error || `Fehler (${response.status})`,
+                    message: json?.error || defaultHttpMessage(response.status),
                     status: response.status,
+                    code,
                     details: json?.details
                 }
             };
@@ -105,7 +135,10 @@ export async function apiRequest<T = any>(
             error: {
                 message: isTimeout
                     ? 'Zeitüberschreitung: Der Server antwortet nicht. Bitte erneut versuchen.'
-                    : (err.message || 'Verbindung zum Server fehlgeschlagen. Bitte Internetverbindung prüfen.')
+                    : 'Keine Verbindung zum Server. Bitte Internetverbindung prüfen und erneut versuchen.',
+                status: undefined,
+                code: isTimeout ? 'timeout' : 'network',
+                isNetwork: !isTimeout || undefined
             }
         };
     } finally {
@@ -642,6 +675,24 @@ export const api = {
         }
     },
 
+    // Gespeicherte Suchen (B4)
+    savedSearches: {
+        async list() {
+            return apiRequest('/saved_searches.php');
+        },
+
+        async save(query: unknown) {
+            return apiRequest('/saved_searches.php', {
+                method: 'POST',
+                body: JSON.stringify({ query })
+            });
+        },
+
+        async remove(id: string) {
+            return apiRequest(`/saved_searches.php?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+        }
+    },
+
     // Analytics (Tracking öffentlich, Stats nur SV-Admin)
     analytics: {
         async track(path: string, deviceType: string, browser: string) {
@@ -649,6 +700,17 @@ export const api = {
                 method: 'POST',
                 body: JSON.stringify({ path, device_type: deviceType, browser })
             });
+        },
+
+        async trackCategory(subject: string) {
+            return apiRequest('/analytics.php?action=track_category', {
+                method: 'POST',
+                body: JSON.stringify({ subject })
+            });
+        },
+
+        async popularSubjects() {
+            return apiRequest('/analytics.php?action=popular_subjects');
         },
 
         async stats(days: 7 | 30 | 90 = 30) {

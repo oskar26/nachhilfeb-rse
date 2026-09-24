@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { Logo } from './ui/Logo';
+import { useAuth } from '../context/AuthContext';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -39,6 +40,7 @@ function scrollToSection(id: string): void {
 export default function SiteHeader() {
     const location = useLocation();
     const navigate = useNavigate();
+    const { user } = useAuth();
     const onWelcomePage = location.pathname === '/welcome' || location.pathname === '/landing';
     const [menuOpen, setMenuOpen] = useState(false);
     const reduceMotion = useReducedMotion();
@@ -189,6 +191,14 @@ export default function SiteHeader() {
                     </nav>
                     <div className="ml-auto flex min-w-0 shrink-0 items-center gap-2 lg:ml-4">
                         <p className="hidden max-w-[11rem] text-right text-[11px] font-bold uppercase leading-tight tracking-wide text-black lg:block">Ein Produkt der Schülervertretung</p>
+                        {!user && (
+                            <Link
+                                to="/login"
+                                className="press hidden h-10 items-center rounded-full border border-black/20 px-4 text-sm font-bold text-black transition-colors hover:bg-black/5 active:bg-black/10 lg:inline-flex"
+                            >
+                                Anmelden
+                            </Link>
+                        )}
                         <button
                             ref={burgerRef}
                             type="button"
@@ -298,6 +308,17 @@ export default function SiteHeader() {
                                     Ein Produkt der Schülervertretung
                                 </p>
                             </nav>
+                            {!user && (
+                                <div className="shrink-0 border-t border-white/10 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
+                                    <Link
+                                        to="/login"
+                                        onClick={closeMenu}
+                                        className="press flex h-12 w-full items-center justify-center rounded-full bg-primary text-base font-black text-amber-950"
+                                    >
+                                        Anmelden
+                                    </Link>
+                                </div>
+                            )}
                         </motion.div>
                     </div>
                 )}

@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
+import { TabBar } from '../../components/ui/TabBar';
 import { Input } from '../../components/ui/Input';
 import {
     Award,
@@ -227,58 +228,18 @@ export default function CoachPanel() {
             </div>
 
             {/* Navigation Tabs */}
-            <div className="flex bg-white dark:bg-gray-900 border border-gray-200/80 dark:border-gray-800 p-1.5 rounded-2xl gap-1 shadow-xs">
-                <button
-                    onClick={() => { triggerHaptic('selection'); setActiveTab('students'); }}
-                    className={cn(
-                        "flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
-                        activeTab === 'students' ? "bg-primary text-primary-foreground shadow-xs font-extrabold" : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
-                    )}
-                >
-                    <Users size={16} />
-                    <span>Schülerliste</span>
-                </button>
-                <button
-                    onClick={() => { triggerHaptic('selection'); setActiveTab('codes'); }}
-                    className={cn(
-                        "flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
-                        activeTab === 'codes' ? "bg-primary text-primary-foreground shadow-xs font-extrabold" : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
-                    )}
-                >
-                    <Key size={16} />
-                    <span>Coaching-Codes</span>
-                </button>
-                <button
-                    onClick={() => { triggerHaptic('selection'); setActiveTab('info'); }}
-                    className={cn(
-                        "flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer",
-                        activeTab === 'info' ? "bg-primary text-primary-foreground shadow-xs font-extrabold" : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
-                    )}
-                >
-                    <Megaphone size={16} />
-                    <span>Startseiten-Info</span>
-                </button>
-                <button
-                    onClick={() => { triggerHaptic('selection'); setActiveTab('logs'); }}
-                    className={cn(
-                        "flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[44px]",
-                        activeTab === 'logs' ? "bg-primary text-primary-foreground shadow-xs font-extrabold" : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
-                    )}
-                >
-                    <History size={16} />
-                    <span>Mein Protokoll</span>
-                </button>
-                <button
-                    onClick={() => { triggerHaptic('selection'); setActiveTab('seite'); }}
-                    className={cn(
-                        "flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[44px]",
-                        activeTab === 'seite' ? "bg-primary text-primary-foreground shadow-xs font-extrabold" : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
-                    )}
-                >
-                    <LayoutTemplate size={16} />
-                    <span>Seite</span>
-                </button>
-            </div>
+            <TabBar
+                ariaLabel="Coach-Bereich"
+                items={[
+                    { key: 'students', label: 'Schülerliste', icon: Users },
+                    { key: 'codes', label: 'Coaching-Codes', icon: Key },
+                    { key: 'info', label: 'Startseiten-Info', icon: Megaphone },
+                    { key: 'logs', label: 'Mein Protokoll', icon: History },
+                    { key: 'seite', label: 'Seite', icon: LayoutTemplate }
+                ]}
+                value={activeTab}
+                onChange={setActiveTab}
+            />
 
             {/* TAB 1: SCHÜLERLISTE */}
             {activeTab === 'students' && (

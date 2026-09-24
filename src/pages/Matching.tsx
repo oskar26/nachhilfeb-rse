@@ -9,6 +9,8 @@ import {
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
+import { TabBar } from '../components/ui/TabBar';
+import { VerifiedPill } from '../components/ui/VerifiedPill';
 import { AvailabilityCalendar, emptyAvailability, countMatches, type Availability } from '../components/AvailabilityCalendar';
 import { triggerHaptic } from '../lib/haptics';
 
@@ -248,9 +250,7 @@ function MatchCard({
                                     {ad.profiles?.display_name ?? 'FWG Schüler/in'}
                                 </p>
                                 {ad.profiles?.is_verified && (
-                                    <span title="Verifizierter Account" className="inline-flex items-center gap-1 text-[11px] font-bold bg-green-500/15 text-green-700 dark:text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full">
-                                        <CheckCircle2 size={12} className="shrink-0" aria-hidden="true" /> Verifiziert
-                                    </span>
+                                    <VerifiedPill />
                                 )}
                             </div>
                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-medium flex items-center gap-1.5">
@@ -695,66 +695,28 @@ export default function Matching() {
 
     return (
         <div className="space-y-6">
-            {/* Filter Tabs */}
-            <div className="flex flex-wrap items-center justify-between gap-3 bg-gray-100/80 dark:bg-gray-800/80 p-1.5 rounded-2xl border dark:border-gray-700/50">
-                <div className="flex items-center gap-1">
-                    <button
-                        onClick={() => {
-                            triggerHaptic('light');
-                            setFilterMode('all');
-                        }}
-                        className={cn(
-                            'px-3 py-1.5 rounded-xl text-xs font-bold transition-all',
-                            filterMode === 'all'
-                                ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-xs'
-                                : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
-                        )}
-                    >
-                        Alle ({allMatches.length})
-                    </button>
-                    <button
-                        onClick={() => {
-                            triggerHaptic('light');
-                            setFilterMode('seeking');
-                        }}
-                        className={cn(
-                            'px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5',
-                            filterMode === 'seeking'
-                                ? 'bg-white dark:bg-gray-900 text-amber-600 dark:text-amber-400 shadow-xs'
-                                : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
-                        )}
-                    >
-                        <GraduationCap size={14} className="text-amber-500" />
-                        <span>Ich suche Nachhilfe</span>
-                    </button>
-                    <button
-                        onClick={() => {
-                            triggerHaptic('light');
-                            setFilterMode('offering');
-                        }}
-                        className={cn(
-                            'px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5',
-                            filterMode === 'offering'
-                                ? 'bg-white dark:bg-gray-900 text-blue-600 dark:text-blue-400 shadow-xs'
-                                : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
-                        )}
-                    >
-                        <Search size={14} className="text-blue-500" />
-                        <span>Ich biete Nachhilfe</span>
-                    </button>
-                </div>
+            {/* Filter – eine Leiste statt zwei gestapelter Bars (B5) */}
+            <TabBar
+                ariaLabel="Match-Filter"
+                items={[
+                    { key: 'all', label: 'Alle', count: allMatches.length },
+                    { key: 'seeking', label: 'Ich suche', icon: GraduationCap },
+                    { key: 'offering', label: 'Ich biete', icon: Search }
+                ]}
+                value={filterMode}
+                onChange={setFilterMode}
+            />
 
-                {dismissedIds.length > 0 && (
-                    <button
-                        onClick={handleResetDismissed}
-                        className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-500 hover:text-primary px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
-                        title="Ausgeblendete Matches zurücksetzen"
-                    >
-                        <RotateCcw size={12} />
-                        <span>{dismissedIds.length} ausgeblendete wiederherstellen</span>
-                    </button>
-                )}
-            </div>
+            {dismissedIds.length > 0 && (
+                <button
+                    onClick={handleResetDismissed}
+                    className="mx-auto flex items-center gap-1.5 text-[11px] font-semibold text-gray-500 hover:text-primary px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+                    title="Ausgeblendete Matches zurücksetzen"
+                >
+                    <RotateCcw size={12} />
+                    <span>{dismissedIds.length} ausgeblendete wiederherstellen</span>
+                </button>
+            )}
 
             {/* Loading */}
             {loading && (

@@ -6,6 +6,7 @@ import { CheckCircle2, Users, ArrowRight, Loader2, KeyRound, Search, UserPlus } 
 import { cn } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
+import { OtpInput } from './ui/OtpInput';
 
 interface ParentLinkFlowProps {
     isOpen: boolean;
@@ -71,14 +72,15 @@ export default function ParentLinkFlow({ isOpen, onClose, onSuccess }: ParentLin
         onClose();
     };
 
-    const handleCodeLookup = async () => {
-        if (code.trim().length < 4) {
+    const handleCodeLookup = async (codeOverride?: string) => {
+        const raw = (codeOverride ?? code).trim();
+        if (raw.length < 4) {
             toast.error('Bitte gib einen gültigen Code ein.');
             return;
         }
         setLoading(true);
         try {
-            const upperCode = code.trim().toUpperCase();
+            const upperCode = raw.toUpperCase();
             const { data, error } = await api.parentLinks.lookupCode(upperCode);
             if (error) {
                 const msg = (error as { message?: string } | null)?.message || 'Kein Kind mit diesem Code gefunden.';
@@ -249,14 +251,12 @@ export default function ParentLinkFlow({ isOpen, onClose, onSuccess }: ParentLin
                                     <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
                                         Kind-Code
                                     </label>
-                                    <input
-                                        type="text"
+                                    <OtpInput
                                         value={code}
-                                        onChange={e => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6))}
-                                        placeholder="Z.B. A1B2C3"
-                                        maxLength={6}
-                                        className="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-center text-2xl font-mono font-bold tracking-[0.5em] focus:ring-2 focus:ring-primary outline-none transition"
-                                        onKeyDown={e => e.key === 'Enter' && handleCodeLookup()}
+                                        onChange={setCode}
+                                        onComplete={handleCodeLookup}
+                                        length={6}
+                                        ariaLabel="Kind-Code"
                                     />
                                 </div>
                             </div>
@@ -340,7 +340,7 @@ export default function ParentLinkFlow({ isOpen, onClose, onSuccess }: ParentLin
                                 Abbrechen
                             </Button>
                             {method === 'code' ? (
-                                <Button onClick={handleCodeLookup} disabled={loading || code.trim().length < 4} className="flex-1">
+                                <Button onClick={() => handleCodeLookup()} disabled={loading || code.trim().length < 4} className="flex-1">
                                     {loading ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
                                     Weiter <ArrowRight size={16} className="ml-2" />
                                 </Button>

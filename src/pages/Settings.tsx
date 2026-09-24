@@ -17,31 +17,7 @@ import { Logo } from '../components/ui/Logo';
 import { cn } from '../lib/utils';
 import { triggerHaptic } from '../lib/haptics';
 import { requestPushPermission } from '../lib/push';
-
-function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: () => void }) {
-    return (
-        <button
-            type="button"
-            onClick={() => {
-                triggerHaptic('selection');
-                onChange();
-            }}
-            className={cn(
-                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 select-none",
-                checked ? "bg-primary" : "bg-gray-200 dark:bg-gray-700"
-            )}
-        >
-            <motion.span
-                layout
-                transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                className={cn(
-                    "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-md ring-0",
-                    checked ? "translate-x-5" : "translate-x-0"
-                )}
-            />
-        </button>
-    );
-}
+import { Switch } from '../components/ui/Switch';
 
 export default function Settings() {
     const { theme, setTheme } = useTheme();
@@ -308,9 +284,10 @@ export default function Settings() {
                                 <h4 className="font-bold text-xs text-gray-900 dark:text-white">E-Mail-Adresse anzeigen</h4>
                                 <p className="text-[11px] text-gray-500">Zeigt deine E-Mail-Adresse öffentlich im Profil/Anzeigen an</p>
                             </div>
-                            <ToggleSwitch
+                            <Switch
                                 checked={settings.email_visible}
                                 onChange={() => updateSetting('email_visible')}
+                                label="E-Mail-Adresse anzeigen"
                             />
                         </div>
 
@@ -319,9 +296,10 @@ export default function Settings() {
                                 <h4 className="font-bold text-xs text-gray-900 dark:text-white">Telefonnummer anzeigen</h4>
                                 <p className="text-[11px] text-gray-500">Zeigt deine Telefonnummer öffentlich für Anfragen an</p>
                             </div>
-                            <ToggleSwitch
+                            <Switch
                                 checked={settings.phone_visible}
                                 onChange={() => updateSetting('phone_visible')}
+                                label="Telefonnummer anzeigen"
                             />
                         </div>
                     </CardContent>

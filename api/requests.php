@@ -11,7 +11,8 @@ require_once __DIR__ . '/mailer.php';
 
 cors_headers();
 
-$user = require_auth();
+// Zugriffsstufe (D5): Anfragen erst nach Verifizierung / Eltern-Verknüpfung.
+$user = require_verified();
 $method = $_SERVER['REQUEST_METHOD'];
 $pdo = DB::getConnection();
 $id = $_GET['id'] ?? null;
@@ -59,10 +60,22 @@ if ($method === 'GET') {
     $stmt->execute([$user['id'], $user['id']]);
     $rows = $stmt->fetchAll();
 
+    // Datenschutz (A4): private Zusatzkontakte bei Fremd-Sicht nullen
+    $maskContacts = function (array $settings, string $profileId) use ($user): array {
+        if ($profileId !== $user['id'] && !empty($settings['custom_contacts']) && is_array($settings['custom_contacts'])) {
+            foreach ($settings['custom_contacts'] as $i => $contact) {
+                if (empty($contact['is_public'])) {
+                    $settings['custom_contacts'][$i]['value'] = null;
+                }
+            }
+        }
+        return $settings;
+    };
+
     foreach ($rows as &$r) {
         $r['ad_subjects'] = json_decode($r['ad_subjects'] ?? '[]', true);
-        $reqSettings = json_decode($r['requester_settings'] ?? '{}', true) ?: [];
-        $ownSettings = json_decode($r['owner_settings'] ?? '{}', true) ?: [];
+        $reqSettings = $maskContacts(json_decode($r['requester_settings'] ?? '{}', true) ?: [], (string)$r['requester_id']);
+        $ownSettings = $maskContacts(json_decode($r['owner_settings'] ?? '{}', true) ?: [], (string)$r['owner_id']);
 
         $r['requester'] = [
             'id' => $r['requester_id'],

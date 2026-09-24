@@ -24,9 +24,50 @@ try {
 } catch (Exception $e) {}
 
 // ------------------------------------------------------------------------------
+// B4: Matching-Helfer für gespeicherte Suchen (Benachrichtigung nach Publish)
+// ------------------------------------------------------------------------------
+function fwg_saved_hourly_rate(array $details): ?float {
+    if (($details['mode'] ?? '') !== 'fixed' || !isset($details['value']) || !is_numeric($details['value'])) return null;
+    $unit = strtolower((string)($details['unit'] ?? '45min'));
+    if (preg_match('/^(\d+)/', $unit, $m)) {
+        $mins = (int)$m[1];
+    } elseif (strpos($unit, 'h') !== false || strpos($unit, 'std') !== false) {
+        $mins = 60;
+    } else {
+        $mins = 45;
+    }
+    if ($mins <= 0) return null;
+    return round(((float)$details['value'] / $mins) * 60, 1);
+}
+
+function fwg_saved_search_matches(array $q, string $type, array $subjects, array $gradeLevels, array $priceDetails): bool {
+    // Fach (Pflichtkriterium, wenn in der Suche gesetzt)
+    if (!empty($q['subject']) && !in_array($q['subject'], $subjects, true)) return false;
+
+    // Anzeigentyp (offer/search; 'all' passt immer)
+    if (($q['type'] ?? 'all') !== 'all' && ($q['type'] ?? 'all') !== $type) return false;
+
+    // Klassenstufen (optional)
+    $qGrades = is_array($q['grades'] ?? null) ? $q['grades'] : [];
+    if (!empty($qGrades) && empty(array_intersect($qGrades, $gradeLevels))) return false;
+
+    // Preis (optional; nur prüfbar, wenn ein Stundenpreis berechenbar ist)
+    $min = (float)($q['minPrice'] ?? 0);
+    $max = (float)($q['maxPrice'] ?? 0);
+    $rate = is_array($priceDetails) ? fwg_saved_hourly_rate($priceDetails) : null;
+    if ($rate !== null && $max > 0 && ($rate < $min || $rate > $max)) return false;
+
+    return true;
+}
+
+// ------------------------------------------------------------------------------
 // 1. GET: ANZEIGEN ABRUFEN (Liste oder Einzelanzeige)
+// Zugriffsstufe (D5): erst nach Verifizierung / bei Eltern mit verknüpftem Kind.
+// Ausnahme: eigene Anzeigen (user_id = eigener Account), damit Profile/Settings
+// auch für unverifizierte Konten funktionieren.
 // ------------------------------------------------------------------------------
 if ($method === 'GET') {
+    $viewer = require_auth();
     if ($id) {
         // Einzelne Anzeige mit Profil-Daten
         $stmt = $pdo->prepare('
@@ -44,6 +85,12 @@ if ($method === 'GET') {
 
         if (!$ad) {
             json_error('Anzeige nicht gefunden.', 404);
+        }
+
+        // Eigene Anzeige bleibt für unverifizierte Konten einsehbar (Profil/Settings),
+        // fremde Anzeigen erfordern Verifizierung / Eltern-Verknüpfung.
+        if ($ad['user_id'] !== $viewer['id']) {
+            require_verified();
         }
 
         // JSON Felder dekodieren
@@ -80,6 +127,15 @@ if ($method === 'GET') {
             'settings' => $userSettings
         ];
 
+        // Datenschutz (A4): private Zusatzkontakte bei Fremd-Sicht nullen
+        if ($ad['user_id'] !== $viewer['id'] && !empty($ad['profiles']['settings']['custom_contacts']) && is_array($ad['profiles']['settings']['custom_contacts'])) {
+            foreach ($ad['profiles']['settings']['custom_contacts'] as $i => $contact) {
+                if (empty($contact['is_public'])) {
+                    $ad['profiles']['settings']['custom_contacts'][$i]['value'] = null;
+                }
+            }
+        }
+
         json_response($ad);
     }
 
@@ -90,6 +146,12 @@ if ($method === 'GET') {
     $userId = $_GET['user_id'] ?? null;
     $search = mb_substr(trim($_GET['search'] ?? ''), 0, 100);
     $onlyActive = !isset($_GET['all']) || $_GET['all'] !== '1';
+
+    // Eigene Anzeigen (user_id = eigener Account) bleiben für unverifizierte Konten
+    // sichtbar (Profil/Settings); alles andere erfordert Verifizierung (D5).
+    if (!(is_string($userId) && $userId === $viewer['id'])) {
+        require_verified();
+    }
 
     $where = [];
     $params = [];
@@ -300,6 +362,38 @@ if ($method === 'POST') {
         $boostedUntil,
         $usedPromoCode
     ]);
+
+    // B4: Gespeicherte Suchen auf die neue Anzeige prüfen und benachrichtigen
+    // (max. 1 Benachrichtigung pro Suche/24 h über last_notified_at).
+    try {
+        $savedStmt = $pdo->prepare('
+            SELECT id, user_id, query
+            FROM saved_searches
+            WHERE user_id <> ?
+              AND (last_notified_at IS NULL OR last_notified_at < DATE_SUB(NOW(), INTERVAL 24 HOUR))
+        ');
+        $savedStmt->execute([$user['id']]);
+        foreach ($savedStmt->fetchAll() as $saved) {
+            $q = json_decode((string)$saved['query'], true);
+            if (!is_array($q)) continue;
+            if (!fwg_saved_search_matches($q, $type, $subjects, $gradeLevels, $priceDetails)) continue;
+
+            $pdo->prepare('
+                INSERT INTO notifications (id, user_id, type, title, message, data)
+                VALUES (?, ?, "info", ?, ?, ?)
+            ')->execute([
+                generate_uuid(),
+                $saved['user_id'],
+                'Neue Anzeige zu deiner gemerkten Suche',
+                '„' . mb_substr($shortDesc, 0, 120) . '“ passt zu deiner gemerkten Suche.',
+                json_encode(['link' => '/#/'])
+            ]);
+            $pdo->prepare('UPDATE saved_searches SET last_notified_at = NOW() WHERE id = ?')->execute([$saved['id']]);
+        }
+    } catch (Throwable $e) {
+        // Benachrichtigungen dürfen das Erstellen der Anzeige nie verhindern.
+        error_log('saved search notify failed: ' . $e->getMessage());
+    }
 
     json_response([
         'id' => $adId,

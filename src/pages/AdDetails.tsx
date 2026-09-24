@@ -13,6 +13,8 @@ import ShareDialog from '../components/ShareDialog';
 import { AvailabilityCalendar, emptyAvailability, countMatches, type Availability } from '../components/AvailabilityCalendar';
 import { sanitizeHtml } from '../lib/sanitize';
 import { formatAdPrice, formatHourlyFromDetails } from '../lib/utils';
+import { VerifiedPill } from '../components/ui/VerifiedPill';
+import { CustomContactsList, publicCustomContacts } from '../components/CustomContacts';
 
 export default function AdDetails() {
     const { id } = useParams();
@@ -168,9 +170,7 @@ export default function AdDetails() {
                                 <div className="flex flex-wrap items-center gap-2 mb-2">
                                     <h1 className="text-2xl font-bold">{ad.subjects?.[0]?.toUpperCase() || 'Nachhilfe'} - {profile?.display_name || 'Nutzer'}</h1>
                                     {profile?.is_verified && (
-                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-green-100 text-green-800 dark:bg-green-950/50 dark:text-green-300 px-2 py-0.5 rounded-full border border-green-200 dark:border-green-900 shrink-0">
-                                            <CheckCircle size={12} aria-hidden="true" /> Verifiziert
-                                        </span>
+                                        <VerifiedPill className="shrink-0" />
                                     )}
                                 </div>
                                 <p className="text-gray-500 text-lg">{ad.type === 'offer' ? 'Biete Nachhilfe' : 'Suche Nachhilfe'}</p>
@@ -307,12 +307,13 @@ export default function AdDetails() {
                                                     <Mail size={20} /> {profile.email}
                                                 </a>
                                             )}
-                                            {(!profile?.settings?.phone_visible && !profile?.settings?.email_visible) && (
+                                            {(!profile?.settings?.phone_visible && !profile?.settings?.email_visible && publicCustomContacts(profile?.settings?.custom_contacts).length === 0) && (
                                                 <div className="p-4 bg-gray-100/70 dark:bg-gray-800/60 text-gray-500 dark:text-gray-400 rounded-xl border border-gray-200 dark:border-gray-800 col-span-2 text-center text-xs">
                                                     Dieser Nutzer hat seine Kontaktdaten auf privat gestellt. Bitte kontaktiere ihn direkt über den Moodle-Namen ({profile?.moodle_name || 'Kein Moodle Name angegeben'}) oder im Chat.
                                                 </div>
                                             )}
                                         </div>
+                                        <CustomContactsList contacts={profile?.settings?.custom_contacts} />
                                     </div>
                                 )}
                                 {status === 'rejected' && (

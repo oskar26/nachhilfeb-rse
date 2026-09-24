@@ -11,7 +11,8 @@ require_once __DIR__ . '/mailer.php';
 
 cors_headers();
 
-$user = require_auth();
+// Zugriffsstufe (D5): Chat erst nach Verifizierung / Eltern-Verknüpfung.
+$user = require_verified();
 $method = $_SERVER['REQUEST_METHOD'];
 $pdo = DB::getConnection();
 

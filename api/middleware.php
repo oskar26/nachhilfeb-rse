@@ -96,6 +96,35 @@ function require_admin(): array {
     return $user;
 }
 
+// Zugriffsstufe (D5): Nur verifizierte Konten – Eltern erst mit aktiv verknüpftem Kind –
+// dürfen Feed/Anzeigen, Anfragen, Chat, Merkliste und Bewertungen nutzen.
+// SV-/Coach-Admins bleiben rollout-sicher ausgenommen. Liefert JSON-`code` für den Client-Guard.
+function require_verified(): array {
+    $user = require_auth();
+    if (in_array($user['role'], ['sv_admin', 'coach_admin'], true)) {
+        return $user;
+    }
+    if ($user['role'] === 'parent') {
+        $pdo = DB::getConnection();
+        $hasActiveLink = false;
+        try {
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM parent_links WHERE parent_id = ? AND status = 'active'");
+            $stmt->execute([$user['id']]);
+            $hasActiveLink = (int)$stmt->fetchColumn() > 0;
+        } catch (Throwable $e) {
+            error_log('require_verified parent link check failed: ' . $e->getMessage());
+        }
+        if (!$hasActiveLink) {
+            json_error('Bitte verknüpfen Sie zuerst ein Kind, um diese Funktion zu nutzen.', 403, ['code' => 'parent_link_required']);
+        }
+        return $user;
+    }
+    if (empty($user['is_verified'])) {
+        json_error('Du musst dich erst verifizieren.', 403, ['code' => 'not_verified']);
+    }
+    return $user;
+}
+
 function require_coach_or_admin(): array {
     $user = require_auth();
     if ($user['role'] !== 'sv_admin' && $user['role'] !== 'coach_admin') {

@@ -14,6 +14,7 @@ import type { Subject } from '../components/SubjectChip';
 import { sanitizeHtml } from '../lib/sanitize';
 import { triggerHaptic } from '../lib/haptics';
 import { cn, formatAdPrice } from '../lib/utils';
+import { VerifiedPill } from '../components/ui/VerifiedPill';
 import ShareDialog from '../components/ShareDialog';
 import { extractDominantGradient, getDefaultGradient } from '../lib/colorExtractor';
 import { useAuth } from '../context/AuthContext';
@@ -108,7 +109,7 @@ export default function PublicProfile() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="p-4 max-w-3xl mx-auto pb-28 space-y-6"
+            className="p-4 max-w-5xl mx-auto pb-28 space-y-6"
         >
             <motion.div variants={itemVariants} className="flex items-center justify-between gap-2">
                 <Button
@@ -141,7 +142,7 @@ export default function PublicProfile() {
                 <Card className="relative p-0 overflow-hidden border border-gray-200/80 dark:border-gray-800 shadow-xs bg-white dark:bg-gray-900 rounded-3xl">
                     <div className="h-36 transition-all duration-700 shadow-inner" style={{ background: bannerGradient }}></div>
                     <CardContent className="pt-0 px-6 sm:px-8 pb-8 relative">
-                        <div className="flex flex-col md:flex-row items-center md:items-end gap-6 mb-6">
+                        <div className="flex flex-col md:flex-row items-center md:items-end gap-6">
                             <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-white dark:bg-gray-950 p-1 shadow-md overflow-hidden border-4 border-white dark:border-gray-950 -mt-16 shrink-0">
                                 {profile.avatar_url ? (
                                     <img src={profile.avatar_url} className="w-full h-full object-cover rounded-2xl" />
@@ -155,9 +156,7 @@ export default function PublicProfile() {
                                 <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-gray-900 dark:text-white flex items-center justify-center md:justify-start gap-2 flex-wrap">
                                     {profile.display_name || 'FWG Nutzer'}
                                     {profile.is_verified && (
-                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-green-100 text-green-800 dark:bg-green-950/50 dark:text-green-300 px-2 py-0.5 rounded-full border border-green-200 dark:border-green-900">
-                                            <CheckCircle size={12} aria-hidden="true" /> Verifiziert
-                                        </span>
+                                        <VerifiedPill />
                                     )}
                                 </h1>
                                 <p className="text-gray-500 dark:text-gray-400 font-semibold flex items-center justify-center md:justify-start gap-2 mt-1">
@@ -189,8 +188,15 @@ export default function PublicProfile() {
                             </div>
                         </div>
 
-                        <div className="grid md:grid-cols-3 gap-6 pt-6 border-t border-gray-100 dark:border-gray-800">
-                            <div className="col-span-2 space-y-6">
+                    </CardContent>
+                </Card>
+            </motion.div>
+
+            {/* Ab md zweispaltig: links Bio/Kontakt/Statistik, rechts Verfügbarkeit + Anzeigen */}
+            <div className="grid gap-6 md:grid-cols-2 items-start">
+                <div className="space-y-6 min-w-0">
+                    <motion.div variants={itemVariants}>
+                        <Card className="p-5 border border-gray-200/80 dark:border-gray-800 shadow-xs bg-white dark:bg-gray-900 rounded-3xl">
                                 <div>
                                     <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-2">Über mich</h3>
                                     <div 
@@ -198,11 +204,12 @@ export default function PublicProfile() {
                                         dangerouslySetInnerHTML={{ __html: sanitizeHtml(profile.bio || '<p class="text-gray-400 italic">Keine Biografie angegeben.</p>') }}
                                     />
                                 </div>
-                            </div>
+                        </Card>
+                    </motion.div>
 
-                            <div className="space-y-6">
-                                <div>
-                                    <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-3">Statistiken</h3>
+                    <motion.div variants={itemVariants}>
+                        <Card className="p-5 border border-gray-200/80 dark:border-gray-800 shadow-xs bg-white dark:bg-gray-900 rounded-3xl">
+                            <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-3">Statistiken</h3>
                                     <div className="space-y-2.5">
                                         <div className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
                                             <span className="text-xs text-gray-500 font-medium flex items-center gap-2"><Star size={14} className="text-yellow-500" /> Bewertung</span>
@@ -223,13 +230,15 @@ export default function PublicProfile() {
                                             })()}</span>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
+                        </Card>
+                    </motion.div>
+                </div>
 
-                        {/* Availability Calendar (Freistunden & Zeiten) */}
-                        {profile.availability && (
-                            <div className="pt-6 mt-6 border-t border-gray-100 dark:border-gray-800">
+                {/* Rechte Spalte: Verfügbarkeit + Anzeigen */}
+                <div className="space-y-6 min-w-0">
+                    {profile.availability && (
+                        <motion.div variants={itemVariants}>
+                            <Card className="p-5 border border-gray-200/80 dark:border-gray-800 shadow-xs bg-white dark:bg-gray-900 rounded-3xl">
                                 <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-1.5">
                                     <Calendar size={14} className="text-primary" /> Wann hat {profile.display_name || 'dieser Nutzer'} Zeit?
                                 </h3>
@@ -237,11 +246,9 @@ export default function PublicProfile() {
                                     availability={profile.availability}
                                     matchWith={myAvailability}
                                 />
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-            </motion.div>
+                            </Card>
+                        </motion.div>
+                    )}
 
             {/* Ads Feed */}
             <motion.div variants={itemVariants} className="space-y-4">
@@ -286,7 +293,9 @@ export default function PublicProfile() {
                         ))}
                     </div>
                 )}
-            </motion.div>
+                    </motion.div>
+                </div>
+            </div>
 
             {/* Share Dialog */}
             <ShareDialog

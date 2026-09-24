@@ -97,7 +97,7 @@ export default function Datenschutz() {
                     <p><strong>Profil & Anzeigen (Art. 6 Abs. 1 lit. b DSGVO):</strong> Alle Angaben, die du freiwillig in Profil und Anzeigen einträgst (Fächer, Beschreibung, Preise, Verfügbarkeiten, Profilbild). Anzeigen sind für alle angemeldeten Nutzer sichtbar.</p>
                     <p><strong>Nachrichten & Anfragen (Art. 6 Abs. 1 lit. b DSGVO):</strong> Chat-Nachrichten und Anfragen zwischen Nutzern, damit die Vermittlung funktioniert.</p>
                     <p><strong>Verifizierung & Sicherheit (Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse am Schutz Minderjähriger)):</strong> Verifizierungsstatus, Sperrstatus bei Regelverstößen sowie ein Protokoll von Moderationsmaßnahmen (wer wurde wann von wem aus welchem Grund verwarnt/gesperrt).</p>
-                    <p><strong>Anonyme Nutzungsstatistik (Art. 6 Abs. 1 lit. f DSGVO):</strong> Wir erfassen in anonymisierter Form, welche Seiten aufgerufen werden (Seitenpfad, Gerätetyp, Browser, Uhrzeit), um die App zu verbessern. Es werden <strong>keine IP-Adressen gespeichert</strong>, keine Cookies zu Analysezwecken gesetzt und <strong>keine externen Analyse- oder Werbedienste</strong> (z. B. Google Analytics) eingesetzt.</p>
+                    <p><strong>Anonyme Nutzungsstatistik (Art. 6 Abs. 1 lit. f DSGVO):</strong> Wir erfassen in anonymisierter Form, welche Seiten aufgerufen werden (Seitenpfad, Gerätetyp, Browser, Uhrzeit), um die App zu verbessern. Es werden <strong>keine IP-Adressen gespeichert</strong>, keine Cookies zu Analysezwecken gesetzt und <strong>keine externen Analyse- oder Werbedienste</strong> (z. B. Google Analytics) eingesetzt. Zusätzlich zählen wir anonym, welche Fächer über die „Beliebt“-Schnellfilter im Feed angetippt werden (nur Fachname und Zeitpunkt, ohne IP- oder Nutzerbezug), um die Reihenfolge der beliebtesten Fächer zu bestimmen.</p>
                     <p><strong>Technisch notwendige Speicherung:</strong> Anmeldestatus und Einstellungen (z. B. Theme, Hinweis-Status) werden lokal in deinem Browser (Local Storage) abgelegt. Das ist für den Betrieb erforderlich; eine Einwilligung ist dafür nach § 25 Abs. 2 TDDDG nicht nötig.</p>
                 </Section>
 
@@ -138,7 +138,7 @@ export default function Datenschutz() {
                     <ul className="list-disc pl-4 space-y-1">
                         <li><strong>Accounts & Inhalte:</strong> solange dein Account besteht. Inaktive Anzeigen kannst du selbst löschen.</li>
                         <li><strong>Nach Account-Löschung:</strong> Wir löschen Profil, Anzeigen und Nachrichten oder anonymisieren sie, soweit keine gesetzlichen Aufbewahrungspflichten entgegenstehen. Moderationsprotokolle (Sperren, Verwarnungen) bewahren wir zum Schutz der Community noch <strong>12 Monate</strong> auf und löschen sie danach.</li>
-                        <li><strong>Anonyme Statistik:</strong> aggregierte Aufrufzahlen ohne Personenbezug, unbefristet (kein Personenbezug, daher kein Löschanspruch).</li>
+                        <li><strong>Anonyme Statistik:</strong> aggregierte Aufruf- und Fächer-Klickzahlen ohne Personenbezug, unbefristet (kein Personenbezug, daher kein Löschanspruch).</li>
                     </ul>
                 </Section>
 

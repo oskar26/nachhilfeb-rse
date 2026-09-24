@@ -3,9 +3,10 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/Tabs';
+import { TabBar } from '../components/ui/TabBar';
 import { CheckCircle, XCircle, Phone, Mail, Star, Inbox, Search, MessageSquare, EyeOff } from 'lucide-react';
 import { RatingDialog } from '../components/RatingDialog';
+import { CustomContactsList } from '../components/CustomContacts';
 import { useNavigate } from 'react-router-dom';
 import { getHiddenChatIds, unhideChatId } from './Chat';
 
@@ -19,6 +20,7 @@ export default function Requests() {
     const [hiddenIds, setHiddenIds] = useState<string[]>(() => getHiddenChatIds());
     const visibleIncoming = incoming.filter(r => !hiddenIds.includes(r.id));
     const visibleOutgoing = outgoing.filter(r => !hiddenIds.includes(r.id));
+    const [activeTab, setActiveTab] = useState<'incoming' | 'outgoing'>('incoming');
 
     const unhideAll = () => {
         hiddenIds.forEach(unhideChatId);
@@ -93,16 +95,18 @@ export default function Requests() {
                     <EyeOff size={14} /> Verborgene Chats einblenden ({hiddenIds.length})
                 </button>
             )}
-            <Tabs defaultValue="incoming">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="incoming">
-                        Eingang
-                        {stats.incoming > 0 && <span className="ml-2 bg-red-500 text-white text-[10px] px-1.5 rounded-full">{stats.incoming}</span>}
-                    </TabsTrigger>
-                    <TabsTrigger value="outgoing">Gesendet</TabsTrigger>
-                </TabsList>
+            <TabBar
+                ariaLabel="Anfragen"
+                items={[
+                    { key: 'incoming', label: 'Eingang', count: stats.incoming },
+                    { key: 'outgoing', label: 'Gesendet' }
+                ]}
+                value={activeTab}
+                onChange={setActiveTab}
+            />
 
-                <TabsContent value="incoming" className="space-y-4 mt-4">
+            {activeTab === 'incoming' && (
+                <div className="space-y-4 mt-4">
                     {visibleIncoming.length === 0 && (
                         <div className="flex flex-col items-center justify-center p-12 text-center bg-white dark:bg-gray-900 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm mt-8 animate-in fade-in zoom-in-95 duration-500">
                             <div className="w-24 h-24 mb-6 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
@@ -166,6 +170,7 @@ export default function Requests() {
                                                 </div>
                                             )}
                                         </div>
+                                        <CustomContactsList contacts={req.requester?.settings?.custom_contacts} />
                                         <div className="flex gap-2">
                                             <Button variant="outline" size="sm" className="flex-1" onClick={() => navigate(`/chat/${req.id}`)}>
                                                 <MessageSquare size={14} className="mr-2" /> Chat
@@ -179,9 +184,11 @@ export default function Requests() {
                             </CardContent>
                         </Card>
                     ))}
-                </TabsContent>
+                </div>
+            )}
 
-                <TabsContent value="outgoing" className="space-y-4 mt-4">
+            {activeTab === 'outgoing' && (
+                <div className="space-y-4 mt-4">
                     {visibleOutgoing.length === 0 && (
                         <div className="flex flex-col items-center justify-center p-12 text-center bg-white dark:bg-gray-900 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm mt-8 animate-in fade-in zoom-in-95 duration-500">
                             <div className="w-24 h-24 mb-6 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
@@ -235,6 +242,7 @@ export default function Requests() {
                                                 </div>
                                             )}
                                         </div>
+                                        <CustomContactsList contacts={req.owner?.settings?.custom_contacts} />
                                         <div className="flex gap-2">
                                             <Button variant="outline" size="sm" className="flex-1" onClick={() => navigate(`/chat/${req.id}`)}>
                                                 <MessageSquare size={14} className="mr-2" /> Chat
@@ -248,8 +256,8 @@ export default function Requests() {
                             </CardContent>
                         </Card>
                     ))}
-                </TabsContent>
-            </Tabs>
+                </div>
+            )}
 
             <RatingDialog
                 open={ratingOpen}

@@ -44,7 +44,7 @@ export function CookieBanner() {
                             <ShieldCheck size={15} className="text-green-500" aria-hidden="true" /> Datenschutz & Cookies
                         </p>
                         <p className="text-gray-500 dark:text-gray-400 text-xs leading-relaxed">
-                            Nur zur Info: Wir speichern <strong>technisch Notwendiges</strong> in deinem Browser (Anmeldung, Einstellungen wie Dark Mode). Zusätzlich zählen wir anonym auf unserem Server, welche Seiten aufgerufen werden – <strong>ohne IP-Adresse und ohne Drittanbieter</strong>. Mehr dazu in unserer{' '}
+                            Nur zur Info: Wir speichern <strong>technisch Notwendiges</strong> in deinem Browser (Anmeldung, Einstellungen wie Dark Mode). Zusätzlich zählen wir anonym auf unserem Server, welche Seiten aufgerufen werden und welche „Beliebt“-Fächer im Feed angetippt werden – <strong>ohne IP-Adresse und ohne Drittanbieter</strong>. Mehr dazu in unserer{' '}
                             <Link to="/datenschutz" className="underline font-semibold hover:text-primary-hover">
                                 Datenschutzerklärung
                             </Link>{' '}

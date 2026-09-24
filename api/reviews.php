@@ -56,7 +56,7 @@ if ($method === 'GET') {
 // 2. POST: BEWERTUNG ERSTELLEN
 // ------------------------------------------------------------------------------
 if ($method === 'POST') {
-    $user = require_auth();
+    $user = require_verified();
     $data = get_json_input();
 
     $targetUserId = $data['target_user_id'] ?? null;

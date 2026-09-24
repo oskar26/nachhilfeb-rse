@@ -336,20 +336,26 @@ if ($action === 'parent_links' && $method === 'GET') {
         json_error('Gültige user_id erforderlich.');
     }
 
-    $stmt = $pdo->prepare('
-        SELECT l.*,
-               p.display_name as parent_name,
-               c.display_name as child_name
-        FROM parent_links l
-        LEFT JOIN profiles p ON p.id = l.parent_id
-        LEFT JOIN profiles c ON c.id = l.child_id
-        WHERE l.parent_id = ? OR l.child_id = ?
-        ORDER BY l.created_at DESC
-        LIMIT 50
-    ');
-    $stmt->execute([$userId, $userId]);
+    try {
+        $stmt = $pdo->prepare('
+            SELECT l.*,
+                   p.display_name as parent_name,
+                   c.display_name as child_name
+            FROM parent_links l
+            LEFT JOIN profiles p ON p.id = l.parent_id
+            LEFT JOIN profiles c ON c.id = l.child_id
+            WHERE l.parent_id = ? OR l.child_id = ?
+            ORDER BY l.created_at DESC
+            LIMIT 50
+        ');
+        $stmt->execute([$userId, $userId]);
+        $links = $stmt->fetchAll();
+    } catch (Throwable $e) {
+        error_log('admin parent_links list failed: ' . $e->getMessage());
+        json_error('Eltern-Verknüpfungen konnten nicht geladen werden.', 500);
+    }
 
-    json_response($stmt->fetchAll());
+    json_response($links);
 }
 
 json_error('Ungültige Admin-Aktion.', 404);
