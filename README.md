@@ -29,20 +29,27 @@ Die **FWG Nachhilfebörse** ist eine Progressive Web App (PWA) für das FWG Köl
 
 ## 📸 Screenshots
 
-> **Platzhalter:** Legt die Bilder unter `docs/screenshots/` ab. Dann erscheinen sie hier automatisch.  
-> Benennung und Motive siehe [`docs/screenshots/README.md`](docs/screenshots/README.md).
+Echte Ansichten der laufenden App. Benennung und Motive: [`docs/screenshots/README.md`](docs/screenshots/README.md).
 
-| Startseite | Feed & Suche | Anfrage & Chat |
-|:---:|:---:|:---:|
-| ![Welcome](docs/screenshots/01-welcome.png) | ![Feed](docs/screenshots/02-feed.png) | ![Chat](docs/screenshots/04-anfrage-chat.png) |
+### Desktop
 
-| Anzeige erstellen | Eltern-Dashboard | SV-Panel |
+| Startseite | Feed & Suche | Anzeige erstellen |
 |:---:|:---:|:---:|
-| ![Anzeige erstellen](docs/screenshots/03-anzeige-erstellen.png) | ![Eltern](docs/screenshots/06-eltern-dashboard.png) | ![SV-Panel](docs/screenshots/07-sv-panel.png) |
+| ![Startseite mit Hero, Fächern und den drei Wegen](docs/screenshots/01-welcome.png) | ![Feed mit aktuellen Anzeigen, Suche und Filtern](docs/screenshots/02-feed.png) | ![Anzeige aufgeben im Schritt-für-Schritt-Editor](docs/screenshots/03-anzeige-erstellen.png) |
 
-| Profil & Bewertung | Coaching | Dark Mode / PWA |
+| Anfragen & Matches | Profil | SV-Panel |
 |:---:|:---:|:---:|
-| ![Profil](docs/screenshots/05-profil.png) | ![Coaching](docs/screenshots/08-coaching.png) | ![Dark Mode](docs/screenshots/09-dark-mode-pwa.png) |
+| ![Anfragen und Matches mit Tabs und Posteingang](docs/screenshots/04-anfrage-chat.png) | ![Öffentliches Profil mit Statistiken und Verfügbarkeit](docs/screenshots/05-profil.png) | ![SV-Admin-Panel mit Nutzern, Anzeigen und Meldungen](docs/screenshots/07-sv-panel.png) |
+
+| Coaching | Dark Mode / PWA |
+|:---:|:---:|
+| ![Schüler-Coaching: In drei Schritten Coach werden](docs/screenshots/08-coaching.png) | ![Dark Mode mit eigenem Profil und PWA-Ansicht](docs/screenshots/09-dark-mode-pwa.png) |
+
+### iPhone & iPad
+
+| iPhone: Feed | iPhone: Anzeige | iPhone: Profil | iPad: Einstellungen |
+|:---:|:---:|:---:|:---:|
+| ![iPhone-Feed mit hervorgehobener Anzeige](docs/screenshots/feed-iphone.png) | ![iPhone-Anzeigen-Detail mit Preis und Beschreibung](docs/screenshots/mobile-anzeige.png) | ![iPhone-Profil mit Profil-Stärke](docs/screenshots/iphone-profile.png) | ![iPad-Einstellungen mit Erscheinungsbild und Push-Benachrichtigungen](docs/screenshots/ipad-settings.png) |
 
 ---
 

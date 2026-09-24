@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
 import SiteHeader from '../components/SiteHeader';
@@ -22,19 +22,22 @@ import {
     ArrowRight,
     ArrowUpRight,
     Lock,
-    Home,
-    PlusCircle,
-    Settings,
-    User,
-    MapPin,
-    Clock,
-    ChevronLeft,
-    Send,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
 import { Switch } from '../components/ui/Switch';
 import { VerifiedPill } from '../components/ui/VerifiedPill';
+import feedIphoneShot from '../../docs/screenshots/feed-iphone.png';
+import mobileAnzeigeShot from '../../docs/screenshots/mobile-anzeige.png';
+import iphoneProfileShot from '../../docs/screenshots/iphone-profile.png';
+import ipadSettingsShot from '../../docs/screenshots/ipad-settings.png';
+import feedShot from '../../docs/screenshots/02-feed.png';
+import createAdShot from '../../docs/screenshots/03-anzeige-erstellen.png';
+import requestsShot from '../../docs/screenshots/04-anfrage-chat.png';
+import profileShot from '../../docs/screenshots/05-profil.png';
+import svPanelShot from '../../docs/screenshots/07-sv-panel.png';
+import coachingShot from '../../docs/screenshots/08-coaching.png';
+import darkModeShot from '../../docs/screenshots/09-dark-mode-pwa.png';
 
 /* Single Source of Truth für alle Fächer: SUBJECT_CATEGORIES aus SubjectChip.tsx
    (dieselbe Quelle nutzen CreateAd + Feed). Labels 1:1 aus subjectLabelMap. */
@@ -68,187 +71,28 @@ const SUBJECT_LABELS: Record<Subject, string> = {
 
 const FAECHER_TICKER: string[] = SUBJECT_CATEGORIES.flatMap((c) => c.subjects).map((s) => SUBJECT_LABELS[s]);
 
-/* Brett-Vorschau: native App-Screens (390×844), per Container-Query skaliert.
-   Namen und Preise sind die Demo-Tickets aus dem Hero, klar als Demo gestempelt. */
-const BOARD_SCREENS = [
-    { key: 'feed', alt: 'App-Vorschau: Feed mit Nachhilfe-Anzeigen vom FWG', caption: 'Feed: Anzeigen stöbern' },
-    { key: 'chat', alt: 'App-Vorschau: Chat für Anfragen zwischen Schülern', caption: 'Chat: Anfragen klären' },
-    { key: 'profil', alt: 'App-Vorschau: Profil mit Fächern und Verifiziert-Badge', caption: 'Profil: zeigen, was du kannst' },
-] as const;
+/* Brett-Vorschau: echte App-Screenshots aus docs/screenshots/. Die Handy-/iPad-Shots
+   liegen mit fertigem Geräterahmen vor — keinen zweiten Rahmen drumlegen. */
+const BOARD_DEVICES: { src: string; alt: string; caption: string; wide?: boolean }[] = [
+    { src: feedIphoneShot, alt: 'iPhone-Feed mit hervorgehobener Anzeige und Tab-Leiste', caption: 'Feed: Anzeigen stöbern' },
+    { src: mobileAnzeigeShot, alt: 'iPhone-Anzeigen-Detail mit Preis, Tags und Beschreibung', caption: 'Anzeige: Details zum Angebot' },
+    { src: iphoneProfileShot, alt: 'iPhone-Profil mit Profil-Stärke und persönlichen Angaben', caption: 'Profil: zeigen, was du kannst' },
+    { src: ipadSettingsShot, alt: 'iPad-Einstellungen mit Erscheinungsbild, Push und Datenschutz', caption: 'iPad: Einstellungen & Datenschutz', wide: true },
+];
+
+/* Desktop-Prints: der Rahmen ist eingebrannt (3 px #111, runde Ecken) — als
+   geklebte Prints an die Plakatwand gesetzt, Mono-Index wie auf dem Prüfzettel. */
+const BOARD_PRINTS = [
+    { src: feedShot, index: '02', alt: 'Desktop-Feed „Aktuelle Anzeigen“ mit Suche und Filtern', caption: 'Feed & Suche' },
+    { src: createAdShot, index: '03', alt: 'Editor „Anzeige aufgeben“ im Schritt-für-Schritt-Modus', caption: 'Anzeige erstellen' },
+    { src: requestsShot, index: '04', alt: '„Anfragen & Matches“ mit Tabs und leerem Posteingang', caption: 'Anfragen & Matches' },
+    { src: profileShot, index: '05', alt: 'Öffentliches Profil mit Statistiken und Verfügbarkeits-Kalender', caption: 'Öffentliches Profil' },
+    { src: svPanelShot, index: '07', alt: 'SV-Admin-Panel mit Nutzern, Anzeigen und Meldungen', caption: 'SV-Panel' },
+    { src: coachingShot, index: '08', alt: 'Coaching-Seite „Schüler-Coaching am FWG“', caption: 'Schüler-Coaching' },
+    { src: darkModeShot, index: '09', alt: 'Dark Mode: eigenes Profil mit Profil-Stärke', caption: 'Dark Mode & PWA' },
+];
 
 const easeOut = [0.16, 1, 0.3, 1] as const;
-
-function PhoneStatus({ light = false }: { light?: boolean }) {
-    const ink = light ? 'text-white' : 'text-black';
-    return (
-        <div className={`flex h-[54px] items-end justify-between px-7 pb-1 text-[13px] font-semibold ${ink}`}>
-            <span className="font-mono tabular-nums tracking-tight">9:41</span>
-            <span className="flex items-center gap-1.5" aria-hidden>
-                <svg width="17" height="12" viewBox="0 0 17 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="0.6" /><rect x="4.5" y="5" width="3" height="7" rx="0.6" /><rect x="9" y="2.5" width="3" height="9.5" rx="0.6" /><rect x="13.5" y="0" width="3" height="12" rx="0.6" /></svg>
-                <svg width="15" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M1.2 4.6c3.7-3.4 9.9-3.4 13.6 0" /><path d="M3.6 7.1c2.4-2.1 6.4-2.1 8.8 0" /><path d="M6.3 9.5c1-0.9 2.4-0.9 3.4 0" /></svg>
-                <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.6" y="0.6" width="21" height="10.8" rx="2.4" fill="none" stroke="currentColor" strokeWidth="1.2" /><rect x="2.2" y="2.2" width="15.5" height="7.6" rx="1" fill="currentColor" /><rect x="22.6" y="3.6" width="1.5" height="4.8" rx="0.6" fill="currentColor" /></svg>
-            </span>
-        </div>
-    );
-}
-
-function DemoStamp() {
-    return <span className="pointer-events-none absolute right-3 top-14 z-30 rotate-6 rounded-sm bg-primary px-1.5 py-px text-[9px] font-black uppercase tracking-[0.14em] text-black">Demo</span>;
-}
-
-function PhoneTabBar() {
-    const tabs = [
-        { label: 'Entdecken', Icon: Home, active: true },
-        { label: 'Social', Icon: MessageSquare },
-        { label: 'Erstellen', Icon: PlusCircle },
-        { label: 'Optionen', Icon: Settings },
-        { label: 'Profil', Icon: User },
-    ];
-    return (
-        <div className="absolute inset-x-0 bottom-0 z-10 flex h-[84px] items-start justify-around border-t border-black/10 bg-white px-1 pt-2">
-            {tabs.map(({ label, Icon, active }) => (
-                <div key={label} className={`flex w-14 flex-col items-center gap-0.5 text-[10px] font-semibold ${active ? 'text-black' : 'text-gray-400'}`}>
-                    <Icon size={18} strokeWidth={active ? 2.4 : 1.8} aria-hidden />
-                    {label}
-                </div>
-            ))}
-        </div>
-    );
-}
-
-function FeedScreen() {
-    const cards = [
-        { name: 'Lena K.', grade: 'Q1', price: '12 € / 45 Min', subject: 'Mathematik', color: '#D62728', text: 'Analysis vor der Klausur. Alte Aufgaben, ruhig erklärt.', place: 'Bibliothek', time: '45 Min' },
-        { name: 'Aylin D.', grade: 'Q2', price: '14 € / 45 Min', subject: 'Physik', color: '#0891b2', text: 'Mechanik ohne Panik. Mit alten Klausuren.', place: 'Bibliothek', time: '45 Min' },
-    ];
-    return (
-        <div className="relative h-full bg-[#f8f9fa]">
-            <PhoneStatus />
-            <DemoStamp />
-            <div className="flex items-center justify-between bg-gray-950 px-4 py-3 text-white">
-                <div className="flex items-center gap-2">
-                    <span className="grid h-7 w-7 place-items-center rounded-lg bg-primary text-black"><Logo size={16} /></span>
-                    <span className="text-[15px] font-extrabold tracking-tight">Entdecken</span>
-                </div>
-                <Search size={18} aria-hidden />
-            </div>
-            <div className="px-3.5 pt-3">
-                <div className="flex h-10 items-center gap-2 rounded-full bg-white px-3.5 text-[13px] text-gray-400 shadow-sm">
-                    <Search size={14} aria-hidden />
-                    Fach, Klasse, Preis
-                </div>
-                <div className="mt-3 flex gap-1.5">
-                    {['Alle', 'Mathe', 'Physik', 'Englisch'].map((chip, i) => (
-                        <span key={chip} className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${i === 0 ? 'bg-gray-950 text-white' : 'bg-white text-gray-600'}`}>{chip}</span>
-                    ))}
-                </div>
-            </div>
-            <div className="mt-3 space-y-3 px-3.5">
-                {cards.map((c) => (
-                    <article key={c.name} className="overflow-hidden rounded-2xl bg-white shadow-[0_10px_24px_-16px_rgba(0,0,0,0.45)]">
-                        <header className="flex items-start justify-between gap-2 bg-gray-950 px-3.5 py-2.5 text-white">
-                            <div>
-                                <p className="flex items-center gap-1 text-[15px] font-bold leading-none">{c.name}<ShieldCheck size={13} className="text-primary" aria-hidden /></p>
-                                <p className="mt-1 text-[11px] font-medium text-gray-300">{c.grade} · Verifiziert</p>
-                            </div>
-                            <span className="shrink-0 whitespace-nowrap rounded-full bg-white px-2.5 py-1 text-[12px] font-bold text-black">{c.price}</span>
-                        </header>
-                        <div className="px-3.5 py-2.5">
-                            <span className="inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold text-white" style={{ background: c.color }}>{c.subject}</span>
-                            <p className="mt-1.5 text-[13px] leading-snug text-gray-700">{c.text}</p>
-                            <p className="mt-2 flex gap-3 text-[11px] font-semibold text-gray-500">
-                                <span className="inline-flex items-center gap-1"><MapPin size={11} aria-hidden />{c.place}</span>
-                                <span className="inline-flex items-center gap-1"><Clock size={11} aria-hidden />{c.time}</span>
-                            </p>
-                        </div>
-                    </article>
-                ))}
-            </div>
-            <PhoneTabBar />
-        </div>
-    );
-}
-
-function ChatScreen() {
-    return (
-        <div className="relative h-full bg-[#efeae2]">
-            <div className="bg-white">
-                <PhoneStatus />
-                <div className="flex items-center gap-2 border-b border-black/5 px-2 pb-2.5">
-                    <ChevronLeft size={22} aria-hidden />
-                    <span className="grid h-9 w-9 place-items-center rounded-full bg-gray-950 text-[12px] font-bold text-primary">LK</span>
-                    <div className="min-w-0">
-                        <p className="flex items-center gap-1 text-[15px] font-bold leading-none text-gray-950">Lena K.<ShieldCheck size={13} className="text-emerald-600" aria-hidden /></p>
-                        <p className="mt-0.5 text-[11px] font-medium text-gray-500">Q1 · Mathematik</p>
-                    </div>
-                </div>
-            </div>
-            <DemoStamp />
-            <p className="mx-auto mt-3 w-fit rounded-lg bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-gray-500">Heute</p>
-            <div className="mt-3 space-y-1.5 px-3">
-                <p className="ml-8 rounded-lg rounded-tr-sm bg-white px-3 py-2 text-[13.5px] leading-snug text-gray-900 shadow-sm">Hey, hast du Donnerstag nach der 6. noch Zeit für Analysis?</p>
-                <p className="mr-8 rounded-lg rounded-tl-sm bg-[#d9fdd3] px-3 py-2 text-[13.5px] leading-snug text-gray-900 shadow-sm">Ja. Bibliothek, 12 € / 45 Min. Bring die letzten zwei Klausuren mit.</p>
-                <p className="ml-8 w-fit rounded-lg rounded-tr-sm bg-white px-3 py-2 text-[13.5px] leading-snug text-gray-900 shadow-sm">Perfekt, ich bin da.</p>
-            </div>
-            <div className="absolute inset-x-0 bottom-0 flex items-center gap-2 bg-[#f0f2f5] px-2.5 pb-7 pt-2">
-                <div className="flex h-10 flex-1 items-center rounded-full bg-white px-3.5 text-[13px] text-gray-400">Nachricht</div>
-                <span className="grid h-10 w-10 place-items-center rounded-full bg-[#00a884] text-white"><Send size={16} aria-hidden /></span>
-            </div>
-        </div>
-    );
-}
-
-function ProfileScreen() {
-    return (
-        <div className="relative h-full bg-[#f8f9fa]">
-            <div className="bg-gray-950 text-white">
-                <PhoneStatus light />
-                <div className="px-5 pb-5 pt-2">
-                    <div className="flex items-end gap-3">
-                        <span className="grid h-16 w-16 place-items-center rounded-2xl bg-primary text-2xl font-black text-black">AD</span>
-                        <div>
-                            <p className="flex items-center gap-1 text-[18px] font-bold leading-none">Aylin D.<ShieldCheck size={15} className="text-primary" aria-hidden /></p>
-                            <p className="mt-1 text-[12px] font-medium text-gray-300">Q2 · FWG Köln</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <DemoStamp />
-            <div className="px-4 pt-4">
-                <div className="flex flex-wrap gap-1.5">
-                    <span className="rounded-full bg-[#0891b2] px-2.5 py-1 text-[11px] font-bold text-white">Physik</span>
-                    <span className="rounded-full bg-[#1D4ED8] px-2.5 py-1 text-[11px] font-bold text-white">Englisch</span>
-                    <span className="rounded-full bg-gray-950 px-2.5 py-1 text-[11px] font-bold text-white">14 € / 45 Min</span>
-                </div>
-                <p className="mt-3 text-[13.5px] leading-relaxed text-gray-700">Mechanik, Optik, Altklausuren. Termine nach der 6., meist in der Bibliothek.</p>
-                <p className="mt-4 rounded-xl bg-white px-3 py-2.5 text-[12px] font-semibold leading-snug text-gray-600 shadow-sm">Verifiziert im SV-Raum. Zahlung läuft nicht über die App.</p>
-            </div>
-            <PhoneTabBar />
-        </div>
-    );
-}
-
-const SCREEN_BY_KEY = { feed: FeedScreen, chat: ChatScreen, profil: ProfileScreen } as const;
-
-function PhoneFrame({ alt, children }: { alt: string; children: ReactNode }) {
-    return (
-        <div className="phone" role="img" aria-label={alt}>
-            <span className="phone-btn phone-btn-silent" aria-hidden />
-            <span className="phone-btn phone-btn-vol" aria-hidden />
-            <span className="phone-btn phone-btn-power" aria-hidden />
-            <div className="phone-chassis" aria-hidden>
-                <div className="phone-screen">
-                    <div className="phone-stage">
-                        <span className="phone-island" />
-                        {children}
-                        <span className="phone-home" />
-                    </div>
-                    <span className="phone-glare" />
-                </div>
-            </div>
-        </div>
-    );
-}
 
 export default function Landing() {
     const { user } = useAuth();
@@ -321,6 +165,7 @@ export default function Landing() {
        Logged-out fallen beide sinnvoll auf /login zurück (sonst Loop /welcome). */
     const suchZiel = user ? '/' : '/login';
     const bietZiel = user ? '/create-ad' : '/login';
+    const elternZiel = user ? '/parent-dashboard' : '/login';
     const anim = (delay = 0) => reduceMotion ? {} : {
         initial: { opacity: 0, y: 28 },
         whileInView: { opacity: 1, y: 0 },
@@ -514,7 +359,7 @@ export default function Landing() {
                         {[
                             { icon: Search, ink: '#1D4ED8', title: 'Ich suche Nachhilfe', text: 'Filtere nach Fach, Klasse und Preis. Direkter Kontakt in der App, geprüfte Oberstufenschüler.', points: ['Filter für Fach & Klasse', 'Direkter Kontakt in der App', 'Geprüfte Oberstufenschüler'], cta: 'Anzeigen stöbern', to: suchZiel },
                             { icon: GraduationCap, ink: '#15803D', title: 'Ich biete Nachhilfe', text: 'Setze eigene Preise, mache flexible Termine aus und sammle Bewertungen für dein Profil.', points: ['Eigene Preise & Bedingungen', 'Flexible Termine', 'Bewertungen & Profilstatus'], cta: 'Anzeige erstellen', to: bietZiel },
-                            { icon: Users, ink: '#7B3FBF', title: 'Für Eltern', text: 'Verknüpfe deinen Eltern-Account, gib Anzeigen für deine Kinder auf und bleib informiert.', points: ['Anzeigen für Kinder erstellen', 'Passende Anfragen & Fortschritt einsehen', 'Kontrolle & Benachrichtigungen'], cta: 'Eltern-Leitfaden', to: '/eltern-leitfaden' },
+                            { icon: Users, ink: '#7B3FBF', title: 'Für Eltern', text: 'Verknüpfen Sie Ihr Konto mit dem Ihres Kindes und behalten Sie dessen Nachhilfe im Blick – der Chat bleibt privat.', points: ['Anzeigen, Anfragen & Merkliste im Blick', 'Profil & Einstellungen fürs Kind', 'Automatisch verifiziert & informiert'], cta: 'Eltern-Leitfaden', to: '/eltern-leitfaden' },
                         ].map((w, i) => (
                             <motion.article key={w.title} {...tiltIn(i)} className="group relative grid gap-5 py-8 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-8">
                                 <span className="grid place-items-center w-14 h-14 rounded-2xl text-white shrink-0 -rotate-3 group-hover:rotate-3 transition-transform" style={{ background: w.ink }}>
@@ -549,7 +394,7 @@ export default function Landing() {
                     <motion.div {...anim()} className="max-w-3xl">
                         <h2 className="font-display uppercase leading-[0.95] break-words text-4xl text-white sm:text-6xl">So sieht das <span className="text-primary">Schwarze Brett</span> in der App aus.</h2>
                         <motion.span {...wipeLine()} className="mt-4 block h-1.5 w-16 origin-left rounded-full bg-primary" aria-hidden />
-                        <p className="mt-4 text-lg leading-relaxed text-gray-300">Stöbern, anfragen, Profil zeigen: alles direkt am Handy, alles vom FWG. Ohne Katalog, ohne Kleingedrucktes.</p>
+                        <p className="mt-4 text-lg leading-relaxed text-gray-300">Echte Screenshots aus der App: stöbern, anfragen, Profil zeigen — am Handy, am iPad und am Desktop. Ohne Katalog, ohne Kleingedrucktes.</p>
                     </motion.div>
                     <div ref={boardScrollRef} className={boardDriven ? 'board-scroll' : undefined}>
                         <div className={boardDriven ? 'board-sticky' : undefined}>
@@ -557,30 +402,61 @@ export default function Landing() {
                                 <div
                                     ref={boardPhonesRef}
                                     className={`board-phones${boardDriven ? ' board-phones--driven' : ''}`}
-                                    aria-label="App-Ansichten — beim Scrollen durchblättern"
+                                    aria-label="App-Ansichten auf Handy und iPad — beim Scrollen durchblättern"
                                     tabIndex={boardDriven ? -1 : 0}
                                 >
-                                    <motion.div className="board-track" style={boardDriven ? { x: boardX } : undefined}>
-                                        {BOARD_SCREENS.map((m) => {
-                                            const Screen = SCREEN_BY_KEY[m.key];
-                                            return (
-                                                <figure key={m.key} className="board-sheet">
-                                                    <PhoneFrame alt={m.alt}>
-                                                        <Screen />
-                                                    </PhoneFrame>
-                                                    <figcaption className="mt-4 text-center">
-                                                        <span className="board-caption text-sm font-bold">{m.caption}</span>
-                                                    </figcaption>
-                                                </figure>
-                                            );
-                                        })}
+                                    <motion.div className="board-track pt-4" style={boardDriven ? { x: boardX } : undefined}>
+                                        {BOARD_DEVICES.map((m) => (
+                                            <figure
+                                                key={m.caption}
+                                                className="board-sheet tape relative"
+                                                style={m.wide ? { width: 'min(520px, 82vw)' } : undefined}
+                                            >
+                                                <img
+                                                    src={m.src}
+                                                    alt={m.alt}
+                                                    loading="lazy"
+                                                    className="h-auto w-full rounded-2xl"
+                                                />
+                                                <figcaption className="mt-4 text-center">
+                                                    <span className="board-caption text-sm font-bold">{m.caption}</span>
+                                                </figcaption>
+                                            </figure>
+                                        ))}
                                     </motion.div>
                                 </div>
                                 <p className="board-swipe-hint" aria-hidden>{boardDriven ? 'Weiterscrollen für weitere Ansichten →' : 'Wischen für weitere Ansichten →'}</p>
                             </div>
                         </div>
                     </div>
-                    <motion.div {...anim()} className="mt-8">
+
+                    {/* Desktop-Prints: gerahmte Shots als geklebte Prints an der Plakatwand */}
+                    <div className="mt-16">
+                        <div className="flex flex-wrap items-end justify-between gap-4">
+                            <h3 className="font-display uppercase leading-[0.95] text-2xl text-white sm:text-4xl">Auch am Desktop.</h3>
+                            <p className="font-mono tabular-nums text-sm font-bold text-gray-500">07 ANSICHTEN · 01 PLATTFORM</p>
+                        </div>
+                        <div className="mt-8 grid grid-cols-1 gap-x-6 gap-y-12 md:grid-cols-2">
+                            {BOARD_PRINTS.map((p, i) => (
+                                <div key={p.index} style={{ transform: `rotate(${i % 2 === 0 ? -0.8 : 0.8}deg)` }}>
+                                    <motion.figure {...tiltIn(i)} className="tape relative">
+                                        <img
+                                            src={p.src}
+                                            alt={p.alt}
+                                            loading="lazy"
+                                            className="h-auto w-full rounded-2xl"
+                                        />
+                                        <figcaption className="mt-3 flex items-baseline gap-2.5">
+                                            <span className="font-mono text-xs font-bold tabular-nums text-primary">{p.index}</span>
+                                            <span className="board-caption text-sm font-bold">{p.caption}</span>
+                                        </figcaption>
+                                    </motion.figure>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <motion.div {...anim()} className="mt-12">
                         <Link to={ziel} className="press inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-primary px-8 text-base font-bold text-black shadow-md hover:bg-primary-hover">Jetzt loslegen <ArrowRight size={18} aria-hidden /></Link>
                     </motion.div>
                 </div>
@@ -686,14 +562,33 @@ export default function Landing() {
             </section>
 
             {/* ELTERN — schwarzes Feld mit gelber Headline */}
-            <section id="eltern" className="bg-black text-white border-y border-white/10">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 py-16 sm:py-24 text-center">
-                    <motion.div {...anim()}>
+            <section id="eltern" className="bg-black text-white border-y border-white/10 scroll-mt-16">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
+                    <motion.div {...anim()} className="max-w-3xl">
                         <span className="inline-grid place-items-center w-16 h-16 rounded-2xl bg-white/5 border border-white/10"><Shield className="text-blue-500" size={30} aria-hidden /></span>
                         <h2 className="mt-6 font-display uppercase leading-[0.95] break-words text-4xl sm:text-6xl text-primary">Informationen für Eltern</h2>
-                        <motion.span {...wipeLine()} className="mx-auto mt-4 block h-1.5 w-16 origin-left rounded-full bg-primary" aria-hidden />
-                        <p className="mt-4 text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">Die Sicherheit Ihrer Kinder hat oberste Priorität: Meldefunktion, SV-Moderation, verifizierte Accounts. Wer sich registrieren darf und wie wir schützen, steht im Leitfaden.</p>
-                        <Link to="/eltern-leitfaden" className="press mt-8 inline-flex items-center justify-center h-14 px-8 text-base gap-2.5 rounded-full bg-primary text-black hover:bg-primary-hover font-bold shadow-md">Eltern-Leitfaden <ArrowRight size={18} aria-hidden /></Link>
+                        <motion.span {...wipeLine()} className="mt-4 block h-1.5 w-16 origin-left rounded-full bg-primary" aria-hidden />
+                        <p className="mt-4 text-lg text-gray-300 max-w-2xl leading-relaxed">Verknüpfen Sie Ihr Konto mit dem Ihres Kindes und behalten Sie dessen Nachhilfe im Blick: Anzeigen, Anfragen, passende Matches, Merkliste und Bewertungen – an einem Ort und mit klaren Grenzen.</p>
+                    </motion.div>
+
+                    <div className="mt-10 grid gap-4 sm:grid-cols-2">
+                        {[
+                            { icon: BadgeCheck, t: 'Automatisch verifiziert', d: 'Sobald Sie Ihr Kind verknüpft haben, ist Ihr Eltern-Account verifiziert – ohne Formulare und ohne Warten.' },
+                            { icon: Bookmark, t: 'Alles über das Kind', d: 'Anzeigen, Anfragen, passende Matches, Merkliste und Bewertungen live im Eltern-Dashboard – synchron zum Kinderkonto.' },
+                            { icon: Filter, t: 'Profil & Einstellungen', d: 'Name, Klasse, Fächer, Bio, Verfügbarkeit und Sichtbarkeit fürs Kind pflegen – inklusive Anzeigen erstellen und pausieren.' },
+                            { icon: Lock, t: 'Der Chat bleibt privat', d: 'Sie sehen den Status jeder Anfrage und wer sich gemeldet hat, aber nie die Nachrichten Ihres Kindes.' },
+                        ].map((f, i) => (
+                            <motion.article key={f.t} {...tiltIn(i)} className="rounded-3xl border border-white/10 bg-white/[0.04] p-6">
+                                <span className="inline-grid place-items-center w-11 h-11 rounded-2xl bg-primary text-black"><f.icon size={20} aria-hidden /></span>
+                                <h3 className="mt-4 font-display uppercase text-xl">{f.t}</h3>
+                                <p className="mt-2 text-sm text-gray-400 leading-relaxed">{f.d}</p>
+                            </motion.article>
+                        ))}
+                    </div>
+
+                    <motion.div {...anim()} className="mt-10 flex flex-wrap items-center gap-3">
+                        <Link to={elternZiel} className="press inline-flex items-center justify-center h-14 px-8 text-base gap-2.5 rounded-full bg-primary text-black hover:bg-primary-hover font-bold shadow-md">Eltern-Dashboard öffnen <ArrowRight size={18} aria-hidden /></Link>
+                        <Link to="/eltern-leitfaden" className="press inline-flex items-center justify-center h-14 px-8 text-base gap-2.5 rounded-full border border-white/20 text-white hover:bg-white/10 font-bold">Eltern-Leitfaden</Link>
                     </motion.div>
                 </div>
             </section>

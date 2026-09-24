@@ -1,16 +1,12 @@
-# App-Mockups
+# App-Mockups (historisch)
 
-Die Welcome-Seite (`#/welcome`, Sektion „So sieht's in der App aus") lädt drei
-Screenshots in CSS-iPhone-Frames. Fehlt eine Datei, zeigt die Seite automatisch
-eine gestaltete Platzhalter-Card mit dem Ablagepfad.
+Die Welcome-Seite (`#/welcome`, Sektion „So sieht das Schwarze Brett in der App aus“)
+lädt **keine** Bilder mehr aus diesem Ordner.
 
-## Dateien hier ablegen
+Die echten Screenshots — Geräte-Shots mit fertigem Bezel (iPhone, iPad) und
+Desktop-Prints mit eingebranntem Rahmen — liegen unter
+[`docs/screenshots/`](../../docs/screenshots/README.md) und werden per
+ES-Import in `src/pages/Landing.tsx` eingebunden.
 
-- `app-feed.png` — Feed mit Anzeigen
-- `app-chat.png` — Chat-Ansicht
-- `app-profil.png` — Profil-Ansicht
-
-## Empfohlene Größe
-
-- **1170 × 2532 px** (iPhone 14/15, PNG, Hochformat 9:19,5)
-- Das Mockup schneidet per `object-cover` zu — wichtigste Inhalte oben platzieren.
+Dieser Ordner bleibt als Ablageort für künftige, noch nicht gesetzte Mockup-Motive
+erhalten; `app-feed.png` / `app-chat.png` / `app-profil.png` werden nicht mehr erwartet.
