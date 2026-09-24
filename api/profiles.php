@@ -574,7 +574,11 @@ if ($method === 'POST' && $action === 'parent_links') {
         if ($isDuplicate) {
             json_error('Dieses Kind ist bereits mit deinem Account verknüpft.', 409);
         }
-        json_error('Verknüpfung fehlgeschlagen. Bitte später erneut versuchen.', 500);
+        json_error('Verknüpfung fehlgeschlagen. Bitte später erneut versuchen.', 500, [
+            'code' => 'parent_link_insert_failed',
+            'sqlstate' => $e->getCode(),
+            'errno' => $e instanceof PDOException ? ($e->errorInfo[1] ?? null) : null,
+        ]);
     }
 
     json_response([

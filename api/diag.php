@@ -90,6 +90,51 @@ if (!empty($out['tables']['parent_links'])) {
     } catch (Throwable $e) {
         $out['parent_links_error'] = fwg_diag_clean($e->getMessage());
     }
+
+    // Struktur der Tabelle (Spaltennamen/Typen) – zeigt, ob eine alte/falsche Variante existiert
+    try {
+        $cols = $pdo->query('SHOW COLUMNS FROM parent_links')->fetchAll(PDO::FETCH_ASSOC);
+        $out['parent_links_columns'] = array_map(
+            static fn($c) => $c['Field'] . ':' . $c['Type'] . ($c['Null'] === 'NO' ? ' NOT NULL' : ''),
+            $cols
+        );
+    } catch (Throwable $e) {
+        $out['parent_links_columns_error'] = fwg_diag_clean($e->getMessage());
+    }
+
+    // Fremdschlüssel (leer, wenn die Ersatz-Tabelle ohne FK angelegt wurde)
+    try {
+        $fkStmt = $pdo->query("SELECT CONSTRAINT_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'parent_links' AND REFERENCED_TABLE_NAME IS NOT NULL");
+        $out['parent_links_fks'] = $fkStmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Throwable $e) {}
+
+    try {
+        $out['sql_mode'] = (string)$pdo->query('SELECT @@sql_mode')->fetchColumn();
+    } catch (Throwable $e) {}
+
+    // Probe-Insert mit Rollback: reproduziert einen Insert-Fehler ohne Daten zu ändern
+    try {
+        $pid = $pdo->query('SELECT id FROM profiles LIMIT 1')->fetchColumn();
+        if (!$pid) {
+            $out['probe_insert'] = 'skipped (keine Profile vorhanden)';
+        } else {
+            $pdo->beginTransaction();
+            $ins = $pdo->prepare('INSERT INTO parent_links (id, parent_id, child_id, status, permissions, created_at, linked_at) VALUES (?, ?, ?, "active", ?, NOW(), NOW())');
+            $ins->execute([generate_uuid(), $pid, $pid, json_encode(['can_view_ads' => true], JSON_UNESCAPED_UNICODE)]);
+            $pdo->rollBack();
+            $out['probe_insert'] = 'ok';
+        }
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        $out['probe_insert'] = 'failed';
+        $out['probe_insert_error'] = fwg_diag_clean($e->getMessage());
+        $out['probe_insert_sqlstate'] = $e->getCode();
+        if ($e instanceof PDOException && isset($e->errorInfo[1])) {
+            $out['probe_insert_errno'] = $e->errorInfo[1];
+        }
+    }
 }
 
 json_response($out);
