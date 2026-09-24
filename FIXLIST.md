@@ -209,3 +209,5 @@ Alle Punkte A–E umgesetzt. Verifikation: `npx tsc -b` (echter Check; `tsc --no
 4. Kurztest: Eltern-Kind verknüpfen (D1), Landing-Label „Seitenaufrufe (letzte 30 Tage)" (E1), eigene Suche merken → neue passende Anzeige erzeugt Glocken-Notification (B4).
 
 Bekannte, gewollte Abweichungen: B2 nutzt einen Memory-Cache pro Session statt `localStorage` (kein zusätzlicher Storage-Eintrag); A4 speichert eigene Kontakte im `settings`-JSON (keine DB-Migration); B4 erlaubt genau eine gemerkte Suche pro Nutzer (ersetzt die vorige).
+
+**Nachtrag (Post-Deploy-Diagnose):** Alle Schreib-Endpunkte liefen in Prod auf HTTP 500. Ursache war `api/response.php: generate_uuid()`: der `vsprintf`-Formatstring hatte 9 `%s`-Platzhalter, `str_split(bin2hex(...), 4)` liefert aber 8 Werte → `ValueError` bei jedem Aufruf (u. a. Eltern-Verknüpfen, Anzeige erstellen, Registrierung, Chat). Behoben in `8f3af46`; verifiziert auf Prod über `api/diag.php` (`probe_insert/probe_bind/probe_exec = ok`). `api/diag.php` ist ein reiner Diagnose-Endpunkt (nur Ja/Nein + Zahlen, keine Inhalte) und kann nach der Fehlersuche wieder gelöscht werden.
