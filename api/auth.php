@@ -45,6 +45,19 @@ try {
     }
 }
 
+// AUTO-MIGRATION: pending_email (E-Mail-Wechsel mit 6-stelligem Code)
+try {
+    $pdo->query("SELECT pending_email FROM email_verifications LIMIT 0");
+} catch (Exception $e) {
+    try {
+        $pdo->exec("ALTER TABLE email_verifications ADD COLUMN IF NOT EXISTS pending_email VARCHAR(255) NULL");
+    } catch (Exception $ex) {
+        try {
+            $pdo->exec("ALTER TABLE email_verifications ADD COLUMN pending_email VARCHAR(255) NULL");
+        } catch (Exception $ex2) {}
+    }
+}
+
 // ------------------------------------------------------------------------------
 // 1. REGISTRIERUNG
 // ------------------------------------------------------------------------------
@@ -529,6 +542,112 @@ if ($action === 'update_password' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 // ------------------------------------------------------------------------------
 if ($action === 'logout') {
     json_response(['message' => 'Erfolgreich abgemeldet.']);
+}
+
+// ------------------------------------------------------------------------------
+// 8. E-MAIL-ADRESSE ÄNDERN – SCHRITT 1: CODE ANFORDERN
+//    Speichert die gewünschte Adresse in email_verifications.pending_email und
+//    verschickt den 6-stelligen Code an die NEUE Adresse.
+// ------------------------------------------------------------------------------
+if ($action === 'request_email_change' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $user = require_auth();
+    fwg_require_rate_limit('email_change', 5, 600);
+
+    $data = get_json_input();
+    $newEmail = filter_var(trim($data['email'] ?? ''), FILTER_VALIDATE_EMAIL);
+
+    if (!$newEmail) {
+        json_error('Bitte gib eine gültige E-Mail-Adresse ein.', 400);
+    }
+    if (strtolower($newEmail) === strtolower($user['email'] ?? '')) {
+        json_error('Das ist bereits Ihre aktuelle E-Mail-Adresse.', 400);
+    }
+
+    // Adresse muss frei sein
+    $dup = $pdo->prepare('SELECT id FROM users WHERE LOWER(email) = ? AND id != ?');
+    $dup->execute([strtolower($newEmail), $user['id']]);
+    if ($dup->fetch()) {
+        // Bewusst generisch – keine Account-Enumeration
+        json_error('Für diese Adresse kann kein Code versendet werden.', 400);
+    }
+
+    $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+    $hash = password_hash($code, PASSWORD_BCRYPT);
+    $expires = date('Y-m-d H:i:s', time() + 1800);
+
+    $pdo->prepare('
+        INSERT INTO email_verifications (user_id, code_hash, expires_at, attempts, pending_email)
+        VALUES (?, ?, ?, 0, ?)
+        ON DUPLICATE KEY UPDATE code_hash = VALUES(code_hash), expires_at = VALUES(expires_at),
+                                attempts = 0, pending_email = VALUES(pending_email)
+    ')->execute([$user['id'], $hash, $expires, $newEmail]);
+
+    try {
+        send_email_verification($newEmail, 'Hallo', $code);
+    } catch (Exception $e) {
+        error_log('E-Mail-Wechsel: Versand fehlgeschlagen: ' . $e->getMessage());
+        json_error('Der Bestätigungscode konnte nicht versendet werden. Bitte versuche es später erneut.', 500);
+    }
+
+    json_response([
+        'message' => 'Bestätigungscode wurde an die neue Adresse gesendet.',
+        'email' => $newEmail
+    ]);
+}
+
+// ------------------------------------------------------------------------------
+// 9. E-MAIL-ADRESSE ÄNDERN – SCHRITT 2: CODE BESTÄTIGEN
+// ------------------------------------------------------------------------------
+if ($action === 'confirm_email_change' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $user = require_auth();
+    fwg_require_rate_limit('verify', 10, 600);
+
+    $data = get_json_input();
+    $code = preg_replace('/\D/', '', (string)($data['code'] ?? ''));
+
+    if (strlen($code) !== 6) {
+        json_error('Bitte gib den 6-stelligen Code aus der E-Mail ein.', 400);
+    }
+
+    $vStmt = $pdo->prepare('SELECT code_hash, expires_at, attempts, pending_email FROM email_verifications WHERE user_id = ?');
+    $vStmt->execute([$user['id']]);
+    $row = $vStmt->fetch();
+
+    if (!$row || empty($row['pending_email'])) {
+        json_error('Es liegt kein offener Adresswechsel vor. Bitte fordere einen neuen Code an.', 400);
+    }
+    if ((int)$row['attempts'] >= 5) {
+        $pdo->prepare('DELETE FROM email_verifications WHERE user_id = ?')->execute([$user['id']]);
+        json_error('Zu viele Fehlversuche. Bitte fordere einen neuen Code an.', 429);
+    }
+    if (strtotime($row['expires_at']) < time()) {
+        $pdo->prepare('DELETE FROM email_verifications WHERE user_id = ?')->execute([$user['id']]);
+        json_error('Der Code ist abgelaufen (30 Minuten). Bitte fordere einen neuen Code an.', 400);
+    }
+    if (!password_verify($code, $row['code_hash'])) {
+        $pdo->prepare('UPDATE email_verifications SET attempts = attempts + 1 WHERE user_id = ?')->execute([$user['id']]);
+        usleep(400000);
+        json_error('Der Code ist falsch. Bitte prüfe die E-Mail und versuche es erneut.', 400);
+    }
+
+    // Nochmal prüfen, ob die Adresse inzwischen vergeben wurde
+    $dup = $pdo->prepare('SELECT id FROM users WHERE LOWER(email) = ? AND id != ?');
+    $dup->execute([strtolower($row['pending_email']), $user['id']]);
+    if ($dup->fetch()) {
+        $pdo->prepare('DELETE FROM email_verifications WHERE user_id = ?')->execute([$user['id']]);
+        json_error('Diese Adresse wurde inzwischen vergeben.', 400);
+    }
+
+    $pdo->prepare('UPDATE users SET email = ?, email_verified = 1 WHERE id = ?')
+        ->execute([$row['pending_email'], $user['id']]);
+    $pdo->prepare('UPDATE profiles SET email = ? WHERE id = ?')
+        ->execute([$row['pending_email'], $user['id']]);
+    $pdo->prepare('DELETE FROM email_verifications WHERE user_id = ?')->execute([$user['id']]);
+
+    json_response([
+        'message' => 'E-Mail-Adresse wurde geändert.',
+        'email' => $row['pending_email']
+    ]);
 }
 
 json_error('Ungültige Auth-Aktion.', 404);

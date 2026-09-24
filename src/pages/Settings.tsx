@@ -85,7 +85,7 @@ export default function Settings() {
 
     const handleRemoveParentLink = async (linkId: string) => {
         triggerHaptic('medium');
-        if (!confirm(isParent ? 'Möchtest du diese Kind-Verknüpfung wirklich aufheben?' : 'Möchtest du diese Eltern-Verknüpfung wirklich aufheben?')) return;
+        if (!confirm(isParent ? 'Möchten Sie diese Kind-Verknüpfung wirklich aufheben?' : 'Möchtest du diese Eltern-Verknüpfung wirklich aufheben?')) return;
         try {
             const { error } = await api.parentLinks.remove(linkId);
             if (error) throw error;
@@ -318,25 +318,37 @@ export default function Settings() {
                             </CardTitle>
                             <CardDescription className="text-xs">
                                 {isParent
-                                    ? 'Schülerkonten mit Lesezugriff für dein Elternteil-Konto'
+                                    ? 'Mit Ihrem Konto verknüpfte Schülerkonten. Details, Profil und Einstellungen verwalten Sie im Eltern-Dashboard.'
                                     : 'Elternteile mit Lesezugriff auf deine Nachhilfeanzeigen'}
                             </CardDescription>
                         </div>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                                triggerHaptic('light');
-                                if (isParent) {
-                                    setIsParentLinkFlowOpen(true);
-                                } else {
-                                    setIsLinkModalOpen(true);
-                                }
-                            }}
-                            className="rounded-full text-xs font-bold shrink-0"
-                        >
-                            {isParent ? '+ Kind verknüpfen' : '+ Verknüpfen'}
-                        </Button>
+                        <div className="flex items-center gap-2 shrink-0">
+                            {isParent && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => { triggerHaptic('light'); navigate('/parent-dashboard'); }}
+                                    className="rounded-full text-xs font-bold"
+                                >
+                                    Dashboard
+                                </Button>
+                            )}
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                    triggerHaptic('light');
+                                    if (isParent) {
+                                        setIsParentLinkFlowOpen(true);
+                                    } else {
+                                        setIsLinkModalOpen(true);
+                                    }
+                                }}
+                                className="rounded-full text-xs font-bold"
+                            >
+                                {isParent ? '+ Kind verknüpfen' : '+ Verknüpfen'}
+                            </Button>
+                        </div>
                     </CardHeader>
                     <CardContent className="p-6 pt-3 space-y-3">
                         {parentLinks.length === 0 ? (

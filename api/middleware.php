@@ -132,3 +132,77 @@ function require_coach_or_admin(): array {
     }
     return $user;
 }
+
+// Eltern-Lesezugriff auf ein Kind-Konto. Prüft eine aktive Verknüpfung und
+// (optional) die gesetzte Permission. SV-Admins dürfen immer (Moderation).
+// Liefert ['user' => …, 'link' => …|null, 'permissions' => …].
+function fwg_assert_parent_of(string $childId, string $need = ''): array {
+    $user = require_auth();
+    if ($childId === '' || !preg_match('/^[0-9a-f-]{36}$/i', $childId)) {
+        json_error('Ungültige Kind-Kennung.', 400);
+    }
+    if ($user['id'] === $childId) {
+        json_error('Das ist das eigene Konto – bitte den regulären Endpunkt nutzen.', 400);
+    }
+    if ($user['role'] === 'sv_admin') {
+        return ['user' => $user, 'link' => null, 'permissions' => []];
+    }
+    $pdo = DB::getConnection();
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM parent_links WHERE parent_id = ? AND child_id = ? AND status = 'active'");
+        $stmt->execute([$user['id'], $childId]);
+        $link = $stmt->fetch();
+    } catch (Throwable $e) {
+        error_log('fwg_assert_parent_of check failed: ' . $e->getMessage());
+        json_error('Verknüpfung konnte nicht geprüft werden. Bitte später erneut versuchen.', 500);
+    }
+    if (!$link) {
+        json_error('Sie haben keinen Zugriff auf dieses Kind-Konto.', 403, ['code' => 'parent_link_required']);
+    }
+    $perms = json_decode($link['permissions'] ?? '{}', true) ?: [];
+    if ($need !== '' && array_key_exists($need, $perms) && !$perms[$need]) {
+        json_error('Diese Einsicht ist in den Kind-Einstellungen deaktiviert.', 403, ['code' => 'parent_permission_denied']);
+    }
+    return ['user' => $user, 'link' => $link, 'permissions' => $perms];
+}
+
+// Fan-out: Eltern über Aktivitäten ihres Kindes informieren.
+// Respektiert permissions.can_receive_notifications. Wirft nie.
+// $skipParentId überspringt einen Eltern-Account (z. B. den handelnden Elternteil).
+function fwg_notify_parents(PDO $pdo, string $childId, string $type, string $title, string $message, array $data = [], string $skipParentId = ''): void {
+    if ($childId === '') {
+        return;
+    }
+    try {
+        $stmt = $pdo->prepare("SELECT parent_id, permissions FROM parent_links WHERE child_id = ? AND status = 'active'");
+        $stmt->execute([$childId]);
+        $links = $stmt->fetchAll();
+    } catch (Throwable $e) {
+        error_log('fwg_notify_parents lookup failed: ' . $e->getMessage());
+        return;
+    }
+    foreach ($links as $link) {
+        if ($skipParentId !== '' && $link['parent_id'] === $skipParentId) {
+            continue;
+        }
+        $perms = json_decode($link['permissions'] ?? '{}', true) ?: [];
+        if (array_key_exists('can_receive_notifications', $perms) && !$perms['can_receive_notifications']) {
+            continue;
+        }
+        try {
+            $pdo->prepare('
+                INSERT INTO notifications (id, user_id, type, title, message, data)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ')->execute([
+                generate_uuid(),
+                $link['parent_id'],
+                mb_substr($type, 0, 50),
+                mb_substr($title, 0, 255),
+                mb_substr($message, 0, 2000),
+                json_encode(array_merge($data, ['child_id' => $childId]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            ]);
+        } catch (Throwable $e) {
+            error_log('fwg_notify_parents insert failed: ' . $e->getMessage());
+        }
+    }
+}

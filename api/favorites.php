@@ -20,6 +20,15 @@ $pdo = DB::getConnection();
 // 1. GET: FAVORITEN DES NUTZERS ABRUFEN
 // ------------------------------------------------------------------------------
 if ($method === 'GET') {
+    // Optionaler Kind-Scope für Eltern: ?user_id=<child_id> liefert die Merkliste
+    // des verknüpften Kindes (nur wenn can_view_activity erlaubt ist).
+    $childId = trim((string)($_GET['user_id'] ?? ''));
+    $scopeId = $user['id'];
+    if ($childId !== '') {
+        fwg_assert_parent_of($childId, 'can_view_activity');
+        $scopeId = $childId;
+    }
+
     $stmt = $pdo->prepare('
         SELECT f.ad_id, f.created_at as favorited_at,
                a.*,
@@ -31,7 +40,7 @@ if ($method === 'GET') {
         WHERE f.user_id = ?
         ORDER BY f.created_at DESC
     ');
-    $stmt->execute([$user['id']]);
+    $stmt->execute([$scopeId]);
     $rows = $stmt->fetchAll();
 
     foreach ($rows as &$row) {

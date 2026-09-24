@@ -22,11 +22,13 @@ import {
     ArrowRight,
     ArrowUpRight,
     Lock,
+    Maximize2,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
 import { Switch } from '../components/ui/Switch';
 import { VerifiedPill } from '../components/ui/VerifiedPill';
+import ScreenshotLightbox from '../components/ScreenshotLightbox';
 import feedIphoneShot from '../../docs/screenshots/feed-iphone.png';
 import mobileAnzeigeShot from '../../docs/screenshots/mobile-anzeige.png';
 import iphoneProfileShot from '../../docs/screenshots/iphone-profile.png';
@@ -71,14 +73,23 @@ const SUBJECT_LABELS: Record<Subject, string> = {
 
 const FAECHER_TICKER: string[] = SUBJECT_CATEGORIES.flatMap((c) => c.subjects).map((s) => SUBJECT_LABELS[s]);
 
-/* Brett-Vorschau: echte App-Screenshots aus docs/screenshots/. Die Handy-/iPad-Shots
-   liegen mit fertigem Geräterahmen vor — keinen zweiten Rahmen drumlegen. */
-const BOARD_DEVICES: { src: string; alt: string; caption: string; wide?: boolean }[] = [
+/* Brett-Vorschau: echte App-Screenshots aus docs/screenshots/. Die drei iPhone-Shots
+   liegen mit fertigem Geräterahmen vor — keinen zweiten Rahmen drumlegen.
+   Das iPad (Querformat) steht bewusst daneben als eigener Print, nicht im Track:
+   die Board-CSS ist auf drei hochkante Sheets komponiert. */
+const BOARD_DEVICES: { src: string; alt: string; caption: string }[] = [
     { src: feedIphoneShot, alt: 'iPhone-Feed mit hervorgehobener Anzeige und Tab-Leiste', caption: 'Feed: Anzeigen stöbern' },
     { src: mobileAnzeigeShot, alt: 'iPhone-Anzeigen-Detail mit Preis, Tags und Beschreibung', caption: 'Anzeige: Details zum Angebot' },
     { src: iphoneProfileShot, alt: 'iPhone-Profil mit Profil-Stärke und persönlichen Angaben', caption: 'Profil: zeigen, was du kannst' },
-    { src: ipadSettingsShot, alt: 'iPad-Einstellungen mit Erscheinungsbild, Push und Datenschutz', caption: 'iPad: Einstellungen & Datenschutz', wide: true },
 ];
+
+/* iPad: der Querformat-Print steht als eigener Übergang zwischen Handy-Reihe
+   und Desktop-Ansichten — bewusst gesetzt statt als Fremdkörper im Track. */
+const IPAD_PRINT = {
+    src: ipadSettingsShot,
+    alt: 'iPad-Einstellungen mit Erscheinungsbild, Push und Datenschutz',
+    caption: 'Einstellungen & Datenschutz',
+};
 
 /* Desktop-Prints: der Rahmen ist eingebrannt (3 px #111, runde Ecken) — als
    geklebte Prints an die Plakatwand gesetzt, Mono-Index wie auf dem Prüfzettel. */
@@ -103,6 +114,10 @@ export default function Landing() {
     /* Privatsphäre-Demo */
     const [showPhone, setShowPhone] = useState(true);
     const [showMoodle, setShowMoodle] = useState(false);
+
+    /* Desktop-Prints: Kontaktbogen auf der Wand, groß erst im Lightbox-Popup */
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [lightboxIndex, setLightboxIndex] = useState(0);
 
     const heroRef = useRef<HTMLElement | null>(null);
     const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
@@ -402,7 +417,7 @@ export default function Landing() {
                                 <div
                                     ref={boardPhonesRef}
                                     className={`board-phones${boardDriven ? ' board-phones--driven' : ''}`}
-                                    aria-label="App-Ansichten auf Handy und iPad — beim Scrollen durchblättern"
+                                    aria-label="App-Ansichten auf dem Handy — beim Scrollen durchblättern"
                                     tabIndex={boardDriven ? -1 : 0}
                                 >
                                     <motion.div className="board-track pt-4" style={boardDriven ? { x: boardX } : undefined}>
@@ -410,7 +425,6 @@ export default function Landing() {
                                             <figure
                                                 key={m.caption}
                                                 className="board-sheet tape relative"
-                                                style={m.wide ? { width: 'min(520px, 82vw)' } : undefined}
                                             >
                                                 <img
                                                     src={m.src}
@@ -430,35 +444,83 @@ export default function Landing() {
                         </div>
                     </div>
 
-                    {/* Desktop-Prints: gerahmte Shots als geklebte Prints an der Plakatwand */}
+                    {/* iPad: Querformat-Print als bewusster Übergang von der Handy-Reihe
+                        zu den Desktop-Ansichten — eigener Platz statt Fremdkörper im Track. */}
+                    <div className="mt-16 flex justify-center">
+                        <div className="w-full max-w-3xl" style={{ transform: 'rotate(-0.6deg)' }}>
+                            <motion.figure {...anim()} className="tape relative">
+                                <img
+                                    src={IPAD_PRINT.src}
+                                    alt={IPAD_PRINT.alt}
+                                    loading="lazy"
+                                    className="h-auto w-full rounded-2xl"
+                                />
+                                <figcaption className="mt-4 flex items-baseline justify-center gap-2.5">
+                                    <span className="font-mono text-xs font-bold tabular-nums text-primary">iPad</span>
+                                    <span className="board-caption text-sm font-bold">{IPAD_PRINT.caption}</span>
+                                </figcaption>
+                            </motion.figure>
+                        </div>
+                    </div>
+
+                    {/* Desktop-Prints: Kontaktbogen aus Mini-Kacheln — groß erst im
+                        Lightbox-Popup (Klick auf eine Kachel), damit die Wand atmet. */}
                     <div className="mt-16">
                         <div className="flex flex-wrap items-end justify-between gap-4">
                             <h3 className="font-display uppercase leading-[0.95] text-2xl text-white sm:text-4xl">Auch am Desktop.</h3>
                             <p className="font-mono tabular-nums text-sm font-bold text-gray-500">07 ANSICHTEN · 01 PLATTFORM</p>
                         </div>
-                        <div className="mt-8 grid grid-cols-1 gap-x-6 gap-y-12 md:grid-cols-2">
+                        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-400">Klick auf eine Ansicht öffnet sie groß — im Popup mit Pfeiltasten durchblättern.</p>
+                        <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 sm:gap-x-5 lg:grid-cols-4">
                             {BOARD_PRINTS.map((p, i) => (
-                                <div key={p.index} style={{ transform: `rotate(${i % 2 === 0 ? -0.8 : 0.8}deg)` }}>
-                                    <motion.figure {...tiltIn(i)} className="tape relative">
+                                <button
+                                    key={p.index}
+                                    type="button"
+                                    onClick={() => { setLightboxIndex(i); setLightboxOpen(true); }}
+                                    aria-label={`Screenshot groß ansehen: ${p.caption}`}
+                                    className="group block rounded-2xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-gray-950"
+                                    style={{ transform: `rotate(${i % 2 === 0 ? -0.8 : 0.8}deg)` }}
+                                >
+                                    <span className="block overflow-hidden rounded-2xl ring-1 ring-white/10 transition-shadow group-hover:ring-primary/50">
                                         <img
                                             src={p.src}
                                             alt={p.alt}
                                             loading="lazy"
-                                            className="h-auto w-full rounded-2xl"
+                                            className="h-auto w-full transition-transform duration-300 group-hover:scale-[1.03]"
                                         />
-                                        <figcaption className="mt-3 flex items-baseline gap-2.5">
-                                            <span className="font-mono text-xs font-bold tabular-nums text-primary">{p.index}</span>
-                                            <span className="board-caption text-sm font-bold">{p.caption}</span>
-                                        </figcaption>
-                                    </motion.figure>
-                                </div>
+                                    </span>
+                                    <span className="mt-2.5 flex items-baseline gap-2">
+                                        <span className="font-mono text-xs font-bold tabular-nums text-primary">{p.index}</span>
+                                        <span className="board-caption text-xs font-bold sm:text-sm">{p.caption}</span>
+                                    </span>
+                                </button>
                             ))}
+                            <button
+                                type="button"
+                                onClick={() => { setLightboxIndex(0); setLightboxOpen(true); }}
+                                aria-label="Alle Screenshots groß ansehen"
+                                className="group block rounded-2xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-gray-950"
+                                style={{ transform: 'rotate(0.8deg)' }}
+                            >
+                                <span className="flex aspect-[1606/1104] flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/20 bg-white/[0.03] px-3 text-center text-gray-300 transition-colors group-hover:border-primary/60 group-hover:text-white">
+                                    <Maximize2 size={22} aria-hidden />
+                                    <span className="font-mono text-xs font-bold uppercase tracking-wide">Alle groß ansehen</span>
+                                </span>
+                            </button>
                         </div>
                     </div>
 
                     <motion.div {...anim()} className="mt-12">
                         <Link to={ziel} className="press inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-primary px-8 text-base font-bold text-black shadow-md hover:bg-primary-hover">Jetzt loslegen <ArrowRight size={18} aria-hidden /></Link>
                     </motion.div>
+
+                    <ScreenshotLightbox
+                        items={BOARD_PRINTS}
+                        open={lightboxOpen}
+                        index={lightboxIndex}
+                        onIndexChange={setLightboxIndex}
+                        onClose={() => setLightboxOpen(false)}
+                    />
                 </div>
             </section>
 

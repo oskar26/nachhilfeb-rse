@@ -15,6 +15,7 @@ import { RichTextEditor } from '../components/RichTextEditor';
 import { AvailabilityCalendar, emptyAvailability, type Availability } from '../components/AvailabilityCalendar';
 import { sanitizeHtml } from '../lib/sanitize';
 import ChildLinkModal from '../components/ChildLinkModal';
+import { ParentProfileCard } from '../components/parent/ParentProfileCard';
 import { triggerHaptic } from '../lib/haptics';
 import AvatarMakerModal from '../components/AvatarMakerModal';
 import { extractDominantGradient, getDefaultGradient, getRandomGradient, PRESET_GRADIENTS } from '../lib/colorExtractor';
@@ -234,6 +235,16 @@ export default function Profile() {
             <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Profil wird geladen...</p>
         </div>
     );
+
+    // Eltern-Accounts haben ein reduziertes Profil: Name, Anzeigename, Avatar
+    // und E-Mail-Adresse. Alles zum Kind steuern sie im Eltern-Dashboard.
+    if (authProfile?.role === 'parent') {
+        return (
+            <div className="mx-auto max-w-3xl px-4 pb-28 pt-6 sm:px-6">
+                <ParentProfileCard />
+            </div>
+        );
+    }
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -473,7 +484,7 @@ export default function Profile() {
                     { label: 'Kurz-Bio', done: Boolean((profile.bio || '').replace(/<[^>]+>/g, '').trim().length > 20) },
                     { label: 'Zeiten eintragen', done: Object.values(availability).some(d => d.length > 0) },
                     { label: 'Verifiziert', done: Boolean(profile.is_verified) },
-                    { label: 'Erste Anzeige', done: (authProfile?.role === 'parent') || false },
+                    { label: 'Erste Anzeige', done: profile.offered_subjects.length > 0 },
                 ];
                 // Head start: account exists = always at least the first item when name present
                 const doneCount = checks.filter(c => c.done).length + (profile.first_name ? 0 : 0);

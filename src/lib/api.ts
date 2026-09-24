@@ -215,6 +215,22 @@ export const api = {
             });
         },
 
+        /** E-Mail-Wechsel Schritt 1: Code an die neue Adresse schicken. */
+        async requestEmailChange(email: string) {
+            return apiRequest('/auth.php?action=request_email_change', {
+                method: 'POST',
+                body: JSON.stringify({ email })
+            });
+        },
+
+        /** E-Mail-Wechsel Schritt 2: 6-stelligen Code bestätigen. */
+        async confirmEmailChange(code: string) {
+            return apiRequest('/auth.php?action=confirm_email_change', {
+                method: 'POST',
+                body: JSON.stringify({ code })
+            });
+        },
+
         logout() {
             setStoredToken(null);
             setStoredUser(null);
@@ -287,8 +303,10 @@ export const api = {
 
     // Anfragen
     requests: {
-        async list() {
-            return apiRequest('/requests.php');
+        // userId: Kind-Scope für Eltern (liefert Anfragen des verknüpften Kindes)
+        async list(userId?: string) {
+            const query = userId ? `?user_id=${encodeURIComponent(userId)}` : '';
+            return apiRequest(`/requests.php${query}`);
         },
 
         async get(id: string) {
@@ -361,8 +379,10 @@ export const api = {
 
     // Favoriten
     favorites: {
-        async list() {
-            return apiRequest('/favorites.php');
+        // userId: Kind-Scope für Eltern (liefert die Merkliste des Kindes)
+        async list(userId?: string) {
+            const query = userId ? `?user_id=${encodeURIComponent(userId)}` : '';
+            return apiRequest(`/favorites.php${query}`);
         },
 
         async toggle(adId: string) {
@@ -540,6 +560,15 @@ export const api = {
             return apiRequest('/profiles.php?action=parent_links', {
                 method: 'DELETE',
                 body: JSON.stringify({ link_id: linkId })
+            });
+        },
+
+        // Kind-Profil durch Eltern begrenzt bearbeiten
+        // (Name, Klasse, Fächer, Bio, Verfügbarkeit, Sichtbarkeit, Avatar)
+        async updateChild(childId: string, data: Record<string, unknown>) {
+            return apiRequest(`/profiles.php?id=${encodeURIComponent(childId)}`, {
+                method: 'PATCH',
+                body: JSON.stringify(data)
             });
         }
     },

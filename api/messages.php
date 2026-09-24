@@ -169,6 +169,16 @@ if ($method === 'POST') {
         error_log('Fehler beim Anlegen der In-App Nachricht: ' . $e->getMessage());
     }
 
+    // Eltern des Empfängers informieren – nur Metadaten, nie Chat-Inhalte.
+    fwg_notify_parents(
+        $pdo,
+        (string)$recipientId,
+        'parent_message',
+        'Neue Nachricht für Ihr Kind',
+        'Für Ihr Kind ist eine neue Nachricht eingegangen.',
+        ['request_id' => $requestId, 'link' => '/#/parent-dashboard']
+    );
+
     json_response($created, 201);
 }
 

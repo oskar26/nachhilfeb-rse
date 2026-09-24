@@ -28,9 +28,12 @@ interface TabBarProps<T extends string = string> {
  * Zustand als reine Farbfläche – keine `layoutId`-Pille, damit beim Wechsel
  * nichts flackert oder springt. Zähler-Badges haben eine Mindestbreite.
  * Pfeiltasten/Home/End bewegen den Fokus (Roving Tabindex).
+ * Ab 6 Einträgen wird horizontal gescrollt statt gequetscht, damit Labels
+ * wie „Überblick“ nicht zu „Ü…“ abgeschnitten werden (Eltern-Leitstand: 7 Tabs).
  */
 export function TabBar<T extends string = string>({ items, value, onChange, ariaLabel, className, idPrefix }: TabBarProps<T>) {
     const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+    const scrollable = items.length > 5;
 
     const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
         let nextIndex: number;
@@ -56,7 +59,9 @@ export function TabBar<T extends string = string>({ items, value, onChange, aria
             triggerHaptic('selection');
             onChange(nextKey);
         }
-        tabRefs.current[nextIndex]?.focus();
+        const next = tabRefs.current[nextIndex];
+        next?.focus();
+        if (scrollable) next?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     };
 
     return (
@@ -64,10 +69,11 @@ export function TabBar<T extends string = string>({ items, value, onChange, aria
             role="tablist"
             aria-label={ariaLabel}
             className={cn(
-                'grid w-full gap-1 rounded-2xl border border-gray-200/60 bg-white p-1 shadow-sm dark:border-gray-800/80 dark:bg-gray-900 sm:p-1.5',
+                'w-full rounded-2xl border border-gray-200/60 bg-white p-1 shadow-sm dark:border-gray-800/80 dark:bg-gray-900 sm:p-1.5',
+                scrollable ? 'flex gap-1 overflow-x-auto' : 'grid gap-1',
                 className
             )}
-            style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
+            style={scrollable ? undefined : { gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
         >
             {items.map((item, index) => {
                 const isActive = item.key === value;
@@ -89,14 +95,15 @@ export function TabBar<T extends string = string>({ items, value, onChange, aria
                             onChange(item.key);
                         }}
                         className={cn(
-                            'flex min-h-[40px] min-w-0 cursor-pointer items-center justify-center gap-1.5 rounded-xl px-1.5 py-2.5 text-xs font-bold transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] dark:focus-visible:ring-primary sm:px-2 sm:text-sm',
+                            'flex min-h-[40px] cursor-pointer items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-bold transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] dark:focus-visible:ring-primary sm:text-sm',
+                            scrollable ? 'shrink-0 whitespace-nowrap px-3' : 'min-w-0 px-1.5 sm:px-2',
                             isActive
                                 ? 'bg-primary text-amber-950'
                                 : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100'
                         )}
                     >
-                        {Icon && <Icon aria-hidden="true" size={16} className={cn('shrink-0', !isActive && 'text-gray-400')} />}
-                        <span className="truncate">{item.label}</span>
+                        {Icon && <Icon aria-hidden size={16} className={cn('shrink-0', !isActive && 'text-gray-400')} />}
+                        <span className={scrollable ? undefined : 'truncate'}>{item.label}</span>
                         {typeof item.count === 'number' && item.count > 0 && (
                             <span
                                 className={cn(

@@ -366,6 +366,7 @@ if ($method === 'GET' && $action === 'parent_links') {
             $adsCount = 0;
             $reqCount = 0;
             $revCount = 0;
+            $favCount = 0;
             $activity = [];
             try {
                 $personStmt = $pdo->prepare('SELECT * FROM profiles WHERE id = ?');
@@ -389,6 +390,9 @@ if ($method === 'GET' && $action === 'parent_links') {
             $cntStmt = $pdo->prepare('SELECT COUNT(*) FROM reviews WHERE target_user_id = ?');
             $cntStmt->execute([$c]);
             $revCount = (int)$cntStmt->fetchColumn();
+            $cntStmt = $pdo->prepare('SELECT COUNT(*) FROM favorites WHERE user_id = ?');
+            $cntStmt->execute([$c]);
+            $favCount = (int)$cntStmt->fetchColumn();
 
             $activity = [];
             $aStmt = $pdo->prepare('
@@ -446,12 +450,15 @@ if ($method === 'GET' && $action === 'parent_links') {
                 error_log('parent dashboard child stats failed: ' . $e->getMessage());
             }
 
+            $linkPerms = json_decode($link['permissions'] ?? '{}', true) ?: $parentPermissionsDefaults;
+            $canViewActivity = !array_key_exists('can_view_activity', $linkPerms) || !empty($linkPerms['can_view_activity']);
+
             $result[] = [
                 'id' => $link['id'],
                 'parent_id' => $link['parent_id'],
                 'child_id' => $c,
                 'status' => $link['status'],
-                'permissions' => json_decode($link['permissions'] ?? '{}', true) ?: $parentPermissionsDefaults,
+                'permissions' => $linkPerms,
                 'created_at' => $link['created_at'],
                 'linked_at' => $link['linked_at'],
                 'child' => [
@@ -463,13 +470,22 @@ if ($method === 'GET' && $action === 'parent_links') {
                     'grade_level' => $child['grade_level'],
                     'class_letter' => $child['class_letter'],
                     'avatar_url' => $child['avatar_url'],
+                    'avatar_type' => $child['avatar_type'] ?? null,
+                    'banner_color' => $child['banner_color'] ?? null,
+                    'bio' => $child['bio'] ?? null,
+                    'subjects' => json_decode($child['subjects'] ?? '[]', true) ?: [],
+                    'availability' => json_decode($child['availability'] ?? 'null', true),
+                    'settings' => json_decode($child['settings'] ?? '{}', true) ?: [],
+                    'is_verified' => !empty($child['is_verified']),
+                    'onboarding_complete' => !empty($child['onboarding_complete']),
                     'average_rating' => (float)$child['average_rating'],
                     'stats' => [
                         'ads_count' => $adsCount,
                         'requests_count' => $reqCount,
                         'reviews_count' => $revCount,
+                        'favorites_count' => $favCount,
                     ],
-                    'recent_activity' => array_slice($activity, 0, 5),
+                    'recent_activity' => $canViewActivity ? array_slice($activity, 0, 5) : [],
                 ],
             ];
         }
@@ -581,6 +597,16 @@ if ($method === 'POST' && $action === 'parent_links') {
         ]);
     }
 
+    // Automatische Verifizierung: Mit der ersten aktiven Kind-Verknüpfung gilt
+    // der Eltern-Account als verifiziert (Analog zur SV-Raum-Verifikation).
+    if ($user['role'] === 'parent') {
+        try {
+            $pdo->prepare('UPDATE profiles SET is_verified = 1 WHERE id = ?')->execute([$user['id']]);
+        } catch (Throwable $e) {
+            error_log('parent auto-verify failed: ' . $e->getMessage());
+        }
+    }
+
     json_response([
         'message' => 'Verknüpfung erfolgreich.',
         'link' => [
@@ -592,6 +618,7 @@ if ($method === 'POST' && $action === 'parent_links') {
             'created_at' => $now,
             'linked_at' => $now,
         ],
+        'verified' => true,
     ]);
 }
 
@@ -1016,7 +1043,19 @@ if ($method === 'PUT' || $method === 'PATCH') {
     $isSvAdmin = $user['role'] === 'sv_admin';
     $isCoachAdmin = $user['role'] === 'coach_admin';
 
-    if (!$isSelf && !$isSvAdmin && !$isCoachAdmin) {
+    // Eltern dürfen das Profil ihres aktiven Kindes begrenzt verwalten
+    $isLinkedParent = false;
+    if (!$isSelf && !$isSvAdmin && !$isCoachAdmin && $user['role'] === 'parent') {
+        try {
+            $linkCheck = $pdo->prepare("SELECT id FROM parent_links WHERE parent_id = ? AND child_id = ? AND status = 'active'");
+            $linkCheck->execute([$user['id'], $targetId]);
+            $isLinkedParent = (bool)$linkCheck->fetch();
+        } catch (Exception $e) {
+            error_log('parent link check on profile update failed: ' . $e->getMessage());
+        }
+    }
+
+    if (!$isSelf && !$isSvAdmin && !$isCoachAdmin && !$isLinkedParent) {
         json_error('Keine Berechtigung zur Aktualisierung dieses Profils.', 403);
     }
 
@@ -1030,6 +1069,13 @@ if ($method === 'PUT' || $method === 'PATCH') {
         'avatar_type', 'banner_color', 'birth_date'
     ];
 
+    // Eltern-Whitelist fürs Kind: Name, Klasse, Bio, Avatar. Kein Geburtsdatum,
+    // keine Kontaktdaten (die bleiben beim Kind selbst).
+    $parentTextFields = [
+        'first_name', 'last_name', 'display_name', 'grade_level', 'class_letter',
+        'bio', 'avatar_url', 'avatar_type', 'banner_color'
+    ];
+
     $textLimits = [
         'first_name' => 80, 'last_name' => 80, 'display_name' => 80,
         'grade_level' => 10, 'class_letter' => 5, 'bio' => 5000,
@@ -1037,8 +1083,9 @@ if ($method === 'PUT' || $method === 'PATCH') {
         'avatar_url' => 2000, 'avatar_type' => 20, 'banner_color' => 20,
         'birth_date' => 10,
     ];
-    if ($isSelf || $isSvAdmin) {
-        foreach ($textFields as $tf) {
+    if ($isSelf || $isSvAdmin || $isLinkedParent) {
+        $allowedText = ($isSelf || $isSvAdmin) ? $textFields : $parentTextFields;
+        foreach ($allowedText as $tf) {
             if (array_key_exists($tf, $data)) {
                 $val = $data[$tf];
                 if ($val !== null && !is_string($val)) {
@@ -1059,13 +1106,13 @@ if ($method === 'PUT' || $method === 'PATCH') {
         }
     }
 
-    if (($isSelf || $isSvAdmin) && isset($data['subjects'])) {
+    if (($isSelf || $isSvAdmin || $isLinkedParent) && isset($data['subjects'])) {
         $fields[] = '`subjects` = ?';
         $params[] = json_encode($data['subjects']);
     }
 
     // Verfügbarkeit (Availability) handling
-    if (($isSelf || $isSvAdmin) && isset($data['availability'])) {
+    if (($isSelf || $isSvAdmin || $isLinkedParent) && isset($data['availability'])) {
         $availJson = json_encode($data['availability']);
         try {
             $fields[] = '`availability` = ?';
@@ -1082,6 +1129,23 @@ if ($method === 'PUT' || $method === 'PATCH') {
     if (($isSelf || $isSvAdmin) && isset($data['settings'])) {
         $fields[] = '`settings` = ?';
         $params[] = json_encode($data['settings']);
+    } elseif ($isLinkedParent && isset($data['settings'])) {
+        // Eltern setzen nur die Sichtbarkeit des Kindes – der Rest bleibt unangetastet.
+        $curSettings = [];
+        try {
+            $setStmt = $pdo->prepare('SELECT settings FROM profiles WHERE id = ?');
+            $setStmt->execute([$targetId]);
+            $curSettings = json_decode((string)$setStmt->fetchColumn(), true) ?: [];
+        } catch (Exception $e) {
+            error_log('settings merge read failed: ' . $e->getMessage());
+        }
+        foreach (['email_visible', 'phone_visible', 'custom_contacts', 'availability'] as $k) {
+            if (array_key_exists($k, $data['settings'])) {
+                $curSettings[$k] = $data['settings'][$k];
+            }
+        }
+        $fields[] = '`settings` = ?';
+        $params[] = json_encode($curSettings);
     }
 
     if (($isSelf || $isSvAdmin) && isset($data['onboarding_complete'])) {

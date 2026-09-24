@@ -290,6 +290,15 @@ if ($method === 'POST') {
         json_error('Verifizierung konnte nicht geprüft werden. Bitte später erneut versuchen.', 500);
     }
 
+    // Eltern legen Anzeigen im Namen ihres Kindes an: user_id im Body erlaubt
+    // die Attribution aufs Kind – aber nur bei aktiver Verknüpfung.
+    $ownerId = $user['id'];
+    $requestedOwner = trim((string)($data['user_id'] ?? ''));
+    if ($requestedOwner !== '' && $requestedOwner !== $user['id']) {
+        fwg_assert_parent_of($requestedOwner, 'can_view_ads');
+        $ownerId = $requestedOwner;
+    }
+
     $type = $data['type'] ?? 'offer';
     if (!in_array($type, ['offer', 'search'])) {
         json_error('Ungültiger Anzeigentyp.');
@@ -335,9 +344,9 @@ if ($method === 'POST') {
 
     // Spam-Schutz: max. 10 aktive Anzeigen pro Nutzer
     $countStmt = $pdo->prepare('SELECT COUNT(*) FROM ads WHERE user_id = ? AND is_active = 1 AND is_archived = 0');
-    $countStmt->execute([$user['id']]);
+    $countStmt->execute([$ownerId]);
     if ((int)$countStmt->fetchColumn() >= 10) {
-        json_error('Du hast bereits 10 aktive Anzeigen. Archiviere zuerst eine alte Anzeige.', 429);
+        json_error('Es sind bereits 10 aktive Anzeigen hinterlegt. Archiviere zuerst eine alte Anzeige.', 429);
     }
 
     $adId = generate_uuid();
@@ -351,7 +360,7 @@ if ($method === 'POST') {
 
     $stmt->execute([
         $adId,
-        $user['id'],
+        $ownerId,
         $type,
         $sessionFormat,
         json_encode($subjects),
@@ -377,7 +386,7 @@ if ($method === 'POST') {
             WHERE user_id <> ?
               AND (last_notified_at IS NULL OR last_notified_at < DATE_SUB(NOW(), INTERVAL 24 HOUR))
         ');
-        $savedStmt->execute([$user['id']]);
+        $savedStmt->execute([$ownerId]);
         foreach ($savedStmt->fetchAll() as $saved) {
             $q = json_decode((string)$saved['query'], true);
             if (!is_array($q)) continue;
@@ -399,6 +408,18 @@ if ($method === 'POST') {
         // Benachrichtigungen dürfen das Erstellen der Anzeige nie verhindern.
         error_log('saved search notify failed: ' . $e->getMessage());
     }
+
+    // Eltern des Kindes informieren, dass eine neue Anzeige online ist.
+    // (Der handelnde Elternteil selbst wird übersprungen.)
+    fwg_notify_parents(
+        $pdo,
+        $ownerId,
+        'parent_ad',
+        'Neue Anzeige Ihres Kindes',
+        'Für Ihr Kind wurde eine neue Anzeige veröffentlicht: „' . mb_substr($shortDesc, 0, 100) . '“.',
+        ['ad_id' => $adId, 'link' => '/#/parent-dashboard'],
+        $ownerId === $user['id'] ? '' : (string)$user['id']
+    );
 
     json_response([
         'id' => $adId,

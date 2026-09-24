@@ -1,4 +1,4 @@
-import { ShieldCheck, BadgeCheck, KeyRound, Mail, Check } from 'lucide-react';
+import { ShieldCheck, BadgeCheck, KeyRound, Mail, Check, LayoutDashboard } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
@@ -30,9 +30,9 @@ function CheckRow({ children }: { children: React.ReactNode }) {
 }
 
 const PARENT_STEPS = [
-    { n: '1', t: 'Registrieren', d: 'Elternkonto mit dem SV-Einladungscode für Eltern erstellen.' },
-    { n: '2', t: 'Code anfragen', d: '6-stelligen Freigabe-Code unter „Einstellungen“ Ihres Kindes zeigen lassen.' },
-    { n: '3', t: 'Verknüpfen', d: 'Code im Eltern-Dashboard eingeben. Sofort aktiv.' },
+    { n: '1', t: 'Registrieren', d: 'Eltern-Account erstellen (Rolle „Elternteil“) und die E-Mail-Adresse bestätigen.' },
+    { n: '2', t: 'Code anfragen', d: 'Ihr Kind zeigt den 6-stelligen Code unter „Einstellungen → Eltern-Verknüpfung“.' },
+    { n: '3', t: 'Verknüpfen', d: 'Code im Eltern-Dashboard eingeben – der Link ist sofort aktiv, Ihr Account automatisch verifiziert.' },
 ];
 
 export default function ParentGuide() {
@@ -56,7 +56,7 @@ export default function ParentGuide() {
     return (
         <StaticLayout
             title="Leitfaden für Eltern"
-            intro="Verifizierte Accounts, SV-Moderation und faire Preise halten Nachhilfe sicher."
+            intro="Verifizierte Accounts, SV-Moderation und ein Eltern-Dashboard, das Ihnen den Überblick über die Nachhilfe Ihres Kindes gibt."
         >
             <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-16 min-w-0 flex flex-col gap-10 sm:gap-12">
 
@@ -76,8 +76,9 @@ export default function ParentGuide() {
                     </div>
                     <motion.span {...wipeLine()} className="mt-2 ml-14 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
                     <dl className="mt-5">
-                        <SpecRowDark label="Zugang">Nur Schülerinnen und Schüler des Friedrich-Wilhelm-Gymnasiums.</SpecRowDark>
-                        <SpecRowDark label="Verifizierung">Persönlich im SV-Raum, ohne Code. Einfach melden.</SpecRowDark>
+                        <SpecRowDark label="Zugang">Nur Schülerinnen und Schüler des Friedrich-Wilhelm-Gymnasiums sowie deren Eltern.</SpecRowDark>
+                        <SpecRowDark label="Verifizierung">Schüler persönlich im SV-Raum, ohne Code. Einfach melden.</SpecRowDark>
+                        <SpecRowDark label="Eltern-Konten">Werden mit der ersten Kind-Verknüpfung automatisch verifiziert.</SpecRowDark>
                         <SpecRowDark label="Treffen">Meist direkt in der Schule, z. B. Bibliothek oder Mensa.</SpecRowDark>
                         <SpecRowDark label="Schutz">Unverifizierte Konten bleiben eingeschränkt und können deaktiviert werden.</SpecRowDark>
                     </dl>
@@ -153,6 +154,47 @@ export default function ParentGuide() {
                     </ul>
                 </motion.section>
 
+                {/* C2: Eltern-Dashboard — was Sie nach der Verknüpfung alles können */}
+                <motion.section
+                    aria-labelledby="eltern-dashboard"
+                    {...anim()}
+                    className="rounded-3xl bg-white dark:bg-gray-900 p-6 sm:p-8 border border-gray-100 dark:border-gray-800 shadow-soft"
+                >
+                    <div className="flex items-center gap-3">
+                        <span className="grid place-items-center w-11 h-11 rounded-2xl bg-primary text-black shrink-0" aria-hidden>
+                            <LayoutDashboard size={22} />
+                        </span>
+                        <h2 id="eltern-dashboard" className="font-display uppercase text-2xl sm:text-3xl tracking-tight text-gray-900 dark:text-white">
+                            Ihr Eltern-Dashboard
+                        </h2>
+                    </div>
+                    <motion.span {...wipeLine()} className="mt-2 ml-14 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
+                    <p className="mt-5 text-[15px] leading-7 text-gray-600 dark:text-gray-300 max-w-prose">
+                        Nach der Verknüpfung haben Sie einen Ort für alles rund um Ihr Kind – übersichtlich sortiert nach Bereichen
+                        und jederzeit aktuell, weil die Daten mit dem Kinderkonto synchron laufen.
+                    </p>
+                    <ul className="mt-5">
+                        <CheckRow>
+                            <strong className="text-gray-900 dark:text-white">Überblick:</strong> Aktivitäts-Verlauf und Kennzahlen zu Anzeigen, Anfragen und Bewertungen auf einen Blick.
+                        </CheckRow>
+                        <CheckRow>
+                            <strong className="text-gray-900 dark:text-white">Anzeigen:</strong> Alle Inserate Ihres Kindes sehen, neue aufgeben und Anzeigen pausieren oder reaktivieren.
+                        </CheckRow>
+                        <CheckRow>
+                            <strong className="text-gray-900 dark:text-white">Anfragen & Matches:</strong> Ein- und ausgehende Anfragen mit Status verfolgen und passende Vorschläge für Ihr Kind einsehen.
+                        </CheckRow>
+                        <CheckRow>
+                            <strong className="text-gray-900 dark:text-white">Merkliste & Bewertungen:</strong> Gemerkte Angebote und Feedback anderer Schülerinnen und Schüler nachvollziehen.
+                        </CheckRow>
+                        <CheckRow>
+                            <strong className="text-gray-900 dark:text-white">Profil & Einstellungen:</strong> Name, Klasse, Fächer, Bio, Verfügbarkeit und Sichtbarkeit fürs Kind pflegen – und selbst entscheiden, ob Sie zu Neuigkeiten benachrichtigt werden.
+                        </CheckRow>
+                        <CheckRow>
+                            <strong className="text-gray-900 dark:text-white">Privatsphäre:</strong> Sie sehen den Status jeder Anfrage, aber nie die Nachrichten im Chat Ihres Kindes.
+                        </CheckRow>
+                    </ul>
+                </motion.section>
+
                 {/* D: Schwarzer CTA-Block mit der einzigen CTA der Seite */}
                 <motion.section
                     aria-labelledby="eltern-konto"
@@ -164,7 +206,7 @@ export default function ParentGuide() {
                     </h2>
                     <motion.span {...wipeLine()} className="mx-auto mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
                     <p className="mt-4 text-[15px] leading-7 text-gray-300 max-w-2xl mx-auto">
-                        Verknüpfen Sie Ihr Elternkonto mit dem Konto Ihres Kindes und behalten Sie Anzeigen und Anfragen im Blick.
+                        Verknüpfen Sie Ihr Elternkonto mit dem Konto Ihres Kindes – Sie sehen danach Anzeigen, Anfragen, Matches und Merkliste an einem Ort und sind bei Neuigkeiten informiert.
                     </p>
                     <ol className="mt-6 grid gap-3 text-left max-w-2xl mx-auto">
                         {PARENT_STEPS.map(s => (

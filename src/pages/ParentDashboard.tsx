@@ -1,444 +1,339 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { api, apiErrorMessage } from '../lib/api';
-import { Button } from '../components/ui/Button';
-import { Card, CardContent, CardHeader } from '../components/ui/Card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/Dialog';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import {
     Users,
     Plus,
-    FileText,
-    MessageSquare,
+    ShieldCheck,
+    LayoutDashboard,
+    Megaphone,
+    Inbox,
+    Target,
+    Heart,
     Star,
-    Bell,
-    UserX,
-    TrendingUp,
-    Shield,
-    Trash2,
-    Calendar,
+    Settings2,
+    Sparkles,
+    UserPlus
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
-import { cn } from '../lib/utils';
+import { useAuth } from '../context/AuthContext';
+import { api, apiErrorMessage } from '../lib/api';
+import { Button } from '../components/ui/Button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../components/ui/Dialog';
+import { TabBar, type TabBarItem } from '../components/ui/TabBar';
 import ParentLinkFlow from '../components/ParentLinkFlow';
 import ParentConsentModal from '../components/ParentConsentModal';
+import { ChildSwitcher } from '../components/parent/ChildSwitcher';
+import { ChildHeroCard } from '../components/parent/ChildHeroCard';
+import { OverviewTab } from '../components/parent/OverviewTab';
+import { AdsTab } from '../components/parent/AdsTab';
+import { RequestsTab } from '../components/parent/RequestsTab';
+import { MatchesTab } from '../components/parent/MatchesTab';
+import { FavoritesTab } from '../components/parent/FavoritesTab';
+import { ReviewsTab } from '../components/parent/ReviewsTab';
+import { ChildSettingsTab } from '../components/parent/ChildSettingsTab';
+import type { ChildView, ParentLinkRecord, ParentPermissions } from '../components/parent/types';
 
-interface ActivityItem {
-    type: 'ad' | 'request' | 'review';
-    title: string;
-    description: string;
-    timestamp: string;
-}
+const DEFAULT_PERMISSIONS: ParentPermissions = {
+    can_view_ads: true,
+    can_view_ratings: true,
+    can_view_activity: true,
+    can_receive_notifications: true
+};
 
-interface ParentLink {
-    id: string;
-    parent_id: string;
-    child_id: string;
-    status: string;
-    permissions: {
-        can_view_ads: boolean;
-        can_view_ratings: boolean;
-        can_view_activity: boolean;
-        can_receive_notifications: boolean;
-    };
-    created_at: string;
-    linked_at: string | null;
-    child: {
-        id: string;
-        full_name: string | null;
-        display_name: string | null;
-        first_name?: string | null;
-        last_name?: string | null;
-        grade_level: string | null;
-        class_letter?: string | null;
-        avatar_url: string | null;
-        average_rating: number;
-        stats?: {
-            ads_count: number;
-            requests_count: number;
-            reviews_count: number;
-        };
-        recent_activity?: ActivityItem[];
-    };
-}
+type TabKey = 'overview' | 'ads' | 'requests' | 'matches' | 'favorites' | 'reviews' | 'settings';
 
-interface ChildData {
-    link_id: string;
-    linkedAt: string | null;
-    profile: {
-        id: string;
-        full_name: string | null;
-        display_name: string | null;
-        grade_level: string | null;
-        avatar_url: string | null;
-        average_rating: number;
-    };
-    stats: {
-        adsCount: number;
-        requestsCount: number;
-        reviewsCount: number;
-    };
-    recentActivity: Array<ActivityItem & { id: string }>;
-    notify: boolean;
-}
+const TAB_LABELS: Record<TabKey, string> = {
+    overview: 'Überblick',
+    ads: 'Anzeigen',
+    requests: 'Anfragen',
+    matches: 'Matches',
+    favorites: 'Merkliste',
+    reviews: 'Bewertungen',
+    settings: 'Kind-Einstellungen'
+};
 
+/**
+ * Eltern-Leitstand: ein Ort für alles rund um die verknüpften Kinder –
+ * Anzeigen, Anfragen, Matches, Merkliste, Bewertungen und Kind-Einstellungen.
+ */
 export default function ParentDashboard() {
-    const { user, profile, refreshParentLink } = useAuth();
-    const [children, setChildren] = useState<ChildData[]>([]);
+    const { profile } = useAuth();
+    const navigate = useNavigate();
+
+    const [children, setChildren] = useState<ChildView[]>([]);
     const [loading, setLoading] = useState(true);
-    const [fetchError, setFetchError] = useState<unknown>(null);
+    const [fetchError, setFetchError] = useState<string | null>(null);
+    const [activeId, setActiveId] = useState<string>('');
+    const [tab, setTab] = useState<TabKey>('overview');
+
     const [isLinkFlowOpen, setIsLinkFlowOpen] = useState(false);
-    const [selectedLinkToDelete, setSelectedLinkToDelete] = useState<{ id: string; name: string } | null>(null);
-    const [selectedConsentChild, setSelectedConsentChild] = useState<ChildData | null>(null);
+    const [selectedLinkToDelete, setSelectedLinkToDelete] = useState<ChildView | null>(null);
+    const [selectedConsentChild, setSelectedConsentChild] = useState<ChildView | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
-    useEffect(() => {
-        if (user) {
-            fetchChildrenData();
-        }
-    }, [user]);
+    const isAllowed = profile?.role === 'parent' || profile?.role === 'sv_admin';
 
-    const fetchChildrenData = async () => {
+    const fetchChildrenData = useCallback(async () => {
         setLoading(true);
-        setFetchError(false);
+        setFetchError(null);
         try {
             const { data, error } = await api.parentLinks.list();
             if (error) throw error;
 
-            const links: ParentLink[] = (data as ParentLink[]) || [];
-            const mapped: ChildData[] = links
-                .filter(link => link.status === 'active')
-                .map(link => {
-                    const child = link.child || {};
-                    const stats = child.stats || { ads_count: 0, requests_count: 0, reviews_count: 0 };
-                    const activity = (child.recent_activity || []).map((a: ActivityItem, i: number) => ({
-                        id: `${link.id}-${a.type}-${i}`,
-                        type: a.type as ActivityItem['type'],
-                        title: a.title,
-                        description: a.description,
-                        timestamp: a.timestamp,
-                    }));
-                    const permissions = link.permissions || {};
-                    return {
-                        link_id: link.id,
-                        linkedAt: link.linked_at || link.created_at || null,
-                        profile: {
-                            id: child.id,
-                            full_name: child.full_name ?? null,
-                            display_name: child.display_name ?? child.full_name ?? 'Unbekannt',
-                            grade_level: child.grade_level ?? null,
-                            avatar_url: child.avatar_url ?? null,
-                            average_rating: Number(child.average_rating) || 0,
-                        },
-                        stats: {
-                            adsCount: Number(stats.ads_count) || 0,
-                            requestsCount: Number(stats.requests_count) || 0,
-                            reviewsCount: Number(stats.reviews_count) || 0,
-                        },
-                        recentActivity: activity,
-                        notify: permissions.can_receive_notifications ?? true,
-                    };
-                });
+            const links = (data || []) as ParentLinkRecord[];
+            const views: ChildView[] = links
+                .filter((l) => l.status === 'active' && l.child)
+                .map((l) => ({
+                    linkId: l.id,
+                    linkedAt: l.linked_at || l.created_at,
+                    permissions: { ...DEFAULT_PERMISSIONS, ...(l.permissions || {}) },
+                    profile: l.child
+                }));
 
-            setChildren(mapped);
-        } catch (error: any) {
-            console.error('Error loading parent dashboard data:', error);
-            setFetchError(error);
+            setChildren(views);
+            setActiveId((prev) => {
+                if (prev && views.some((v) => v.profile.id === prev)) return prev;
+                return views[0]?.profile.id || '';
+            });
+        } catch (e) {
+            setFetchError(apiErrorMessage(e, 'Verknüpfte Kinder konnten nicht geladen werden.'));
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const handleToggleNotification = async (childId: string, currentVal: boolean) => {
-        try {
-            const childIndex = children.findIndex(c => c.profile.id === childId);
-            if (childIndex === -1) return;
-            const child = children[childIndex];
-            const nextVal = !currentVal;
+    useEffect(() => {
+        if (isAllowed) fetchChildrenData();
+    }, [isAllowed, fetchChildrenData]);
 
-            const { error } = await api.parentLinks.update(child.link_id, {
-                permissions: {
-                    can_view_ads: true,
-                    can_view_ratings: true,
-                    can_view_activity: true,
-                    can_receive_notifications: nextVal,
-                },
-            });
-            if (error) throw error;
-
-            setChildren(children.map((c, idx) =>
-                idx === childIndex ? { ...c, notify: nextVal } : c
-            ));
-            toast.success('Einstellungen aktualisiert');
-        } catch (err: any) {
-            toast.error('Änderung konnte nicht gespeichert werden: ' + (err?.message || 'Unbekannter Fehler'));
-        }
-    };
+    const activeChild = useMemo(
+        () => children.find((c) => c.profile.id === activeId) || children[0] || null,
+        [children, activeId]
+    );
 
     const handleRemoveLink = async () => {
         if (!selectedLinkToDelete) return;
+        setIsDeleting(true);
         try {
-            const { error } = await api.parentLinks.remove(selectedLinkToDelete.id);
+            const { error } = await api.parentLinks.remove(selectedLinkToDelete.linkId);
             if (error) throw error;
-
-            toast.success(`Verknüpfung zu ${selectedLinkToDelete.name} aufgehoben.`);
-            setChildren(children.filter(c => c.link_id !== selectedLinkToDelete.id));
+            toast.success('Verknüpfung wurde aufgehoben');
             setSelectedLinkToDelete(null);
-            void refreshParentLink();
-        } catch (err: any) {
-            toast.error('Aufheben fehlgeschlagen: ' + (err?.message || 'Unbekannter Fehler'));
+            await fetchChildrenData();
+        } catch {
+            toast.error('Verknüpfung konnte nicht aufgehoben werden');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
-    if (profile && profile.role !== 'parent' && profile.role !== 'sv_admin') {
+    if (!isAllowed) {
         return (
-            <div className="max-w-md mx-auto py-16 text-center space-y-4">
-                <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto">
-                    <Shield size={32} />
+            <div className="mx-auto max-w-2xl px-4 py-16">
+                <div className="rounded-3xl border border-gray-100 bg-white p-8 text-center dark:border-gray-800 dark:bg-gray-900">
+                    <ShieldCheck size={32} className="mx-auto text-gray-300" aria-hidden />
+                    <h1 className="mt-4 font-display text-2xl uppercase tracking-tight">Zugriff verweigert</h1>
+                    <p className="mt-2 text-sm text-gray-500">
+                        Dieser Bereich ist Eltern-Accounts und der SV-Verwaltung vorbehalten.
+                    </p>
+                    <Button variant="primary" className="mt-6 rounded-xl font-bold" onClick={() => navigate('/')}>
+                        Zur Startseite
+                    </Button>
                 </div>
-                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Zugriff verweigert</h2>
-                <p className="text-gray-500 text-sm">
-                    Sie müssen als Elternteil registriert sein, um das Eltern-Dashboard zu nutzen.
-                </p>
             </div>
         );
     }
 
-    return (
-        <div className="p-6 max-w-7xl mx-auto pb-24 space-y-8 animate-in fade-in duration-500">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gray-950 dark:bg-black poster-grain dark-glow text-white p-6 rounded-3xl border border-white/10 shadow-sm">
-                <div>
-                    <div className="flex items-center gap-2 mb-1">
-                        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-black">
-                            <Users size={20} />
-                        </div>
-                        <h1 className="text-2xl font-display uppercase leading-none tracking-tight">Eltern-Dashboard</h1>
-                    </div>
-                    <div className="h-1 w-10 rounded-full bg-primary mb-2" aria-hidden />
-                    <p className="text-sm text-white/70 max-w-[95ch]">Behalten Sie den Überblick über die Nachhilfe-Aktivitäten Ihres Kindes.</p>
-                </div>
-                <Button onClick={() => setIsLinkFlowOpen(true)} className="rounded-2xl gap-2 font-bold h-11 bg-primary text-black">
-                    <Plus size={18} /> Kind verknüpfen
-                </Button>
-            </div>
+    const tabItems: TabBarItem<TabKey>[] = [
+        { key: 'overview', label: TAB_LABELS.overview, icon: LayoutDashboard },
+        { key: 'ads', label: TAB_LABELS.ads, icon: Megaphone, count: activeChild?.profile.stats.ads_count },
+        { key: 'requests', label: TAB_LABELS.requests, icon: Inbox, count: activeChild?.profile.stats.requests_count },
+        { key: 'matches', label: TAB_LABELS.matches, icon: Target },
+        { key: 'favorites', label: TAB_LABELS.favorites, icon: Heart, count: activeChild?.profile.stats.favorites_count },
+        { key: 'reviews', label: TAB_LABELS.reviews, icon: Star, count: activeChild?.profile.stats.reviews_count },
+        { key: 'settings', label: TAB_LABELS.settings, icon: Settings2 }
+    ];
 
+    return (
+        <div className="mx-auto max-w-6xl px-4 pb-20 pt-6 sm:px-6 lg:px-8">
+            {/* ── Kopfbereich ─────────────────────────────────────── */}
+            <header className="rounded-[28px] border border-gray-100 bg-white p-6 sm:p-8 dark:border-gray-800 dark:bg-gray-900">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="min-w-0">
+                        <p className="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-[0.18em] text-gray-400">
+                            <Users size={13} aria-hidden /> Eltern-Bereich
+                        </p>
+                        <h1 className="mt-2 font-display text-4xl uppercase leading-[0.9] tracking-tight text-gray-950 sm:text-5xl dark:text-gray-50">
+                            Eltern-Dashboard
+                        </h1>
+                        <div className="mt-3 h-1 w-24 bg-primary" />
+                        <p className="mt-4 max-w-xl text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+                            Alles zu Ihren Kindern an einem Ort: aktuelle Anzeigen, Anfragen, passende Matches,
+                            die Merkliste und die wichtigsten Einstellungen – synchron mit dem Kinderkonto.
+                        </p>
+                    </div>
+
+                    <div className="flex flex-col items-end gap-3">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1.5 text-xs font-bold text-green-800 dark:bg-green-950/40 dark:text-green-300">
+                            <ShieldCheck size={14} aria-hidden /> Eltern-Account verifiziert
+                        </span>
+                        <Button variant="primary" size="lg" className="rounded-xl font-bold" onClick={() => setIsLinkFlowOpen(true)}>
+                            <Plus size={18} aria-hidden /> Kind verknüpfen
+                        </Button>
+                    </div>
+                </div>
+            </header>
+
+            {/* ── Inhalt ──────────────────────────────────────────── */}
             {loading ? (
-                <div className="py-20 text-center space-y-4">
-                    <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-                    <p className="text-gray-500 font-medium">Lade Kinder-Aktivitäten...</p>
+                <div className="mt-8 space-y-4">
+                    <div className="h-16 animate-pulse rounded-3xl bg-gray-100 dark:bg-gray-800" />
+                    <div className="h-72 animate-pulse rounded-3xl bg-gray-100 dark:bg-gray-800" />
                 </div>
             ) : fetchError ? (
-                <div role="alert" className="py-16 text-center space-y-4 bg-white dark:bg-gray-900 rounded-3xl border border-red-100 dark:border-red-900/40 shadow-sm">
-                    <div className="w-16 h-16 bg-red-50 dark:bg-red-950/30 text-red-500 rounded-full flex items-center justify-center mx-auto">
-                        <Shield size={32} />
-                    </div>
-                    <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Daten konnten nicht geladen werden</h2>
-                    <p className="text-gray-500 text-sm">{apiErrorMessage(fetchError, 'Prüfe deine Internetverbindung und versuche es erneut.')}</p>
-                    <Button onClick={() => fetchChildrenData()} className="rounded-2xl font-bold bg-primary text-black">
+                <div className="mt-8 rounded-3xl border border-red-100 bg-red-50 p-8 text-center dark:border-red-900/40 dark:bg-red-950/20">
+                    <p className="text-sm font-bold text-red-800 dark:text-red-300">{fetchError}</p>
+                    <Button variant="outline" className="mt-4 rounded-xl font-bold" onClick={fetchChildrenData}>
                         Erneut versuchen
                     </Button>
                 </div>
             ) : children.length === 0 ? (
-                <Card className="rounded-3xl border-none shadow-sm bg-white dark:bg-gray-900 py-12 text-center">
-                    <CardContent className="space-y-4 max-w-md mx-auto">
-                        <div className="w-16 h-16 bg-primary/10 text-primary-hover rounded-full flex items-center justify-center mx-auto">
-                            <Users size={32} />
-                        </div>
-                        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Keine Kinder verknüpft</h2>
-                        <p className="text-gray-500 text-sm leading-relaxed">
-                            Sie haben noch kein Schülerkonto verknüpft. Ihr Kind zeigt Ihnen seinen persönlichen Code an –
-                            Sie geben ihn hier ein.
-                        </p>
-                        <ol className="text-left text-xs text-gray-500 dark:text-gray-400 space-y-2 bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-4 border border-gray-100 dark:border-gray-800">
-                            <li><strong className="text-gray-700 dark:text-gray-200">1.</strong> Kind meldet sich als Schüler/in an</li>
-                            <li><strong className="text-gray-700 dark:text-gray-200">2.</strong> Kind öffnet <span className="font-mono font-bold">Einstellungen → Eltern-Verknüpfung</span></li>
-                            <li><strong className="text-gray-700 dark:text-gray-200">3.</strong> Sie klicken unten auf „Kind verknüpfen“ und geben den 6-stelligen Code ein</li>
-                        </ol>
-                        <Button onClick={() => setIsLinkFlowOpen(true)} className="rounded-2xl font-bold bg-primary text-black">
-                            <Plus size={16} className="mr-1" /> Jetzt Kind verknüpfen
-                        </Button>
-                    </CardContent>
-                </Card>
+                <EmptyParentState onLink={() => setIsLinkFlowOpen(true)} />
             ) : (
-                <div className="space-y-8">
-                    {children.map(child => (
-                        <div key={child.profile.id} className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-                            {/* Left card: Child profile & quick stats */}
-                            <Card className="rounded-3xl border-none shadow-sm bg-white dark:bg-gray-900 lg:col-span-1">
-                                <CardContent className="p-6 space-y-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 rounded-2xl bg-gray-950 text-primary font-bold text-xl flex items-center justify-center shrink-0">
-                                            {child.profile.avatar_url ? (
-                                                <img src={child.profile.avatar_url} className="w-14 h-14 rounded-2xl object-cover" />
-                                            ) : (
-                                                child.profile.display_name?.charAt(0).toUpperCase()
-                                            )}
-                                        </div>
-                                        <div>
-                                            <h2 className="font-extrabold text-lg">{child.profile.display_name}</h2>
-                                            <p className="text-xs text-gray-400 font-semibold mt-0.5">Klassenstufe: {child.profile.grade_level || '--'}</p>
-                                        </div>
-                                    </div>
+                <>
+                    <div className="mt-8">
+                        <ChildSwitcher
+                            children={children}
+                            activeId={activeChild?.profile.id || ''}
+                            onSelect={(id) => {
+                                setActiveId(id);
+                                setTab('overview');
+                            }}
+                            onAdd={() => setIsLinkFlowOpen(true)}
+                        />
+                    </div>
 
-                                    {child.profile.average_rating > 0 && (
-                                        <div className="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-950/20 px-3 py-1.5 rounded-xl border border-yellow-100 dark:border-yellow-900/40 w-fit text-xs text-yellow-700 font-bold">
-                                            <Star size={14} fill="currentColor" />
-                                            {child.profile.average_rating.toFixed(1)} / 5 Sterne
-                                        </div>
-                                    )}
+                    {activeChild && (
+                        <>
+                            <TabBar
+                                items={tabItems}
+                                value={tab}
+                                onChange={setTab}
+                                ariaLabel="Ansicht für das gewählte Kind"
+                                idPrefix="parent"
+                                className="mt-8"
+                            />
 
-                                    <div className="grid grid-cols-3 gap-3 border-t border-b dark:border-gray-800 py-4">
-                                        <div className="text-center">
-                                            <span className="text-xs text-gray-400 block mb-0.5">Anzeigen</span>
-                                            <span className="font-extrabold text-lg flex items-center justify-center gap-1 text-gray-800 dark:text-gray-200">
-                                                <FileText size={14} className="text-green-500" />
-                                                {child.stats.adsCount}
-                                            </span>
-                                        </div>
-                                        <div className="text-center">
-                                            <span className="text-xs text-gray-400 block mb-0.5">Anfragen</span>
-                                            <span className="font-extrabold text-lg flex items-center justify-center gap-1 text-gray-800 dark:text-gray-200">
-                                                <MessageSquare size={14} className="text-blue-500" />
-                                                {child.stats.requestsCount}
-                                            </span>
-                                        </div>
-                                        <div className="text-center">
-                                            <span className="text-xs text-gray-400 block mb-0.5">Reviews</span>
-                                            <span className="font-extrabold text-lg flex items-center justify-center gap-1 text-gray-800 dark:text-gray-200">
-                                                <Star size={14} className="text-amber-500" />
-                                                {child.stats.reviewsCount}
-                                            </span>
-                                        </div>
-                                    </div>
+                            <div className="mt-6 grid gap-8 lg:grid-cols-[340px_minmax(0,1fr)]">
+                                <ChildHeroCard
+                                    child={activeChild}
+                                    onEditProfile={() => setTab('settings')}
+                                    onConsent={() => setSelectedConsentChild(activeChild)}
+                                    onUnlink={() => setSelectedLinkToDelete(activeChild)}
+                                />
 
-                                    {/* Notification setting for this child */}
-                                    <div className="space-y-4">
-                                        <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
-                                            <Bell size={14} /> Benachrichtigungen
-                                        </h3>
-                                        <label className="flex justify-between items-center text-sm cursor-pointer select-none">
-                                            <span className="font-medium text-gray-600 dark:text-gray-400">
-                                                Bei neuen Anzeigen, Anfragen & Bewertungen benachrichtigen
-                                            </span>
-                                            <input
-                                                type="checkbox"
-                                                checked={child.notify}
-                                                onChange={() => handleToggleNotification(child.profile.id, child.notify)}
-                                                className="w-4 h-4 rounded text-primary accent-primary"
-                                            />
-                                        </label>
-                                    </div>
-
-                                    <div className="space-y-2 pt-2">
-                                        <Button
-                                            onClick={() => setSelectedConsentChild(child)}
-                                            variant="outline"
-                                            className="w-full rounded-2xl gap-2 text-xs font-bold border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800"
-                                        >
-                                            <Shield size={14} className="text-primary-hover" /> Einverständniserklärung (PDF)
-                                        </Button>
-
-                                        <Button
-                                            onClick={() => setSelectedLinkToDelete({ id: child.link_id, name: child.profile.display_name || 'Kind' })}
-                                            variant="outline"
-                                            className="w-full text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 border-red-100 dark:border-red-950/40 rounded-2xl gap-2 text-xs font-bold"
-                                        >
-                                            <UserX size={14} /> Verknüpfung aufheben
-                                        </Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            {/* Right card: Activity feed */}
-                            <Card className="rounded-3xl border-none shadow-sm bg-white dark:bg-gray-900 lg:col-span-2">
-                                <CardHeader className="bg-gray-950 dark:bg-black poster-grain text-white border-b border-white/10">
-                                    <h3 className="font-bold text-sm text-white flex items-center gap-1.5">
-                                        <TrendingUp size={16} className="text-primary" />
-                                        Aktivitäts-Verlauf (Letzte Aktionen)
-                                    </h3>
-                                </CardHeader>
-                                <CardContent className="p-0">
-                                    <div className="divide-y dark:divide-gray-800">
-                                        {child.recentActivity.length === 0 ? (
-                                            <p className="text-gray-500 text-sm text-center py-16 italic">Noch keine Aktivitäten registriert.</p>
-                                        ) : (
-                                            child.recentActivity.map((act) => (
-                                                <div key={act.id} className="p-5 flex items-start gap-3 hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
-                                                    <div className={cn(
-                                                        'w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-sm',
-                                                        act.type === 'ad' && 'bg-green-50 text-green-600 dark:bg-green-950/20',
-                                                        act.type === 'request' && 'bg-blue-50 text-blue-600 dark:bg-blue-950/20',
-                                                        act.type === 'review' && 'bg-amber-50 text-amber-600 dark:bg-amber-950/20'
-                                                    )}>
-                                                        {act.type === 'ad' && <FileText size={16} />}
-                                                        {act.type === 'request' && <MessageSquare size={16} />}
-                                                        {act.type === 'review' && <Star size={16} />}
-                                                    </div>
-                                                    <div className="min-w-0 flex-1 space-y-0.5">
-                                                        <div className="font-bold text-sm text-gray-900 dark:text-gray-100">
-                                                            {act.title}
-                                                        </div>
-                                                        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                                                            {act.description}
-                                                        </p>
-                                                        <span className="text-xs text-gray-400 flex items-center gap-1 pt-1 font-semibold">
-                                                            <Calendar size={12} />
-                                                            {new Date(act.timestamp).toLocaleString('de-DE')}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            ))
-                                        )}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    ))}
-                </div>
+                                <div
+                                    className="min-w-0"
+                                    role="tabpanel"
+                                    id={`parent-tabpanel-${tab}`}
+                                    aria-labelledby={`parent-tab-${tab}`}
+                                >
+                                    {tab === 'overview' && <OverviewTab child={activeChild} />}
+                                    {tab === 'ads' && <AdsTab child={activeChild} />}
+                                    {tab === 'requests' && <RequestsTab child={activeChild} />}
+                                    {tab === 'matches' && <MatchesTab child={activeChild} />}
+                                    {tab === 'favorites' && <FavoritesTab child={activeChild} />}
+                                    {tab === 'reviews' && <ReviewsTab child={activeChild} />}
+                                    {tab === 'settings' && <ChildSettingsTab child={activeChild} onSaved={fetchChildrenData} />}
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </>
             )}
 
-            {/* Parent Link Flow Modal */}
-            <ParentLinkFlow
-                isOpen={isLinkFlowOpen}
-                onClose={() => setIsLinkFlowOpen(false)}
-                onSuccess={() => {
-                    fetchChildrenData();
-                    void refreshParentLink();
-                }}
-            />
+            {/* ── Modals ──────────────────────────────────────────── */}
+            {isLinkFlowOpen && (
+                <ParentLinkFlow
+                    isOpen={isLinkFlowOpen}
+                    onClose={() => setIsLinkFlowOpen(false)}
+                    onSuccess={() => {
+                        setIsLinkFlowOpen(false);
+                        fetchChildrenData();
+                    }}
+                />
+            )}
 
-            {/* Delete verification Dialog */}
-            <Dialog
-                open={!!selectedLinkToDelete}
-                onClose={() => setSelectedLinkToDelete(null)}
-                onOpenChange={(open) => { if (!open) setSelectedLinkToDelete(null); }}
-            >
-                <DialogContent className="rounded-3xl max-w-md">
+            <Dialog open={Boolean(selectedLinkToDelete)} onClose={() => setSelectedLinkToDelete(null)}>
+                <DialogContent>
                     <DialogHeader>
-                        <DialogTitle className="text-red-600 flex items-center gap-2">
-                            <Trash2 size={20} />
-                            Verknüpfung aufheben?
-                        </DialogTitle>
+                        <DialogTitle>Verknüpfung aufheben?</DialogTitle>
                         <DialogDescription>
-                            Sind Sie sicher, dass Sie die Verknüpfung zu {selectedLinkToDelete?.name} löschen möchten?
-                            Sie können danach keine Statistiken oder Verläufe mehr einsehen.
+                            Sie verlieren den Zugriff auf Anzeigen, Anfragen und Einstellungen von{' '}
+                            <strong>{selectedLinkToDelete?.profile.display_name || 'diesem Kind'}</strong>. Die Verknüpfung kann später neu aufgebaut werden.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button variant="ghost" onClick={() => setSelectedLinkToDelete(null)} className="rounded-xl">Abbrechen</Button>
-                        <Button onClick={handleRemoveLink} className="rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold">Verknüpfung löschen</Button>
+                        <Button variant="ghost" className="rounded-xl font-bold" onClick={() => setSelectedLinkToDelete(null)}>
+                            Abbrechen
+                        </Button>
+                        <Button variant="destructive" className="rounded-xl font-bold" disabled={isDeleting} onClick={handleRemoveLink}>
+                            {isDeleting ? 'Wird aufgehoben …' : 'Verknüpfung aufheben'}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
-            {/* Parent Consent Slip Modal */}
-            <ParentConsentModal
-                isOpen={!!selectedConsentChild}
-                onClose={() => setSelectedConsentChild(null)}
-                childName={selectedConsentChild?.profile.display_name || selectedConsentChild?.profile.full_name || 'Kind'}
-                parentName={profile?.display_name || ([profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Elternteil')}
-                gradeLevel={selectedConsentChild?.profile.grade_level}
-                linkedDate={selectedConsentChild?.linkedAt || undefined}
-            />
+            {selectedConsentChild && (
+                <ParentConsentModal
+                    isOpen
+                    onClose={() => setSelectedConsentChild(null)}
+                    childName={selectedConsentChild.profile.display_name || selectedConsentChild.profile.full_name || 'Kind'}
+                    parentName={profile?.display_name || [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Elternteil'}
+                    gradeLevel={selectedConsentChild.profile.grade_level}
+                    linkedDate={selectedConsentChild.linkedAt || undefined}
+                />
+            )}
+        </div>
+    );
+}
+
+/** Noch kein Kind verknüpft – nächster Schritt in drei klaren Stufen. */
+function EmptyParentState({ onLink }: { onLink: () => void }) {
+    return (
+        <div className="mt-8 rounded-[28px] border border-dashed border-gray-200 bg-white p-10 text-center dark:border-gray-800 dark:bg-gray-900">
+            <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-primary/25 text-yellow-800 dark:bg-primary/15 dark:text-yellow-300">
+                <Sparkles size={26} aria-hidden />
+            </span>
+            <h2 className="mt-5 font-display text-2xl uppercase tracking-tight text-gray-950 dark:text-gray-50">
+                Noch kein Kind verknüpft
+            </h2>
+            <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+                Sobald Sie Ihr Kind verknüpfen, sehen Sie hier die Anzeigen, Anfragen, Matches und die Merkliste –
+                und können Profil und Einstellungen mitbetreuen.
+            </p>
+
+            <div className="mx-auto mt-8 grid max-w-2xl gap-3 text-left sm:grid-cols-3">
+                <StepCard n={1} title="Code anfordern" hint="Ihr Kind findet den 6-stelligen Code unter Einstellungen → Eltern-Verknüpfung." />
+                <StepCard n={2} title="Code eingeben" hint="Alternativ suchen Sie Ihr Kind direkt über Name, Klasse und Geburtsdatum." />
+                <StepCard n={3} title="Übersicht nutzen" hint="Anzeigen, Anfragen und Einstellungen sind sofort synchron verfügbar." />
+            </div>
+
+            <Button variant="primary" size="lg" className="mt-8 rounded-xl font-bold" onClick={onLink}>
+                <UserPlus size={18} aria-hidden /> Kind verknüpfen
+            </Button>
+        </div>
+    );
+}
+
+function StepCard({ n, title, hint }: { n: number; title: string; hint: string }) {
+    return (
+        <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-950 font-mono text-xs font-bold text-white dark:bg-gray-100 dark:text-gray-900">
+                {n}
+            </span>
+            <p className="mt-2 text-sm font-bold text-gray-950 dark:text-gray-50">{title}</p>
+            <p className="mt-1 text-xs leading-relaxed text-gray-500 dark:text-gray-400">{hint}</p>
         </div>
     );
 }

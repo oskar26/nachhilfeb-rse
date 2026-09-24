@@ -139,6 +139,16 @@ if ($method === 'POST') {
             error_log("Fehler beim Senden der Bewertungs-Benachrichtigung: " . $e->getMessage());
         }
 
+        // Eltern des bewerteten Kindes informieren
+        fwg_notify_parents(
+            $pdo,
+            (string)$targetUserId,
+            'parent_review',
+            'Neue Bewertung für Ihr Kind',
+            ($authorName ?: 'Jemand') . ' hat ' . round($rating, 1) . ' von 5 Sternen vergeben.',
+            ['review_id' => $reviewId, 'rating' => $rating, 'average' => $newAvg, 'link' => '/#/parent-dashboard']
+        );
+
         json_response([
             'id' => $reviewId,
             'message' => 'Bewertung erfolgreich abgegeben!',
