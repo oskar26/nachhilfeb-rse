@@ -361,15 +361,25 @@ if ($method === 'GET' && $action === 'parent_links') {
         $result = [];
 
         foreach ($links as $link) {
-            $personStmt = $pdo->prepare('SELECT * FROM profiles WHERE id = ?');
-            $personStmt->execute([$link['child_id']]);
-            $child = $personStmt->fetch();
+            $c = $link['child_id'];
+            $child = null;
+            $adsCount = 0;
+            $reqCount = 0;
+            $revCount = 0;
+            $activity = [];
+            try {
+                $personStmt = $pdo->prepare('SELECT * FROM profiles WHERE id = ?');
+                $personStmt->execute([$c]);
+                $child = $personStmt->fetch();
+            } catch (Throwable $e) {
+                error_log('parent dashboard child load failed: ' . $e->getMessage());
+            }
             if (!$child) {
                 continue;
             }
             $full = trim((string)($child['first_name'] ?? '') . ' ' . (string)($child['last_name'] ?? ''));
 
-            $c = $link['child_id'];
+            try {
             $cntStmt = $pdo->prepare('SELECT COUNT(*) FROM ads WHERE user_id = ? AND is_active = 1 AND is_archived = 0');
             $cntStmt->execute([$c]);
             $adsCount = (int)$cntStmt->fetchColumn();
@@ -431,6 +441,10 @@ if ($method === 'GET' && $action === 'parent_links') {
             usort($activity, function ($a, $b) {
                 return strtotime($b['timestamp']) <=> strtotime($a['timestamp']);
             });
+            } catch (Throwable $e) {
+                // Teil-Ausfälle (z. B. fehlende Spalte) dürfen das Dashboard nicht komplett blockieren
+                error_log('parent dashboard child stats failed: ' . $e->getMessage());
+            }
 
             $result[] = [
                 'id' => $link['id'],

@@ -197,9 +197,14 @@ if ($method === 'GET') {
         LIMIT 200
     ";
 
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $rows = $stmt->fetchAll();
+    try {
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll();
+    } catch (Throwable $e) {
+        error_log('ads list failed: ' . $e->getMessage());
+        json_error('Anzeigen konnten nicht geladen werden.', 500, ['code' => 'ads_query_failed']);
+    }
 
     $results = [];
     foreach ($rows as $row) {

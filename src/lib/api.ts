@@ -92,14 +92,14 @@ export async function apiRequest<T = any>(
         } else {
             const text = await response.text();
             if (!response.ok) {
-                return { data: null, error: { message: defaultHttpMessage(response.status), status: response.status, code: null, rawText: text || null } };
+                return { data: null, error: { message: defaultHttpMessage(response.status), status: response.status, code: null, rawText: text || null, url } };
             }
             // 200, aber kein JSON (z. B. PHP-Quelle bei fehlendem PHP-Runtime oder Proxy-Fehlerseite):
             // Niemals Rohtext als data durchreichen – das vergiftet alle Consumer (z. B. News-Modal).
             if (!text.trim()) {
                 return { data: null, error: null };
             }
-            return { data: null, error: { message: 'Unerwartete Server-Antwort (kein JSON).', status: response.status } };
+            return { data: null, error: { message: 'Unerwartete Server-Antwort (kein JSON).', status: response.status, url } };
         }
 
         if (!response.ok) {
@@ -122,7 +122,8 @@ export async function apiRequest<T = any>(
                     message: json?.error || defaultHttpMessage(response.status),
                     status: response.status,
                     code,
-                    details: json?.details
+                    details: json?.details,
+                    url
                 }
             };
         }
@@ -138,7 +139,8 @@ export async function apiRequest<T = any>(
                     : 'Keine Verbindung zum Server. Bitte Internetverbindung prüfen und erneut versuchen.',
                 status: undefined,
                 code: isTimeout ? 'timeout' : 'network',
-                isNetwork: !isTimeout || undefined
+                isNetwork: !isTimeout || undefined,
+                url
             }
         };
     } finally {
