@@ -26,11 +26,17 @@ export default function Cookies() {
                             Es gibt keine externen Tracker (kein Google Analytics o. ä.).
                         </p>
                         <p>
-                            Eine <strong>anonyme Server-Statistik</strong> (welche Seiten werden aufgerufen,{' '}
-                            <strong>ohne IP-Adresse, ohne Personenbezug</strong>) läuft immer mit, damit wir die
-                            App verbessern können. Dasselbe gilt für Klicks auf die „Beliebt“-Fächer im Feed:
-                            Gezählt wird nur der Fachname, ohne IP- oder Nutzerbezug. Sie lässt sich nicht abschalten, weil dabei keine
-                            personenbezogenen Daten anfallen.
+                            Eine <strong>Server-Statistik</strong> (welche Seiten werden aufgerufen,{' '}
+                            <strong>ohne IP-Adresse und ohne Gerätekennung</strong>) läuft immer mit, damit wir die
+                            App verbessern können. Bei <strong>angemeldeten</strong> Nutzerinnen und Nutzern wird
+                            zusätzlich die Konto-Kennung mitgezählt, um die Zahl der aktiven Personen zu ermitteln –
+                            diese Daten sind <strong>pseudonym</strong> und werden <strong>nach 90 Tagen
+                            automatisch gelöscht</strong>. Du kannst der Statistik jederzeit widersprechen (siehe
+                            Datenschutzerklärung, Abschnitt 6); die Nutzung bleibt uneingeschränkt möglich.
+                        </p>
+                        <p>
+                            Klicks auf die „Beliebt“-Fächer im Feed zählen wir dagegen <strong>ohne jeden
+                            Nutzerbezug</strong>: nur Fachname und Zeitpunkt, keine IP, kein Konto.
                         </p>
                     </div>
                 </section>
@@ -66,10 +72,16 @@ export default function Cookies() {
                                     <td className="py-2 pr-4">Bis zum Löschen der Browserdaten</td>
                                     <td className="py-2">§ 25 Abs. 2 TDDDG (technisch erforderlich)</td>
                                 </tr>
+                                <tr className="border-b border-gray-100 dark:border-gray-800">
+                                    <td className="py-2 pr-4">Server: Nutzungsstatistik (Seitenaufrufe, ohne IP)</td>
+                                    <td className="py-2 pr-4">App verbessern; Zahl der aktiven Nutzer (bei Anmeldung mit Konto-Kennung, pseudonym); läuft immer mit</td>
+                                    <td className="py-2 pr-4">Detaildaten <strong>90 Tage</strong>, danach automatische Löschung. Widerspruch jederzeit möglich.</td>
+                                    <td className="py-2">Art. 6 Abs. 1 lit. f DSGVO</td>
+                                </tr>
                                 <tr>
-                                    <td className="py-2 pr-4">Server: anonyme Nutzungsstatistik (ohne IP)</td>
-                                    <td className="py-2 pr-4">App verbessern, beliebteste Fächer ermitteln; läuft immer mit</td>
-                                    <td className="py-2 pr-4">Aggregiert, unbefristet (kein Personenbezug)</td>
+                                    <td className="py-2 pr-4">Server: Fächer-Klicks (ohne IP, ohne Konto)</td>
+                                    <td className="py-2 pr-4">Reihenfolge der „Beliebt“-Fächer ermitteln</td>
+                                    <td className="py-2 pr-4">90 Tage, danach automatische Löschung</td>
                                     <td className="py-2">Art. 6 Abs. 1 lit. f DSGVO</td>
                                 </tr>
                             </tbody>

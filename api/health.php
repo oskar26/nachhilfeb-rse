@@ -111,6 +111,29 @@ try {
 
 $__health_sent = true;
 
+// ------------------------------------------------------------------------------
+// Informationsminimierung: Die Statusseite ist öffentlich erreichbar und soll
+// grün/rot anzeigen – sie soll aber nicht das Datenbankschema aufzählen.
+// Die Tabellenliste sehen nur angemeldete SV-Admins.
+// ------------------------------------------------------------------------------
+$healthUser = null;
+try {
+    $healthUser = get_auth_user();
+} catch (Throwable $e) {
+    $healthUser = null;
+}
+$isHealthAdmin = is_array($healthUser) && ($healthUser['role'] ?? '') === 'sv_admin';
+
+if (!$isHealthAdmin) {
+    $result = [
+        'ok' => $result['ok'],
+        'db_ok' => $result['db_ok'],
+        'jwt_configured' => $result['jwt_configured'],
+        'deploy_time' => $result['deploy_time'],
+        'tables_ok' => empty($result['missing_tables']),
+    ];
+}
+
 if ($wantJson) {
     json_response($result);
 }
@@ -145,17 +168,22 @@ if (!$result['jwt_configured']) {
         . '<code>JWT_SECRET</code> mit mindestens 32 zufälligen Zeichen anlegen (oder in <code>api/db_credentials.php</code> auf dem Server setzen).</p>';
 }
 
-echo '<h2>Tabellen (' . count($result['tables']) . ' geprüft)</h2>';
-if (!empty($result['missing_tables'])) {
-    echo '<p>Fehlend: ' . h_badge(false, '', htmlspecialchars(implode(', ', $result['missing_tables']))) . '</p>';
-    echo '<p>Fehlende Tabellen per phpMyAdmin nachimportieren (Dateien <code>sql-updates/001</code> bis <code>007</code>, siehe Anleitung im Projekt).</p>';
+if ($isHealthAdmin) {
+    echo '<h2>Tabellen (' . count($result['tables']) . ' geprüft)</h2>';
+    if (!empty($result['missing_tables'])) {
+        echo '<p>Fehlend: ' . h_badge(false, '', htmlspecialchars(implode(', ', $result['missing_tables']))) . '</p>';
+        echo '<p>Fehlende Tabellen per phpMyAdmin nachimportieren (Dateien <code>sql-updates/</code>, siehe Anleitung im Projekt).</p>';
+    } else {
+        echo '<p>' . h_badge(true, 'ALLE VORHANDEN') . '</p>';
+    }
+    echo '<ul style="columns:2;font-size:13px">';
+    foreach ($result['tables'] as $t => $ok) {
+        echo '<li><code>' . htmlspecialchars($t) . '</code> ' . h_badge($ok) . '</li>';
+    }
+    echo '</ul>';
 } else {
-    echo '<p>' . h_badge(true, 'ALLE VORHANDEN') . '</p>';
+    echo '<h2>Datenbank-Struktur</h2><p>' . h_badge($result['tables_ok'], 'ALLE VORHANDEN', 'UNVOLLSTÄNDIG') . '</p>';
+    echo '<p style="font-size:13px;color:#666">Die vollständige Tabellenliste sehen nur angemeldete SV-Admins.</p>';
 }
-echo '<ul style="columns:2;font-size:13px">';
-foreach ($result['tables'] as $t => $ok) {
-    echo '<li><code>' . htmlspecialchars($t) . '</code> ' . h_badge($ok) . '</li>';
-}
-echo '</ul>';
 echo '<hr><p style="font-size:12px;color:#666">Maschinen-Format: <a href="?format=json">?format=json</a> · Keine Passwörter oder Schlüssel werden hier je angezeigt.</p>';
 echo '</body></html>';

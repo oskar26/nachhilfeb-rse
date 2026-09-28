@@ -1,8 +1,14 @@
 <?php
 // ==============================================================================
-// FWG Nachhilfebörse - Page Analytics API (anonym, ohne IPs, immer aktiv)
+// FWG Nachhilfebörse - Page Analytics API (ohne IP-Adressen, immer aktiv)
 // POST ?action=track  – öffentlich, speichert einen Seitenaufruf
 // GET  ?action=stats  – nur SV-Admin, aggregierte Auswertung (30 Tage)
+//
+// Datenschutz-Hinweis: Es werden KEINE IP-Adressen und keine Gerätekennungen gespeichert.
+// Bei angemeldeten Nutzern wird zusätzlich die Konto-ID mitgeschrieben, um zu zählen, wie
+// viele verschiedene Personen aktiv sind – das ist damit pseudonym und nicht anonym.
+// Deshalb: Aufbewahrung auf 90 Tage begrenzt (siehe fwg_analytics_cleanup) und in der
+// Datenschutzerklärung ausdrücklich benannt (Art. 6 Abs. 1 lit. f, Art. 5 Abs. 1 lit. e DSGVO).
 // ==============================================================================
 
 require_once __DIR__ . '/db.php';
@@ -67,6 +73,30 @@ try {
     error_log('subject_clicks migration failed: ' . $ex->getMessage());
 }
 
+// ------------------------------------------------------------------------------
+// Aufbewahrung / Löschung (Art. 5 Abs. 1 lit. e DSGVO)
+// Detaildaten der Statistik werden nach 90 Tagen gelöscht. Auf dem Shared Hosting gibt
+// es keinen verlässlichen Cron, deshalb räumt jeder ~100. Schreibzugriff mit auf
+// (probabilistisch, damit die Statistik nicht ausgebremst wird). Zusätzlich kann die
+// Bereinigung jederzeit manuell per SQL ausgeführt werden:
+//   DELETE FROM page_analytics WHERE created_at < DATE_SUB(NOW(), INTERVAL 90 DAY);
+//   DELETE FROM subject_clicks WHERE created_at < DATE_SUB(NOW(), INTERVAL 90 DAY);
+// ------------------------------------------------------------------------------
+const FWG_ANALYTICS_RETENTION_DAYS = 90;
+
+function fwg_analytics_cleanup(PDO $pdo): void {
+    if (random_int(1, 100) > 1) {
+        return;
+    }
+    try {
+        $pdo->exec('DELETE FROM page_analytics WHERE created_at < DATE_SUB(NOW(), INTERVAL ' . FWG_ANALYTICS_RETENTION_DAYS . ' DAY)');
+        $pdo->exec('DELETE FROM subject_clicks WHERE created_at < DATE_SUB(NOW(), INTERVAL ' . FWG_ANALYTICS_RETENTION_DAYS . ' DAY)');
+    } catch (Throwable $e) {
+        // Aufräumen darf die Statistik nie stören.
+        error_log('analytics retention cleanup failed: ' . $e->getMessage());
+    }
+}
+
 // Serverseitige Whitelist der Feed-Fächer (B2)
 const FWG_TRACKABLE_SUBJECTS = [
     'deutsch', 'englisch', 'franzoesisch', 'kunst', 'griechisch', 'latein', 'musik', 'literatur', 'kultur',
@@ -111,6 +141,7 @@ if ($action === 'track' && $method === 'POST') {
         json_response(['ok' => false]);
     }
 
+    fwg_analytics_cleanup($pdo);
     json_response(['ok' => true]);
 }
 
@@ -134,6 +165,7 @@ if ($action === 'track_category' && $method === 'POST') {
         json_response(['ok' => false]);
     }
 
+    fwg_analytics_cleanup($pdo);
     json_response(['ok' => true]);
 }
 

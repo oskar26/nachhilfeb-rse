@@ -6,6 +6,7 @@
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/response.php';
 require_once __DIR__ . '/middleware.php';
+require_once __DIR__ . '/ratelimit.php';
 
 cors_headers();
 
@@ -157,9 +158,19 @@ if ($method === 'GET' && $action === 'lookup_code') {
     ]);
 }
 
-// 0b2. Direktsuche: Name und optional Klasse/Geburtsdatum (fehlertolerant)
+// 0b2. Direktsuche für Eltern: Name und optional Klasse/Geburtsdatum (fehlertolerant)
+// DATENSCHUTZ (F1, Sept. 2026): Diese Suche war zuvor für JEDEN angemeldeten Nutzer offen und
+// gab das Geburtsdatum der gefundenen Kinder zurück. Sie ist ausschließlich für verifizierte
+// Elternkonten bestimmt (Zweck: das eigene Kind für die Verknüpfung finden). Deshalb:
+//   1) nur Konten mit der Rolle "Eltern" (Eltern ohne Verknüpfung brauchen die Suche, um ihr Kind zu finden),
+//   2) Geburtsdatum wird NICHT mehr zurückgegeben,
+//   3) Ratenbegrenzung gegen automatisiertes Abfragen des Personenverzeichnisses.
 if ($method === 'GET' && $action === 'search_children') {
-    require_auth();
+    $searcher = require_auth();
+    fwg_require_rate_limit('search_children', 30, 60);
+    if (($searcher['role'] ?? '') !== 'parent') {
+        json_error('Diese Suche ist Elternkonten vorbehalten.', 403);
+    }
     $q = trim((string)($_GET['q'] ?? ''));
     $gradeRaw = trim((string)($_GET['grade_level'] ?? ''));
     $birthRaw = trim((string)($_GET['birth_date'] ?? ''));
@@ -275,7 +286,7 @@ if ($method === 'GET' && $action === 'search_children') {
 
     try {
         $stmt = $pdo->prepare("
-            SELECT id, first_name, last_name, display_name, grade_level, class_letter, birth_date
+            SELECT id, first_name, last_name, display_name, grade_level, class_letter
             FROM profiles
             WHERE $where
             ORDER BY last_name ASC, first_name ASC
@@ -287,6 +298,7 @@ if ($method === 'GET' && $action === 'search_children') {
         error_log('search_children failed: ' . $e->getMessage());
         json_error('Suche vorübergehend nicht verfügbar.', 500);
     }
+    // Nur die für die Zuordnung nötigen Felder – insbesondere KEIN birth_date (F1).
     $result = array_map(function ($r) {
         $full = trim((string)($r['first_name'] ?? '') . ' ' . (string)($r['last_name'] ?? ''));
         return [
@@ -295,7 +307,6 @@ if ($method === 'GET' && $action === 'search_children') {
             'display_name' => $r['display_name'] ?: $full,
             'grade_level' => $r['grade_level'],
             'class_letter' => $r['class_letter'],
-            'birth_date' => $r['birth_date'],
         ];
     }, $rows);
     json_response($result);

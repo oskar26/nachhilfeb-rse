@@ -9,10 +9,15 @@ const srcDir = path.resolve(__dirname, '../api');
 const destDir = path.resolve(__dirname, '../dist/api');
 
 if (fs.existsSync(srcDir)) {
+    // NIE deployen:
+    //  - db_credentials.php : lokale Zugangsdaten (bleiben Server-Sache)
+    //  - diag.php           : unauthentifizierter Diagnose-Endpunkt, der Infrastruktur-Infos
+    //                         ausgibt und Probe-Schreibzugriffe auf die Datenbank macht.
+    //                         Nur für die lokale Fehlersuche gedacht.
+    const NEVER_DEPLOY = ['db_credentials.php', 'diag.php'];
     fs.cpSync(srcDir, destDir, {
         recursive: true,
-        // Niemals lokale Credentials deployen (Server-Datei bleibt Server-Sache)
-        filter: (src) => !src.endsWith('db_credentials.php'),
+        filter: (src) => !NEVER_DEPLOY.some((f) => src.endsWith(f)),
     });
-    console.log('✓ API successfully copied to dist/api (ohne db_credentials.php)');
+    console.log('✓ API successfully copied to dist/api (ohne db_credentials.php, ohne diag.php)');
 }
