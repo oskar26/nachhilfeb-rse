@@ -101,10 +101,10 @@ Echte Ansichten der laufenden App. Benennung und Motive: [`docs/screenshots/READ
 
 <div align="center">
 
-| ![Code](https://img.shields.io/static/v1?label=Zeilen%20Code&message=~27.500&color=0ea5e9&style=flat-square&labelColor=0f172a) | ![Files](https://img.shields.io/static/v1?label=TS%2FTSX&message=89&color=22c55e&style=flat-square&labelColor=0f172a) | ![Components](https://img.shields.io/static/v1?label=UI-Components&message=34&color=f59e0b&style=flat-square&labelColor=0f172a) | ![API](https://img.shields.io/static/v1?label=API-Endpunkte&message=27&color=a855f7&style=flat-square&labelColor=0f172a) |
+| ![Code](https://img.shields.io/static/v1?label=Zeilen%20Code&message=~37.200&color=0ea5e9&style=flat-square&labelColor=0f172a) | ![Files](https://img.shields.io/static/v1?label=TS%2FTSX&message=109&color=22c55e&style=flat-square&labelColor=0f172a) | ![Components](https://img.shields.io/static/v1?label=UI-Components&message=51&color=f59e0b&style=flat-square&labelColor=0f172a) | ![API](https://img.shields.io/static/v1?label=API-Module&message=27&color=a855f7&style=flat-square&labelColor=0f172a) |
 |:---:|:---:|:---:|:---:|
 | **SQL-Migrationen** | **Seit Ende 2025** | **> 10 Monate** | **Agentisches Coding** |
-| ![SQL](https://img.shields.io/static/v1?label=Migrationen&message=7&color=14b8a6&style=flat-square&labelColor=0f172a) | ![Since](https://img.shields.io/static/v1?label=Start&message=Ende%202025&color=ec4899&style=flat-square&labelColor=0f172a) | ![Duration](https://img.shields.io/static/v1?label=Dauer&message=%3E%2010%20Monate&color=ec4899&style=flat-square&labelColor=0f172a) | ![AI](https://img.shields.io/static/v1?label=Zeitaufwand&message=mehrere%20hundert%20Std.&color=a855f7&style=flat-square&labelColor=0f172a) |
+| ![SQL](https://img.shields.io/static/v1?label=Migrationen&message=12&color=14b8a6&style=flat-square&labelColor=0f172a) | ![Since](https://img.shields.io/static/v1?label=Start&message=Ende%202025&color=ec4899&style=flat-square&labelColor=0f172a) | ![Duration](https://img.shields.io/static/v1?label=Dauer&message=%3E%2010%20Monate&color=ec4899&style=flat-square&labelColor=0f172a) | ![AI](https://img.shields.io/static/v1?label=Zeitaufwand&message=mehrere%20hundert%20Std.&color=a855f7&style=flat-square&labelColor=0f172a) |
 
 </div>
 
@@ -125,9 +125,9 @@ Dieses Projekt ist **Open Source** und erklärt seine Entstehung offen, auch auf
 
 ## 🔒 Sicherheit & Datenschutz (DSGVO)
 
-1. **Privatsphäre zuerst:** Inhalte sind nie automatisch öffentlich. Verifikation über den SV-Raum, 7-Tage-Aufräumjob für unverifizierte Konten.
+1. **Privatsphäre zuerst:** Inhalte sind nie automatisch öffentlich. Zugang nur nach persönlicher Verifikation im SV-Raum; unverifizierte Konten bleiben serverseitig gesperrt (keine Anzeigen, keine Kontakte) und werden bei der jährlichen Prüfung durch das SV-Team kontrolliert.
 2. **Serverseitiger Inhaltsfilter:** Profanity-Trigger auf Datenbankebene.
-3. **Kein Tracking-Müll:** keine externen Analyse-/Werbedienste, Hosting in Deutschland.
+3. **Kein Tracking-Müll:** keine externen Analyse-/Werbedienste, keine IP-Speicherung, Hosting in Deutschland.
 
 Details: [Datenschutzerklärung](https://nachhilfe-sv.de/#/datenschutz) · [Cookies](https://nachhilfe-sv.de/#/cookies)
 

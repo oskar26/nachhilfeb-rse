@@ -97,17 +97,21 @@ export default function Datenschutz() {
                     <p><strong>Profil & Anzeigen (Art. 6 Abs. 1 lit. b DSGVO):</strong> Alle Angaben, die du freiwillig in Profil und Anzeigen einträgst (Fächer, Beschreibung, Preise, Verfügbarkeiten, Profilbild). Anzeigen sind für alle angemeldeten Nutzer sichtbar.</p>
                     <p><strong>Nachrichten & Anfragen (Art. 6 Abs. 1 lit. b DSGVO):</strong> Chat-Nachrichten und Anfragen zwischen Nutzern, damit die Vermittlung funktioniert.</p>
                     <p><strong>Verifizierung & Sicherheit (Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse am Schutz Minderjähriger)):</strong> Verifizierungsstatus, Sperrstatus bei Regelverstößen sowie ein Protokoll von Moderationsmaßnahmen (wer wurde wann von wem aus welchem Grund verwarnt/gesperrt).</p>
-                    <p><strong>Anonyme Nutzungsstatistik (Art. 6 Abs. 1 lit. f DSGVO):</strong> Wir erfassen in anonymisierter Form, welche Seiten aufgerufen werden (Seitenpfad, Gerätetyp, Browser, Uhrzeit), um die App zu verbessern. Es werden <strong>keine IP-Adressen gespeichert</strong>, keine Cookies zu Analysezwecken gesetzt und <strong>keine externen Analyse- oder Werbedienste</strong> (z. B. Google Analytics) eingesetzt. Zusätzlich zählen wir anonym, welche Fächer über die „Beliebt“-Schnellfilter im Feed angetippt werden (nur Fachname und Zeitpunkt, ohne IP- oder Nutzerbezug), um die Reihenfolge der beliebtesten Fächer zu bestimmen.</p>
+                    <p><strong>Nutzungsstatistik (Art. 6 Abs. 1 lit. f DSGVO):</strong> Wir erfassen, welche Seiten aufgerufen werden (Seitenpfad, Gerätetyp, Browser, Uhrzeit), um die App zu verbessern. Es werden <strong>keine IP-Adressen und keine Gerätekennungen gespeichert</strong>, keine Cookies zu Analysezwecken gesetzt und <strong>keine externen Analyse- oder Werbedienste</strong> (z. B. Google Analytics) eingesetzt. Bei <strong>angemeldeten</strong> Nutzerinnen und Nutzern wird zusätzlich die Konto-Kennung mitgeschrieben, damit wir sehen, wie viele verschiedene Personen aktiv sind – diese Auswertung ist damit nicht anonym, sondern <strong>pseudonym</strong>; sie wird <strong>nach 90 Tagen automatisch gelöscht</strong>. Wer das nicht möchte, kann der Verarbeitung widersprechen (siehe Abschnitt 6) – die Nutzung der Börse ist davon nicht betroffen. Zusätzlich zählen wir die Klicks auf die „Beliebt“-Schnellfilter im Feed (nur Fachname und Zeitpunkt, <strong>ohne jeden Nutzerbezug</strong>), um die Reihenfolge der beliebtesten Fächer zu bestimmen.</p>
                     <p><strong>Technisch notwendige Speicherung:</strong> Anmeldestatus und Einstellungen (z. B. Theme, Hinweis-Status) werden lokal in deinem Browser (Local Storage) abgelegt. Das ist für den Betrieb erforderlich; eine Einwilligung ist dafür nach § 25 Abs. 2 TDDDG nicht nötig.</p>
                 </Section>
 
                 <Section id="d3" title="3. Kinder und Jugendliche">
                     <p>
                         Unsere Plattform richtet sich an Schülerinnen und Schüler des FWG sowie deren Eltern.
-                        Für Nutzerinnen und Nutzer <strong>unter 16 Jahren</strong> holen wir im Rahmen der
-                        Registrierung die <strong>Einwilligung der Eltern</strong> ein (Art. 8 DSGVO):
-                        Ohne bestätigte Eltern-E-Mail bleibt der Account eingeschränkt (keine Anzeigenerstellung,
-                        keine Kontaktaufnahme), bis ein Elternteil zugestimmt hat.
+                        Für Nutzerinnen und Nutzer <strong>unter 16 Jahren</strong> holen wir die
+                        <strong>Einwilligung der Erziehungsberechtigten</strong> ein (Art. 8 DSGVO):
+                        Bei der Registrierung wird sie abgefragt und dokumentiert, und bei der persönlichen
+                        <strong>Verifizierung im SV-Raum</strong> wird der Account zusätzlich geprüft.
+                        Ohne Einwilligung und ohne Verifizierung bleibt der Account eingeschränkt
+                        (keine Anzeigenerstellung, keine Kontaktaufnahme). Zusätzlich empfehlen wir Eltern,
+                        ihr eigenes Konto mit dem Konto des Kindes zu verknüpfen – damit ist der Elternbezug
+                        doppelt sichtbar und nachvollziehbar.
                     </p>
                     <p>
                         Eltern können verknüpfte Kinder-Accounts einsehen und die Einwilligung jederzeit
@@ -138,7 +142,7 @@ export default function Datenschutz() {
                     <ul className="list-disc pl-4 space-y-1">
                         <li><strong>Accounts & Inhalte:</strong> solange dein Account besteht. Inaktive Anzeigen kannst du selbst löschen.</li>
                         <li><strong>Nach Account-Löschung:</strong> Wir löschen Profil, Anzeigen und Nachrichten oder anonymisieren sie, soweit keine gesetzlichen Aufbewahrungspflichten entgegenstehen. Moderationsprotokolle (Sperren, Verwarnungen) bewahren wir zum Schutz der Community noch <strong>12 Monate</strong> auf und löschen sie danach.</li>
-                        <li><strong>Anonyme Statistik:</strong> aggregierte Aufruf- und Fächer-Klickzahlen ohne Personenbezug, unbefristet (kein Personenbezug, daher kein Löschanspruch).</li>
+                        <li><strong>Nutzungsstatistik:</strong> Detaildaten (Seitenpfad, Gerät, Browser, Zeitpunkt, bei angemeldeten Nutzern die Konto-Kennung) werden nach <strong>90 Tagen automatisch gelöscht</strong>. Auswertungen im SV-Panel beziehen sich auf Zeiträume bis 30 Tage. Fächer-Klicks werden ohne jeden Nutzerbezug gezählt.</li>
                     </ul>
                 </Section>
 
@@ -155,6 +159,13 @@ export default function Datenschutz() {
                         über ein Support-Ticket in der App oder per E-Mail an{' '}
                         <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-amber-700 dark:text-primary hover:underline break-anywhere">info@nachhilfe-sv.de</a>{' '}
                         – wir bestätigen die Löschung innerhalb von 14 Tagen.
+                    </p>
+                    <p>
+                        <strong>Widerspruch gegen die Nutzungsstatistik:</strong> Du kannst der Verarbeitung
+                        zu Statistikzwecken jederzeit widersprechen (Art. 21 DSGVO) – formlos per E-Mail an{' '}
+                        <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-amber-700 dark:text-primary hover:underline break-anywhere">info@nachhilfe-sv.de</a>{' '}
+                        oder über ein Support-Ticket. Deine Konto-Kennung wird dann aus den Statistikdaten
+                        entfernt; die Nutzung der Börse bleibt vollständig möglich.
                     </p>
                     <p>
                         Außerdem hast du das Recht auf Beschwerde bei einer Aufsichtsbehörde – für uns zuständig:{' '}
