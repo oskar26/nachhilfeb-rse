@@ -6,7 +6,7 @@ import { Input } from '../components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardFooter } from '../components/ui/Card';
 import { toast } from 'react-hot-toast';
 import { useTheme } from '../components/ThemeProvider';
-import { Sun, Moon, CheckCircle, ShieldAlert } from 'lucide-react';
+import { Sun, Moon, CheckCircle, ShieldAlert, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { RefinedGradeSelector } from '../components/RefinedGradeSelector';
 import { Logo } from '../components/ui/Logo';
@@ -476,6 +476,13 @@ export default function Login() {
 
                                 {mode === 'register' && (
                                     <div className="space-y-4">
+                                        <div className="flex items-start gap-3 p-3 rounded-xl border border-primary/40 bg-primary/5 dark:border-primary/25 dark:bg-primary/10">
+                                            <Users size={16} className="mt-0.5 shrink-0 text-amber-700 dark:text-primary" aria-hidden />
+                                            <p className="text-[11px] leading-relaxed text-gray-700 dark:text-gray-300">
+                                                <strong className="text-gray-900 dark:text-gray-100">Unsere Empfehlung:</strong> Eltern und Kinder betreuen den Account gemeinsam. Am besten meldet ihr euch gleich zusammen mit euren Eltern an – ein eigener Eltern-Account ist nicht nötig. Mehr im{' '}
+                                                <Link to="/eltern-leitfaden" className="font-bold text-amber-700 dark:text-primary hover:underline" target="_blank">Eltern-Leitfaden</Link>.
+                                            </p>
+                                        </div>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div className="space-y-1">
                                                 <label className="text-xs font-bold uppercase text-gray-500 ml-1">Vorname *</label>

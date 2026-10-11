@@ -321,6 +321,21 @@ export default function Landing() {
                 </div>
             </section>
 
+            {/* EMPFEHLUNG — direkt unter der Hero: Eltern und Kinder betreuen den Account gemeinsam */}
+            <section aria-label="Empfehlung zur gemeinsamen Account-Betreuung" className="border-b border-white/10 bg-gray-950">
+                <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-2.5 px-4 py-4 sm:px-6">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-black">
+                        <Users size={13} aria-hidden /> Empfehlung
+                    </span>
+                    <p className="min-w-0 flex-1 text-sm text-gray-300">
+                        <strong className="font-bold text-white">Eltern und Kinder betreuen den Account gemeinsam</strong> – ohne eigenen Eltern-Account und ohne Verknüpfungscode.
+                    </p>
+                    <Link to="/eltern-leitfaden" className="press inline-flex items-center gap-1.5 text-sm font-bold text-primary hover:underline">
+                        Eltern-Leitfaden <ArrowUpRight size={15} aria-hidden />
+                    </Link>
+                </div>
+            </section>
+
             {/* Fächer-Ticker, Kennzahlen & News — eigene Sektion direkt unter der Hero */}
             <section aria-label="Fächer, Kennzahlen und Neuigkeiten">
                 {/* Tickerband */}
@@ -630,7 +645,7 @@ export default function Landing() {
                         <span className="inline-grid place-items-center w-16 h-16 rounded-2xl bg-white/5 border border-white/10"><Shield className="text-blue-500" size={30} aria-hidden /></span>
                         <h2 className="mt-6 font-display uppercase leading-[0.95] break-words text-4xl sm:text-6xl text-primary">Informationen für Eltern</h2>
                         <motion.span {...wipeLine()} className="mt-4 block h-1.5 w-16 origin-left rounded-full bg-primary" aria-hidden />
-                        <p className="mt-4 text-lg text-gray-300 max-w-2xl leading-relaxed">Eltern können den Account gemeinsam mit ihrem Kind betreuen – ohne eigenen Eltern-Account und ohne Verknüpfungscode. Ihr Kind nutzt seinen Schüler-Account, Sie schauen und unterstützen mit: Anzeigen, Anfragen, passende Matches und Merkliste im Blick.</p>
+                        <p className="mt-4 text-lg text-gray-300 max-w-2xl leading-relaxed">Unsere Empfehlung: Betreuen Sie den Account gemeinsam mit Ihrem Kind – ohne eigenen Eltern-Account und ohne Verknüpfungscode. Ihr Kind nutzt seinen Schüler-Account, Sie schauen und unterstützen mit: Anzeigen, Anfragen, passende Matches und Merkliste im Blick.</p>
                     </motion.div>
 
                     <div className="mt-10 grid gap-4 sm:grid-cols-2">
