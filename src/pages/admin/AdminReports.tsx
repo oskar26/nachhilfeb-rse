@@ -28,6 +28,19 @@ const PRIO_BADGE_NORMAL = 'bg-gray-100 text-gray-700';
 const PRIO_BAR_KRITISCH = 'bg-red-600 text-white animate-pulse';
 const PRIO_BAR_HOCH = 'bg-amber-700 text-white';
 const PRIO_BAR_NORMAL = 'bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
+const REPORT_STATUS_LABELS: Record<string, string> = {
+    open: 'Offen',
+    investigating: 'In Prüfung',
+    resolved: 'Gelöst',
+    dismissed: 'Abgewiesen',
+};
+const RESOLUTION_LABELS: Record<string, string> = {
+    warn: 'Verwarnung',
+    ban: 'Bann',
+    delete: 'Inhalt gelöscht',
+    dismiss: 'Abgewiesen',
+    escalate: 'Eskaliert',
+};
 
 /** Evidenz einer automatischen Filtermeldung (Profanity 2.0, Quelle 'auto_filter'). */
 interface AutoFilterEvidence {
@@ -65,7 +78,7 @@ interface Report {
     reported_user_id: string | null;
     reason: string;
     description: string | null;
-    status: 'open' | 'resolved' | 'dismissed';
+    status: 'open' | 'investigating' | 'resolved' | 'dismissed';
     created_at: string;
     category: 'profil' | 'anzeige' | 'chat' | 'datenschutz' | 'sonstiges';
     sub_reason: string | null;
@@ -119,7 +132,13 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
-            setReports(data || []);
+            const rows = (data || []) as any[];
+            setReports(rows.map((r) => ({
+                ...r,
+                reporter: r.reporter ?? (r.reporter_id ? { id: r.reporter_id, first_name: null, last_name: null, display_name: r.reporter_name || null, avatar_url: null } : null),
+                user: r.user ?? (r.reported_user_id ? { id: r.reported_user_id, first_name: null, last_name: null, display_name: r.reported_user_name || null, avatar_url: null } : null),
+                ad: r.ad ?? (r.reported_ad_id ? { id: r.reported_ad_id, short_description: r.reported_ad_title || '' } : null),
+            })));
         } catch (error: any) {
             console.error('Error fetching reports:', error);
             toast.error('Meldungen konnten nicht geladen werden.');
@@ -170,10 +189,11 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
 
             if (error) throw error;
 
-            toast.success(`Meldung als gelöst markiert (${resolutionType})`);
+            toast.success(`Meldung als gelöst markiert (${RESOLUTION_LABELS[resolutionType] || resolutionType})`);
             setShowResolveDialog(false);
             fetchReports();
             setSelectedReport(null);
+            window.dispatchEvent(new Event('admin:counts-refresh'));
 
             // Audit
             await supabase.from('admin_audit_log').insert({
@@ -209,6 +229,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
             toast.success('Meldung abgewiesen');
             fetchReports();
             setSelectedReport(null);
+            window.dispatchEvent(new Event('admin:counts-refresh'));
 
             // Audit
             await supabase.from('admin_audit_log').insert({
@@ -218,6 +239,25 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                 target_id: selectedReport.id,
                 details: {}
             });
+        } catch (error: any) {
+            toast.error('Aktion fehlgeschlagen: ' + error.message);
+        }
+    };
+
+    const handleInvestigate = async () => {
+        if (!selectedReport) return;
+        try {
+            const { error } = await supabase
+                .from('reports')
+                .update({ status: 'investigating' })
+                .eq('id', selectedReport.id);
+
+            if (error) throw error;
+
+            toast.success('Meldung in Prüfung gesetzt');
+            fetchReports();
+            setSelectedReport(null);
+            window.dispatchEvent(new Event('admin:counts-refresh'));
         } catch (error: any) {
             toast.error('Aktion fehlgeschlagen: ' + error.message);
         }
@@ -261,6 +301,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
             toast.success('Filter-Treffer bestätigt (Verwarnung).');
             fetchReports();
             setSelectedReport(null);
+            window.dispatchEvent(new Event('admin:counts-refresh'));
             await supabase.from('admin_audit_log').insert({
                 admin_id: adminId,
                 action: 'filter_review_confirm',
@@ -301,6 +342,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
             toast.success(hits.length > 0 ? `Fehlalarm – ${hits.length} Wort/Wörter für den Filter freigegeben.` : 'Als Fehlalarm abgewiesen.');
             fetchReports();
             setSelectedReport(null);
+            window.dispatchEvent(new Event('admin:counts-refresh'));
             await supabase.from('admin_audit_log').insert({
                 admin_id: adminId,
                 action: 'filter_review_false_positive',
@@ -337,6 +379,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
     // Grouping for Kanban columns
     const columns = {
         open: filteredReports.filter(r => r.status === 'open'),
+        investigating: filteredReports.filter(r => r.status === 'investigating'),
         dismissed: filteredReports.filter(r => r.status === 'dismissed'),
         resolved: filteredReports.filter(r => r.status === 'resolved'),
     };
@@ -426,15 +469,23 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                         <div className="py-20 text-center space-y-3 bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-3xl">
                             <AlertTriangle size={48} className="mx-auto text-green-500" />
                             <p className="text-gray-500 font-medium text-lg">Keine Meldungen</p>
-                            <p className="text-gray-400 text-xs">Aktuell sind keine ungelösten Meldungen in dieser Ansicht vorhanden.</p>
+                            <p className="text-gray-400 text-xs">Aktuell sind keine Meldungen in dieser Ansicht vorhanden.</p>
                         </div>
                     ) : viewMode === 'kanban' ? (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full items-start">
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 h-full items-start">
                             {/* Open reports column */}
                             <KanbanColumn
                                 title="Offen / Neu"
                                 badgeColor="bg-red-500"
                                 reports={columns.open}
+                                selectedId={selectedReport?.id}
+                                onSelect={handleSelectReport}
+                            />
+                            {/* Investigating column */}
+                            <KanbanColumn
+                                title="In Prüfung"
+                                badgeColor="bg-amber-500"
+                                reports={columns.investigating}
                                 selectedId={selectedReport?.id}
                                 onSelect={handleSelectReport}
                             />
@@ -469,7 +520,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                                     <div className="flex items-center gap-3 min-w-0">
                                         <div className={cn(
                                             'w-10 h-10 rounded-2xl flex items-center justify-center shrink-0',
-                                            r.status === 'open' ? REPORT_ICON_OPEN : REPORT_ICON_CLOSED
+                                            r.status === 'open' || r.status === 'investigating' ? REPORT_ICON_OPEN : REPORT_ICON_CLOSED
                                         )}>
                                             <AlertTriangle size={18} />
                                         </div>
@@ -478,7 +529,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                                                 {r.reason} • <span className="text-gray-400 font-medium capitalize text-xs">{r.category}</span>
                                             </div>
                                             <div className="text-xs text-gray-400 mt-0.5 truncate">
-                                                Gemeldet von {(r.reporter as any)?.display_name} • {new Date(r.created_at).toLocaleDateString('de-DE')}
+                                                Gemeldet von {(r.reporter as any)?.display_name || 'Anonym'} • {new Date(r.created_at).toLocaleDateString('de-DE')}
                                             </div>
                                         </div>
                                     </div>
@@ -508,7 +559,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                                     Meldungsdetails
                                 </div>
                                 <div className="text-xs text-gray-400 mt-0.5 font-semibold">
-                                    ID: {selectedReport.id.slice(0, 8)} • Stufe: {selectedReport.priority.toUpperCase()}
+                                    ID: {selectedReport.id.slice(0, 8)} • Stufe: {selectedReport.priority.toUpperCase()} • {REPORT_STATUS_LABELS[selectedReport.status] || selectedReport.status}
                                 </div>
                             </div>
                             <button onClick={() => setSelectedReport(null)} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400">
@@ -647,7 +698,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
 
                         {/* Action buttons footer */}
                         <div className="p-4 bg-gray-50 dark:bg-gray-800/40 border-t dark:border-gray-800 shrink-0">
-                            {selectedReport.status === 'open' ? (
+                            {selectedReport.status === 'open' || selectedReport.status === 'investigating' ? (
                                 <div className="flex flex-col gap-2">
                                     {getAutoEvidence(selectedReport) && (
                                         <div className="flex gap-2">
@@ -682,6 +733,15 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                                         </Button>
                                     </div>
                                     <div className="flex gap-2">
+                                        {selectedReport.status === 'open' && (
+                                            <Button
+                                                onClick={handleInvestigate}
+                                                variant="ghost"
+                                                className="flex-1 h-9 text-[10px] font-bold rounded-xl text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/40"
+                                            >
+                                                In Prüfung setzen
+                                            </Button>
+                                        )}
                                         {selectedReport.priority !== 'kritisch' && (
                                             <Button
                                                 onClick={handleEscalate}
@@ -695,7 +755,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                                 </div>
                             ) : (
                                 <div className="text-center py-2 text-xs font-bold uppercase tracking-wider text-gray-400">
-                                    Status: {selectedReport.status} ({selectedReport.resolution_type || 'Erledigt'})
+                                    Status: {REPORT_STATUS_LABELS[selectedReport.status] || selectedReport.status} ({selectedReport.resolution_type ? RESOLUTION_LABELS[selectedReport.resolution_type] || selectedReport.resolution_type : 'Erledigt'})
                                 </div>
                             )}
                         </div>

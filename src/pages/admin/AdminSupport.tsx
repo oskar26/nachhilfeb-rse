@@ -37,6 +37,13 @@ interface Message {
     created_at: string;
 }
 
+const STATUS_TEXT: Record<string, string> = {
+    open: 'Offen',
+    in_progress: 'In Bearbeitung',
+    resolved: 'Gelöst',
+    closed: 'Geschlossen',
+};
+
 export default function AdminSupport() {
     const [tickets, setTickets] = useState<Ticket[]>([]);
     const [loading, setLoading] = useState(true);
@@ -149,6 +156,7 @@ export default function AdminSupport() {
                     .update({ status: 'in_progress', updated_at: new Date().toISOString() })
                     .eq('id', activeTicket.id);
                 setActiveTicket({ ...activeTicket, status: 'in_progress' });
+                window.dispatchEvent(new Event('admin:counts-refresh'));
             }
 
             setNewReply('');
@@ -169,7 +177,8 @@ export default function AdminSupport() {
                 .eq('id', ticketId);
 
             if (error) throw error;
-            toast.success(`Status auf "${status}" geändert`);
+            toast.success(`Status auf "${STATUS_TEXT[status] || status}" geändert`);
+            window.dispatchEvent(new Event('admin:counts-refresh'));
 
             if (activeTicket?.id === ticketId) {
                 setActiveTicket({ ...activeTicket, status: status as any });
@@ -273,7 +282,7 @@ export default function AdminSupport() {
                                                         : 'bg-gray-50 dark:bg-gray-800 text-gray-500 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'
                                                 )}
                                             >
-                                                {status === 'open' ? 'Offen' : status === 'in_progress' ? 'In Bearbeitung' : status === 'resolved' ? 'Gelöst' : 'Geschlossen'}
+                                                {STATUS_TEXT[status] || status}
                                             </button>
                                         ))}
                                     </div>

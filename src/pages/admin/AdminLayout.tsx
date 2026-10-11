@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { supabase } from '../../lib/supabase';
+import { api } from '../../lib/api';
 import { cn } from '../../lib/utils';
 import { Logo } from '../../components/ui/Logo';
 import {
@@ -70,29 +70,27 @@ export default function AdminLayout() {
     }, [isAdmin, navigate]);
 
     useEffect(() => {
+        let cancelled = false;
         const fetchCounts = async () => {
             try {
-                const { count } = await supabase
-                    .from('reports')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('status', 'open');
-                setOpenReports(count || 0);
-            } catch {
-                /* Zähler optional – Badge bleibt bei Fehler auf 0 */
-            }
-
-            try {
-                const { count: ticketCount } = await supabase
-                    .from('support_tickets')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('status', 'open');
-                setOpenTickets(ticketCount || 0);
+                const { data, error } = await api.admin.overview();
+                if (cancelled || error) return;
+                const stats = (data as any)?.stats;
+                setOpenReports(Number(stats?.open_reports) || 0);
+                setOpenTickets(Number(stats?.open_tickets) || 0);
             } catch {
                 /* Zähler optional – Badge bleibt bei Fehler auf 0 */
             }
         };
         fetchCounts();
-    }, []);
+        window.addEventListener('focus', fetchCounts);
+        window.addEventListener('admin:counts-refresh', fetchCounts);
+        return () => {
+            cancelled = true;
+            window.removeEventListener('focus', fetchCounts);
+            window.removeEventListener('admin:counts-refresh', fetchCounts);
+        };
+    }, [location.search]);
 
     if (!isAdmin) return null;
 
@@ -125,8 +123,9 @@ export default function AdminLayout() {
                     <Logo className="w-7 h-7 text-black dark:text-white shrink-0" />
                     <span className="font-extrabold text-base tracking-tight text-gray-900 dark:text-white">SV Admin Panel</span>
                     <button
-                        className="ml-auto md:hidden text-gray-400 hover:text-gray-600"
+                        className="ml-auto md:hidden text-gray-400 hover:text-gray-600 p-3 -m-3"
                         onClick={() => setSidebarOpen(false)}
+                        aria-label="Menü schließen"
                     >
                         <X size={20} />
                     </button>
@@ -175,8 +174,9 @@ export default function AdminLayout() {
                 {/* Top bar */}
                 <header className="h-16 bg-white dark:bg-gray-900 border-b dark:border-gray-800 flex items-center gap-4 px-6 shrink-0">
                     <button
-                        className="md:hidden text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                        className="md:hidden text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 p-3 -m-3"
                         onClick={() => setSidebarOpen(true)}
+                        aria-label="Menü öffnen"
                     >
                         <Menu size={22} />
                     </button>

@@ -16,9 +16,19 @@ import {
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
-// Getrennte Status-Farben: offen (rot auf rot) und erledigt (grau auf grau) teilen sich nie ein Element.
-const REPORT_STATUS_OPEN = 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
-const REPORT_STATUS_CLOSED = 'bg-gray-100 text-gray-500 dark:bg-gray-800';
+const REPORT_STATUS_STYLES: Record<string, { label: string; cls: string }> = {
+    open: { label: 'Offen', cls: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+    investigating: { label: 'In Prüfung', cls: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
+    resolved: { label: 'Gelöst', cls: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
+    dismissed: { label: 'Abgewiesen', cls: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400' },
+};
+
+const QUICK_ACTIONS = [
+    { label: 'Codes & Verifikation', icon: ShieldCheck, tab: 'codes', iconCls: 'text-green-600 dark:text-green-400', hoverCls: 'hover:border-green-300 dark:hover:border-green-800' },
+    { label: 'Nutzerverwaltung', icon: Users, tab: 'users', iconCls: 'text-blue-600 dark:text-blue-400', hoverCls: 'hover:border-blue-300 dark:hover:border-blue-800' },
+    { label: 'Meldungen prüfen', icon: AlertTriangle, tab: 'reports', iconCls: 'text-amber-600 dark:text-amber-400', hoverCls: 'hover:border-amber-300 dark:hover:border-amber-800' },
+    { label: 'Audit Log', icon: Clock, tab: 'auditlog', iconCls: 'text-gray-500 dark:text-gray-400', hoverCls: 'hover:border-gray-300 dark:hover:border-gray-700' },
+];
 
 interface Stats {
     users: number;
@@ -220,22 +230,18 @@ export default function AdminOverview() {
 
             {/* Quick actions */}
             <div>
-                <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Schnellzugriff</h2>                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {[
-                        { label: 'Codes & Verifikation', icon: <ShieldCheck size={18} />, tab: 'codes', color: 'green' },
-                        { label: 'Nutzerverwaltung', icon: <Users size={18} />, tab: 'users', color: 'blue' },
-                        { label: 'Meldungen prüfen', icon: <AlertTriangle size={18} />, tab: 'reports', color: 'amber' },
-                        { label: 'Audit Log', icon: <Clock size={18} />, tab: 'auditlog', color: 'gray' },
-                    ].map(({ label, icon, tab, color }) => (
+                <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Schnellzugriff</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {QUICK_ACTIONS.map(({ label, icon: Icon, tab, iconCls, hoverCls }) => (
                         <button
                             key={tab}
                             onClick={() => navTo(tab)}
                             className={cn(
                                 'flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-gray-900 border dark:border-gray-800 shadow-sm hover:shadow-md transition-all text-left font-medium text-sm',
-                                `hover:border-${color}-200 dark:hover:border-${color}-900`
+                                hoverCls
                             )}
                         >
-                            <span className={`text-${color}-500`}>{icon}</span>
+                            <Icon size={18} className={iconCls} />
                             {label}
                         </button>
                     ))}
@@ -267,14 +273,14 @@ export default function AdminOverview() {
                                         <div>
                                             <div className="font-medium text-sm">{r.reason || r.category || 'Kein Grund angegeben'}</div>
                                             <div className="text-xs text-gray-400 mt-0.5">
-                                                {(r.reporter as any)?.display_name || 'Anonym'} → {(r.user as any)?.display_name || 'Unbekannt'}
+                                                {(r as any).reporter_name || 'Anonym'} → {(r as any).reported_user_name || (r as any).reported_ad_title || 'Unbekannt'}
                                             </div>
                                         </div>
                                         <span className={cn(
                                             'text-[10px] font-bold px-2 py-0.5 rounded-full uppercase',
-                                            r.status === 'open' ? REPORT_STATUS_OPEN : REPORT_STATUS_CLOSED
+                                            (REPORT_STATUS_STYLES[r.status] || REPORT_STATUS_STYLES.dismissed).cls
                                         )}>
-                                            {r.status}
+                                            {REPORT_STATUS_STYLES[r.status]?.label || r.status}
                                         </span>
                                     </div>
                                 </div>
