@@ -11,7 +11,7 @@ interface SubjectPickerDialogProps {
 }
 
 /**
- * Fach-Auswahl im Plakat-Stil: schwarzer Kopf mit gelbem Akzentstreifen,
+ * Fach-Auswahl im Plakat-Stil: heller Kopf mit gelbem Akzentstreifen,
  * alle Fächer aus SUBJECT_CATEGORIES (Single Source of Truth).
  * Bereits gewählte Fächer sind ausgegraut (Entfernen läuft über die Chips im Profil).
  */
@@ -21,11 +21,11 @@ export default function SubjectPickerDialog({ open, onClose, selected, onToggle 
             <DialogContent className="p-0">
                 <div className="max-h-[75vh] overflow-y-auto overscroll-contain">
                     {/* Poster-Kopf */}
-                    <div className="sticky top-0 z-10 bg-gray-950 dark:bg-black poster-grain px-5 pb-4 pt-5 text-white">
+                    <div className="sticky top-0 z-10 border-b border-black/10 bg-[#faf7ef] poster-grain-dark px-5 pb-4 pt-5 text-gray-900 dark:border-gray-800 dark:bg-gray-900 dark:text-white">
                         <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
                                 <h2 className="font-display text-xl uppercase leading-none tracking-tight">Fach hinzufügen</h2>
-                                <p className="mt-1.5 text-xs leading-relaxed text-white/70">
+                                <p className="mt-1.5 text-xs leading-relaxed text-gray-600 dark:text-gray-400">
                                     Wähle deine Fächer – bereits gewählte sind ausgegraut.
                                 </p>
                             </div>
@@ -33,7 +33,7 @@ export default function SubjectPickerDialog({ open, onClose, selected, onToggle 
                                 type="button"
                                 onClick={onClose}
                                 aria-label="Fächer-Auswahl schließen"
-                                className="press grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+                                className="press grid h-11 w-11 shrink-0 place-items-center rounded-full bg-black/5 text-gray-900 transition-colors hover:bg-black/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
                             >
                                 <X size={18} />
                             </button>

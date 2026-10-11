@@ -20,7 +20,7 @@ export default function NotFound() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 font-sans selection:bg-primary selection:text-black overflow-x-clip flex flex-col">
+    <div className="min-h-screen bg-[#faf7ef] text-gray-900 font-sans selection:bg-primary selection:text-black overflow-x-clip flex flex-col">
       <a href="#inhalt" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-primary focus:px-5 focus:py-2.5 focus:text-sm focus:font-bold focus:text-black">Zum Inhalt springen</a>
 
       {/* Dienstleiste */}
@@ -32,28 +32,28 @@ export default function NotFound() {
       </div>
 
       {/* Navigation — bewusst ohne zweiten primären CTA */}
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-gray-950/90 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-black/10 bg-[#faf7ef]/90 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           <button onClick={() => navigate(primaryTarget)} className="flex items-center gap-3 min-w-0" aria-label="Nachhilfebörse Startseite">
             <span className="grid place-items-center w-10 h-10 rounded-xl bg-primary text-black shadow-[0_6px_20px_-6px_rgba(250,204,21,0.6)] shrink-0">
               <Logo size={24} />
             </span>
-            <span className="text-lg font-extrabold tracking-tight truncate">Nachhilfebörse <span className="text-primary">FWG</span></span>
+            <span className="text-lg font-extrabold tracking-tight truncate">Nachhilfebörse <span className="text-amber-600">FWG</span></span>
           </button>
-          <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-gray-400">Schwarzes Brett</span>
+          <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-gray-500">Schwarzes Brett</span>
         </div>
       </header>
 
       {/* Inhalt */}
       <main id="inhalt" className="relative flex-1 overflow-hidden">
-        <div className="absolute inset-0 poster-grain" aria-hidden />
-        <div className="absolute -top-40 -right-40 w-[34rem] h-[34rem] rounded-full bg-primary/15 blur-[120px]" aria-hidden />
-        <div className="absolute -bottom-52 -left-40 w-[30rem] h-[30rem] rounded-full bg-blue-600/15 blur-[120px]" aria-hidden />
+        <div className="absolute inset-0 poster-grain-dark" aria-hidden />
+        <div className="absolute -top-40 -right-40 w-[34rem] h-[34rem] rounded-full bg-primary/20 blur-[120px]" aria-hidden />
+        <div className="absolute -bottom-52 -left-40 w-[30rem] h-[30rem] rounded-full bg-blue-600/10 blur-[120px]" aria-hidden />
 
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 pt-14 pb-16 sm:pt-20 sm:pb-20 text-center">
           {/* 404-Stempel */}
           <div className="flex justify-center">
-            <span className="inline-flex -rotate-6 items-center gap-2 rounded-xl border-2 border-primary px-4 py-2 font-display uppercase tracking-[0.22em] text-sm sm:text-base text-primary stamp-ring">
+            <span className="inline-flex -rotate-6 items-center gap-2 rounded-xl border-2 border-primary px-4 py-2 font-display uppercase tracking-[0.22em] text-sm sm:text-base text-amber-600 stamp-ring">
               404 · Nichts gefunden
             </span>
           </div>
@@ -61,11 +61,11 @@ export default function NotFound() {
           {/* Anton-Riesen-H1 */}
           <h1 className="mt-8 font-display uppercase leading-[0.92] tracking-tight break-words text-[17vw] sm:text-8xl lg:text-9xl">
             Nichts klebt
-            <span className="block poster-outline mt-1">hier.</span>
+            <span className="block mt-1"><span className="inline-block bg-primary px-2 sm:px-3">hier.</span></span>
           </h1>
 
           {/* Subline */}
-          <p className="mt-6 text-lg sm:text-xl text-gray-300 max-w-xl mx-auto leading-relaxed">
+          <p className="mt-6 text-lg sm:text-xl text-gray-600 max-w-xl mx-auto leading-relaxed">
             Vielleicht wurde die Anzeige gelöscht oder der Link ist veraltet.
           </p>
 
@@ -92,23 +92,23 @@ export default function NotFound() {
             {/* Zurück nur als unauffälliger Textlink mit History-Fallback */}
             <button
               onClick={handleBack}
-              className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-white transition-colors underline-offset-4 hover:underline"
+              className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-black transition-colors underline-offset-4 hover:underline"
             >
               <ArrowLeft size={15} aria-hidden /> Zurück
             </button>
           </div>
 
           {/* Tertiäre Textlinks */}
-          <nav aria-label="Weiter stöbern" className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-gray-400">
-            <Link to="/" className="hover:text-white transition-colors underline-offset-4 hover:underline">Feed</Link>
-            <Link to="/welcome" className="hover:text-white transition-colors underline-offset-4 hover:underline">Welcome</Link>
-            <Link to="/coaching" className="hover:text-white transition-colors underline-offset-4 hover:underline">Coaching</Link>
-            <Link to="/eltern-leitfaden" className="hover:text-white transition-colors underline-offset-4 hover:underline">Eltern-Leitfaden</Link>
+          <nav aria-label="Weiter stöbern" className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-gray-600">
+            <Link to="/" className="hover:text-black transition-colors underline-offset-4 hover:underline">Feed</Link>
+            <Link to="/welcome" className="hover:text-black transition-colors underline-offset-4 hover:underline">Welcome</Link>
+            <Link to="/coaching" className="hover:text-black transition-colors underline-offset-4 hover:underline">Coaching</Link>
+            <Link to="/eltern-leitfaden" className="hover:text-black transition-colors underline-offset-4 hover:underline">Eltern-Leitfaden</Link>
           </nav>
         </div>
       </main>
 
-      <footer className="relative border-t border-white/10">
+      <footer className="relative border-t border-black/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between text-xs text-gray-500">
           <span>Nachhilfebörse FWG</span>
           <span>SV-verifiziert · Nur FWG Köln</span>

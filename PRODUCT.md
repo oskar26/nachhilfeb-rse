@@ -28,7 +28,7 @@ Bestätigt: Anzeigen (biete/suche, Fächer farbcodiert, Klassen, Ort, Format, Pr
 
 ## Brand Commitments
 
-Name: FWG Nachhilfebörse / Nachhilfebörse. Träger: Schülervertretung Friedrich-Wilhelm-Gymnasium Köln. Primary: Gelb #FACC15 (CTA), Sekundär-Blau, Fach-Farb-Tokens (Briefing). Logo: FWG-SVG (Logo.tsx) — bindend, darf neu inszeniert werden. User-Entscheid: mutige Neuinszenierung Gelb/Schwarz erlaubt, weg vom generischen SaaS-Look, kompakter + animiert + responsive. Ton: direkt, schülernah, seriös bei Eltern/Sicherheit.
+Name: FWG Nachhilfebörse / Nachhilfebörse. Träger: Schülervertretung Friedrich-Wilhelm-Gymnasium Köln. Primary: Gelb #FACC15 (CTA), Sekundär-Blau, Fach-Farb-Tokens (Briefing). Logo: FWG-SVG (Logo.tsx) — bindend, darf neu inszeniert werden. User-Entscheid (2026-10-11, revidiert): durchgängiges Light-Gelb-Design — Schwarz nur als Tinte/Überschriften, keine großen schwarzen Flächen (einzige bewusste Ausnahme: Dark-Insel der App-Showcase-Sektion; frühere Gelb/Schwarz-Nacht-Staging abgelöst); weg vom generischen SaaS-Look, kompakter + animiert + responsive. Ton: direkt, schülernah, seriös bei Eltern/Sicherheit.
 
 ## Evidence on Hand
 
@@ -44,4 +44,4 @@ Live-Stats via `api.analytics.summary()` (active_ads, users, page_views); echte 
 
 ## Accessibility & Inclusion
 
-Klassen 5–13 inkl. Minderjährige + Eltern: große Tap-Targets, ausreichende Kontraste (Gelb auf Schwarz statt Gelb auf Weiß für Text), Screenreader-Labels, `prefers-reduced-motion` respektieren, Tastatur-Fokus sichtbar (bestehendes Focus-System behalten).
+Klassen 5–13 inkl. Minderjährige + Eltern: große Tap-Targets, ausreichende Kontraste (Gelb als Fläche mit schwarzer Schrift; gelber Kleintext auf hell als Amber-600), Screenreader-Labels, `prefers-reduced-motion` respektieren, Tastatur-Fokus sichtbar (bestehendes Focus-System behalten).

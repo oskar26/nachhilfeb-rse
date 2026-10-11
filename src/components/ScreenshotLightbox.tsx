@@ -56,13 +56,13 @@ export default function ScreenshotLightbox({ items, open, index, onIndexChange, 
 
     if (!item) return null;
 
-    const navButton = 'press inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/15 text-gray-200 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-40';
+    const navButton = 'press inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-black/15 text-gray-700 transition-colors hover:bg-black/5 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-40';
 
     return (
         <Dialog open={open} onClose={onClose} panelClassName="max-w-5xl" ariaLabel="Screenshot-Galerie">
-            <DialogContent className="border-white/10 bg-gray-950 p-4 text-white sm:p-6">
+            <DialogContent className="border-black/10 bg-[#faf7ef] p-4 text-gray-900 sm:p-6">
                 <div className="flex items-center justify-between gap-4">
-                    <span className="font-mono text-xs font-bold tabular-nums text-gray-400">
+                    <span className="font-mono text-xs font-bold tabular-nums text-gray-500">
                         {String(safeIndex + 1).padStart(2, '0')} / {String(count).padStart(2, '0')}
                     </span>
                     <button
@@ -70,7 +70,7 @@ export default function ScreenshotLightbox({ items, open, index, onIndexChange, 
                         type="button"
                         onClick={onClose}
                         aria-label="Galerie schließen"
-                        className="press inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-gray-300 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        className="press inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/15 text-gray-600 transition-colors hover:bg-black/5 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
                         <X size={18} aria-hidden />
                     </button>
@@ -87,7 +87,7 @@ export default function ScreenshotLightbox({ items, open, index, onIndexChange, 
                         <ChevronLeft size={20} aria-hidden />
                     </button>
                     <p className="flex min-w-0 flex-1 flex-wrap items-baseline justify-center gap-x-2.5 gap-y-1 text-center">
-                        {item.index && <span className="font-mono text-xs font-bold tabular-nums text-primary">{item.index}</span>}
+                        {item.index && <span className="font-mono text-xs font-bold tabular-nums text-amber-600">{item.index}</span>}
                         <span className="board-caption text-sm font-bold">{item.caption}</span>
                     </p>
                     <button type="button" onClick={() => step(1)} aria-label="Nächstes Bild" disabled={count < 2} className={navButton}>

@@ -85,7 +85,7 @@ export default function Transparenz() {
                                 href="https://github.com/oskar26/nachhilfeb-rse"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="press inline-flex items-center justify-center h-11 px-5 text-sm gap-2 rounded-full bg-black text-white hover:bg-gray-900 dark:bg-primary dark:text-black dark:hover:bg-primary-hover font-bold"
+                                className="press inline-flex items-center justify-center h-11 px-5 text-sm gap-2 rounded-full bg-primary text-black hover:bg-primary-hover font-bold"
                             >
                                 <Github size={16} aria-hidden="true" /> Repository ansehen
                             </a>
@@ -124,7 +124,7 @@ export default function Transparenz() {
                     </div>
                 </section>
 
-                <div className="bg-amber-500/10 border border-amber-500/30 rounded-3xl p-6 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-3xl p-6 text-sm text-amber-950/80 dark:text-gray-400 leading-relaxed">
                     <strong className="text-gray-900 dark:text-white">Ergänzende Seiten:</strong>{' '}
                     <Link to="/impressum" className="font-bold text-amber-700 dark:text-primary hover:underline">Impressum</Link>,{' '}
                     <Link to="/datenschutz" className="font-bold text-amber-700 dark:text-primary hover:underline">Datenschutzerklärung</Link>,{' '}

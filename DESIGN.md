@@ -3,15 +3,19 @@
 Seed: `fbf6d820` · Direction-Index: **#5** · Stand: 2026-09-21
 
 ## Konzept
-Die Welcome-Page ist als **geklebte Plakatwand auf dem Schulhof** inszeniert:
-Schwarzes Brett (Hero, Live-Brett, Verifikation) im Wechsel mit Papier-Sektionen
-(Wege, Vertretungsplan-Tabelle), dazu ein gelbes Coaching-Feld und ein blaues
-Eltern-Feld. Eine Motion-Signatur: geneigte Tickets mit Klebeband + Fach-Tickerband.
+Die Welcome-Page ist als **helle, geklebte Plakatwand auf dem Schulhof** inszeniert:
+Papier `#faf7ef` durchgehend, schwarze Schrift, Vollgelb als Akzent (Marker, CTA,
+Coaching-Feld); kein großes Schwarz mehr — Schwarz ist reine Tinte (Headlines,
+Text, Wipe-Balken unter Überschriften). Motion-Signatur bleibt: geneigte Tickets
+mit Klebeband + Fach-Tickerband. (Supersedes die frühere Nacht-Staging; siehe
+Nachtrag 2026-10-11.)
 
 ## Typografie & Farbe
 - Display: **Anton** (`font-display`, uppercase, tight leading), Fließtext: Inter.
-- Gelb `#FACC15` (bindend), Schwarz `#09090b`, Papier `#faf7ef`, Blau `#1d4ed8`,
+- Gelb `#FACC15` (bindend), Schwarz `#09090b` (nur Tinte/Headings/Wipe-Balken),
+  Papier `#faf7ef` (Marketing) / `#f8f9fa` (App), Blau `#1d4ed8`,
   Grün `#16a34a`, Lila `#9333ae`. Keine Verläufe, kein Gradient-Text.
+  Gelber Kleintext/-Icon auf hell: `text-amber-600` (nie `text-primary` auf hell).
 - Outline-Headline via `.poster-outline` (Webkit-Text-Stroke), Körnung via
   `.poster-grain` / `.poster-grain-dark`, Klebeband via `.tape`,
   Abrisskante via `.ticket-perf`, Ticker via `.ticker-track` (32 s Marquee).
@@ -161,4 +165,12 @@ Eltern-Feld. Eine Motion-Signatur: geneigte Tickets mit Klebeband + Fach-Tickerb
 4. **Offer-Pille emerald:** Angebotspille „Bietet“ = `border-emerald-200 bg-emerald-50 text-emerald-700` (identisch zu `Feed.tsx:975`) in `Matching.tsx`/`Favorites.tsx`; Suchpille bleibt blau (`#1d4ed8` bzw. `bg-blue-50 text-blue-700`). Gelb bleibt CTA/Score/aktiver Filter — Emerald markiert nur die Typologie „Angebot“, kein zweiter Akzent.
 5. **Outline-Pille „Anzeige ansehen“:** echte Outline-Pille (`border-gray-200 bg-white`, `min-h-[44px]`, `ExternalLink`-Icon) statt Text-Link (`Requests.tsx`, `AdLink`) — Affordance nie verdecken (Operate-Modus).
 6. **Motion-Rezept:** Karten-Reveal fade + y:12 (0,45 s, expo ease-out `[0.16, 1, 0.3, 1]`), gestaffelt über `delay: min(index, 6) * 0.05` (`StreamReveal`); dazu das layoutId-Gleiten der aktiven Filter-Pille (`layoutId="social-filter-pill"`, spring stiffness 380 / damping 32). `useReducedMotion` respektiert (`initial={false}` bzw. `duration: 0`).
+
+## Nachtrag 2026-10-11 — Schwarze Brett-Ästhetik entfernt: Light-Gelb durchgängig (User-Entscheid)
+- **Auftrag (User, wörtlich):** „entferne überall aus der Web-App diese schwarze Board-Aesthetic (außer Überschriften); Light-Gelb-Design wie überall durchgängig.“ Schwarz = Tinte (Text, Headlines, Wipe-Balken unter Überschriften — ausgenommen). Alle großen schwarzen Flächen app-weit auf hell umgestellt: Landing (Hero, Empfehlung, Kennzahlen, News-Wrapper, Brett, Sicher, Coaching-Karten, Eltern, Footer), StaticLayout (Header + Footer), SiteHeader-Mobile-Sheet, ScreenshotLightbox, SubjectPickerDialog, NotificationCenter, NotFound (komplett neu), ParentGuide, Nutzungsbedingungen, Coaching, Transparenz, Profile (CardHeader + Kamera-FAB), Feed-„Alle“-Filter, RefinedGradeSelector, VerifySteps-spotlight, ParentGuide-Awareness-Tile.
+- **Mapping:** Papier `#faf7ef` (Marketing) / `#f8f9fa` (App), weiße Karten `rounded-3xl` + `shadow-soft`, Gelb nur als Fläche/Akzent (CTA `bg-primary text-black`, Icon-Tiles, Marker-Spans, Wipe-Balken), gelber Kleintext auf hell `text-amber-600`; dunkle `dark:`-Varianten unangetastet. Intentionale Rest-Schwarz: Dialog-Backdrops/-Overlays (`bg-black/40–90`), WEGE-Pills (`style={{background: ink}}` + weiße Schrift), Ticker-Separator `bg-black/80`, `Logo.tsx` variant „black“ (ungenutzt).
+- **index.css:** `.board-swipe-hint` → `color: inherit; opacity: 0.5` (adaptiv statt weiß); `.board-vignette`-Einsatz entfernt. Übrige Utilities unverändert.
+- **Detector:** `gray-on-color` (Transparenz-Zusatzbox auf 10%-Amber) gefixt → `text-amber-950/80`. Baseline unverändert: `overused-font` (Inter bewusst), `codex-grid` advisory (`.poster-grain`).
+- **Verifiziert:** `npx tsc --noEmit` + `vite build` fehlerfrei; Playwright Desktop 1440 + Mobil 390 (Welcome ganze Seite, Eltern-Leitfaden, Nutzungsbedingungen, NotFound, Mobile-Menü): durchgängig hell, 0 pageerrors (nur erwartete `/api/*.php`-404/501 ohne Backend).
+- **Nachtrag 2 (gleicher Tag, User-Wunsch):** Brett-Sektion umbenannt → „So sieht die Nachhilfebörse aus.“ (gelber Marker auf „Nachhilfebörse“, Nav-Label „Die App“) und bewusst als **einzige Dark-Insel** wieder dunkel (`bg-gray-950`, `poster-grain`, weiße Typo, gelbe Akzente/Indizes, weiße Ringe) — Kontrast-Abwechslung zur hellen Plakatwand.
 

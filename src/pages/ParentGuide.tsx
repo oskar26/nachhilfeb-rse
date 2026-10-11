@@ -11,9 +11,9 @@ type AnimFn = (delay?: number) => Record<string, unknown>;
 
 function SpecRowDark({ label, children, mono = false }: { label: string; children: React.ReactNode; mono?: boolean }) {
     return (
-        <div className="grid gap-1 py-3 first:pt-0 last:pb-0 sm:grid-cols-[11rem_1fr] sm:gap-4 border-t border-white/10 first:border-t-0">
-            <dt className="text-xs font-bold uppercase tracking-wider text-gray-400">{label}</dt>
-            <dd className={`text-[15px] leading-7 text-gray-200 ${mono ? 'font-mono tabular-nums' : ''}`}>{children}</dd>
+        <div className="grid gap-1 py-3 first:pt-0 last:pb-0 sm:grid-cols-[11rem_1fr] sm:gap-4 border-t border-black/10 first:border-t-0">
+            <dt className="text-xs font-bold uppercase tracking-wider text-gray-500">{label}</dt>
+            <dd className={`text-[15px] leading-7 text-gray-700 ${mono ? 'font-mono tabular-nums' : ''}`}>{children}</dd>
         </div>
     );
 }
@@ -21,7 +21,7 @@ function SpecRowDark({ label, children, mono = false }: { label: string; childre
 function CheckRow({ children }: { children: React.ReactNode }) {
     return (
         <li className="flex gap-3 py-3 border-t border-gray-100 dark:border-gray-800 first:border-t-0">
-            <span className="grid place-items-center w-7 h-7 rounded-full bg-black text-primary dark:bg-primary dark:text-black shrink-0 mt-0.5" aria-hidden>
+            <span className="grid place-items-center w-7 h-7 rounded-full bg-primary text-black shrink-0 mt-0.5" aria-hidden>
                 <Check size={15} />
             </span>
             <span className="text-[15px] leading-7 text-gray-600 dark:text-gray-300">{children}</span>
@@ -53,11 +53,11 @@ export default function ParentGuide() {
         >
             <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-16 min-w-0 flex flex-col gap-10 sm:gap-12">
 
-                {/* A: Schwarze Spec-Karte im Plakat-Stil (ohne Eyebrow — die H2 trägt das Gewicht) */}
+                {/* A: Helle Spec-Karte im Papier-Stil (ohne Eyebrow — die H2 trägt das Gewicht) */}
                 <motion.section
                     aria-labelledby="eltern-sicherheit"
                     {...anim()}
-                    className="rounded-3xl bg-zinc-900 dark:bg-zinc-900 text-white p-6 sm:p-8 shadow-soft border border-white/15"
+                    className="rounded-3xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6 sm:p-8 shadow-soft border border-black/5 dark:border-gray-800"
                 >
                     <div className="flex items-center gap-3">
                         <span className="grid place-items-center w-11 h-11 rounded-2xl bg-primary text-black shrink-0" aria-hidden>
@@ -75,10 +75,10 @@ export default function ParentGuide() {
                         <SpecRowDark label="Treffen">Meist direkt in der Schule, z. B. Bibliothek oder Mensa.</SpecRowDark>
                         <SpecRowDark label="Schutz">Unverifizierte Konten bleiben eingeschränkt und können deaktiviert werden.</SpecRowDark>
                     </dl>
-                    <h3 className="mt-6 text-xs font-bold uppercase tracking-[0.14em] text-gray-400">
+                    <h3 className="mt-6 text-xs font-bold uppercase tracking-[0.14em] text-gray-500">
                         Verifizierung in 3 Schritten
                     </h3>
-                    <VerifySteps tone="sie" variant="rows-dark" />
+                    <VerifySteps tone="sie" variant="rows" />
                 </motion.section>
 
                 {/* B: Helle Preis-Tafel mit Preis in Mono */}
@@ -100,12 +100,12 @@ export default function ParentGuide() {
                             <Link to="/coaching" className="font-bold text-amber-700 dark:text-primary hover:underline">Coaching-Seite</Link>.
                         </p>
                     </div>
-                    <div className="mt-6 rounded-2xl bg-gray-950 dark:bg-black p-5 sm:p-6">
-                        <p className="text-xs font-bold uppercase tracking-[0.14em] text-gray-400">Faire Preise</p>
-                        <p className="mt-2 font-mono tabular-nums text-2xl sm:text-3xl font-bold text-primary">
+                    <div className="mt-6 rounded-2xl bg-[#faf7ef] dark:bg-gray-900 border border-black/10 dark:border-gray-800 p-5 sm:p-6">
+                        <p className="text-xs font-bold uppercase tracking-[0.14em] text-gray-500">Faire Preise</p>
+                        <p className="mt-2 font-mono tabular-nums text-2xl sm:text-3xl font-bold text-amber-600 dark:text-primary">
                             ca. 10–12 € / 45–60 Min
                         </p>
-                        <p className="mt-2 text-sm leading-relaxed text-gray-300">
+                        <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
                             Fair von Schülern für Schüler: Richtwert der Nachhilfebörse.
                         </p>
                     </div>
@@ -157,7 +157,7 @@ export default function ParentGuide() {
                     className="rounded-3xl bg-white dark:bg-gray-900 p-6 sm:p-8 border border-gray-100 dark:border-gray-800 shadow-soft"
                 >
                     <div className="flex items-center gap-3">
-                        <span className="grid place-items-center w-11 h-11 rounded-2xl bg-black text-primary dark:bg-primary dark:text-black shrink-0" aria-hidden>
+                        <span className="grid place-items-center w-11 h-11 rounded-2xl bg-primary text-black shrink-0" aria-hidden>
                             <BadgeCheck size={22} />
                         </span>
                         <h2 id="eltern-awareness" className="font-display uppercase text-2xl sm:text-3xl tracking-tight text-gray-900 dark:text-white">
@@ -186,28 +186,28 @@ export default function ParentGuide() {
                     </ul>
                 </motion.section>
 
-                {/* E: Schwarzer CTA-Block mit der einzigen Aktion der Seite */}
+                {/* E: Gelber CTA-Block mit der einzigen Aktion der Seite */}
                 <motion.section
                     aria-labelledby="eltern-kontakt"
                     {...anim()}
-                    className="rounded-3xl bg-gray-950 dark:bg-gray-900 text-white p-6 sm:p-10 shadow-soft text-center"
+                    className="rounded-3xl bg-primary text-black p-6 sm:p-10 shadow-soft text-center"
                 >
                     <h2 id="eltern-kontakt" className="font-display uppercase text-2xl sm:text-3xl tracking-tight flex items-center justify-center gap-2">
-                        <Users className="text-primary" size={24} aria-hidden /> Gemeinsam mit Ihrem Kind
+                        <Users className="text-black" size={24} aria-hidden /> Gemeinsam mit Ihrem Kind
                     </h2>
-                    <motion.span {...wipeLine()} className="mx-auto mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
-                    <p className="mt-4 text-[15px] leading-7 text-gray-300 max-w-2xl mx-auto">
+                    <motion.span {...wipeLine()} className="mx-auto mt-2 block h-1 w-10 origin-left rounded-full bg-black" aria-hidden />
+                    <p className="mt-4 text-[15px] leading-7 text-black/80 max-w-2xl mx-auto">
                         Kein eigener Eltern-Account, kein Verknüpfungscode: Ihr Kind nutzt seinen Schüler-Account,
                         Sie schauen und unterstützen gemeinsam. Bei Fragen, Problemen oder Beschwerden hilft das SV-Team.
                     </p>
-                    <p className="mt-6 flex items-center justify-center gap-2 text-sm text-gray-400">
-                        <Mail size={15} className="text-primary" aria-hidden />
-                        Kontakt: <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-primary hover:underline break-anywhere">info@nachhilfe-sv.de</a>
+                    <p className="mt-6 flex items-center justify-center gap-2 text-sm text-black/70">
+                        <Mail size={15} className="text-black" aria-hidden />
+                        Kontakt: <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-black underline break-anywhere">info@nachhilfe-sv.de</a>
                     </p>
                     <Button
                         onClick={() => { window.location.href = 'mailto:info@nachhilfe-sv.de'; }}
                         size="lg"
-                        className="mt-5 bg-primary hover:bg-primary-hover text-black font-extrabold px-8 shadow-glow transition-all rounded-full min-h-[48px]"
+                        className="mt-5 bg-white hover:bg-black/5 text-black font-extrabold px-8 shadow-md border border-black/10 transition-all rounded-full min-h-[48px]"
                     >
                         Fragen? Schreiben Sie uns
                     </Button>

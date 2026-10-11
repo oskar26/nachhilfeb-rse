@@ -470,7 +470,7 @@ export default function Profile() {
                                     triggerHaptic('light');
                                     setIsAvatarMakerOpen(true);
                                 }}
-                                className="absolute bottom-1 right-1 bg-black text-white p-2.5 rounded-full shadow-xl hover:bg-gray-800 transition-colors border-2 border-white dark:border-gray-950 cursor-pointer"
+                                className="absolute bottom-1 right-1 bg-primary text-black p-2.5 rounded-full shadow-xl hover:bg-primary-hover transition-colors border-2 border-white dark:border-gray-950 cursor-pointer"
                                 title="Avatar erstellen / ändern"
                             >
                                 <Pen size={14} />
@@ -561,9 +561,9 @@ export default function Profile() {
             {/* Profile Data Card */}
             <motion.div variants={itemVariants}>
                 <Card className="overflow-hidden rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft">
-                    <CardHeader className="bg-gray-950 dark:bg-black poster-grain text-white border-b border-white/5 px-6 py-4">
+                    <CardHeader className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-800 px-6 py-4">
                         <div className="flex justify-between items-center">
-                            <h2 className="text-base font-extrabold leading-tight tracking-tight text-white dark:text-gray-100">Persönliche Angaben</h2>
+                            <h2 className="text-base font-extrabold leading-tight tracking-tight text-gray-900 dark:text-gray-100">Persönliche Angaben</h2>
                             <Button
                                 variant={isEditing ? "primary" : "secondary"}
                                 size="sm"

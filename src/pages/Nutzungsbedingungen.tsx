@@ -51,7 +51,7 @@ function Para({ id, nr, title, children, open = false }: {
             className="group scroll-mt-24 rounded-3xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-soft"
         >
             <summary className="flex min-h-[44px] cursor-pointer list-none items-center gap-3 p-5 sm:p-6 [&::-webkit-details-marker]:hidden">
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-black font-mono text-[11px] font-bold tabular-nums text-primary dark:bg-primary dark:text-black" aria-hidden>
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary font-mono text-[11px] font-bold tabular-nums text-black dark:bg-primary dark:text-black" aria-hidden>
                     {nr}
                 </span>
                 <h3 className="flex-1 font-display uppercase tracking-tight text-lg text-gray-900 dark:text-white">{title}</h3>
@@ -311,13 +311,13 @@ export default function Nutzungsbedingungen() {
                 <motion.section
                     aria-labelledby="nutz-kontakt"
                     {...anim()}
-                    className="rounded-3xl bg-gray-950 dark:bg-gray-900 text-white p-6 sm:p-8 shadow-soft"
+                    className="rounded-3xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-black/5 shadow-soft p-6 sm:p-8"
                 >
                     <h2 id="nutz-kontakt" className="font-display uppercase text-2xl tracking-tight">
                         Fragen zu den Regeln?
                     </h2>
                     <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
-                    <p className="mt-3 text-[15px] leading-7 text-gray-300 max-w-prose">
+                    <p className="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300 max-w-prose">
                         Melde Inhalte über die Meldefunktion in der App oder schreib uns direkt.
                     </p>
                     <a

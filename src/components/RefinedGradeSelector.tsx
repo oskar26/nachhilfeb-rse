@@ -81,7 +81,7 @@ export function RefinedGradeSelector({ grade, letter, onChange, className }: Ref
                                     className={cn(
                                         "w-10 h-10 rounded-lg flex items-center justify-center text-lg font-bold border transition-colors uppercase",
                                         selectedLetter === l
-                                            ? "bg-black text-white dark:bg-white dark:text-black border-transparent"
+                                            ? "bg-primary text-black border-primary"
                                             : "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                                     )}
                                 >

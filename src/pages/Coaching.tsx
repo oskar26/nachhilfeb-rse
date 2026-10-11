@@ -619,7 +619,7 @@ export function CoachingView({ document, preview = false }: { document: Coaching
                         {block.ctaLabel || block.hint ? (
                             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
                                 {block.ctaLabel ? (
-                                    <a href={`mailto:${block.email}?subject=${encodeURIComponent(block.mailSubject)}`} className="press inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-black px-8 py-3 text-sm font-bold text-white hover:bg-gray-900 sm:w-auto">
+                                    <a href={`mailto:${block.email}?subject=${encodeURIComponent(block.mailSubject)}`} className="press inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-white px-8 py-3 text-sm font-bold text-black border border-black/10 shadow-md hover:bg-black/5 sm:w-auto">
                                         <Mail size={18} aria-hidden /> {block.ctaLabel}
                                     </a>
                                 ) : null}
@@ -671,16 +671,16 @@ export function CoachingView({ document, preview = false }: { document: Coaching
 
         if (block.type === 'benefits') {
             return (
-                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-3xl bg-gray-950 p-6 text-white shadow-soft dark:bg-gray-900 sm:p-8">
+                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-3xl bg-white p-6 text-gray-900 shadow-soft dark:bg-gray-900 dark:text-white border border-gray-100 dark:border-gray-800 sm:p-8">
                     <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-2xl uppercase tracking-tight sm:text-3xl">{block.title}</h2>
                     <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
                     {block.items.length > 0 ? (
                         <ul className="mt-6 grid gap-4 sm:grid-cols-3">
                             {block.items.map((item, index) => (
-                                <li key={item.id} className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                                    <span className="font-mono text-sm font-bold tabular-nums text-primary" aria-hidden>{String(index + 1).padStart(2, '0')}</span>
+                                <li key={item.id} className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-[#faf7ef] dark:bg-gray-800/40 p-5">
+                                    <span className="font-mono text-sm font-bold tabular-nums text-amber-600 dark:text-primary" aria-hidden>{String(index + 1).padStart(2, '0')}</span>
                                     <p className="mt-2 font-display text-lg uppercase tracking-tight">{item.title}</p>
-                                    <div className="mt-2 text-sm leading-relaxed text-gray-300">{renderBody(item.body)}</div>
+                                    <div className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">{renderBody(item.body)}</div>
                                 </li>
                             ))}
                         </ul>
@@ -700,7 +700,7 @@ export function CoachingView({ document, preview = false }: { document: Coaching
                                 const Icon = RULE_ICONS[index] ?? Scale;
                                 return (
                                     <article key={item.id} className="grid gap-3 border-b border-gray-100 py-6 last:border-b-0 dark:border-gray-800 sm:grid-cols-[3rem_1fr] sm:gap-5">
-                                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-black text-primary dark:bg-primary dark:text-black" aria-hidden><Icon size={22} /></span>
+                                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-primary text-black" aria-hidden><Icon size={22} /></span>
                                         <div className="min-w-0">
                                             <h3 className="font-display text-xl uppercase tracking-tight text-gray-900 dark:text-white">{item.title}</h3>
                                             <div className="mt-2 max-w-prose space-y-2 text-[15px] leading-7 text-gray-600 dark:text-gray-300">{renderBody(item.body)}</div>

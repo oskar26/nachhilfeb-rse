@@ -693,7 +693,7 @@ export default function Feed() {
                                 <div>
                                     <label className="text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-white mb-2 block">Typ</label>
                                     <div className="flex gap-2">
-                                        <button onClick={() => { triggerHaptic('selection'); setFilterType('all'); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${filterType === 'all' ? 'bg-black text-white dark:bg-white dark:text-black shadow-sm' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>Alle</button>
+                                        <button onClick={() => { triggerHaptic('selection'); setFilterType('all'); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${filterType === 'all' ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>Alle</button>
                                         <button onClick={() => { triggerHaptic('selection'); setFilterType('offer'); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${filterType === 'offer' ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>Angebote</button>
                                         <button onClick={() => { triggerHaptic('selection'); setFilterType('search'); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${filterType === 'search' ? GESUCHE_PILL_ACTIVE : GESUCHE_PILL_IDLE}`}>Gesuche</button>
                                     </div>

@@ -21,7 +21,7 @@ const FOOTER_LINKS: Array<[string, string]> = [
 // tight-innen: gap-3 (12) / gap-4 (16) · Leseeinheit: gap-4/5 (16/20)
 // Sektion: gap-10 (40) / sm:gap-12 (48) · Header-Overlap: -mt-8 (32) / sm:-mt-12 (48)
 // Muster Header→Content (alle StaticLayout-Seiten): bewusstes Overlap —
-// schwarzer Poster-Header mit tiefer Unterkante (pb-16/24), Content zieht per
+// heller Papier-Header mit tiefer Unterkante (pb-16/24), Content zieht per
 // -mt-8/12 darüber, erste Card mit Radius + Schatten klebt wie ein Plakat.
 // Kein Karten-Wrapper um children (keine verschachtelten Cards).
 export default function StaticLayout({ children, title, intro, showHeader = true, embedded = false, idPrefix = '' }: { children: React.ReactNode; title: string; intro?: string; showHeader?: boolean; embedded?: boolean; idPrefix?: string }): JSX.Element {
@@ -45,9 +45,8 @@ export default function StaticLayout({ children, title, intro, showHeader = true
     };
     const contentId = `${idPrefix}inhalt`;
     const pageHeader = showHeader ? (
-        <div className="relative overflow-hidden bg-black text-white border-b border-white/10">
-            <div className="absolute inset-0 poster-grain" aria-hidden />
-            <div className="absolute inset-0 board-vignette pointer-events-none" aria-hidden />
+        <div className="relative overflow-hidden bg-[#faf7ef] text-gray-900 border-b border-black/10">
+            <div className="absolute inset-0 poster-grain-dark" aria-hidden />
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-12 pb-14 sm:pt-16 sm:pb-20">
                 <motion.h1
                     {...posterH1}
@@ -60,7 +59,7 @@ export default function StaticLayout({ children, title, intro, showHeader = true
                 {intro ? (
                     <motion.p
                         {...posterIntro}
-                        className="mt-5 max-w-2xl text-lg leading-relaxed tabular-nums text-gray-100"
+                        className="mt-5 max-w-2xl text-lg leading-relaxed tabular-nums text-gray-600"
                     >
                         {intro}
                     </motion.p>
@@ -98,23 +97,23 @@ export default function StaticLayout({ children, title, intro, showHeader = true
             </main>
 
             {/* Footer */}
-            <footer className="bg-black text-gray-400 border-t border-white/10">
+            <footer className="bg-[#faf7ef] text-gray-600 border-t border-black/10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-14 pb-8">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                         <div className="flex items-center gap-3">
                             <span className="grid place-items-center w-11 h-11 rounded-xl bg-primary text-black"><Logo size={26} /></span>
                             <div>
-                                <p className="font-display uppercase text-2xl text-white leading-none">Nachhilfebörse</p>
+                                <p className="font-display uppercase text-2xl text-black leading-none">Nachhilfebörse</p>
                                 <p className="mt-1 text-xs font-semibold">Die clevere Art, am FWG zu lernen.</p>
                             </div>
                         </div>
                         <nav className="flex flex-wrap gap-x-6 gap-y-3 text-sm font-semibold" aria-label="Rechtliches und Infos">
                             {FOOTER_LINKS.map(([label, path]) => (
-                                <Link key={path} to={path} className="hover:text-primary transition-colors">{label}</Link>
+                                <Link key={path} to={path} className="hover:text-black transition-colors">{label}</Link>
                             ))}
                         </nav>
                     </div>
-                    <div className="mt-10 border-t border-white/10 pt-6 flex flex-col sm:flex-row justify-between gap-3 text-xs">
+                    <div className="mt-10 border-t border-black/10 pt-6 flex flex-col sm:flex-row justify-between gap-3 text-xs">
                         <p>© Schülervertretung Friedrich-Wilhelm-Gymnasium Köln {new Date().getFullYear()}.</p>
                         <p className="font-mono tabular-nums">Hosting in Deutschland · DSGVO-konform</p>
                     </div>

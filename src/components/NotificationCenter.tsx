@@ -240,7 +240,7 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
     const triggerLabel = unread > 0 ? `Benachrichtigungen, ${unread} ungelesen` : 'Benachrichtigungen';
 
     const headerContent = (
-        <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-gray-950 poster-grain-dark px-5 pb-4 pt-3.5 text-white">
+        <div className="flex items-center justify-between gap-3 border-b border-black/10 bg-[#faf7ef] poster-grain-dark px-5 pb-4 pt-3.5 text-gray-900">
             <div className="min-w-0">
                 <div className="flex items-center gap-2.5">
                     <h2 className="font-display text-base uppercase leading-none tracking-tight">Meldungen</h2>
@@ -256,7 +256,7 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
                 <button
                     type="button"
                     onClick={markAllRead}
-                    className="press flex shrink-0 items-center gap-1.5 rounded-full border border-white/15 px-3 py-2 text-[11px] font-bold text-primary transition-colors hover:border-primary/50 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="press flex shrink-0 items-center gap-1.5 rounded-full border border-black/15 px-3 py-2 text-[11px] font-bold text-gray-700 transition-colors hover:border-primary hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                     <CheckCheck size={13} />
                     Alle als gelesen
@@ -275,7 +275,7 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
 
             {!loading && !hasNotifications && (
                 <div className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center">
-                    <div className="grid h-14 w-14 place-items-center rounded-2xl bg-gray-950 text-primary ring-1 ring-white/10">
+                    <div className="grid h-14 w-14 place-items-center rounded-2xl bg-primary text-black ring-1 ring-black/5">
                         <BellOff size={24} />
                     </div>
                     <p className="font-display text-lg uppercase leading-none tracking-tight text-gray-900 dark:text-gray-50">Nichts Neues</p>
@@ -302,7 +302,7 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
                                         : 'border-primary/45 bg-primary/[0.07] hover:bg-primary/10 dark:border-primary/30 dark:bg-primary/[0.06] dark:hover:bg-primary/10'
                                 )}
                             >
-                                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gray-950 ring-1 ring-white/10">
+                                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary ring-1 ring-black/5">
                                     {typeIcon(n.type)}
                                 </span>
                                 <span className="min-w-0 flex-1">
@@ -366,14 +366,14 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
                             whileTap={reduceMotion ? undefined : { scale: 0.9, rotate: -9 }}
                             transition={{ type: 'spring', stiffness: 420, damping: 24 }}
                             className={cn(
-                                'relative grid h-14 w-14 select-none cursor-pointer place-items-center rounded-2xl bg-gray-950 text-primary shadow-[0_14px_30px_-10px_rgba(0,0,0,0.65)] ring-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                                unread > 0 ? 'ring-primary/60' : 'ring-black/25'
+                                'relative grid h-14 w-14 select-none cursor-pointer place-items-center rounded-2xl bg-primary text-black shadow-[0_14px_30px_-10px_rgba(0,0,0,0.35)] ring-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                                unread > 0 ? 'ring-primary/60' : 'ring-black/10'
                             )}
                             aria-label={triggerLabel}
                             aria-haspopup="dialog"
                             aria-expanded={open}
                         >
-                            <span className="absolute top-2 h-1 w-10 rounded-full bg-primary" aria-hidden />
+                            <span className="absolute top-2 h-1 w-10 rounded-full bg-black/20" aria-hidden />
                             <Bell size={22} strokeWidth={2.25} className="mt-1.5" />
                             {unread > 0 && (
                                 <span className="absolute -right-1.5 -top-1.5 grid place-items-center">
@@ -443,11 +443,11 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
                     >
                         {/* Griff + schwarzer Kopf = Drag-Zone (Buttons ausgenommen) */}
                         <div
-                            className="shrink-0 cursor-grab select-none touch-none bg-gray-950 poster-grain-dark pt-3"
+                            className="shrink-0 cursor-grab select-none touch-none bg-[#faf7ef] poster-grain-dark pt-3"
                             onPointerDown={startSheetDrag}
                         >
                             <div className="flex justify-center">
-                                <span className="h-1.5 w-12 rounded-full bg-white/25" aria-hidden />
+                                <span className="h-1.5 w-12 rounded-full bg-black/15" aria-hidden />
                             </div>
                             {headerContent}
                         </div>

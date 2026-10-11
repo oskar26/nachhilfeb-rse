@@ -54,11 +54,11 @@ export default function VerifySteps({ tone = 'du', variant = 'rows' }: VerifySte
                 <ol className="mt-8 space-y-0">
                     {steps.map((s, i) => (
                         <motion.li key={s.title} {...stepAnim(i)} className="relative flex gap-5 pb-8 last:pb-0">
-                            {i < 2 && <span className="absolute left-[27px] top-14 bottom-0 w-0.5 bg-white/10" aria-hidden />}
+                            {i < 2 && <span className="absolute left-[27px] top-14 bottom-0 w-0.5 bg-black/10" aria-hidden />}
                             <span className="grid place-items-center w-14 h-14 rounded-2xl bg-primary text-black font-display text-xl shrink-0 z-10" aria-hidden>{i + 1}</span>
                             <div className="pt-1">
-                                <p className="font-bold text-white text-lg inline-flex items-center gap-2"><s.icon size={18} className="text-primary" aria-hidden />{s.title}</p>
-                                <p className="mt-1 text-sm text-gray-400 leading-relaxed">{s.text}</p>
+                                <p className="font-bold text-gray-900 text-lg inline-flex items-center gap-2"><s.icon size={18} className="text-amber-600" aria-hidden />{s.title}</p>
+                                <p className="mt-1 text-sm text-gray-600 leading-relaxed">{s.text}</p>
                             </div>
                         </motion.li>
                     ))}
