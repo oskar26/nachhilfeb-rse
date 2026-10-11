@@ -180,7 +180,7 @@ export default function Landing() {
        Logged-out fallen beide sinnvoll auf /login zurück (sonst Loop /welcome). */
     const suchZiel = user ? '/' : '/login';
     const bietZiel = user ? '/create-ad' : '/login';
-    const elternZiel = user ? '/parent-dashboard' : '/login';
+    const elternZiel = '/eltern-leitfaden';
     const anim = (delay = 0) => reduceMotion ? {} : {
         initial: { opacity: 0, y: 28 },
         whileInView: { opacity: 1, y: 0 },
@@ -374,7 +374,7 @@ export default function Landing() {
                         {[
                             { icon: Search, ink: '#1D4ED8', title: 'Ich suche Nachhilfe', text: 'Filtere nach Fach, Klasse und Preis. Direkter Kontakt in der App, geprüfte Oberstufenschüler.', points: ['Filter für Fach & Klasse', 'Direkter Kontakt in der App', 'Geprüfte Oberstufenschüler'], cta: 'Anzeigen stöbern', to: suchZiel },
                             { icon: GraduationCap, ink: '#15803D', title: 'Ich biete Nachhilfe', text: 'Setze eigene Preise, mache flexible Termine aus und sammle Bewertungen für dein Profil.', points: ['Eigene Preise & Bedingungen', 'Flexible Termine', 'Bewertungen & Profilstatus'], cta: 'Anzeige erstellen', to: bietZiel },
-                            { icon: Users, ink: '#7B3FBF', title: 'Für Eltern', text: 'Verknüpfen Sie Ihr Konto mit dem Ihres Kindes und behalten Sie dessen Nachhilfe im Blick – der Chat bleibt privat.', points: ['Anzeigen, Anfragen & Merkliste im Blick', 'Profil & Einstellungen fürs Kind', 'Automatisch verifiziert & informiert'], cta: 'Eltern-Leitfaden', to: '/eltern-leitfaden' },
+                            { icon: Users, ink: '#7B3FBF', title: 'Für Eltern', text: 'Betreuen Sie den Account gemeinsam mit Ihrem Kind – ohne eigenen Eltern-Account und ohne Verknüpfungscode. So bleibt die Nachhilfe im Blick.', points: ['Kein eigener Eltern-Account nötig', 'Gemeinsam Anzeigen & Anfragen ansehen', 'Kontakt zur SV bei Fragen'], cta: 'Eltern-Leitfaden', to: '/eltern-leitfaden' },
                         ].map((w, i) => (
                             <motion.article key={w.title} {...tiltIn(i)} className="group relative grid gap-5 py-8 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-8">
                                 <span className="grid place-items-center w-14 h-14 rounded-2xl text-white shrink-0 -rotate-3 group-hover:rotate-3 transition-transform" style={{ background: w.ink }}>
@@ -630,15 +630,15 @@ export default function Landing() {
                         <span className="inline-grid place-items-center w-16 h-16 rounded-2xl bg-white/5 border border-white/10"><Shield className="text-blue-500" size={30} aria-hidden /></span>
                         <h2 className="mt-6 font-display uppercase leading-[0.95] break-words text-4xl sm:text-6xl text-primary">Informationen für Eltern</h2>
                         <motion.span {...wipeLine()} className="mt-4 block h-1.5 w-16 origin-left rounded-full bg-primary" aria-hidden />
-                        <p className="mt-4 text-lg text-gray-300 max-w-2xl leading-relaxed">Verknüpfen Sie Ihr Konto mit dem Ihres Kindes und behalten Sie dessen Nachhilfe im Blick: Anzeigen, Anfragen, passende Matches, Merkliste und Bewertungen – an einem Ort und mit klaren Grenzen.</p>
+                        <p className="mt-4 text-lg text-gray-300 max-w-2xl leading-relaxed">Eltern können den Account gemeinsam mit ihrem Kind betreuen – ohne eigenen Eltern-Account und ohne Verknüpfungscode. Ihr Kind nutzt seinen Schüler-Account, Sie schauen und unterstützen mit: Anzeigen, Anfragen, passende Matches und Merkliste im Blick.</p>
                     </motion.div>
 
                     <div className="mt-10 grid gap-4 sm:grid-cols-2">
                         {[
-                            { icon: BadgeCheck, t: 'Automatisch verifiziert', d: 'Sobald Sie Ihr Kind verknüpft haben, ist Ihr Eltern-Account verifiziert – ohne Formulare und ohne Warten.' },
-                            { icon: Bookmark, t: 'Alles über das Kind', d: 'Anzeigen, Anfragen, passende Matches, Merkliste und Bewertungen live im Eltern-Dashboard – synchron zum Kinderkonto.' },
-                            { icon: Filter, t: 'Profil & Einstellungen', d: 'Name, Klasse, Fächer, Bio, Verfügbarkeit und Sichtbarkeit fürs Kind pflegen – inklusive Anzeigen erstellen und pausieren.' },
-                            { icon: Lock, t: 'Der Chat bleibt privat', d: 'Sie sehen den Status jeder Anfrage und wer sich gemeldet hat, aber nie die Nachrichten Ihres Kindes.' },
+                            { icon: Users, t: 'Gemeinsam betreuen', d: 'Kein eigener Eltern-Account, kein Code: Ihr Kind nutzt seinen verifizierten Schüler-Account, Sie unterstützen gemeinsam.' },
+                            { icon: BadgeCheck, t: 'Sicher & geprüft', d: 'Alle Profile sind über die SV verifiziert. Treffen finden meist direkt in der Schule statt, z. B. in der Bibliothek oder Mensa.' },
+                            { icon: Lock, t: 'Keine Zahlungen über die App', d: 'Die Börse vermittelt nur den Kontakt. Vergütung und Umfang klären Sie direkt mit der Anbieter-Familie.' },
+                            { icon: Shield, t: 'Melden & Fragen', d: 'Jede Anzeige und jedes Profil lässt sich melden. Das SV-Team sichtet täglich und ist per E-Mail erreichbar.' },
                         ].map((f, i) => (
                             <motion.article key={f.t} {...tiltIn(i)} className="rounded-3xl border border-white/10 bg-white/[0.04] p-6">
                                 <span className="inline-grid place-items-center w-11 h-11 rounded-2xl bg-primary text-black"><f.icon size={20} aria-hidden /></span>
@@ -649,8 +649,7 @@ export default function Landing() {
                     </div>
 
                     <motion.div {...anim()} className="mt-10 flex flex-wrap items-center gap-3">
-                        <Link to={elternZiel} className="press inline-flex items-center justify-center h-14 px-8 text-base gap-2.5 rounded-full bg-primary text-black hover:bg-primary-hover font-bold shadow-md">Eltern-Dashboard öffnen <ArrowRight size={18} aria-hidden /></Link>
-                        <Link to="/eltern-leitfaden" className="press inline-flex items-center justify-center h-14 px-8 text-base gap-2.5 rounded-full border border-white/20 text-white hover:bg-white/10 font-bold">Eltern-Leitfaden</Link>
+                        <Link to={elternZiel} className="press inline-flex items-center justify-center h-14 px-8 text-base gap-2.5 rounded-full bg-primary text-black hover:bg-primary-hover font-bold shadow-md">Eltern-Leitfaden lesen <ArrowRight size={18} aria-hidden /></Link>
                     </motion.div>
                 </div>
             </section>

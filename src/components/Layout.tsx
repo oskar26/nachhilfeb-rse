@@ -1,5 +1,5 @@
 import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Home, PlusCircle, User, LogOut, Settings, Users, MessageSquare, Inbox, Zap, Heart, Sparkles, Award } from 'lucide-react';
+import { Home, PlusCircle, User, LogOut, Settings, MessageSquare, Inbox, Zap, Heart, Sparkles, Award } from 'lucide-react';
 import AccessGuard from './AccessGuard';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -11,7 +11,7 @@ import { Logo } from './ui/Logo';
 import { triggerHaptic } from '../lib/haptics';
 
 export default function Layout() {
-    const { signOut, isParent, isAdmin, isCoachAdmin } = useAuth();
+    const { signOut, isAdmin, isCoachAdmin } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [unreadCount, setUnreadCount] = useState(0);
@@ -57,15 +57,11 @@ export default function Layout() {
 
     const mobileNavItems = [
         { to: '/', label: 'Entdecken', icon: Home, end: true },
-        !isParent
-            ? { to: '/social', label: 'Social', icon: MessageSquare, activateOnChat: true }
-            : { to: '/parent-dashboard', label: 'Eltern', icon: Users },
+        { to: '/social', label: 'Social', icon: MessageSquare, activateOnChat: true },
         { to: '/create-ad', label: 'Erstellen', icon: PlusCircle, isAction: true },
         { to: '/settings', label: 'Optionen', icon: Settings },
         { to: '/profile', label: 'Profil', icon: User }
     ];
-
-    const showCreateAd = !isParent;
 
     return (
         <div className="flex h-[100dvh] w-full bg-[#f8f9fa] dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans overflow-hidden">
@@ -107,29 +103,17 @@ export default function Layout() {
                         <Inbox size={20} /> Anfragen
                     </NavLink>
                     
-                    {!isParent ? (
-                        <>
-                            <NavLink to="/matches" onClick={handleNavClick} className={() => getDesktopNavLinkClass('social_tab', 'matches')}>
-                                <Zap size={20} /> Matches
-                            </NavLink>
-                            <NavLink to="/favorites" onClick={handleNavClick} className={() => getDesktopNavLinkClass('social_tab', 'watchlist')}>
-                                <Heart size={20} /> Merkliste
-                            </NavLink>
-                        </>
-                    ) : (
-                        <NavLink to="/parent-dashboard" onClick={handleNavClick} className={({ isActive }) => getDesktopNavLinkClass('path', '/parent-dashboard', isActive)}>
-                            <Users size={20} /> Eltern-Dashboard
-                        </NavLink>
-                    )}
+                    <NavLink to="/matches" onClick={handleNavClick} className={() => getDesktopNavLinkClass('social_tab', 'matches')}>
+                        <Zap size={20} /> Matches
+                    </NavLink>
+                    <NavLink to="/favorites" onClick={handleNavClick} className={() => getDesktopNavLinkClass('social_tab', 'watchlist')}>
+                        <Heart size={20} /> Merkliste
+                    </NavLink>
 
-                    {!isParent && (
-                        <>
-                            <p className="px-4 text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mt-6 mb-2">Erstellen</p>
-                            <NavLink to="/create-ad" onClick={handleNavClick} className={({ isActive }) => getDesktopNavLinkClass('path', '/create-ad', isActive)}>
-                                <PlusCircle size={20} /> Neue Anzeige
-                            </NavLink>
-                        </>
-                    )}
+                    <p className="px-4 text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mt-6 mb-2">Erstellen</p>
+                    <NavLink to="/create-ad" onClick={handleNavClick} className={({ isActive }) => getDesktopNavLinkClass('path', '/create-ad', isActive)}>
+                        <PlusCircle size={20} /> Neue Anzeige
+                    </NavLink>
 
                     <p className="px-4 text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mt-6 mb-2">Account</p>
                     <NavLink to="/profile" onClick={handleNavClick} className={({ isActive }) => getDesktopNavLinkClass('path', '/profile', isActive)}>
@@ -172,24 +156,12 @@ export default function Layout() {
 
             {/* Main Content Area */}
             <main className="flex-1 overflow-hidden relative md:p-4 flex flex-col min-w-0 min-h-0">
-                {/* Mobile Header — aligns with desktop glass (90% + blur-xl) */}
-                <div className="md:hidden flex items-center justify-between gap-2 px-4 sm:px-5 pt-[max(0.875rem,env(safe-area-inset-top))] pb-3.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl sticky top-0 z-30 border-b border-gray-200/60 dark:border-gray-800/80 shrink-0 shadow-sm">
-                    <NavLink to="/welcome" onClick={handleNavClick} className="flex items-center gap-2.5 min-w-0 flex-1">
-                        <Logo className="w-8 h-8 text-black dark:text-white shrink-0" />
-                        <span className="font-black text-lg tracking-tight text-gray-900 dark:text-white truncate">Nachhilfebörse</span>
-                    </NavLink>
-                    {/* Notification bell on mobile */}
-                    <div className="shrink-0">
-                    <NotificationCenter unreadCount={unreadCount} onCountChange={setUnreadCount} />
-                    </div>
-                </div>
-
                 {/* Main View Wrapper with Fast, Native-feeling Rendering (No stutter/freeze) */}
                 <div
                     ref={mainContentRef}
                     tabIndex={-1}
                     aria-label="Hauptinhalt"
-                    className="flex-1 w-full md:rounded-3xl md:bg-white/80 md:dark:bg-gray-900/80 md:backdrop-blur-md md:border md:border-gray-100/80 md:dark:border-gray-800/60 md:shadow-soft flex flex-col min-h-0 min-w-0 overflow-y-auto overflow-x-clip focus:outline-none"
+                    className="flex-1 w-full pt-[max(1rem,env(safe-area-inset-top))] md:pt-0 md:rounded-3xl md:bg-white/80 md:dark:bg-gray-900/80 md:backdrop-blur-md md:border md:border-gray-100/80 md:dark:border-gray-800/60 md:shadow-soft flex flex-col min-h-0 min-w-0 overflow-y-auto overflow-x-clip focus:outline-none"
                 >
                     <AccessGuard>
                         <Outlet />
@@ -199,9 +171,17 @@ export default function Layout() {
                 </div>
             </main>
 
+            {/* Mobile Notification Sticker — schwebt oben rechts, schrumpft beim Scrollen */}
+            <NotificationCenter
+                variant="sticker"
+                unreadCount={unreadCount}
+                onCountChange={setUnreadCount}
+                scrollRef={mainContentRef}
+            />
+
             {/* Mobile Bottom Navigation — pill, consistent radius + border */}
             <nav aria-label="Hauptnavigation" className="md:hidden fixed bottom-[max(1rem,calc(0.75rem+env(safe-area-inset-bottom,0px)))] left-4 right-4 h-16 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-full shadow-2xl flex items-center justify-around z-50 px-2 border border-gray-200/60 dark:border-gray-800/80 ring-1 ring-black/[0.04] dark:ring-white/5">
-                {mobileNavItems.filter((item) => !item.isAction || showCreateAd).map((item) => {
+                {mobileNavItems.map((item) => {
                     const Icon = item.icon;
                     if (item.isAction) {
                         return (

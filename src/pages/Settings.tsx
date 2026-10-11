@@ -1,16 +1,13 @@
 import { useTheme } from '../components/ThemeProvider';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/Card';
-import { Moon, Sun, Monitor, ChevronLeft, Shield, Users, Trash2, Download, AlertTriangle, LifeBuoy, Share2 } from 'lucide-react';
+import { Moon, Sun, Monitor, ChevronLeft, Shield, Trash2, Download, AlertTriangle, LifeBuoy, Share2, BookOpen } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
-import { api } from '../lib/api';
 import { toast } from 'react-hot-toast';
-import ChildLinkModal from '../components/ChildLinkModal';
-import ParentLinkFlow from '../components/ParentLinkFlow';
 import SupportModal from '../components/SupportModal';
 import ShareDialog from '../components/ShareDialog';
 import { Logo } from '../components/ui/Logo';
@@ -18,22 +15,25 @@ import { cn } from '../lib/utils';
 import { triggerHaptic } from '../lib/haptics';
 import { requestPushPermission } from '../lib/push';
 import { Switch } from '../components/ui/Switch';
+import { SubjectChip, SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
 
 export default function Settings() {
     const { theme, setTheme } = useTheme();
     const navigate = useNavigate();
-    const { user, isParent } = useAuth();
+    const { user } = useAuth();
     
-    const [settings, setSettings] = useState({
+    const [settings, setSettings] = useState<{
+        email_visible: boolean;
+        phone_visible: boolean;
+        teaches_subjects: Subject[];
+    }>({
         email_visible: false,
-        phone_visible: false
+        phone_visible: false,
+        teaches_subjects: []
     });
     const [tapCount, setTapCount] = useState(0);
     const [showSecretInput, setShowSecretInput] = useState(false);
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-    const [parentLinks, setParentLinks] = useState<any[]>([]);
-    const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
-    const [isParentLinkFlowOpen, setIsParentLinkFlowOpen] = useState(false);
     const [isSupportOpen, setIsSupportOpen] = useState(false);
     const [isShareOpen, setIsShareOpen] = useState(false);
 
@@ -43,7 +43,6 @@ export default function Settings() {
         }
         if (user) {
             fetchSettings();
-            fetchParentLinks();
         }
     }, [user]);
 
@@ -68,32 +67,16 @@ export default function Settings() {
     const fetchSettings = async () => {
         const { data } = await supabase.from('profiles').select('settings').eq('id', user?.id).single();
         if (data?.settings) {
-            setSettings(data.settings);
-        }
-    };
-
-    const fetchParentLinks = async () => {
-        try {
-            const { data, error } = await api.parentLinks.list();
-            if (error) throw error;
-            const links = (data as any[]) || [];
-            setParentLinks(links.filter(l => l.status === 'active'));
-        } catch (err) {
-            console.error('Error fetching parent links:', err);
-        }
-    };
-
-    const handleRemoveParentLink = async (linkId: string) => {
-        triggerHaptic('medium');
-        if (!confirm(isParent ? 'Möchten Sie diese Kind-Verknüpfung wirklich aufheben?' : 'Möchtest du diese Eltern-Verknüpfung wirklich aufheben?')) return;
-        try {
-            const { error } = await api.parentLinks.remove(linkId);
-            if (error) throw error;
-            triggerHaptic('success');
-            toast.success('Verknüpfung aufgehoben');
-            setParentLinks(parentLinks.filter(p => p.id !== linkId));
-        } catch (err: any) {
-            toast.error('Fehler: ' + (err?.message || 'Unbekannter Fehler'));
+            const raw = data.settings as Record<string, unknown>;
+            const teaches = raw.teaches_subjects;
+            setSettings({
+                ...raw,
+                email_visible: !!raw.email_visible,
+                phone_visible: !!raw.phone_visible,
+                teaches_subjects: Array.isArray(teaches)
+                    ? teaches.filter((s): s is Subject => typeof s === 'string')
+                    : []
+            });
         }
     };
 
@@ -108,6 +91,25 @@ export default function Settings() {
             triggerHaptic('success');
             toast.success("Einstellung gespeichert!");
         }
+    };
+
+    const updateTeachesSubjects = async (subjects: Subject[]) => {
+        const newSettings = { ...settings, teaches_subjects: subjects };
+        setSettings(newSettings);
+        const { error } = await supabase.from('profiles').update({ settings: newSettings }).eq('id', user?.id);
+        if (error) {
+            triggerHaptic('error');
+            toast.error("Fächer konnten nicht gespeichert werden");
+        }
+    };
+
+    const toggleTeachesSubject = (subject: Subject) => {
+        triggerHaptic('selection');
+        const current = settings.teaches_subjects || [];
+        const next = current.includes(subject)
+            ? current.filter(s => s !== subject)
+            : [...current, subject];
+        void updateTeachesSubjects(next);
     };
 
     const handleExportData = async () => {
@@ -306,89 +308,38 @@ export default function Settings() {
                 </Card>
             </motion.div>
 
-            {/* Parent Links Section – rollenabhängig:
-                Schüler sehen verknüpfte Eltern (Code anzeigen),
-                Eltern sehen verknüpfte Kinder (Kind verknüpfen). */}
             <motion.div variants={itemVariants}>
                 <Card className="rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft">
-                    <CardHeader className="p-6 pb-2 flex flex-row items-center justify-between">
-                        <div>
-                            <CardTitle className="text-base font-extrabold">
-                                {isParent ? 'Verknüpfte Kinder-Accounts' : 'Verknüpfte Eltern-Accounts'}
-                            </CardTitle>
-                            <CardDescription className="text-xs">
-                                {isParent
-                                    ? 'Mit Ihrem Konto verknüpfte Schülerkonten. Details, Profil und Einstellungen verwalten Sie im Eltern-Dashboard.'
-                                    : 'Elternteile mit Lesezugriff auf deine Nachhilfeanzeigen'}
-                            </CardDescription>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                            {isParent && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => { triggerHaptic('light'); navigate('/parent-dashboard'); }}
-                                    className="rounded-full text-xs font-bold"
-                                >
-                                    Dashboard
-                                </Button>
-                            )}
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                    triggerHaptic('light');
-                                    if (isParent) {
-                                        setIsParentLinkFlowOpen(true);
-                                    } else {
-                                        setIsLinkModalOpen(true);
-                                    }
-                                }}
-                                className="rounded-full text-xs font-bold"
-                            >
-                                {isParent ? '+ Kind verknüpfen' : '+ Verknüpfen'}
-                            </Button>
-                        </div>
+                    <CardHeader className="p-6 pb-2">
+                        <CardTitle className="text-base font-extrabold flex items-center gap-2 text-gray-900 dark:text-white">
+                            <BookOpen size={18} className="text-primary" /> Ich biete Nachhilfe
+                        </CardTitle>
+                        <CardDescription className="text-xs">
+                            Wähle die Fächer, in denen du Nachhilfe geben kannst. Wer Fächer angibt, sieht im Feed passende Gesuche.
+                        </CardDescription>
                     </CardHeader>
-                    <CardContent className="p-6 pt-3 space-y-3">
-                        {parentLinks.length === 0 ? (
-                            <p className="text-xs text-gray-400 italic py-1">
-                                {isParent ? 'Aktuell keine Kinder-Accounts verknüpft.' : 'Aktuell keine Eltern-Accounts verknüpft.'}
-                            </p>
-                        ) : (
-                            parentLinks.map((link: any) => {
-                                const person = isParent ? link.child : link.parent;
-                                const displayName = person?.display_name
-                                    || [person?.first_name, person?.last_name].filter(Boolean).join(' ')
-                                    || (isParent ? 'Kind' : 'Elternteil');
-                                const subLabel = isParent && person?.grade_level
-                                    ? `Klasse ${person.grade_level}`
-                                    : 'Aktiv';
-                                return (
-                                    <div key={link.id} className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-yellow-900 dark:text-yellow-200 font-extrabold text-xs">
-                                                <Users size={16} />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-bold text-gray-900 dark:text-white">
-                                                    {displayName}
-                                                </p>
-                                                <span className="text-[10px] text-green-600 dark:text-green-400 font-bold uppercase">{subLabel}</span>
-                                            </div>
-                                        </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleRemoveParentLink(link.id)}
-                                            className="text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl"
-                                        >
-                                            <Trash2 size={16} />
-                                        </Button>
+                    <CardContent className="p-6 pt-3 space-y-4">
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed">
+                            Gesuche sind privat und erscheinen nicht öffentlich. Trag hier deine Fächer ein, damit du passende Gesuche im Feed sehen kannst.
+                            {settings.teaches_subjects.length > 0 ? ` Aktuell gewählt: ${settings.teaches_subjects.length}.` : ''}
+                        </p>
+                        <div className="space-y-4">
+                            {SUBJECT_CATEGORIES.map(category => (
+                                <div key={category.title}>
+                                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{category.title}</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {category.subjects.map((s) => (
+                                            <SubjectChip
+                                                key={s}
+                                                subject={s}
+                                                selected={settings.teaches_subjects.includes(s)}
+                                                onClick={() => toggleTeachesSubject(s)}
+                                            />
+                                        ))}
                                     </div>
-                                );
-                            })
-                        )}
+                                </div>
+                            ))}
+                        </div>
                     </CardContent>
                 </Card>
             </motion.div>
@@ -570,12 +521,6 @@ export default function Settings() {
                 </Card>
             </motion.div>
 
-            <ChildLinkModal isOpen={isLinkModalOpen} onClose={() => setIsLinkModalOpen(false)} />
-            <ParentLinkFlow
-                isOpen={isParentLinkFlowOpen}
-                onClose={() => setIsParentLinkFlowOpen(false)}
-                onSuccess={fetchParentLinks}
-            />
             <SupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} />
             <ShareDialog type="app" isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} />
         </motion.div>

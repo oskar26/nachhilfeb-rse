@@ -447,6 +447,12 @@ export default function Feed() {
         return Boolean(ad?.boosted && ad?.boosted_until && new Date(ad.boosted_until) > new Date());
     };
 
+    const isYoungOffer = (ad: Ad): boolean => {
+        if (ad.type !== 'offer') return false;
+        const grade = String(ad.profiles?.grade_level || '').trim().toUpperCase();
+        return grade === '5' || grade === '6';
+    };
+
     // Sort: Boosted ads always on top, then the selected sort order.
     // Ranking-Vorteil für Coaches (bewusst & offengelegt, siehe /coaching):
     // Anzeigen verifizierter Coaches (is_coach) erhalten +0.5 Matching-Punkte
@@ -457,6 +463,10 @@ export default function Feed() {
 
         if (aBoost && !bBoost) return -1;
         if (!aBoost && bBoost) return 1;
+
+        const aYoung = isYoungOffer(a);
+        const bYoung = isYoungOffer(b);
+        if (aYoung !== bYoung) return aYoung ? 1 : -1;
 
         const aCoach = Boolean(a.profiles?.is_coach);
         const bCoach = Boolean(b.profiles?.is_coach);
@@ -923,7 +933,20 @@ export default function Feed() {
                         <div className="w-24 h-24 mb-6 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
                             <Search size={40} className="text-gray-400 dark:text-gray-500" />
                         </div>
-                        {hasActiveFilters ? (
+                        {filterType === 'search' ? (
+                            <>
+                                <h3 className="text-xl font-bold mb-2">Gesuche sind privat</h3>
+                                <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">
+                                    Gesuche erscheinen nicht öffentlich im Feed. Stelle in deinen Profil-Einstellungen ein, welche Fächer du anbietest, um passende Gesuche zu sehen.
+                                </p>
+                                <div className="flex flex-wrap justify-center gap-2">
+                                    <Button onClick={() => navigate('/settings')} className="rounded-full shadow-md">Zu den Einstellungen</Button>
+                                    {hasActiveFilters && (
+                                        <Button variant="outline" onClick={() => { resetAllFilters(); triggerHaptic('light'); }} className="rounded-full shadow-sm">Filter zurücksetzen</Button>
+                                    )}
+                                </div>
+                            </>
+                        ) : hasActiveFilters ? (
                             <>
                                 <h3 className="text-xl font-bold mb-2">Keine Treffer für diese Filter</h3>
                                 <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">Keine Anzeige passt zu deiner aktuellen Suche. Setze die Filter zurück oder erstelle selbst eine Anzeige!</p>

@@ -1,10 +1,26 @@
 <?php
 // ==============================================================================
-// FWG Nachhilfebörse - Moderner E-Mail Service (ALL-INKL)
-// Sendet wunderschöne, responsive HTML-E-Mails mit Logo und Schul-Branding
+// FWG Nachhilfebörse - E-Mail-Service (ALL-INKL)
+// ------------------------------------------------------------------------------
+// Deliverability-Rewrite:
+//  - multipart/alternative (text/plain + text/html, UTF-8, base64, chunk_split)
+//  - korrekte RFC-Header mit \r\n, bereinigt gegen Header-Injection
+//  - kein X-Priority/X-Mailer (Bulk-Signale), List-Unsubscribe nur als mailto
+//  - HTML in Tabellenoptik, max-width 600px, Inline-Styles, Dark-Mode-safe
+//  - Logo als reines HTML/CSS-Badge (keine externen Bilder/SVGs)
 // ==============================================================================
 
 require_once __DIR__ . '/config.php';
+
+// Design-Tokens der E-Mail-Vorlagen (nur Web-Font-Fallbacks, keine externen
+// Bilder/Fonts/SVGs - E-Mail-Clients blocken oder strippen diese ohnehin).
+const FWG_MAIL_FONT_BODY    = "'Inter','Helvetica Neue',Helvetica,Arial,sans-serif";
+const FWG_MAIL_FONT_DISPLAY = "'Anton','Arial Narrow','Arial Black',Arial,sans-serif";
+const FWG_MAIL_FONT_MONO    = "ui-monospace,Menlo,Consolas,'Courier New',monospace";
+
+const FWG_MAIL_YELLOW = '#FACC15';
+const FWG_MAIL_BLACK  = '#09090b';
+const FWG_MAIL_PAPER  = '#faf7ef';
 
 /**
  * Escaped Benutzereingaben für E-Mail-HTML (verhindert HTML-Injektion via Namen/Titel/Nachrichten).
@@ -13,206 +29,422 @@ function fwg_esc($value): string {
     return htmlspecialchars((string)($value ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
-/**
- * Erzeugt ein responsives, modernes HTML-E-Mail-Layout
- */
-function render_email_template(array $params): string {
-    $category    = htmlspecialchars($params['category'] ?? 'BENACHRICHTIGUNG');
-    $categoryBg  = $params['category_bg'] ?? '#FEF08A'; // Tailwind yellow-200
-    $categoryColor = $params['category_color'] ?? '#854D0E'; // Tailwind yellow-800
-    $title       = htmlspecialchars($params['title'] ?? 'Benachrichtigung');
-    $subtitle    = htmlspecialchars($params['subtitle'] ?? '');
-    $greeting    = htmlspecialchars($params['greeting'] ?? 'Hallo,');
-    $bodyHtml    = $params['body_html'] ?? '';
-    $quoteBox    = $params['quote_box'] ?? null;
-    $ctaText     = htmlspecialchars($params['cta_text'] ?? 'Zur Nachhilfebörse');
-    $ctaUrl      = htmlspecialchars($params['cta_url'] ?? APP_URL);
-    $appUrl      = APP_URL;
-    $preheader   = htmlspecialchars(mb_substr($params['preheader'] ?? '', 0, 140));
-    $year        = date('Y');
+// ------------------------------------------------------------------------------
+// Interne Helfer: Header, MIME, Text
+// ------------------------------------------------------------------------------
 
-    $quoteSection = '';
-    if (!empty($quoteBox)) {
-        $quoteTitle = htmlspecialchars($quoteBox['title'] ?? '');
-        $quoteContent = nl2br(htmlspecialchars($quoteBox['content'] ?? ''));
-        $quoteSection = "
-        <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='margin: 20px 0; background-color: #F8FAFC; border-left: 4px solid #FACC15; border-radius: 8px;'>
-            <tr>
-                <td style='padding: 16px 20px;'>
-                    " . ($quoteTitle ? "<div style='font-size: 13px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;'>$quoteTitle</div>" : "") . "
-                    <div style='font-size: 15px; color: #1E293B; line-height: 1.5; font-style: italic;'>$quoteContent</div>
-                </td>
-            </tr>
-        </table>";
+/**
+ * Entfernt Steuerzeichen/Zeilenumbrüche aus einem Header-Wert (Header-Injection).
+ */
+function mail_sanitize_header(string $value): string {
+    $value = str_replace(["\r", "\n", "\0"], ' ', $value);
+    return trim(preg_replace('/[ \t]+/', ' ', $value) ?? $value);
+}
+
+/**
+ * Erlaubt nur einfache Hex-Farben, sonst Fallback (kein Style-Ausbruch möglich).
+ */
+function mail_sanitize_color(string $value, string $fallback): string {
+    $value = trim($value);
+    return preg_match('/^#[0-9a-fA-F]{3,8}$/', $value) ? $value : $fallback;
+}
+
+/**
+ * Zusätzliche Härtung für Anzeigenamen (From): entfernt Zeichen, die eine
+ * Header-Phrase zerlegen könnten.
+ */
+function mail_sanitize_display_name(string $value): string {
+    $value = mail_sanitize_header($value);
+    return trim(str_replace(['<', '>', ':', ';', '"', '\\'], '', $value));
+}
+
+/**
+ * RFC-2047-kodierter Header-Text (Betreff, Absendername). Faltet nur mit
+ * gültigem CRLF + Leerzeichen (kein Header-Bruch).
+ */
+function mail_encode_header_text(string $text): string {
+    return mb_encode_mimeheader(mail_sanitize_header($text), 'UTF-8', 'B', "\r\n", 0);
+}
+
+/**
+ * Zufällige UUID v4 für die Message-ID.
+ */
+function mail_generate_uuid(): string {
+    $data = random_bytes(16);
+    $data[6] = chr((ord($data[6]) & 0x0f) | 0x40);
+    $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
+    return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+}
+
+/**
+ * Baut die vollständigen MIME-Header der Nachricht (Reihenfolge s. u.).
+ * In-Reply-To wird nur gesetzt, wenn ein Kontext übergeben wird.
+ */
+function mail_build_headers(string $boundary, string $fromEmail, string $fromName, string $replyTo, ?string $inReplyTo = null): string {
+    $eol = "\r\n";
+
+    $domain = 'nachhilfe-sv.de';
+    $at = strrpos($fromEmail, '@');
+    if ($at !== false && substr($fromEmail, $at + 1) !== '') {
+        $domain = substr($fromEmail, $at + 1);
     }
 
+    $headers   = [];
+    $headers[] = 'MIME-Version: 1.0';
+    $headers[] = 'Date: ' . date('r');
+    $headers[] = 'Message-ID: <' . mail_generate_uuid() . '@' . $domain . '>';
+    $headers[] = 'From: ' . mail_encode_header_text(mail_sanitize_display_name($fromName)) . ' <' . $fromEmail . '>';
+    if ($replyTo !== '') {
+        $headers[] = 'Reply-To: ' . $replyTo;
+    }
+
+    // Kein List-Unsubscribe-Post: Es existiert kein HTTPS-One-Click-Endpoint.
+    $unsubscribeTo = $replyTo !== '' ? $replyTo : $fromEmail;
+    $headers[] = 'List-Unsubscribe: <mailto:' . $unsubscribeTo . '?subject=Abmelden>';
+
+    if ($inReplyTo !== null && $inReplyTo !== '') {
+        $headers[] = 'In-Reply-To: <' . str_replace(['<', '>'], '', mail_sanitize_header($inReplyTo)) . '>';
+    }
+
+    $headers[] = 'Content-Type: multipart/alternative; boundary="' . $boundary . '"';
+
+    return implode($eol, $headers);
+}
+
+/**
+ * Baut den MIME-Body: text/plain zuerst, danach text/html, beide als
+ * UTF-8 base64 mit 76-Zeichen-Zeilen (chunk_split).
+ */
+function mail_build_message(string $plainText, string $htmlContent, string $boundary): string {
+    $eol = "\r\n";
+
+    $message  = '--' . $boundary . $eol;
+    $message .= 'Content-Type: text/plain; charset=UTF-8' . $eol;
+    $message .= 'Content-Transfer-Encoding: base64' . $eol . $eol;
+    $message .= chunk_split(base64_encode($plainText), 76, $eol);
+
+    $message .= '--' . $boundary . $eol;
+    $message .= 'Content-Type: text/html; charset=UTF-8' . $eol;
+    $message .= 'Content-Transfer-Encoding: base64' . $eol . $eol;
+    $message .= chunk_split(base64_encode($htmlContent), 76, $eol);
+
+    $message .= '--' . $boundary . '--' . $eol;
+
+    return $message;
+}
+
+/**
+ * Erzeugt aus dem HTML einen lesbaren text/plain-Teil. Links werden mit
+ * sichtbarer Ziel-URL übernommen, der versteckte Preheader wird entfernt.
+ */
+function html_to_plain_text(string $html): string {
+    $html = preg_replace('/<head\b[^>]*>.*?<\/head>/is', '', $html) ?? $html;
+    $html = preg_replace('/<style\b[^>]*>.*?<\/style>/is', '', $html) ?? $html;
+    $html = preg_replace('/<script\b[^>]*>.*?<\/script>/is', '', $html) ?? $html;
+    $html = preg_replace('/<!--.*?-->/s', '', $html) ?? $html;
+
+    // Versteckten Preheader (display:none) nicht in den Textteil übernehmen.
+    $html = preg_replace('/<div\b[^>]*style="[^"]*display\s*:\s*none[^"]*"[^>]*>.*?<\/div>/is', '', $html) ?? $html;
+
+    // Links als "Text (URL)" übernehmen (CTA-URL bleibt sichtbar; runde
+    // Klammern überleben strip_tags, spitze nicht).
+    $html = preg_replace_callback('/<a\b[^>]*href=(["\'])(.*?)\1[^>]*>(.*?)<\/a>/is', function (array $m): string {
+        $href = trim(html_entity_decode($m[2], ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        $text = trim(html_entity_decode(strip_tags($m[3]), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        if ($href === '') {
+            return $text;
+        }
+        if (stripos($href, 'mailto:') === 0) {
+            return $text !== '' ? $text . ' (' . substr($href, 7) . ')' : substr($href, 7);
+        }
+        if ($text === '' || $text === $href) {
+            return $href;
+        }
+        return $text . ' (' . $href . ')';
+    }, $html) ?? $html;
+
+    $html = preg_replace('/<br\s*\/?>/i', "\n", $html) ?? $html;
+    $html = preg_replace('/<\/(p|div|tr|table|h[1-6]|li|blockquote)>/i', "\n", $html) ?? $html;
+    $html = preg_replace('/<li\b[^>]*>/i', '- ', $html) ?? $html;
+
+    $plain = html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $plain = str_replace(["\r\n", "\r"], "\n", $plain);
+    $plain = preg_replace('/[ \t]+/', ' ', $plain) ?? $plain;
+    $plain = preg_replace('/ *\n */', "\n", $plain) ?? $plain;
+    $plain = preg_replace('/\n{3,}/', "\n\n", $plain) ?? $plain;
+
+    return trim($plain);
+}
+
+// ------------------------------------------------------------------------------
+// Interne Helfer: HTML-Bausteine (Tabellen, Inline-Styles)
+// ------------------------------------------------------------------------------
+
+/**
+ * Logo als HTML/CSS-Badge: schwarzes Quadrat mit gelbem "FWG",
+ * daneben der "Nachhilfe"-Chip und die Schulzeile.
+ */
+function mail_render_logo(): string {
+    $fontDisplay = FWG_MAIL_FONT_DISPLAY;
+    $fontBody    = FWG_MAIL_FONT_BODY;
+
     return "
+    <table role='presentation' border='0' cellpadding='0' cellspacing='0'>
+        <tr>
+            <td width='52' height='52' align='center' valign='middle' bgcolor='" . FWG_MAIL_BLACK . "' style='width:52px;height:52px;background-color:" . FWG_MAIL_BLACK . ";font-family:$fontDisplay;font-size:20px;font-weight:900;letter-spacing:0.05em;line-height:52px;color:" . FWG_MAIL_YELLOW . ";text-transform:uppercase;'>FWG</td>
+            <td class='stack' style='padding-left:14px;vertical-align:middle;'>
+                <table role='presentation' border='0' cellpadding='0' cellspacing='0'>
+                    <tr>
+                        <td bgcolor='" . FWG_MAIL_BLACK . "' style='background-color:" . FWG_MAIL_BLACK . ";padding:4px 10px;font-family:$fontDisplay;font-size:15px;font-weight:900;letter-spacing:0.12em;line-height:1.2;color:" . FWG_MAIL_YELLOW . ";text-transform:uppercase;'>Nachhilfe</td>
+                    </tr>
+                    <tr>
+                        <td style='padding-top:6px;font-family:$fontBody;font-size:10px;font-weight:700;letter-spacing:0.16em;line-height:1.3;color:#3f3f46;text-transform:uppercase;'>Friedrich-Wilhelm-Gymnasium Köln</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>";
+}
+
+/**
+ * Kategorie-Badge: schwarzer Chip mit gelbem Akzentstreifen,
+ * Textfarbe je Anlass (category_bg).
+ */
+function mail_render_chip(string $label, string $textColor): string {
+    $label     = fwg_esc($label);
+    $textColor = mail_sanitize_color($textColor, FWG_MAIL_YELLOW);
+    $fontMono  = FWG_MAIL_FONT_MONO;
+
+    return "
+    <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='margin:0 0 18px 0;'>
+        <tr>
+            <td width='6' bgcolor='" . FWG_MAIL_YELLOW . "' style='width:6px;background-color:" . FWG_MAIL_YELLOW . ";font-size:0;line-height:0;'>&nbsp;</td>
+            <td bgcolor='" . FWG_MAIL_BLACK . "' style='background-color:" . FWG_MAIL_BLACK . ";padding:6px 12px;font-family:$fontMono;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:$textColor;'>$label</td>
+        </tr>
+    </table>";
+}
+
+/**
+ * Bulletproof-Button als Tabelle mit bgcolor (kein VML, kein Gradient).
+ */
+function mail_render_button(string $text, string $url): string {
+    $label = fwg_esc($text !== '' ? $text : 'Zur Nachhilfebörse');
+    $href  = fwg_esc($url !== '' ? $url : APP_URL);
+    $fontBody = FWG_MAIL_FONT_BODY;
+
+    return "
+    <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='margin:0;'>
+        <tr>
+            <td align='center' bgcolor='" . FWG_MAIL_YELLOW . "' style='background-color:" . FWG_MAIL_YELLOW . ";border:2px solid " . FWG_MAIL_BLACK . ";'>
+                <a href='$href' target='_blank' style='display:inline-block;padding:14px 30px;font-family:$fontBody;font-size:15px;font-weight:900;letter-spacing:0.06em;text-transform:uppercase;color:" . FWG_MAIL_BLACK . ";text-decoration:none;'>$label &rarr;</a>
+            </td>
+        </tr>
+    </table>";
+}
+
+// ------------------------------------------------------------------------------
+// Basis-Layout
+// ------------------------------------------------------------------------------
+
+/**
+ * Erzeugt das HTML-E-Mail-Layout (Papier-Hintergrund, Poster-Karte,
+ * gelbes Kopfband mit Logo, schwarzes Fussband mit Rechtliches).
+ * Parameter-Keys unverändert: category, category_bg, category_color, title,
+ * subtitle, greeting, body_html, quote_box, cta_text, cta_url, preheader.
+ */
+function render_email_template(array $params): string {
+    $categoryRaw   = (string)($params['category'] ?? 'BENACHRICHTIGUNG');
+    $categoryBg    = mail_sanitize_color((string)($params['category_bg'] ?? '#FEF08A'), '#FEF08A');
+    $categoryColor = mail_sanitize_color((string)($params['category_color'] ?? '#854D0E'), '#854D0E');
+    $title         = fwg_esc($params['title'] ?? 'Benachrichtigung');
+    $subtitle      = fwg_esc($params['subtitle'] ?? '');
+    $greeting      = fwg_esc($params['greeting'] ?? 'Hallo,');
+    $bodyHtml      = (string)($params['body_html'] ?? '');
+    $quoteBox      = $params['quote_box'] ?? null;
+
+    $appUrl      = fwg_esc(APP_URL);
+    $fontBody    = FWG_MAIL_FONT_BODY;
+    $fontDisplay = FWG_MAIL_FONT_DISPLAY;
+    $fontMono    = FWG_MAIL_FONT_MONO;
+    $year        = date('Y');
+
+    $logo          = mail_render_logo();
+    $categoryChip  = mail_render_chip($categoryRaw, $categoryBg);
+    $ctaSection    = mail_render_button((string)($params['cta_text'] ?? 'Zur Nachhilfebörse'), (string)($params['cta_url'] ?? APP_URL));
+    $ctaUrl        = fwg_esc($params['cta_url'] ?? APP_URL);
+
+    // Preheader (versteckt) inkl. Füllzeichen gegen Durchbluten des Inhalts.
+    $preheaderText    = fwg_esc(mb_substr((string)($params['preheader'] ?? ''), 0, 140, 'UTF-8'));
+    $preheaderSection = '';
+    if ($preheaderText !== '') {
+        $filler = str_repeat('&zwnj;&nbsp;', 30);
+        $preheaderSection = "<div style=\"display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;font-size:1px;line-height:1px;mso-hide:all;\">$preheaderText$filler</div>";
+    }
+
+    $subtitleSection = $subtitle !== ''
+        ? "<p style='margin:0 0 22px 0;font-family:$fontBody;font-size:15px;font-weight:500;line-height:1.5;color:#52525b;'>$subtitle</p>"
+        : "<div style='height:8px;'></div>";
+
+    $quoteSection = '';
+    if (!empty($quoteBox) && is_array($quoteBox)) {
+        $quoteTitle   = fwg_esc($quoteBox['title'] ?? '');
+        $quoteContent = nl2br(fwg_esc($quoteBox['content'] ?? ''));
+        $quoteTitleBlock = $quoteTitle !== ''
+            ? "<div style='margin-bottom:8px;font-family:$fontMono;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#52525b;'>$quoteTitle</div>"
+            : '';
+        $quoteSection = "
+            <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='margin:24px 0 0 0;background-color:" . FWG_MAIL_PAPER . ";border:1px solid " . FWG_MAIL_BLACK . ";border-left:5px solid $categoryColor;'>
+                <tr>
+                    <td style='padding:16px 18px;'>
+                        $quoteTitleBlock
+                        <div style='font-family:$fontBody;font-size:15px;line-height:1.6;color:#27272a;'>$quoteContent</div>
+                    </td>
+                </tr>
+            </table>";
+    }
+
+    return <<<HTML
 <!DOCTYPE html>
 <html lang='de'>
 <head>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <meta name='x-apple-disable-message-reformatting'>
+    <meta name='color-scheme' content='light only'>
+    <meta name='supported-color-schemes' content='light only'>
     <title>$title</title>
     <style>
-        body { margin: 0; padding: 0; background-color: #F1F5F9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
-        table { border-collapse: separate; }
-        a { color: #2563EB; text-decoration: none; font-weight: 600; }
-        .btn-primary:hover { background-color: #EAB308 !important; }
-        @media only screen and (max-width: 600px) {
-            .wrapper { width: 100% !important; padding: 12px !important; }
-            .card { padding: 24px 20px !important; border-radius: 16px !important; }
-            .headline { font-size: 22px !important; line-height: 1.3 !important; }
+        body { margin:0; padding:0; background-color:#faf7ef; }
+        table { border-collapse:collapse; }
+        a { color:#1d4ed8; }
+        @media only screen and (max-width:600px) {
+            .wrapper { width:100% !important; }
+            .card-pad { padding:28px 20px !important; }
+            .headline { font-size:22px !important; }
+            .stack { display:block !important; width:100% !important; padding-left:0 !important; padding-top:12px !important; }
         }
     </style>
 </head>
-<body style='background-color: #F1F5F9; margin: 0; padding: 40px 0;'>
-    " . ($preheader ? "<div style='display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;'>$preheader</div>" : "") . "
-    <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%'>
-        <tr>
-            <td align='center' style='padding: 0 16px;'>
-                <!-- Main Container -->
-                <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='600' class='wrapper' style='max-width: 600px; width: 100%;'>
-                    
-                    <!-- Header with Logo -->
-                    <tr>
-                        <td align='center' style='padding-bottom: 24px;'>
-                            <table role='presentation' border='0' cellpadding='0' cellspacing='0'>
-                                <tr>
-                                    <td style='vertical-align: middle; padding-right: 12px;'>
-                                        <!-- Gold Logo Badge -->
-                                        <div style='width: 44px; height: 44px; background-color: #0F172A; border-radius: 12px; display: inline-block; text-align: center; line-height: 44px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.1);'>
-                                            <span style='font-size: 15px; font-weight: 900; color: #FACC15; letter-spacing: -0.5px;'>FWG</span>
-                                        </div>
-                                    </td>
-                                    <td style='vertical-align: middle;'>
-                                        <div style='font-size: 20px; font-weight: 800; color: #0F172A; letter-spacing: -0.5px;'>
-                                            FWG <span style='background-color: #FACC15; padding: 2px 8px; border-radius: 6px; color: #000;'>Nachhilfe</span>
-                                        </div>
-                                        <div style='font-size: 12px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.8px;'>
-                                            Friedrich-Wilhelm-Gymnasium Köln
-                                        </div>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-
-                    <!-- Card Body -->
-                    <tr>
-                        <td style='background-color: #FFFFFF; border-radius: 24px; padding: 40px 36px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02); border: 1px solid #E2E8F0;' class='card'>
-                            
-                            <!-- Category Badge -->
-                            <div style='margin-bottom: 16px;'>
-                                <span style='display: inline-block; background-color: $categoryBg; color: $categoryColor; font-size: 12px; font-weight: 800; padding: 5px 12px; border-radius: 20px; letter-spacing: 0.6px; text-transform: uppercase;'>
-                                    $category
-                                </span>
-                            </div>
-
-                            <!-- Title -->
-                            <h1 class='headline' style='margin: 0 0 8px 0; font-size: 26px; font-weight: 800; color: #0F172A; letter-spacing: -0.5px; line-height: 1.3;'>
-                                $title
-                            </h1>
-                            " . ($subtitle ? "<p style='margin: 0 0 24px 0; font-size: 15px; color: #64748B; font-weight: 500;'>$subtitle</p>" : "<div style='height: 16px;'></div>") . "
-
-                            <!-- Greeting & Content -->
-                            <p style='margin: 0 0 16px 0; font-size: 16px; color: #334155; line-height: 1.6;'>
-                                <strong>$greeting</strong>
-                            </p>
-                            
-                            <div style='font-size: 15px; color: #334155; line-height: 1.6;'>
-                                $bodyHtml
-                            </div>
-
-                            <!-- Optional Quote / Preview Box -->
-                            $quoteSection
-
-                            <!-- Call to Action Button -->
-                            <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='margin-top: 32px;'>
-                                <tr>
-                                    <td align='center'>
-                                        <a href='$ctaUrl' target='_blank' style='display: inline-block; background-color: #FACC15; color: #000000; font-size: 16px; font-weight: 700; padding: 14px 32px; border-radius: 12px; text-decoration: none; text-align: center; box-shadow: 0 4px 14px rgba(250, 204, 21, 0.4); border: 1px solid rgba(0,0,0,0.05);'>
-                                            $ctaText &rarr;
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>
-
-                            <div style='margin-top: 36px; padding-top: 24px; border-top: 1px solid #F1F5F9; font-size: 13px; color: #94A3B8; text-align: center;'>
-                                Link funktioniert nicht? Kopiere diese Adresse in deinen Browser:<br>
-                                <a href='$ctaUrl' style='color: #64748B; word-break: break-all; font-weight: 500;'>$ctaUrl</a>
-                            </div>
-
-                        </td>
-                    </tr>
-
-                    <!-- Footer -->
-                    <tr>
-                        <td style='padding: 32px 16px; text-align: center; font-size: 12px; color: #64748B; line-height: 1.6;'>
-                            <div style='font-weight: 700; color: #475569; margin-bottom: 4px;'>
-                                FWG Nachhilfebörse – Eine Initiative der Schülervertretung (SV)
-                            </div>
-                            <div>
-                                Friedrich-Wilhelm-Gymnasium Köln • Severinstraße 241 • 50676 Köln
-                            </div>
-                            <div style='margin-top: 12px;'>
-                                <a href='$appUrl' style='color: #64748B; margin: 0 8px;'>Plattform öffnen</a> • 
-                                <a href='$appUrl/#/datenschutz' style='color: #64748B; margin: 0 8px;'>Datenschutz</a> • 
-                                <a href='$appUrl/#/impressum' style='color: #64748B; margin: 0 8px;'>Impressum</a>
-                            </div>
-                            <div style='margin-top: 12px; font-size: 11px; color: #94A3B8;'>
-                                Du erhältst diese automatische E-Mail zu deinen Aktivitäten auf nachhilfe-sv.de.<br>
-                                Fragen dazu? Schreib uns an <a href='mailto:info@nachhilfe-sv.de' style='color: #64748B;'>info@nachhilfe-sv.de</a>.
-                            </div>
-                            <div style='margin-top: 8px; font-size: 11px; color: #94A3B8;'>
-                                © $year Schülervertretung · Friedrich-Wilhelm-Gymnasium Köln
-                            </div>
-                        </td>
-                    </tr>
-
-                </table>
-            </td>
-        </tr>
-    </table>
+<body style='margin:0;padding:32px 12px;background-color:#faf7ef;'>
+$preheaderSection
+<table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%'>
+    <tr>
+        <td align='center'>
+            <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='600' class='wrapper' style='width:100%;max-width:600px;background-color:#ffffff;border:2px solid #09090b;'>
+                <tr>
+                    <td bgcolor='#FACC15' style='background-color:#FACC15;padding:20px 28px;border-bottom:2px solid #09090b;'>
+                        $logo
+                    </td>
+                </tr>
+                <tr>
+                    <td class='card-pad' style='background-color:#ffffff;padding:36px 32px 32px 32px;'>
+                        $categoryChip
+                        <h1 class='headline' style='margin:0 0 14px 0;font-family:$fontDisplay;font-size:26px;line-height:1.18;font-weight:900;letter-spacing:0.01em;text-transform:uppercase;color:#09090b;'>$title</h1>
+                        <table role='presentation' border='0' cellpadding='0' cellspacing='0' style='margin:0 0 20px 0;'>
+                            <tr>
+                                <td width='48' height='5' bgcolor='#FACC15' style='width:48px;height:5px;background-color:#FACC15;font-size:0;line-height:0;'>&nbsp;</td>
+                            </tr>
+                        </table>
+                        $subtitleSection
+                        <p style='margin:0 0 14px 0;font-family:$fontBody;font-size:16px;line-height:1.6;font-weight:700;color:#09090b;'>$greeting</p>
+                        <div style='font-family:$fontBody;font-size:15px;line-height:1.65;color:#27272a;'>$bodyHtml</div>
+                        $quoteSection
+                        <div style='margin-top:30px;'>$ctaSection</div>
+                        <div style='margin-top:32px;padding-top:20px;border-top:1px solid #e4e0d5;font-family:$fontBody;font-size:12px;line-height:1.6;color:#71717a;'>
+                            Link funktioniert nicht? Kopiere diese Adresse in deinen Browser:<br>
+                            <a href='$ctaUrl' style='color:#52525b;word-break:break-all;'>$ctaUrl</a>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td height='6' bgcolor='#FACC15' style='height:6px;background-color:#FACC15;font-size:0;line-height:0;'>&nbsp;</td>
+                </tr>
+                <tr>
+                    <td bgcolor='#09090b' style='background-color:#09090b;padding:24px 28px 26px 28px;'>
+                        <div style='font-family:$fontDisplay;font-size:13px;font-weight:900;letter-spacing:0.14em;text-transform:uppercase;color:#FACC15;'>FWG Nachhilfebörse</div>
+                        <div style='padding-top:8px;font-family:$fontBody;font-size:12px;line-height:1.6;color:#a1a1aa;'>
+                            Eine Initiative der Schülervertretung (SV)<br>
+                            Friedrich-Wilhelm-Gymnasium Köln &middot; Severinstraße 241 &middot; 50676 Köln
+                        </div>
+                        <div style='padding-top:12px;font-family:$fontBody;font-size:12px;line-height:1.6;'>
+                            <a href='$appUrl' style='color:#FACC15;text-decoration:underline;'>Plattform öffnen</a>
+                            <span style='color:#3f3f46;'>&nbsp;&middot;&nbsp;</span>
+                            <a href='$appUrl/#/datenschutz' style='color:#FACC15;text-decoration:underline;'>Datenschutz</a>
+                            <span style='color:#3f3f46;'>&nbsp;&middot;&nbsp;</span>
+                            <a href='$appUrl/#/impressum' style='color:#FACC15;text-decoration:underline;'>Impressum</a>
+                        </div>
+                        <div style='padding-top:14px;font-family:$fontBody;font-size:11px;line-height:1.6;color:#71717a;'>
+                            Du erhältst diese automatische E-Mail zu deinen Aktivitäten auf nachhilfe-sv.de.<br>
+                            Fragen dazu? Schreib uns an <a href='mailto:info@nachhilfe-sv.de' style='color:#FACC15;'>info@nachhilfe-sv.de</a>.
+                        </div>
+                        <div style='padding-top:10px;font-family:$fontBody;font-size:11px;color:#52525b;'>&copy; $year SV Friedrich-Wilhelm-Gymnasium Köln</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
 </body>
-</html>";
+</html>
+HTML;
 }
 
+// ------------------------------------------------------------------------------
+// Versand
+// ------------------------------------------------------------------------------
+
 /**
- * Versendet eine HTML-E-Mail über den ALL-INKL Webserver
+ * Versendet eine HTML-E-Mail über den ALL-INKL Webserver als korrekte
+ * multipart/alternative-Nachricht (Text- und HTML-Teil, UTF-8, base64).
  */
 function send_html_email(string $toEmail, string $subject, string $htmlContent): bool {
-    // E-Mail-Adresse validieren
     $to = filter_var(trim($toEmail), FILTER_VALIDATE_EMAIL);
     if (!$to) {
-        error_log("E-Mail Versand abgebrochen: Ungültige Adresse '$toEmail'");
+        error_log('E-Mail Versand abgebrochen: Ungültige Empfängeradresse');
         return false;
     }
 
-    $fromEmail = MAIL_FROM_EMAIL;
-    $fromName = MAIL_FROM_NAME;
-    $replyTo = MAIL_REPLY_TO;
+    $fromEmail = mail_sanitize_header(MAIL_FROM_EMAIL);
+    $fromName  = mail_sanitize_header(MAIL_FROM_NAME);
+    $replyTo   = mail_sanitize_header(MAIL_REPLY_TO);
 
-    // Header für UTF-8 HTML E-Mails
-    $encodedSubject = '=?UTF-8?B?' . base64_encode($subject) . '?=';
-    $encodedFromName = '=?UTF-8?B?' . base64_encode($fromName) . '?=';
+    if (!filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
+        error_log('E-Mail Versand abgebrochen: Ungültige Absenderadresse in MAIL_FROM_EMAIL');
+        return false;
+    }
+    if (!filter_var($replyTo, FILTER_VALIDATE_EMAIL)) {
+        $replyTo = '';
+    }
 
-    $headers = [
-        "MIME-Version: 1.0",
-        "Content-type: text/html; charset=UTF-8",
-        "From: $encodedFromName <$fromEmail>",
-        "Reply-To: $replyTo",
-        "List-Unsubscribe: <mailto:" . MAIL_REPLY_TO . "?subject=Abmelden>",
-        "X-Mailer: FWG-Nachhilfeboerse",
-        "X-Priority: 3"
-    ];
+    $subject = mail_sanitize_header($subject);
 
-    // Zusätzlicher Parameter -f setzt auf ALL-INKL den Envelope Sender (wichtig gegen Spam)
-    $params = "-f " . escapeshellarg($fromEmail);
+    // Fragmente (z. B. Testmail aus health.php) in ein vollständiges Dokument hüllen.
+    $html = $htmlContent;
+    if (stripos($html, '<html') === false) {
+        $fontBody = FWG_MAIL_FONT_BODY;
+        $html = "<!DOCTYPE html>\n<html lang='de'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'></head>"
+              . "<body style='margin:0;padding:24px;background-color:" . FWG_MAIL_PAPER . ";font-family:$fontBody;font-size:15px;line-height:1.6;color:#27272a;'>"
+              . $htmlContent
+              . '</body></html>';
+    }
 
     try {
-        return @mail($to, $encodedSubject, $htmlContent, implode("\r\n", $headers), $params);
-    } catch (Exception $e) {
-        error_log("Fehler beim E-Mail-Versand: " . $e->getMessage());
+        $boundary  = '=_fwg_' . bin2hex(random_bytes(16));
+        $plainText = html_to_plain_text($html);
+        if (trim($plainText) === '') {
+            $plainText = trim(strip_tags($html));
+        }
+
+        $headers = mail_build_headers($boundary, $fromEmail, $fromName, $replyTo);
+        $body    = mail_build_message($plainText, $html, $boundary);
+
+        // Der -f Parameter setzt auf ALL-INKL den Envelope-Sender (wichtig gegen Spam).
+        $params = '-f ' . escapeshellarg($fromEmail);
+
+        return @mail($to, mail_encode_header_text($subject), $body, $headers, $params);
+    } catch (Throwable $e) {
+        error_log('Fehler beim E-Mail-Versand: ' . $e->getMessage());
         return false;
     }
 }
@@ -226,7 +458,7 @@ function send_html_email(string $toEmail, string $subject, string $htmlContent):
  */
 function send_email_verification(string $toEmail, string $userName, string $code): bool {
     $digits = implode('', array_map(
-        fn($d) => '<span style="display:inline-block;min-width:38px;padding:10px 0;margin:0 3px;background:#FEF9C3;border:2px solid #FACC15;border-radius:12px;font-size:26px;font-weight:900;color:#713F12;">' . htmlspecialchars($d, ENT_QUOTES, 'UTF-8') . '</span>',
+        fn($d) => '<span style="display:inline-block;min-width:40px;padding:10px 0;margin:0 3px;background-color:' . FWG_MAIL_YELLOW . ';border:2px solid ' . FWG_MAIL_BLACK . ';border-radius:4px;font-family:' . FWG_MAIL_FONT_MONO . ';font-size:26px;font-weight:900;color:' . FWG_MAIL_BLACK . ';">' . fwg_esc($d) . '</span>',
         str_split($code)
     ));
 
@@ -387,7 +619,7 @@ function send_email_request_status_update(string $toEmail, string $recipientName
     $catColor = $isAccepted ? '#166534' : '#475569';
     $title = $isAccepted ? "$actorName hat deine Anfrage angenommen!" : "Update zu deiner Nachhilfe-Anfrage";
 
-    $body = $isAccepted 
+    $body = $isAccepted
         ? "Großartig! <strong>" . fwg_esc($actorName) . "</strong> hat deine Anfrage zu <em>" . fwg_esc($adTitle) . "</em> angenommen. Ihr könnt jetzt direkt im Chat Termine und Details vereinbaren!"
         : "<strong>" . fwg_esc($actorName) . "</strong> hat den Status deiner Anfrage zu <em>" . fwg_esc($adTitle) . "</em> aktualisiert.";
 
@@ -473,7 +705,7 @@ function send_email_achievement(string $toEmail, string $userName, string $badge
         'body_html' => "
             Du hast auf der FWG Nachhilfebörse eine neue Errungenschaft verdient:<br><br>
             <strong>" . fwg_esc($badgeTitle) . "</strong><br>
-            <span style='color: #64748B;'>" . fwg_esc($badgeDescription) . "</span><br><br>
+            <span style='color: #52525b;'>" . fwg_esc($badgeDescription) . "</span><br><br>
             Dieses Abzeichen schmückt ab sofort dein öffentliches Profil und zeigt anderen Schülern dein Engagement!
         ",
         'cta_text' => 'Zum Profil & Abzeichen',
@@ -495,7 +727,7 @@ function send_email_announcement(string $toEmail, string $userName, string $titl
         'subtitle' => 'Neues von der FWG Nachhilfebörse & Schülervertretung',
         'preheader' => 'Neuigkeiten von deiner Nachhilfebörse.',
         'greeting' => "Hallo $userName,",
-        'body_html' => nl2br(htmlspecialchars($content)),
+        'body_html' => nl2br(fwg_esc($content)),
         'cta_text' => 'Jetzt ausprobieren',
         'cta_url' => APP_URL
     ]);
@@ -514,7 +746,7 @@ function send_email_generic_notification(string $toEmail, string $userName, stri
         'title' => $title,
         'preheader' => 'Es gibt etwas Neues für dich auf der Nachhilfebörse.',
         'greeting' => "Hallo $userName,",
-        'body_html' => nl2br(htmlspecialchars($message)),
+        'body_html' => nl2br(fwg_esc($message)),
         'cta_text' => $ctaText,
         'cta_url' => $ctaUrl
     ]);

@@ -113,7 +113,7 @@ export async function apiRequest<T = any>(
             const code = json?.code || json?.details?.code || null;
             // Belt-and-Braces (D5): Backend-Guard hat zugeschlagen, obwohl der Client-State
             // noch „ok“ sagt -> Gate-UI über das Custom-Event sofort nachziehen.
-            if ((code === 'not_verified' || code === 'parent_link_required') && typeof window !== 'undefined') {
+            if (code === 'not_verified' && typeof window !== 'undefined') {
                 window.dispatchEvent(new CustomEvent('fwg:access-denied', { detail: { code } }));
             }
             return {
@@ -250,7 +250,7 @@ export const api = {
 
     // Anzeigen
     ads: {
-        async list(filters: { type?: string; subject?: string; grade?: string; search?: string; user_id?: string; all?: boolean } = {}) {
+        async list(filters: { type?: string; subject?: string; grade?: string; search?: string; user_id?: string; all?: boolean; match_context?: boolean; match_for?: string } = {}) {
             const params = new URLSearchParams();
             if (filters.type) params.append('type', filters.type);
             if (filters.subject) params.append('subject', filters.subject);
@@ -258,6 +258,8 @@ export const api = {
             if (filters.search) params.append('search', filters.search);
             if (filters.user_id) params.append('user_id', filters.user_id);
             if (filters.all) params.append('all', '1');
+            if (filters.match_context) params.append('match_context', '1');
+            if (filters.match_for) params.append('match_for', filters.match_for);
 
             const query = params.toString() ? `?${params.toString()}` : '';
             return apiRequest(`/ads.php${query}`);
@@ -512,62 +514,6 @@ export const api = {
         async updateCoachingPage(data: Record<string, string>) {
             return apiRequest('/profiles.php?action=coaching_page', {
                 method: 'POST',
-                body: JSON.stringify(data)
-            });
-        }
-    },
-
-    // Eltern-Verknüpfung
-    parentLinks: {
-        async lookupCode(code: string) {
-            return apiRequest(`/profiles.php?action=lookup_code&code=${encodeURIComponent(code)}`);
-        },
-
-        async searchChildren(params: { q?: string; grade_level?: string; birth_date?: string }) {
-            const s = new URLSearchParams();
-            if (params.q) s.append('q', params.q);
-            if (params.grade_level) s.append('grade_level', params.grade_level);
-            if (params.birth_date) s.append('birth_date', params.birth_date);
-            return apiRequest(`/profiles.php?action=search_children&${s.toString()}`);
-        },
-
-        async ensureCode() {
-            return apiRequest('/profiles.php?action=ensure_parent_code', {
-                method: 'POST',
-                body: JSON.stringify({})
-            });
-        },
-
-        async list() {
-            return apiRequest('/profiles.php?action=parent_links');
-        },
-
-        async create(data: { child_id: string; permissions?: Record<string, boolean> }) {
-            return apiRequest('/profiles.php?action=parent_links', {
-                method: 'POST',
-                body: JSON.stringify(data)
-            });
-        },
-
-        async update(linkId: string, data: { permissions?: Record<string, boolean>; status?: string }) {
-            return apiRequest('/profiles.php?action=parent_links', {
-                method: 'PATCH',
-                body: JSON.stringify({ link_id: linkId, ...data })
-            });
-        },
-
-        async remove(linkId: string) {
-            return apiRequest('/profiles.php?action=parent_links', {
-                method: 'DELETE',
-                body: JSON.stringify({ link_id: linkId })
-            });
-        },
-
-        // Kind-Profil durch Eltern begrenzt bearbeiten
-        // (Name, Klasse, Fächer, Bio, Verfügbarkeit, Sichtbarkeit, Avatar)
-        async updateChild(childId: string, data: Record<string, unknown>) {
-            return apiRequest(`/profiles.php?id=${encodeURIComponent(childId)}`, {
-                method: 'PATCH',
                 body: JSON.stringify(data)
             });
         }

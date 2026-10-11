@@ -11,7 +11,7 @@ require_once __DIR__ . '/mailer.php';
 
 cors_headers();
 
-// Zugriffsstufe (D5): Merkliste erst nach Verifizierung / Eltern-Verknüpfung.
+// Zugriffsstufe (D5): Merkliste erst nach Verifizierung.
 $user = require_verified();
 $method = $_SERVER['REQUEST_METHOD'];
 $pdo = DB::getConnection();
@@ -20,14 +20,7 @@ $pdo = DB::getConnection();
 // 1. GET: FAVORITEN DES NUTZERS ABRUFEN
 // ------------------------------------------------------------------------------
 if ($method === 'GET') {
-    // Optionaler Kind-Scope für Eltern: ?user_id=<child_id> liefert die Merkliste
-    // des verknüpften Kindes (nur wenn can_view_activity erlaubt ist).
-    $childId = trim((string)($_GET['user_id'] ?? ''));
     $scopeId = $user['id'];
-    if ($childId !== '') {
-        fwg_assert_parent_of($childId, 'can_view_activity');
-        $scopeId = $childId;
-    }
 
     $stmt = $pdo->prepare('
         SELECT f.ad_id, f.created_at as favorited_at,

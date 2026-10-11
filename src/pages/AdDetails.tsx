@@ -7,7 +7,7 @@ import { Button } from '../components/ui/Button';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { SubjectChip } from '../components/SubjectChip';
 import { toast } from 'react-hot-toast';
-import { ChevronLeft, MapPin, Clock, Heart, Send, CheckCircle, Phone, Mail, CalendarDays, Share2, Copy, Eye, Users, User, Shuffle, Flag, ShieldAlert } from 'lucide-react';
+import { ChevronLeft, MapPin, Clock, Heart, Send, CheckCircle, Phone, Mail, CalendarDays, Share2, Copy, Eye, Users, User, Shuffle, Flag, ShieldAlert, Lock } from 'lucide-react';
 import ReportWizard from '../components/ReportWizard';
 import ShareDialog from '../components/ShareDialog';
 import { AvailabilityCalendar, emptyAvailability, countMatches, type Availability } from '../components/AvailabilityCalendar';
@@ -22,6 +22,7 @@ export default function AdDetails() {
     const { user } = useAuth();
     const [ad, setAd] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [adError, setAdError] = useState<{ status?: number; message?: string } | null>(null);
     const [profile, setProfile] = useState<any>(null);
     const [isFavorite, setIsFavorite] = useState(false);
     const [theirAvailability, setTheirAvailability] = useState<Availability>(emptyAvailability());
@@ -38,7 +39,8 @@ export default function AdDetails() {
 
     async function fetchAdAndStatus() {
         setLoading(true);
-        const { data: adData } = await supabase.from('ads').select('*').eq('id', id).single();
+        const { data: adData, error: loadError } = await supabase.from('ads').select('*').eq('id', id).single();
+        setAdError(adData ? null : loadError);
 
         if (adData) {
             setAd(adData);
@@ -122,7 +124,29 @@ export default function AdDetails() {
     };
 
     if (loading) return <div className="p-8 text-center">Lade Anzeige...</div>;
-    if (!ad) return <div className="p-8 text-center">Anzeige nicht gefunden.</div>;
+    if (!ad) {
+        const unavailable = adError?.status === 403 || adError?.status === 404;
+        return (
+            <div className="p-4 max-w-md mx-auto mt-10">
+                <Card className="rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft">
+                    <CardContent className="p-8 text-center space-y-3">
+                        <div className="mx-auto w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400">
+                            <Lock size={22} />
+                        </div>
+                        <h1 className="text-lg font-bold text-gray-900 dark:text-white">
+                            {unavailable ? 'Anzeige nicht verfügbar' : 'Anzeige nicht gefunden'}
+                        </h1>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {unavailable
+                                ? 'Dieses Gesuch ist privat, nicht mehr aktiv oder für dich nicht freigeschaltet.'
+                                : 'Diese Anzeige existiert nicht oder wurde entfernt.'}
+                        </p>
+                        <Button onClick={() => navigate(-1)} className="rounded-full">Zurück</Button>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
 
     const isOwn = user?.id === ad.user_id;
 
@@ -174,6 +198,11 @@ export default function AdDetails() {
                                     )}
                                 </div>
                                 <p className="text-gray-500 text-lg">{ad.type === 'offer' ? 'Biete Nachhilfe' : 'Suche Nachhilfe'}</p>
+                                {ad.type === 'search' && (
+                                    <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                                        <Lock size={12} className="shrink-0" /> Privates Gesuch – sichtbar nur für passende Anbieter und das SV-Team.
+                                    </p>
+                                )}
                             </div>
                             <div className="text-right shrink-0">
                                 <div className="text-xl font-bold text-primary-hover" aria-label={`Preis: ${price}`}>{price}</div>

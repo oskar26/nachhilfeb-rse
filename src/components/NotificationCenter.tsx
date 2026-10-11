@@ -1,7 +1,16 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import type { PointerEvent as ReactPointerEvent, RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import {
+    motion,
+    AnimatePresence,
+    useDragControls,
+    useReducedMotion,
+    useScroll,
+    useSpring,
+    useTransform,
+} from 'framer-motion';
 import {
     Bell,
     BellOff,
@@ -35,17 +44,24 @@ interface AppNotification {
 interface Props {
     unreadCount: number;
     onCountChange: (n: number) => void;
+    /**
+     * 'desktop': Glocke (Sidebar) + Dropdown.
+     * 'sticker': schwebender Poster-Sticker oben rechts + Bottom-Sheet (mobil).
+     */
+    variant?: 'desktop' | 'sticker';
+    /** Scroll-Container des App-Inhalts — steuert Schrumpfen/Fade des Stickers. */
+    scrollRef?: RefObject<HTMLElement | null>;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────
 
 function typeIcon(type: NotificationType) {
     switch (type) {
-        case 'message': return <MessageSquare size={16} className="text-blue-500" />;
-        case 'like':    return <Heart size={16} className="text-rose-500" />;
-        case 'alert':   return <AlertTriangle size={16} className="text-amber-500" />;
-        case 'review':  return <Star size={16} className="text-yellow-500" />;
-        case 'match':   return <Zap size={16} className="text-purple-500" />;
+        case 'message': return <MessageSquare size={16} className="text-blue-400" />;
+        case 'like':    return <Heart size={16} className="text-rose-400" />;
+        case 'alert':   return <AlertTriangle size={16} className="text-amber-400" />;
+        case 'review':  return <Star size={16} className="text-primary" />;
+        case 'match':   return <Zap size={16} className="text-violet-400" />;
         default:        return <Bell size={16} className="text-gray-400" />;
     }
 }
@@ -85,7 +101,7 @@ function groupByDate(notifications: AppNotification[]): Record<string, AppNotifi
 
 // ── Component ────────────────────────────────────────────────────
 
-export default function NotificationCenter({ onCountChange }: Props) {
+export default function NotificationCenter({ onCountChange, variant = 'desktop', scrollRef }: Props) {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
@@ -94,6 +110,13 @@ export default function NotificationCenter({ onCountChange }: Props) {
     const [unread, setUnread] = useState(0);
     const panelRef = useRef<HTMLDivElement>(null);
     const buttonRef = useRef<HTMLButtonElement>(null);
+    const dragControls = useDragControls();
+    const reduceMotion = useReducedMotion();
+
+    // Sticker schrumpft/fadet dezent beim Scrollen des Inhalts
+    const { scrollY } = useScroll({ container: scrollRef });
+    const stickerScale = useSpring(useTransform(scrollY, [0, 64], [1, 0.84]), { stiffness: 320, damping: 30 });
+    const stickerOpacity = useSpring(useTransform(scrollY, [0, 96], [1, 0.55]), { stiffness: 320, damping: 30 });
 
     // ── Fetch ──────────────────────────────────────────────────────
     // silent=true: kein Spinner-Flash, Liste bleibt stehen (gegen Flackern)
@@ -150,10 +173,10 @@ export default function NotificationCenter({ onCountChange }: Props) {
         return () => { supabase.removeChannel(channel); };
     }, [user, fetchNotifications]);
 
-    // ── Click outside ──────────────────────────────────────────────
+    // ── Click outside + Escape ─────────────────────────────────────
     useEffect(() => {
         if (!open) return;
-        const handler = (e: MouseEvent) => {
+        const clickHandler = (e: MouseEvent) => {
             if (
                 panelRef.current && !panelRef.current.contains(e.target as Node) &&
                 buttonRef.current && !buttonRef.current.contains(e.target as Node)
@@ -161,8 +184,15 @@ export default function NotificationCenter({ onCountChange }: Props) {
                 setOpen(false);
             }
         };
-        document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
+        const keyHandler = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setOpen(false);
+        };
+        document.addEventListener('mousedown', clickHandler);
+        window.addEventListener('keydown', keyHandler);
+        return () => {
+            document.removeEventListener('mousedown', clickHandler);
+            window.removeEventListener('keydown', keyHandler);
+        };
     }, [open]);
 
     const toggleOpen = () => {
@@ -171,6 +201,12 @@ export default function NotificationCenter({ onCountChange }: Props) {
         setOpen(willOpen);
         // Beim Öffnen still aktualisieren (kein Spinner-Flash)
         if (willOpen) fetchNotifications(true);
+    };
+
+    const startSheetDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
+        if (reduceMotion) return;
+        if ((e.target as Element).closest('button')) return;
+        dragControls.start(e);
     };
 
     // ── Mark all as read ───────────────────────────────────────────
@@ -200,136 +236,227 @@ export default function NotificationCenter({ onCountChange }: Props) {
 
     const groups = groupByDate(notifications);
     const hasNotifications = notifications.length > 0;
+    const badgeCount = unread > 99 ? '99+' : unread;
+    const triggerLabel = unread > 0 ? `Benachrichtigungen, ${unread} ungelesen` : 'Benachrichtigungen';
+
+    const headerContent = (
+        <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-gray-950 poster-grain-dark px-5 pb-4 pt-3.5 text-white">
+            <div className="min-w-0">
+                <div className="flex items-center gap-2.5">
+                    <h2 className="font-display text-base uppercase leading-none tracking-tight">Meldungen</h2>
+                    {unread > 0 && (
+                        <span className="grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1.5 text-[11px] font-black leading-none text-gray-950 tabular-nums">
+                            {badgeCount}
+                        </span>
+                    )}
+                </div>
+                <span className="mt-2 block h-1 w-10 rounded-full bg-primary" aria-hidden />
+            </div>
+            {hasNotifications && unread > 0 && (
+                <button
+                    type="button"
+                    onClick={markAllRead}
+                    className="press flex shrink-0 items-center gap-1.5 rounded-full border border-white/15 px-3 py-2 text-[11px] font-bold text-primary transition-colors hover:border-primary/50 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                    <CheckCheck size={13} />
+                    Alle als gelesen
+                </button>
+            )}
+        </div>
+    );
+
+    const listContent = (
+        <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-3 [scrollbar-width:thin]">
+            {loading && (
+                <div className="flex items-center justify-center py-12">
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                </div>
+            )}
+
+            {!loading && !hasNotifications && (
+                <div className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center">
+                    <div className="grid h-14 w-14 place-items-center rounded-2xl bg-gray-950 text-primary ring-1 ring-white/10">
+                        <BellOff size={24} />
+                    </div>
+                    <p className="font-display text-lg uppercase leading-none tracking-tight text-gray-900 dark:text-gray-50">Nichts Neues</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Du bist auf dem aktuellen Stand.</p>
+                </div>
+            )}
+
+            {!loading && hasNotifications && Object.entries(groups).map(([label, items]) => (
+                <div key={label} className="mb-1 last:mb-0">
+                    <p className="px-2 pb-1.5 pt-2 font-display text-[11px] uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">
+                        {label}
+                    </p>
+                    <div className="flex flex-col gap-2">
+                        {items.map(n => (
+                            <motion.button
+                                key={n.id}
+                                type="button"
+                                whileTap={reduceMotion ? undefined : { scale: 0.985 }}
+                                onClick={() => handleClick(n)}
+                                className={cn(
+                                    'flex w-full select-none cursor-pointer items-start gap-3 rounded-2xl border p-3.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                                    n.read
+                                        ? 'border-gray-200/90 bg-white/85 hover:bg-white dark:border-gray-800 dark:bg-gray-900/70 dark:hover:bg-gray-900'
+                                        : 'border-primary/45 bg-primary/[0.07] hover:bg-primary/10 dark:border-primary/30 dark:bg-primary/[0.06] dark:hover:bg-primary/10'
+                                )}
+                            >
+                                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gray-950 ring-1 ring-white/10">
+                                    {typeIcon(n.type)}
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                    <span className="block text-[13px] font-bold leading-snug text-gray-900 dark:text-gray-50">
+                                        {n.title}
+                                    </span>
+                                    <span className="mt-0.5 block text-xs leading-relaxed text-gray-500 line-clamp-2 dark:text-gray-400">
+                                        {n.body}
+                                    </span>
+                                    <span className="mt-1.5 block text-[10px] font-semibold tabular-nums text-gray-400 dark:text-gray-500">
+                                        {relativeTime(n.created_at)}
+                                    </span>
+                                </span>
+                                {!n.read && (
+                                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" aria-hidden />
+                                )}
+                            </motion.button>
+                        ))}
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
 
     return (
-        <div className="relative">
-            {/* Bell button */}
-            <motion.button
-                ref={buttonRef}
-                whileHover={{ scale: 1.08 }}
-                whileTap={{ scale: 0.92 }}
-                onClick={toggleOpen}
-                className="relative p-2.5 rounded-full text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors select-none cursor-pointer"
-                aria-label="Benachrichtigungen"
-            >
-                <Bell size={20} />
-                {unread > 0 && (
-                    <motion.span
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-gray-900 animate-pulse"
-                    />
-                )}
-            </motion.button>
+        <>
+            {variant === 'desktop' ? (
+                <div className="relative">
+                    {/* Glocke (Sidebar) */}
+                    <motion.button
+                        ref={buttonRef}
+                        type="button"
+                        whileHover={reduceMotion ? undefined : { scale: 1.08 }}
+                        whileTap={reduceMotion ? undefined : { scale: 0.92 }}
+                        onClick={toggleOpen}
+                        className="relative select-none cursor-pointer rounded-2xl p-2.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+                        aria-label={triggerLabel}
+                        aria-haspopup="dialog"
+                        aria-expanded={open}
+                    >
+                        <Bell size={20} />
+                        {unread > 0 && (
+                            <span className="absolute right-1.5 top-1.5 grid place-items-center" aria-hidden>
+                                <span className="absolute inset-0 animate-ping rounded-full bg-primary/70" />
+                                <span className="relative h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-white dark:ring-gray-900" />
+                            </span>
+                        )}
+                    </motion.button>
+                </div>
+            ) : (
+                /* Aufgeklebter Sticker — mobil, oben rechts unter der Safe-Area */
+                <div className="fixed right-4 top-[max(1rem,env(safe-area-inset-top))] z-40 md:hidden">
+                    <motion.div style={reduceMotion ? undefined : { scale: stickerScale, opacity: stickerOpacity }}>
+                        <motion.button
+                            ref={buttonRef}
+                            type="button"
+                            onClick={toggleOpen}
+                            initial={reduceMotion ? false : { scale: 0.4, rotate: -24, opacity: 0 }}
+                            animate={{ scale: 1, rotate: -6, opacity: 1 }}
+                            whileHover={reduceMotion ? undefined : { scale: 1.06, rotate: -2 }}
+                            whileTap={reduceMotion ? undefined : { scale: 0.9, rotate: -9 }}
+                            transition={{ type: 'spring', stiffness: 420, damping: 24 }}
+                            className={cn(
+                                'relative grid h-14 w-14 select-none cursor-pointer place-items-center rounded-2xl bg-gray-950 text-primary shadow-[0_14px_30px_-10px_rgba(0,0,0,0.65)] ring-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                                unread > 0 ? 'ring-primary/60' : 'ring-black/25'
+                            )}
+                            aria-label={triggerLabel}
+                            aria-haspopup="dialog"
+                            aria-expanded={open}
+                        >
+                            <span className="absolute top-2 h-1 w-10 rounded-full bg-primary" aria-hidden />
+                            <Bell size={22} strokeWidth={2.25} className="mt-1.5" />
+                            {unread > 0 && (
+                                <span className="absolute -right-1.5 -top-1.5 grid place-items-center">
+                                    <span className="absolute inset-0 animate-ping rounded-full bg-primary/70" aria-hidden />
+                                    <span className="relative grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1 text-[10px] font-black leading-none text-gray-950 ring-2 ring-[#f8f9fa] tabular-nums dark:ring-gray-950">
+                                        {badgeCount}
+                                    </span>
+                                </span>
+                            )}
+                        </motion.button>
+                    </motion.div>
+                </div>
+            )}
 
-            {/* Dropdown panel (Portal: immun gegen backdrop-blur/overflow der Header) */}
+            {/* Panel (Portal: immun gegen backdrop-blur/overflow der Header) */}
             {typeof document !== 'undefined' && createPortal(
             <AnimatePresence>
-                {open && (
+                {open && variant === 'desktop' && (
                     <motion.div
+                        key="desktop-panel"
                         ref={panelRef}
-                        initial={{ opacity: 0, scale: 0.97, y: 8 }}
+                        initial={reduceMotion ? false : { opacity: 0, scale: 0.97, y: 8 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.97, y: 6 }}
                         transition={{ type: 'tween', duration: 0.16, ease: 'easeOut' }}
-                        className={cn(
-                            // Mobile: volle Breite unter der Header-Leiste
-                            'fixed left-3 right-3 top-[4.5rem]',
-                            // Desktop: rechts angedockt mit echter Breite
-                            'md:left-auto md:right-6 md:top-[4.5rem] md:w-[380px]',
-                            'max-h-[70vh] md:max-h-[520px] overflow-hidden',
-                            'bg-white/95 dark:bg-gray-900/95 backdrop-blur-2xl',
-                            'rounded-3xl shadow-2xl border border-gray-200/80 dark:border-gray-800',
-                            'flex flex-col z-[9999]'
-                        )}
+                        className="fixed right-6 top-[4.5rem] z-[9999] hidden max-h-[520px] w-[380px] flex-col overflow-hidden rounded-3xl border border-gray-200/80 bg-[#faf7ef] shadow-2xl dark:border-gray-800 dark:bg-gray-950 md:flex"
                     >
-                        {/* Header */}
-                        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex-shrink-0">
-                            <div className="flex items-center gap-2">
-                                <span className="font-bold text-gray-900 dark:text-white text-sm">Benachrichtigungen</span>
-                                {unread > 0 && (
-                                    <span className="px-2 py-0.5 bg-primary/20 text-yellow-900 dark:text-yellow-200 text-xs font-black rounded-full">
-                                        {unread}
-                                    </span>
-                                )}
+                        {headerContent}
+                        {listContent}
+                    </motion.div>
+                )}
+
+                {open && variant === 'sticker' && (
+                    <motion.div
+                        key="mobile-scrim"
+                        initial={reduceMotion ? false : { opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.18 }}
+                        onClick={() => setOpen(false)}
+                        className="fixed inset-0 z-[9998] bg-gray-950/60 backdrop-blur-[2px] md:hidden"
+                        aria-hidden
+                    />
+                )}
+
+                {open && variant === 'sticker' && (
+                    <motion.div
+                        key="mobile-sheet"
+                        ref={panelRef}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Meldungen"
+                        initial={reduceMotion ? false : { y: '100%' }}
+                        animate={{ y: 0 }}
+                        exit={reduceMotion ? { opacity: 0 } : { y: '100%' }}
+                        transition={{ type: 'spring', stiffness: 380, damping: 38, mass: 0.9 }}
+                        drag={reduceMotion ? false : 'y'}
+                        dragControls={dragControls}
+                        dragListener={false}
+                        dragConstraints={{ top: 0, bottom: 0 }}
+                        dragElastic={{ top: 0, bottom: 0.6 }}
+                        dragMomentum={false}
+                        onDragEnd={(_, info) => {
+                            if (info.offset.y > 110 || info.velocity.y > 700) setOpen(false);
+                        }}
+                        className="fixed inset-x-0 bottom-0 z-[9999] flex max-h-[88dvh] flex-col overflow-hidden rounded-t-3xl border-x border-t border-gray-200/80 bg-[#faf7ef] shadow-[0_-24px_60px_-20px_rgba(0,0,0,0.6)] dark:border-gray-800 dark:bg-gray-950 md:hidden"
+                    >
+                        {/* Griff + schwarzer Kopf = Drag-Zone (Buttons ausgenommen) */}
+                        <div
+                            className="shrink-0 cursor-grab select-none touch-none bg-gray-950 poster-grain-dark pt-3"
+                            onPointerDown={startSheetDrag}
+                        >
+                            <div className="flex justify-center">
+                                <span className="h-1.5 w-12 rounded-full bg-white/25" aria-hidden />
                             </div>
-                            {hasNotifications && unread > 0 && (
-                                <button
-                                    onClick={markAllRead}
-                                    className="flex items-center gap-1.5 text-xs text-primary-hover font-bold hover:underline"
-                                >
-                                    <CheckCheck size={13} />
-                                    Alle als gelesen
-                                </button>
-                            )}
+                            {headerContent}
                         </div>
-
-                        {/* Body */}
-                        <div className="overflow-y-auto flex-1">
-                            {loading && (
-                                <div className="flex items-center justify-center py-12">
-                                    <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                                </div>
-                            )}
-
-                            {!loading && !hasNotifications && (
-                                <div className="flex flex-col items-center justify-center py-12 px-6 text-center gap-3">
-                                    <div className="w-14 h-14 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                                        <BellOff size={24} className="text-gray-400" />
-                                    </div>
-                                    <p className="font-bold text-sm text-gray-700 dark:text-gray-300">Keine Benachrichtigungen</p>
-                                    <p className="text-xs text-gray-400">Du bist auf dem aktuellen Stand!</p>
-                                </div>
-                            )}
-
-                            {!loading && hasNotifications && Object.entries(groups).map(([label, items]) => (
-                                <div key={label}>
-                                    <p className="px-5 pt-3 pb-1 text-[10px] font-extrabold uppercase tracking-widest text-gray-400">
-                                        {label}
-                                    </p>
-                                    {items.map(n => (
-                                        <motion.button
-                                            key={n.id}
-                                            whileHover={{ backgroundColor: "rgba(0, 0, 0, 0.03)" }}
-                                            whileTap={{ scale: 0.98 }}
-                                            onClick={() => handleClick(n)}
-                                            className={cn(
-                                                'w-full flex items-start gap-3 px-5 py-3 text-left transition-colors select-none cursor-pointer',
-                                                !n.read && 'bg-primary/5 dark:bg-primary/10'
-                                            )}
-                                        >
-                                            {/* Icon */}
-                                            <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                                {typeIcon(n.type)}
-                                            </div>
-
-                                            {/* Content */}
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-xs font-semibold text-gray-900 dark:text-white leading-snug">
-                                                    {n.title}
-                                                </p>
-                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2 leading-relaxed">
-                                                    {n.body}
-                                                </p>
-                                                <p className="text-[10px] text-gray-400 mt-1">
-                                                    {relativeTime(n.created_at)}
-                                                </p>
-                                            </div>
-
-                                            {/* Unread dot */}
-                                            {!n.read && (
-                                                <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-1.5" />
-                                            )}
-                                        </motion.button>
-                                    ))}
-                                </div>
-                            ))}
-                        </div>
+                        {listContent}
                     </motion.div>
                 )}
             </AnimatePresence>,
             document.body
             )}
-        </div>
+        </>
     );
 }

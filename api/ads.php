@@ -60,6 +60,100 @@ function fwg_saved_search_matches(array $q, string $type, array $subjects, array
     return true;
 }
 
+function fwg_load_profile_settings(PDO $pdo, string $userId): array {
+    if ($userId === '') return [];
+    try {
+        $stmt = $pdo->prepare('SELECT settings FROM profiles WHERE id = ? LIMIT 1');
+        $stmt->execute([$userId]);
+        return json_decode((string)$stmt->fetchColumn(), true) ?: [];
+    } catch (Throwable $e) {
+        return [];
+    }
+}
+
+function fwg_active_offer_subjects(PDO $pdo, string $userId): array {
+    if ($userId === '') return [];
+    try {
+        $stmt = $pdo->prepare("SELECT subjects FROM ads WHERE user_id = ? AND type = 'offer' AND is_active = 1 AND is_archived = 0 LIMIT 100");
+        $stmt->execute([$userId]);
+        $subjects = [];
+        foreach ($stmt->fetchAll() as $row) {
+            foreach (json_decode($row['subjects'] ?? '[]', true) ?: [] as $s) {
+                if (is_string($s) && $s !== '' && !in_array($s, $subjects, true)) {
+                    $subjects[] = $s;
+                }
+            }
+        }
+        return $subjects;
+    } catch (Throwable $e) {
+        return [];
+    }
+}
+
+function fwg_active_child_ids(PDO $pdo, string $parentId): array {
+    if ($parentId === '') return [];
+    try {
+        $stmt = $pdo->prepare("SELECT child_id FROM parent_links WHERE parent_id = ? AND status = 'active'");
+        $stmt->execute([$parentId]);
+        $ids = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $ids[] = (string)$row['child_id'];
+        }
+        return $ids;
+    } catch (Throwable $e) {
+        return [];
+    }
+}
+
+function fwg_search_view_context(PDO $pdo, array $viewer, bool $matchContext, string $matchFor = ''): array {
+    $viewerId = (string)($viewer['id'] ?? '');
+    $ctx = [
+        'viewer_id' => $viewerId,
+        'is_staff' => in_array((string)($viewer['role'] ?? ''), ['sv_admin', 'coach_admin'], true),
+        'teaches_subjects' => [],
+        'match_subjects' => [],
+        'child_ids' => fwg_active_child_ids($pdo, $viewerId),
+    ];
+
+    $settings = fwg_load_profile_settings($pdo, $viewerId);
+    $ctx['teaches_subjects'] = fwg_sanitize_feed_subjects($settings['teaches_subjects'] ?? []);
+
+    if ($matchContext) {
+        $sourceIds = [$viewerId];
+        if ($matchFor !== '' && preg_match('/^[0-9a-f-]{36}$/i', $matchFor)) {
+            if ($matchFor === $viewerId || in_array($matchFor, $ctx['child_ids'], true) || $ctx['is_staff']) {
+                $sourceIds[] = $matchFor;
+            }
+        }
+        $sourceIds = array_merge($sourceIds, $ctx['child_ids']);
+
+        $matchSubjects = [];
+        foreach (array_unique($sourceIds) as $uid) {
+            foreach (fwg_active_offer_subjects($pdo, (string)$uid) as $s) {
+                if (!in_array($s, $matchSubjects, true)) {
+                    $matchSubjects[] = $s;
+                }
+            }
+        }
+        $ctx['match_subjects'] = $matchSubjects;
+    }
+
+    return $ctx;
+}
+
+function fwg_can_view_search_ad(array $ctx, string $ownerId, array $adSubjects): bool {
+    if (!empty($ctx['is_staff'])) return true;
+    if ($ownerId !== '' && $ownerId === ($ctx['viewer_id'] ?? '')) return true;
+    if (in_array($ownerId, $ctx['child_ids'] ?? [], true)) return true;
+    foreach ($adSubjects as $s) {
+        if (is_string($s) && in_array($s, $ctx['teaches_subjects'] ?? [], true)) return true;
+    }
+    foreach ($adSubjects as $s) {
+        if (is_string($s) && in_array($s, $ctx['match_subjects'] ?? [], true)) return true;
+    }
+    return false;
+}
+
 // ------------------------------------------------------------------------------
 // 1. GET: ANZEIGEN ABRUFEN (Liste oder Einzelanzeige)
 // Zugriffsstufe (D5): erst nach Verifizierung / bei Eltern mit verknüpftem Kind.
@@ -91,6 +185,13 @@ if ($method === 'GET') {
         // fremde Anzeigen erfordern Verifizierung / Eltern-Verknüpfung.
         if ($ad['user_id'] !== $viewer['id']) {
             require_verified();
+        }
+
+        if ($ad['type'] === 'search') {
+            $adSubjects = json_decode($ad['subjects'] ?? '[]', true) ?: [];
+            if (!fwg_can_view_search_ad(fwg_search_view_context($pdo, $viewer, true), (string)$ad['user_id'], $adSubjects)) {
+                json_error('Dieses Gesuch ist privat und nur für passende Anbieter sichtbar.', 403, ['code' => 'search_private']);
+            }
         }
 
         // JSON Felder dekodieren
@@ -145,12 +246,27 @@ if ($method === 'GET') {
     $grade = $_GET['grade'] ?? null;
     $userId = $_GET['user_id'] ?? null;
     $search = mb_substr(trim($_GET['search'] ?? ''), 0, 100);
-    $onlyActive = !isset($_GET['all']) || $_GET['all'] !== '1';
+    $allParam = isset($_GET['all']) && is_string($_GET['all']) && $_GET['all'] === '1';
+    $onlyActive = !$allParam;
+    $matchContext = isset($_GET['match_context']) && is_string($_GET['match_context']) && $_GET['match_context'] === '1';
+    $matchFor = trim((string)($_GET['match_for'] ?? ''));
+    if ($matchFor !== '' && !preg_match('/^[0-9a-f-]{36}$/i', $matchFor)) {
+        $matchFor = '';
+    }
 
     // Eigene Anzeigen (user_id = eigener Account) bleiben für unverifizierte Konten
     // sichtbar (Profil/Settings); alles andere erfordert Verifizierung (D5).
     if (!(is_string($userId) && $userId === $viewer['id'])) {
         require_verified();
+    }
+
+    $searchViewCtx = fwg_search_view_context($pdo, $viewer, $matchContext, $matchFor);
+
+    if ($allParam && !in_array((string)($viewer['role'] ?? ''), ['sv_admin', 'coach_admin'], true)) {
+        $ownsScope = is_string($userId) && $userId !== '' && ($userId === $viewer['id'] || in_array($userId, $searchViewCtx['child_ids'], true));
+        if (!$ownsScope) {
+            $onlyActive = true;
+        }
     }
 
     $where = [];
@@ -210,6 +326,10 @@ if ($method === 'GET') {
     foreach ($rows as $row) {
         $subjects = json_decode($row['subjects'] ?? '[]', true) ?: [];
         $gradeLevels = json_decode($row['grade_levels'] ?? '[]', true) ?: [];
+
+        if ($row['type'] === 'search' && !fwg_can_view_search_ad($searchViewCtx, (string)$row['user_id'], $subjects)) {
+            continue;
+        }
 
         // Clientseitiges Filtern von JSON-Arrays, falls Parameter gesetzt
         if ($subject && !in_array($subject, $subjects)) {
@@ -275,14 +395,13 @@ if ($method === 'POST') {
     $data = get_json_input();
 
     // Verifizierungs-Gate (Backend-Enforcement zum Frontend-Check in CreateAd):
-    // Nur verifizierte Nutzer oder Eltern-Accounts dürfen Anzeigen erstellen.
+    // Nur verifizierte Nutzer dürfen Anzeigen erstellen.
     try {
-        $vStmt = $pdo->prepare('SELECT role, is_verified FROM profiles WHERE id = ?');
+        $vStmt = $pdo->prepare('SELECT is_verified FROM profiles WHERE id = ?');
         $vStmt->execute([$user['id']]);
         $vRow = $vStmt->fetch();
-        $vRole = $vRow['role'] ?? '';
         $vVerified = !empty($vRow['is_verified']);
-        if ($vRole !== 'parent' && !$vVerified) {
+        if (!$vVerified) {
             json_error('Dein Account ist noch nicht verifiziert. Bitte lasse dich im SV-Raum verifizieren, um Anzeigen zu erstellen.', 403);
         }
     } catch (Exception $e) {
@@ -290,14 +409,7 @@ if ($method === 'POST') {
         json_error('Verifizierung konnte nicht geprüft werden. Bitte später erneut versuchen.', 500);
     }
 
-    // Eltern legen Anzeigen im Namen ihres Kindes an: user_id im Body erlaubt
-    // die Attribution aufs Kind – aber nur bei aktiver Verknüpfung.
     $ownerId = $user['id'];
-    $requestedOwner = trim((string)($data['user_id'] ?? ''));
-    if ($requestedOwner !== '' && $requestedOwner !== $user['id']) {
-        fwg_assert_parent_of($requestedOwner, 'can_view_ads');
-        $ownerId = $requestedOwner;
-    }
 
     $type = $data['type'] ?? 'offer';
     if (!in_array($type, ['offer', 'search'])) {
@@ -379,47 +491,37 @@ if ($method === 'POST') {
 
     // B4: Gespeicherte Suchen auf die neue Anzeige prüfen und benachrichtigen
     // (max. 1 Benachrichtigung pro Suche/24 h über last_notified_at).
-    try {
-        $savedStmt = $pdo->prepare('
-            SELECT id, user_id, query
-            FROM saved_searches
-            WHERE user_id <> ?
-              AND (last_notified_at IS NULL OR last_notified_at < DATE_SUB(NOW(), INTERVAL 24 HOUR))
-        ');
-        $savedStmt->execute([$ownerId]);
-        foreach ($savedStmt->fetchAll() as $saved) {
-            $q = json_decode((string)$saved['query'], true);
-            if (!is_array($q)) continue;
-            if (!fwg_saved_search_matches($q, $type, $subjects, $gradeLevels, $priceDetails)) continue;
+    if ($type !== 'search') {
+        try {
+            $savedStmt = $pdo->prepare('
+                SELECT id, user_id, query
+                FROM saved_searches
+                WHERE user_id <> ?
+                  AND (last_notified_at IS NULL OR last_notified_at < DATE_SUB(NOW(), INTERVAL 24 HOUR))
+            ');
+            $savedStmt->execute([$ownerId]);
+            foreach ($savedStmt->fetchAll() as $saved) {
+                $q = json_decode((string)$saved['query'], true);
+                if (!is_array($q)) continue;
+                if (!fwg_saved_search_matches($q, $type, $subjects, $gradeLevels, $priceDetails)) continue;
 
-            $pdo->prepare('
-                INSERT INTO notifications (id, user_id, type, title, message, data)
-                VALUES (?, ?, "info", ?, ?, ?)
-            ')->execute([
-                generate_uuid(),
-                $saved['user_id'],
-                'Neue Anzeige zu deiner gemerkten Suche',
-                '„' . mb_substr($shortDesc, 0, 120) . '“ passt zu deiner gemerkten Suche.',
-                json_encode(['link' => '/#/'])
-            ]);
-            $pdo->prepare('UPDATE saved_searches SET last_notified_at = NOW() WHERE id = ?')->execute([$saved['id']]);
+                $pdo->prepare('
+                    INSERT INTO notifications (id, user_id, type, title, message, data)
+                    VALUES (?, ?, "info", ?, ?, ?)
+                ')->execute([
+                    generate_uuid(),
+                    $saved['user_id'],
+                    'Neue Anzeige zu deiner gemerkten Suche',
+                    '„' . mb_substr($shortDesc, 0, 120) . '“ passt zu deiner gemerkten Suche.',
+                    json_encode(['link' => '/#/'])
+                ]);
+                $pdo->prepare('UPDATE saved_searches SET last_notified_at = NOW() WHERE id = ?')->execute([$saved['id']]);
+            }
+        } catch (Throwable $e) {
+            // Benachrichtigungen dürfen das Erstellen der Anzeige nie verhindern.
+            error_log('saved search notify failed: ' . $e->getMessage());
         }
-    } catch (Throwable $e) {
-        // Benachrichtigungen dürfen das Erstellen der Anzeige nie verhindern.
-        error_log('saved search notify failed: ' . $e->getMessage());
     }
-
-    // Eltern des Kindes informieren, dass eine neue Anzeige online ist.
-    // (Der handelnde Elternteil selbst wird übersprungen.)
-    fwg_notify_parents(
-        $pdo,
-        $ownerId,
-        'parent_ad',
-        'Neue Anzeige Ihres Kindes',
-        'Für Ihr Kind wurde eine neue Anzeige veröffentlicht: „' . mb_substr($shortDesc, 0, 100) . '“.',
-        ['ad_id' => $adId, 'link' => '/#/parent-dashboard'],
-        $ownerId === $user['id'] ? '' : (string)$user['id']
-    );
 
     json_response([
         'id' => $adId,

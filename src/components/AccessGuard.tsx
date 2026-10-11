@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ShieldCheck, UserRoundPlus } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/Button';
 
-// Seiten, die auch ohne Verifizierung (bzw. ohne Kind-Verknüpfung) erreichbar bleiben:
-// Profil & Einstellungen enthalten die nötigen Schritte/Infos, das Eltern-Dashboard den Verknüpfen-Button.
+// Seiten, die auch ohne Verifizierung erreichbar bleiben:
+// Profil & Einstellungen enthalten die nötigen Schritte/Infos.
 const STUDENT_ALLOWED = ['/profile', '/settings'];
-const PARENT_ALLOWED = ['/profile', '/settings', '/parent-dashboard'];
 
-type Gate = 'unverified' | 'parent-link';
+type Gate = 'unverified';
 
 const GATE_CONTENT: Record<Gate, {
     icon: typeof ShieldCheck;
@@ -25,55 +24,44 @@ const GATE_CONTENT: Record<Gate, {
         cta: 'Zum Profil',
         target: '/profile',
     },
-    'parent-link': {
-        icon: UserRoundPlus,
-        title: 'Kind verknüpfen',
-        text: 'Bitte verknüpfen Sie zuerst ein Kind, um diese Funktion zu nutzen.',
-        cta: 'Zum Eltern-Dashboard',
-        target: '/parent-dashboard',
-    },
 };
 
 /**
  * AccessGuard (D5): zentrale Zugriffs-Weiche innerhalb der App-Shell.
- * Verifizierte Nutzer und verknüpfte Eltern sehen alle Seiten; alle anderen
- * bekommen eine klare Gate-Karte statt stiller Fehler (das Backend prüft parallel
- * mit require_verified() und liefert 403-Codes).
+ * Verifizierte Nutzer sehen alle Seiten; alle anderen bekommen eine klare
+ * Gate-Karte statt stiller Fehler (das Backend prüft parallel mit
+ * require_verified() und liefert 403-Codes).
  */
 export default function AccessGuard({ children }: { children: React.ReactNode }) {
-    const { profile, isVerified, isParent, isAdmin, isCoachAdmin, parentLinkReady } = useAuth();
+    const { profile, isVerified, isAdmin, isCoachAdmin } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
     const [deniedCode, setDeniedCode] = useState<Gate | null>(null);
 
-    // Belt-and-Braces: Antwortet das Backend mit 403 (not_verified/parent_link_required),
+    // Belt-and-Braces: Antwortet das Backend mit 403 (not_verified),
     // obwohl der Client-State noch „ok“ sagt, greift das Gate trotzdem (Event aus api.ts).
     useEffect(() => {
         const onDenied = (event: Event) => {
             const code = (event as CustomEvent<{ code?: string }>).detail?.code;
             if (code === 'not_verified') setDeniedCode('unverified');
-            else if (code === 'parent_link_required') setDeniedCode('parent-link');
         };
         window.addEventListener('fwg:access-denied', onDenied);
         return () => window.removeEventListener('fwg:access-denied', onDenied);
     }, []);
 
-    // Gate freigeben, sobald der serverseitige Zustand passt (nach Verifizierung/Verknüpfung).
+    // Gate freigeben, sobald der serverseitige Zustand passt (nach Verifizierung).
     useEffect(() => {
         if (deniedCode === 'unverified' && isVerified) setDeniedCode(null);
-        if (deniedCode === 'parent-link' && parentLinkReady === true) setDeniedCode(null);
-    }, [deniedCode, isVerified, parentLinkReady]);
+    }, [deniedCode, isVerified]);
 
     const isStaff = isAdmin || isCoachAdmin;
     const gate: Gate | null = isStaff || !profile
         ? null
-        : isParent
-            ? (parentLinkReady === false ? 'parent-link' : null)
-            : (isVerified ? null : 'unverified');
+        : (isVerified ? null : 'unverified');
     const activeGate = deniedCode || gate;
 
     if (activeGate) {
-        const allowed = activeGate === 'parent-link' ? PARENT_ALLOWED : STUDENT_ALLOWED;
+        const allowed = STUDENT_ALLOWED;
         if (allowed.some(p => location.pathname.startsWith(p))) {
             return <>{children}</>;
         }

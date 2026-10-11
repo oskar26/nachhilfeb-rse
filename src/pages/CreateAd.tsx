@@ -72,9 +72,6 @@ export default function CreateAd() {
     const [isVerified, setIsVerified] = useState(false);
     const [loadingProfile, setLoadingProfile] = useState(true);
 
-    const [children, setChildren] = useState<any[]>([]);
-    const [selectedChildId, setSelectedChildId] = useState<string>('');
-
     // Form Data
     const [formData, setFormData] = useState({ ...INITIAL_FORM });
     const [subjectQuery, setSubjectQuery] = useState('');
@@ -133,21 +130,7 @@ export default function CreateAd() {
         const { data } = await supabase.from('profiles').select('*').eq('id', user?.id).single();
         if (data) {
             setProfile(data);
-            setIsVerified(data.role === 'parent' ? true : data.is_verified);
-
-            if (data.role === 'parent') {
-                const { data: links } = await supabase
-                    .from('parent_links')
-                    .select('*, child:child_id(id, display_name, first_name, last_name, grade_level)')
-                    .eq('parent_id', user?.id)
-                    .eq('status', 'active');
-
-                if (links && links.length > 0) {
-                    const childList = links.map((l: any) => l.child).filter(c => c !== null);
-                    setChildren(childList);
-                    setSelectedChildId(childList[0].id);
-                }
-            }
+            setIsVerified(!!data.is_verified);
         }
         setLoadingProfile(false);
     }
@@ -227,7 +210,6 @@ export default function CreateAd() {
                     if (typeof parsed.currentStep === 'number' && parsed.currentStep >= 0 && parsed.currentStep < STEPS.length) {
                         setCurrentStep(parsed.currentStep);
                     }
-                    if (typeof parsed.selectedChildId === 'string') setSelectedChildId(parsed.selectedChildId);
                     if (typeof parsed.savedAt === 'string') setDraftSavedAt(parsed.savedAt);
                     toast.success('Entwurf wiederhergestellt – du machst weiter, wo du aufgehört hast.');
                 }
@@ -245,19 +227,18 @@ export default function CreateAd() {
         if (!draftRestored) return;
         try {
             const savedAt = new Date().toISOString();
-            localStorage.setItem(DRAFT_KEY, JSON.stringify({ formData, currentStep, selectedChildId, savedAt }));
+            localStorage.setItem(DRAFT_KEY, JSON.stringify({ formData, currentStep, savedAt }));
             setDraftSavedAt(savedAt);
         } catch {
             // Voller/blockierter Storage darf den Flow nie stoppen.
         }
-    }, [formData, currentStep, selectedChildId, draftRestored]);
+    }, [formData, currentStep, draftRestored]);
 
     const discardDraft = () => {
         try {
             localStorage.removeItem(DRAFT_KEY);
         } catch { /* ignore */ }
         setFormData({ ...INITIAL_FORM });
-        setSelectedChildId(children[0]?.id ?? '');
         setCurrentStep(0);
         setSubjectQuery('');
         setDraftSavedAt(null);
@@ -315,10 +296,8 @@ export default function CreateAd() {
         // session_format-Feld und nicht in den sichtbaren Text.
         const cleanShortDescription = formData.short_description.replace(/^\[Kleingruppe\]\s*/, '');
 
-        const effectiveUserId = profile?.role === 'parent' && selectedChildId ? selectedChildId : user.id;
-
         const { error } = await supabase.from('ads').insert({
-            user_id: effectiveUserId,
+            user_id: user.id,
             type: formData.type,
             session_format: formData.session_format,
             subjects: formData.subjects,
@@ -536,39 +515,7 @@ export default function CreateAd() {
                     {/* Step 0: Type & Title */}
                     {currentStep === 0 && (
                         <div className="space-y-6">
-                            {profile?.role === 'parent' && (
-                                <div className="bg-primary/10 border border-primary/20 p-4 sm:p-5 rounded-2xl space-y-3">
-                                    <h4 className="font-bold text-sm text-primary-hover">Anzeige für Ihr Kind erstellen</h4>
-                                    {children.length === 0 ? (
-                                        <div className="space-y-2">
-                                            <p className="text-xs text-gray-500">Sie haben noch kein Schülerkonto mit Ihrem Eltern-Account verknüpft.</p>
-                                            <Button size="sm" onClick={() => navigate('/parent-dashboard')} className="rounded-xl font-bold">Kind jetzt verknüpfen</Button>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-bold uppercase text-gray-500 ml-1">Kind auswählen</label>
-                                            <select
-                                                value={selectedChildId}
-                                                onChange={e => setSelectedChildId(e.target.value)}
-                                                className="w-full h-10 px-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 font-semibold text-sm"
-                                            >
-                                                {children.map(c => (
-                                                    <option key={c.id} value={c.id}>
-                                                        {c.display_name || `${c.first_name} ${c.last_name}`} (Klasse/Stufe {c.grade_level})
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {profile?.role === 'parent' && children.length === 0 ? (
-                                <div className="text-center py-8 text-gray-400 text-sm font-semibold">
-                                    Bitte verknüpfen Sie ein Kind, um fortzufahren.
-                                </div>
-                            ) : (
-                                <>
+                            <>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <button
                                             type="button"
@@ -593,6 +540,16 @@ export default function CreateAd() {
                                             <span>Ich suche Nachhilfe</span>
                                         </button>
                                     </div>
+
+                                    {formData.type === 'search' && (
+                                        <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 rounded-2xl p-4 flex gap-3 text-blue-900 dark:text-blue-200">
+                                            <Lock size={18} className="shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
+                                            <div className="text-xs leading-relaxed space-y-1">
+                                                <p className="font-bold text-sm">Dein Gesuch ist privat.</p>
+                                                <p>Es erscheint nicht öffentlich im Feed, sondern nur bei passenden Anbietern (Match) bzw. bei Nutzern, die diese Fächer laut Profil anbieten. Das SV-Team sieht es zur Moderation.</p>
+                                            </div>
+                                        </div>
+                                    )}
                                     
                                     {/* Unterrichts-Format: Einzel / Kleingruppe / Egal */}
                                     <div>
@@ -638,8 +595,7 @@ export default function CreateAd() {
                                         />
                                         <p className="text-[11px] text-gray-500 mt-1.5">So erscheint deine Anzeige im Feed. Fach und Klasse im Titel helfen beim Finden.</p>
                                     </div>
-                                </>
-                            )}
+                            </>
                         </div>
                     )}
 
@@ -1071,8 +1027,12 @@ export default function CreateAd() {
                             <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg flex gap-3 text-yellow-800 text-sm mb-6">
                                 <AlertCircle className="shrink-0" />
                                 <div>
-                                    <p className="font-bold">Fast fertig!</p>
-                                    <p>Bitte überprüfe deine Angaben. Nach dem Veröffentlichen ist die Anzeige sofort sichtbar.</p>
+                                    <p className="font-bold">{formData.type === 'search' ? 'Prüfe dein Gesuch' : 'Fast fertig!'}</p>
+                                    {formData.type === 'search' ? (
+                                        <p>Nach dem Veröffentlichen sehen es nur passende Anbieter sowie das SV-Team zur Moderation.</p>
+                                    ) : (
+                                        <p>Bitte überprüfe deine Angaben. Nach dem Veröffentlichen ist die Anzeige sofort sichtbar.</p>
+                                    )}
                                 </div>
                             </div>
 

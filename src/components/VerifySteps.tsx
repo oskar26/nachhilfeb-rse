@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion';
-import { Smartphone, DoorOpen, BadgeCheck, KeyRound } from 'lucide-react';
+import { Smartphone, DoorOpen, BadgeCheck } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 /* Single Source of Truth für die Schüler-Verifizierung (beschlossene Wahrheit
@@ -35,24 +35,9 @@ export interface VerifyStepsProps {
     tone?: VerifyTone;
     /* Optik je Einbauort (Klassen 1:1 aus den bisherigen Seiten, nur Inhalt vereinheitlicht). */
     variant?: VerifyVariant;
-    /* Optionale Zusatzzeile: scort den einzigen legitimen Code-Fall exakt ein —
-       nur Eltern-Verknüpfung, nicht Schüler-Verifizierung. */
-    parentNote?: boolean;
 }
 
-function ParentNote({ dark }: { dark: boolean }) {
-    return (
-        <p className={`mt-3 flex items-start gap-2 text-sm leading-relaxed ${dark ? 'text-gray-300' : 'text-gray-600'}`}>
-            <KeyRound size={15} className={`mt-0.5 shrink-0 ${dark ? 'text-primary' : 'text-amber-700'}`} aria-hidden />
-            <span>
-                <strong className={dark ? 'text-white' : 'text-gray-900'}>Nur die Eltern-Verknüpfung braucht einen Code</strong>
-                {', die Schüler-Verifizierung nicht.'}
-            </span>
-        </p>
-    );
-}
-
-export default function VerifySteps({ tone = 'du', variant = 'rows', parentNote = false }: VerifyStepsProps) {
+export default function VerifySteps({ tone = 'du', variant = 'rows' }: VerifyStepsProps) {
     const steps = tone === 'sie' ? STEPS_SIE : STEPS_DU;
     const reduceMotion = useReducedMotion();
     /* Liste als Liste: 3-Schritt-Stagger, Total-Delay 180 ms (Cap ~400 ms). */
@@ -78,7 +63,6 @@ export default function VerifySteps({ tone = 'du', variant = 'rows', parentNote 
                         </motion.li>
                     ))}
                 </ol>
-                {parentNote && <ParentNote dark />}
             </>
         );
     }
@@ -94,7 +78,6 @@ export default function VerifySteps({ tone = 'du', variant = 'rows', parentNote 
                         </motion.li>
                     ))}
                 </ol>
-                {parentNote && <ParentNote dark={false} />}
             </>
         );
     }
@@ -115,7 +98,6 @@ export default function VerifySteps({ tone = 'du', variant = 'rows', parentNote 
                         </motion.li>
                     ))}
                 </ol>
-                {parentNote && <ParentNote dark />}
             </>
         );
     }
@@ -133,7 +115,6 @@ export default function VerifySteps({ tone = 'du', variant = 'rows', parentNote 
                     </motion.li>
                 ))}
             </ol>
-            {parentNote && <ParentNote dark={false} />}
         </>
     );
 }

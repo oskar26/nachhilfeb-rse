@@ -1,37 +1,45 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
-import { User, Shield, BadgeCheck, Loader2, Mail, Phone, Settings as SettingsIcon, Pen, Users, Sparkles, CalendarDays, Award, Shuffle, Palette, X, Lock, Eye, Plus, Trash2 } from 'lucide-react';
+import { User, Shield, Loader2, Mail, Phone, Settings as SettingsIcon, Pen, Sparkles, CalendarDays, Award, Shuffle, Palette, X, Lock, Eye, Plus, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-hot-toast';
-import { SubjectChip, type Subject } from '../components/SubjectChip';
+import { SubjectChip, SUBJECT_CATEGORIES, subjectLabelMap, type Subject } from '../components/SubjectChip';
 import { RefinedGradeSelector } from '../components/RefinedGradeSelector';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { RichTextEditor } from '../components/RichTextEditor';
 import { AvailabilityCalendar, emptyAvailability, type Availability } from '../components/AvailabilityCalendar';
 import { sanitizeHtml } from '../lib/sanitize';
-import ChildLinkModal from '../components/ChildLinkModal';
-import { ParentProfileCard } from '../components/parent/ParentProfileCard';
 import { triggerHaptic } from '../lib/haptics';
 import AvatarMakerModal from '../components/AvatarMakerModal';
+import ConfettiBurst from '../components/ConfettiBurst';
+import SubjectPickerDialog from '../components/SubjectPickerDialog';
 import { extractDominantGradient, getDefaultGradient, getRandomGradient, PRESET_GRADIENTS } from '../lib/colorExtractor';
 import { Switch } from '../components/ui/Switch';
 import { VerifiedPill } from '../components/ui/VerifiedPill';
 import { CONTACT_TYPES, getContactType, newContactId, type CustomContact } from '../components/CustomContacts';
 
+// Kanonische Fächer-Keys aus SubjectChip (Single Source of Truth).
+const CANONICAL_SUBJECTS = new Set<Subject>(SUBJECT_CATEGORIES.flatMap(category => category.subjects));
+
 export default function Profile() {
     const { user, profile: authProfile, refreshProfile } = useAuth();
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(!authProfile);
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
     const [availability, setAvailability] = useState<Availability>(emptyAvailability());
     const [privacyCalendar, setPrivacyCalendar] = useState(true);
-    const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+    const [isSubjectPickerOpen, setIsSubjectPickerOpen] = useState(false);
     const [isAvatarMakerOpen, setIsAvatarMakerOpen] = useState(false);
+    const [profileDataReady, setProfileDataReady] = useState(false);
+    const [showConfetti, setShowConfetti] = useState(false);
+    const prevStrengthRef = useRef<number | null>(null);
+    const subjectsSaveQueueRef = useRef<Promise<void>>(Promise.resolve());
     const [bannerGradient, setBannerGradient] = useState<string>(getDefaultGradient());
     const [showColorPicker, setShowColorPicker] = useState(false);
     const [customColor, setCustomColor] = useState('#f59e0b');
@@ -54,6 +62,7 @@ export default function Profile() {
             phone_visible: boolean;
             contact_links: { type: string; value: string }[];
             custom_contacts: CustomContact[];
+            teaches_subjects?: Subject[];
         };
         offered_subjects: Subject[];
     }>({
@@ -119,10 +128,15 @@ export default function Profile() {
                 contact_other: migratedContacts.length > 0 ? '' : (data.contact_other || ''),
                 email: data.email || user?.email || '',
                 settings: {
+                    // Unbekannte Keys bewusst erhalten (wie in Settings.tsx).
+                    ...userSettings,
                     email_visible: userSettings.email_visible ?? false,
                     phone_visible: userSettings.phone_visible ?? false,
                     contact_links: userSettings.contact_links || [],
-                    custom_contacts: hasCustomContacts ? userSettings.custom_contacts : migratedContacts
+                    custom_contacts: hasCustomContacts ? userSettings.custom_contacts : migratedContacts,
+                    teaches_subjects: Array.isArray(userSettings.teaches_subjects)
+                        ? userSettings.teaches_subjects.filter((s: string) => CANONICAL_SUBJECTS.has(s as Subject))
+                        : []
                 },
                 offered_subjects: Array.from(subjectsSet)
             });
@@ -138,6 +152,7 @@ export default function Profile() {
             }
         }
         setLoading(false);
+        setProfileDataReady(true);
     }
 
     useEffect(() => {
@@ -229,22 +244,80 @@ export default function Profile() {
         }));
     };
 
+    // Fächer: lokal sofort optimistisch setzen, dann das komplette settings-Objekt
+    // frisch laden, teaches_subjects mergen (unbekannte Keys bleiben erhalten) und
+    // zurückschreiben. Schreibvorgänge werden serialisiert, damit schnelle Taps
+    // sich nicht gegenseitig überschreiben.
+    const saveTeachesSubjects = (subjects: Subject[]) => {
+        if (!user) return;
+        setProfile(prev => ({
+            ...prev,
+            settings: { ...prev.settings, teaches_subjects: subjects }
+        }));
+        subjectsSaveQueueRef.current = subjectsSaveQueueRef.current.then(async () => {
+            const { data } = await supabase.from('profiles').select('settings').eq('id', user.id).single();
+            const raw = (data?.settings as Record<string, unknown>) || {};
+            const { error } = await supabase
+                .from('profiles')
+                .update({ settings: { ...raw, teaches_subjects: subjects } })
+                .eq('id', user.id);
+            if (error) {
+                triggerHaptic('error');
+                toast.error('Fächer konnten nicht gespeichert werden');
+            }
+        });
+    };
+
+    const toggleTeachesSubject = (subject: Subject) => {
+        triggerHaptic('selection');
+        const current = profile.settings.teaches_subjects || [];
+        const next = current.includes(subject)
+            ? current.filter(s => s !== subject)
+            : [...current, subject];
+        saveTeachesSubjects(next);
+    };
+
+    // Editierbare Fächer aus dem Profil vs. schreibgeschützte Fächer, die nur
+    // über aktive Angebots-Anzeigen kommen ("über Anzeigen verwaltet").
+    const editableSubjects: Subject[] = profile.settings.teaches_subjects || [];
+    const adManagedSubjects = profile.offered_subjects.filter(s => !editableSubjects.includes(s));
+    const teachingSubjects = Array.from(new Set<Subject>([...editableSubjects, ...profile.offered_subjects]));
+
+    // Profil-Stärke (unveränderter Score) – wird bei 100 % ausgeblendet.
+    const strengthChecks = [
+        { label: 'Name & Klasse', done: Boolean(profile.first_name && profile.grade_level) },
+        { label: 'Kurz-Bio', done: Boolean((profile.bio || '').replace(/<[^>]+>/g, '').trim().length > 20) },
+        { label: 'Zeiten eintragen', done: Object.values(availability).some(d => d.length > 0) },
+        { label: 'Verifiziert', done: Boolean(profile.is_verified) },
+        { label: 'Erste Anzeige', done: teachingSubjects.length > 0 },
+    ];
+    const strengthDoneCount = strengthChecks.filter(c => c.done).length + (profile.first_name ? 0 : 0);
+    const strengthPct = Math.max(20, Math.round((strengthDoneCount / strengthChecks.length) * 100));
+
+    // Konfetti nur beim ECHTEN Übergang <100 → 100 in dieser Session, nicht beim
+    // initialen Laden (Baseline wird erst gesetzt, wenn die Profildaten da sind).
+    useEffect(() => {
+        if (!profileDataReady) return;
+        const prev = prevStrengthRef.current;
+        prevStrengthRef.current = strengthPct;
+        if (prev !== null && prev < 100 && strengthPct === 100) {
+            const timer = window.setTimeout(() => setShowConfetti(true), 0);
+            return () => window.clearTimeout(timer);
+        }
+    }, [profileDataReady, strengthPct]);
+
+    useEffect(() => {
+        if (!showConfetti) return;
+        const timer = window.setTimeout(() => setShowConfetti(false), 1800);
+        return () => window.clearTimeout(timer);
+    }, [showConfetti]);
+
     if (loading) return (
         <div className="flex flex-col items-center justify-center p-20 gap-3">
             <Loader2 className="animate-spin text-primary" size={32} />
             <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Profil wird geladen...</p>
         </div>
     );
-
-    // Eltern-Accounts haben ein reduziertes Profil: Name, Anzeigename, Avatar
-    // und E-Mail-Adresse. Alles zum Kind steuern sie im Eltern-Dashboard.
-    if (authProfile?.role === 'parent') {
-        return (
-            <div className="mx-auto max-w-3xl px-4 pb-28 pt-6 sm:px-6">
-                <ParentProfileCard />
-            </div>
-        );
-    }
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -269,7 +342,7 @@ export default function Profile() {
             {/* Header with Dynamic Banner & Avatar */}
             <motion.div variants={itemVariants} className="relative rounded-3xl overflow-hidden shadow-soft border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
                 {/* Banner */}
-                <div className="h-36 transition-colors duration-700 shadow-inner relative flex justify-between items-start p-3.5 gap-2" style={{ background: bannerGradient }}>
+                <div className="h-36 transition-colors duration-700 shadow-inner relative flex justify-between items-start p-3.5 pr-16 gap-2 md:pr-3.5" style={{ background: bannerGradient }}>
                     <div className="flex items-center gap-1.5 flex-wrap relative z-10">
                         <button
                             type="button"
@@ -377,7 +450,7 @@ export default function Profile() {
                 </div>
 
                 {/* Avatar & User Info */}
-                <div className="flex flex-col items-center text-center px-6 pb-6 -mt-16">
+                <div className="flex flex-col items-center text-center px-4 pb-6 -mt-16 sm:px-6">
                     <div className="relative group mb-2">
                         <div
                             className="relative p-1.5 rounded-full shadow-xl"
@@ -447,19 +520,6 @@ export default function Profile() {
                         <Link to="/settings" onClick={() => triggerHaptic('light')} className="flex items-center text-gray-600 dark:text-gray-300 text-xs font-semibold gap-1 bg-gray-100/80 dark:bg-gray-800/80 px-3 py-1 rounded-full hover:bg-gray-200/80 transition-colors border border-gray-200/50 dark:border-gray-700/50">
                             <SettingsIcon size={13} /> Einstellungen
                         </Link>
-                        {authProfile?.role === 'student' && (
-                            <motion.button
-                                whileHover={{ scale: 1.04 }}
-                                whileTap={{ scale: 0.96 }}
-                                onClick={() => {
-                                    triggerHaptic('light');
-                                    setIsLinkModalOpen(true);
-                                }}
-                                className="flex items-center text-yellow-900 dark:text-yellow-200 text-xs gap-1 bg-primary/20 font-bold px-3 py-1 rounded-full hover:bg-primary/30 transition-colors shadow-xs"
-                            >
-                                <Users size={13} /> Eltern verknüpfen
-                            </motion.button>
-                        )}
                     </div>
                 </div>
             </motion.div>
@@ -477,37 +537,26 @@ export default function Profile() {
                 </motion.div>
             )}
 
-            {/* Goal gradient: head-start from signup (name+grade), never 0% */}
-            {(() => {
-                const checks = [
-                    { label: 'Name & Klasse', done: Boolean(profile.first_name && profile.grade_level) },
-                    { label: 'Kurz-Bio', done: Boolean((profile.bio || '').replace(/<[^>]+>/g, '').trim().length > 20) },
-                    { label: 'Zeiten eintragen', done: Object.values(availability).some(d => d.length > 0) },
-                    { label: 'Verifiziert', done: Boolean(profile.is_verified) },
-                    { label: 'Erste Anzeige', done: profile.offered_subjects.length > 0 },
-                ];
-                // Head start: account exists = always at least the first item when name present
-                const doneCount = checks.filter(c => c.done).length + (profile.first_name ? 0 : 0);
-                const pct = Math.max(20, Math.round((doneCount / checks.length) * 100));
-                return (
-                    <motion.div variants={itemVariants} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-4 rounded-2xl shadow-soft" aria-label={`Profil-Fortschritt: ${pct} Prozent`}>
-                        <div className="flex items-center justify-between mb-2 gap-3">
-                            <p className="text-xs font-extrabold uppercase tracking-wider text-gray-400">Profil-Stärke</p>
-                            <p className="text-sm font-black text-gray-900 dark:text-white tabular-nums">{pct}%</p>
-                        </div>
-                        <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden mb-3" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-                            <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${pct}%` }} />
-                        </div>
-                        <ul className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[11px] font-semibold">
-                            {checks.map(c => (
-                                <li key={c.label} className={cn('flex items-center gap-1', c.done ? 'text-green-700 dark:text-green-400' : 'text-gray-400')}>
-                                    <span aria-hidden>{c.done ? '✓' : '○'}</span> {c.label}
-                                </li>
-                            ))}
-                        </ul>
-                    </motion.div>
-                );
-            })()}
+            {/* Goal gradient: head-start from signup (name+grade), never 0%.
+                Bei 100 % verschwindet das Widget; der Übergang wird oben gefeiert. */}
+            {strengthPct < 100 && (
+                <motion.div variants={itemVariants} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-4 rounded-2xl shadow-soft" aria-label={`Profil-Fortschritt: ${strengthPct} Prozent`}>
+                    <div className="flex items-center justify-between mb-2 gap-3">
+                        <p className="text-xs font-extrabold uppercase tracking-wider text-gray-400">Profil-Stärke</p>
+                        <p className="text-sm font-black text-gray-900 dark:text-white tabular-nums">{strengthPct}%</p>
+                    </div>
+                    <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden mb-3" role="progressbar" aria-valuenow={strengthPct} aria-valuemin={0} aria-valuemax={100}>
+                        <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${strengthPct}%` }} />
+                    </div>
+                    <ul className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[11px] font-semibold">
+                        {strengthChecks.map(c => (
+                            <li key={c.label} className={cn('flex items-center gap-1', c.done ? 'text-green-700 dark:text-green-400' : 'text-gray-400')}>
+                                <span aria-hidden>{c.done ? '✓' : '○'}</span> {c.label}
+                            </li>
+                        ))}
+                    </ul>
+                </motion.div>
+            )}
 
             {/* Profile Data Card */}
             <motion.div variants={itemVariants}>
@@ -530,7 +579,7 @@ export default function Profile() {
                             </Button>
                         </div>
                     </CardHeader>
-                    <CardContent className="space-y-5 p-6">
+                    <CardContent className="space-y-5 p-4 sm:p-6">
                         {/* Names */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
@@ -590,17 +639,17 @@ export default function Profile() {
 
                             <div className="space-y-3">
                                 {/* Email */}
-                                <div className="flex items-center gap-3">
+                                <div className="flex flex-wrap items-center gap-3">
                                     <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center shrink-0">
                                         <Mail size={16} className="text-gray-500" />
                                     </div>
                                     <Input
                                         value={profile.email}
-                                        className="h-10 text-xs"
+                                        className="h-10 min-w-0 flex-1 basis-40 text-xs"
                                         disabled
                                     />
                                     {isEditing && (
-                                        <div className="flex items-center gap-1.5 shrink-0">
+                                        <div className="flex w-full items-center justify-end gap-1.5 sm:w-auto sm:shrink-0">
                                             <Switch
                                                 checked={profile.settings.email_visible}
                                                 onChange={() => toggleSetting('email_visible')}
@@ -612,7 +661,7 @@ export default function Profile() {
                                 </div>
 
                                 {/* Phone */}
-                                <div className="flex items-center gap-3">
+                                <div className="flex flex-wrap items-center gap-3">
                                     <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center shrink-0">
                                         <Phone size={16} className="text-gray-500" />
                                     </div>
@@ -620,11 +669,11 @@ export default function Profile() {
                                         placeholder="Handynummer (Optional)"
                                         value={profile.phone_number}
                                         onChange={e => setProfile({ ...profile, phone_number: e.target.value })}
-                                        className="h-10 text-xs"
+                                        className="h-10 min-w-0 flex-1 basis-40 text-xs"
                                         disabled={!isEditing}
                                     />
                                     {isEditing && (
-                                        <div className="flex items-center gap-1.5 shrink-0">
+                                        <div className="flex w-full items-center justify-end gap-1.5 sm:w-auto sm:shrink-0">
                                             <Switch
                                                 checked={profile.settings.phone_visible}
                                                 onChange={() => toggleSetting('phone_visible')}
@@ -639,7 +688,7 @@ export default function Profile() {
                                 {(profile.settings.custom_contacts || []).map((contact, idx) => {
                                     const ContactIcon = getContactType(contact.type).icon;
                                     return (
-                                        <div key={contact.id} className="flex items-center gap-2">
+                                        <div key={contact.id} className="flex flex-wrap items-center gap-2">
                                             <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center shrink-0">
                                                 <ContactIcon size={16} className="text-gray-500" />
                                             </div>
@@ -659,11 +708,11 @@ export default function Profile() {
                                                 value={contact.value || ''}
                                                 disabled={!isEditing}
                                                 onChange={e => updateCustomContact(idx, { value: e.target.value })}
-                                                className="h-10 text-xs"
+                                                className="h-10 min-w-0 flex-1 basis-32 text-xs"
                                             />
                                             {isEditing && (
-                                                <>
-                                                    <div className="flex items-center gap-1.5 shrink-0">
+                                                <div className="flex w-full items-center justify-end gap-2 sm:w-auto sm:shrink-0">
+                                                    <div className="flex items-center gap-1.5">
                                                         <Switch
                                                             checked={!!contact.is_public}
                                                             onChange={() => updateCustomContact(idx, { is_public: !contact.is_public })}
@@ -679,7 +728,7 @@ export default function Profile() {
                                                     >
                                                         <Trash2 size={16} />
                                                     </button>
-                                                </>
+                                                </div>
                                             )}
                                         </div>
                                     );
@@ -698,16 +747,67 @@ export default function Profile() {
 
                         <div className="border-t border-gray-100 dark:border-gray-800 my-4" />
 
-                        {/* Read Only Offered Subjects */}
                         <div>
-                            <label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-2.5 block">Meine Angebote (aus aktiven Anzeigen)</label>
-                            <div className="flex flex-wrap gap-2">
-                                {profile.offered_subjects.length > 0 ? (
-                                    profile.offered_subjects.map(s => <SubjectChip key={s} subject={s} />)
-                                ) : (
-                                    <span className="text-xs text-gray-400 italic">Erstelle eine Anzeige, um hier angebotene Fächer zu präsentieren.</span>
-                                )}
+                            <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+                                <label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 block">Ich biete Nachhilfe</label>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                        triggerHaptic('light');
+                                        navigate('/create-ad');
+                                    }}
+                                    className="rounded-full text-xs font-bold gap-1.5 h-9 sm:h-8"
+                                >
+                                    <Plus size={14} /> Anzeige erstellen
+                                </Button>
                             </div>
+
+                            {/* Editierbare Fächer (teaches_subjects): Tap auf × entfernt */}
+                            <div className="flex flex-wrap items-center gap-2">
+                                {editableSubjects.map(s => (
+                                    <span key={s} className="relative inline-flex">
+                                        <SubjectChip subject={s} className="pr-6" />
+                                        <button
+                                            type="button"
+                                            onClick={() => toggleTeachesSubject(s)}
+                                            aria-label={`${subjectLabelMap[s]} entfernen`}
+                                            className="absolute right-0 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full text-gray-600 transition-colors hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 after:absolute after:-inset-2 after:content-['']"
+                                        >
+                                            <X size={12} strokeWidth={3} />
+                                        </button>
+                                    </span>
+                                ))}
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        triggerHaptic('light');
+                                        setIsSubjectPickerOpen(true);
+                                    }}
+                                    className="press inline-flex h-9 items-center gap-1 rounded-full border border-dashed border-gray-300 dark:border-gray-700 px-3 text-xs font-bold text-gray-600 dark:text-gray-300 transition-colors hover:border-primary hover:text-amber-950 dark:hover:text-primary sm:h-8"
+                                >
+                                    <Plus size={14} /> Fach hinzufügen
+                                </button>
+                            </div>
+                            {editableSubjects.length === 0 && (
+                                <p className="text-xs text-gray-400 italic mt-2">Noch keine Fächer gewählt.</p>
+                            )}
+
+                            {/* Read-only: nur über aktive Angebots-Anzeigen */}
+                            {adManagedSubjects.length > 0 && (
+                                <div className="mt-4">
+                                    <p className="text-[11px] font-extrabold uppercase tracking-wider text-gray-400 mb-2">
+                                        Aus deinen aktiven Anzeigen · über Anzeigen verwaltet
+                                    </p>
+                                    <div className="flex flex-wrap gap-2 opacity-80">
+                                        {adManagedSubjects.map(s => <SubjectChip key={s} subject={s} />)}
+                                    </div>
+                                </div>
+                            )}
+
+                            <p className="text-[11px] text-gray-400 mt-2.5 leading-relaxed">
+                                Deine gewählten Fächer steuern, welche privaten Gesuche du im Feed siehst. Tippe auf ×, um ein Fach zu entfernen.
+                            </p>
                         </div>
                     </CardContent>
                 </Card>
@@ -719,7 +819,7 @@ export default function Profile() {
                     <CardHeader className="pb-3">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                             <CardTitle className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
-                                <CalendarDays size={20} className="text-primary" /> Wann hast du Zeit? (Verfügbarkeit)
+                                <CalendarDays size={20} className="text-primary shrink-0" /> Wann hast du Zeit? (Verfügbarkeit)
                             </CardTitle>
                             {isEditing && (
                                 <button
@@ -743,11 +843,16 @@ export default function Profile() {
                             {isEditing ? ' Klicke auf die Zeiten unten, um deine freien Stunden einzutragen.' : ''}
                         </p>
                     </CardHeader>
-                    <CardContent className="pt-2 pb-6">
-                        <AvailabilityCalendar
-                            availability={availability}
-                            onChange={isEditing ? setAvailability : undefined}
-                        />
+                    <CardContent className="px-4 pb-6 pt-2 sm:px-6">
+                        {/* Size-Containment: Der Kalender scrollt intern horizontal
+                            (overflow-x-auto), darf aber die Profilseite auf schmalen
+                            Viewports nicht aufziehen. */}
+                        <div className="[contain:inline-size]">
+                            <AvailabilityCalendar
+                                availability={availability}
+                                onChange={isEditing ? setAvailability : undefined}
+                            />
+                        </div>
                         {!isEditing && (
                             <div className="mt-4 flex justify-end">
                                 <Button
@@ -757,7 +862,7 @@ export default function Profile() {
                                         triggerHaptic('light');
                                         setIsEditing(true);
                                     }}
-                                    className="rounded-xl text-xs font-bold gap-1.5"
+                                    className="rounded-xl text-xs font-bold gap-1.5 h-9 sm:h-8"
                                 >
                                     <Pen size={13} /> Zeiten bearbeiten
                                 </Button>
@@ -767,10 +872,12 @@ export default function Profile() {
                 </Card>
             </motion.div>
 
-            {/* Child Link Modal */}
-            <ChildLinkModal
-                isOpen={isLinkModalOpen}
-                onClose={() => setIsLinkModalOpen(false)}
+            {/* Fach-Auswahl (teaches_subjects) */}
+            <SubjectPickerDialog
+                open={isSubjectPickerOpen}
+                onClose={() => setIsSubjectPickerOpen(false)}
+                selected={editableSubjects}
+                onToggle={toggleTeachesSubject}
             />
 
             {/* Avatar Maker Modal */}
@@ -780,6 +887,9 @@ export default function Profile() {
                 onSave={handleAvatarSaved}
                 initialName={`${profile.first_name} ${profile.last_name}`}
             />
+
+            {/* Konfetti beim Übergang auf 100 % Profil-Stärke */}
+            {showConfetti && <ConfettiBurst />}
         </motion.div>
     );
 }

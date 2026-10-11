@@ -157,6 +157,14 @@ export function findCommonSubjects(arr1: string[], arr2: string[]): string[] {
     return result;
 }
 
+function isYoungOfferOwner(ad: MatchAd): boolean {
+    if (ad.type !== 'offer') return false;
+    const grade = String(ad.profiles?.grade_level ?? '').trim().toUpperCase();
+    return grade === '5' || grade === '6';
+}
+
+const YOUNG_OFFER_PENALTY = 18;
+
 // ── Scoring (Start bei 20 %) ─────────────────────────────────────
 
 export function computeMatches(ctx: MatchContext): Match[] {
@@ -276,6 +284,10 @@ export function computeMatches(ctx: MatchContext): Match[] {
                     reasons.push('Verifizierter FWG Schüler');
                 }
 
+                if (isYoungOfferOwner(candAd)) {
+                    score -= YOUNG_OFFER_PENALTY;
+                }
+
                 const clampedScore = Math.min(100, Math.max(20, score));
 
                 if (clampedScore > bestScore) {
@@ -329,6 +341,10 @@ export function computeMatches(ctx: MatchContext): Match[] {
             if (candAd.profiles?.is_verified) {
                 fallbackScore += 5;
                 reasons.push('Verifizierter Account');
+            }
+
+            if (isYoungOfferOwner(candAd)) {
+                fallbackScore -= YOUNG_OFFER_PENALTY;
             }
 
             const clampedFallback = Math.min(100, Math.max(20, fallbackScore));

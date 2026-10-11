@@ -93,7 +93,7 @@ export default function Datenschutz() {
                 </Section>
 
                 <Section id="d2" title="2. Welche Daten verarbeiten wir – und wofür?">
-                    <p><strong>Registrierung & Account (Art. 6 Abs. 1 lit. b DSGVO (Vertrag)):</strong> E-Mail-Adresse, selbst gewählter Name, Rolle (Schüler/in, Elternteil), Klassenstufe und Geburtsdatum (zur Prüfung der Alters- und Schulregeln). Das Passwort wird ausschließlich als sicherer Hash gespeichert – im Klartext kennt es niemand.</p>
+                    <p><strong>Registrierung & Account (Art. 6 Abs. 1 lit. b DSGVO (Vertrag)):</strong> E-Mail-Adresse, selbst gewählter Name, Rolle (Schüler/in), Klassenstufe und Geburtsdatum (zur Prüfung der Alters- und Schulregeln). Das Passwort wird ausschließlich als sicherer Hash gespeichert – im Klartext kennt es niemand.</p>
                     <p><strong>Profil & Anzeigen (Art. 6 Abs. 1 lit. b DSGVO):</strong> Alle Angaben, die du freiwillig in Profil und Anzeigen einträgst (Fächer, Beschreibung, Preise, Verfügbarkeiten, Profilbild). Anzeigen sind für alle angemeldeten Nutzer sichtbar.</p>
                     <p><strong>Nachrichten & Anfragen (Art. 6 Abs. 1 lit. b DSGVO):</strong> Chat-Nachrichten und Anfragen zwischen Nutzern, damit die Vermittlung funktioniert.</p>
                     <p><strong>Verifizierung & Sicherheit (Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse am Schutz Minderjähriger)):</strong> Verifizierungsstatus, Sperrstatus bei Regelverstößen sowie ein Protokoll von Moderationsmaßnahmen (wer wurde wann von wem aus welchem Grund verwarnt/gesperrt).</p>
@@ -114,8 +114,9 @@ export default function Datenschutz() {
                         doppelt sichtbar und nachvollziehbar.
                     </p>
                     <p>
-                        Eltern können verknüpfte Kinder-Accounts einsehen und die Einwilligung jederzeit
-                        mit Wirkung für die Zukunft widerrufen – wende dich dazu an{' '}
+                        Eltern können den Account ihres Kindes gemeinsam mit ihm nutzen und betreuen –
+                        etwa Anzeigen und Anfragen im Blick behalten. Die Einwilligung kann jederzeit
+                        mit Wirkung für die Zukunft widerrufen werden – wende dich dazu an{' '}
                         <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-amber-700 dark:text-primary hover:underline break-anywhere">info@nachhilfe-sv.de</a>.
                         Nach dem Widerruf wird der Account des Kindes deaktiviert.
                     </p>

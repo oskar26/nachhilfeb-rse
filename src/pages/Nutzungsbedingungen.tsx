@@ -196,7 +196,7 @@ export default function Nutzungsbedingungen() {
                     <Para id="p2" nr="02" title="§ 2 Wer darf mitmachen?">
                         <ParaList items={[
                             <span key="a"><strong>Schülerinnen und Schüler</strong> des Friedrich-Wilhelm-Gymnasiums Köln können Accounts erstellen, Anzeigen aufgeben und Nachrichten schreiben.</span>,
-                            <span key="b"><strong>Eltern</strong> können eigene Accounts erstellen, für ihre Kinder inserieren und verknüpfte Kinder-Accounts begleiten.</span>,
+                            <span key="b"><strong>Eltern</strong> können den Account ihres Kindes gemeinsam mit ihm betreuen – einen eigenen Eltern-Account gibt es nicht.</span>,
                             <span key="c">Nutzerinnen und Nutzer <strong>unter 16 Jahren</strong> benötigen die <strong>Einwilligung eines Elternteils</strong> (Art. 8 DSGVO). Ohne bestätigte Eltern-E-Mail bleibt der Account eingeschränkt.</span>,
                             <span key="d">Nur <strong>verifizierte Accounts</strong> (Verifizierung im SV-Raum) können Anzeigen erstellen und Kontakt aufnehmen.</span>,
                         ]} />
@@ -210,7 +210,7 @@ export default function Nutzungsbedingungen() {
                         <ParaList items={[
                             <span key="a">Pro Person ist <strong>ein Account</strong> vorgesehen. Die Angaben bei der Registrierung müssen zutreffen (keine falschen Namen, Klassen oder Rollen).</span>,
                             <span key="b">Deine <strong>Zugangsdaten sind geheim zu halten</strong>. Bei Verdacht auf Missbrauch informiere uns sofort über <a href={`mailto:${MAIL}`} className={MAIL_CLS}>{MAIL}</a>.</span>,
-                            <span key="c">Die Angabe einer falschen Rolle (z. B. Eltern-Account ohne Elternschaft) oder die Umgehung der Verifizierung führt zur Sperrung.</span>,
+                            <span key="c">Die Angabe einer falschen Rolle oder die Umgehung der Verifizierung führt zur Sperrung.</span>,
                         ]} />
                     </Para>
 

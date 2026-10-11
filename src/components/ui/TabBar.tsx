@@ -1,4 +1,5 @@
-import { useRef, type ComponentType, type KeyboardEvent } from 'react';
+import { useId, useRef, type ComponentType, type KeyboardEvent } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '../../lib/utils';
 import { triggerHaptic } from '../../lib/haptics';
 
@@ -24,15 +25,17 @@ interface TabBarProps<T extends string = string> {
 }
 
 /**
- * Gemeinsame Tab-Leiste (A1): gleich breite Spalten per CSS-Grid, aktiver
- * Zustand als reine Farbfläche – keine `layoutId`-Pille, damit beim Wechsel
- * nichts flackert oder springt. Zähler-Badges haben eine Mindestbreite.
- * Pfeiltasten/Home/End bewegen den Fokus (Roving Tabindex).
- * Ab 6 Einträgen wird horizontal gescrollt statt gequetscht, damit Labels
- * wie „Überblick“ nicht zu „Ü…“ abgeschnitten werden (Eltern-Leitstand: 7 Tabs).
+ * Plakat-Tab-Leiste (Redesign): schwarze Segment-Pille mit gelbem Aktiv-Segment.
+ * Der Aktiv-Zustand wandert als framer-motion-`layoutId`-Fläche (pro Instanz
+ * eindeutig via useId) — kein Flackern, kein Springen. Icons + Zähler-Badges,
+ * gleich breite Spalten per CSS-Grid; ab 6 Einträgen wird horizontal
+ * scrollbar-frei gescrollt statt gequetscht (Eltern-Leitstand: 7 Tabs).
+ * Pfeiltasten/Home/End bewegen den Fokus (Roving Tabindex) — API unverändert.
  */
 export function TabBar<T extends string = string>({ items, value, onChange, ariaLabel, className, idPrefix }: TabBarProps<T>) {
     const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+    const indicatorId = `tab-indicator-${useId()}`;
+    const reduceMotion = useReducedMotion();
     const scrollable = items.length > 5;
 
     const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
@@ -69,8 +72,8 @@ export function TabBar<T extends string = string>({ items, value, onChange, aria
             role="tablist"
             aria-label={ariaLabel}
             className={cn(
-                'w-full rounded-2xl border border-gray-200/60 bg-white p-1 shadow-sm dark:border-gray-800/80 dark:bg-gray-900 sm:p-1.5',
-                scrollable ? 'flex gap-1 overflow-x-auto' : 'grid gap-1',
+                'relative w-full rounded-2xl border border-black/70 bg-gray-950 p-1 shadow-soft dark:border-white/10 dark:bg-gray-900 sm:p-1.5',
+                scrollable ? 'no-scrollbar flex gap-1 overflow-x-auto' : 'grid gap-1',
                 className
             )}
             style={scrollable ? undefined : { gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
@@ -95,25 +98,33 @@ export function TabBar<T extends string = string>({ items, value, onChange, aria
                             onChange(item.key);
                         }}
                         className={cn(
-                            'flex min-h-[40px] cursor-pointer items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-bold transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] dark:focus-visible:ring-primary sm:text-sm',
-                            scrollable ? 'shrink-0 whitespace-nowrap px-3' : 'min-w-0 px-1.5 sm:px-2',
-                            isActive
-                                ? 'bg-primary text-amber-950'
-                                : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100'
+                            'relative flex min-h-[44px] cursor-pointer items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-xs font-bold transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950 dark:focus-visible:ring-offset-gray-900 sm:text-sm',
+                            scrollable ? 'shrink-0 whitespace-nowrap px-3.5' : 'min-w-0',
+                            isActive ? 'text-gray-950' : 'text-gray-400 hover:text-white'
                         )}
                     >
-                        {Icon && <Icon aria-hidden size={16} className={cn('shrink-0', !isActive && 'text-gray-400')} />}
-                        <span className={scrollable ? undefined : 'truncate'}>{item.label}</span>
-                        {typeof item.count === 'number' && item.count > 0 && (
-                            <span
-                                className={cn(
-                                    'inline-flex min-w-[1.25rem] shrink-0 items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-black tabular-nums',
-                                    isActive ? 'bg-black/15 text-amber-950' : 'bg-red-500 text-white'
-                                )}
-                            >
-                                {item.count}
-                            </span>
+                        {isActive && (
+                            <motion.span
+                                layoutId={indicatorId}
+                                className="absolute inset-0 rounded-xl bg-primary"
+                                transition={reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 520, damping: 38 }}
+                                aria-hidden
+                            />
                         )}
+                        <span className="relative z-10 flex min-w-0 items-center gap-1.5">
+                            {Icon && <Icon aria-hidden size={16} className={cn('shrink-0', isActive ? 'text-gray-950' : 'text-gray-500')} />}
+                            <span className={scrollable ? undefined : 'truncate'}>{item.label}</span>
+                            {typeof item.count === 'number' && item.count > 0 && (
+                                <span
+                                    className={cn(
+                                        'inline-flex min-w-[1.25rem] shrink-0 items-center justify-center rounded-full px-1.5 py-0.5 font-mono text-[10px] font-black tabular-nums',
+                                        isActive ? 'bg-gray-950/15 text-gray-950' : 'bg-primary/20 text-primary'
+                                    )}
+                                >
+                                    {item.count}
+                                </span>
+                            )}
+                        </span>
                     </button>
                 );
             })}

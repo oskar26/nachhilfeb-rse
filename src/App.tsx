@@ -6,7 +6,6 @@ import Feed from './pages/Feed';
 import Login from './pages/Login';
 import SVDashboard from './pages/admin/Dashboard';
 import AdminLayout from './pages/admin/AdminLayout';
-import ParentDashboard from './pages/ParentDashboard';
 import CreateAd from './pages/CreateAd';
 import AdDetails from './pages/AdDetails';
 import Profile from './pages/Profile';
@@ -140,7 +139,6 @@ function App() {
               <Route path="sv-panel" element={<AdminRoute><AdminLayout /></AdminRoute>}>
                 <Route index element={<SVDashboard />} />
               </Route>
-              <Route path="parent-dashboard" element={<ParentDashboard />} />
               <Route path="social" element={<Social />} />
               <Route path="requests" element={<Social initialTab="requests" />} />
               <Route path="matches" element={<Social initialTab="matches" />} />

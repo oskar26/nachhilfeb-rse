@@ -9,7 +9,7 @@ import {
     CheckCircle, MessageSquare, Star, 
     Calendar, Share2, Award 
 } from 'lucide-react';
-import { SubjectChip } from '../components/SubjectChip';
+import { SubjectChip, subjectLabelMap } from '../components/SubjectChip';
 import type { Subject } from '../components/SubjectChip';
 import { sanitizeHtml } from '../lib/sanitize';
 import { triggerHaptic } from '../lib/haptics';
@@ -90,6 +90,11 @@ export default function PublicProfile() {
         </div>
     );
     if (!profile) return <div className="p-8 text-center text-red-500 font-bold">Profil nicht gefunden.</div>;
+
+    const teachingSubjects = Array.from(new Set<string>([
+        ...(Array.isArray(profile.teaches_subjects) ? profile.teaches_subjects : []),
+        ...ads.filter(ad => ad.type === 'offer').flatMap(ad => (ad.subjects || []) as string[])
+    ])).filter((s): s is Subject => s in subjectLabelMap);
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -206,6 +211,17 @@ export default function PublicProfile() {
                                 </div>
                         </Card>
                     </motion.div>
+
+                    {teachingSubjects.length > 0 && (
+                        <motion.div variants={itemVariants}>
+                            <Card className="p-5 border border-gray-200/80 dark:border-gray-800 shadow-xs bg-white dark:bg-gray-900 rounded-3xl">
+                                <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-3">Ich biete Nachhilfe</h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {teachingSubjects.map(s => <SubjectChip key={s} subject={s} />)}
+                                </div>
+                            </Card>
+                        </motion.div>
+                    )}
 
                     <motion.div variants={itemVariants}>
                         <Card className="p-5 border border-gray-200/80 dark:border-gray-800 shadow-xs bg-white dark:bg-gray-900 rounded-3xl">

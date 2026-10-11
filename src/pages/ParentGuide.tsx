@@ -1,5 +1,5 @@
-import { ShieldCheck, BadgeCheck, KeyRound, Mail, Check, LayoutDashboard } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { ShieldCheck, BadgeCheck, Mail, Check, Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
 import StaticLayout from '../components/StaticLayout';
@@ -29,14 +29,7 @@ function CheckRow({ children }: { children: React.ReactNode }) {
     );
 }
 
-const PARENT_STEPS = [
-    { n: '1', t: 'Registrieren', d: 'Eltern-Account erstellen (Rolle „Elternteil“) und die E-Mail-Adresse bestätigen.' },
-    { n: '2', t: 'Code anfragen', d: 'Ihr Kind zeigt den 6-stelligen Code unter „Einstellungen → Eltern-Verknüpfung“.' },
-    { n: '3', t: 'Verknüpfen', d: 'Code im Eltern-Dashboard eingeben – der Link ist sofort aktiv, Ihr Account automatisch verifiziert.' },
-];
-
 export default function ParentGuide() {
-    const navigate = useNavigate();
     const reduceMotion = useReducedMotion();
     /* Read-Modus: ruhiger als die Landing — dezenter Authored Reveal (y 18, 0.55 s). */
     const anim: AnimFn = (delay = 0) => reduceMotion ? {} : {
@@ -56,7 +49,7 @@ export default function ParentGuide() {
     return (
         <StaticLayout
             title="Leitfaden für Eltern"
-            intro="Verifizierte Accounts, SV-Moderation und ein Eltern-Dashboard, das Ihnen den Überblick über die Nachhilfe Ihres Kindes gibt."
+            intro="Kein eigener Eltern-Account, kein Verknüpfungscode: Eltern betreuen die Nachhilfe gemeinsam mit ihrem Kind – hier steht, wie das geht und was die Börse sicher macht."
         >
             <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-16 min-w-0 flex flex-col gap-10 sm:gap-12">
 
@@ -76,16 +69,16 @@ export default function ParentGuide() {
                     </div>
                     <motion.span {...wipeLine()} className="mt-2 ml-14 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
                     <dl className="mt-5">
-                        <SpecRowDark label="Zugang">Nur Schülerinnen und Schüler des Friedrich-Wilhelm-Gymnasiums sowie deren Eltern.</SpecRowDark>
+                        <SpecRowDark label="Zugang">Konten legen nur Schülerinnen und Schüler des Friedrich-Wilhelm-Gymnasiums an.</SpecRowDark>
                         <SpecRowDark label="Verifizierung">Schüler persönlich im SV-Raum, ohne Code. Einfach melden.</SpecRowDark>
-                        <SpecRowDark label="Eltern-Konten">Werden mit der ersten Kind-Verknüpfung automatisch verifiziert.</SpecRowDark>
+                        <SpecRowDark label="Gemeinsam">Ihr Kind nutzt seinen Schüler-Account; Sie schauen und unterstützen gemeinsam – ein eigener Eltern-Account ist nicht nötig.</SpecRowDark>
                         <SpecRowDark label="Treffen">Meist direkt in der Schule, z. B. Bibliothek oder Mensa.</SpecRowDark>
                         <SpecRowDark label="Schutz">Unverifizierte Konten bleiben eingeschränkt und können deaktiviert werden.</SpecRowDark>
                     </dl>
                     <h3 className="mt-6 text-xs font-bold uppercase tracking-[0.14em] text-gray-400">
                         Verifizierung in 3 Schritten
                     </h3>
-                    <VerifySteps tone="sie" variant="rows-dark" parentNote />
+                    <VerifySteps tone="sie" variant="rows-dark" />
                 </motion.section>
 
                 {/* B: Helle Preis-Tafel mit Preis in Mono */}
@@ -118,7 +111,46 @@ export default function ParentGuide() {
                     </div>
                 </motion.section>
 
-                {/* C: Awareness & Kontakt als schlichte Checkliste */}
+                {/* C: Gemeinsame Betreuung — kein Eltern-Account, kein Verknüpfungscode */}
+                <motion.section
+                    aria-labelledby="eltern-gemeinsam"
+                    {...anim()}
+                    className="rounded-3xl bg-white dark:bg-gray-900 p-6 sm:p-8 border border-gray-100 dark:border-gray-800 shadow-soft"
+                >
+                    <div className="flex items-center gap-3">
+                        <span className="grid place-items-center w-11 h-11 rounded-2xl bg-primary text-black shrink-0" aria-hidden>
+                            <Users size={22} />
+                        </span>
+                        <h2 id="eltern-gemeinsam" className="font-display uppercase text-2xl sm:text-3xl tracking-tight text-gray-900 dark:text-white">
+                            Gemeinsam betreuen
+                        </h2>
+                    </div>
+                    <motion.span {...wipeLine()} className="mt-2 ml-14 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
+                    <p className="mt-5 text-[15px] leading-7 text-gray-600 dark:text-gray-300 max-w-prose">
+                        Sie brauchen weder einen eigenen Account noch einen Verknüpfungscode. Die Betreuung läuft
+                        gemeinsam über den Schüler-Account Ihres Kindes:
+                    </p>
+                    <ul className="mt-5">
+                        <CheckRow>
+                            <strong className="text-gray-900 dark:text-white">Ein Konto, gemeinsam genutzt:</strong> Ihr Kind nutzt seinen verifizierten Schüler-Account; Sie schauen und unterstützen mit – zum Beispiel beim Erstellen von Anzeigen oder beim Durchgehen von Anfragen.
+                        </CheckRow>
+                        <CheckRow>
+                            <strong className="text-gray-900 dark:text-white">Nichts zu verknüpfen:</strong> Es gibt keinen Eltern-Account und keinen Code. Öffnen Sie die Börse einfach gemeinsam mit Ihrem Kind.
+                        </CheckRow>
+                        <CheckRow>
+                            <strong className="text-gray-900 dark:text-white">Gemeinsam im Blick:</strong> Anzeigen, Anfragen, passende Matches und Merkliste können Sie zusammen durchgehen.
+                        </CheckRow>
+                        <CheckRow>
+                            <strong className="text-gray-900 dark:text-white">Grenzen respektieren:</strong> Die Chat-Nachrichten gehören Ihrem Kind. Die Börse legt dafür bewusst keine Eltern-Zugänge an.
+                        </CheckRow>
+                        <CheckRow>
+                            <strong className="text-gray-900 dark:text-white">Fragen & Beschwerden:</strong> Wenden Sie sich jederzeit an das SV-Team unter{' '}
+                            <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-amber-700 dark:text-primary hover:underline break-anywhere">info@nachhilfe-sv.de</a>.
+                        </CheckRow>
+                    </ul>
+                </motion.section>
+
+                {/* D: Awareness & Kontakt als schlichte Checkliste */}
                 <motion.section
                     aria-labelledby="eltern-awareness"
                     {...anim()}
@@ -144,89 +176,40 @@ export default function ParentGuide() {
                             <strong className="text-gray-900 dark:text-white">Konsequenz:</strong> Verwarnung oder sofortige Sperrung bei Verstößen.
                         </CheckRow>
                         <CheckRow>
+                            <strong className="text-gray-900 dark:text-white">Keine Zahlungen:</strong> Die Börse wickelt keine Zahlungen ab. Vergütung und Umfang vereinbaren Sie direkt mit der Anbieter-Familie.
+                        </CheckRow>
+                        <CheckRow>
                             <strong className="text-gray-900 dark:text-white">Primär-Kontakt:</strong>{' '}
                             <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-amber-700 dark:text-primary hover:underline break-anywhere">info@nachhilfe-sv.de</a>
                             {'. Fragen und Hilfe rund um die Börse.'}
                         </CheckRow>
-                        <CheckRow>
-                            <strong className="text-gray-900 dark:text-white">Hinweis:</strong> Vergütung und Umfang vereinbaren Sie direkt mit der Anbieter-Familie. Das SV-Team vermittelt nur den Kontakt.
-                        </CheckRow>
                     </ul>
                 </motion.section>
 
-                {/* C2: Eltern-Dashboard — was Sie nach der Verknüpfung alles können */}
+                {/* E: Schwarzer CTA-Block mit der einzigen Aktion der Seite */}
                 <motion.section
-                    aria-labelledby="eltern-dashboard"
-                    {...anim()}
-                    className="rounded-3xl bg-white dark:bg-gray-900 p-6 sm:p-8 border border-gray-100 dark:border-gray-800 shadow-soft"
-                >
-                    <div className="flex items-center gap-3">
-                        <span className="grid place-items-center w-11 h-11 rounded-2xl bg-primary text-black shrink-0" aria-hidden>
-                            <LayoutDashboard size={22} />
-                        </span>
-                        <h2 id="eltern-dashboard" className="font-display uppercase text-2xl sm:text-3xl tracking-tight text-gray-900 dark:text-white">
-                            Ihr Eltern-Dashboard
-                        </h2>
-                    </div>
-                    <motion.span {...wipeLine()} className="mt-2 ml-14 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
-                    <p className="mt-5 text-[15px] leading-7 text-gray-600 dark:text-gray-300 max-w-prose">
-                        Nach der Verknüpfung haben Sie einen Ort für alles rund um Ihr Kind – übersichtlich sortiert nach Bereichen
-                        und jederzeit aktuell, weil die Daten mit dem Kinderkonto synchron laufen.
-                    </p>
-                    <ul className="mt-5">
-                        <CheckRow>
-                            <strong className="text-gray-900 dark:text-white">Überblick:</strong> Aktivitäts-Verlauf und Kennzahlen zu Anzeigen, Anfragen und Bewertungen auf einen Blick.
-                        </CheckRow>
-                        <CheckRow>
-                            <strong className="text-gray-900 dark:text-white">Anzeigen:</strong> Alle Inserate Ihres Kindes sehen, neue aufgeben und Anzeigen pausieren oder reaktivieren.
-                        </CheckRow>
-                        <CheckRow>
-                            <strong className="text-gray-900 dark:text-white">Anfragen & Matches:</strong> Ein- und ausgehende Anfragen mit Status verfolgen und passende Vorschläge für Ihr Kind einsehen.
-                        </CheckRow>
-                        <CheckRow>
-                            <strong className="text-gray-900 dark:text-white">Merkliste & Bewertungen:</strong> Gemerkte Angebote und Feedback anderer Schülerinnen und Schüler nachvollziehen.
-                        </CheckRow>
-                        <CheckRow>
-                            <strong className="text-gray-900 dark:text-white">Profil & Einstellungen:</strong> Name, Klasse, Fächer, Bio, Verfügbarkeit und Sichtbarkeit fürs Kind pflegen – und selbst entscheiden, ob Sie zu Neuigkeiten benachrichtigt werden.
-                        </CheckRow>
-                        <CheckRow>
-                            <strong className="text-gray-900 dark:text-white">Privatsphäre:</strong> Sie sehen den Status jeder Anfrage, aber nie die Nachrichten im Chat Ihres Kindes.
-                        </CheckRow>
-                    </ul>
-                </motion.section>
-
-                {/* D: Schwarzer CTA-Block mit der einzigen CTA der Seite */}
-                <motion.section
-                    aria-labelledby="eltern-konto"
+                    aria-labelledby="eltern-kontakt"
                     {...anim()}
                     className="rounded-3xl bg-gray-950 dark:bg-gray-900 text-white p-6 sm:p-10 shadow-soft text-center"
                 >
-                    <h2 id="eltern-konto" className="font-display uppercase text-2xl sm:text-3xl tracking-tight flex items-center justify-center gap-2">
-                        <KeyRound className="text-primary" size={24} aria-hidden /> Eltern-Account einrichten
+                    <h2 id="eltern-kontakt" className="font-display uppercase text-2xl sm:text-3xl tracking-tight flex items-center justify-center gap-2">
+                        <Users className="text-primary" size={24} aria-hidden /> Gemeinsam mit Ihrem Kind
                     </h2>
                     <motion.span {...wipeLine()} className="mx-auto mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
                     <p className="mt-4 text-[15px] leading-7 text-gray-300 max-w-2xl mx-auto">
-                        Verknüpfen Sie Ihr Elternkonto mit dem Konto Ihres Kindes – Sie sehen danach Anzeigen, Anfragen, Matches und Merkliste an einem Ort und sind bei Neuigkeiten informiert.
+                        Kein eigener Eltern-Account, kein Verknüpfungscode: Ihr Kind nutzt seinen Schüler-Account,
+                        Sie schauen und unterstützen gemeinsam. Bei Fragen, Problemen oder Beschwerden hilft das SV-Team.
                     </p>
-                    <ol className="mt-6 grid gap-3 text-left max-w-2xl mx-auto">
-                        {PARENT_STEPS.map(s => (
-                            <li key={s.n} className="flex gap-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-                                <span className="grid place-items-center w-8 h-8 rounded-full bg-primary text-black font-bold text-xs font-mono tabular-nums shrink-0" aria-hidden>
-                                    {s.n}
-                                </span>
-                                <span className="min-w-0">
-                                    <span className="font-bold text-[15px] block">{s.t}</span>
-                                    <span className="text-sm text-gray-300 block leading-relaxed">{s.d}</span>
-                                </span>
-                            </li>
-                        ))}
-                    </ol>
                     <p className="mt-6 flex items-center justify-center gap-2 text-sm text-gray-400">
                         <Mail size={15} className="text-primary" aria-hidden />
-                        Fragen dazu: <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-primary hover:underline break-anywhere">info@nachhilfe-sv.de</a>
+                        Kontakt: <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-primary hover:underline break-anywhere">info@nachhilfe-sv.de</a>
                     </p>
-                    <Button onClick={() => navigate('/login')} size="lg" className="mt-5 bg-primary hover:bg-primary-hover text-black font-extrabold px-8 shadow-glow transition-all rounded-full min-h-[48px]">
-                        Jetzt Eltern-Account erstellen
+                    <Button
+                        onClick={() => { window.location.href = 'mailto:info@nachhilfe-sv.de'; }}
+                        size="lg"
+                        className="mt-5 bg-primary hover:bg-primary-hover text-black font-extrabold px-8 shadow-glow transition-all rounded-full min-h-[48px]"
+                    >
+                        Fragen? Schreiben Sie uns
                     </Button>
                 </motion.section>
 

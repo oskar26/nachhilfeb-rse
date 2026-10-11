@@ -24,6 +24,7 @@ export interface Database {
                     phone_number: string | null
                     contact_other: string | null
                     settings: Json | null
+                    teaches_subjects?: string[]
                     avatar_url: string | null
                     is_verified: boolean
                     is_coach?: boolean
@@ -36,7 +37,6 @@ export interface Database {
                     banner_color?: string | null
                     avatar_type?: string | null
                     average_rating?: number
-                    parent_link_code?: string | null
                     onboarding_complete: boolean
                     birth_date: string | null
                     created_at: string
@@ -55,6 +55,7 @@ export interface Database {
                     phone_number?: string | null
                     contact_other?: string | null
                     settings?: Json | null
+                    teaches_subjects?: string[]
                     avatar_url?: string | null
                     is_verified?: boolean
                     is_coach?: boolean
@@ -80,6 +81,7 @@ export interface Database {
                     phone_number?: string | null
                     contact_other?: string | null
                     settings?: Json | null
+                    teaches_subjects?: string[]
                     avatar_url?: string | null
                     is_verified?: boolean
                     sv_code_used?: string | null

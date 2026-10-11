@@ -11,7 +11,7 @@ require_once __DIR__ . '/mailer.php';
 
 cors_headers();
 
-// Zugriffsstufe (D5): Anfragen erst nach Verifizierung / Eltern-Verknüpfung.
+// Zugriffsstufe (D5): Anfragen erst nach Verifizierung.
 $user = require_verified();
 $method = $_SERVER['REQUEST_METHOD'];
 $pdo = DB::getConnection();
@@ -21,16 +21,7 @@ $id = $_GET['id'] ?? null;
 // 1. GET: ANFRAGEN DES NUTZERS ABRUFEN
 // ------------------------------------------------------------------------------
 if ($method === 'GET') {
-    // Optionaler Kind-Scope für Eltern: ?user_id=<child_id> liefert die Anfragen
-    // des verknüpften Kindes (nur Metadaten, keine Chat-Inhalte).
-    $childId = trim((string)($_GET['user_id'] ?? ''));
     $scopeId = $user['id'];
-    $scopeIsChild = false;
-    if ($childId !== '') {
-        fwg_assert_parent_of($childId, 'can_view_activity');
-        $scopeId = $childId;
-        $scopeIsChild = true;
-    }
 
     if ($id) {
         $stmt = $pdo->prepare('
@@ -109,21 +100,6 @@ if ($method === 'GET') {
             'email' => $r['owner_email'],
             'settings' => $ownSettings
         ];
-
-        // Eltern-Sicht aufs Kind: Kontaktdaten der Gegenstelle (Minderjährige) nicht ausliefern
-        if ($scopeIsChild) {
-            foreach (['requester', 'owner'] as $side) {
-                if ($r[$side]['id'] !== $scopeId) {
-                    $r[$side]['phone_number'] = null;
-                    $r[$side]['email'] = null;
-                    if (!empty($r[$side]['settings']['custom_contacts']) && is_array($r[$side]['settings']['custom_contacts'])) {
-                        foreach ($r[$side]['settings']['custom_contacts'] as $i => $contact) {
-                            $r[$side]['settings']['custom_contacts'][$i]['value'] = null;
-                        }
-                    }
-                }
-            }
-        }
 
         $r['ads'] = [
             'id' => $r['ad_id'],
@@ -234,16 +210,6 @@ if ($method === 'POST') {
         error_log('Fehler beim Anlegen der In-App Benachrichtigung: ' . $e->getMessage());
     }
 
-    // Eltern des Anzeigen-Inhabers informieren
-    fwg_notify_parents(
-        $pdo,
-        (string)$ad['user_id'],
-        'parent_request',
-        'Neue Anfrage für Ihr Kind',
-        ($user['display_name'] ?: 'Jemand') . ' hat Interesse an der Anzeige „' . ($adTitle ?? 'Nachhilfe-Anzeige') . '“ gezeigt.',
-        ['request_id' => $requestId, 'link' => '/#/parent-dashboard']
-    );
-
     json_response([
         'id' => $requestId,
         'message' => 'Anfrage erfolgreich gesendet!'
@@ -330,24 +296,6 @@ if ($method === 'PATCH' || $method === 'PUT') {
             error_log('Fehler beim Anlegen der In-App Benachrichtigung: ' . $e->getMessage());
         }
 
-        // Eltern beider Seiten über die Statusänderung informieren
-        $statusTextDe = ($status === 'accepted') ? 'angenommen' : (($status === 'rejected') ? 'abgelehnt' : 'abgeschlossen');
-        fwg_notify_parents(
-            $pdo,
-            (string)$request['requester_id'],
-            'parent_request',
-            'Anfrage ' . $statusTextDe,
-            'Die Nachhilfe-Anfrage Ihres Kindes wurde ' . $statusTextDe . '.',
-            ['request_id' => $id, 'link' => '/#/parent-dashboard']
-        );
-        fwg_notify_parents(
-            $pdo,
-            (string)$request['owner_id'],
-            'parent_request',
-            'Anfrage ' . $statusTextDe,
-            'Eine Anfrage zu einer Anzeige Ihres Kindes wurde ' . $statusTextDe . '.',
-            ['request_id' => $id, 'link' => '/#/parent-dashboard']
-        );
     }
 
     json_response(['message' => 'Status erfolgreich aktualisiert.', 'status' => $status]);

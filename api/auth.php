@@ -32,19 +32,6 @@ try {
     ");
 } catch (Exception $ex) {}
 
-// AUTO-MIGRATION: parent_link_code Spalte (Eltern-Verknüpfungscode)
-try {
-    $pdo->query("SELECT parent_link_code FROM profiles LIMIT 0");
-} catch (Exception $e) {
-    try {
-        $pdo->exec("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS parent_link_code VARCHAR(10) NULL");
-    } catch (Exception $ex) {
-        try {
-            $pdo->exec("ALTER TABLE profiles ADD COLUMN parent_link_code VARCHAR(10) NULL");
-        } catch (Exception $ex2) {}
-    }
-}
-
 // AUTO-MIGRATION: pending_email (E-Mail-Wechsel mit 6-stelligem Code)
 try {
     $pdo->query("SELECT pending_email FROM email_verifications LIMIT 0");
@@ -87,9 +74,8 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $lastName = $parts[1];
     }
 
-    // Security: Selbst-Registrierung nur als student/parent. sv_admin/coach_admin NUR via Invite-Code.
-    $requestedRole = $data['role'] ?? $data['options']['data']['role'] ?? 'student';
-    $role = in_array($requestedRole, ['student', 'parent'], true) ? $requestedRole : 'student';
+    // Security: Selbst-Registrierung nur als student. sv_admin/coach_admin NUR via Invite-Code.
+    $role = 'student';
     $grade = !empty($data['grade']) ? trim($data['grade']) : (!empty($data['options']['data']['grade']) ? trim($data['options']['data']['grade']) : null);
     $letter = !empty($data['letter']) ? trim($data['letter']) : (!empty($data['options']['data']['letter']) ? trim($data['options']['data']['letter']) : null);
     $birthDate = !empty($data['birthDate']) ? $data['birthDate'] : (!empty($data['birth_date']) ? $data['birth_date'] : (!empty($data['options']['data']['birthDate']) ? $data['options']['data']['birthDate'] : null));
@@ -158,8 +144,8 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             INSERT INTO profiles (
                 id, first_name, last_name, display_name, grade_level, class_letter,
                 role, email, birth_date, parental_consent_given, parental_consent_date,
-                is_verified, onboarding_complete, settings, subjects, parent_link_code
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)
+                is_verified, onboarding_complete, settings, subjects
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
         ');
         $now = date('Y-m-d H:i:s');
         $profileStmt->execute([
@@ -176,8 +162,7 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $parentalConsent ? $now : null,
             $isVerified,
             json_encode(['email_visible' => false, 'phone_visible' => false]),
-            json_encode([]),
-            $finalRole === 'student' ? fwg_generate_parent_code($pdo) : null
+            json_encode([])
         ]);
 
         // 3. SV-Code als eingelöst markieren

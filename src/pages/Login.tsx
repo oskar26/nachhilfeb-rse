@@ -6,11 +6,10 @@ import { Input } from '../components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardFooter } from '../components/ui/Card';
 import { toast } from 'react-hot-toast';
 import { useTheme } from '../components/ThemeProvider';
-import { Sun, Moon, GraduationCap, CheckCircle, ShieldAlert, Users } from 'lucide-react';
+import { Sun, Moon, CheckCircle, ShieldAlert } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { RefinedGradeSelector } from '../components/RefinedGradeSelector';
 import { Logo } from '../components/ui/Logo';
-import { cn } from '../lib/utils';
 
 const RATE_LIMIT_KEY = 'fwg_auth_attempts';
 // Fairer Schutz vor Passwort-Raten: 8 Fehlversuche innerhalb von 10 Minuten
@@ -53,7 +52,6 @@ export default function Login() {
     const [birthDate, setBirthDate] = useState('');
     const [parentalConsent, setParentalConsent] = useState(false);
     const [inviteCode, setInviteCode] = useState('');
-    const [role, setRole] = useState<'student' | 'parent'>('student');
 
     const calculateAge = (dob: string) => {
         if (!dob) return 18;
@@ -219,8 +217,8 @@ export default function Login() {
                 lastName,
                 first_name: firstName,
                 last_name: lastName,
-                grade: role === 'student' ? (grade || null) : null,
-                letter: role === 'student' ? (letter || null) : null,
+                grade: grade || null,
+                letter: letter || null,
                 birthDate,
                 parentalConsent: isUnder16 ? parentalConsent : true,
                 inviteCode: inviteCode.trim(),
@@ -229,9 +227,9 @@ export default function Login() {
                         first_name: firstName,
                         last_name: lastName,
                         full_name: `${firstName} ${lastName}`,
-                        role: role,
-                        grade: role === 'student' ? (grade || null) : null,
-                        letter: role === 'student' ? (letter || null) : null,
+                        role: 'student',
+                        grade: grade || null,
+                        letter: letter || null,
                         birthDate,
                         inviteCode: inviteCode.trim()
                     }
@@ -269,8 +267,8 @@ export default function Login() {
                         first_name: firstName,
                         last_name: lastName,
                         display_name: displayName,
-                        grade_level: role === 'student' ? (grade || null) : null,
-                        class_letter: role === 'student' ? (letter || null) : null,
+                        grade_level: grade || null,
+                        class_letter: letter || null,
                         birth_date: birthDate,
                         parental_consent_given: isUnder16 ? parentalConsent : true,
                         parental_consent_date: isUnder16 ? new Date().toISOString() : null,
@@ -375,7 +373,7 @@ export default function Login() {
                         transition={{ delay: 0.2 }}
                         className="text-lg text-gray-800 font-medium mb-8"
                     >
-                        Finde Nachhilfe oder biete dein Wissen an. Exklusiv für Schülerinnen, Schüler und Eltern des Friedrich-Wilhelm-Gymnasiums.
+                        Finde Nachhilfe oder biete dein Wissen an. Exklusiv für Schülerinnen und Schüler des Friedrich-Wilhelm-Gymnasiums.
                     </motion.p>
                     
                     <motion.div 
@@ -391,7 +389,7 @@ export default function Login() {
                             <CheckCircle size={20} className="text-gray-900" /> Sicher und verifiziert
                         </div>
                         <div className="flex items-center gap-3 text-gray-800 font-medium">
-                            <CheckCircle size={20} className="text-gray-900" /> Elternverknüpfung integriert
+                            <CheckCircle size={20} className="text-gray-900" /> Von Schülern für Schüler
                         </div>
                     </motion.div>
                 </div>
@@ -478,36 +476,6 @@ export default function Login() {
 
                                 {mode === 'register' && (
                                     <div className="space-y-4">
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-bold uppercase text-gray-500 ml-1">Ich bin *</label>
-                                            <div className="flex gap-2">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setRole('student')}
-                                                    className={cn(
-                                                        "flex-1 py-2 text-center rounded-xl border text-xs font-bold transition-all",
-                                                        role === 'student'
-                                                            ? "border-primary bg-primary/10 text-primary-hover font-extrabold"
-                                                            : "border-gray-200 text-gray-500 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800"
-                                                    )}
-                                                >
-                                                    <GraduationCap size={14} className="inline mr-1" /> Schüler/in
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setRole('parent')}
-                                                    className={cn(
-                                                        "flex-1 py-2 text-center rounded-xl border text-xs font-bold transition-all",
-                                                        role === 'parent'
-                                                            ? "border-primary bg-primary/10 text-primary-hover font-extrabold"
-                                                            : "border-gray-200 text-gray-500 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800"
-                                                    )}
-                                                >
-                                                    <Users size={14} className="inline mr-1" /> Elternteil
-                                                </button>
-                                            </div>
-                                        </div>
-
                                         <div className="grid grid-cols-2 gap-3">
                                             <div className="space-y-1">
                                                 <label className="text-xs font-bold uppercase text-gray-500 ml-1">Vorname *</label>
@@ -531,18 +499,15 @@ export default function Login() {
                                             </div>
                                         </div>
 
-                                        {role === 'student' && (
-                                            <div className="space-y-1">
-                                                <label className="text-xs font-bold uppercase text-gray-500 ml-1">Klasse/Stufe</label>
-                                                <RefinedGradeSelector
-                                                    grade={grade}
-                                                    letter={letter}
-                                                    onChange={(g, l) => { setGrade(g); setLetter(l); }}
-                                                    className="mt-1"
-                                                />
-                                            </div>
-                                        )}
-
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-bold uppercase text-gray-500 ml-1">Klasse/Stufe</label>
+                                            <RefinedGradeSelector
+                                                grade={grade}
+                                                letter={letter}
+                                                onChange={(g, l) => { setGrade(g); setLetter(l); }}
+                                                className="mt-1"
+                                            />
+                                        </div>
                                         <div className="space-y-1">
                                             <label className="text-xs font-bold uppercase text-gray-500 ml-1">Geburtsdatum *</label>
                                             <Input
