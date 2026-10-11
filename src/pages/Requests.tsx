@@ -3,22 +3,51 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 import { TabBar } from '../components/ui/TabBar';
-import { CheckCircle, XCircle, Phone, Mail, Star, Inbox, Search, MessageSquare, EyeOff, type LucideIcon } from 'lucide-react';
+import { CheckCircle, XCircle, Phone, Mail, Star, Inbox, Search, MessageSquare, EyeOff, ExternalLink, GraduationCap } from 'lucide-react';
 import { RatingDialog } from '../components/RatingDialog';
-import { CustomContactsList } from '../components/CustomContacts';
+import { CustomContactsList, type CustomContact } from '../components/CustomContacts';
 import { useNavigate } from 'react-router-dom';
-import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { getHiddenChatIds, unhideChatId } from './Chat';
+import { EmptyState } from '../components/social/EmptyState';
 
-const EASE_OUT = [0.16, 1, 0.3, 1] as const;
+interface RequestPerson {
+    id?: string;
+    display_name?: string | null;
+    grade_level?: string | null;
+    is_verified?: boolean;
+    avatar_url?: string | null;
+    phone_number?: string | null;
+    email?: string | null;
+    settings?: {
+        phone_visible?: boolean;
+        email_visible?: boolean;
+        custom_contacts?: CustomContact[] | null;
+    } | null;
+}
+
+interface AdRequestItem {
+    id: string;
+    status: string;
+    message?: string | null;
+    created_at?: string;
+    owner_id?: string;
+    requester_id?: string;
+    requester?: RequestPerson | null;
+    owner?: RequestPerson | null;
+    ads?: { id?: string; short_description?: string | null } | null;
+}
+
+function gradeLabel(grade?: string | null): string {
+    if (!grade) return 'Klasse ?';
+    return ['EF', 'Q1', 'Q2'].includes(grade) ? `Stufe ${grade}` : `Klasse ${grade}`;
+}
 
 export default function Requests() {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const reduceMotion = useReducedMotion();
-    const [incoming, setIncoming] = useState<any[]>([]);
-    const [outgoing, setOutgoing] = useState<any[]>([]);
+    const [incoming, setIncoming] = useState<AdRequestItem[]>([]);
+    const [outgoing, setOutgoing] = useState<AdRequestItem[]>([]);
     const [stats, setStats] = useState({ incoming: 0, outgoing: 0 });
     const [loading, setLoading] = useState(true);
     // Auf diesem Gerät verborgene Chats (siehe Chat.tsx) – Anfragen bleiben bestehen, nur die Liste wird aufgeräumt.
@@ -32,34 +61,30 @@ export default function Requests() {
         setHiddenIds([]);
     };
 
-
     // Rating State
     const [ratingOpen, setRatingOpen] = useState(false);
-    const [ratingUser, setRatingUser] = useState<any>(null);
+    const [ratingUser, setRatingUser] = useState<RequestPerson | null>(null);
     const [ratingAdId, setRatingAdId] = useState<string | null>(null);
 
     const fetchRequests = async () => {
-
-        // Incoming: I am the owner
-        // We select the requester profile with settings
+        // Incoming: I am the owner – with requester profile + settings
         const { data: inc } = await supabase
             .from('ad_requests')
             .select('*, requester:requester_id(id, display_name, grade_level, is_verified, avatar_url, phone_number, email, settings), ads(id, short_description)')
             .eq('owner_id', user?.id)
             .order('created_at', { ascending: false });
 
-        // Outgoing: I am the requester
-        // We select the owner profile with settings
+        // Outgoing: I am the requester – with owner profile + settings
         const { data: out } = await supabase
             .from('ad_requests')
             .select('*, owner:owner_id(id, display_name, phone_number, email, settings), ads(id, short_description)')
             .eq('requester_id', user?.id)
             .order('created_at', { ascending: false });
 
-        if (inc) setIncoming(inc);
-        if (out) setOutgoing(out);
+        if (inc) setIncoming(inc as AdRequestItem[]);
+        if (out) setOutgoing(out as AdRequestItem[]);
         const hid = getHiddenChatIds();
-        setStats({ incoming: (inc || []).filter(r => r.status === 'pending' && !hid.includes(r.id)).length || 0, outgoing: 0 });
+        setStats({ incoming: (inc || []).filter((r: AdRequestItem) => r.status === 'pending' && !hid.includes(r.id)).length || 0, outgoing: 0 });
         setLoading(false);
     };
 
@@ -72,21 +97,21 @@ export default function Requests() {
         fetchRequests();
     };
 
-    const handleComplete = (req: any) => {
+    const handleComplete = (req: AdRequestItem) => {
         // Open Rating Dialog for the OTHER person
         if (req.requester_id === user?.id) {
-            setRatingUser(req.owner);
+            setRatingUser(req.owner ?? null);
         } else {
-            setRatingUser(req.requester);
+            setRatingUser(req.requester ?? null);
         }
-        setRatingAdId(req.ads?.id);
+        setRatingAdId(req.ads?.id ?? null);
         setRatingOpen(true);
     };
 
     const onRatingSubmit = async () => {
         setRatingOpen(false);
         // Optional: Refresh requests or mark as completely done logic
-    }
+    };
 
     if (!user) {
         return (
@@ -102,199 +127,143 @@ export default function Requests() {
                 <button
                     type="button"
                     onClick={unhideAll}
-                    className="flex w-full min-h-[44px] items-center justify-center gap-2 rounded-2xl border border-dashed border-gray-300 bg-white/60 px-4 text-xs font-bold text-gray-500 transition-colors hover:border-primary hover:text-gray-900 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-400 dark:hover:text-gray-100"
+                    className="flex w-full min-h-[44px] items-center justify-center gap-2 rounded-full border border-dashed border-gray-200 bg-white px-4 text-xs font-bold text-gray-500 transition-colors hover:border-primary hover:text-gray-900 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
                 >
                     <EyeOff size={14} aria-hidden /> Verborgene Chats einblenden
-                    <span className="rounded-full bg-gray-950 px-2 py-0.5 font-mono text-[10px] font-black tabular-nums text-primary dark:bg-black">{hiddenIds.length}</span>
+                    <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-black tabular-nums text-amber-950">{hiddenIds.length}</span>
                 </button>
             )}
             <TabBar
                 ariaLabel="Anfragen"
                 items={[
                     { key: 'incoming', label: 'Eingang', count: stats.incoming },
-                    { key: 'outgoing', label: 'Gesendet' }
+                    { key: 'outgoing', label: 'Gesendet', count: visibleOutgoing.length }
                 ]}
                 value={activeTab}
                 onChange={setActiveTab}
             />
 
             {activeTab === 'incoming' && (
-                <div className="space-y-4">
+                <div className="grid min-w-0 gap-4 sm:grid-cols-2">
                     {loading && (
-                        <div className="space-y-4" role="status" aria-label="Anfragen werden geladen">
+                        <>
                             <RequestSkeleton />
                             <RequestSkeleton />
-                        </div>
+                        </>
                     )}
                     {!loading && visibleIncoming.length === 0 && (
-                        <EmptyState
-                            icon={Inbox}
-                            title="Posteingang ist leer"
-                            text="Du hast noch keine Anfragen zu deinen Anzeigen erhalten. Sobald jemand Interesse hat, taucht die Anfrage hier auf!"
-                            action={
-                                <Button className="h-11 rounded-full bg-primary px-6 font-black text-gray-950 hover:bg-primary-hover" onClick={() => navigate('/create-ad')}>
-                                    Anzeige erstellen
-                                </Button>
-                            }
-                        />
+                        <div className="sm:col-span-2">
+                            <EmptyState
+                                icon={Inbox}
+                                title="Posteingang ist leer"
+                                text="Du hast noch keine Anfragen zu deinen Anzeigen erhalten. Sobald jemand Interesse hat, taucht die Anfrage hier auf!"
+                                action={
+                                    <Button className="h-11 rounded-full bg-primary px-6 font-bold text-black" onClick={() => navigate('/create-ad')}>
+                                        Anzeige erstellen
+                                    </Button>
+                                }
+                            />
+                        </div>
                     )}
-                    {!loading && visibleIncoming.map((req, index) => (
-                        <RequestShell key={req.id} index={index} reduceMotion={reduceMotion}>
-                            <header className="flex items-start justify-between gap-3 px-5 pt-5">
-                                <div className="min-w-0">
-                                    <h3 className="truncate font-display text-lg uppercase leading-none tracking-tight text-gray-950 dark:text-gray-50">
-                                        {req.requester?.display_name || 'Unbekannt'}
-                                    </h3>
-                                    <p className="mt-2 truncate font-mono text-[11px] text-gray-500 dark:text-gray-400">
-                                        für „{req.ads?.short_description}“
-                                    </p>
+                    {!loading && visibleIncoming.map(req => (
+                        <RequestCard key={req.id}>
+                            <RequestHead person={req.requester} status={req.status} ad={req.ads} navigate={navigate} />
+                            {req.message && <MessageQuote message={req.message} />}
+                            {req.status === 'pending' && (
+                                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                                    <Button
+                                        onClick={() => handleStatus(req.id, 'accepted')}
+                                        className="h-11 flex-1 rounded-full bg-green-700 font-bold text-white hover:bg-green-800"
+                                    >
+                                        <CheckCircle size={16} /> Akzeptieren
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => handleStatus(req.id, 'rejected')}
+                                        className="h-11 flex-1 rounded-full border-gray-200 bg-white font-bold text-red-600 hover:bg-red-50 dark:border-gray-700 dark:bg-gray-900 dark:text-red-400 dark:hover:bg-red-950/20"
+                                    >
+                                        <XCircle size={16} /> Ablehnen
+                                    </Button>
                                 </div>
-                                <StatusBadge status={req.status} />
-                            </header>
-                            <span className="mx-5 mt-3 block h-1 w-10 rounded-full bg-primary" aria-hidden />
-                            <div className="space-y-4 px-5 pb-5 pt-4">
-                                {req.message && (
-                                    <blockquote className="poster-grain relative overflow-hidden rounded-2xl bg-gray-950 px-4 py-3 text-sm italic text-gray-100 dark:bg-black">
-                                        <span className="absolute inset-y-0 left-0 w-1 bg-primary" aria-hidden />
-                                        „{req.message}“
-                                    </blockquote>
-                                )}
-
-                                {req.status === 'pending' && (
+                            )}
+                            {req.status === 'accepted' && (
+                                <div className="mt-4 space-y-3">
+                                    <ContactChips person={req.requester} />
+                                    <CustomContactsList contacts={req.requester?.settings?.custom_contacts} />
                                     <div className="flex flex-col gap-2 sm:flex-row">
-                                        <Button onClick={() => handleStatus(req.id, 'accepted')} className="h-11 flex-1 rounded-full bg-green-600 font-black text-white hover:bg-green-700">
-                                            <CheckCircle size={16} className="mr-2" /> Akzeptieren
+                                        <Button className="h-11 flex-1 rounded-full bg-primary font-bold text-black" onClick={() => navigate(`/chat/${req.id}`)}>
+                                            <MessageSquare size={16} /> Chat
                                         </Button>
-                                        <Button onClick={() => handleStatus(req.id, 'rejected')} variant="outline" className="h-11 flex-1 rounded-full border-gray-300 font-bold text-red-600 hover:bg-red-50 dark:border-gray-700 dark:hover:bg-red-950/20">
-                                            <XCircle size={16} className="mr-2" /> Ablehnen
+                                        <Button
+                                            variant="outline"
+                                            className="h-11 flex-1 rounded-full border-gray-200 bg-white font-bold dark:border-gray-700 dark:bg-gray-900"
+                                            onClick={() => handleComplete(req)}
+                                        >
+                                            <Star size={16} /> Bewerten
                                         </Button>
                                     </div>
-                                )}
-
-                                {req.status === 'accepted' && (
-                                    <div className="space-y-3">
-                                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                                            {req.requester?.phone_number && req.requester?.settings?.phone_visible ? (
-                                                <div className="poster-grain flex min-w-0 items-center gap-2 rounded-2xl bg-gray-950 px-3.5 py-2.5 text-sm font-semibold text-white dark:bg-black">
-                                                    <Phone size={15} className="shrink-0 text-primary" aria-hidden />
-                                                    <span className="truncate font-mono tabular-nums">{req.requester.phone_number}</span>
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center gap-2 rounded-2xl border border-dashed border-gray-300 px-3.5 py-2.5 text-xs font-semibold text-gray-500 dark:border-gray-700 dark:text-gray-400">
-                                                    <Phone size={14} className="shrink-0" aria-hidden /> Telefonnummer privat
-                                                </div>
-                                            )}
-                                            {req.requester?.email && req.requester?.settings?.email_visible ? (
-                                                <div className="poster-grain flex min-w-0 items-center gap-2 rounded-2xl bg-gray-950 px-3.5 py-2.5 text-sm font-semibold text-white dark:bg-black">
-                                                    <Mail size={15} className="shrink-0 text-primary" aria-hidden />
-                                                    <span className="truncate font-mono">{req.requester.email}</span>
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center gap-2 rounded-2xl border border-dashed border-gray-300 px-3.5 py-2.5 text-xs font-semibold text-gray-500 dark:border-gray-700 dark:text-gray-400">
-                                                    <Mail size={14} className="shrink-0" aria-hidden /> E-Mail privat
-                                                </div>
-                                            )}
-                                        </div>
-                                        <CustomContactsList contacts={req.requester?.settings?.custom_contacts} />
-                                        <div className="flex flex-col gap-2 sm:flex-row">
-                                            <Button variant="outline" size="sm" className="h-10 flex-1 rounded-full font-bold" onClick={() => navigate(`/chat/${req.id}`)}>
-                                                <MessageSquare size={14} className="mr-2" /> Chat
-                                            </Button>
-                                            <Button variant="outline" size="sm" className="h-10 flex-1 rounded-full font-bold" onClick={() => handleComplete(req)}>
-                                                <Star size={14} className="mr-2" /> Bewerten
-                                            </Button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </RequestShell>
+                                </div>
+                            )}
+                        </RequestCard>
                     ))}
                 </div>
             )}
 
             {activeTab === 'outgoing' && (
-                <div className="space-y-4">
-                    {loading && (
-                        <div className="space-y-4" role="status" aria-label="Anfragen werden geladen">
-                            <RequestSkeleton />
+                <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+                    {loading && <RequestSkeleton />}
+                    {!loading && visibleOutgoing.length === 0 && (
+                        <div className="sm:col-span-2">
+                            <EmptyState
+                                icon={Search}
+                                title="Keine laufenden Anfragen"
+                                text="Du hast noch keine offenen Anfragen an andere Personen gestellt. Schau dich im Feed um und finde den perfekten Nachhilfe-Partner!"
+                                action={
+                                    <Button className="h-11 rounded-full bg-primary px-6 font-bold text-black" onClick={() => navigate('/')}>
+                                        Anzeigen stöbern
+                                    </Button>
+                                }
+                            />
                         </div>
                     )}
-                    {!loading && visibleOutgoing.length === 0 && (
-                        <EmptyState
-                            icon={Search}
-                            title="Keine laufenden Anfragen"
-                            text="Du hast noch keine offenen Anfragen an andere Personen gestellt. Schau dich im Feed um und finde den perfekten Nachhilfe-Partner!"
-                            action={
-                                <Button className="h-11 rounded-full bg-primary px-6 font-black text-gray-950 hover:bg-primary-hover" onClick={() => navigate('/')}>
-                                    Anzeigen stöbern
-                                </Button>
-                            }
-                        />
-                    )}
-                    {!loading && visibleOutgoing.map((req, index) => (
-                        <RequestShell key={req.id} index={index} reduceMotion={reduceMotion}>
-                            <header className="flex items-start justify-between gap-3 px-5 pt-5">
-                                <div className="min-w-0">
-                                    <h3 className="truncate font-display text-lg uppercase leading-none tracking-tight text-gray-950 dark:text-gray-50">
-                                        Anfrage an {req.owner?.display_name || 'User'}
-                                    </h3>
-                                    <p className="mt-2 truncate font-mono text-[11px] text-gray-500 dark:text-gray-400">
-                                        für „{req.ads?.short_description}“
-                                    </p>
-                                </div>
-                                <StatusBadge status={req.status} />
-                            </header>
-                            <span className="mx-5 mt-3 block h-1 w-10 rounded-full bg-primary" aria-hidden />
-                            <div className="space-y-4 px-5 pb-5 pt-4">
-                                {req.status === 'pending' && (
-                                    <p className="text-sm font-semibold text-gray-500 dark:text-gray-400">Warte auf Antwort...</p>
-                                )}
-
-                                {req.status === 'rejected' && (
-                                    <p className="text-sm font-semibold text-red-600 dark:text-red-400">Anfrage wurde abgelehnt.</p>
-                                )}
-
-                                {req.status === 'accepted' && (
-                                    <div className="space-y-3">
-                                        <div className="poster-grain relative overflow-hidden rounded-2xl bg-gray-950 px-4 py-3 dark:bg-black">
-                                            <span className="absolute left-0 top-0 h-1 w-10 bg-primary" aria-hidden />
-                                            <p className="text-sm font-bold text-white">Kontakt freigeschaltet!</p>
-                                        </div>
-                                        <div className="grid grid-cols-1 gap-2 text-sm">
-                                            {req.owner?.phone_number && req.owner?.settings?.phone_visible ? (
-                                                <div className="poster-grain flex min-w-0 items-center gap-2 rounded-2xl bg-gray-950 px-3.5 py-2.5 text-sm font-semibold text-white dark:bg-black">
-                                                    <Phone size={15} className="shrink-0 text-primary" aria-hidden />
-                                                    <span className="truncate font-mono tabular-nums">{req.owner.phone_number}</span>
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center gap-2 rounded-2xl border border-dashed border-gray-300 px-3.5 py-2.5 text-xs font-semibold italic text-gray-500 dark:border-gray-700 dark:text-gray-400">
-                                                    <Phone size={14} className="shrink-0" aria-hidden /> Telefonnummer privat
-                                                </div>
-                                            )}
-                                            {req.owner?.email && req.owner?.settings?.email_visible ? (
-                                                <div className="poster-grain flex min-w-0 items-center gap-2 rounded-2xl bg-gray-950 px-3.5 py-2.5 text-sm font-semibold text-white dark:bg-black">
-                                                    <Mail size={15} className="shrink-0 text-primary" aria-hidden />
-                                                    <span className="truncate font-mono">{req.owner.email}</span>
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center gap-2 rounded-2xl border border-dashed border-gray-300 px-3.5 py-2.5 text-xs font-semibold italic text-gray-500 dark:border-gray-700 dark:text-gray-400">
-                                                    <Mail size={14} className="shrink-0" aria-hidden /> E-Mail privat
-                                                </div>
-                                            )}
-                                        </div>
-                                        <CustomContactsList contacts={req.owner?.settings?.custom_contacts} />
-                                        <div className="flex flex-col gap-2 sm:flex-row">
-                                            <Button variant="outline" size="sm" className="h-10 flex-1 rounded-full font-bold" onClick={() => navigate(`/chat/${req.id}`)}>
-                                                <MessageSquare size={14} className="mr-2" /> Chat
-                                            </Button>
-                                            <Button variant="outline" size="sm" className="h-10 flex-1 rounded-full font-bold" onClick={() => handleComplete(req)}>
-                                                <Star size={14} className="mr-2" /> Bewerten
-                                            </Button>
-                                        </div>
+                    {!loading && visibleOutgoing.map(req => (
+                        <RequestCard key={req.id}>
+                            <RequestHead
+                                person={req.owner}
+                                status={req.status}
+                                ad={req.ads}
+                                navigate={navigate}
+                                namePrefix="Anfrage an"
+                            />
+                            {req.message && <MessageQuote message={req.message} />}
+                            {req.status === 'pending' && (
+                                <p className="mt-4 text-sm font-semibold text-gray-500 dark:text-gray-400">Warte auf Antwort…</p>
+                            )}
+                            {req.status === 'rejected' && (
+                                <p className="mt-4 text-sm font-semibold text-red-600 dark:text-red-400">Anfrage wurde abgelehnt.</p>
+                            )}
+                            {req.status === 'accepted' && (
+                                <div className="mt-4 space-y-3">
+                                    <div className="flex items-center gap-2 rounded-2xl bg-green-50 px-4 py-3 text-sm font-bold text-green-800 dark:bg-green-950/30 dark:text-green-300">
+                                        <CheckCircle size={16} className="shrink-0" aria-hidden /> Kontakt freigeschaltet!
                                     </div>
-                                )}
-                            </div>
-                        </RequestShell>
+                                    <ContactChips person={req.owner} />
+                                    <CustomContactsList contacts={req.owner?.settings?.custom_contacts} />
+                                    <div className="flex flex-col gap-2 sm:flex-row">
+                                        <Button className="h-11 flex-1 rounded-full bg-primary font-bold text-black" onClick={() => navigate(`/chat/${req.id}`)}>
+                                            <MessageSquare size={16} /> Chat
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            className="h-11 flex-1 rounded-full border-gray-200 bg-white font-bold dark:border-gray-700 dark:bg-gray-900"
+                                            onClick={() => handleComplete(req)}
+                                        >
+                                            <Star size={16} /> Bewerten
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                        </RequestCard>
                     ))}
                 </div>
             )}
@@ -310,60 +279,123 @@ export default function Requests() {
     );
 }
 
-/** Poster-Kartusche: weißes Papier, 1px Kante, weicher Schatten, gestaffelter Eintritt. */
-function RequestShell({ children, index, reduceMotion }: { children: ReactNode; index: number; reduceMotion: boolean | null }) {
+/** Helle Anfrage-Karte im Feed-Stil: weiß, 1px graue Kante, weicher Schatten. */
+function RequestCard({ children }: { children: ReactNode }) {
     return (
-        <motion.article
-            initial={reduceMotion ? false : { opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, ease: EASE_OUT, delay: reduceMotion ? 0 : Math.min(index * 0.05, 0.3) }}
-            className="relative overflow-hidden rounded-3xl border border-gray-200/80 bg-white shadow-soft transition-shadow hover:shadow-lg dark:border-gray-800 dark:bg-gray-900"
-        >
+        <article className="flex min-w-0 flex-col rounded-3xl border border-gray-200 bg-white p-4 shadow-soft transition-shadow hover:shadow-md dark:border-gray-800 dark:bg-gray-900 sm:p-5">
             {children}
-        </motion.article>
+        </article>
     );
 }
 
-/** Gestempelte Hinweis-Karte: Stempel-Ring, „Leer“-Stempel, gelber Akzentstreifen. */
-function EmptyState({ icon: Icon, title, text, action }: { icon: LucideIcon; title: string; text: string; action: ReactNode }) {
-    const reduceMotion = useReducedMotion();
+/** Person (Avatar + Name + Klasse), Status-Chip und klickbarer Anzeigen-Bezug. */
+function RequestHead({
+    person,
+    status,
+    ad,
+    navigate,
+    namePrefix,
+}: {
+    person?: RequestPerson | null;
+    status: string;
+    ad?: { id?: string; short_description?: string | null } | null;
+    navigate: (to: string) => void;
+    namePrefix?: string;
+}) {
+    const name = person?.display_name || 'Unbekannt';
     return (
-        <motion.div
-            initial={reduceMotion ? false : { opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: EASE_OUT }}
-            className="relative overflow-hidden rounded-3xl border border-dashed border-gray-300 bg-white/80 px-6 py-12 text-center shadow-soft dark:border-gray-700 dark:bg-gray-900/70 sm:py-14"
-        >
-            <span className="stamp-ring mx-auto grid h-16 w-16 -rotate-6 place-items-center rounded-full text-gray-400 dark:text-gray-500" aria-hidden>
-                <Icon size={26} />
-            </span>
-            <span className="mt-5 inline-block -rotate-3 rounded-lg border-2 border-dashed border-gray-300 px-3 py-1 font-display text-[10px] uppercase tracking-[0.3em] text-gray-400 dark:border-gray-700 dark:text-gray-500">
-                Leer
-            </span>
-            <h3 className="mt-4 font-display text-xl uppercase tracking-tight text-gray-950 dark:text-gray-50">{title}</h3>
-            <span className="mx-auto mt-3 block h-1 w-10 rounded-full bg-primary" aria-hidden />
-            <p className="mx-auto mt-3 max-w-sm text-sm text-gray-500 dark:text-gray-400">{text}</p>
-            <div className="mt-6 flex justify-center">{action}</div>
-        </motion.div>
+        <>
+            <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                    <Avatar person={person} />
+                    <div className="min-w-0">
+                        <h3 className="truncate text-base font-bold text-gray-900 dark:text-white">
+                            {namePrefix ? `${namePrefix} ${name}` : name}
+                        </h3>
+                        <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                            <GraduationCap size={13} aria-hidden /> {gradeLabel(person?.grade_level)}
+                        </p>
+                    </div>
+                </div>
+                <StatusBadge status={status} />
+            </div>
+            {ad?.id && (
+                <button
+                    type="button"
+                    onClick={() => navigate(`/ad/${ad.id}`)}
+                    className="mt-2 flex min-h-[44px] w-full items-center gap-1.5 rounded-2xl px-2 text-left text-sm text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] dark:text-gray-400 dark:hover:bg-gray-800/40 dark:hover:text-gray-100 dark:focus-visible:ring-primary"
+                    title="Anzeige ansehen"
+                >
+                    <span className="min-w-0 truncate">für „{ad.short_description || 'Anzeige'}“</span>
+                    <ExternalLink size={13} className="shrink-0" aria-hidden />
+                </button>
+            )}
+        </>
     );
 }
 
-/** Skelett in Kartuschen-Form – verhindert das Aufblitzen des Empty-States beim Laden. */
+function Avatar({ person }: { person?: RequestPerson | null }) {
+    const initial = person?.display_name?.[0]?.toUpperCase() || '?';
+    return person?.avatar_url ? (
+        <img
+            src={person.avatar_url}
+            alt=""
+            className="h-11 w-11 shrink-0 rounded-full object-cover"
+        />
+    ) : (
+        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gray-100 text-sm font-bold text-gray-600 dark:bg-gray-800 dark:text-gray-300" aria-hidden>
+            {initial}
+        </div>
+    );
+}
+
+/** Nachricht als helle Zitat-Box mit dünner gelber Kante links. */
+function MessageQuote({ message }: { message: string }) {
+    return (
+        <blockquote className="mt-3 rounded-2xl border-l-[3px] border-primary bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:bg-gray-800/40 dark:text-gray-300">
+            „{message}“
+        </blockquote>
+    );
+}
+
+/** Telefon/E-Mail als dezente Chips – nur wenn vorhanden und freigegeben. */
+function ContactChips({ person }: { person?: RequestPerson | null }) {
+    const chips: ReactNode[] = [];
+    if (person?.phone_number && person?.settings?.phone_visible) {
+        chips.push(
+            <span key="phone" className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                <Phone size={13} className="shrink-0 text-gray-400" aria-hidden />
+                <span className="truncate font-mono tabular-nums">{person.phone_number}</span>
+            </span>
+        );
+    }
+    if (person?.email && person?.settings?.email_visible) {
+        chips.push(
+            <span key="mail" className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                <Mail size={13} className="shrink-0 text-gray-400" aria-hidden />
+                <span className="truncate">{person.email}</span>
+            </span>
+        );
+    }
+    if (chips.length === 0) return null;
+    return <div className="flex flex-wrap gap-2">{chips}</div>;
+}
+
+/** Skelett in Karten-Form – verhindert das Aufblitzen des Empty-States beim Laden. */
 function RequestSkeleton() {
     return (
-        <div className="animate-pulse rounded-3xl border border-gray-200/80 bg-white p-5 shadow-soft dark:border-gray-800 dark:bg-gray-900">
+        <div className="animate-pulse rounded-3xl border border-gray-200 bg-white p-4 shadow-soft dark:border-gray-800 dark:bg-gray-900 sm:p-5">
             <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1 space-y-2.5">
-                    <div className="h-4 w-2/5 rounded-full bg-gray-200 dark:bg-gray-800" />
-                    <div className="h-3 w-3/5 rounded-full bg-gray-100 dark:bg-gray-800/70" />
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <div className="h-11 w-11 shrink-0 rounded-full bg-gray-100 dark:bg-gray-800" />
+                    <div className="min-w-0 flex-1 space-y-2">
+                        <div className="h-4 w-2/5 rounded-full bg-gray-200 dark:bg-gray-800" />
+                        <div className="h-3 w-1/3 rounded-full bg-gray-100 dark:bg-gray-800/70" />
+                    </div>
                 </div>
                 <div className="h-6 w-24 shrink-0 rounded-full bg-gray-100 dark:bg-gray-800/70" />
             </div>
-            <div className="mt-4 h-1 w-10 rounded-full bg-primary/40" />
-            <div className="mt-4 space-y-2.5">
-                <div className="h-3 w-full rounded-full bg-gray-100 dark:bg-gray-800/70" />
-                <div className="h-3 w-4/5 rounded-full bg-gray-100 dark:bg-gray-800/70" />
-            </div>
+            <div className="mt-4 h-12 rounded-2xl bg-gray-100 dark:bg-gray-800/70" />
             <div className="mt-4 flex gap-2">
                 <div className="h-11 flex-1 rounded-full bg-gray-100 dark:bg-gray-800/70" />
                 <div className="h-11 flex-1 rounded-full bg-gray-100 dark:bg-gray-800/70" />
@@ -372,17 +404,17 @@ function RequestSkeleton() {
     );
 }
 
-/** Status als schwarzer Chip mit farbigem Punkt (Gelb = offen). */
+/** Status als heller Chip mit farbigem Punkt (gelb offen, grün akzeptiert, rot abgelehnt). */
 function StatusBadge({ status }: { status: string }) {
     const styles: Record<string, { dot: string; label: string }> = {
         pending: { dot: 'bg-primary', label: 'Ausstehend' },
-        accepted: { dot: 'bg-green-400', label: 'Akzeptiert' },
-        rejected: { dot: 'bg-red-400', label: 'Abgelehnt' },
+        accepted: { dot: 'bg-green-500', label: 'Akzeptiert' },
+        rejected: { dot: 'bg-red-500', label: 'Abgelehnt' },
         completed: { dot: 'bg-gray-400', label: 'Erledigt' }
     };
     const meta = styles[status] ?? styles.pending;
     return (
-        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gray-950 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white ring-1 ring-white/10 dark:bg-black">
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-bold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
             <span className={cn('h-1.5 w-1.5 rounded-full', meta.dot)} aria-hidden />
             {meta.label}
         </span>
