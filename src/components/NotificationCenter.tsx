@@ -21,7 +21,8 @@ import {
     Zap,
     CheckCheck,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
+import { startNotificationPoll } from '../lib/polling';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
 import { triggerHaptic } from '../lib/haptics';
@@ -124,22 +125,10 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
         if (!user) return;
         if (!silent) setLoading(true);
         try {
-            const { data, error } = await supabase
-                .from('notifications')
-                .select('*')
-                .eq('user_id', user.id)
-                .order('created_at', { ascending: false })
-                .limit(50);
+            // 30 Einträge — identisch zum bisherigen Verhalten der Supabase-Attrappe (limit(50) war dort wirkungslos).
+            const { data, error } = await api.notifications.list(30);
 
-            if (error) {
-                if (error.code === '42P01') {
-                    setNotifications([]);
-                    setUnread(0);
-                    onCountChange(0);
-                    return;
-                }
-                throw error;
-            }
+            if (error) throw error;
 
             const list = (data ?? []) as AppNotification[];
             setNotifications(list);
@@ -157,20 +146,13 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
         fetchNotifications(false);
     }, [fetchNotifications]);
 
-    // ── Realtime subscription ──────────────────────────────────────
+    // ── Live-Aktualisierung (Polling ersetzt den früheren Realtime-Kanal) ──
     useEffect(() => {
         if (!user) return;
 
-        const channel = supabase
-            .channel(`notifications:${user.id}`)
-            .on(
-                'postgres_changes',
-                { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
-                () => { fetchNotifications(true); }
-            )
-            .subscribe();
+        const stopPolling = startNotificationPoll(() => { fetchNotifications(true); });
 
-        return () => { supabase.removeChannel(channel); };
+        return stopPolling;
     }, [user, fetchNotifications]);
 
     // ── Click outside + Escape ─────────────────────────────────────
@@ -214,7 +196,7 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
         if (!user || notifications.every(n => n.read)) return;
         triggerHaptic('medium');
         const ids = notifications.filter(n => !n.read).map(n => n.id);
-        await supabase.from('notifications').update({ read: true }).in('id', ids);
+        await api.notifications.markRead(ids);
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
         setUnread(0);
         onCountChange(0);
@@ -224,7 +206,7 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
     const handleClick = async (n: AppNotification) => {
         triggerHaptic('light');
         if (!n.read) {
-            await supabase.from('notifications').update({ read: true }).eq('id', n.id);
+            await api.notifications.markRead(n.id);
             setNotifications(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x));
             const newCount = unread - 1;
             setUnread(newCount);

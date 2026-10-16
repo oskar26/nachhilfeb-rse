@@ -4,7 +4,6 @@ import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
 import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/Card';
 import { SubjectChip, SUBJECT_CATEGORIES, subjectLabelMap, type Subject } from '../components/SubjectChip';
 import { GraduationCap, MapPin, Clock, Filter, Search, CalendarDays, ShieldCheck, ChevronDown, ChevronUp, Share2, Sparkles, Bookmark, X, SearchX, Award, Users, ArrowUpDown } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { GradeSelector } from '../components/GradeSelector';
@@ -156,22 +155,14 @@ function loadSavedSearch(): SavedSearch | null {
 }
 
 async function loadAds(): Promise<Ad[]> {
-    const { data: adsData, error } = await supabase
-        .from('ads')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
+    const { data: adsData, error } = await api.ads.list({ all: true });
     if (error) throw error;
     if (!adsData) throw new Error('Missing ads response');
     if (adsData.length === 0) return [];
-    const userIds = Array.from(new Set(adsData.map(a => a.user_id)));
-    const { data: profiles, error: profileError } = await supabase.from('profiles')
-        .select('id, display_name, is_verified, grade_level, availability, is_coach').in('id', userIds);
-    if (profileError) throw profileError;
-    if (!profiles) throw new Error('Missing profiles response');
-    const profileMap = new Map(profiles.map(p => [p.id, p]));
-    return adsData.map(ad => {
-        const prof = profileMap.get(ad.user_id);
+    // Profil-Daten kommen direkt aus der Anzeigen-Antwort (ads.php bettet `profiles` je Zeile ein);
+    // der frühere Sammel-Lookup lief über einen admin-only Endpunkt und ist entfernt.
+    return (adsData as any[]).map(ad => {
+        const prof = ad.profiles;
         // Booleans normalisieren: MySQL liefert TINYINT (0/1) – ein rohes
         // `{profil.is_coach && <Badge>}` würde sonst eine sichtbare „0“ rendern.
         const safeProfile = prof ? {
@@ -304,7 +295,7 @@ export default function Feed() {
 
     useEffect(() => {
         if (user) {
-            supabase.from('profiles').select('availability').eq('id', user.id).single().then(({ data }) => {
+            api.profiles.get(user.id).then(({ data }) => {
                 if (data?.availability) setMyAvailability(data.availability);
             });
         }

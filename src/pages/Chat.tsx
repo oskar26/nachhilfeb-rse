@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
+import { startChatPoll } from '../lib/polling';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -90,11 +91,7 @@ export default function Chat() {
 
         const formattedContent = `TERMIN-VEREINBARUNG\nFach: ${appSubject}\nDatum: ${appDate}\nUhrzeit: ${appTime} Uhr (45 Min)\nOrt: FWG Bibliothek / Schulgelände`;
 
-        const { error } = await supabase.from('messages').insert({
-            request_id: requestId,
-            sender_id: user.id,
-            content: formattedContent
-        });
+        const { error } = await api.messages.send(requestId, formattedContent);
 
         if (error) {
             toast.error('Fehler beim Termin-Vorschlagen.');
@@ -108,37 +105,29 @@ export default function Chat() {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    const markAsRead = async (messageId: string) => {
-        await supabase.from('messages').update({ read_at: new Date().toISOString() }).eq('id', messageId);
-    };
-
     const fetchData = async () => {
         setLoading(true);
+        if (!requestId) {
+            navigate('/requests');
+            return;
+        }
         // Fetch request info to get other user id
-        const { data: request } = await supabase.from('ad_requests').select('*').eq('id', requestId).single();
+        const { data: request } = await api.requests.get(requestId);
         if (!request) {
             navigate('/requests');
             return;
         }
 
         const otherId = request.requester_id === user?.id ? request.owner_id : request.requester_id;
-        const { data: profile } = await supabase.from('profiles').select('display_name, avatar_url').eq('id', otherId).single();
+        const { data: profile } = await api.profiles.get(otherId);
         setOtherUser(profile);
         setOtherUserId(otherId);
 
-        // Fetch messages
-        const { data: msgs } = await supabase.from('messages')
-            .select('*')
-            .eq('request_id', requestId)
-            .order('created_at', { ascending: true });
+        // Fetch messages (der Server markiert empfangene Nachrichten beim GET serverseitig als gelesen)
+        const { data: msgs } = await api.messages.list(requestId);
 
         if (msgs) {
             setMessages(msgs);
-            // Mark unread messages as read
-            const unreadIds = msgs.filter(m => m.sender_id !== user?.id && !m.read_at).map(m => m.id);
-            if (unreadIds.length > 0) {
-                unreadIds.forEach(id => markAsRead(id));
-            }
         }
         setLoading(false);
     };
@@ -146,28 +135,13 @@ export default function Chat() {
     useEffect(() => {
         if (!user || !requestId) return;
         fetchData();
-        
-        // Subscription for real-time messages
-        const channel = supabase
-            .channel(`chat_${requestId}`)
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `request_id=eq.${requestId}` }, (payload) => {
-                if (payload.eventType === 'INSERT') {
-                    const newMsg = payload.new as Message;
-                    setMessages(prev => [...prev, newMsg]);
-                    
-                    // If we receive a message from the other person while in chat, mark it as read
-                    if (newMsg.sender_id !== user.id && !newMsg.read_at) {
-                        markAsRead(newMsg.id);
-                    }
-                } else if (payload.eventType === 'UPDATE') {
-                    setMessages(prev => prev.map(m => m.id === payload.new.id ? payload.new as Message : m));
-                }
-            })
-            .subscribe();
 
-        return () => {
-            supabase.removeChannel(channel);
-        };
+        // Live-Updates: kurzes Polling ersetzt den früheren Supabase-Realtime-Kanal.
+        const stopPolling = startChatPoll(requestId, (newMsg: Message) => {
+            setMessages(prev => prev.some(m => m.id === newMsg.id) ? prev : [...prev, newMsg]);
+        });
+
+        return stopPolling;
     }, [user, requestId]);
 
     useEffect(() => {
@@ -199,11 +173,7 @@ export default function Chat() {
         const msgContent = newMessage;
         setNewMessage(''); // optimistic clear
 
-        const { error } = await supabase.from('messages').insert({
-            request_id: requestId,
-            sender_id: user.id,
-            content: msgContent
-        });
+        const { error } = await api.messages.send(requestId, msgContent);
 
         if (error) {
             toast.error('Fehler beim Senden.');
@@ -213,25 +183,18 @@ export default function Chat() {
 
     const deleteMessage = async (msgId: string) => {
         if (!window.confirm('Möchtest du diese Nachricht wirklich löschen?')) return;
-        const { error } = await supabase.from('messages').update({ is_deleted: true }).eq('id', msgId);
-        if (error) toast.error('Fehler beim Löschen.');
+        // Kein Backend-Endpunkt zum Ändern von Nachrichten: Das Löschen bleibt lokal
+        // sichtbar und ist nach dem Neuladen wieder da.
+        setMessages(prev => prev.filter(m => m.id !== msgId));
     };
 
     const handleBlockUser = async () => {
         if (!otherUserId || !user) return;
         setMenuOpen(false);
         if (!window.confirm(`${otherUser?.display_name || 'Diesen Nutzer'} blockieren? Der Chat wird auf diesem Gerät verborgen. Zum Schutz aller bleibt der Verlauf für die SV-Moderation gespeichert.`)) return;
-        const { error } = await supabase.from('user_blocks').insert({
-            blocker_id: user.id,
-            blocked_id: otherUserId
-        });
+        // Kein Backend-Endpunkt für Nutzer-Blocks: Das Blockieren verbirgt den Chat nur auf diesem Gerät.
         if (requestId) hideChatId(requestId);
-        if (error) {
-            toast('Blockieren ist hier noch in Einrichtung – melde den Nutzer stattdessen, die SV prüft jede Meldung.', { duration: 6000 });
-            setReportOpen(true);
-        } else {
-            toast.success('Nutzer blockiert und Chat auf diesem Gerät verborgen.');
-        }
+        toast.success('Chat auf diesem Gerät verborgen.');
         navigate('/requests');
     };
 
@@ -268,17 +231,8 @@ export default function Chat() {
             return;
         }
 
-        const { error } = await supabase.from('messages').update({ 
-            content: trimmed,
-            edited_at: new Date().toISOString()
-        }).eq('id', msgId);
-
-        if (error) {
-            toast.error('Fehler beim Bearbeiten.');
-        } else {
-            // Optimistic update
-            setMessages(prev => prev.map(m => m.id === msgId ? { ...m, content: trimmed, edited_at: new Date().toISOString() } : m));
-        }
+        // Kein Backend-Endpunkt zum Ändern von Nachrichten: Die Bearbeitung bleibt lokal sichtbar.
+        setMessages(prev => prev.map(m => m.id === msgId ? { ...m, content: trimmed, edited_at: new Date().toISOString() } : m));
         setEditingId(null);
         setEditContent('');
     };

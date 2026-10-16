@@ -1,12 +1,12 @@
 // Daten-Hook für den Social-Strom: lädt Anfragen, Matches und Merkliste
-// (Datenquellen unverändert: supabase.from('ad_requests'), api.ads.list
-// {match_context:true, all:true}, supabase.from('favorites')) und bündelt
+// (Datenquellen: api.requests.list(), api.profiles.get(userId),
+// api.ads.list({user_id, all:true}), api.ads.list({match_context:true, all:true}),
+// api.favorites.list()) und bündelt
 // alle Aktionen (Status setzen, abschließen, bewerten, übersehen, entfernen,
 // versteckte Chats). Die Karten-Module bleiben reine Darstellung.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { supabase } from '../../lib/supabase';
 import { api } from '../../lib/api';
 import { getHiddenChatIds, unhideChatId } from '../../pages/Chat';
 import {
@@ -83,29 +83,23 @@ export function useSocialStream(userId: string | undefined): SocialStreamApi {
         const seq = ++requestSeq.current;
         void (async () => {
             try {
-                const [incRes, outRes, profRes, myAdsRes, candRes, favRes] = await Promise.all([
-                    supabase
-                        .from('ad_requests')
-                        .select('*, requester:requester_id(id, display_name, grade_level, is_verified, avatar_url, phone_number, email, settings), ads(id, short_description)')
-                        .eq('owner_id', userId)
-                        .order('created_at', { ascending: false }),
-                    supabase
-                        .from('ad_requests')
-                        .select('*, owner:owner_id(id, display_name, phone_number, email, settings), ads(id, short_description)')
-                        .eq('requester_id', userId)
-                        .order('created_at', { ascending: false }),
-                    supabase.from('profiles').select('*').eq('id', userId).single(),
-                    supabase.from('ads').select('*').eq('user_id', userId).eq('is_active', true),
+                const [reqRes, profRes, myAdsRes, candRes, favRes] = await Promise.all([
+                    // Eigene Anfragen (eingehend + ausgehend) — die Attrappe filterte hier nur clientseitig.
+                    api.requests.list(),
+                    api.profiles.get(userId),
+                    // Der is_active-Filter war in der Attrappe wirkungslos (Filter wurden dort verworfen).
+                    api.ads.list({ user_id: userId, all: true }),
                     api.ads.list({ match_context: true, all: true }),
-                    supabase.from('favorites').select('*, ads(*)').eq('user_id', userId).order('created_at', { ascending: false }),
+                    api.favorites.list(),
                 ]);
                 if (seq !== requestSeq.current) return;
 
-                const firstError = incRes.error ?? outRes.error ?? profRes.error ?? myAdsRes.error ?? favRes.error ?? candRes.error;
+                const firstError = reqRes.error ?? profRes.error ?? myAdsRes.error ?? favRes.error ?? candRes.error;
                 if (firstError) throw firstError;
 
-                const incList = (incRes.data ?? []) as unknown as AdRequestItem[];
-                const outList = (outRes.data ?? []) as unknown as AdRequestItem[];
+                const reqList = (reqRes.data ?? []) as unknown as AdRequestItem[];
+                const incList = reqList.filter(r => r.owner_id === userId);
+                const outList = reqList.filter(r => r.requester_id === userId);
                 const profile = (profRes.data ?? null) as MyProfile | null;
                 const mine = (myAdsRes.data ?? []) as unknown as MatchAd[];
                 const candidates = ((candRes.data ?? []) as unknown as MatchAd[]).filter(
@@ -122,7 +116,7 @@ export function useSocialStream(userId: string | undefined): SocialStreamApi {
                     return {
                         id: (f.id as string) || (f.ad_id as string) || '',
                         ad_id: (f.ad_id as string) || (f.id as string) || '',
-                        created_at: (f.created_at as string) || undefined,
+                        created_at: (f.favorited_at as string) || (f.created_at as string) || undefined,
                         ads: {
                             ...(adData as unknown as FavoriteAd['ads']),
                             title: (adData.title as string) || (adData.short_description as string) || 'Nachhilfeanzeige',
@@ -168,7 +162,7 @@ export function useSocialStream(userId: string | undefined): SocialStreamApi {
         // Optimistisch: Karte wandert sofort im Strom, Persistenz läuft mit.
         setIncoming(prev => prev.map(r => (r.id === id ? { ...r, status } : r)));
         setOutgoing(prev => prev.map(r => (r.id === id ? { ...r, status } : r)));
-        const { error: updateError } = await supabase.from('ad_requests').update({ status }).eq('id', id);
+        const { error: updateError } = await api.requests.updateStatus(id, status);
         if (updateError) {
             toast.error('Status konnte nicht gespeichert werden. Bitte versuch es erneut.');
             loadAll();
@@ -205,7 +199,7 @@ export function useSocialStream(userId: string | undefined): SocialStreamApi {
 
     const removeFavorite = useCallback(async (adId: string) => {
         try {
-            const { error: delError } = await supabase.from('favorites').delete().eq('ad_id', adId).eq('user_id', userId);
+            const { error: delError } = await api.favorites.toggle(adId);
             if (!delError) {
                 setFavorites(prev => prev.filter(f => f.ad_id !== adId));
                 toast.success('Aus Merkliste entfernt');
