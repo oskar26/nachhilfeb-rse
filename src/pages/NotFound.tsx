@@ -21,7 +21,7 @@ export default function NotFound() {
 
   return (
     <div className="min-h-screen bg-[#faf7ef] text-gray-900 font-sans selection:bg-primary selection:text-black overflow-x-clip flex flex-col">
-      <a href="#inhalt" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-primary focus:px-5 focus:py-2.5 focus:text-sm focus:font-bold focus:text-black">Zum Inhalt springen</a>
+      <button type="button" onClick={() => document.getElementById('inhalt')?.scrollIntoView()} className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-primary focus:px-5 focus:py-2.5 focus:text-sm focus:font-bold focus:text-black">Zum Inhalt springen</button>
 
       {/* Dienstleiste */}
       <div className="bg-primary text-black">

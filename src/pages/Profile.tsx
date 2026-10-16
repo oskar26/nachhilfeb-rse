@@ -155,10 +155,16 @@ export default function Profile() {
         setProfile(p => ({ ...p, avatar_url: newUrl }));
         const grad = await extractDominantGradient(newUrl, user?.id);
         setBannerGradient(grad);
-        if (user) {
-            await api.profiles.update({ avatar_url: newUrl, banner_color: grad }, user.id);
-            refreshProfile();
+        if (!user) return false;
+        // Ergebnis prüfen: Der Maker erzeugt data:-URLs, die das Backend nicht
+        // speichern kann (nur https) – dann ehrlich melden statt Erfolg vorzutäuschen.
+        const { error } = await api.profiles.update({ avatar_url: newUrl, banner_color: grad }, user.id);
+        if (error) {
+            toast.error('Avatar konnte nicht gespeichert werden. Bitte lade ein Foto hoch.');
+            return false;
         }
+        await refreshProfile();
+        return true;
     };
 
     async function handleSave() {
@@ -179,7 +185,9 @@ export default function Profile() {
             phone_number: profile.phone_number,
             contact_other: profile.contact_other,
             settings: profile.settings,
-            avatar_url: profile.avatar_url,
+            // data:-URLs aus dem Avatar-Maker kann das Backend nicht speichern
+            // (nur https) – nicht mitsenden, sonst schlägt das ganze Speichern fehl.
+            avatar_url: profile.avatar_url?.startsWith('https://') ? profile.avatar_url : undefined,
             availability: availability,
             privacy_calendar: privacyCalendar,
             onboarding_complete: true

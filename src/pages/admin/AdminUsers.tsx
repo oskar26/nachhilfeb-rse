@@ -236,18 +236,25 @@ export default function AdminUsers() {
         // Exportiert bewusst nur die aktuelle Seite (kein Voll-Dump aller Nutzerdaten)
         if (users.length === 0) return;
         
+        // Einheitliches Quoting inkl. Schutz vor CSV-Formel-Injection (Excel/Sheets).
+        const csvCell = (value: unknown): string => {
+            let text = String(value ?? '');
+            if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
+            return `"${text.replace(/"/g, '""')}"`;
+        };
+
         const headers = ['ID', 'Name', 'E-Mail', 'Rolle', 'Klasse/Stufe', 'Verifiziert', 'Gesperrt', 'Erstellt am'];
         const csvRows = [
-            headers.join(','), // Header row
+            headers.map(csvCell).join(','), // Header row
             ...users.map(u => [
-                u.id,
-                `"${u.display_name || `${u.first_name} ${u.last_name}`}"`,
-                `"${u.email || ''}"`,
-                u.role,
-                `"${u.grade_level || ''}${u.class_letter || ''}"`,
-                u.is_verified ? 'Ja' : 'Nein',
-                u.is_banned ? 'Ja' : 'Nein',
-                new Date(u.created_at).toLocaleDateString('de-DE')
+                csvCell(u.id),
+                csvCell(u.display_name || `${u.first_name} ${u.last_name}`),
+                csvCell(u.email || ''),
+                csvCell(u.role),
+                csvCell(`${u.grade_level || ''}${u.class_letter || ''}`),
+                csvCell(u.is_verified ? 'Ja' : 'Nein'),
+                csvCell(u.is_banned ? 'Ja' : 'Nein'),
+                csvCell(new Date(u.created_at).toLocaleDateString('de-DE'))
             ].join(','))
         ];
 

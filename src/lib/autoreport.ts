@@ -35,7 +35,6 @@ export async function maybeAutoReport(
     if (!shouldAutoReport(result)) return;
     const now = Date.now();
     if (now - lastSentAt < COOLDOWN_MS) return;
-    lastSentAt = now;
     const label = SEVERITY_LABEL[result.severity] ?? result.severity;
     const priority = result.severity === 'severe' ? 'hoch' : 'kritisch';
     try {
@@ -55,6 +54,9 @@ export async function maybeAutoReport(
                 excerpt: (excerpt || '').slice(0, 300),
             },
         });
+        // Cooldown erst nach erfolgreichem Versand starten, damit ein
+        // fehlgeschlagener Report den nächsten nicht blockiert.
+        lastSentAt = Date.now();
     } catch {
         /* Best-effort: Ein fehlgeschlagener Report darf das Chatten nie kaputt machen. */
     }

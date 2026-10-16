@@ -50,9 +50,11 @@ export function useAnalyticsTracker() {
             : window.location.hash.replace(/^#/, '') || '/';
         const path = normalizePath(raw);
 
-        // Doppel-Hits (StrictMode, schnelle Re-Renders) vermeiden
-        if (path === lastTracked.current) return;
-        lastTracked.current = path;
+        // Doppel-Hits (StrictMode, schnelle Re-Renders) vermeiden.
+        // Vergleich auf dem Roh-Pfad: /ad/123 und /ad/456 sind verschiedene
+        // Seiten und dürfen nicht als derselbe Besuch unterdrückt werden.
+        if (raw === lastTracked.current) return;
+        lastTracked.current = raw;
 
         const device_type = getDeviceType();
         const browser = getBrowserName();

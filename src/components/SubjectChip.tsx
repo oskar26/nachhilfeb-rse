@@ -105,7 +105,7 @@ interface SubjectChipProps {
 export function SubjectChip({ subject, className, onClick, selected }: SubjectChipProps) {
     const baseCls = cn(
         "inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold shadow-xs transition-colors select-none",
-        subjectColorMap[subject],
+        subjectColorMap[subject] ?? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
         selected && "ring-2 ring-offset-1 ring-primary shadow-md dark:ring-offset-gray-950 font-extrabold",
         className
     );
@@ -113,7 +113,7 @@ export function SubjectChip({ subject, className, onClick, selected }: SubjectCh
     if (!onClick) {
         return (
             <span className={cn(baseCls, "cursor-default")} aria-hidden="false">
-                {subjectLabelMap[subject]}
+                {subjectLabelMap[subject] ?? subject}
             </span>
         );
     }

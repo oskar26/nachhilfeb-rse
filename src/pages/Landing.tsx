@@ -109,7 +109,6 @@ export default function Landing() {
     const { user } = useAuth();
     const reduceMotion = useReducedMotion();
     const [liveStats, setLiveStats] = useState<{ active_ads: number; users: number; page_views: number; page_views_30d: number } | null>(null);
-    const [, setStatsFailed] = useState(false);
 
     /* Privatsphäre-Demo */
     const [showPhone, setShowPhone] = useState(true);
@@ -158,6 +157,8 @@ export default function Landing() {
     }, []);
 
     useEffect(() => {
+        // Statistik ist optional (die Landing funktioniert auch ohne Daten);
+        // Fehler werden bewusst still ignoriert.
         api.analytics.summary().then(({ data, error }) => {
             if (!error && data) {
                 setLiveStats({
@@ -166,10 +167,8 @@ export default function Landing() {
                     page_views: Number((data as any).page_views) || 0,
                     page_views_30d: Number((data as any).page_views_30d) || 0,
                 });
-            } else {
-                setStatsFailed(true);
             }
-        }).catch(() => setStatsFailed(true));
+        }).catch(() => { /* Statistik ist optional */ });
     }, []);
 
     const ziel = user ? '/' : '/login';

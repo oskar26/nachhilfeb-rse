@@ -10,7 +10,7 @@ import { triggerHaptic } from '../lib/haptics';
 interface AvatarMakerModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (avatarUrl: string) => void;
+    onSave: (avatarUrl: string) => void | boolean | Promise<boolean>;
     initialName?: string;
 }
 
@@ -321,13 +321,17 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
             return;
         }
         triggerHaptic('success');
-        onSave(url);
-        toast.success("Profilbild aktualisiert!");
+        // onSave meldet zurück, ob das Bild serverseitig gespeichert werden konnte;
+        // den Erfolgs-Toast gibt es nur bei bestätigtem Speichern (Fehler meldet der Aufrufer).
+        const saved = await onSave(url);
+        if (saved !== false) {
+            toast.success("Profilbild aktualisiert!");
+        }
         onClose();
     };
 
     return (
-        <Dialog open={isOpen}>
+        <Dialog open={isOpen} onClose={onClose}>
             <DialogContent className="sm:max-w-lg max-h-[90dvh] overflow-y-auto p-0">
                 <DialogHeader className="p-6 pb-2 relative border-b dark:border-gray-800">
                     <div className="flex items-center gap-2">

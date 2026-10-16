@@ -31,6 +31,23 @@ function isDismissed(): boolean {
     }
 }
 
+    // beforeinstallprompt kann feuern, bevor die Komponente gemountet ist (z. B. vor dem Login).
+    // Deshalb das Event auf Modulebene puffern und an aktive Abonnenten weiterreichen.
+    let earlyInstallPrompt: BeforeInstallPromptEvent | null = null;
+    const installPromptSubscribers = new Set<(e: BeforeInstallPromptEvent) => void>();
+
+    if (typeof window !== 'undefined') {
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            const promptEvent = e as BeforeInstallPromptEvent;
+            if (installPromptSubscribers.size === 0) {
+                earlyInstallPrompt = promptEvent;
+            } else {
+                installPromptSubscribers.forEach((notify) => notify(promptEvent));
+            }
+        });
+    }
+
 export default function InstallPrompt() {
     const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
     const [show, setShow] = useState(false);
@@ -45,15 +62,24 @@ export default function InstallPrompt() {
             return () => clearTimeout(timer);
         }
 
-        const handler = (e: Event) => {
-            e.preventDefault();
-            setDeferredPrompt(e as BeforeInstallPromptEvent);
-            const timer = setTimeout(() => setShow(true), 3000);
-            return () => clearTimeout(timer);
+        let timer: number | undefined;
+        const receivePrompt = (e: BeforeInstallPromptEvent) => {
+            setDeferredPrompt(e);
+            timer = window.setTimeout(() => setShow(true), 3000);
         };
 
-        window.addEventListener('beforeinstallprompt', handler);
-        return () => window.removeEventListener('beforeinstallprompt', handler);
+        installPromptSubscribers.add(receivePrompt);
+        // Ein Event, das vor dem Mount eingetroffen ist (z. B. vor dem Login), jetzt nachziehen.
+        if (earlyInstallPrompt) {
+            const pending = earlyInstallPrompt;
+            earlyInstallPrompt = null;
+            receivePrompt(pending);
+        }
+
+        return () => {
+            installPromptSubscribers.delete(receivePrompt);
+            if (timer !== undefined) clearTimeout(timer);
+        };
     }, [ios]);
 
     const handleInstall = async () => {

@@ -342,7 +342,12 @@ export default function AdminAnalytics() {
     const exportToCSV = (filename: string, headers: string[], rows: (string | number)[][]) => {
         const csvContent = [
             headers.join(','),
-            ...rows.map(row => row.map(val => `"${String(val ?? '').replace(/"/g, '""')}"`).join(','))
+            ...rows.map(row => row.map(val => {
+                // Quoting inkl. Schutz vor CSV-Formel-Injection (Excel/Sheets)
+                let text = String(val ?? '');
+                if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
+                return `"${text.replace(/"/g, '""')}"`;
+            }).join(','))
         ].join('\n');
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

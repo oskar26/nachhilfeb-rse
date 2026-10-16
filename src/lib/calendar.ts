@@ -20,15 +20,23 @@ export function downloadICSFile({
 
     const endDate = new Date(startDate.getTime() + durationMinutes * 60 * 1000);
 
+    // RFC 5545: Sonderzeichen in Textfeldern escapen (Backslash, Semikolon, Komma, Zeilenumbrüche)
+    const escapeICS = (value: string) =>
+        String(value)
+            .replace(/\\/g, '\\\\')
+            .replace(/;/g, '\\;')
+            .replace(/,/g, '\\,')
+            .replace(/\r?\n/g, '\\n');
+
     const icsContent = [
         'BEGIN:VCALENDAR',
         'VERSION:2.0',
         'PRODID:-//FWG Nachhilfebörse//DE',
         'CALSCALE:GREGORIAN',
         'BEGIN:VEVENT',
-        `SUMMARY:${title}`,
-        `DESCRIPTION:${description.replace(/\n/g, '\\n')}`,
-        `LOCATION:${location}`,
+        `SUMMARY:${escapeICS(title)}`,
+        `DESCRIPTION:${escapeICS(description)}`,
+        `LOCATION:${escapeICS(location)}`,
         `DTSTART:${formatDate(startDate)}`,
         `DTEND:${formatDate(endDate)}`,
         `STATUS:CONFIRMED`,
