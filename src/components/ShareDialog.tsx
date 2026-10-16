@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Copy, Check, Share2, Mail, MessageSquare, X, QrCode } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { triggerHaptic } from '../lib/haptics';
+import { QRCodeSVG } from 'qrcode.react';
 
 export interface ShareDialogProps {
     type?: 'ad' | 'profile' | 'app';
@@ -93,7 +94,7 @@ export default function ShareDialog({
 
     const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
     const emailUrl = `mailto:?subject=${encodeURIComponent(`FWG Nachhilfebörse: ${effectiveTitle}`)}&body=${encodeURIComponent(`Hallo,\n\nich möchte das mit dir teilen:\n\n${shareText}\n\nViele Grüße!`)}`;
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(shareUrl!)}`;
+    // QR-Code wird lokal als SVG erzeugt (qrcode.react) – kein Drittanbieter-Dienst mehr.
 
     return (
         <Dialog open={isOpen} onClose={onClose}>
@@ -185,11 +186,7 @@ export default function ShareDialog({
 
                         {showQr && (
                             <div className="mt-3 flex flex-col items-center justify-center p-4 bg-white dark:bg-gray-950 rounded-2xl border dark:border-gray-800 shadow-inner animate-in fade-in zoom-in-95">
-                                <img
-                                    src={qrCodeUrl}
-                                    alt="QR-Code zum Abscannen"
-                                    className="w-44 h-44 rounded-xl shadow-xs"
-                                />
+                                <QRCodeSVG value={shareUrl!} size={220} title="QR-Code zum Abscannen" className="w-44 h-44 rounded-xl" />
                                 <p className="text-[11px] text-gray-400 font-semibold mt-2 text-center">
                                     Scanne diesen Code mit deiner Handy-Kamera
                                 </p>

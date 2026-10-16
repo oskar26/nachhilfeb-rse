@@ -72,6 +72,24 @@ if ($method === 'POST') {
         json_error('Du kannst dich nicht selbst bewerten.', 400);
     }
 
+    // Bewertungen nur nach angenommener Anfrage und nur einmal pro Paar:
+    // verhindert Fake-Bewertungen ohne echten Kontakt und aufgeblähte Durchschnitte.
+    $pairStmt = $pdo->prepare("
+        SELECT COUNT(*) FROM ad_requests
+        WHERE ((requester_id = ? AND owner_id = ?) OR (requester_id = ? AND owner_id = ?))
+          AND status IN ('accepted', 'completed')
+    ");
+    $pairStmt->execute([$user['id'], $targetUserId, $targetUserId, $user['id']]);
+    if ((int)$pairStmt->fetchColumn() < 1) {
+        json_error('Bewertungen sind nur nach einer angenommenen Anfrage möglich.', 403, ['code' => 'forbidden']);
+    }
+
+    $dupStmt = $pdo->prepare('SELECT COUNT(*) FROM reviews WHERE author_id = ? AND target_user_id = ?');
+    $dupStmt->execute([$user['id'], $targetUserId]);
+    if ((int)$dupStmt->fetchColumn() > 0) {
+        json_error('Du hast diese Person bereits bewertet.', 400);
+    }
+
     $pdo->beginTransaction();
     try {
         $reviewId = generate_uuid();
@@ -80,6 +98,14 @@ if ($method === 'POST') {
             VALUES (?, ?, ?, ?, ?, ?)
         ');
         $insert->execute([$reviewId, $adId, $user['id'], $targetUserId, $rating, $comment]);
+
+        // Kreis schließen: angenommene Anfragen des Paares gelten mit der Bewertung als erledigt.
+        $completeStmt = $pdo->prepare("
+            UPDATE ad_requests SET status = 'completed'
+            WHERE status = 'accepted'
+              AND ((requester_id = ? AND owner_id = ?) OR (requester_id = ? AND owner_id = ?))
+        ");
+        $completeStmt->execute([$user['id'], $targetUserId, $targetUserId, $user['id']]);
 
         // Durchschnittliche Bewertung des Zielnutzers neu berechnen
         $avgStmt = $pdo->prepare('
