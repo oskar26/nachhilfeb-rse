@@ -30,14 +30,15 @@ Codes werden im Admin-Panel unter **Codes** generiert (Einzel oder als Batch: 5/
 
 ### Einlösung
 1. Nutzer gibt Code bei der Registrierung ein
-2. Client prüft Code via Supabase (`is_used = false`, `expires_at > now()`)
-3. Nach erfolgreicher Registrierung wird `redeem_invite_code(code_val, target_user_id)` aufgerufen
-4. Die SQL-Funktion setzt `is_verified = true`, `role = code_record.role` im Profil und markiert den Code als `is_used = true`
+2. Client prüft Code via PHP-API (`POST /api/codes.php?action=check`)
+3. Nach erfolgreicher Registrierung wird der Code via `POST /api/codes.php?action=redeem` eingelöst
+4. Der Server setzt `is_verified = true`, `role = code_record.role` im Profil und markiert den Code als `is_used = true`
 
-### Sicherheit (RLS)
-- **Admins**: Vollzugriff (`role = 'sv_admin'`)
-- **Öffentlich (SELECT)**: Codes können abgerufen werden, wenn der exakte Code bekannt ist (für Registrierungs-Check)
-- **Schreiben**: Nur Admins
+### Sicherheit
+- **Admins**: Vollzugriff (`role = 'sv_admin'`, serverseitig per `require_admin()` geprüft)
+- **Prüfen (`check`)**: ohne Anmeldung möglich, wenn der exakte Code bekannt ist (für Registrierungs-Check)
+- **Einlösen (`redeem`)**: nur für eingeloggte Nutzer
+- **Generieren/Löschen**: nur Admins
 
 ### Fehlercodes
 | Rückgabewert | Bedeutung |

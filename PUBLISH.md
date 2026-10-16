@@ -1,5 +1,7 @@
 # 🚀 Nachhilfebörse v2 - Publishing Guide
 
+> ⚠️ **Historisches Dokument (Supabase-/Vercel-Ära):** Der Produktivbetrieb läuft inzwischen über ALL-INKL (PHP/MySQL), Deploy per GitHub Action. Die Schritte unten sind nicht mehr gültig.
+
 Die App ist nun **100% Code-sicher (ohne TypeScript-Fehler)**, **komplett mit Supabase Security (RLS) verknüpft** und bereit für echte Nutzer an deiner Schule (FWG)!
 
 ## Schritt 1: Das Backend scharf schalten (Supabase)

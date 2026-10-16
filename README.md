@@ -138,7 +138,7 @@ Details: [Datenschutzerklärung](https://nachhilfe-sv.de/#/datenschutz) · [Cook
 | Ebene | Technologien |
 |---|---|
 | **Frontend** | React 19, TypeScript, Vite, TailwindCSS, Framer Motion, Lucide Icons, Tiptap |
-| **Backend & DB** | PHP-API (ALL-INKL MySQL) · Supabase-Adapter (PostgreSQL, RLS, Auth) |
+| **Backend & DB** | PHP-API (ALL-INKL MySQL) |
 | **PWA** | vite-plugin-pwa, Workbox |
 
 ---

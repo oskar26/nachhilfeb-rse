@@ -24,7 +24,7 @@ Alltag: Pause, SV-Raum/Glaskasten (Verifikation, Codes/QR), Unterricht/Klausuren
 
 ## Capabilities and Constraints
 
-Bestätigt: Anzeigen (biete/suche, Fächer farbcodiert, Klassen, Ort, Format, Preis, Verfügbarkeit, Bilder), Feed + Filter (Fach, Klasse, Preis-Slider, Zeit, verifiziert), Merkliste, Anfragen + Chat, Profile + Rich-Bio, Bewertungen (nur nach Kontakt), Reports + SV-Panel (Verifikation, Codes/QR/PDF, Moderation, Analytics), Eltern-Dashboard + Leitfaden, Coaching-Seite/AG, Live-Stats (Summary-Endpoint), News-Widget, Dark Mode, PWA. Constraints: keine Zahlung im MVP, Telefon/Moodle nur nach Freigabe, keine Fake-Counts (0 Reviews = keine Anzeige), Verifikation Pflicht-Hinweis. Stack vorhanden: React 19 + Vite + Tailwind + Supabase (nicht ändern). Welcome-Inhalt soll gleich bleiben (kompakter erlaubt), Unterseiten (Eltern-Leitfaden, Coaching, Rechtliches) bleiben aus Vertrauensgründen erhalten.
+Bestätigt: Anzeigen (biete/suche, Fächer farbcodiert, Klassen, Ort, Format, Preis, Verfügbarkeit, Bilder), Feed + Filter (Fach, Klasse, Preis-Slider, Zeit, verifiziert), Merkliste, Anfragen + Chat, Profile + Rich-Bio, Bewertungen (nur nach Kontakt), Reports + SV-Panel (Verifikation, Codes/QR/PDF, Moderation, Analytics), Eltern-Dashboard + Leitfaden, Coaching-Seite/AG, Live-Stats (Summary-Endpoint), News-Widget, Dark Mode, PWA. Constraints: keine Zahlung im MVP, Telefon/Moodle nur nach Freigabe, keine Fake-Counts (0 Reviews = keine Anzeige), Verifikation Pflicht-Hinweis. Stack vorhanden: React 19 + Vite + Tailwind + PHP/MySQL-API (ALL-INKL, nicht ändern). Welcome-Inhalt soll gleich bleiben (kompakter erlaubt), Unterseiten (Eltern-Leitfaden, Coaching, Rechtliches) bleiben aus Vertrauensgründen erhalten.
 
 ## Brand Commitments
 

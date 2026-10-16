@@ -2,6 +2,10 @@
 
 Diese Anleitung erklärt, wie die FWG Nachhilfebörse v2 eingerichtet, migriert und deployt wird.
 
+> ⚠️ **Historisches Dokument (Supabase-Ära):** Der Produktivbetrieb läuft über ALL-INKL (PHP/MySQL).
+> Deploy: GitHub Action [`.github/workflows/deploy-allinkl.yml`](.github/workflows/deploy-allinkl.yml) (Build + FTPS).
+> Schema-Updates: [`sql-updates/README.md`](sql-updates/README.md). Die Abschnitte 2–4 beschreiben das frühere Supabase-Setup und gelten nicht mehr.
+
 ---
 
 ## Voraussetzungen
@@ -10,7 +14,6 @@ Diese Anleitung erklärt, wie die FWG Nachhilfebörse v2 eingerichtet, migriert 
 |------|---------|-----------------|
 | Node.js | ≥ 18 | Frontend-Build |
 | npm | ≥ 9 | Paketverwaltung |
-| Supabase CLI | optional | Lokale Entwicklung |
 | Git | beliebig | Versionskontrolle |
 
 ---
@@ -31,8 +34,7 @@ npm install
 Erstelle eine `.env`-Datei im Root-Verzeichnis (Vorlage: `.env.example`):
 
 ```env
-VITE_SUPABASE_URL=https://dein-projekt.supabase.co
-VITE_SUPABASE_ANON_KEY=dein-anon-key-hier
+# Keine Pflicht-Variablen nötig. Optional: VITE_API_URL (Standard: /api)
 ```
 
 > ⚠️ **Wichtig**: Committe niemals die `.env`-Datei mit echten Schlüsseln! Die `.gitignore` ist bereits so konfiguriert, dass `.env` ausgeschlossen wird.
