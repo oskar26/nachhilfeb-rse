@@ -109,6 +109,25 @@ if ($method === 'GET') {
             'subjects' => $r['ad_subjects'],
             'type' => $r['ad_type']
         ];
+
+        // Datenschutz: Kontaktdaten erst nach Annahme ausliefern und fremde
+        // Angaben nur gemäß deren Sichtbarkeits-Einstellungen.
+        $contactsUnlocked = in_array($r['status'], ['accepted', 'completed'], true);
+        if (!$contactsUnlocked) {
+            $r['requester']['phone_number'] = null;
+            $r['requester']['email'] = null;
+            $r['owner']['phone_number'] = null;
+            $r['owner']['email'] = null;
+        } else {
+            if ($r['requester_id'] !== $user['id']) {
+                if (empty($reqSettings['phone_visible'])) { $r['requester']['phone_number'] = null; }
+                if (empty($reqSettings['email_visible'])) { $r['requester']['email'] = null; }
+            }
+            if ($r['owner_id'] !== $user['id']) {
+                if (empty($ownSettings['phone_visible'])) { $r['owner']['phone_number'] = null; }
+                if (empty($ownSettings['email_visible'])) { $r['owner']['email'] = null; }
+            }
+        }
     }
 
     json_response($rows);
