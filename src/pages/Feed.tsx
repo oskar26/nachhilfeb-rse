@@ -10,10 +10,25 @@ import { GradeSelector } from '../components/GradeSelector';
 import { Input } from '../components/ui/Input';
 import { PriceRangeSlider } from '../components/PriceRangeSlider';
 import { useAuth } from '../context/AuthContext';
-import { emptyAvailability, countMatches, type Availability } from '../components/AvailabilityCalendar';
+import { emptyAvailability, countMatches, type Availability } from '../lib/availability';
 import { toast } from 'react-hot-toast';
 import ShareDialog from '../components/ShareDialog';
 import { cn, formatAdPrice, hourlyRate, type PriceDetails } from '../lib/utils';
+import {
+    PRICE_SLIDER_MIN,
+    PRICE_SLIDER_MAX,
+    SAVED_SEARCH_KEY,
+    filtereAnzeigen,
+    istGeboostet,
+    isValidSortKey,
+    ladeGespeicherteSuche,
+    parseGespeicherteSuche,
+    speichereGespeicherteSuche,
+    sortiereAnzeigen,
+    verwerfeGespeicherteSuche,
+    type SavedSearch,
+    type SortKey,
+} from '../lib/anzeigen';
 import { triggerHaptic } from '../lib/haptics';
 import { api, apiErrorMessage } from '../lib/api';
 import { VerifiedPill } from '../components/ui/VerifiedPill';
@@ -39,18 +54,13 @@ interface Ad {
     profiles_avail?: Availability;
 }
 
-const PRICE_SLIDER_MIN = 0;
-const PRICE_SLIDER_MAX = 30;
 // Getrennte Konstanten: aktive (weiß auf Farbe) und inaktive (grau auf grau) States teilen sich nie ein Element.
 const GESUCHE_PILL_ACTIVE = 'bg-blue-600 text-white shadow-sm';
 const GESUCHE_PILL_IDLE = 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300';
-const SAVED_SEARCH_KEY = 'fwg_saved_search';
 // „Beliebt:“-Fächer (B2): Standardliste, bis echte Klicks ein Ranking liefern
 const POPULAR_FALLBACK: Subject[] = ['mathematik', 'deutsch', 'englisch', 'physik', 'latein', 'franzoesisch', 'chemie', 'informatik'];
 let popularSubjectsMemory: Subject[] | null = null;
-const GRADE_VALUES = ['5', '6', '7', '8', '9', '10', 'EF', 'Q1', 'Q2'];
 
-type SortKey = 'newest' | 'oldest' | 'cheapest' | 'priciest' | 'popular' | 'saved';
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
     { value: 'newest', label: 'Neueste zuerst' },
     { value: 'oldest', label: 'Älteste zuerst' },
@@ -59,23 +69,6 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
     { value: 'popular', label: 'Beliebteste zuerst' },
     { value: 'saved', label: 'Meistgespeichertste zuerst' },
 ];
-const SORT_KEYS: SortKey[] = ['newest', 'oldest', 'cheapest', 'priciest', 'popular', 'saved'];
-
-function isValidSortKey(value: unknown): value is SortKey {
-    return typeof value === 'string' && (SORT_KEYS as string[]).includes(value);
-}
-
-/** Normiert den Preis einer Anzeige auf Euro pro Stunde (60 Min). free → 0, vb/unbekannt → null. */
-function getHourlyRate(ad: Ad): number | null {
-    const mode = ad.price_details?.mode;
-    if (mode === 'free') return 0;
-    if (mode !== 'fixed') return null;
-    const val = Number(ad.price_details?.value);
-    if (!Number.isFinite(val) || val < 0) return null;
-    const unit = ad.price_details?.unit;
-    const minutes = unit === '45min' ? 45 : unit === '90min' ? 90 : 60;
-    return Math.round(((val / minutes) * 60) * 100) / 100;
-}
 
 function formatPrice(ad: Ad): string {
     return formatAdPrice(ad.price_details);
@@ -86,18 +79,6 @@ function priceSecondary(ad: Ad): string | null {
     if (h === null || h === 0) return null;
     const text = Number.isInteger(h) ? String(h) : h.toFixed(1).replace('.', ',');
     return `≈ ${text} €/h`;
-}
-
-interface SavedSearch {
-    query: string;
-    type: 'all' | 'offer' | 'search';
-    subject: Subject | null;
-    grades: string[];
-    minPrice: number;
-    maxPrice: number;
-    onlyCoaches: boolean;
-    filterByTime: boolean;
-    sortKey: SortKey;
 }
 
 const FILTER_DEFAULTS = {
@@ -111,48 +92,6 @@ const FILTER_DEFAULTS = {
     filterByTime: false,
     sortKey: 'newest' as SortKey,
 };
-
-function isValidSubject(value: unknown): value is Subject {
-    return SUBJECT_CATEGORIES.some(category => category.subjects.includes(value as Subject));
-}
-
-function parseSavedSearch(value: unknown): SavedSearch | null {
-    if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
-    const record = value as Record<string, unknown>;
-    if (
-        typeof record.query !== 'string' ||
-        !['all', 'offer', 'search'].includes(String(record.type)) ||
-        (record.subject !== null && !isValidSubject(record.subject)) ||
-        !Array.isArray(record.grades) ||
-        !record.grades.every(g => typeof g === 'string' && GRADE_VALUES.includes(g)) ||
-        typeof record.minPrice !== 'number' || !Number.isInteger(record.minPrice) ||
-        typeof record.maxPrice !== 'number' || !Number.isInteger(record.maxPrice) ||
-        record.minPrice < PRICE_SLIDER_MIN || record.maxPrice > PRICE_SLIDER_MAX ||
-        record.minPrice >= record.maxPrice ||
-        typeof record.onlyCoaches !== 'boolean' || typeof record.filterByTime !== 'boolean'
-    ) return null;
-    return {
-        query: record.query,
-        type: record.type as SavedSearch['type'],
-        subject: record.subject as Subject | null,
-        grades: [...new Set(record.grades as string[])],
-        minPrice: record.minPrice,
-        maxPrice: record.maxPrice,
-        onlyCoaches: record.onlyCoaches,
-        filterByTime: record.filterByTime,
-        sortKey: isValidSortKey(record.sortKey) ? record.sortKey : 'newest',
-    };
-}
-
-function loadSavedSearch(): SavedSearch | null {
-    try {
-        const raw = localStorage.getItem(SAVED_SEARCH_KEY);
-        if (!raw) return null;
-        return parseSavedSearch(JSON.parse(raw));
-    } catch {
-        return null;
-    }
-}
 
 async function loadAds(): Promise<Ad[]> {
     const { data: adsData, error } = await api.ads.list({ all: true });
@@ -196,7 +135,7 @@ export default function Feed() {
     const [myAvailability, setMyAvailability] = useState<Availability>(emptyAvailability());
     const [filterByTime, setFilterByTime] = useState(false);
     const [shareAd, setShareAd] = useState<{ id: string; title: string } | null>(null);
-    const [savedSearch, setSavedSearch] = useState<SavedSearch | null>(() => loadSavedSearch());
+    const [savedSearch, setSavedSearch] = useState<SavedSearch | null>(() => ladeGespeicherteSuche());
     const [savedSearchId, setSavedSearchId] = useState<string | null>(null);
     const [popularSubjects, setPopularSubjects] = useState<Subject[]>(POPULAR_FALLBACK);
 
@@ -225,7 +164,7 @@ export default function Feed() {
                 if (cancelled) return;
                 if (error || !data) return;
                 const first = ((data as any)?.searches ?? [])[0];
-                const parsed = first ? parseSavedSearch(first.query) : null;
+                const parsed = first ? parseGespeicherteSuche(first.query) : null;
                 if (parsed) {
                     setSavedSearchId(first?.id ?? null);
                     setSavedSearch(parsed);
@@ -356,9 +295,7 @@ export default function Feed() {
     };
 
     const discardSavedSearch = () => {
-        try {
-            localStorage.removeItem(SAVED_SEARCH_KEY);
-        } catch {
+        if (!verwerfeGespeicherteSuche()) {
             toast.error('Gespeicherte Suche konnte nicht gelöscht werden. Bitte erneut versuchen.');
             return;
         }
@@ -384,16 +321,13 @@ export default function Feed() {
             filterByTime,
             sortKey,
         };
-        try {
-            localStorage.setItem(SAVED_SEARCH_KEY, JSON.stringify(entry));
-            setSavedSearch(entry);
-            triggerHaptic('light');
-            toast.success('Suche gespeichert. Du kannst sie hier jederzeit wieder anwenden.');
-        } catch (err) {
-            console.error('Could not save search', err);
+        if (!speichereGespeicherteSuche(entry)) {
             toast.error('Suche konnte nicht gespeichert werden.');
             return;
         }
+        setSavedSearch(entry);
+        triggerHaptic('light');
+        toast.success('Suche gespeichert. Du kannst sie hier jederzeit wieder anwenden.');
         setSavedSearchId(null);
         void api.savedSearches.save(entry)
             .then(({ data, error }) => {
@@ -403,97 +337,19 @@ export default function Feed() {
             .catch(() => { /* offline: localStorage-Fallback greift */ });
     };
 
-    const filteredAds = ads.filter(ad => {
-        // Search
-        const searchLower = searchQuery.toLowerCase();
-        if (searchQuery &&
-            !(ad.short_description?.toLowerCase() || '').includes(searchLower) &&
-            !(ad.subjects || []).some((s: Subject) => s.toLowerCase().includes(searchLower)) &&
-            !(ad.profiles?.display_name?.toLowerCase() || '').includes(searchLower)
-        ) {
-            return false;
-        }
-        // Type
-        if (filterType !== 'all' && ad.type !== filterType) return false;
-        // Subject
-        if (filterSubject && !ad.subjects.includes(filterSubject)) return false;
-        // Grade
-        if (filterGrade.length > 0) {
-            const hasMatch = filterGrade.some(g => ad.grade_levels.includes(g));
-            if (!hasMatch) return false;
-        }
-        // Preis (normiert auf Euro pro Stunde; VB passiert immer, da Preis unbekannt)
-        const hourly = getHourlyRate(ad);
-        if (hourly !== null) {
-            if (hourly < minPrice || hourly > maxPrice) return false;
-        }
-
-        // Coach filter
-        if (filterOnlyCoaches && !ad.profiles?.is_coach) return false;
-
-        return true;
+    // Filter (Suche, Typ, Fach, Klasse, Preis, Coaches) liegt in lib/anzeigen.ts.
+    const filteredAds = filtereAnzeigen(ads, {
+        query: searchQuery,
+        type: filterType,
+        subject: filterSubject,
+        grades: filterGrade,
+        minPrice,
+        maxPrice,
+        onlyCoaches: filterOnlyCoaches,
     });
 
-    const isAdBoosted = (ad: Ad): boolean => {
-        return Boolean(ad?.boosted && ad?.boosted_until && new Date(ad.boosted_until) > new Date());
-    };
-
-    const isYoungOffer = (ad: Ad): boolean => {
-        if (ad.type !== 'offer') return false;
-        const grade = String(ad.profiles?.grade_level || '').trim().toUpperCase();
-        return grade === '5' || grade === '6';
-    };
-
-    // Sort: Boosted ads always on top, then the selected sort order.
-    // Ranking-Vorteil für Coaches (bewusst & offengelegt, siehe /coaching):
-    // Anzeigen verifizierter Coaches (is_coach) erhalten +0.5 Matching-Punkte
-    // bzw. +24h Frische-Bonus – als Anerkennung fürs Ehrenamt. Kein Kauf möglich.
-    const sortedAds = [...filteredAds].sort((a, b) => {
-        const aBoost = isAdBoosted(a);
-        const bBoost = isAdBoosted(b);
-
-        if (aBoost && !bBoost) return -1;
-        if (!aBoost && bBoost) return 1;
-
-        const aYoung = isYoungOffer(a);
-        const bYoung = isYoungOffer(b);
-        if (aYoung !== bYoung) return aYoung ? 1 : -1;
-
-        const aCoach = Boolean(a.profiles?.is_coach);
-        const bCoach = Boolean(b.profiles?.is_coach);
-
-        switch (sortKey) {
-            case 'oldest':
-                return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-            case 'cheapest':
-            case 'priciest': {
-                // Unbekannte Preise (VB) ans Ende sortieren
-                const pa = getHourlyRate(a);
-                const pb = getHourlyRate(b);
-                if (pa === null && pb === null) break;
-                if (pa === null) return 1;
-                if (pb === null) return -1;
-                return sortKey === 'cheapest' ? pa - pb : pb - pa;
-            }
-            case 'popular':
-                return (b.view_count || 0) - (a.view_count || 0);
-            case 'saved':
-                return (b.favorite_count || 0) - (a.favorite_count || 0);
-            case 'newest':
-            default:
-                break;
-        }
-
-        if (filterByTime) {
-            const scoreA = countMatches(myAvailability, a.profiles_avail || emptyAvailability()) + (aCoach ? 0.5 : 0);
-            const scoreB = countMatches(myAvailability, b.profiles_avail || emptyAvailability()) + (bCoach ? 0.5 : 0);
-            return scoreB - scoreA;
-        } else {
-            const timeA = new Date(a.created_at).getTime() + (aCoach ? 24 * 60 * 60 * 1000 : 0);
-            const timeB = new Date(b.created_at).getTime() + (bCoach ? 24 * 60 * 60 * 1000 : 0);
-            return timeB - timeA;
-        }
-    });
+    // Sortierung (Boost oben, Nachwuchs unten, Coach-Bonus) liegt in lib/anzeigen.ts.
+    const sortedAds = sortiereAnzeigen(filteredAds, { sortKey, filterByTime, myAvailability });
 
     return (
         <div className="w-full min-w-0 max-w-3xl mx-auto p-4 sm:p-6 space-y-4 sm:space-y-5 pb-24 overflow-x-clip">
@@ -957,7 +813,7 @@ export default function Feed() {
                 ) : (
                     sortedAds.map((ad) => {
                         const matchScore = countMatches(myAvailability, ad.profiles_avail || emptyAvailability());
-                        const boosted = isAdBoosted(ad);
+                        const boosted = istGeboostet(ad);
                         return (
                         <Card
                             key={ad.id}

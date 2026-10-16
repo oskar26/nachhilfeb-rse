@@ -6,7 +6,7 @@ import {
     emptyAvailability,
     countMatches,
     type Availability
-} from '../components/AvailabilityCalendar';
+} from './availability';
 
 export type { Availability };
 export { emptyAvailability, countMatches };

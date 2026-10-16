@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
@@ -31,5 +31,10 @@ export default defineConfig({
       },
       devOptions: { enabled: true }
     })
-  ]
+  ],
+  test: {
+    // Nur vitest-Dateien einbeziehen; test/ai-drafts.test.mjs nutzt weiterhin node:test.
+    include: ['test/**/*.test.ts'],
+    environment: 'node',
+  }
 });
