@@ -7,6 +7,7 @@ require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/response.php';
 require_once __DIR__ . '/middleware.php';
 require_once __DIR__ . '/mailer.php';
+require_once __DIR__ . '/ratelimit.php';
 
 
 cors_headers();
@@ -44,7 +45,7 @@ if ($method === 'GET') {
     $isAdmin = ($user['role'] === 'sv_admin');
 
     if (!$isParticipant && !$isAdmin) {
-        json_error('Kein Zugriff auf diesen Chat.', 403);
+        json_error('Kein Zugriff auf diesen Chat.', 403, ['code' => 'forbidden']);
     }
 
     $sql = '
@@ -110,7 +111,7 @@ if ($method === 'POST') {
     $isAdmin = ($user['role'] === 'sv_admin');
 
     if (!$isParticipant && !$isAdmin) {
-        json_error('Kein Zugriff auf diesen Chat.', 403);
+        json_error('Kein Zugriff auf diesen Chat.', 403, ['code' => 'forbidden']);
     }
 
     $msgId = generate_uuid();
@@ -137,7 +138,9 @@ if ($method === 'POST') {
     $recipStmt->execute([$recipientId]);
     $recip = $recipStmt->fetch();
 
-    if ($recip && !empty($recip['email'])) {
+    // Mail-Flut-Schutz: höchstens 10 Chat-Mails pro Minute und Absender.
+    // Die Nachricht selbst und die In-App-Benachrichtigung bleiben unberührt.
+    if ($recip && !empty($recip['email']) && fwg_rate_limit('chat_mail_' . $user['id'], 10, 60)) {
         try {
             send_email_new_chat_message(
                 $recip['email'],

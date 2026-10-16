@@ -237,6 +237,16 @@ if ($method === 'GET') {
             }
         }
 
+        // Datenschutz: E-Mail/Telefon für Fremde nur ausliefern, wenn im Profil sichtbar gestellt
+        if ($ad['user_id'] !== $viewer['id'] && !in_array($viewer['role'] ?? '', ['sv_admin', 'coach_admin'], true)) {
+            if (empty($userSettings['email_visible'])) {
+                $ad['profiles']['email'] = null;
+            }
+            if (empty($userSettings['phone_visible'])) {
+                $ad['profiles']['phone_number'] = null;
+            }
+        }
+
         json_response($ad);
     }
 
@@ -536,12 +546,67 @@ if ($method === 'PUT' || $method === 'PATCH') {
         json_error('Anzeige nicht gefunden.', 404);
     }
     if ($ad['user_id'] !== $user['id'] && $user['role'] !== 'sv_admin') {
-        json_error('Keine Berechtigung zur Bearbeitung dieser Anzeige.', 403);
+        json_error('Keine Berechtigung zur Bearbeitung dieser Anzeige.', 403, ['code' => 'forbidden']);
     }
 
     $data = get_json_input();
     $fields = [];
     $params = [];
+
+    // Gleiche Validierung wie beim Erstellen (POST): Längen begrenzen und
+    // Bild-URLs nur per HTTPS erlauben – sonst könnten PUT-Aufrufe die
+    // POST-Prüfungen umgehen.
+    if (isset($data['type']) && !in_array($data['type'], ['offer', 'search'], true)) {
+        json_error('Ungültiger Anzeigentyp.');
+    }
+    if (isset($data['session_format']) && !in_array($data['session_format'], ['single', 'group', 'any'], true)) {
+        json_error('Ungültiges Format.');
+    }
+    if (isset($data['short_description'])) {
+        $data['short_description'] = mb_substr(trim((string)$data['short_description']), 0, 140);
+        if ($data['short_description'] === '') {
+            json_error('Bitte gib eine kurze Beschreibung an.');
+        }
+    }
+    if (isset($data['long_description'])) {
+        $data['long_description'] = mb_substr(trim((string)$data['long_description']), 0, 8000);
+    }
+    if (isset($data['custom_location'])) {
+        $data['custom_location'] = mb_substr(trim((string)$data['custom_location']), 0, 120);
+    }
+    if (isset($data['subjects'])) {
+        $subjects = is_array($data['subjects']) ? array_slice($data['subjects'], 0, 10) : [];
+        if (empty($subjects)) {
+            json_error('Mindestens ein Fach muss angegeben werden.');
+        }
+        foreach ($subjects as $subject) {
+            if (!is_string($subject) || mb_strlen($subject) > 40) {
+                json_error('Ungültiges Fach.');
+            }
+        }
+        $data['subjects'] = $subjects;
+    }
+    if (isset($data['grade_levels'])) {
+        $data['grade_levels'] = is_array($data['grade_levels']) ? array_slice($data['grade_levels'], 0, 12) : [];
+    }
+    if (isset($data['locations'])) {
+        $data['locations'] = is_array($data['locations']) ? array_slice($data['locations'], 0, 10) : [];
+    }
+    if (isset($data['duration_minutes'])) {
+        $data['duration_minutes'] = is_array($data['duration_minutes']) ? array_slice($data['duration_minutes'], 0, 6) : [];
+    }
+    if (isset($data['image_urls'])) {
+        $imageUrls = is_array($data['image_urls']) ? array_slice($data['image_urls'], 0, 5) : [];
+        foreach ($imageUrls as $url) {
+            if (!is_string($url) || mb_strlen($url) > 2000 || strpos($url, 'https://') !== 0) {
+                json_error('Ungültige Bild-URL (nur https, max. 5 Bilder).');
+            }
+        }
+        $data['image_urls'] = $imageUrls;
+    }
+    if (isset($data['price_details']) && !is_array($data['price_details'])) {
+        $data['price_details'] = [];
+    }
 
     $updatable = [
         'type', 'session_format', 'custom_location', 'short_description', 'long_description',
@@ -549,9 +614,6 @@ if ($method === 'PUT' || $method === 'PATCH') {
     ];
     foreach ($updatable as $f) {
         if (isset($data[$f])) {
-            if ($f === 'session_format' && !in_array($data[$f], ['single', 'group', 'any'])) {
-                continue;
-            }
             $fields[] = "`$f` = ?";
             $params[] = $data[$f];
         }
@@ -594,7 +656,7 @@ if ($method === 'DELETE') {
         json_error('Anzeige nicht gefunden.', 404);
     }
     if ($ad['user_id'] !== $user['id'] && $user['role'] !== 'sv_admin') {
-        json_error('Keine Berechtigung zum Löschen.', 403);
+        json_error('Keine Berechtigung zum Löschen.', 403, ['code' => 'forbidden']);
     }
 
     $del = $pdo->prepare('DELETE FROM ads WHERE id = ?');

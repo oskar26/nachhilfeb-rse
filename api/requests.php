@@ -7,6 +7,7 @@ require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/response.php';
 require_once __DIR__ . '/middleware.php';
 require_once __DIR__ . '/mailer.php';
+require_once __DIR__ . '/ratelimit.php';
 
 
 cors_headers();
@@ -117,6 +118,9 @@ if ($method === 'GET') {
 // 2. POST: NEUE ANFRAGE SENDEN
 // ------------------------------------------------------------------------------
 if ($method === 'POST') {
+    // Spam-Schutz: höchstens 10 neue Anfragen pro 5 Minuten und Nutzer
+    fwg_require_rate_limit('ad_request_' . $user['id'], 10, 300);
+
     $data = get_json_input();
     $adId = $data['ad_id'] ?? null;
     $message = trim($data['message'] ?? '');
@@ -238,13 +242,14 @@ if ($method === 'PATCH' || $method === 'PUT') {
         json_error('Anfrage nicht gefunden.', 404);
     }
 
-    // Nur der Besitzer (oder SV-Admin) darf annehmen/ablehnen
+    // Nur der Besitzer (oder SV-Admin) darf annehmen/ablehnen oder abschließen.
+    // Anfragende haben keine Statusrechte (Zurückziehen gibt es in der UI nicht),
+    // sonst könnten sie Anfragen selbst „annehmen“.
     $isOwner = ($request['owner_id'] === $user['id']);
-    $isRequester = ($request['requester_id'] === $user['id']);
     $isAdmin = ($user['role'] === 'sv_admin');
 
-    if (!$isOwner && !$isRequester && !$isAdmin) {
-        json_error('Keine Berechtigung.', 403);
+    if (!$isOwner && !$isAdmin) {
+        json_error('Keine Berechtigung.', 403, ['code' => 'forbidden']);
     }
 
     $update = $pdo->prepare('UPDATE ad_requests SET status = ? WHERE id = ?');

@@ -178,11 +178,20 @@ if ($action === 'redeem' && $method === 'POST') {
         $pdo->beginTransaction();
         try {
             $now = date('Y-m-d H:i:s');
-            $newUsed = $recUsed + 1;
-            // Einmalig: is_used setzen. Mehrfach: zählen, is_used erst bei Limit.
-            $spentFlag = ($recMax <= 1 || $newUsed >= $recMax) ? 1 : 0;
-            $pdo->prepare('UPDATE invite_codes SET is_used = ?, current_uses = ?, used_by = ?, used_at = ? WHERE id = ?')
-                ->execute([$spentFlag, $newUsed, $user['id'], $now, $rec['id']]);
+            // Atomar einlösen: Der Guard verhindert, dass zwei parallele Anfragen
+            // denselben Einmal-Code doppelt einlösen bzw. das Limit überschreiten.
+            if ($recMax <= 1) {
+                $redeemStmt = $pdo->prepare('UPDATE invite_codes SET is_used = 1, current_uses = current_uses + 1, used_by = ?, used_at = ? WHERE id = ? AND is_used = 0');
+                $redeemStmt->execute([$user['id'], $now, $rec['id']]);
+            } else {
+                // is_used zuerst aus dem ALTEN Zählerstand berechnen, dann hochzählen.
+                $redeemStmt = $pdo->prepare('UPDATE invite_codes SET is_used = IF(current_uses + 1 >= ?, 1, 0), current_uses = current_uses + 1, used_by = ?, used_at = ? WHERE id = ? AND is_used = 0 AND current_uses < ?');
+                $redeemStmt->execute([$recMax, $user['id'], $now, $rec['id'], $recMax]);
+            }
+            if ($redeemStmt->rowCount() !== 1) {
+                $pdo->rollBack();
+                json_error('Dieser Einladungscode wurde soeben bereits eingelöst. Bitte versuche es erneut.', 409);
+            }
 
             $pdo->prepare('UPDATE profiles SET is_verified = 1, role = ? WHERE id = ?')
                 ->execute([$rec['role'], $user['id']]);
@@ -219,9 +228,14 @@ if ($action === 'redeem' && $method === 'POST') {
 
         $pdo->beginTransaction();
         try {
-            // Nutzungen hochzählen
-            $pdo->prepare('UPDATE promo_codes SET current_uses = current_uses + 1 WHERE id = ?')
-                ->execute([$promo['id']]);
+            // Nutzungen atomar hochzählen (Guard gegen parallele Doppel-Einlösung
+            // bzw. Limit-Überschreitung; max_uses NULL = unbegrenzt).
+            $promoUpd = $pdo->prepare('UPDATE promo_codes SET current_uses = current_uses + 1 WHERE id = ? AND is_active = 1 AND (max_uses IS NULL OR current_uses < max_uses)');
+            $promoUpd->execute([$promo['id']]);
+            if ($promoUpd->rowCount() !== 1) {
+                $pdo->rollBack();
+                json_error('Dieser Promocode hat das maximale Nutzungslimit erreicht.', 400);
+            }
 
             $days = max(1, (int)$promo['boost_days']);
             $boostUntil = date('Y-m-d H:i:s', strtotime("+{$days} days"));
@@ -412,17 +426,32 @@ if ($action === 'promo_delete' && $method === 'POST') {
 // 4. ADMIN: INVITE-CODES AUFLISTEN & GENERIEREN
 // ------------------------------------------------------------------------------
 if ($action === 'list' && $method === 'GET') {
-    require_coach_or_admin();
+    $admin = require_coach_or_admin();
 
-    $stmt = $pdo->query('
-        SELECT c.*, 
-               creator.display_name as creator_name,
-               user.display_name as user_name
-        FROM invite_codes c
-        LEFT JOIN profiles creator ON creator.id = c.created_by
-        LEFT JOIN profiles user ON user.id = c.used_by
-        ORDER BY c.created_at DESC
-    ');
+    // Schutz vor Rechteausweitung: Codes für SV-Admin-Rollen sieht nur das SV-Admin-Team.
+    if (($admin['role'] ?? '') === 'sv_admin') {
+        $stmt = $pdo->query('
+            SELECT c.*, 
+                   creator.display_name as creator_name,
+                   user.display_name as user_name
+            FROM invite_codes c
+            LEFT JOIN profiles creator ON creator.id = c.created_by
+            LEFT JOIN profiles user ON user.id = c.used_by
+            ORDER BY c.created_at DESC
+        ');
+    } else {
+        $stmt = $pdo->prepare('
+            SELECT c.*, 
+                   creator.display_name as creator_name,
+                   user.display_name as user_name
+            FROM invite_codes c
+            LEFT JOIN profiles creator ON creator.id = c.created_by
+            LEFT JOIN profiles user ON user.id = c.used_by
+            WHERE c.role <> ?
+            ORDER BY c.created_at DESC
+        ');
+        $stmt->execute(['sv_admin']);
+    }
     $codes = $stmt->fetchAll();
     foreach ($codes as &$c) {
         $c['is_used'] = (bool)($c['is_used'] ?? false);
@@ -444,7 +473,7 @@ if ($action === 'generate' && $method === 'POST') {
     // Admin-Rollen dürfen nur vom SV-Admin-Team vergeben werden: Ein Coach-Admin
     // soll sich nicht selbst (oder andere) zum SV-Admin hochstufen können.
     if (in_array($role, ['sv_admin', 'coach_admin'], true) && ($admin['role'] ?? '') !== 'sv_admin') {
-        json_error('Nur das SV-Admin-Team darf Codes für Admin-Rollen erzeugen.', 403);
+        json_error('Nur das SV-Admin-Team darf Codes für Admin-Rollen erzeugen.', 403, ['code' => 'forbidden']);
     }
 
     $prefix = !empty($data['prefix']) ? mb_substr(strtoupper(trim($data['prefix'])), 0, 16) : ($role === 'coach_admin' ? 'COACH' : 'SV');
@@ -495,6 +524,13 @@ if ($action === 'delete_invite' && $method === 'POST') {
     $data = get_json_input();
     $id = $data['id'] ?? null;
     if ($id) {
+        // Schutz: SV-Admin-Codes darf nur ein SV-Admin löschen.
+        $roleStmt = $pdo->prepare('SELECT role FROM invite_codes WHERE id = ?');
+        $roleStmt->execute([$id]);
+        $targetRole = $roleStmt->fetchColumn();
+        if ($targetRole === 'sv_admin' && ($admin['role'] ?? '') !== 'sv_admin') {
+            json_error('Nur das SV-Admin-Team darf SV-Admin-Codes löschen.', 403, ['code' => 'forbidden']);
+        }
         $pdo->prepare('DELETE FROM invite_codes WHERE id = ?')->execute([$id]);
         fwg_audit($pdo, $admin['id'], 'invite_code_delete', 'invite_code', $id, []);
         json_response(['message' => 'Einladungscode gelöscht.']);
@@ -506,7 +542,8 @@ if ($action === 'delete_invite' && $method === 'POST') {
 // 5. ADMIN: PROMO-NUTZER & VORTEILE VERWALTEN (List Redemptions & Revoke)
 // ------------------------------------------------------------------------------
 if ($action === 'promo_redemptions' && $method === 'GET') {
-    require_coach_or_admin();
+    // Enthält Nutzer-E-Mails → nur das SV-Admin-Team.
+    require_admin();
     $stmt = $pdo->query('
         SELECT r.*, 
                p.display_name as user_name,

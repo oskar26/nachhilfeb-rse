@@ -146,7 +146,8 @@ if ($method === 'POST') {
         ], 201);
     } catch (Exception $e) {
         $pdo->rollBack();
-        json_error('Fehler beim Speichern der Bewertung: ' . $e->getMessage(), 500);
+        error_log('Fehler beim Speichern der Bewertung: ' . $e->getMessage());
+        json_error('Bewertung konnte nicht gespeichert werden. Bitte später erneut versuchen.', 500);
     }
 }
 

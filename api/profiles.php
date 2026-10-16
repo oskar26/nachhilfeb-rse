@@ -260,6 +260,21 @@ if ($method === 'GET') {
         }
     }
 
+    // Datenschutz: interne/sensible Felder nur für den Eigentümer oder das SV-Admin-Team ausliefern
+    $isOwnerOrSvAdmin = $currentUser && ($currentUser['id'] === $id || $currentUser['role'] === 'sv_admin');
+    if (!$isOwnerOrSvAdmin) {
+        unset(
+            $profile['birth_date'],
+            $profile['ban_reason'],
+            $profile['banned_until'],
+            $profile['parental_consent_given'],
+            $profile['parental_consent_date'],
+            $profile['moodle_name'],
+            $profile['contact_other'],
+            $profile['parent_link_code']
+        );
+    }
+
     json_response($profile);
 }
 
@@ -422,7 +437,7 @@ if ($method === 'PUT' || $method === 'PATCH') {
     $isCoachAdmin = $user['role'] === 'coach_admin';
 
     if (!$isSelf && !$isSvAdmin && !$isCoachAdmin) {
-        json_error('Keine Berechtigung zur Aktualisierung dieses Profils.', 403);
+        json_error('Keine Berechtigung zur Aktualisierung dieses Profils.', 403, ['code' => 'forbidden']);
     }
 
     $data = get_json_input();
@@ -563,6 +578,21 @@ if ($method === 'PUT' || $method === 'PATCH') {
             $updated['availability'] = json_decode($updated['availability'], true);
         } else if (!empty($updated['settings']['availability'])) {
             $updated['availability'] = $updated['settings']['availability'];
+        }
+
+        // Datenschutz: Bei Fremd-Aktualisierungen (z. B. Coach-Admin setzt Coach-Status)
+        // sensible Felder wie im GET-Pfad entfernen.
+        if ($targetId !== $user['id'] && !$isSvAdmin) {
+            unset(
+                $updated['birth_date'],
+                $updated['ban_reason'],
+                $updated['banned_until'],
+                $updated['parental_consent_given'],
+                $updated['parental_consent_date'],
+                $updated['moodle_name'],
+                $updated['contact_other'],
+                $updated['parent_link_code']
+            );
         }
     }
 

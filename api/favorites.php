@@ -7,6 +7,7 @@ require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/response.php';
 require_once __DIR__ . '/middleware.php';
 require_once __DIR__ . '/mailer.php';
+require_once __DIR__ . '/ratelimit.php';
 
 
 cors_headers();
@@ -95,7 +96,8 @@ if ($method === 'POST') {
 
         // Nur senden, wenn es nicht die eigene Anzeige ist
         if ($owner && $owner['owner_id'] !== $user['id']) {
-            if (!empty($owner['email'])) {
+            // Mail-Flut-Schutz: höchstens 10 Merklisten-Mails pro Minute und Nutzer.
+            if (!empty($owner['email']) && fwg_rate_limit('fav_mail_' . $user['id'], 10, 60)) {
                 try {
                     send_email_ad_favorited(
                         $owner['email'],

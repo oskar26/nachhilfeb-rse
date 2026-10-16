@@ -165,14 +165,24 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             json_encode([])
         ]);
 
-        // 3. SV-Code als eingelöst markieren
+        // 3. SV-Code atomar einlösen (gleiche Semantik wie codes.php Redeem:
+        //    max_uses/current_uses beachten, damit als Mehrfach-Code erzeugte
+        //    Einladungen auch bei der Registrierung mehrfach nutzbar sind und
+        //    parallele Registrierungen keine Doppel-Einlösung erlauben).
         if ($codeRecord) {
-            $redeemStmt = $pdo->prepare('
-                UPDATE invite_codes 
-                SET is_used = 1, used_by = ?, used_at = ? 
-                WHERE id = ?
-            ');
-            $redeemStmt->execute([$userId, $now, $codeRecord['id']]);
+            $recMax = isset($codeRecord['max_uses']) && $codeRecord['max_uses'] !== null ? (int)$codeRecord['max_uses'] : 1;
+            if ($recMax <= 1) {
+                $redeemStmt = $pdo->prepare('UPDATE invite_codes SET is_used = 1, current_uses = current_uses + 1, used_by = ?, used_at = ? WHERE id = ? AND is_used = 0');
+                $redeemStmt->execute([$userId, $now, $codeRecord['id']]);
+            } else {
+                // is_used zuerst aus dem ALTEN Zählerstand berechnen, dann hochzählen.
+                $redeemStmt = $pdo->prepare('UPDATE invite_codes SET is_used = IF(current_uses + 1 >= ?, 1, 0), current_uses = current_uses + 1, used_by = ?, used_at = ? WHERE id = ? AND is_used = 0 AND current_uses < ?');
+                $redeemStmt->execute([$recMax, $userId, $now, $codeRecord['id'], $recMax]);
+            }
+            if ($redeemStmt->rowCount() !== 1) {
+                $pdo->rollBack();
+                json_error('Der eingegebene SV-Code wurde soeben bereits eingelöst. Bitte versuche es erneut.', 409);
+            }
         }
 
         $pdo->commit();

@@ -6,9 +6,10 @@
 // ==============================================================================
 
 function fwg_rate_limit(string $action, int $limit, int $windowSec): bool {
-    $fwd = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? '';
-    $ip = $fwd !== '' ? trim(explode(',', (string)$fwd)[0]) : ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
-    $ip = mb_substr((string)$ip, 0, 64);
+    // Nur REMOTE_ADDR verwenden: X-Forwarded-For kann vom Client frei gesetzt werden
+    // (kein Trusted-Proxy konfiguriert) und würde sonst sämtliche Limits aushebeln.
+    $ip = (string)($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+    $ip = mb_substr($ip, 0, 64);
 
     $dir = rtrim(sys_get_temp_dir(), '/') . '/fwg_rl';
     if (!is_dir($dir) && !@mkdir($dir, 0700, true)) {

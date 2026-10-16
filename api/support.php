@@ -46,6 +46,11 @@ if ($method === 'GET') {
         $msgStmt->execute([$ticketId]);
         $ticket['messages'] = $msgStmt->fetchAll();
 
+        // Interne Moderationsnotizen nur für das SV-Admin-Team ausliefern
+        if ($user['role'] !== 'sv_admin') {
+            unset($ticket['admin_notes']);
+        }
+
         json_response($ticket);
     }
 
@@ -74,6 +79,10 @@ if ($method === 'GET') {
 
     foreach ($tickets as &$t) {
         $t['device_info'] = json_decode($t['device_info'] ?? '{}', true);
+        // Interne Moderationsnotizen nur für das SV-Admin-Team ausliefern
+        if ($user['role'] !== 'sv_admin') {
+            unset($t['admin_notes']);
+        }
     }
 
     json_response($tickets);
@@ -102,7 +111,7 @@ if ($method === 'POST') {
             json_error('Ticket nicht gefunden.', 404);
         }
         if ($t['user_id'] !== $user['id'] && $user['role'] !== 'sv_admin') {
-            json_error('Kein Zugriff auf dieses Ticket.', 403);
+            json_error('Kein Zugriff auf dieses Ticket.', 403, ['code' => 'forbidden']);
         }
 
         $isAdminReply = ($user['role'] === 'sv_admin');

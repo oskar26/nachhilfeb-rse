@@ -35,6 +35,11 @@ function get_auth_user(): ?array {
         return null;
     }
 
+    // Zweckgebundene Tokens (z. B. purpose=reset_password) sind keine Sessions.
+    if (!empty($payload['purpose'])) {
+        return null;
+    }
+
     $pdo = DB::getConnection();
     $stmt = $pdo->prepare('
         SELECT u.id, u.email, u.email_verified,
@@ -94,7 +99,7 @@ function fwg_clear_expired_ban(PDO $pdo, string $userId): void {
 function require_auth(): array {
     $user = get_auth_user();
     if (!$user) {
-        json_error('Nicht autorisiert. Bitte melde dich an.', 401);
+        json_error('Nicht autorisiert. Bitte melde dich an.', 401, ['code' => 'unauthorized']);
     }
     return $user;
 }
@@ -102,7 +107,7 @@ function require_auth(): array {
 function require_admin(): array {
     $user = require_auth();
     if ($user['role'] !== 'sv_admin') {
-        json_error('Zugriff verweigert. Diese Aktion erfordert SV-Admin-Rechte.', 403);
+        json_error('Zugriff verweigert. Diese Aktion erfordert SV-Admin-Rechte.', 403, ['code' => 'forbidden']);
     }
     return $user;
 }
@@ -124,7 +129,7 @@ function require_verified(): array {
 function require_coach_or_admin(): array {
     $user = require_auth();
     if ($user['role'] !== 'sv_admin' && $user['role'] !== 'coach_admin') {
-        json_error('Zugriff verweigert. Diese Aktion erfordert SV-Admin- oder Schüler-Coaching-Rechte.', 403);
+        json_error('Zugriff verweigert. Diese Aktion erfordert SV-Admin- oder Schüler-Coaching-Rechte.', 403, ['code' => 'forbidden']);
     }
     return $user;
 }

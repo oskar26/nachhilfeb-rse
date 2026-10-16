@@ -19,13 +19,15 @@ und löschen keine Daten.
 | 009 | `009_parent_links.sql` | Neue Tabelle `parent_links` (Eltern-Kind-Verknüpfung; fehlte in 001-008 → 500 beim Verknüpfen) |
 | 010 | `010_saved_searches.sql` | Neue Tabelle `saved_searches` (gemerkte Feed-Suchen + Benachrichtigung bei neuen Treffern) |
 | 011 | `011_subject_clicks.sql` | Neue Tabelle `subject_clicks` (anonyme Fächer-Klicks für „Beliebte Kategorien") |
+| 012 | `012_parent_autoverify.sql` | **Historisch** (Eltern-Feature wurde Ende 2026 zurückgebaut): verifizierte damals Eltern-Accounts mit aktiver Kind-Verknüpfung. Kann übersprungen werden, schadet aber auch nicht. |
+| 013 | `013_analytics_retention.sql` | Aufbewahrungsgrenze: löscht Statistikdaten älter als 90 Tage (`page_analytics` + `subject_clicks`). Läuft zusätzlich bei Bedarf – die API räumt probabilistisch selbst auf. |
 
 ## So geht's (dauert ca. 2 Minuten)
 
 1. **Einloggen:** ALL-INKL-KAS → **Datenbanken** → bei eurer Datenbank auf **phpMyAdmin** klicken (oder direkt über die phpMyAdmin-Adresse aus der KAS-Datenbankübersicht).
 2. **Datenbank wählen:** Links in der Liste eure Datenbank anklicken (Name steht in `api/db_credentials.php` bzw. als `DB_NAME`-Umgebungsvariable).
 3. **Importieren:** Oben auf den Reiter **„Importieren"** klicken → **„Datei auswählen"** → die Datei `001_...sql` von eurem Rechner wählen → ganz unten auf **„OK"** klicken.
-4. **Erfolgsmeldung** abwarten („Import wurde erfolgreich abgeschlossen") → Schritte 3–4 für `002_...sql` bis `011_...sql` wiederholen.
+4. **Erfolgsmeldung** abwarten („Import wurde erfolgreich abgeschlossen") → Schritte 3–4 für `002_...sql` bis `013_...sql` wiederholen.
 5. **Prüfen (optional):** Links auf die Tabelle `ads` → Reiter **„Struktur"** → dort müssen `session_format` und `view_count` auftauchen.
 
 ## Falls etwas rot wird
