@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS `profiles` (
   `display_name` VARCHAR(200) DEFAULT NULL,
   `grade_level` VARCHAR(20) DEFAULT NULL,
   `class_letter` VARCHAR(10) DEFAULT NULL,
-  `role` ENUM('student', 'sv_admin', 'parent') NOT NULL DEFAULT 'student',
+  `role` ENUM('student', 'sv_admin', 'coach_admin', 'parent') NOT NULL DEFAULT 'student',
   `subjects` JSON DEFAULT NULL,
   `bio` TEXT DEFAULT NULL,
   `moodle_name` VARCHAR(100) DEFAULT NULL,

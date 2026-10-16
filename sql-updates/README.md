@@ -21,13 +21,15 @@ und löschen keine Daten.
 | 011 | `011_subject_clicks.sql` | Neue Tabelle `subject_clicks` (anonyme Fächer-Klicks für „Beliebte Kategorien") |
 | 012 | `012_parent_autoverify.sql` | **Historisch** (Eltern-Feature wurde Ende 2026 zurückgebaut): verifizierte damals Eltern-Accounts mit aktiver Kind-Verknüpfung. Kann übersprungen werden, schadet aber auch nicht. |
 | 013 | `013_analytics_retention.sql` | Aufbewahrungsgrenze: löscht Statistikdaten älter als 90 Tage (`page_analytics` + `subject_clicks`). Läuft zusätzlich bei Bedarf – die API räumt probabilistisch selbst auf. |
+| 014 | `014_reviews_unique.sql` | Bewertungen: löscht eventuelle Doppel-Bewertungen (je Paar bleibt die neueste) und setzt einen Unique-Index (eine Bewertung pro Person und Ziel) |
+| 015 | `015_role_coach_admin.sql` | Erweitert `profiles.role` um `coach_admin` (Rolle wurde im Code bereits genutzt, fehlte aber im ENUM) |
 
 ## So geht's (dauert ca. 2 Minuten)
 
 1. **Einloggen:** ALL-INKL-KAS → **Datenbanken** → bei eurer Datenbank auf **phpMyAdmin** klicken (oder direkt über die phpMyAdmin-Adresse aus der KAS-Datenbankübersicht).
 2. **Datenbank wählen:** Links in der Liste eure Datenbank anklicken (Name steht in `api/db_credentials.php` bzw. als `DB_NAME`-Umgebungsvariable).
 3. **Importieren:** Oben auf den Reiter **„Importieren"** klicken → **„Datei auswählen"** → die Datei `001_...sql` von eurem Rechner wählen → ganz unten auf **„OK"** klicken.
-4. **Erfolgsmeldung** abwarten („Import wurde erfolgreich abgeschlossen") → Schritte 3–4 für `002_...sql` bis `013_...sql` wiederholen.
+4. **Erfolgsmeldung** abwarten („Import wurde erfolgreich abgeschlossen") → Schritte 3–4 für `002_...sql` bis `015_...sql` wiederholen.
 5. **Prüfen (optional):** Links auf die Tabelle `ads` → Reiter **„Struktur"** → dort müssen `session_format` und `view_count` auftauchen.
 
 ## Falls etwas rot wird

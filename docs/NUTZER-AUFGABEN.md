@@ -87,3 +87,34 @@ Normalerweise **nicht nötig**: Jeder Push auf `main` deployt automatisch
 per GitHub Actions (Build + Upload zu ALL-INKL). Wenn ich dir künftig
 einen manuellen Upload sagen will, steht er extra hier mit exaktem Dateipfad
 und Zielordner.
+
+## 6. Nachtrag: COACHING-AG deaktivieren (falls noch aktiv)
+
+Die Prüfung ergab: Der alte Coach-Code `COACHING-AG` war in der Datenbank noch
+aktiv (`is_active = 1`). Bitte einmal ausführen (falls nicht schon geschehen):
+
+```sql
+UPDATE promo_codes SET is_active = 0 WHERE code = 'COACHING-AG' AND created_by IS NULL;
+```
+
+Kontrolle:
+
+```sql
+SELECT code, is_active FROM promo_codes WHERE code = 'COACHING-AG';
+```
+
+Erwartet: `is_active = 0`.
+
+## 7. Nachtrag: Rolle `coach_admin` freischalten (Migration 015)
+
+Die Produktions-Datenbank erlaubt der Rolle `profiles.role` derzeit nur
+`student` / `sv_admin` / `parent` — der Wert `coach_admin` fehlt, obwohl ihn
+Middleware, Code-Einlösung und Admin-Panel bereits nutzen. Bitte im SQL-Tab
+ausführen (vollständiger Inhalt von `sql-updates/015_role_coach_admin.sql`):
+
+```sql
+ALTER TABLE profiles MODIFY role ENUM('student', 'sv_admin', 'coach_admin', 'parent') NOT NULL DEFAULT 'student';
+```
+
+Kontrolle: `SHOW COLUMNS FROM profiles LIKE 'role';` — `coach_admin` muss jetzt
+im ENUM stehen. Bestehende Rollen bleiben unverändert.
