@@ -116,16 +116,21 @@ export default function AdminAnalytics() {
     }, []);
 
     useEffect(() => {
-        fetchPageStats(statsDays);
+        // Beim Zeitraum-Wechsel alte Anfragen verwerfen (Race-Schutz)
+        let cancelled = false;
+        fetchPageStats(statsDays, () => cancelled);
+        return () => { cancelled = true; };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [statsDays]);
 
     // Seitenaufrufe separat laden (eigener Zeitraum, ohne den Rest neu zu laden)
-    const fetchPageStats = async (days: StatsRange) => {
+    const fetchPageStats = async (days: StatsRange, isCancelled?: () => boolean) => {
         setPageStatsLoading(true);
         try {
             const { data: pageStats, error } = await api.analytics.stats(days);
             if (error) throw new Error(error.message);
+            // Beim Zeitraum-Wechsel kann eine ältere Anfrage später antworten — dann verwerfen.
+            if (isCancelled?.()) return;
             const statsRaw = (pageStats as any) ?? {};
             const totalViews = Number(statsRaw.total_views) || 0;
             setTotalPageViews(totalViews);
@@ -167,9 +172,13 @@ export default function AdminAnalytics() {
             setDailyViews(filled);
             setUniqueLoggedIn(Number(statsRaw.unique_logged_in) || 0);
         } catch {
-            toast.error('Seitenaufrufe konnten nicht geladen werden.');
+            if (!isCancelled?.()) {
+                toast.error('Seitenaufrufe konnten nicht geladen werden.');
+            }
         } finally {
-            setPageStatsLoading(false);
+            if (!isCancelled?.()) {
+                setPageStatsLoading(false);
+            }
         }
     };
 
@@ -181,14 +190,10 @@ export default function AdminAnalytics() {
             const [
                 { data: overview },
                 { data: adsData },
-                { data: requestsData },
-                { data: reviewsData },
                 { data: reportsData },
             ] = await Promise.all([
                 api.admin.overview(),
                 api.ads.list({ all: true }),
-                api.requests.list(),
-                api.reviews.list({}),
                 api.reports.list(),
             ]);
 
@@ -198,8 +203,6 @@ export default function AdminAnalytics() {
             const ads = Array.isArray(adsData) ? adsData : ((adsData as any)?.ads ?? []);
             setRawAds(ads);
 
-            const requests = Array.isArray(requestsData) ? requestsData : ((requestsData as any)?.requests ?? []);
-            const reviews = Array.isArray(reviewsData) ? reviewsData : ((reviewsData as any)?.reviews ?? []);
             const reports = Array.isArray(reportsData) ? reportsData : ((reportsData as any)?.reports ?? []);
 
             // Page-Views laufen separat über fetchPageStats (eigener Zeitraum)
@@ -297,29 +300,17 @@ export default function AdminAnalytics() {
                 setTopAds(sortedByViews);
             }
 
-            // Engagement stats
+            // Engagement stats (aus overview: früher zählten Anfragen nur die des Admins
+            // und der Reviews-Abruf schlug mangels Filter mit 400 fehl)
             {
-                const totalRequests = requests.length;
-                const pendingRequests = requests.filter((r: any) => r.status === 'pending').length;
-                const acceptedRequests = requests.filter((r: any) => r.status === 'accepted').length;
-                const rejectedRequests = requests.filter((r: any) => r.status === 'rejected').length;
-
-                let totalReviews = 0;
-                let avgRating = 0;
-
-                if (reviews && reviews.length > 0) {
-                    totalReviews = reviews.length;
-                    const sum = reviews.reduce((acc: number, r: any) => acc + (r.rating || 0), 0);
-                    avgRating = sum / totalReviews;
-                }
-
+                const s = overviewStats as any;
                 setEngagementStats({
-                    totalRequests,
-                    pendingRequests,
-                    acceptedRequests,
-                    rejectedRequests,
-                    totalReviews,
-                    avgRating
+                    totalRequests: Number(s.total_requests) || 0,
+                    pendingRequests: Number(s.pending_requests) || 0,
+                    acceptedRequests: Number(s.accepted_requests) || 0,
+                    rejectedRequests: Number(s.rejected_requests) || 0,
+                    totalReviews: Number(s.total_reviews) || 0,
+                    avgRating: Number(s.avg_rating) || 0
                 });
             }
 
@@ -609,7 +600,10 @@ export default function AdminAnalytics() {
                         {deviceDistribution.map(d => {
                             const Icon = d.type === 'mobile' ? Smartphone : d.type === 'tablet' ? Tablet : Monitor;
                             const label = d.type === 'mobile' ? 'Smartphone / Mobile' : d.type === 'tablet' ? 'Tablet' : 'Desktop PC';
-                            const percentage = totalPageViews > 0 ? Math.round((d.count / totalPageViews) * 100) : 0;
+                            // Nenner = Summe der Gerätewerte: totalPageViews enthält auch (historische) Aufrufe
+                            // ohne Gerätezuordnung, wodurch die Prozente zusammen unter 100 % lagen.
+                            const deviceTotal = deviceDistribution.reduce((sum, x) => sum + x.count, 0);
+                            const percentage = deviceTotal > 0 ? Math.round((d.count / deviceTotal) * 100) : 0;
                             return (
                                 <div key={d.type} className="space-y-1">
                                     <div className="flex justify-between text-xs font-semibold">

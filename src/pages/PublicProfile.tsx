@@ -40,9 +40,10 @@ export default function PublicProfile() {
         }
     }, [user]);
 
-    async function fetchProfileAndAds() {
+    async function fetchProfileAndAds(isCancelled: () => boolean) {
         setLoading(true);
         const { data: prof } = await api.profiles.get(id);
+        if (isCancelled()) return;
         if (prof) {
             setProfile(prof);
 
@@ -66,16 +67,22 @@ export default function PublicProfile() {
             }
 
             const { data: adsData } = await api.ads.list({ user_id: id, all: true });
-            if (adsData) setAds(adsData);
+            if (isCancelled()) return;
+            // Nur aktive, nicht archivierte Anzeigen zeigen (all:true liefert sonst auch inaktive).
+            if (adsData) setAds((adsData as any[]).filter((ad) => ad.is_active !== false && ad.is_archived !== true));
 
             const { data: reviews } = await api.reviews.list({ target_user_id: id });
+            if (isCancelled()) return;
             setReviewCount(reviews?.length ?? 0);
         }
-        setLoading(false);
+        if (!isCancelled()) setLoading(false);
     }
 
     useEffect(() => {
-        if (id) fetchProfileAndAds();
+        if (!id) return;
+        let cancelled = false;
+        fetchProfileAndAds(() => cancelled);
+        return () => { cancelled = true; };
     }, [id]);
 
     if (loading) return (

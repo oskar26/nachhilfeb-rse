@@ -96,7 +96,7 @@ export default function ShareDialog({
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(shareUrl!)}`;
 
     return (
-        <Dialog open={isOpen}>
+        <Dialog open={isOpen} onClose={onClose}>
             <DialogContent className="sm:max-w-md p-0 overflow-hidden">
                 <DialogHeader className="p-6 pb-2 relative border-b dark:border-gray-800">
                     <DialogTitle className="text-lg font-black">{dialogTitle}</DialogTitle>

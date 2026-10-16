@@ -52,8 +52,6 @@ const ACTION_LABELS: Record<string, string> = {
     coach_info_update: 'Coaching Startseiten-Infos geändert',
 };
 
-const COACH_ACTIONS = ['coach_assign', 'coach_revoke', 'coach_code_create', 'coach_info_update'];
-
 export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter?: string }) {
     const [logs, setLogs] = useState<AuditLog[]>([]);
     const [loading, setLoading] = useState(true);
@@ -71,19 +69,16 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
         try {
             // Backend liefert admin_name + paginierte Einträge; Details ggf. als JSON-String.
             // Limit+1-Trick: Ein überzähliger Eintrag zeigt an, dass eine weitere Seite existiert.
-            const isCoachFilter = searchAction === 'coach';
-            const fetchLimit = isCoachFilter ? 100 : pageSize + 1;
+            // Der Coach-Filter läuft serverseitig als Aktionsgruppe ('coach').
+            const fetchLimit = pageSize + 1;
             const { data, error } = await api.admin.auditLog(
                 fetchLimit,
-                isCoachFilter ? 0 : page * pageSize,
-                isCoachFilter || searchAction === 'all' ? undefined : searchAction
+                page * pageSize,
+                searchAction === 'all' ? undefined : searchAction
             );
             if (error) throw error;
 
-            let logsList = Array.isArray(data) ? data : [];
-            if (isCoachFilter) {
-                logsList = logsList.filter((log: any) => COACH_ACTIONS.includes(log.action));
-            }
+            const logsList = Array.isArray(data) ? data : [];
             const resolvedLogs = logsList.map((log: any) => {
                 let details = log.details;
                 if (typeof details === 'string') {
@@ -98,16 +93,12 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
                 };
             });
 
-            setTotalCount(isCoachFilter
-                ? resolvedLogs.length
-                : page * pageSize + resolvedLogs.length);
-            const visibleLogs = isCoachFilter
-                ? resolvedLogs.slice(page * pageSize, (page + 1) * pageSize)
-                : (resolvedLogs.length > pageSize ? resolvedLogs.slice(0, pageSize) : resolvedLogs);
+            setTotalCount(page * pageSize + resolvedLogs.length);
+            const visibleLogs = resolvedLogs.length > pageSize
+                ? resolvedLogs.slice(0, pageSize)
+                : resolvedLogs;
             // „Weiter“-Button nur aktiv, wenn sicher eine nächste Seite existiert
-            setHasMore(isCoachFilter
-                ? (page + 1) * pageSize < resolvedLogs.length
-                : resolvedLogs.length > pageSize);
+            setHasMore(resolvedLogs.length > pageSize);
             setLogs(visibleLogs);
         } catch {
             toast.error('Audit Log konnte nicht geladen werden.');
