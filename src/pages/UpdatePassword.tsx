@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
-import { api } from '../lib/api';
+import { api, getStoredToken, getStoredUser } from '../lib/api';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
@@ -22,12 +21,12 @@ export default function UpdatePassword() {
         // Falls ein Reset-Token übergeben wurde, muss der Nutzer nicht eingeloggt sein
         if (resetToken) return;
 
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (!session) {
-                toast.error("Ungültiger oder abgelaufener Link.");
-                navigate('/login');
-            }
-        });
+        // Früher getSession(): Es genügt der lokal gespeicherte Login
+        // (Token + User) – ohne Reset-Token muss er vorhanden sein.
+        if (!getStoredToken() || !getStoredUser()) {
+            toast.error("Ungültiger oder abgelaufener Link.");
+            navigate('/login');
+        }
     }, [navigate, resetToken]);
 
     const handleUpdatePassword = async (e: React.FormEvent) => {
@@ -51,9 +50,7 @@ export default function UpdatePassword() {
                 const res = await api.auth.updatePassword(password, resetToken);
                 error = res.error;
             } else {
-                const res = await supabase.auth.updateUser({
-                    password: password
-                });
+                const res = await api.auth.updatePassword(password);
                 error = res.error;
             }
 

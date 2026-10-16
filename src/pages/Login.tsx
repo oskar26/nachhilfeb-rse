@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardFooter } from '../components/ui/Card';
@@ -164,7 +164,7 @@ export default function Login() {
         setError(null);
 
         if (mode === 'login') {
-            const { error } = await supabase.auth.signInWithPassword({
+            const { error } = await api.auth.login({
                 email,
                 password,
             });
@@ -186,6 +186,8 @@ export default function Login() {
                 }
             } else {
                 clearAttempts();
+                // Ersatz für das frühere Auth-EVENT 'SIGNED_IN': AuthContext lädt die Session neu.
+                window.dispatchEvent(new Event('fwg:auth-changed'));
                 navigate('/');
             }
         } else {
@@ -198,8 +200,9 @@ export default function Login() {
 
             // Optional: If invite code is provided, verify it first before registering
             if (inviteCode.trim()) {
-                const { data: isValidCode, error: codeErr } = await supabase
-                    .rpc('check_invite_code', { code_val: inviteCode.trim() });
+                const { data: checkData, error: codeErr } = await api.codes.check(inviteCode.trim());
+                // Shim-Mapping (check_invite_code): gültig nur bei {valid:true} ohne Fehler.
+                const isValidCode = !codeErr && checkData?.valid === true;
 
                 if (codeErr || !isValidCode) {
                     setError("Ungültiger oder abgelaufener SV-Code.");
@@ -208,15 +211,17 @@ export default function Login() {
                 }
             }
 
-            // 1. Perform Supabase Sign Up
+            // 1. Registrierung über das native Backend
             const displayName = `${firstName} ${lastName.charAt(0)}.`;
-            const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+            const { data: registerData, error: signUpErr } = await api.auth.register({
                 email,
                 password,
                 firstName,
                 lastName,
                 first_name: firstName,
                 last_name: lastName,
+                full_name: `${firstName} ${lastName}`,
+                role: 'student',
                 grade: grade || null,
                 letter: letter || null,
                 birthDate,
@@ -247,6 +252,18 @@ export default function Login() {
                 return;
             }
 
+            // Ergebnis auf die frühere Shim-Form bringen ({ user, session, mailSent, needsVerification }).
+            const signUpData: any = {
+                user: registerData?.user ?? null,
+                session: registerData?.token ? { access_token: registerData.token, user: registerData.user } : null,
+                mailSent: registerData?.mail_sent !== false,
+                needsVerification: registerData?.needs_verification === true
+            };
+            if (signUpData.session) {
+                // Ersatz für das frühere Auth-EVENT 'SIGNED_IN'.
+                window.dispatchEvent(new Event('fwg:auth-changed'));
+            }
+
             const newUser = signUpData.user;
             // Neuer Flow: E-Mail-Verifizierung per Code (Backend liefert needs_verification, kein Token)
             if ((signUpData as any).needsVerification && newUser) {
@@ -261,20 +278,17 @@ export default function Login() {
             }
             if (newUser) {
                 // 2. Update profile with custom registration fields
-                const { error: profileErr } = await supabase
-                    .from('profiles')
-                    .update({
-                        first_name: firstName,
-                        last_name: lastName,
-                        display_name: displayName,
-                        grade_level: grade || null,
-                        class_letter: letter || null,
-                        birth_date: birthDate,
-                        parental_consent_given: isUnder16 ? parentalConsent : true,
-                        parental_consent_date: isUnder16 ? new Date().toISOString() : null,
-                        onboarding_complete: true // Set to true since we fill it here
-                    })
-                    .eq('id', newUser.id);
+                const { error: profileErr } = await api.profiles.update({
+                    first_name: firstName,
+                    last_name: lastName,
+                    display_name: displayName,
+                    grade_level: grade || null,
+                    class_letter: letter || null,
+                    birth_date: birthDate,
+                    parental_consent_given: isUnder16 ? parentalConsent : true,
+                    parental_consent_date: isUnder16 ? new Date().toISOString() : null,
+                    onboarding_complete: true // Set to true since we fill it here
+                }, newUser.id);
 
                 if (profileErr) {
                     console.error('Fehler beim Aktualisieren des Profils:', profileErr);
@@ -282,10 +296,9 @@ export default function Login() {
 
                 // 3. Redeem SV Code if provided
                 if (inviteCode.trim()) {
-                    const { data: redeemResult, error: redeemErr } = await supabase.rpc('redeem_invite_code', {
-                        code_val: inviteCode.trim(),
-                        target_user_id: newUser.id
-                    });
+                    const { data: redeemData, error: redeemErr } = await api.codes.redeem(inviteCode.trim());
+                    // Shim-Mapping (redeem_invite_code): Fehler → 'invalid', sonst Rolle (Fallback 'student').
+                    const redeemResult = redeemErr ? 'invalid' : (redeemData?.role || 'student');
 
                     if (redeemErr || redeemResult === 'invalid') {
                         toast.error("Konto erstellt, aber der SV-Code konnte nicht eingelöst werden. Bitte wende dich an die SV.");
@@ -317,9 +330,7 @@ export default function Login() {
             return;
         }
         setIsLoading(true);
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/update-password`,
-        });
+        const { error } = await api.auth.resetPasswordRequest(email);
         if (error) {
             toast.error("Fehler: " + error.message);
         } else {
