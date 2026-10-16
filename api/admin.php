@@ -25,6 +25,12 @@ if ($action === 'overview' && $method === 'GET') {
     $openReports = $pdo->query('SELECT COUNT(*) FROM reports WHERE status = \'open\'')->fetchColumn();
     $openTickets = $pdo->query('SELECT COUNT(*) FROM support_tickets WHERE status = \'open\'')->fetchColumn();
     $totalMessages = $pdo->query('SELECT COUNT(*) FROM messages')->fetchColumn();
+    $totalRequests = $pdo->query('SELECT COUNT(*) FROM ad_requests')->fetchColumn();
+    $pendingRequests = $pdo->query('SELECT COUNT(*) FROM ad_requests WHERE status = \'pending\'')->fetchColumn();
+    $acceptedRequests = $pdo->query('SELECT COUNT(*) FROM ad_requests WHERE status = \'accepted\'')->fetchColumn();
+    $rejectedRequests = $pdo->query('SELECT COUNT(*) FROM ad_requests WHERE status = \'rejected\'')->fetchColumn();
+    $totalReviews = $pdo->query('SELECT COUNT(*) FROM reviews')->fetchColumn();
+    $avgRating = $pdo->query('SELECT AVG(rating) FROM reviews')->fetchColumn();
 
     // Letzte Aktivitäten (Audit Log)
     $recentLog = $pdo->query('
@@ -65,6 +71,12 @@ if ($action === 'overview' && $method === 'GET') {
             'open_reports' => (int)$openReports,
             'open_tickets' => (int)$openTickets,
             'total_messages' => (int)$totalMessages,
+            'total_requests' => (int)$totalRequests,
+            'pending_requests' => (int)$pendingRequests,
+            'accepted_requests' => (int)$acceptedRequests,
+            'rejected_requests' => (int)$rejectedRequests,
+            'total_reviews' => (int)$totalReviews,
+            'avg_rating' => $avgRating !== null ? round((float)$avgRating, 2) : 0,
         ],
         'by_role' => $byRole,
         'grade_distribution' => $gradeDist,
@@ -309,7 +321,13 @@ if ($action === 'auditlog' && $method === 'GET') {
 
     $where = '';
     $params = [];
-    if ($filterAction !== '' && preg_match('/^[a-z_]{1,50}$/', $filterAction)) {
+    if ($filterAction === 'coach') {
+        // Coach-Aktionen als Gruppe filtern (statt 100 Zeilen clientseitig zu filtern)
+        $coachActions = ['coach_assign', 'coach_revoke', 'coach_code_create', 'coach_info_update'];
+        $placeholders = implode(', ', array_fill(0, count($coachActions), '?'));
+        $where = "WHERE l.action IN ($placeholders)";
+        $params = $coachActions;
+    } elseif ($filterAction !== '' && preg_match('/^[a-z_]{1,50}$/', $filterAction)) {
         $where = 'WHERE l.action = ?';
         $params[] = $filterAction;
     }

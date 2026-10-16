@@ -420,12 +420,12 @@ if ($method === 'POST') {
         $sessionFormat = 'any';
     }
 
-    $subjects = is_array($data['subjects'] ?? null) ? array_slice($data['subjects'], 0, 10) : [];
+    // Whitelist: nur bekannte Fächer-Keys zulassen (verhindert Freitext/Fremddaten in subjects)
+    $subjects = is_array($data['subjects'] ?? null)
+        ? fwg_sanitize_feed_subjects(array_slice($data['subjects'], 0, 10))
+        : [];
     if (empty($subjects)) {
         json_error('Mindestens ein Fach muss angegeben werden.');
-    }
-    foreach ($subjects as $s) {
-        if (!is_string($s) || mb_strlen($s) > 40) json_error('Ungültiges Fach.');
     }
 
     $gradeLevels = is_array($data['grade_levels'] ?? null) ? array_slice($data['grade_levels'], 0, 12) : [];
@@ -575,14 +575,10 @@ if ($method === 'PUT' || $method === 'PATCH') {
         $data['custom_location'] = mb_substr(trim((string)$data['custom_location']), 0, 120);
     }
     if (isset($data['subjects'])) {
-        $subjects = is_array($data['subjects']) ? array_slice($data['subjects'], 0, 10) : [];
+        // Whitelist: nur bekannte Fächer-Keys (wie im POST-Pfad)
+        $subjects = is_array($data['subjects']) ? fwg_sanitize_feed_subjects(array_slice($data['subjects'], 0, 10)) : [];
         if (empty($subjects)) {
             json_error('Mindestens ein Fach muss angegeben werden.');
-        }
-        foreach ($subjects as $subject) {
-            if (!is_string($subject) || mb_strlen($subject) > 40) {
-                json_error('Ungültiges Fach.');
-            }
         }
         $data['subjects'] = $subjects;
     }
