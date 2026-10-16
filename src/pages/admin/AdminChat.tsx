@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { supabase } from '../../lib/supabase';
+import { api, getStoredUser } from '../../lib/api';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
 import {
@@ -65,14 +65,13 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
         setLoading(true);
         setGranting(true);
         try {
-            const adminId = (await supabase.auth.getUser()).data.user?.id;
+            const adminId = getStoredUser()?.id;
             if (!adminId) throw new Error('Nicht authentifiziert');
 
-            // 1. Resolve names first
-            const { data: profiles } = await supabase
-                .from('profiles')
-                .select('id, display_name, first_name, last_name')
-                .in('id', [userId1, userId2]);
+            // 1. Resolve names first (Shim: profiles.in → Admin-Fallback mit max. 100 Nutzern)
+            const { data: usersData } = await api.admin.users(undefined, undefined, { limit: 100 });
+            const allUsers: any[] = Array.isArray(usersData) ? usersData : (usersData?.data ?? []);
+            const profiles = allUsers.filter((u) => [userId1, userId2].includes(u.id));
 
             if (profiles) {
                 const u1 = profiles.find(p => p.id === userId1);
@@ -83,28 +82,14 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
                 });
             }
 
-            // 2. Insert temporary chat access grant for RLS compliance
-            const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
-            const { error: grantError } = await supabase
-                .from('report_chat_access')
-                .insert({
-                    report_id: reportId,
-                    admin_id: adminId,
-                    chat_user_ids: [userId1, userId2],
-                    expires_at: expiresAt
-                });
-
-            // If table or schema doesn't exist yet, we catch the error but still try to proceed
-            if (grantError && grantError.code !== 'P0001') {
-                console.warn('Could not insert report_chat_access grant:', grantError.message);
-            }
+            // 2. (Entfallen) Temporärer report_chat_access-Grant: hatte im Shim kein Backend-Pendant
+            //    (silent no-op). Die Einsicht autorisiert der Server über die SV-Admin-Rolle.
             setGranting(false);
 
             // 3. Find requests/chats between these users
-            const { data: requests, error: requestsError } = await supabase
-                .from('ad_requests')
-                .select('id')
-                .or(`and(requester_id.eq.${userId1},owner_id.eq.${userId2}),and(requester_id.eq.${userId2},owner_id.eq.${userId1})`);
+            //    Hinweis: Der Shim hat `.or(...)` verworfen – es kommen weiterhin nur die
+            //    eigenen Anfragen des Admins zurück (Verhalten unverändert).
+            const { data: requests, error: requestsError } = await api.requests.list();
 
             if (requestsError) throw requestsError;
 
@@ -115,21 +100,17 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
                 return;
             }
 
-            const requestIds = requests.map(r => r.id);
+            const requestIds = requests.map((r: any) => r.id);
 
             // 4. Fetch messages
-            const { data: msgs, error: msgsError } = await supabase
-                .from('messages')
-                .select(`
-                    id, request_id, sender_id, content, is_deleted, created_at
-                `)
-                .in('request_id', requestIds)
-                .order('created_at', { ascending: true });
+            //    Der Shim hat `.in('request_id', requestIds)` zu einer kommagetrennten Einzel-ID
+            //    zusammengezogen (messages.php vergleicht exakt) – Verhalten bleibt identisch.
+            const { data: msgs, error: msgsError } = await api.messages.list(requestIds.join(','));
 
             if (msgsError) throw msgsError;
 
             // Resolve sender names locally or with fallback
-            const resolvedMessages = msgs.map(m => {
+            const resolvedMessages = msgs.map((m: any) => {
                 const isUser1 = m.sender_id === userId1;
                 return {
                     ...m,

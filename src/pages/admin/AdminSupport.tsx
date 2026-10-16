@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { supabase } from '../../lib/supabase';
+import { api, getStoredUser } from '../../lib/api';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Card, CardContent } from '../../components/ui/Card';
@@ -75,23 +75,21 @@ export default function AdminSupport() {
     const fetchTickets = async () => {
         setLoading(true);
         try {
-            const { data: ticketsData, error } = await supabase
-                .from('support_tickets')
-                .select('*')
-                .order('created_at', { ascending: false });
+            const { data: ticketsData, error } = await api.support.listTickets();
 
             if (error) throw error;
 
             // Resolve user names
             if (ticketsData && ticketsData.length > 0) {
-                const userIds = Array.from(new Set(ticketsData.map(t => t.user_id)));
-                const { data: profiles } = await supabase
-                    .from('profiles')
-                    .select('id, display_name, first_name, last_name, email')
-                    .in('id', userIds);
+                const userIds = Array.from(new Set(ticketsData.map((t: any) => t.user_id)));
+                // Shim-Äquivalent zu profiles.in(...): Admin-Fallback (max. 100 Nutzer).
+                // listTickets bettet nur user_name (ohne E-Mail) ein, die Detailansicht zeigt aber beides.
+                const { data: usersData } = await api.admin.users(undefined, undefined, { limit: 100 });
+                const allUsers: any[] = Array.isArray(usersData) ? usersData : (usersData?.data ?? []);
+                const profiles = allUsers.filter((u) => userIds.includes(u.id));
 
                 const profileMap = new Map(profiles?.map(p => [p.id, p]));
-                const enriched = ticketsData.map(t => {
+                const enriched = ticketsData.map((t: any) => {
                     const prof = profileMap.get(t.user_id);
                     return {
                         ...t,
@@ -113,14 +111,11 @@ export default function AdminSupport() {
 
     const fetchMessages = async (ticketId: string) => {
         try {
-            const { data, error } = await supabase
-                .from('support_messages')
-                .select('*')
-                .eq('ticket_id', ticketId)
-                .order('created_at', { ascending: true });
+            // support_messages hatte im Shim keinen Select (immer leer); getTicket liefert die eingebetteten Nachrichten.
+            const { data, error } = await api.support.getTicket(ticketId);
 
             if (error) throw error;
-            setMessages(data || []);
+            setMessages(data?.messages || []);
         } catch (err) {
             console.error('Error fetching messages:', err);
             setMessages([]);
@@ -137,24 +132,15 @@ export default function AdminSupport() {
         }
         setSendingReply(true);
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error('Nicht eingeloggt');
+            if (!getStoredUser()) throw new Error('Nicht eingeloggt');
 
-            const { error } = await supabase.from('support_messages').insert({
-                ticket_id: activeTicket.id,
-                sender_id: user.id,
-                content: newReply.trim(),
-                is_admin_reply: true,
-            });
+            const { error } = await api.support.sendMessage(activeTicket.id, newReply.trim());
 
             if (error) throw error;
 
             // Auto-set status to in_progress if it was open
             if (activeTicket.status === 'open') {
-                await supabase
-                    .from('support_tickets')
-                    .update({ status: 'in_progress', updated_at: new Date().toISOString() })
-                    .eq('id', activeTicket.id);
+                await api.support.updateStatus(activeTicket.id, 'in_progress');
                 setActiveTicket({ ...activeTicket, status: 'in_progress' });
                 window.dispatchEvent(new Event('admin:counts-refresh'));
             }
@@ -171,10 +157,7 @@ export default function AdminSupport() {
 
     const updateTicketStatus = async (ticketId: string, status: string) => {
         try {
-            const { error } = await supabase
-                .from('support_tickets')
-                .update({ status, updated_at: new Date().toISOString() })
-                .eq('id', ticketId);
+            const { error } = await api.support.updateStatus(ticketId, status);
 
             if (error) throw error;
             toast.success(`Status auf "${STATUS_TEXT[status] || status}" geändert`);

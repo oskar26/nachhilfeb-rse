@@ -1,5 +1,5 @@
 import { useSearchParams } from 'react-router-dom';
-import { supabase } from '../../lib/supabase';
+import { api } from '../../lib/api';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
@@ -81,29 +81,11 @@ function AdManagement() {
     const fetchAds = async () => {
         setLoading(true);
         try {
-            const { data: adsData, error: adsError } = await supabase
-                .from('ads')
-                .select('*')
-                .order('created_at', { ascending: false });
+            // Anzeigen bringen ihre eingebetteten Profildaten bereits mit (ads.php: profiles) – kein separater profiles-Lookup nötig.
+            const { data: adsData, error: adsError } = await api.ads.list({ all: true });
 
             if (adsError) throw adsError;
-
-            if (adsData && adsData.length > 0) {
-                const userIds = Array.from(new Set(adsData.map(a => a.user_id)));
-                const { data: profilesData } = await supabase
-                    .from('profiles')
-                    .select('id, first_name, last_name, display_name')
-                    .in('id', userIds);
-
-                const profileMap = new Map(profilesData?.map(p => [p.id, p]));
-                const joinedAds = adsData.map(ad => ({
-                    ...ad,
-                    profiles: profileMap.get(ad.user_id)
-                }));
-                setAds(joinedAds);
-            } else {
-                setAds([]);
-            }
+            setAds(adsData || []);
         } catch (err) {
             console.error(err);
             toast.error('Anzeigen konnten nicht geladen werden.');
@@ -115,19 +97,10 @@ function AdManagement() {
     const deleteAd = async (id: string) => {
         if (!confirm('Anzeige endgültig löschen?')) return;
         try {
-            const { error } = await supabase.from('ads').delete().eq('id', id);
+            const { error } = await api.ads.delete(id);
             if (error) throw error;
             toast.success('Anzeige gelöscht');
             fetchAds();
-            
-            // Audit Log
-            await supabase.from('admin_audit_log').insert({
-                admin_id: (await supabase.auth.getUser()).data.user?.id,
-                action: 'delete_ad',
-                target_type: 'ad',
-                target_id: id,
-                details: {}
-            });
         } catch (error: any) {
             toast.error('Löschen fehlgeschlagen: ' + error.message);
         }
@@ -135,19 +108,10 @@ function AdManagement() {
 
     const toggleHide = async (id: string, current: boolean) => {
         try {
-            const { error } = await supabase.from('ads').update({ is_hidden: !current }).eq('id', id);
+            const { error } = await api.ads.update(id, { is_hidden: !current });
             if (error) throw error;
             toast.success(current ? 'Anzeige eingeblendet' : 'Anzeige versteckt');
             fetchAds();
-            
-            // Audit Log
-            await supabase.from('admin_audit_log').insert({
-                admin_id: (await supabase.auth.getUser()).data.user?.id,
-                action: current ? 'show_ad' : 'hide_ad',
-                target_type: 'ad',
-                target_id: id,
-                details: {}
-            });
         } catch (error: any) {
             toast.error('Aktion fehlgeschlagen: ' + error.message);
         }

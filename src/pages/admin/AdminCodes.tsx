@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
 import {
@@ -116,30 +115,23 @@ export default function AdminCodes() {
     const fetchInviteCodes = async () => {
         setLoadingInvite(true);
         try {
-            const { data, error } = await supabase
-                .from('invite_codes')
-                .select('*')
-                .order('created_at', { ascending: false });
+            const { data, error } = await api.codes.list();
 
             if (error) throw error;
             
             const codesList = data || [];
-            const resolvedCodes = await Promise.all(codesList.map(async (c) => {
+            // Eingebettetes user_name aus codes.php nutzen statt N+1-Profilabfragen.
+            const resolvedCodes = codesList.map((c: any) => {
                 if (c.is_used && c.used_by) {
-                    const { data: profile } = await supabase
-                        .from('profiles')
-                        .select('display_name, first_name, last_name')
-                        .eq('id', c.used_by)
-                        .single();
                     return {
                         ...c,
-                        used_by_profile: profile ? {
-                            display_name: profile.display_name || `${profile.first_name} ${profile.last_name}`
+                        used_by_profile: c.user_name ? {
+                            display_name: c.user_name
                         } : null
                     };
                 }
                 return c;
-            }));
+            });
 
             setInviteCodes(resolvedCodes);
         } catch (error: any) {
@@ -152,10 +144,7 @@ export default function AdminCodes() {
     const fetchPromoCodes = async () => {
         setLoadingPromo(true);
         try {
-            const { data, error } = await supabase
-                .from('promo_codes')
-                .select('*')
-                .order('created_at', { ascending: false });
+            const { data, error } = await api.promo_codes.list();
 
             if (error) {
                 if (error.code === '42P01') {
@@ -206,7 +195,8 @@ export default function AdminCodes() {
             const expiresAt = expiryDays ? new Date(Date.now() + parseInt(expiryDays) * 24 * 60 * 60 * 1000).toISOString() : null;
             const parsedMaxUses = maxUses ? parseInt(maxUses) : null;
 
-            const { error } = await supabase.from('promo_codes').insert({
+            // Payload 1:1 wie bisher (inkl. is_active; codes.php setzt den Wert selbst auf 1).
+            const { error } = await api.promo_codes.create({
                 code: codeClean,
                 effect_type: effectType,
                 push_level: pushLevel,
@@ -216,7 +206,7 @@ export default function AdminCodes() {
                 description: description.trim() || null,
                 expires_at: expiresAt,
                 is_active: true
-            });
+            } as any);
 
             if (error) throw error;
 
@@ -234,10 +224,7 @@ export default function AdminCodes() {
 
     const togglePromoActive = async (id: string, currentStatus: boolean) => {
         try {
-            const { error } = await supabase
-                .from('promo_codes')
-                .update({ is_active: !currentStatus })
-                .eq('id', id);
+            const { error } = await api.promo_codes.toggle(id, !currentStatus);
 
             if (error) throw error;
 
@@ -251,10 +238,7 @@ export default function AdminCodes() {
     const deletePromoCode = async (id: string, codeVal: string) => {
         if (!confirm(`Promo-Code "${codeVal}" wirklich löschen?`)) return;
         try {
-            const { error } = await supabase
-                .from('promo_codes')
-                .delete()
-                .eq('id', id);
+            const { error } = await api.promo_codes.delete(id);
 
             if (error) throw error;
 
@@ -268,10 +252,7 @@ export default function AdminCodes() {
     const deleteInviteCode = async (id: string, codeVal: string) => {
         if (!confirm(`Einladungscode "${codeVal}" wirklich löschen?`)) return;
         try {
-            const { error } = await supabase
-                .from('invite_codes')
-                .delete()
-                .eq('id', id);
+            const { error } = await api.codes.deleteInvite(id);
 
             if (error) throw error;
 

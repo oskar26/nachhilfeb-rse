@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
+import { api } from '../../lib/api';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Megaphone, Trash2, Plus, Calendar, AlertCircle } from 'lucide-react';
@@ -33,10 +33,7 @@ export default function AdminNews() {
         setLoading(true);
         setTableMissing(false);
         try {
-            const { data, error } = await supabase
-                .from('announcements')
-                .select('*')
-                .order('created_at', { ascending: false });
+            const { data, error } = await api.news.list();
 
             if (error) {
                 if (error.code === '42P01') {
@@ -63,16 +60,12 @@ export default function AdminNews() {
 
         setCreating(true);
         try {
-            const { data: userData } = await supabase.auth.getUser();
-            const adminId = userData.user?.id;
-
-            const { error } = await supabase
-                .from('announcements')
-                .insert({
-                    title: title.trim(),
-                    body: body.trim(),
-                    icon: icon
-                });
+            // Payload bewusst unverändert (body/icon); news.php erwartet "content" – das Fehlerbild bleibt identisch zu vorher.
+            const { error } = await api.news.create({
+                title: title.trim(),
+                body: body.trim(),
+                icon: icon
+            } as any);
 
             if (error) throw error;
 
@@ -81,16 +74,6 @@ export default function AdminNews() {
             setBody('');
             setIcon('megaphone');
             fetchAnnouncements();
-
-            // Log this action to the Audit Log if it exists
-            if (adminId) {
-                await supabase.from('admin_audit_log').insert({
-                    admin_id: adminId,
-                    action: 'create_announcement',
-                    target_type: 'announcement',
-                    details: { title: title.trim() }
-                });
-            }
         } catch (error: any) {
             console.error('Error creating announcement:', error);
             toast.error('Erstellen fehlgeschlagen: ' + error.message);
@@ -103,28 +86,12 @@ export default function AdminNews() {
         if (!confirm('Möchtest du diese Neuigkeit wirklich löschen?')) return;
 
         try {
-            const { error } = await supabase
-                .from('announcements')
-                .delete()
-                .eq('id', id);
+            const { error } = await api.news.delete(id);
 
             if (error) throw error;
 
             toast.success('Neuigkeit gelöscht.');
             fetchAnnouncements();
-
-            // Log this action
-            const { data: userData } = await supabase.auth.getUser();
-            const adminId = userData.user?.id;
-            if (adminId) {
-                await supabase.from('admin_audit_log').insert({
-                    admin_id: adminId,
-                    action: 'delete_announcement',
-                    target_type: 'announcement',
-                    target_id: id,
-                    details: {}
-                });
-            }
         } catch (error: any) {
             console.error('Error deleting announcement:', error);
             toast.error('Löschen fehlgeschlagen: ' + error.message);
@@ -143,8 +110,8 @@ export default function AdminNews() {
                     <div className="space-y-2">
                         <h4 className="font-bold text-amber-900 dark:text-amber-400">Datenbank-Tabelle fehlt</h4>
                         <p className="text-sm text-amber-800 dark:text-amber-500 leading-relaxed">
-                            Die Tabelle <code>announcements</code> existiert noch nicht in deiner Supabase-Datenbank.
-                            Bitte führe den entsprechenden Abschnitt in der Datei <code>supabase/migration_v2_update.sql</code> im Supabase SQL Editor aus, um Neuigkeiten verwalten zu können.
+                            Die Tabelle <code>announcements</code> ist auf dem Server derzeit nicht verfügbar.
+                            Bitte wende dich an die technische Administration, damit Neuigkeiten wieder verwaltet werden können.
                         </p>
                     </div>
                 </div>

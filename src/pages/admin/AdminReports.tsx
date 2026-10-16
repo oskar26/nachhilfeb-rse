@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
 import { Button } from '../../components/ui/Button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../../components/ui/Dialog';
 import {
@@ -17,7 +16,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { cn } from '../../lib/utils';
-import { api } from '../../lib/api';
+import { api, getStoredUser } from '../../lib/api';
 
 // Getrennte Status-Farben: aktiv (Farbe auf Farbe) und ruhig (grau auf grau) teilen sich nie ein Element.
 const REPORT_ICON_OPEN = 'bg-red-50 text-red-600 dark:bg-red-950/20';
@@ -121,15 +120,8 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
     const fetchReports = async () => {
         setLoading(true);
         try {
-            const { data, error } = await supabase
-                .from('reports')
-                .select(`
-                    *,
-                    reporter:reporter_id(id, first_name, last_name, display_name, avatar_url),
-                    user:reported_user_id(id, first_name, last_name, display_name, avatar_url),
-                    ad:reported_ad_id(id, short_description)
-                `)
-                .order('created_at', { ascending: false });
+            // reports.php liefert flache *_name-Felder; die Zuordnung unten nutzt die bestehenden Fallbacks.
+            const { data, error } = await api.reports.list();
 
             if (error) throw error;
             const rows = (data || []) as any[];
@@ -155,10 +147,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
     const saveAdminNotes = async () => {
         if (!selectedReport) return;
         try {
-            const { error } = await supabase
-                .from('reports')
-                .update({ admin_notes: adminNotes })
-                .eq('id', selectedReport.id);
+            const { error } = await api.reports.resolve(selectedReport.id, { admin_notes: adminNotes });
 
             if (error) throw error;
 
@@ -174,18 +163,15 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
     const handleResolve = async () => {
         if (!selectedReport) return;
         try {
-            const adminId = (await supabase.auth.getUser()).data.user?.id;
+            const adminId = getStoredUser()?.id;
             
-            const { error } = await supabase
-                .from('reports')
-                .update({
-                    status: 'resolved',
-                    resolution_type: resolutionType,
-                    resolved_by: adminId,
-                    resolved_at: new Date().toISOString(),
-                    admin_notes: adminNotes,
-                })
-                .eq('id', selectedReport.id);
+            const { error } = await api.reports.resolve(selectedReport.id, {
+                status: 'resolved',
+                resolution_type: resolutionType,
+                resolved_by: adminId,
+                resolved_at: new Date().toISOString(),
+                admin_notes: adminNotes,
+            });
 
             if (error) throw error;
 
@@ -194,15 +180,6 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
             fetchReports();
             setSelectedReport(null);
             window.dispatchEvent(new Event('admin:counts-refresh'));
-
-            // Audit
-            await supabase.from('admin_audit_log').insert({
-                admin_id: adminId,
-                action: 'resolve_report',
-                target_type: 'report',
-                target_id: selectedReport.id,
-                details: { resolution_type: resolutionType }
-            });
         } catch (error: any) {
             toast.error('Aktion fehlgeschlagen: ' + error.message);
         }
@@ -211,18 +188,15 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
     const handleDismiss = async () => {
         if (!selectedReport) return;
         try {
-            const adminId = (await supabase.auth.getUser()).data.user?.id;
+            const adminId = getStoredUser()?.id;
             
-            const { error } = await supabase
-                .from('reports')
-                .update({
-                    status: 'dismissed',
-                    resolution_type: 'dismiss',
-                    resolved_by: adminId,
-                    resolved_at: new Date().toISOString(),
-                    admin_notes: adminNotes,
-                })
-                .eq('id', selectedReport.id);
+            const { error } = await api.reports.resolve(selectedReport.id, {
+                status: 'dismissed',
+                resolution_type: 'dismiss',
+                resolved_by: adminId,
+                resolved_at: new Date().toISOString(),
+                admin_notes: adminNotes,
+            });
 
             if (error) throw error;
 
@@ -230,15 +204,6 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
             fetchReports();
             setSelectedReport(null);
             window.dispatchEvent(new Event('admin:counts-refresh'));
-
-            // Audit
-            await supabase.from('admin_audit_log').insert({
-                admin_id: adminId,
-                action: 'dismiss_report',
-                target_type: 'report',
-                target_id: selectedReport.id,
-                details: {}
-            });
         } catch (error: any) {
             toast.error('Aktion fehlgeschlagen: ' + error.message);
         }
@@ -247,10 +212,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
     const handleInvestigate = async () => {
         if (!selectedReport) return;
         try {
-            const { error } = await supabase
-                .from('reports')
-                .update({ status: 'investigating' })
-                .eq('id', selectedReport.id);
+            const { error } = await api.reports.resolve(selectedReport.id, { status: 'investigating' });
 
             if (error) throw error;
 
@@ -266,10 +228,9 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
     const handleEscalate = async () => {
         if (!selectedReport) return;
         try {
-            const { error } = await supabase
-                .from('reports')
-                .update({ priority: 'kritisch' })
-                .eq('id', selectedReport.id);
+            // reports.php übernimmt `priority` im PATCH nicht – wie zuvor im Shim
+            // aktualisiert der Aufruf serverseitig nur resolved_by/resolved_at.
+            const { error } = await api.reports.resolve(selectedReport.id, { priority: 'kritisch' });
 
             if (error) throw error;
 
@@ -286,29 +247,19 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
     const handleConfirmViolation = async () => {
         if (!selectedReport) return;
         try {
-            const adminId = (await supabase.auth.getUser()).data.user?.id;
-            const { error } = await supabase
-                .from('reports')
-                .update({
-                    status: 'resolved',
-                    resolution_type: 'warn',
-                    resolved_by: adminId,
-                    resolved_at: new Date().toISOString(),
-                    admin_notes: (adminNotes ? adminNotes + '\n' : '') + '[Filter-Review] Treffer bestätigt.',
-                })
-                .eq('id', selectedReport.id);
+            const adminId = getStoredUser()?.id;
+            const { error } = await api.reports.resolve(selectedReport.id, {
+                status: 'resolved',
+                resolution_type: 'warn',
+                resolved_by: adminId,
+                resolved_at: new Date().toISOString(),
+                admin_notes: (adminNotes ? adminNotes + '\n' : '') + '[Filter-Review] Treffer bestätigt.',
+            });
             if (error) throw error;
             toast.success('Filter-Treffer bestätigt (Verwarnung).');
             fetchReports();
             setSelectedReport(null);
             window.dispatchEvent(new Event('admin:counts-refresh'));
-            await supabase.from('admin_audit_log').insert({
-                admin_id: adminId,
-                action: 'filter_review_confirm',
-                target_type: 'report',
-                target_id: selectedReport.id,
-                details: {}
-            });
         } catch (error: any) {
             toast.error('Aktion fehlgeschlagen: ' + error.message);
         }
@@ -327,29 +278,19 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                     /* Einzelnes Wort darf den Review nicht abbrechen. */
                 }
             }
-            const adminId = (await supabase.auth.getUser()).data.user?.id;
-            const { error } = await supabase
-                .from('reports')
-                .update({
-                    status: 'dismissed',
-                    resolution_type: 'dismiss',
-                    resolved_by: adminId,
-                    resolved_at: new Date().toISOString(),
-                    admin_notes: (adminNotes ? adminNotes + '\n' : '') + `[Filter-Review] Fehlalarm – freigegeben: ${hits.join(', ') || '–'}.`,
-                })
-                .eq('id', selectedReport.id);
+            const adminId = getStoredUser()?.id;
+            const { error } = await api.reports.resolve(selectedReport.id, {
+                status: 'dismissed',
+                resolution_type: 'dismiss',
+                resolved_by: adminId,
+                resolved_at: new Date().toISOString(),
+                admin_notes: (adminNotes ? adminNotes + '\n' : '') + `[Filter-Review] Fehlalarm – freigegeben: ${hits.join(', ') || '–'}.`,
+            });
             if (error) throw error;
             toast.success(hits.length > 0 ? `Fehlalarm – ${hits.length} Wort/Wörter für den Filter freigegeben.` : 'Als Fehlalarm abgewiesen.');
             fetchReports();
             setSelectedReport(null);
             window.dispatchEvent(new Event('admin:counts-refresh'));
-            await supabase.from('admin_audit_log').insert({
-                admin_id: adminId,
-                action: 'filter_review_false_positive',
-                target_type: 'report',
-                target_id: selectedReport.id,
-                details: { released_words: hits }
-            });
         } catch (error: any) {
             toast.error('Aktion fehlgeschlagen: ' + error.message);
         }
