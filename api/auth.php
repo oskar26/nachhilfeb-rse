@@ -398,8 +398,7 @@ if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     'banned_until' => $profile['banned_until']
                 ]);
             } else {
-                $pdo->prepare('UPDATE profiles SET is_banned = 0, ban_reason = NULL, banned_until = NULL WHERE id = ?')
-                    ->execute([$user['id']]);
+                fwg_clear_expired_ban($pdo, $user['id']);
                 $profile['is_banned'] = 0;
             }
         } else {

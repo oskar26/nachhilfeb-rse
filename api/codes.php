@@ -72,18 +72,19 @@ try {
         $pdo->exec('ALTER TABLE invite_codes ADD COLUMN IF NOT EXISTS current_uses INT NOT NULL DEFAULT 0');
     } catch (Exception $e) {}
 
-    // Standard-Codes anlegen, falls noch nicht vorhanden
-    $count = $pdo->query("SELECT COUNT(*) FROM promo_codes")->fetchColumn();
-    if ($count == 0) {
-        $now = date('Y-m-d H:i:s');
-        $expires = date('Y-m-d H:i:s', strtotime('+1 year'));
-        
-        // 1. Code für Schüler-Coaching AG Mitglieder
-        $pdo->prepare("
-            INSERT IGNORE INTO promo_codes 
-            (id, code, effect_type, push_level, boost_days, max_uses, current_uses, target_group, description, is_active, expires_at, created_at)
-            VALUES (?, 'COACHING-AG', 'coach_verification', 'super', 30, NULL, 0, 'coach', 'Offizieller Schüler-Coaching AG Mitgliedscode mit Verifizierung & Boost', 1, ?, ?)
-        ")->execute([generate_uuid(), $expires, $now]);
+    // Keine Standard-Codes im Quelltext: Der frühere Auto-Seed 'COACHING-AG' war
+    // ein öffentlich lesbarer, unbegrenzt einlösbarer Verifikations-Generalschlüssel
+    // (der Code stand im Repo). AG-Codes erzeugt das SV-Team jetzt ausschließlich
+    // im Panel (promo_create).
+    //
+    // Altbestand entschärfen: den damals automatisch angelegten Code
+    // (created_by IS NULL) deaktivieren. Manuell vom SV-Team erstellte Codes mit
+    // gleichem Namen bleiben unberührt.
+    try {
+        $pdo->prepare("UPDATE promo_codes SET is_active = 0 WHERE code = 'COACHING-AG' AND created_by IS NULL AND effect_type = 'coach_verification'")
+            ->execute();
+    } catch (Exception $e) {
+        error_log('COACHING-AG cleanup note: ' . $e->getMessage());
     }
 
     // Banane-Easteregg dauerhaft aus der Datenbank entfernen

@@ -61,6 +61,13 @@ if ($method === 'POST') {
     $data = get_json_input();
 
     $targetUserId = $data['user_id'] ?? $user['id'];
+
+    // Sicherheit: Benachrichtigungen (inkl. E-Mail) für andere Nutzer darf nur
+    // das SV-Admin-Team erstellen. Ohne user_id bleibt es die eigene Meldung.
+    if ($targetUserId !== $user['id'] && ($user['role'] ?? '') !== 'sv_admin') {
+        json_error('Zugriff verweigert. Benachrichtigungen für andere Nutzer darf nur das SV-Team erstellen.', 403, ['code' => 'forbidden']);
+    }
+
     $type = $data['type'] ?? 'alert';
     $title = trim($data['title'] ?? 'Neue Benachrichtigung');
     $message = trim($data['message'] ?? $data['body'] ?? '');

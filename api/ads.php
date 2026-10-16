@@ -391,23 +391,11 @@ if ($action === 'view' && $method === 'POST') {
 // 2. POST: NEUE ANZEIGE ERSTELLEN
 // ------------------------------------------------------------------------------
 if ($method === 'POST') {
-    $user = require_auth();
-    $data = get_json_input();
-
     // Verifizierungs-Gate (Backend-Enforcement zum Frontend-Check in CreateAd):
-    // Nur verifizierte Nutzer dürfen Anzeigen erstellen.
-    try {
-        $vStmt = $pdo->prepare('SELECT is_verified FROM profiles WHERE id = ?');
-        $vStmt->execute([$user['id']]);
-        $vRow = $vStmt->fetch();
-        $vVerified = !empty($vRow['is_verified']);
-        if (!$vVerified) {
-            json_error('Dein Account ist noch nicht verifiziert. Bitte lasse dich im SV-Raum verifizieren, um Anzeigen zu erstellen.', 403);
-        }
-    } catch (Exception $e) {
-        error_log('Ads verification check error: ' . $e->getMessage());
-        json_error('Verifizierung konnte nicht geprüft werden. Bitte später erneut versuchen.', 500);
-    }
+    // zentrales require_verified() statt eigener is_verified-Abfrage -> einheitlicher
+    // Fehler-`code` ('not_verified') wie in allen anderen Modulen, Staff-Ausnahmen inklusive.
+    $user = require_verified();
+    $data = get_json_input();
 
     $ownerId = $user['id'];
 

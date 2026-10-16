@@ -64,8 +64,7 @@ function get_auth_user(): ?array {
                 ]);
             } else {
                 // Sperre ist abgelaufen: Status in DB zurücksetzen
-                $resetStmt = $pdo->prepare('UPDATE profiles SET is_banned = 0, ban_reason = NULL, banned_until = NULL WHERE id = ?');
-                $resetStmt->execute([$user['id']]);
+                fwg_clear_expired_ban($pdo, $user['id']);
                 $user['is_banned'] = 0;
             }
         } else {
@@ -78,6 +77,18 @@ function get_auth_user(): ?array {
 
     $user['is_coach'] = !empty($user['is_coach']);
     return $user;
+}
+
+// Setzt eine abgelaufene temporäre Sperre zurück. Gemeinsam genutzt vom
+// Token-Pfad (get_auth_user) und vom Login (auth.php), damit die Reset-Logik
+// nicht an zwei Stellen auseinanderdriftet.
+function fwg_clear_expired_ban(PDO $pdo, string $userId): void {
+    try {
+        $pdo->prepare('UPDATE profiles SET is_banned = 0, ban_reason = NULL, banned_until = NULL WHERE id = ?')
+            ->execute([$userId]);
+    } catch (Exception $e) {
+        error_log('Ban-Reset fehlgeschlagen: ' . $e->getMessage());
+    }
 }
 
 function require_auth(): array {
