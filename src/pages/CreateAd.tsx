@@ -9,7 +9,7 @@ import { RichTextEditor } from '../components/RichTextEditor';
 import { ChevronLeft, ChevronRight, CheckCircle, Plus, X, Link as LinkIcon, AlertCircle, Lock, GraduationCap, Search, Users, User, Shuffle, School, Wifi, Home, MapPin, Calculator, Info } from 'lucide-react';
 import { cn, formatAdPrice } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
 import { toast } from 'react-hot-toast';
 import { sanitizeHtml } from '../lib/sanitize';
 import { triggerHaptic } from '../lib/haptics';
@@ -127,7 +127,7 @@ export default function CreateAd() {
     }, [location.state]);
 
     async function checkVerification() {
-        const { data } = await supabase.from('profiles').select('*').eq('id', user?.id).single();
+        const { data } = await api.profiles.get(user?.id);
         if (data) {
             setProfile(data);
             setIsVerified(!!data.is_verified);
@@ -296,7 +296,7 @@ export default function CreateAd() {
         // session_format-Feld und nicht in den sichtbaren Text.
         const cleanShortDescription = formData.short_description.replace(/^\[Kleingruppe\]\s*/, '');
 
-        const { error } = await supabase.from('ads').insert({
+        const { error } = await api.ads.create({
             user_id: user.id,
             type: formData.type,
             session_format: formData.session_format,

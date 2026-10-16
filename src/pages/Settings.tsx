@@ -6,7 +6,7 @@ import { Button } from '../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
 import { toast } from 'react-hot-toast';
 import SupportModal from '../components/SupportModal';
 import ShareDialog from '../components/ShareDialog';
@@ -65,7 +65,7 @@ export default function Settings() {
     };
 
     const fetchSettings = async () => {
-        const { data } = await supabase.from('profiles').select('settings').eq('id', user?.id).single();
+        const { data } = await api.profiles.get(user?.id);
         if (data?.settings) {
             const raw = data.settings as Record<string, unknown>;
             const teaches = raw.teaches_subjects;
@@ -83,7 +83,7 @@ export default function Settings() {
     const updateSetting = async (key: 'email_visible' | 'phone_visible') => {
         const newSettings = { ...settings, [key]: !settings[key] };
         setSettings(newSettings);
-        const { error } = await supabase.from('profiles').update({ settings: newSettings }).eq('id', user?.id);
+        const { error } = await api.profiles.update({ settings: newSettings }, user?.id);
         if (error) {
             triggerHaptic('error');
             toast.error("Fehler beim Speichern");
@@ -96,7 +96,7 @@ export default function Settings() {
     const updateTeachesSubjects = async (subjects: Subject[]) => {
         const newSettings = { ...settings, teaches_subjects: subjects };
         setSettings(newSettings);
-        const { error } = await supabase.from('profiles').update({ settings: newSettings }).eq('id', user?.id);
+        const { error } = await api.profiles.update({ settings: newSettings }, user?.id);
         if (error) {
             triggerHaptic('error');
             toast.error("Fächer konnten nicht gespeichert werden");
@@ -117,11 +117,11 @@ export default function Settings() {
         triggerHaptic('medium');
         toast.loading("Exportiere deine Daten...", { id: "exportData" });
         try {
-            const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-            const { data: ads } = await supabase.from('ads').select('*').eq('user_id', user.id);
-            const { data: reviews } = await supabase.from('reviews').select('*').eq('author_id', user.id);
-            const { data: favorites } = await supabase.from('favorites').select('*').eq('user_id', user.id);
-            const { data: requests } = await supabase.from('ad_requests').select('*').or(`requester_id.eq.${user.id},owner_id.eq.${user.id}`);
+            const { data: profile } = await api.profiles.get(user.id);
+            const { data: ads } = await api.ads.list({ user_id: user.id, all: true });
+            const { data: reviews } = await api.reviews.list({});
+            const { data: favorites } = await api.favorites.list();
+            const { data: requests } = await api.requests.list();
 
             const exportObj = {
                 export_datum: new Date().toISOString(),
@@ -153,11 +153,11 @@ export default function Settings() {
         if (!confirm("Willst du deinen Account und all deine Anzeigen wirklich zur Löschung vormerken? Diese Aktion schickt eine Anfrage an die Administration.")) return;
 
         try {
-            const { error } = await supabase.from('support_tickets').insert({
+            const { error } = await api.support.createTicket({
                 user_id: user?.id,
                 subject: 'Account-Löschung angefordert (Art. 17 DSGVO)',
                 message: `Nutzer ${user?.email} fordert die vollständige Löschung seines Accounts an.`
-            });
+            } as any);
 
             if (error) throw error;
             triggerHaptic('success');
@@ -492,7 +492,9 @@ export default function Settings() {
                                             const val = (e.target as HTMLInputElement).value;
                                             if (!val) return;
                                             triggerHaptic('medium');
-                                            const { data, error } = await supabase.rpc('redeem_code', { secret_code: val });
+                                            const { data: redeemData, error } = await api.codes.redeem(val);
+                                            // Fehler -> 'invalid', Erfolg -> zugewiesene Rolle (Fallback 'student')
+                                            const data = error ? 'invalid' : (redeemData?.role || 'student');
                                             if (error) {
                                                 console.error(error);
                                                 triggerHaptic('error');

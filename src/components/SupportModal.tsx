@@ -5,7 +5,7 @@ import {
     X, Bug, Lightbulb, MessageCircle, Send, Loader2,
     CheckCircle, ChevronLeft, Smartphone, Monitor, Globe, Shield, Zap, Flag
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import { cn } from '../lib/utils';
@@ -120,13 +120,14 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
         setSubmitting(true);
         try {
             const deviceInfo = getDeviceInfo();
-            const { error } = await supabase.from('support_tickets').insert({
+            const payload = {
                 user_id: user.id,
                 type: ticketType,
                 title: title.trim(),
                 description: description.trim(),
                 device_info: deviceInfo,
-            });
+            };
+            const { error } = await api.support.createTicket(payload);
 
             if (error) throw error;
 
@@ -145,11 +146,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
         if (!user) return;
         setLoadingChat(true);
         try {
-            const { data, error } = await supabase
-                .from('support_tickets')
-                .select('*')
-                .eq('user_id', user.id)
-                .order('created_at', { ascending: false });
+            const { data, error } = await api.support.listTickets();
 
             if (error) throw error;
             setChatTickets(data || []);
@@ -163,14 +160,10 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
 
     const fetchMessages = async (ticketId: string) => {
         try {
-            const { data, error } = await supabase
-                .from('support_messages')
-                .select('*')
-                .eq('ticket_id', ticketId)
-                .order('created_at', { ascending: true });
+            const { data, error } = await api.support.getTicket(ticketId);
 
             if (error) throw error;
-            setMessages(data || []);
+            setMessages(data?.messages || []);
         } catch (err) {
             console.error('Error fetching messages:', err);
             setMessages([]);
@@ -184,11 +177,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
         let ticketId = activeTicket.id;
         if (ticketId.startsWith('tmp-')) {
             try {
-                const { data } = await supabase
-                    .from('support_tickets')
-                    .select('*')
-                    .eq('user_id', user.id)
-                    .order('created_at', { ascending: false });
+                const { data } = await api.support.listTickets();
                 const real = (data?.[0] as SupportTicket | undefined) ?? null;
                 if (!real) {
                     toast.error('Chat konnte nicht angelegt werden. Bitte schließe das Fenster und versuche es erneut.');
@@ -208,12 +197,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
             return;
         }
         try {
-            const { error } = await supabase.from('support_messages').insert({
-                ticket_id: ticketId,
-                sender_id: user.id,
-                content: newMessage.trim(),
-                is_admin_reply: false,
-            });
+            const { error } = await api.support.sendMessage(ticketId, newMessage.trim());
 
             if (error) throw error;
 
@@ -235,20 +219,17 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
         if (!user || startingDirectChat) return;
         setStartingDirectChat(true);
         try {
-            const { error } = await supabase.from('support_tickets').insert({
+            const payload = {
                 user_id: user.id,
                 type: 'support',
                 title: 'Direkter Support-Chat',
                 description: 'Direkt aus dem Support-Fenster gestarteter Chat.',
-            });
+            };
+            const { error } = await api.support.createTicket(payload);
             if (error) throw error;
 
             // Neuestes Ticket des Nutzers laden und direkt öffnen
-            const { data, error: listError } = await supabase
-                .from('support_tickets')
-                .select('*')
-                .eq('user_id', user.id)
-                .order('created_at', { ascending: false });
+            const { data, error: listError } = await api.support.listTickets();
             if (listError) throw listError;
 
             const ticket = (data?.[0] as SupportTicket) || {

@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
@@ -39,7 +38,7 @@ export default function AdDetails() {
 
     async function fetchAdAndStatus() {
         setLoading(true);
-        const { data: adData, error: loadError } = await supabase.from('ads').select('*').eq('id', id).single();
+        const { data: adData, error: loadError } = await api.ads.get(id!);
         setAdError(adData ? null : loadError);
 
         if (adData) {
@@ -49,22 +48,19 @@ export default function AdDetails() {
                 trackedViewForRef.current = adData.id;
                 api.ads.trackView(adData.id);
             }
-            const { data: prof } = await supabase.from('profiles').select('*').eq('id', adData.user_id).single();
+            const { data: prof } = await api.profiles.get(adData.user_id);
             setProfile(prof);
             setTheirAvailability(prof?.availability || emptyAvailability());
 
             if (user) {
                 // Load my own availability for matching
-                const { data: myProf } = await supabase.from('profiles').select('availability').eq('id', user.id).single();
+                const { data: myProf } = await api.profiles.get(user.id);
                 setMyAvailability(myProf?.availability || emptyAvailability());
-                const { data: fav } = await supabase.from('favorites').select('ad_id').eq('user_id', user.id).eq('ad_id', id).maybeSingle();
+                const { data: fav } = await api.favorites.list();
                 setIsFavorite(!!fav);
 
-                const { data: req } = await supabase.from('ad_requests')
-                    .select('*')
-                    .eq('ad_id', id)
-                    .eq('requester_id', user.id)
-                    .single();
+                const { data: reqList } = await api.requests.list();
+                const req = (reqList || []).find((r: any) => r.requester_id === user.id && r.ad_id === id);
 
                 if (req && typeof req.status === 'string') setRequestStatus(req.status as typeof requestStatus);
             }
@@ -83,7 +79,7 @@ export default function AdDetails() {
         if ('vibrate' in navigator) navigator.vibrate([15]);
 
         if (isFavorite) {
-            const { error } = await supabase.from('favorites').delete().eq('user_id', user.id).eq('ad_id', ad.id);
+            const { error } = await api.favorites.toggle(ad.id);
             if (error) {
                 console.error("Error removing favorite:", error);
                 toast.error("Konnte nicht von der Merkliste entfernt werden.");
@@ -92,7 +88,7 @@ export default function AdDetails() {
                 toast.success("Aus Merkliste entfernt");
             }
         } else {
-            const { error } = await supabase.from('favorites').insert({ user_id: user.id, ad_id: ad.id });
+            const { error } = await api.favorites.toggle(ad.id);
             if (error) {
                 console.error("Error adding favorite:", error);
                 toast.error("Konnte nicht zur Merkliste hinzugefügt werden.");
@@ -106,13 +102,13 @@ export default function AdDetails() {
     const sendRequest = async () => {
         if (!user || !ad || !profile) return;
         setSending(true);
-        const { error } = await supabase.from('ad_requests').insert({
+        const { error } = await api.requests.create({
             ad_id: ad.id,
             requester_id: user.id,
             owner_id: profile.id, // denormalized for RLS
             message: "Ich habe Interesse an diesem Angebot!",
             status: 'pending'
-        });
+        } as any);
 
         if (!error) {
             setRequestStatus('pending');

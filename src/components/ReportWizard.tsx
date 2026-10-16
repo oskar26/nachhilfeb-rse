@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/Button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/Dialog';
@@ -86,7 +86,7 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
         if (!user) return;
         setSubmitting(true);
         try {
-            const { error } = await supabase.from('reports').insert({
+            const { error } = await api.reports.create({
                 reporter_id: user.id,
                 reported_user_id: reportedUserId || null,
                 reported_ad_id: reportedAdId || null,

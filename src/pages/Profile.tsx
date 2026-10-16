@@ -5,7 +5,7 @@ import { Input } from '../components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { User, Shield, Loader2, Mail, Phone, Settings as SettingsIcon, Pen, Sparkles, CalendarDays, Award, Shuffle, Palette, X, Lock, Eye, Plus, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
 import { toast } from 'react-hot-toast';
 import { SubjectChip, SUBJECT_CATEGORIES, subjectLabelMap, type Subject } from '../components/SubjectChip';
 import { RefinedGradeSelector } from '../components/RefinedGradeSelector';
@@ -92,21 +92,12 @@ export default function Profile() {
 
     async function fetchProfile() {
         if (!authProfile) setLoading(true);
-        const { data } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user?.id)
-            .single();
+        const { data } = await api.profiles.get(user?.id);
 
-        const { data: ads } = await supabase
-            .from('ads')
-            .select('subjects')
-            .eq('user_id', user?.id)
-            .eq('type', 'offer')
-            .eq('is_active', true);
+        const { data: ads } = await api.ads.list({ user_id: user?.id, type: 'offer', all: true });
 
         const subjectsSet = new Set<Subject>();
-        ads?.forEach(ad => ad.subjects?.forEach((s: Subject) => subjectsSet.add(s)));
+        ads?.forEach((ad: any) => ad.subjects?.forEach((s: Subject) => subjectsSet.add(s)));
 
         if (data) {
             const userSettings = (data.settings as any) || {};
@@ -165,7 +156,7 @@ export default function Profile() {
         const grad = await extractDominantGradient(newUrl, user?.id);
         setBannerGradient(grad);
         if (user) {
-            await supabase.from('profiles').update({ avatar_url: newUrl, banner_color: grad }).eq('id', user.id);
+            await api.profiles.update({ avatar_url: newUrl, banner_color: grad }, user.id);
             refreshProfile();
         }
     };
@@ -177,7 +168,7 @@ export default function Profile() {
 
         const displayName = `${profile.first_name} ${profile.last_name?.charAt(0) || ''}.`;
 
-        const { error } = await supabase.from('profiles').update({
+        const { error } = await api.profiles.update({
             first_name: profile.first_name,
             last_name: profile.last_name,
             display_name: displayName,
@@ -192,7 +183,7 @@ export default function Profile() {
             availability: availability,
             privacy_calendar: privacyCalendar,
             onboarding_complete: true
-        }).eq('id', user.id);
+        }, user.id);
 
         if (error) {
             triggerHaptic('error');
@@ -255,12 +246,9 @@ export default function Profile() {
             settings: { ...prev.settings, teaches_subjects: subjects }
         }));
         subjectsSaveQueueRef.current = subjectsSaveQueueRef.current.then(async () => {
-            const { data } = await supabase.from('profiles').select('settings').eq('id', user.id).single();
+            const { data } = await api.profiles.get(user.id);
             const raw = (data?.settings as Record<string, unknown>) || {};
-            const { error } = await supabase
-                .from('profiles')
-                .update({ settings: { ...raw, teaches_subjects: subjects } })
-                .eq('id', user.id);
+            const { error } = await api.profiles.update({ settings: { ...raw, teaches_subjects: subjects } }, user.id);
             if (error) {
                 triggerHaptic('error');
                 toast.error('Fächer konnten nicht gespeichert werden');
@@ -365,7 +353,7 @@ export default function Profile() {
                                     triggerHaptic('selection');
                                     const grad = await extractDominantGradient(profile.avatar_url);
                                     setBannerGradient(grad);
-                                    if (user) await supabase.from('profiles').update({ banner_color: grad }).eq('id', user.id);
+                                    if (user) await api.profiles.update({ banner_color: grad }, user.id);
                                     toast.success("Farbe an Profilbild angepasst!");
                                 }}
                                 className="px-3 py-1.5 rounded-full text-xs font-bold bg-white/80 hover:bg-white text-black backdrop-blur-md transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
@@ -383,7 +371,7 @@ export default function Profile() {
                             triggerHaptic('selection');
                             const newGrad = getRandomGradient();
                             setBannerGradient(newGrad);
-                            if (user) await supabase.from('profiles').update({ banner_color: newGrad }).eq('id', user.id);
+                                            if (user) await api.profiles.update({ banner_color: newGrad }, user.id);
                             toast.success("Zufällige Farbe gewählt!");
                         }}
                         className="px-2.5 py-1.5 rounded-full text-xs font-bold bg-black/40 hover:bg-black/60 text-white backdrop-blur-md transition-all flex items-center gap-1 shadow-sm cursor-pointer relative z-10"
@@ -416,7 +404,7 @@ export default function Profile() {
                                             onClick={async () => {
                                                 triggerHaptic('selection');
                                                 setBannerGradient(p.gradient);
-                                                if (user) await supabase.from('profiles').update({ banner_color: p.gradient }).eq('id', user.id);
+                                                if (user) await api.profiles.update({ banner_color: p.gradient }, user.id);
                                                 toast.success(`${p.name} ausgewählt!`);
                                             }}
                                             className={cn(
@@ -438,7 +426,7 @@ export default function Profile() {
                                             setCustomColor(c);
                                             const grad = `linear-gradient(135deg, ${c} 0%, ${c}dd 100%)`;
                                             setBannerGradient(grad);
-                                            if (user) await supabase.from('profiles').update({ banner_color: grad }).eq('id', user.id);
+                                            if (user) await api.profiles.update({ banner_color: grad }, user.id);
                                         }}
                                         className="w-7 h-7 p-0 border-0 rounded-lg cursor-pointer shadow-sm"
                                         title="Color Picker für eigene Farbe"

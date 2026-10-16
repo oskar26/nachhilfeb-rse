@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ShieldAlert, LogOut, MessageCircle, Clock, AlertTriangle } from 'lucide-react';
 import { Logo } from './ui/Logo';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabase';
+import { api, getStoredUser } from '../lib/api';
 import { toast } from 'react-hot-toast';
 
 interface BannedScreenProps {
@@ -55,10 +55,10 @@ export default function BannedScreen({ banReason, banType, bannedUntil }: Banned
 
     const handleSupportRequest = async () => {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
+            const user = getStoredUser();
             if (!user) return;
 
-            await supabase.from('support_tickets').insert({
+            const payload = {
                 user_id: user.id,
                 type: 'support',
                 title: 'Einspruch gegen Account-Sperre',
@@ -67,7 +67,8 @@ export default function BannedScreen({ banReason, banType, bannedUntil }: Banned
                     userAgent: navigator.userAgent,
                     platform: navigator.platform
                 }
-            });
+            };
+            await api.support.createTicket(payload);
 
             toast.success('Einspruch wurde eingereicht. Ein Admin wird sich melden.');
         } catch {

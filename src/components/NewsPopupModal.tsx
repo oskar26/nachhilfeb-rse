@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
 import { X, Megaphone, Bell, CheckCircle2 } from 'lucide-react';
 import { Button } from './ui/Button';
 import NewsIcon from './NewsIcon';
@@ -28,11 +28,7 @@ export function NewsPopupModal() {
 
     const fetchLatestUnseenNews = useCallback(async () => {
         try {
-            const { data, error } = await supabase
-                .from('announcements')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(1);
+            const { data, error } = await api.news.list();
 
             if (error || !data || data.length === 0) return;
 

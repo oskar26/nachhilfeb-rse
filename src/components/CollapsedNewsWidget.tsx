@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import NewsIcon from './NewsIcon';
 
@@ -17,11 +17,7 @@ export function CollapsedNewsWidget() {
 
     const fetchLatestNews = async () => {
         try {
-            const { data, error } = await supabase
-                .from('announcements')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(1);
+            const { data, error } = await api.news.list();
 
             if (!error && data && data.length > 0) {
                 setNews(data[0] as Announcement);

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from './ui/Button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/Dialog';
 import { Star } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 
@@ -23,13 +23,15 @@ export function RatingDialog({ open, onOpenChange, targetUser, adId, onSuccess }
     const handleSubmit = async () => {
         if (!user || !targetUser) return;
         setLoading(true);
-        const { error } = await supabase.from('reviews').insert({
+        const payload = {
             author_id: user.id,
             target_user_id: targetUser.id,
-            ad_id: adId,
+            // Shim sandte bei fehlendem adId null; Backend behandelt null und fehlend identisch ($data['ad_id'] ?? null)
+            ad_id: adId ?? undefined,
             rating,
             comment
-        });
+        };
+        const { error } = await api.reviews.create(payload);
         setLoading(false);
         if (error) {
             toast.error('Fehler beim Bewerten: ' + error.message);

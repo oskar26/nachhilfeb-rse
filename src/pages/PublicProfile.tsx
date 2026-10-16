@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
 import { 
@@ -34,7 +34,7 @@ export default function PublicProfile() {
 
     useEffect(() => {
         if (user) {
-            supabase.from('profiles').select('availability').eq('id', user.id).single().then(({ data }) => {
+            api.profiles.get(user.id).then(({ data }) => {
                 if (data?.availability) setMyAvailability(data.availability);
             });
         }
@@ -42,7 +42,7 @@ export default function PublicProfile() {
 
     async function fetchProfileAndAds() {
         setLoading(true);
-        const { data: prof } = await supabase.from('profiles').select('*').eq('id', id).single();
+        const { data: prof } = await api.profiles.get(id);
         if (prof) {
             setProfile(prof);
 
@@ -65,16 +65,11 @@ export default function PublicProfile() {
                 setBannerGradient(getDefaultGradient()); // FWG Gold default to match avatar
             }
 
-            const { data: adsData } = await supabase.from('ads').select('*').eq('user_id', id).eq('is_hidden', false);
+            const { data: adsData } = await api.ads.list({ user_id: id, all: true });
             if (adsData) setAds(adsData);
 
-            const { count } = await supabase
-                .from('reviews')
-                .select('*, author:author_id(display_name, avatar_url)', { count: 'exact' })
-                .eq('target_user_id', id)
-                .order('created_at', { ascending: false });
-
-            if (count !== null) setReviewCount(count);
+            const { data: reviews } = await api.reviews.list({ target_user_id: id });
+            setReviewCount(reviews?.length ?? 0);
         }
         setLoading(false);
     }
