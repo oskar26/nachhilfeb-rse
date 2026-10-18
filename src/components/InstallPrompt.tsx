@@ -150,7 +150,7 @@ export default function InstallPrompt() {
                             Nachhilfebörse als App installieren
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">
-                            Schneller Zugriff, Offline-Funktionen, Push-Benachrichtigungen
+                            Schneller Zugriff, Offline-Funktionen, Benachrichtigungen
                         </p>
                     </div>
                 </div>

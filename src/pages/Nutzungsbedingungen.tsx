@@ -108,7 +108,7 @@ export default function Nutzungsbedingungen() {
     return (
         <StaticLayout
             title="Nutzungsbedingungen"
-            intro="Stand: September 2026 · Betreiber: SV FWG Köln."
+            intro="Stand: Oktober 2026 · Betreiber: SV FWG Köln."
         >
             {/* Sektions-Rhythmus: Leseeinheiten innen eng (gap-4/5), Sektionen großzügig (gap-10/12). */}
             <div className="max-w-3xl mx-auto px-4 sm:px-6 pb-16 min-w-0 flex flex-col gap-10 sm:gap-12">
@@ -196,8 +196,8 @@ export default function Nutzungsbedingungen() {
                     <Para id="p2" nr="02" title="§ 2 Wer darf mitmachen?">
                         <ParaList items={[
                             <span key="a"><strong>Schülerinnen und Schüler</strong> des Friedrich-Wilhelm-Gymnasiums Köln können Accounts erstellen, Anzeigen aufgeben und Nachrichten schreiben.</span>,
-                            <span key="b"><strong>Eltern</strong> können den Account ihres Kindes gemeinsam mit ihm betreuen – einen eigenen Eltern-Account gibt es nicht.</span>,
-                            <span key="c">Nutzerinnen und Nutzer <strong>unter 16 Jahren</strong> benötigen die <strong>Einwilligung eines Elternteils</strong> (Art. 8 DSGVO). Ohne bestätigte Eltern-E-Mail bleibt der Account eingeschränkt.</span>,
+                            <span key="b"><strong>Eltern</strong> können den Account ihres Kindes mitbetreuen. Wie eng, entscheiden sie gemeinsam mit ihrem Kind je nach Alter.</span>,
+                            <span key="c">Nutzerinnen und Nutzer <strong>unter 16 Jahren</strong> benötigen die <strong>Einwilligung eines Elternteils</strong> (Art. 8 DSGVO). Die Einwilligung wird bei der Registrierung eingeholt und dokumentiert.</span>,
                             <span key="d">Nur <strong>verifizierte Accounts</strong> (Verifizierung im SV-Raum) können Anzeigen erstellen und Kontakt aufnehmen.</span>,
                         ]} />
                         <h4 className="pt-2 text-xs font-bold uppercase tracking-[0.14em] text-gray-500 dark:text-gray-400">

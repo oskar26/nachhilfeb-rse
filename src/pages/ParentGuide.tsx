@@ -49,7 +49,7 @@ export default function ParentGuide() {
     return (
         <StaticLayout
             title="Leitfaden für Eltern"
-            intro="Kein eigener Eltern-Account, kein Verknüpfungscode: Eltern betreuen die Nachhilfe gemeinsam mit ihrem Kind – hier steht, wie das geht und was die Börse sicher macht."
+            intro="Ein Konto pro Kind, je nach Alter gemeinsam betreut oder selbstständig genutzt. Hier steht, wie das geht und was die Börse sicher macht."
         >
             <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-16 min-w-0 flex flex-col gap-10 sm:gap-12">
 
@@ -70,8 +70,8 @@ export default function ParentGuide() {
                     <motion.span {...wipeLine()} className="mt-2 ml-14 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
                     <dl className="mt-5">
                         <SpecRowDark label="Zugang">Konten legen nur Schülerinnen und Schüler des Friedrich-Wilhelm-Gymnasiums an.</SpecRowDark>
-                        <SpecRowDark label="Verifizierung">Schüler persönlich im SV-Raum, ohne Code. Einfach melden.</SpecRowDark>
-                        <SpecRowDark label="Gemeinsam">Ihr Kind nutzt seinen Schüler-Account; Sie schauen und unterstützen gemeinsam – ein eigener Eltern-Account ist nicht nötig.</SpecRowDark>
+                        <SpecRowDark label="Verifizierung">Ihr Kind meldet sich persönlich im SV-Raum und wird dort freigeschaltet.</SpecRowDark>
+                        <SpecRowDark label="Gemeinsam">Ihr Kind nutzt seinen Account, Sie schauen und unterstützen mit. Wie eng Sie begleiten, entscheiden Sie gemeinsam.</SpecRowDark>
                         <SpecRowDark label="Treffen">Meist direkt in der Schule, z. B. Bibliothek oder Mensa.</SpecRowDark>
                         <SpecRowDark label="Schutz">Unverifizierte Konten bleiben eingeschränkt und können deaktiviert werden.</SpecRowDark>
                     </dl>
@@ -111,7 +111,7 @@ export default function ParentGuide() {
                     </div>
                 </motion.section>
 
-                {/* C: Gemeinsame Betreuung — kein Eltern-Account, kein Verknüpfungscode */}
+                {/* C: Gemeinsame Betreuung — ein Konto, altersgerechte Begleitung */}
                 <motion.section
                     aria-labelledby="eltern-gemeinsam"
                     {...anim()}
@@ -127,21 +127,21 @@ export default function ParentGuide() {
                     </div>
                     <motion.span {...wipeLine()} className="mt-2 ml-14 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
                     <p className="mt-5 text-[15px] leading-7 text-gray-600 dark:text-gray-300 max-w-prose">
-                        Sie brauchen weder einen eigenen Account noch einen Verknüpfungscode. Die Betreuung läuft
-                        gemeinsam über den Schüler-Account Ihres Kindes:
+                        Die Börse läuft über das Konto Ihres Kindes. Wie viel Begleitung Ihr Kind braucht,
+                        entscheiden Sie gemeinsam:
                     </p>
                     <ul className="mt-5">
                         <CheckRow>
-                            <strong className="text-gray-900 dark:text-white">Ein Konto, gemeinsam genutzt:</strong> Ihr Kind nutzt seinen verifizierten Schüler-Account; Sie schauen und unterstützen mit – zum Beispiel beim Erstellen von Anzeigen oder beim Durchgehen von Anfragen.
+                            <strong className="text-gray-900 dark:text-white">Ein Konto, gemeinsam genutzt:</strong> Ihr Kind nutzt seinen verifizierten Account, Sie schauen und unterstützen mit. Zum Beispiel beim Erstellen von Anzeigen oder beim Durchgehen von Anfragen.
                         </CheckRow>
                         <CheckRow>
-                            <strong className="text-gray-900 dark:text-white">Nichts zu verknüpfen:</strong> Es gibt keinen Eltern-Account und keinen Code. Öffnen Sie die Börse einfach gemeinsam mit Ihrem Kind.
+                            <strong className="text-gray-900 dark:text-white">Altersgerecht begleiten:</strong> In den Klassen 5 und 6 schauen viele Eltern mit, ältere Schülerinnen und Schüler nutzen die Börse selbstständig.
                         </CheckRow>
                         <CheckRow>
                             <strong className="text-gray-900 dark:text-white">Gemeinsam im Blick:</strong> Anzeigen, Anfragen, passende Matches und Merkliste können Sie zusammen durchgehen.
                         </CheckRow>
                         <CheckRow>
-                            <strong className="text-gray-900 dark:text-white">Grenzen respektieren:</strong> Die Chat-Nachrichten gehören Ihrem Kind. Die Börse legt dafür bewusst keine Eltern-Zugänge an.
+                            <strong className="text-gray-900 dark:text-white">Grenzen respektieren:</strong> Die Chat-Nachrichten gehören Ihrem Kind. So bleibt ihm ein eigener Raum, ganz gleich wie eng Sie begleiten.
                         </CheckRow>
                         <CheckRow>
                             <strong className="text-gray-900 dark:text-white">Fragen & Beschwerden:</strong> Wenden Sie sich jederzeit an das SV-Team unter{' '}
@@ -197,8 +197,8 @@ export default function ParentGuide() {
                     </h2>
                     <motion.span {...wipeLine()} className="mx-auto mt-2 block h-1 w-10 origin-left rounded-full bg-black" aria-hidden />
                     <p className="mt-4 text-[15px] leading-7 text-black/80 max-w-2xl mx-auto">
-                        Kein eigener Eltern-Account, kein Verknüpfungscode: Ihr Kind nutzt seinen Schüler-Account,
-                        Sie schauen und unterstützen gemeinsam. Bei Fragen, Problemen oder Beschwerden hilft das SV-Team.
+                        Ihr Kind nutzt seinen Account, Sie schauen mit und unterstützen, so viel Sie möchten.
+                        Bei Fragen, Problemen oder Beschwerden hilft das SV-Team.
                     </p>
                     <p className="mt-6 flex items-center justify-center gap-2 text-sm text-black/70">
                         <Mail size={15} className="text-black" aria-hidden />

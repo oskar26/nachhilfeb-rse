@@ -243,7 +243,7 @@ export function createDefaultCoachingDocument(legacy: Record<string, string> = F
                 title: 'Förderunterricht Sek. I (2. HJ)',
                 paragraphs: [
                     'Förderunterricht wird in den Jahrgangsstufen 5-10 in den Fächern Deutsch, Mathematik, Englisch und Latein erteilt. Die Entscheidung über eine Anmeldung liegt bei den Eltern.',
-                    'Start: Mittwoch, 18.02. in der 7. Stunde (Kick-off in H408). Danach regulär in H402.',
+                    'Start: 2. Halbjahr. Die genauen Termine und Räume werden über die Schule bekanntgegeben.',
                 ],
                 registrationText: 'Anmeldung verbindlich über:',
                 registrationEmail: 'foerderunterricht@fwg-koeln.nrw.schule',

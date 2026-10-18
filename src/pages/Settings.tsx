@@ -254,8 +254,8 @@ export default function Settings() {
             <motion.div variants={itemVariants}>
                 <Card className="rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft">
                     <CardHeader className="p-6 pb-2">
-                        <CardTitle className="text-base font-extrabold">Push-Benachrichtigungen</CardTitle>
-                        <CardDescription className="text-xs">Erhalte Push-Mitteilungen bei neuen Anfragen und Nachrichten</CardDescription>
+                        <CardTitle className="text-base font-extrabold">Benachrichtigungen</CardTitle>
+                        <CardDescription className="text-xs">Erhalte Neuigkeiten und Hinweise der Börse direkt im Browser</CardDescription>
                     </CardHeader>
                     <CardContent className="p-6 pt-3 flex items-center justify-between">
                         <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">

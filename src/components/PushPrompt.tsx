@@ -55,8 +55,8 @@ export function PushPrompt() {
                         </p>
                         <p className="mt-0.5 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
                             {denied
-                                ? 'Du hast Benachrichtigungen abgelehnt. Aktiviere sie in den Browser-Einstellungen dieser Seite, um z. B. bei neuen Anfragen informiert zu werden.'
-                                : 'Aktiviere Mitteilungen, damit du z. B. bei neuen Anfragen, Antworten und Schul-Mitteilungen sofort Bescheid weißt.'}
+                                ? 'Du hast Benachrichtigungen abgelehnt. Aktiviere sie in den Browser-Einstellungen dieser Seite, um Neuigkeiten und Hinweise der Börse zu erhalten.'
+                                : 'Aktiviere Mitteilungen, damit Neuigkeiten und Hinweise der Börse bei dir ankommen.'}
                         </p>
                     </div>
                     <button

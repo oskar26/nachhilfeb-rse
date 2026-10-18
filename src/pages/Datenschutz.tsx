@@ -35,7 +35,7 @@ export default function Datenschutz() {
     return (
         <StaticLayout
             title="Datenschutzerklärung"
-            intro="Stand: September 2026 · Betreiber: SV FWG Köln."
+            intro="Stand: Oktober 2026 · Betreiber: SV FWG Köln."
         >
             {/* Sektions-Rhythmus wie Nutzungsbedingungen: Einheiten eng (gap-4/5), Sektionen weit (gap-10/12). */}
             <div className="max-w-3xl mx-auto px-4 sm:px-6 pb-16 min-w-0 flex flex-col gap-10 sm:gap-12">
@@ -109,13 +109,13 @@ export default function Datenschutz() {
                         Bei der Registrierung wird sie abgefragt und dokumentiert, und bei der persönlichen
                         <strong>Verifizierung im SV-Raum</strong> wird der Account zusätzlich geprüft.
                         Ohne Einwilligung und ohne Verifizierung bleibt der Account eingeschränkt
-                        (keine Anzeigenerstellung, keine Kontaktaufnahme). Zusätzlich empfehlen wir Eltern,
-                        ihr eigenes Konto mit dem Konto des Kindes zu verknüpfen – damit ist der Elternbezug
-                        doppelt sichtbar und nachvollziehbar.
+                        (keine Anzeigenerstellung, keine Kontaktaufnahme). Wie die Nutzung zu Hause
+                        begleitet wird, entscheiden Eltern und Kind gemeinsam; in den unteren Klassen
+                        betreuen viele Eltern mit.
                     </p>
                     <p>
-                        Eltern können den Account ihres Kindes gemeinsam mit ihm nutzen und betreuen –
-                        etwa Anzeigen und Anfragen im Blick behalten. Die Einwilligung kann jederzeit
+                        Eltern können den Account ihres Kindes mitbetreuen und etwa Anzeigen und
+                        Anfragen gemeinsam durchgehen. Die Einwilligung kann jederzeit
                         mit Wirkung für die Zukunft widerrufen werden – wende dich dazu an{' '}
                         <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-amber-700 dark:text-primary hover:underline break-anywhere">info@nachhilfe-sv.de</a>.
                         Nach dem Widerruf wird der Account des Kindes deaktiviert.

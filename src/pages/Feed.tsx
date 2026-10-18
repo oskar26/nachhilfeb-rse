@@ -715,7 +715,7 @@ export default function Feed() {
                                 </div>
                                 <div className="text-sm text-indigo-900 dark:text-indigo-200 leading-relaxed space-y-2">
                                     <p>Förderunterricht wird in den Jahrgangsstufen 5-10 in den Fächern Deutsch, Mathematik, Englisch und Latein erteilt. Die Entscheidung über eine Anmeldung liegt bei den Eltern.</p>
-                                    <p><strong>Start:</strong> Mittwoch, 18.02. in der 7. Stunde (Kick-off in H408). Danach regulär in H402.</p>
+                                    <p><strong>Start:</strong> 2. Halbjahr. Die genauen Termine und Räume werden über die Schule bekanntgegeben.</p>
                                     <p>Anmeldung verbindlich über: <a href="mailto:foerderunterricht@fwg-koeln.nrw.schule" className="underline font-bold">foerderunterricht@fwg-koeln.nrw.schule</a></p>
                                     <p>
                                         <button

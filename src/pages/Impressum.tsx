@@ -5,7 +5,7 @@ export default function Impressum() {
     return (
         <StaticLayout
             title="Impressum"
-            intro="Stand: September 2026 · Betreiber: SV FWG Köln — Anbieterkennzeichnung nach § 5 Digitale-Dienste-Gesetz (DDG)."
+            intro="Stand: Oktober 2026 · Betreiber: SV FWG Köln · Anbieterkennzeichnung nach § 5 Digitale-Dienste-Gesetz (DDG)."
         >
             <div className="max-w-3xl mx-auto px-4 sm:px-6 pb-16 space-y-6">
                 <div className="bg-white dark:bg-gray-900 p-6 sm:p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm space-y-6">

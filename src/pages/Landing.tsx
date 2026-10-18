@@ -246,7 +246,7 @@ export default function Landing() {
                             {...rise(0.13)}
                             className="mt-6 text-lg sm:text-xl text-gray-600 max-w-xl leading-relaxed"
                         >
-                            Mathe-SOS oder Englisch-Ass? Am FWG Köln Nachhilfe <strong className="text-black font-bold">suchen</strong> und <strong className="text-black font-bold">anbieten</strong>, direkt unter Mitschülern und SV-verifiziert.
+                            Mathe-SOS oder Englisch-Ass? Am FWG Köln Nachhilfe <strong className="text-black font-bold">suchen</strong> und <strong className="text-black font-bold">anbieten</strong>, direkt unter Mitschülerinnen und Mitschülern. Jede Anzeige kommt von einem verifizierten Account.
                         </motion.p>
                         <motion.div
                             {...rise(0.21)}
@@ -267,7 +267,7 @@ export default function Landing() {
                             {[
                                 { icon: BadgeCheck, label: 'SV-verifiziert' },
                                 { icon: ShieldCheck, label: 'Nur FWG Köln' },
-                                { icon: Lock, label: 'DSGVO aus DE' },
+                                { icon: Lock, label: 'Server in Deutschland' },
                                 { icon: BadgeCheck, label: 'Kostenlos fürs FWG' },
                             ].map(s => (
                                 <li key={s.label}                                 className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-gray-700 shadow-sm">
@@ -305,7 +305,7 @@ export default function Landing() {
                                         <span className="text-[11px] font-bold">Q2 · Bibliothek</span>
                                     </div>
                                     <p className="mt-4 font-display uppercase text-2xl sm:text-3xl leading-none break-words">Mechanik ohne Panik</p>
-                                    <p className="mt-2 text-sm font-medium text-black/70">Aylin D. · mit alten Klausuren · <strong className="text-black">14 € / 45 Min</strong></p>
+                                    <p className="mt-2 text-sm font-medium text-black/70">Aylin D. · mit alten Klausuren · <strong className="text-black">12 € / 60 Min</strong></p>
                                     <motion.span className="absolute top-4 right-4" {...stampPop(0.78)}>
                                         <span className="inline-block rotate-12 rounded border-2 border-black/40 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-black/60">Demo</span>
                                     </motion.span>
@@ -320,14 +320,14 @@ export default function Landing() {
                 </div>
             </section>
 
-            {/* EMPFEHLUNG — direkt unter der Hero: Eltern und Kinder betreuen den Account gemeinsam */}
-            <section aria-label="Empfehlung zur gemeinsamen Account-Betreuung" className="border-b border-black/10 bg-[#faf7ef]">
+            {/* EMPFEHLUNG — direkt unter der Hero: ein Konto pro Kind, altersgerecht begleitet */}
+            <section aria-label="Empfehlung zur Nutzung des Kontos" className="border-b border-black/10 bg-[#faf7ef]">
                 <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-2.5 px-4 py-4 sm:px-6">
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-black">
                         <Users size={13} aria-hidden /> Empfehlung
                     </span>
                     <p className="min-w-0 flex-1 text-sm text-gray-600">
-                        <strong className="font-bold text-black">Eltern und Kinder betreuen den Account gemeinsam</strong> – ohne eigenen Eltern-Account und ohne Verknüpfungscode.
+                        <strong className="font-bold text-black">Ein Konto pro Kind:</strong> In den Klassen 5 und 6 betreuen viele Eltern mit, ältere nutzen die Börse selbstständig.
                     </p>
                     <Link to="/eltern-leitfaden" className="press inline-flex items-center gap-1.5 text-sm font-bold text-black underline decoration-primary decoration-2 underline-offset-4 hover:decoration-amber-500">
                         Eltern-Leitfaden <ArrowUpRight size={15} aria-hidden />
@@ -380,15 +380,15 @@ export default function Landing() {
             <section id="wege" className="relative overflow-hidden bg-[#faf7ef] text-gray-900 poster-grain-dark scroll-mt-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
                     <motion.div {...anim()}>
-                        <h2 className="font-display uppercase leading-[0.95] break-words text-4xl sm:text-7xl max-w-3xl">Drei Wege an ein Ziel: die Klausur sitzt.</h2>
+                        <h2 className="font-display uppercase leading-[0.95] break-words text-4xl sm:text-7xl max-w-3xl">Drei Wege an ein Ziel: bereit für die Klausur.</h2>
                         <motion.span {...wipeLine()} className="mt-4 block h-1.5 w-16 origin-left rounded-full bg-primary" aria-hidden />
                         <p className="mt-4 text-lg text-gray-600 max-w-2xl">Reiß dir deinen Streifen ab. Jeder Weg startet mit einem Klick und endet im Chat mit echten Mitschülern.</p>
                     </motion.div>
                     <div className="mt-10 divide-y-2 divide-dashed divide-gray-300 border-y-2 border-dashed border-gray-300">
                         {[
-                            { icon: Search, ink: '#1D4ED8', title: 'Ich suche Nachhilfe', text: 'Filtere nach Fach, Klasse und Preis. Direkter Kontakt in der App, geprüfte Oberstufenschüler.', points: ['Filter für Fach & Klasse', 'Direkter Kontakt in der App', 'Geprüfte Oberstufenschüler'], cta: 'Anzeigen stöbern', to: suchZiel },
+                            { icon: Search, ink: '#1D4ED8', title: 'Ich suche Nachhilfe', text: 'Filtere nach Fach, Klasse und Preis. Direkter Kontakt in der App, verifizierte Mitschüler.', points: ['Filter für Fach & Klasse', 'Direkter Kontakt in der App', 'Verifizierte Mitschüler'], cta: 'Anzeigen stöbern', to: suchZiel },
                             { icon: GraduationCap, ink: '#15803D', title: 'Ich biete Nachhilfe', text: 'Setze eigene Preise, mache flexible Termine aus und sammle Bewertungen für dein Profil.', points: ['Eigene Preise & Bedingungen', 'Flexible Termine', 'Bewertungen & Profilstatus'], cta: 'Anzeige erstellen', to: bietZiel },
-                            { icon: Users, ink: '#7B3FBF', title: 'Für Eltern', text: 'Betreuen Sie den Account gemeinsam mit Ihrem Kind – ohne eigenen Eltern-Account und ohne Verknüpfungscode. So bleibt die Nachhilfe im Blick.', points: ['Kein eigener Eltern-Account nötig', 'Gemeinsam Anzeigen & Anfragen ansehen', 'Kontakt zur SV bei Fragen'], cta: 'Eltern-Leitfaden', to: '/eltern-leitfaden' },
+                            { icon: Users, ink: '#7B3FBF', title: 'Für Eltern', text: 'Betreuen Sie den Account gemeinsam mit Ihrem Kind oder lassen Sie es selbstständig nutzen, sobald es alt genug ist. So bleibt die Nachhilfe im Blick.', points: ['Ein Konto, gemeinsam genutzt', 'Gemeinsam Anzeigen & Anfragen ansehen', 'Kontakt zur SV bei Fragen'], cta: 'Eltern-Leitfaden', to: '/eltern-leitfaden' },
                         ].map((w, i) => (
                             <motion.article key={w.title} {...tiltIn(i)} className="group relative grid gap-5 py-8 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-8">
                                 <span className="grid place-items-center w-14 h-14 rounded-2xl text-white shrink-0 -rotate-3 group-hover:rotate-3 transition-transform" style={{ background: w.ink }}>
@@ -423,7 +423,7 @@ export default function Landing() {
                     <motion.div {...anim()} className="max-w-3xl">
                         <h2 className="font-display uppercase leading-[0.95] break-words text-4xl text-white sm:text-6xl">So sieht die <span className="bg-primary px-2 text-black">Nachhilfebörse</span> aus.</h2>
                         <motion.span {...wipeLine()} className="mt-4 block h-1.5 w-16 origin-left rounded-full bg-primary" aria-hidden />
-                        <p className="mt-4 text-lg leading-relaxed text-gray-300">Echte Screenshots aus der App: stöbern, anfragen, Profil zeigen — am Handy, am iPad und am Desktop. Ohne Katalog, ohne Kleingedrucktes.</p>
+                        <p className="mt-4 text-lg leading-relaxed text-gray-300">Echte Screenshots aus der App: stöbern, anfragen, Profil zeigen. Am Handy, am iPad und am Desktop.</p>
                     </motion.div>
                     <div ref={boardScrollRef} className={boardDriven ? 'board-scroll' : undefined}>
                         <div className={boardDriven ? 'board-sticky' : undefined}>
@@ -525,7 +525,7 @@ export default function Landing() {
                     </div>
 
                     <motion.div {...anim()} className="mt-12">
-                        <Link to={ziel} className="press inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-primary px-8 text-base font-bold text-black shadow-md hover:bg-primary-hover">Jetzt loslegen <ArrowRight size={18} aria-hidden /></Link>
+                        <Link to={ziel} className="press inline-flex h-14 items-center justify-center gap-2.5 rounded-full bg-primary px-8 text-base font-bold text-black shadow-md hover:bg-primary-hover">Börse ansehen <ArrowRight size={18} aria-hidden /></Link>
                     </motion.div>
 
                     <ScreenshotLightbox
@@ -553,7 +553,7 @@ export default function Landing() {
                             { icon: Filter, t: 'Entdecken & Filtern', d: 'Präzise Filter für Klassenstufen, Fächer und Preisspannen. So findest du exakt, was du suchst.' },
                             { icon: Bookmark, t: 'Merkliste', d: 'Spannende Anzeigen ablegen und später wiederfinden. Nichts geht verloren.' },
                             { icon: MessageSquare, t: 'Sichere Anfragen', d: 'Anbieter direkt anschreiben. Handy und Moodle bleiben privat, bis die Anfrage angenommen ist.' },
-                            { icon: Shield, t: 'Verifizierte Nutzer', d: 'Echte Accounts durch Verifizierung im SV-Raum. Keine Fake-Profile, Moderation inklusive.' },
+                            { icon: Shield, t: 'Verifizierte Nutzer', d: 'Verifizierte Konten durch persönliche Prüfung im SV-Raum, dazu Moderation und Meldefunktion.' },
                             { icon: ImageIcon, t: 'Starke Profile', d: 'Profilbild und ausführliche Biografie mit Text-Editor. Zeig, was du kannst.' },
                             { icon: Smartphone, t: 'Als App installierbar', d: 'Auf den Homescreen legen und wie eine echte App nutzen, auf iOS wie Android (PWA).' },
                         ].map((f, i) => (
@@ -612,13 +612,13 @@ export default function Landing() {
                         <p className="inline-flex items-center gap-2 rounded-full bg-black/10 px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-gray-900"><Sparkles size={13} aria-hidden /> Besonderes Engagement am FWG</p>
                         <h2 className="mt-5 font-display uppercase leading-[0.95] break-words text-4xl sm:text-7xl">Die Schüler-Coaching AG</h2>
                         <motion.span {...wipeLine()} className="mt-4 block h-1.5 w-16 origin-left rounded-full bg-black" aria-hidden />
-                        <p className="mt-4 text-lg font-medium text-black/70 leading-relaxed">Große helfen Kleinen: Unter Leitung von <strong className="text-black font-bold">Frau Balistreri</strong> begleiten geschulte Schüler <strong className="text-black font-bold">ab Klasse 8</strong> gezielt Kinder der <strong className="text-black font-bold">Klassen 5 und 6</strong> beim Start an unserer Schule.</p>
+                        <p className="mt-4 text-lg font-medium text-black/70 leading-relaxed">Große helfen Kleinen: Unter Leitung von <strong className="text-black font-bold">Frau Balistreri</strong> begleiten geschulte Schülerinnen und Schüler <strong className="text-black font-bold">ab Klasse 8</strong> gezielt Kinder der <strong className="text-black font-bold">Klassen 5 und 6</strong> beim Start an unserer Schule.</p>
                     </motion.div>
                     <div className="mt-10 grid md:grid-cols-3 gap-4">
                         {[
                             { icon: GraduationCap, t: 'Pädagogisch begleitet', d: 'Coaches lernen Methoden fürs Lernen-Lernen und Arbeitsorganisation, nicht nur Fachwissen.' },
                             { icon: Shield, t: 'Offizielles Coach-Abzeichen', d: 'Goldenes Badge auf Profil und Anzeigen: Eltern und 5./6.-Klässler erkennen geprüfte Coaches sofort.' },
-                            { icon: Users, t: 'Gemeinschaft & Fairness', d: 'Unkomplizierte Vermittlung, faire Richtpreise der Coaching-AG (ca. 10–15 € pro 45 Min), sicherer Chat im Schulsystem.' },
+                            { icon: Users, t: 'Gemeinschaft & Fairness', d: 'Unkomplizierte Vermittlung, faire Richtpreise (ca. 10–12 € pro 45–60 Min) und ein sicherer Chat in der App.' },
                         ].map((c, i) => (
                             <motion.div key={c.t} {...anim(i * 0.06)} className="rounded-3xl bg-white text-gray-900 p-7 shadow-soft border border-black/5">
                                 <c.icon size={26} className="text-amber-600" aria-hidden />
@@ -632,24 +632,24 @@ export default function Landing() {
                             <p className="text-xs font-black uppercase tracking-[0.14em]">Schüler-Coach werden? Ab Klasse 8</p>
                             <p className="mt-2 max-w-xl font-medium text-black/70">Lust, Fünft- und Sechstklässler zu unterstützen? Sprich Frau Balistreri oder die SV an. Alle Regeln findest du transparent auf der <Link to="/coaching" className="font-bold text-black underline underline-offset-4">Coaching-Seite</Link>.</p>
                         </div>
-                        <Link to={ziel} className="press inline-flex items-center justify-center h-14 px-8 text-base gap-2.5 rounded-full bg-white text-black hover:bg-black/5 border border-black/10 shadow-md font-bold shrink-0">Jetzt loslegen</Link>
+                        <Link to={ziel} className="press inline-flex items-center justify-center h-14 px-8 text-base gap-2.5 rounded-full bg-white text-black hover:bg-black/5 border border-black/10 shadow-md font-bold shrink-0">Jetzt mitmachen</Link>
                     </motion.div>
                 </div>
             </section>
 
-            {/* ELTERN — schwarzes Feld mit gelber Headline */}
+            {/* ELTERN — helles Papierfeld, ruhiger Trust-Block */}
             <section id="eltern" className="bg-[#faf7ef] text-gray-900 border-y border-black/10 poster-grain-dark scroll-mt-16">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
                     <motion.div {...anim()} className="max-w-3xl">
                         <span className="inline-grid place-items-center w-16 h-16 rounded-2xl bg-white border border-black/5 shadow-soft"><Shield className="text-blue-500" size={30} aria-hidden /></span>
                         <h2 className="mt-6 font-display uppercase leading-[0.95] break-words text-4xl sm:text-6xl text-gray-900">Informationen für Eltern</h2>
                         <motion.span {...wipeLine()} className="mt-4 block h-1.5 w-16 origin-left rounded-full bg-primary" aria-hidden />
-                        <p className="mt-4 text-lg text-gray-600 max-w-2xl leading-relaxed">Unsere Empfehlung: Betreuen Sie den Account gemeinsam mit Ihrem Kind – ohne eigenen Eltern-Account und ohne Verknüpfungscode. Ihr Kind nutzt seinen Schüler-Account, Sie schauen und unterstützen mit: Anzeigen, Anfragen, passende Matches und Merkliste im Blick.</p>
+                        <p className="mt-4 text-lg text-gray-600 max-w-2xl leading-relaxed">Ihr Kind nutzt die Nachhilfebörse über sein eigenes Konto. Wie selbstständig es läuft, entscheiden Sie gemeinsam: In den Klassen 5 und 6 betreuen viele Eltern mit und behalten Anzeigen, Anfragen und Matches im Blick. Unter 16 Jahren brauchen wir Ihre Einwilligung.</p>
                     </motion.div>
 
                     <div className="mt-10 grid gap-4 sm:grid-cols-2">
                         {[
-                            { icon: Users, t: 'Gemeinsam betreuen', d: 'Kein eigener Eltern-Account, kein Code: Ihr Kind nutzt seinen verifizierten Schüler-Account, Sie unterstützen gemeinsam.' },
+                            { icon: Users, t: 'Gemeinsam betreuen', d: 'Ihr Kind nutzt seinen verifizierten Account, Sie schauen mit und unterstützen. Wie eng Sie begleiten, entscheiden Sie gemeinsam.' },
                             { icon: BadgeCheck, t: 'Sicher & geprüft', d: 'Alle Profile sind über die SV verifiziert. Treffen finden meist direkt in der Schule statt, z. B. in der Bibliothek oder Mensa.' },
                             { icon: Lock, t: 'Keine Zahlungen über die App', d: 'Die Börse vermittelt nur den Kontakt. Vergütung und Umfang klären Sie direkt mit der Anbieter-Familie.' },
                             { icon: Shield, t: 'Melden & Fragen', d: 'Jede Anzeige und jedes Profil lässt sich melden. Das SV-Team sichtet täglich und ist per E-Mail erreichbar.' },

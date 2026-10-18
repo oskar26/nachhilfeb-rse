@@ -490,7 +490,7 @@ export default function Login() {
                                         <div className="flex items-start gap-3 p-3 rounded-xl border border-primary/40 bg-primary/5 dark:border-primary/25 dark:bg-primary/10">
                                             <Users size={16} className="mt-0.5 shrink-0 text-amber-700 dark:text-primary" aria-hidden />
                                             <p className="text-[11px] leading-relaxed text-gray-700 dark:text-gray-300">
-                                                <strong className="text-gray-900 dark:text-gray-100">Unsere Empfehlung:</strong> Eltern und Kinder betreuen den Account gemeinsam. Am besten meldet ihr euch gleich zusammen mit euren Eltern an – ein eigener Eltern-Account ist nicht nötig. Mehr im{' '}
+                                                <strong className="text-gray-900 dark:text-gray-100">Unsere Empfehlung:</strong> Sprich die Börse einmal mit deinen Eltern durch. In den Klassen 5 und 6 schauen viele Eltern mit, ältere nutzen sie selbstständig. Mehr im{' '}
                                                 <Link to="/eltern-leitfaden" className="font-bold text-amber-700 dark:text-primary hover:underline" target="_blank">Eltern-Leitfaden</Link>.
                                             </p>
                                         </div>
@@ -543,7 +543,7 @@ export default function Login() {
                                                     <ShieldAlert size={16} /> Hinweis für Nutzer unter 16 Jahren (Art. 8 DSGVO)
                                                 </div>
                                                 <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed">
-                                                    Da du unter 16 Jahre alt bist, benötigen wir die Bestätigung deiner Erziehungsberechtigten. Bitte bitte deine Eltern, den <Link to="/eltern-leitfaden" className="underline font-bold" target="_blank">Eltern-Leitfaden</Link> zu lesen.
+                                                    Da du unter 16 Jahre alt bist, brauchen wir die Zustimmung deiner Erziehungsberechtigten. Sprich die Anmeldung mit ihnen durch und zeig ihnen gern den <Link to="/eltern-leitfaden" className="underline font-bold" target="_blank">Eltern-Leitfaden</Link>.
                                                 </p>
                                                 <div className="flex items-start gap-2 pt-1">
                                                     <input 

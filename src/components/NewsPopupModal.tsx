@@ -151,7 +151,7 @@ export function NewsPopupModal() {
                                 onClick={requestNotificationPermission}
                                 className="w-full text-center text-[11px] font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex items-center justify-center gap-1 py-1"
                             >
-                                <Bell size={12} /> Push-Benachrichtigungen aktivieren
+                                <Bell size={12} /> Benachrichtigungen aktivieren
                             </button>
                         )}
                     </div>

@@ -6,7 +6,7 @@ export default function Transparenz() {
     return (
         <StaticLayout
             title="Transparenz"
-            intro="Wie diese Plattform entstanden ist · Open Source · KI-gestützte Entwicklung · Stand: September 2026."
+            intro="Wie diese Plattform entstanden ist · Open Source · KI-gestützte Entwicklung · Stand: Oktober 2026."
         >
             <div className="max-w-3xl mx-auto px-4 sm:px-6 pb-16 space-y-6">
                 <section aria-labelledby="trans-kurz" className="bg-white dark:bg-gray-900 p-6 sm:p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm space-y-3">
