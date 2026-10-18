@@ -240,10 +240,11 @@ export function createDefaultCoachingDocument(legacy: Record<string, string> = F
             {
                 id: 'foerderung',
                 type: 'support',
-                title: 'Förderunterricht Sek. I (2. HJ)',
+                title: 'Förderunterricht Sek. I (1. HJ · 26/27)',
                 paragraphs: [
                     'Förderunterricht wird in den Jahrgangsstufen 5-10 in den Fächern Deutsch, Mathematik, Englisch und Latein erteilt. Die Entscheidung über eine Anmeldung liegt bei den Eltern.',
-                    'Start: 2. Halbjahr. Die genauen Termine und Räume werden über die Schule bekanntgegeben.',
+                    'Kick-off am Mittwoch, 16.09., in der 7. Stunde in H408. Ab dem 21.09. läuft der Förderunterricht in der 7. Stunde in den Räumen um H402.',
+                    'Nach der Anmeldung ist die Teilnahme verbindlich. Darüber hinaus ist eine freiwillige Teilnahme jederzeit möglich.',
                 ],
                 registrationText: 'Anmeldung verbindlich über:',
                 registrationEmail: 'foerderunterricht@fwg-koeln.nrw.schule',
@@ -258,31 +259,40 @@ export function createDefaultCoachingDocument(legacy: Record<string, string> = F
                         id: 'schedule-row-1',
                         cells: [
                             { id: 'r1c1', text: 'D' },
-                            { id: 'r1c2', text: 'D' },
-                            { id: 'r1c3', text: 'M' },
+                            { id: 'r1c2', text: 'M' },
+                            { id: 'r1c3', text: 'D' },
                             { id: 'r1c4', text: 'M' },
                         ],
                     },
                     {
                         id: 'schedule-row-2',
                         cells: [
-                            { id: 'r2c1', text: 'E' },
-                            { id: 'r2c2', text: 'L' },
-                            { id: 'r2c3', text: 'L' },
-                            { id: 'r2c4', text: 'E' },
+                            { id: 'r2c1', text: 'LRS 5. und 6. Klasse' },
+                            { id: 'r2c2', text: 'E' },
+                            { id: 'r2c3', text: 'E' },
+                            { id: 'r2c4', text: 'L' },
                         ],
                     },
                     {
                         id: 'schedule-row-3',
                         cells: [
-                            { id: 'r3c1', text: 'D/LRS' },
+                            { id: 'r3c1', text: 'L' },
                             { id: 'r3c2', text: '' },
                             { id: 'r3c3', text: '' },
-                            { id: 'r3c4', text: 'D/LRS' },
+                            { id: 'r3c4', text: 'D' },
+                        ],
+                    },
+                    {
+                        id: 'schedule-row-4',
+                        cells: [
+                            { id: 'r4c1', text: '' },
+                            { id: 'r4c2', text: '' },
+                            { id: 'r4c3', text: '' },
+                            { id: 'r4c4', text: 'LRS 5. und 6. Klasse' },
                         ],
                     },
                 ],
-                learnCoachingText: 'Terminabsprachen für ein Lerncoaching trefft ihr gerne individuell persönlich oder per Mail mit Herr Gampp, Frau Hallerbach, Frau Trottmann oder Frau Weyers:',
+                learnCoachingText: 'Terminabsprachen für ein Lerncoaching trefft ihr gerne individuell persönlich oder per Mail mit Herrn Gampp, Frau Trottmann oder Frau Weyers:',
                 learnCoachingEmail: 'lerncoaching@fwg-koeln.nrw.schule',
             },
         ],
@@ -565,7 +575,7 @@ function renderBody(body: string): ReactNode {
 
 const RULE_ICONS: LucideIcon[] = [Award, School, ClipboardCheck, Megaphone, Scale, HeartHandshake, Gavel];
 
-function scheduleCellClass(text: string): string {
+export function scheduleCellClass(text: string): string {
     const value = text.trim();
     if (!value) return 'border p-2 border-gray-200 dark:border-gray-800';
     if (/^E(?:\s|$)/i.test(value)) {

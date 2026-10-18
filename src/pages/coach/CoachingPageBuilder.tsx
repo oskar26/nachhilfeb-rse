@@ -38,7 +38,7 @@ const BUILTIN_BLOCKS: Array<{ type: Exclude<CoachingBlockType, 'text'>; label: s
     { type: 'benefits', label: 'Nutzen', description: 'Beispiele, warum das Coaching hilft' },
     { type: 'rules', label: 'Fairness-Regeln', description: 'Regelüberschriften und Texte' },
     { type: 'contact', label: 'Kontakt', description: 'Fragen, E-Mail und Eltern-Leitfaden' },
-    { type: 'support', label: 'Förderunterricht', description: 'Anmeldung, Stundenplan und Lerncoaching' },
+    { type: 'support', label: 'Förderunterricht', description: 'Anmeldung, Stundenplan und Lerncoaching – wird auch auf der Startseite angezeigt' },
 ];
 
 const BLOCK_LABELS: Record<CoachingBlockType, string> = {

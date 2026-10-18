@@ -32,6 +32,16 @@ import {
 import { triggerHaptic } from '../lib/haptics';
 import { api, apiErrorMessage } from '../lib/api';
 import { VerifiedPill } from '../components/ui/VerifiedPill';
+import {
+    createDefaultCoachingDocument,
+    parseCoachingDocument,
+    scheduleCellClass,
+    type CoachingDocument,
+    type CoachingPosterBlock,
+    type CoachingSupportBlock,
+} from './Coaching';
+
+const DEFAULT_COACHING_DOC = createDefaultCoachingDocument();
 
 interface Ad {
     id: string;
@@ -231,6 +241,21 @@ export default function Feed() {
             }
         }).catch(err => console.error('Coach info load error:', err));
     }, []);
+
+    // Förderunterricht & Coaching-Inhalte: eine Quelle im Coach-Panel (Tab „Seite“)
+    const [coachingDoc, setCoachingDoc] = useState<CoachingDocument>(() => createDefaultCoachingDocument());
+
+    useEffect(() => {
+        api.coach.getCoachingPage().then(res => {
+            if (res.data) setCoachingDoc(parseCoachingDocument(res.data as Record<string, unknown>));
+        }).catch(err => console.error('Coaching page load error:', err));
+    }, []);
+
+    const supportBlock = (coachingDoc.blocks.find((b): b is CoachingSupportBlock => b.type === 'support')
+        ?? DEFAULT_COACHING_DOC.blocks.find((b): b is CoachingSupportBlock => b.type === 'support')) as CoachingSupportBlock;
+
+    const posterBlock = (coachingDoc.blocks.find((b): b is CoachingPosterBlock => b.type === 'poster')
+        ?? DEFAULT_COACHING_DOC.blocks.find((b): b is CoachingPosterBlock => b.type === 'poster')) as CoachingPosterBlock;
 
     useEffect(() => {
         if (user) {
@@ -638,7 +663,7 @@ export default function Feed() {
                     onClick={() => navigate('/coaching')}
                     className="shrink-0 inline-flex items-center min-h-[40px] px-3 rounded-full text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
-                    Coaching · Di 13:45 H310
+                    Coaching · {posterBlock.time} · {posterBlock.room}
                 </button>
                 <button
                     type="button"
@@ -704,34 +729,64 @@ export default function Feed() {
                             </Card>
                         )}
 
-                        {/* Förderunterricht Info Block (Stundenplan steht auf der Coaching-Seite) */}
+                        {/* Förderunterricht – Inhalte direkt aus dem Coach-Panel (Tab „Seite“) */}
                         <Card className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 shadow-sm overflow-hidden relative">
                             <CardContent className="p-6 relative z-10 space-y-4">
                                 <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400">
                                     <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl">
                                         <GraduationCap size={20} />
                                     </div>
-                                    <h2 className="text-lg font-bold">Förderunterricht Sek. I (2. HJ)</h2>
+                                    <h2 className="text-lg font-bold">{supportBlock.title}</h2>
                                 </div>
                                 <div className="text-sm text-indigo-900 dark:text-indigo-200 leading-relaxed space-y-2">
-                                    <p>Förderunterricht wird in den Jahrgangsstufen 5-10 in den Fächern Deutsch, Mathematik, Englisch und Latein erteilt. Die Entscheidung über eine Anmeldung liegt bei den Eltern.</p>
-                                    <p><strong>Start:</strong> 2. Halbjahr. Die genauen Termine und Räume werden über die Schule bekanntgegeben.</p>
-                                    <p>Anmeldung verbindlich über: <a href="mailto:foerderunterricht@fwg-koeln.nrw.schule" className="underline font-bold">foerderunterricht@fwg-koeln.nrw.schule</a></p>
-                                    <p>
-                                        <button
-                                            type="button"
-                                            onClick={() => navigate('/coaching', { state: { section: 'foerderung' } })}
-                                            className="underline font-bold"
-                                        >
-                                            Stundenplan auf der Coaching-Seite ansehen
-                                        </button>
-                                    </p>
+                                    {supportBlock.paragraphs.map((paragraph, index) => (
+                                        <p key={index}>{paragraph}</p>
+                                    ))}
+                                    {supportBlock.registrationEmail && (
+                                        <p>
+                                            {supportBlock.registrationText || 'Anmeldung verbindlich über:'}{' '}
+                                            <a href={`mailto:${supportBlock.registrationEmail}`} className="underline font-bold">{supportBlock.registrationEmail}</a>
+                                        </p>
+                                    )}
                                 </div>
 
-                                <div className="mt-4 text-xs text-center text-gray-500">
-                                    Terminabsprachen für ein Lerncoaching trefft ihr gerne individuell persönlich oder per Mail mit Herr Gampp, Frau Hallerbach, Frau Trottmann oder Frau Weyers:<br />
-                                    <a href="mailto:lerncoaching@fwg-koeln.nrw.schule" className="underline font-bold">lerncoaching@fwg-koeln.nrw.schule</a>
-                                </div>
+                                {supportBlock.days.length > 0 && supportBlock.rows.length > 0 && (
+                                    <div className="overflow-x-auto rounded-xl border border-indigo-100 dark:border-indigo-900/50 bg-white/70 dark:bg-black/20">
+                                        <table className="w-full text-xs text-center">
+                                            <thead>
+                                                <tr>
+                                                    {supportBlock.days.map(day => (
+                                                        <th key={day.id} className="border p-2 border-indigo-100 dark:border-indigo-900/50 text-indigo-900 dark:text-indigo-200 font-bold">{day.label}</th>
+                                                    ))}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {supportBlock.rows.map(row => (
+                                                    <tr key={row.id}>
+                                                        {row.cells.map(cell => <td key={cell.id} className={scheduleCellClass(cell.text)}>{cell.text}</td>)}
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+
+                                <p>
+                                    <button
+                                        type="button"
+                                        onClick={() => navigate('/coaching', { state: { section: 'foerderung' } })}
+                                        className="underline font-bold text-sm text-indigo-900 dark:text-indigo-200"
+                                    >
+                                        Zur Coaching-Seite
+                                    </button>
+                                </p>
+
+                                {supportBlock.learnCoachingText && (
+                                    <div className="mt-4 text-xs text-center text-gray-500">
+                                        {supportBlock.learnCoachingText}<br />
+                                        <a href={`mailto:${supportBlock.learnCoachingEmail}`} className="underline font-bold">{supportBlock.learnCoachingEmail}</a>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
 

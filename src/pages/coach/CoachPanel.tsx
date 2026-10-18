@@ -213,10 +213,10 @@ export default function CoachPanel() {
                         <span className="p-1.5 rounded-xl bg-amber-500/20 text-amber-900 dark:text-amber-300">
                             <Award size={20} className="text-amber-600 dark:text-amber-400" />
                         </span>
-                        <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Schüler-Coaching AG</h1>
+                        <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Coaching & Förderunterricht</h1>
                     </div>
                     <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Betreuung & Verwaltung durch <span className="font-bold text-gray-900 dark:text-gray-200">Frau Balistreri</span> • Förderung der Tutoren für Klasse 5 & 6
+                        Betreuung & Verwaltung durch <span className="font-bold text-gray-900 dark:text-gray-200">Frau Balistreri</span> • Coaching AG und Förderunterricht am FWG
                     </p>
                 </div>
 
