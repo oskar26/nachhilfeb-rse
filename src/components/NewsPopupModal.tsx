@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { X, Megaphone, Bell, CheckCircle2 } from 'lucide-react';
-import { Button } from './ui/ButtonLegacy';
+import { Button } from './ui/button';
 import NewsIcon from './NewsIcon';
 
 interface Announcement {
@@ -101,13 +101,13 @@ export function NewsPopupModal() {
                         <Megaphone size={14} className="text-primary-hover" />
                         <span>Neue Schul-Mitteilung</span>
                     </div>
-                    <button
+                    <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={handleDismiss}
                         className="w-8 h-8 rounded-full bg-white/80 dark:bg-gray-800/80 flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
                         title="Schließen"
                     >
                         <X size={16} />
-                    </button>
+                    </Button>
                 </div>
 
                 {/* Content */}
@@ -147,12 +147,12 @@ export function NewsPopupModal() {
                         </Button>
 
                         {'Notification' in window && Notification.permission === 'default' && (
-                            <button
+                            <Button variant="unstyled" size="unstyled" type="submit"
                                 onClick={requestNotificationPermission}
                                 className="w-full text-center text-[11px] font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex items-center justify-center gap-1 py-1"
                             >
                                 <Bell size={12} /> Benachrichtigungen aktivieren
-                            </button>
+                            </Button>
                         )}
                     </div>
                 </div>

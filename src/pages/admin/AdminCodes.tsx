@@ -1,5 +1,8 @@
+import { Label } from '@/components/ui/label';
+import { NativeSelect } from '@/components/ui/native-select';
+import { Input } from '@/components/ui/input';
 import { useState, useEffect } from 'react';
-import { Button } from '../../components/ui/ButtonLegacy';
+import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/CardLegacy';
 import {
     Key,
@@ -275,7 +278,7 @@ export default function AdminCodes() {
             {/* Top Navigation Tabs */}
             <div className="flex items-center justify-between border-b dark:border-gray-800 pb-3">
                 <div className="flex gap-2">
-                    <button
+                    <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={() => setActiveTab('invite')}
                         className={cn(
                             "flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all",
@@ -285,8 +288,8 @@ export default function AdminCodes() {
                         )}
                     >
                         <Key size={16} /> Registrierungs-Einladungen
-                    </button>
-                    <button
+                    </Button>
+                    <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={() => setActiveTab('promo')}
                         className={cn(
                             "flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all",
@@ -296,7 +299,7 @@ export default function AdminCodes() {
                         )}
                     >
                         <Zap size={16} /> Aktions- & Promo-Codes
-                    </button>
+                    </Button>
                 </div>
             </div>
 
@@ -317,7 +320,7 @@ export default function AdminCodes() {
                                 {/* Presets / Schnellvorlagen */}
                                 <div className="p-3 bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/30 rounded-2xl flex flex-wrap items-center gap-2">
                                     <span className="text-[10px] font-black text-amber-800 dark:text-amber-300 uppercase tracking-wider">Schnell-Vorlagen:</span>
-                                    <button
+                                    <Button variant="unstyled" size="unstyled"
                                         type="button"
                                         onClick={() => {
                                             setNewPromoCode('COACHING-AG');
@@ -333,13 +336,13 @@ export default function AdminCodes() {
                                         className="px-2.5 py-1 rounded-xl text-xs font-bold bg-amber-200/70 hover:bg-amber-200 text-amber-950 dark:bg-amber-900/50 dark:text-amber-200 transition-colors cursor-pointer"
                                     >
                                         Schüler-Coaching AG (COACHING-AG)
-                                    </button>
+                                    </Button>
                                 </div>
 
                                 <form onSubmit={handleCreatePromoCode} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-bold uppercase text-gray-400">Code-Name</label>
-                                        <input
+                                        <Label className="text-[10px] font-bold uppercase text-gray-400">Code-Name</Label>
+                                        <Input
                                             type="text"
                                             placeholder="z.B. COACHING-AG, FWGSPECIAL, HERBST26"
                                             value={newPromoCode}
@@ -350,8 +353,8 @@ export default function AdminCodes() {
                                     </div>
 
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-bold uppercase text-gray-400">Effekt / Belohnung</label>
-                                        <select
+                                        <Label className="text-[10px] font-bold uppercase text-gray-400">Effekt / Belohnung</Label>
+                                        <NativeSelect
                                             value={effectType}
                                             onChange={e => setEffectType(e.target.value as any)}
                                             className="w-full h-10 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 text-sm font-medium focus:outline-none"
@@ -360,12 +363,12 @@ export default function AdminCodes() {
                                             <option value="coach_verification">Schüler-Coaching Mitgliedschaft & Verifikation</option>
                                             <option value="badge">Exklusiver Profil-Badge & Verifiziert</option>
                                             <option value="special_discount">Sonderaktions-Rabatt</option>
-                                        </select>
+                                        </NativeSelect>
                                     </div>
 
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-bold uppercase text-gray-400">Push-Intensität / Boost-Stufe</label>
-                                        <select
+                                        <Label className="text-[10px] font-bold uppercase text-gray-400">Push-Intensität / Boost-Stufe</Label>
+                                        <NativeSelect
                                             value={pushLevel}
                                             onChange={e => setPushLevel(e.target.value as any)}
                                             className="w-full h-10 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 text-sm font-medium focus:outline-none"
@@ -373,12 +376,12 @@ export default function AdminCodes() {
                                             <option value="standard">Standard Push (+25% Sichtbarkeit)</option>
                                             <option value="super">Super Boost (Goldener Rahmen & Feed-Highlight)</option>
                                             <option value="ultra">Ultra Push (Ganz oben angepinnt & Sofort-Push)</option>
-                                        </select>
+                                        </NativeSelect>
                                     </div>
 
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-bold uppercase text-gray-400">Boost-Dauer (Tage)</label>
-                                        <input
+                                        <Label className="text-[10px] font-bold uppercase text-gray-400">Boost-Dauer (Tage)</Label>
+                                        <Input
                                             type="number"
                                             min="1"
                                             max="365"
@@ -389,8 +392,8 @@ export default function AdminCodes() {
                                     </div>
 
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-bold uppercase text-gray-400">Max. Nutzungen (Leer = Unbegrenzt)</label>
-                                        <input
+                                        <Label className="text-[10px] font-bold uppercase text-gray-400">Max. Nutzungen (Leer = Unbegrenzt)</Label>
+                                        <Input
                                             type="number"
                                             placeholder="z.B. 50 (leer lassen für unbegrenzt)"
                                             value={maxUses}
@@ -400,8 +403,8 @@ export default function AdminCodes() {
                                     </div>
 
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-bold uppercase text-gray-400">Zielgruppe</label>
-                                        <select
+                                        <Label className="text-[10px] font-bold uppercase text-gray-400">Zielgruppe</Label>
+                                        <NativeSelect
                                             value={targetGroup}
                                             onChange={e => setTargetGroup(e.target.value)}
                                             className="w-full h-10 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 text-sm font-medium focus:outline-none"
@@ -409,12 +412,12 @@ export default function AdminCodes() {
                                             <option value="all">Alle Schüler (Standard)</option>
                                             <option value="coach">Schüler-Coaching AG (5./6. Klasse Tutoren)</option>
                                             <option value="tutor">Nur Nachhilfe-Anbieter</option>
-                                        </select>
+                                        </NativeSelect>
                                     </div>
 
                                     <div className="space-y-1 md:col-span-2">
-                                        <label className="text-[10px] font-bold uppercase text-gray-400">Interne Notiz / Beschreibung</label>
-                                        <input
+                                        <Label className="text-[10px] font-bold uppercase text-gray-400">Interne Notiz / Beschreibung</Label>
+                                        <Input
                                             type="text"
                                             placeholder="z.B. Erstellt für Frau Balistreris Schüler-Coaches"
                                             value={description}
@@ -424,8 +427,8 @@ export default function AdminCodes() {
                                     </div>
 
                                     <div className="space-y-1 md:col-span-2">
-                                        <label className="text-[10px] font-bold uppercase text-gray-400">Gültigkeitsdauer</label>
-                                        <select
+                                        <Label className="text-[10px] font-bold uppercase text-gray-400">Gültigkeitsdauer</Label>
+                                        <NativeSelect
                                             value={expiryDays}
                                             onChange={e => setExpiryDays(e.target.value)}
                                             className="w-full h-10 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 text-sm font-medium focus:outline-none"
@@ -436,7 +439,7 @@ export default function AdminCodes() {
                                             <option value="90">90 Tage gültig</option>
                                             <option value="365">1 Jahr gültig</option>
                                             <option value="">Unbegrenzt gültig</option>
-                                        </select>
+                                        </NativeSelect>
                                     </div>
 
                                     <div className="md:col-span-2 pt-2">
@@ -670,8 +673,8 @@ export default function AdminCodes() {
                                 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-bold uppercase text-gray-400">Rolle</label>
-                                        <select
+                                        <Label className="text-[10px] font-bold uppercase text-gray-400">Rolle</Label>
+                                        <NativeSelect
                                             value={generateRole}
                                             onChange={e => setGenerateRole(e.target.value as any)}
                                             className="w-full mt-1 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 text-sm focus:outline-none"
@@ -680,12 +683,12 @@ export default function AdminCodes() {
                                             <option value="parent">Elternteil</option>
                                             <option value="coach_admin">Coaching-Admin (z. B. Frau Balistreri)</option>
                                             <option value="sv_admin">SV Admin (Vorsicht!)</option>
-                                        </select>
+                                        </NativeSelect>
                                     </div>
 
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-bold uppercase text-gray-400">Anzahl</label>
-                                        <select
+                                        <Label className="text-[10px] font-bold uppercase text-gray-400">Anzahl</Label>
+                                        <NativeSelect
                                             value={batchSize}
                                             onChange={e => setBatchSize(parseInt(e.target.value))}
                                             className="w-full mt-1 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 text-sm focus:outline-none"
@@ -694,12 +697,12 @@ export default function AdminCodes() {
                                             <option value="5">5er Batch</option>
                                             <option value="10">10er Batch</option>
                                             <option value="20">20er Batch</option>
-                                        </select>
+                                        </NativeSelect>
                                     </div>
 
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-bold uppercase text-gray-400">Einlösungen</label>
-                                        <select
+                                        <Label className="text-[10px] font-bold uppercase text-gray-400">Einlösungen</Label>
+                                        <NativeSelect
                                             value={inviteMaxUses}
                                             onChange={e => setInviteMaxUses(e.target.value)}
                                             className="w-full mt-1 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 text-sm focus:outline-none"
@@ -710,12 +713,12 @@ export default function AdminCodes() {
                                             <option value="5">5× einlösbar</option>
                                             <option value="10">10× einlösbar</option>
                                             <option value="unlimited">Unbegrenzt</option>
-                                        </select>
+                                        </NativeSelect>
                                     </div>
 
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-bold uppercase text-gray-400">Gültigkeit</label>
-                                        <select
+                                        <Label className="text-[10px] font-bold uppercase text-gray-400">Gültigkeit</Label>
+                                        <NativeSelect
                                             value={inviteExpiryDays}
                                             onChange={e => setInviteExpiryDays(e.target.value)}
                                             className="w-full mt-1 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 text-sm focus:outline-none"
@@ -724,7 +727,7 @@ export default function AdminCodes() {
                                             <option value="14">14 Tage</option>
                                             <option value="30">30 Tage</option>
                                             <option value="90">90 Tage</option>
-                                        </select>
+                                        </NativeSelect>
                                     </div>
 
                                     <div className="md:col-span-2">

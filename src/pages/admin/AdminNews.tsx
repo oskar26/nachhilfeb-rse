@@ -1,6 +1,9 @@
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { useState, useEffect } from 'react';
 import { api } from '../../lib/api';
-import { Button } from '../../components/ui/ButtonLegacy';
+import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/CardLegacy';
 import { Megaphone, Trash2, Plus, Calendar, AlertCircle } from 'lucide-react';
 import NewsIcon, { NEWS_ICONS } from '../../components/NewsIcon';
@@ -138,8 +141,8 @@ export default function AdminNews() {
                         <h3 className="font-bold text-lg mb-2">Neuigkeit hinzufügen</h3>
                         <form onSubmit={handleCreate} className="space-y-4">
                             <div className="space-y-1">
-                                <label className="text-xs font-bold uppercase text-gray-500 ml-1">Titel</label>
-                                <input
+                                <Label className="text-xs font-bold uppercase text-gray-500 ml-1">Titel</Label>
+                                <Input
                                     type="text"
                                     placeholder="z.B. Sommerferien-Börse aktiv!"
                                     value={title}
@@ -150,8 +153,8 @@ export default function AdminNews() {
                             </div>
 
                             <div className="space-y-1">
-                                <label className="text-xs font-bold uppercase text-gray-500 ml-1">Beschreibung</label>
-                                <textarea
+                                <Label className="text-xs font-bold uppercase text-gray-500 ml-1">Beschreibung</Label>
+                                <Textarea
                                     placeholder="Worum geht es in dieser Ankündigung?"
                                     value={body}
                                     onChange={e => setBody(e.target.value)}
@@ -162,10 +165,10 @@ export default function AdminNews() {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-xs font-bold uppercase text-gray-500 ml-1 block">Symbol auswählen</label>
+                                <Label className="text-xs font-bold uppercase text-gray-500 ml-1 block">Symbol auswählen</Label>
                                 <div className="flex flex-wrap gap-2">
                                     {NEWS_ICONS.map(({ name, label, Icon }) => (
-                                        <button
+                                        <Button variant="unstyled" size="unstyled"
                                             key={name}
                                             type="button"
                                             title={label}
@@ -179,7 +182,7 @@ export default function AdminNews() {
                                             }`}
                                         >
                                             <Icon size={18} />
-                                        </button>
+                                        </Button>
                                     ))}
                                 </div>
                             </div>
@@ -220,13 +223,13 @@ export default function AdminNews() {
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-start justify-between gap-4">
                                                 <h4 className="font-bold text-base text-gray-900 dark:text-white leading-snug">{item.title}</h4>
-                                                <button
+                                                <Button variant="unstyled" size="unstyled" type="submit"
                                                     onClick={() => handleDelete(item.id)}
                                                     className="p-2 rounded-xl text-gray-400 hover:text-red-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0 -mt-1"
                                                     title="Löschen"
                                                 >
                                                     <Trash2 size={16} />
-                                                </button>
+                                                </Button>
                                             </div>
                                             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 leading-relaxed whitespace-pre-wrap">{item.body}</p>
                                             <div className="flex items-center gap-1 text-[10px] text-gray-400 font-semibold mt-3">

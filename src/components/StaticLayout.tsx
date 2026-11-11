@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import type * as React from 'react';
 import type { JSX } from 'react/jsx-runtime';
 import { Link } from 'react-router-dom';
@@ -86,7 +87,7 @@ export default function StaticLayout({ children, title, intro, showHeader = true
     return (
         <div className={`${shellClass} min-h-screen`}>
             {/* Skip-Link als Scroll-Button: reines href="#inhalt" wäre unter HashRouter eine 404-Route. */}
-            <button type="button" onClick={() => { const el = document.getElementById(contentId) as HTMLElement | null; if (!el) return; const reduce = typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches; el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); try { el.focus({ preventScroll: true }); } catch { el.focus(); } }} className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-primary focus:px-5 focus:py-2.5 focus:text-sm focus:font-bold focus:text-black">Zum Inhalt springen</button>
+            <Button variant="unstyled" size="unstyled" type="button" onClick={() => { const el = document.getElementById(contentId) as HTMLElement | null; if (!el) return; const reduce = typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches; el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); try { el.focus({ preventScroll: true }); } catch { el.focus(); } }} className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-primary focus:px-5 focus:py-2.5 focus:text-sm focus:font-bold focus:text-black">Zum Inhalt springen</Button>
 
             <SiteHeader />
 

@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { useId, useRef, type ComponentType, type KeyboardEvent } from 'react';
 import { cn } from '../../lib/utils';
 import { triggerHaptic } from '../../lib/haptics';
@@ -80,7 +81,7 @@ export function TabBar<T extends string = string>({ items, value, onChange, aria
                 const isActive = item.key === value;
                 const Icon = item.icon;
                 return (
-                    <button
+                    <Button variant="unstyled" size="unstyled"
                         key={item.key}
                         ref={element => { tabRefs.current[index] = element; }}
                         type="button"
@@ -123,7 +124,7 @@ export function TabBar<T extends string = string>({ items, value, onChange, aria
                                 </span>
                             )}
                         </span>
-                    </button>
+                    </Button>
                 );
             })}
         </div>

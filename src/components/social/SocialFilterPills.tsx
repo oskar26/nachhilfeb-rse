@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '../../lib/utils';
 
@@ -25,7 +26,7 @@ export function SocialFilterPills({ options, value, onChange, ariaLabel }: Socia
             {options.map(option => {
                 const isActive = option.key === value;
                 return (
-                    <button
+                    <Button variant="unstyled" size="unstyled"
                         key={option.key}
                         type="button"
                         aria-pressed={isActive}
@@ -58,7 +59,7 @@ export function SocialFilterPills({ options, value, onChange, ariaLabel }: Socia
                                 {option.count}
                             </span>
                         )}
-                    </button>
+                    </Button>
                 );
             })}
         </div>

@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { X, Download, Share } from 'lucide-react';
 import { Logo } from './ui/Logo';
@@ -106,12 +107,12 @@ export default function InstallPrompt() {
         return (
             <div className="md:hidden fixed bottom-24 left-4 right-4 z-[200] animate-in slide-in-from-bottom-4 duration-300">
                 <div className="relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-2xl ring-1 ring-black/10 dark:ring-white/10 p-5">
-                    <button
+                    <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={handleDismiss}
                         className="absolute top-4 right-4 p-1.5 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                     >
                         <X size={16} />
-                    </button>
+                    </Button>
 
                     <div className="flex items-start gap-4">
                         <Logo className="w-10 h-10 text-black dark:text-white shrink-0" />
@@ -156,19 +157,19 @@ export default function InstallPrompt() {
                 </div>
 
                 <div className="flex gap-3 mt-5">
-                    <button
+                    <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={handleDismiss}
                         className="flex-1 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                     >
                         Später
-                    </button>
-                    <button
+                    </Button>
+                    <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={handleInstall}
                         className="flex-[2] py-3 rounded-2xl bg-primary text-white text-sm font-semibold flex items-center justify-center gap-2 shadow-md hover:opacity-90 active:scale-[0.98] transition-all"
                     >
                         <Download size={16} />
                         Installieren
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>
@@ -190,18 +191,18 @@ export default function InstallPrompt() {
                     </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                    <button
+                    <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={handleInstall}
                         className="px-4 py-2 bg-primary text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 hover:opacity-90 transition-opacity"
                     >
                         <Download size={13} /> Installieren
-                    </button>
-                    <button
+                    </Button>
+                    <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={handleDismiss}
                         className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                     >
                         <X size={16} />
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>

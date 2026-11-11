@@ -1,5 +1,6 @@
+import { Input } from '@/components/ui/input';
 import { useState } from 'react';
-import { Button } from './ui/ButtonLegacy';
+import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/DialogLegacy';
 import { Copy, Check, Share2, Mail, MessageSquare, X, QrCode } from 'lucide-react';
 import { toast } from 'sonner';
@@ -104,18 +105,18 @@ export default function ShareDialog({
                     <DialogDescription className="text-xs text-gray-500 dark:text-gray-400">
                         {dialogSubtitle}
                     </DialogDescription>
-                    <button
+                    <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={onClose}
                         className="absolute right-4 top-4 p-1.5 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
                     >
                         <X size={18} />
-                    </button>
+                    </Button>
                 </DialogHeader>
 
                 <div className="p-6 space-y-4">
                     {/* Copy Link Field */}
                     <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900 p-2.5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs">
-                        <input
+                        <Input
                             type="text"
                             value={shareUrl}
                             readOnly
@@ -175,14 +176,14 @@ export default function ShareDialog({
 
                     {/* QR Code Section */}
                     <div className="pt-2 border-t dark:border-gray-800">
-                        <button
+                        <Button variant="unstyled" size="unstyled"
                             type="button"
                             onClick={() => setShowQr(!showQr)}
                             className="w-full py-2.5 px-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-900/60 text-xs font-bold flex items-center justify-center gap-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                         >
                             <QrCode size={16} />
                             <span>{showQr ? 'QR-Code verbergen' : 'QR-Code zum Abscannen anzeigen'}</span>
-                        </button>
+                        </Button>
 
                         {showQr && (
                             <div className="mt-3 flex flex-col items-center justify-center p-4 bg-white dark:bg-gray-950 rounded-2xl border dark:border-gray-800 shadow-inner animate-in fade-in zoom-in-95">

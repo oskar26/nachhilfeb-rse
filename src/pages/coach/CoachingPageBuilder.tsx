@@ -1,9 +1,11 @@
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { useEffect, useState, type MouseEvent, type ReactNode } from 'react';
 import { ArrowDown, ArrowUp, Check, ChevronDown, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '../../lib/api';
-import { Button } from '../../components/ui/ButtonLegacy';
-import { Input } from '../../components/ui/InputLegacy';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
 import { cn } from '../../lib/utils';
 import { triggerHaptic } from '../../lib/haptics';
 import {
@@ -79,7 +81,7 @@ function EditorField({
 }) {
     return (
         <div className="min-w-0 space-y-1.5">
-            <label htmlFor={id} className="ml-1 text-[11px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">{label}</label>
+            <Label htmlFor={id} className="ml-1 text-[11px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">{label}</Label>
             <Input id={id} type={type} value={value} placeholder={placeholder} onChange={event => onChange(event.target.value)} className="rounded-xl" />
         </div>
     );
@@ -102,8 +104,8 @@ function EditorTextarea({
 }) {
     return (
         <div className="min-w-0 space-y-1.5">
-            <label htmlFor={id} className="ml-1 text-[11px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">{label}</label>
-            <textarea id={id} value={value} rows={rows} placeholder={placeholder} onChange={event => onChange(event.target.value)} className={textareaCls} />
+            <Label htmlFor={id} className="ml-1 text-[11px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">{label}</Label>
+            <Textarea id={id} value={value} rows={rows} placeholder={placeholder} onChange={event => onChange(event.target.value)} className={textareaCls} />
         </div>
     );
 }

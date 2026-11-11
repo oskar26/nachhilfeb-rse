@@ -1,3 +1,7 @@
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -288,7 +292,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                     <div className="flex items-center justify-between px-6 py-4 border-b dark:border-gray-800 shrink-0">
                         <div className="flex items-center gap-2">
                             {view !== 'menu' && (
-                                <button
+                                <Button variant="unstyled" size="unstyled" type="submit"
                                     onClick={() => {
                                         if (activeTicket) {
                                             setActiveTicket(null);
@@ -299,7 +303,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                     className="text-gray-400 hover:text-gray-600 p-1 -ml-1"
                                 >
                                     <ChevronLeft size={20} />
-                                </button>
+                                </Button>
                             )}
                             <h2 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-1.5">
                                 {view === 'menu' && 'Hilfe & Support'}
@@ -308,12 +312,12 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                 {view === 'success' && <><CheckCircle size={18} className="inline text-green-500" /> Eingereicht!</>}
                             </h2>
                         </div>
-                        <button
+                        <Button variant="unstyled" size="unstyled" type="submit"
                             onClick={onClose}
                             className="p-1.5 rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                         >
                             <X size={20} />
-                        </button>
+                        </Button>
                     </div>
 
                     {/* Content */}
@@ -325,7 +329,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                     Wie können wir dir helfen? Wähle eine Option:
                                 </p>
 
-                                <button
+                                <Button variant="unstyled" size="unstyled" type="submit"
                                     onClick={() => { setTicketType('bug'); setView('form'); triggerHaptic('light'); }}
                                     className="w-full flex items-center gap-4 p-4 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-2xl text-left hover:bg-red-100/60 dark:hover:bg-red-950/30 transition-all group cursor-pointer"
                                 >
@@ -336,9 +340,9 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                         <p className="font-extrabold text-sm text-gray-900 dark:text-white">Bug melden</p>
                                         <p className="text-xs text-gray-500 dark:text-gray-400">Etwas funktioniert nicht richtig? Lass es uns wissen.</p>
                                     </div>
-                                </button>
+                                </Button>
 
-                                <button
+                                <Button variant="unstyled" size="unstyled" type="submit"
                                     onClick={() => { setTicketType('feature'); setView('form'); triggerHaptic('light'); }}
                                     className="w-full flex items-center gap-4 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/30 rounded-2xl text-left hover:bg-amber-100/60 dark:hover:bg-amber-950/30 transition-all group cursor-pointer"
                                 >
@@ -349,9 +353,9 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                         <p className="font-extrabold text-sm text-gray-900 dark:text-white">Feature vorschlagen</p>
                                         <p className="text-xs text-gray-500 dark:text-gray-400">Hast du eine Idee für ein neues Feature?</p>
                                     </div>
-                                </button>
+                                </Button>
 
-                                <button
+                                <Button variant="unstyled" size="unstyled" type="submit"
                                     onClick={() => { openChatView(); triggerHaptic('light'); }}
                                     className="w-full flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 rounded-2xl text-left hover:bg-blue-100/60 dark:hover:bg-blue-950/30 transition-all group cursor-pointer"
                                 >
@@ -362,9 +366,9 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                         <p className="font-extrabold text-sm text-gray-900 dark:text-white">Support-Chat</p>
                                         <p className="text-xs text-gray-500 dark:text-gray-400">Bisherige Tickets ansehen und weiterschreiben.</p>
                                     </div>
-                                </button>
+                                </Button>
 
-                                <button
+                                <Button variant="unstyled" size="unstyled" type="submit"
                                     onClick={() => { handleStartDirectChat(); }}
                                     disabled={startingDirectChat}
                                     className="w-full flex items-center gap-4 p-4 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-2xl text-left hover:bg-emerald-100/60 dark:hover:bg-emerald-950/30 transition-all group cursor-pointer disabled:opacity-60"
@@ -376,9 +380,9 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                         <p className="font-extrabold text-sm text-gray-900 dark:text-white">Direkt chatten</p>
                                         <p className="text-xs text-gray-500 dark:text-gray-400">Sofort losschreiben – ganz ohne Ticket-Formular.</p>
                                     </div>
-                                </button>
+                                </Button>
 
-                                <button
+                                <Button variant="unstyled" size="unstyled" type="submit"
                                     onClick={() => { setShowReportWizard(true); triggerHaptic('light'); }}
                                     className="w-full flex items-center gap-4 p-4 bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/30 rounded-2xl text-left hover:bg-orange-100/60 dark:hover:bg-orange-950/30 transition-all group cursor-pointer"
                                 >
@@ -389,7 +393,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                         <p className="font-extrabold text-sm text-gray-900 dark:text-white">Inhalt melden</p>
                                         <p className="text-xs text-gray-500 dark:text-gray-400">Anzeige, Profil, Chat oder Datenschutzverstoß melden.</p>
                                     </div>
-                                </button>
+                                </Button>
                             </div>
                         )}
 
@@ -416,8 +420,8 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Titel *</label>
-                                    <input
+                                    <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Titel *</Label>
+                                    <Input
                                         type="text"
                                         value={title}
                                         onChange={e => setTitle(e.target.value)}
@@ -428,10 +432,10 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                    <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
                                         {ticketType === 'bug' ? 'Was ist passiert? *' : 'Beschreibe deine Idee *'}
-                                    </label>
-                                    <textarea
+                                    </Label>
+                                    <Textarea
                                         value={description}
                                         onChange={e => setDescription(e.target.value)}
                                         placeholder={ticketType === 'bug' 
@@ -443,7 +447,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                     <p className="text-[10px] text-gray-400 text-right">{description.length}/2000</p>
                                 </div>
 
-                                <button
+                                <Button variant="unstyled" size="unstyled" type="submit"
                                     onClick={handleSubmitTicket}
                                     disabled={submitting || !title.trim() || !description.trim()}
                                     className={cn(
@@ -458,7 +462,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                     ) : (
                                         <><Send size={16} /> Absenden</>
                                     )}
-                                </button>
+                                </Button>
                             </div>
                         )}
 
@@ -475,16 +479,16 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                         <MessageCircle size={40} className="mx-auto text-gray-300" />
                                         <p className="text-sm text-gray-500 font-medium">Noch keine Tickets vorhanden.</p>
                                         <p className="text-xs text-gray-400">Erstelle ein Bug-Report oder Feature-Request, um einen Support-Thread zu starten.</p>
-                                        <button
+                                        <Button variant="unstyled" size="unstyled" type="submit"
                                             onClick={() => setView('menu')}
                                             className="px-4 py-2 bg-primary hover:bg-primary-hover text-primary-foreground rounded-xl text-xs font-bold transition-all"
                                         >
                                             Neues Ticket erstellen
-                                        </button>
+                                        </Button>
                                     </div>
                                 ) : (
                                     chatTickets.map(ticket => (
-                                        <button
+                                        <Button variant="unstyled" size="unstyled" type="submit"
                                             key={ticket.id}
                                             onClick={() => openTicketChat(ticket)}
                                             className="w-full flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 rounded-2xl text-left hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer"
@@ -512,7 +516,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                                     {new Date(ticket.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                                 </p>
                                             </div>
-                                        </button>
+                                        </Button>
                                     ))
                                 )}
                             </div>
@@ -569,18 +573,18 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                     Du kannst den Status im Support-Chat verfolgen.
                                 </p>
                                 <div className="flex gap-2 justify-center pt-2">
-                                    <button
+                                    <Button variant="unstyled" size="unstyled" type="submit"
                                         onClick={() => { openChatView(); }}
                                         className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-300 transition-all"
                                     >
                                         Zum Support-Chat
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button variant="unstyled" size="unstyled" type="submit"
                                         onClick={onClose}
                                         className="px-4 py-2 bg-primary hover:bg-primary-hover text-primary-foreground rounded-xl text-xs font-bold transition-all"
                                     >
                                         Schließen
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         )}
@@ -590,7 +594,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                     {view === 'chat' && activeTicket && (
                         <div className="border-t dark:border-gray-800 p-4 shrink-0 bg-gray-50/50 dark:bg-gray-900/50">
                             <div className="flex gap-2">
-                                <input
+                                <Input
                                     type="text"
                                     value={newMessage}
                                     onChange={e => setNewMessage(e.target.value)}
@@ -598,7 +602,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                     placeholder="Nachricht an SV-Team..."
                                     className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-primary outline-none text-gray-900 dark:text-white"
                                 />
-                                <button
+                                <Button variant="unstyled" size="unstyled" type="submit"
                                     onClick={handleSendMessage}
                                     disabled={!newMessage.trim()}
                                     className={cn(
@@ -609,7 +613,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                     )}
                                 >
                                     <Send size={18} />
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     )}

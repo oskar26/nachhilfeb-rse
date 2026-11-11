@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, ExternalLink, Share2, GraduationCap, User } from 'lucide-react';
-import { Button } from '../components/ui/ButtonLegacy';
+import { Button } from '../components/ui/button';
 import { SubjectChip, type Subject } from '../components/SubjectChip';
 import { formatAdPrice } from '../lib/utils';
 import { gradeLabel, type FavoriteAd } from '../components/social/stream';

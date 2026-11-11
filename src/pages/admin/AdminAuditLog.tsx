@@ -1,7 +1,8 @@
+import { NativeSelect } from '@/components/ui/native-select';
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../../lib/api';
 import { Card, CardContent } from '../../components/ui/CardLegacy';
-import { Button } from '../../components/ui/ButtonLegacy';
+import { Button } from '../../components/ui/button';
 import {
     ClipboardList,
     Clock,
@@ -128,7 +129,7 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
                     >
                         <GraduationCap size={16} /> Schüler-Coaching
                     </Button>
-                    <select
+                    <NativeSelect
                         value={searchAction === 'coach' ? 'all' : searchAction}
                         onChange={e => { setSearchAction(e.target.value); setPage(0); }}
                         className="h-11 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm focus:outline-none"
@@ -137,7 +138,7 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
                         {Object.entries(ACTION_LABELS).map(([val, label]) => (
                             <option key={val} value={val}>{label}</option>
                         ))}
-                    </select>
+                    </NativeSelect>
 
                     <Button onClick={fetchLogs} variant="ghost" className="h-11 w-11 p-0 rounded-2xl" title="Aktualisieren">
                         <RefreshCw size={16} className={cn(loading && 'animate-spin')} />

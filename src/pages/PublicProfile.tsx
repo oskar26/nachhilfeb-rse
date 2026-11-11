@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { api } from '../lib/api';
-import { Button } from '../components/ui/ButtonLegacy';
+import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/CardLegacy';
-import { 
-    ChevronLeft, GraduationCap, 
+import {
+    ChevronLeft, GraduationCap,
     MessageSquare, Star,
     Calendar, Share2, Award
 } from 'lucide-react';
@@ -206,7 +206,7 @@ export default function PublicProfile() {
                         <Card className="p-5 border border-gray-200/80 dark:border-gray-800 shadow-xs bg-white dark:bg-gray-900 rounded-3xl">
                                 <div>
                                     <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-2">Über mich</h3>
-                                    <div 
+                                    <div
                                         className="prose dark:prose-invert max-w-none text-sm text-gray-700 dark:text-gray-300 leading-relaxed bg-gray-50/60 dark:bg-gray-800/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-800/80"
                                         dangerouslySetInnerHTML={{ __html: sanitizeHtml(profile.bio || '<p class="text-gray-400 italic">Keine Biografie angegeben.</p>') }}
                                     />
@@ -278,7 +278,7 @@ export default function PublicProfile() {
                 ) : (
                     <div className="grid gap-3">
                         {ads.map(ad => (
-                            <button 
+                            <Button variant="unstyled" size="unstyled" type="submit"
                                 key={ad.id}
                                 onClick={() => {
                                     triggerHaptic('light');
@@ -307,7 +307,7 @@ export default function PublicProfile() {
                                         {formatAdPrice(ad.price_details)}
                                     </span>
                                 </div>
-                            </button>
+                            </Button>
                         ))}
                     </div>
                 )}

@@ -1,8 +1,9 @@
+import { Label } from '@/components/ui/label';
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api, getStoredToken, getStoredUser } from '../lib/api';
-import { Button } from '../components/ui/ButtonLegacy';
-import { Input } from '../components/ui/InputLegacy';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/CardLegacy';
 import { toast } from 'sonner';
 
@@ -79,7 +80,7 @@ export default function UpdatePassword() {
                 <CardContent>
                     <form onSubmit={handleUpdatePassword} className="space-y-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Neues Passwort</label>
+                            <Label className="text-sm font-medium">Neues Passwort</Label>
                             <Input
                                 type="password"
                                 placeholder="Min. 8 Zeichen"
@@ -89,7 +90,7 @@ export default function UpdatePassword() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Passwort bestätigen</label>
+                            <Label className="text-sm font-medium">Passwort bestätigen</Label>
                             <Input
                                 type="password"
                                 placeholder="Passwort wiederholen"

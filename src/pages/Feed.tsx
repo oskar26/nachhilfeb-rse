@@ -1,3 +1,5 @@
+import { Label } from '@/components/ui/label';
+import { NativeSelect } from '@/components/ui/native-select';
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
@@ -5,9 +7,9 @@ import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/Card
 import { SubjectChip, SUBJECT_CATEGORIES, subjectLabelMap, type Subject } from '../components/SubjectChip';
 import { GraduationCap, MapPin, Clock, Filter, Search, CalendarDays, ShieldCheck, ChevronDown, ChevronUp, Share2, Sparkles, Bookmark, X, SearchX, Award, Users, ArrowUpDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '../components/ui/ButtonLegacy';
+import { Button } from '../components/ui/button';
 import { GradeSelector } from '../components/GradeSelector';
-import { Input } from '../components/ui/InputLegacy';
+import { Input } from '../components/ui/input';
 import { PriceRangeSlider } from '../components/PriceRangeSlider';
 import { useAuth } from '../context/AuthContext';
 import { emptyAvailability, countMatches, type Availability } from '../lib/availability';
@@ -388,7 +390,7 @@ export default function Feed() {
                     </div>
                     <div className="flex items-center gap-1.5 flex-wrap min-w-0">
                         {user && (
-                            <button
+                            <Button variant="unstyled" size="unstyled" type="submit"
                                 onClick={() => { setFilterByTime(!filterByTime); triggerHaptic('selection'); }}
                                 aria-pressed={filterByTime}
                                 className={`flex items-center gap-1 text-xs px-3 min-h-[44px] py-1.5 rounded-full border font-semibold transition-all cursor-pointer ${
@@ -400,9 +402,9 @@ export default function Feed() {
                             >
                                 <CalendarDays size={13} />
                                 <span className="hidden sm:inline">Zeitlich passend</span>
-                            </button>
+                            </Button>
                         )}
-                        <button
+                        <Button variant="unstyled" size="unstyled" type="submit"
                             onClick={() => { setFilterOnlyCoaches(!filterOnlyCoaches); triggerHaptic('selection'); }}
                             aria-pressed={filterOnlyCoaches}
                             className={`flex items-center gap-1 text-xs px-3 min-h-[44px] py-1.5 rounded-full border font-semibold transition-all cursor-pointer ${
@@ -415,7 +417,7 @@ export default function Feed() {
                             <Award size={13} className={filterOnlyCoaches ? 'text-black dark:text-black' : 'text-gray-400'} />
                             <span className="hidden sm:inline">Schüler-Coaches</span>
                             <span className="sm:hidden">Coaches</span>
-                        </button>
+                        </Button>
                         <Button variant="outline" size="sm" className="h-11 px-4 rounded-full text-sm font-bold gap-1.5 border-gray-200 dark:border-gray-800 shadow-2xs" onClick={() => setShowFilters(!showFilters)} aria-expanded={showFilters} aria-haspopup="dialog">
                             <Filter size={15} /> Filter
                             {activeFilterCount > 0 && (
@@ -451,7 +453,7 @@ export default function Feed() {
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 no-scrollbar text-xs min-w-0">
                     <span className="text-gray-900 dark:text-white font-extrabold shrink-0 text-xs uppercase mr-1">Beliebt:</span>
                     {popularSubjects.map((subj) => (
-                        <button
+                        <Button variant="unstyled" size="unstyled" type="submit"
                             key={subj}
                             onClick={() => {
                                 setFilterSubject(filterSubject === subj ? null : subj);
@@ -467,16 +469,16 @@ export default function Feed() {
                             )}
                         >
                             {subjectLabelMap[subj] || subj}
-                        </button>
+                        </Button>
                     ))}
                     {filterSubject && (
-                        <button
+                        <Button variant="unstyled" size="unstyled" type="submit"
                             onClick={() => setFilterSubject(null)}
                             aria-label="Fachfilter zurücksetzen"
                             className="px-2.5 py-1 rounded-full bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400 text-xs font-bold shrink-0 inline-flex items-center gap-1"
                         >
                             <X size={12} /> Zurücksetzen
-                        </button>
+                        </Button>
                     )}
                 </div>
 
@@ -488,7 +490,7 @@ export default function Feed() {
                                 ? 'Ergebnisse konnten nicht geladen werden'
                                 : `${sortedAds.length} ${sortedAds.length === 1 ? 'Anzeige' : 'Anzeigen'}`}
                     </p>
-                    <button
+                    <Button variant="unstyled" size="unstyled"
                         type="button"
                         onClick={() => { resetAllFilters(); triggerHaptic('light'); }}
                         aria-hidden={!hasActiveFilters || loading}
@@ -499,11 +501,11 @@ export default function Feed() {
                         )}
                     >
                         <X size={12} /> Filter zurücksetzen
-                    </button>
-                    <label className="flex items-center gap-1.5 text-xs font-bold text-gray-500 dark:text-gray-400 shrink-0 ml-auto">
+                    </Button>
+                    <Label className="flex items-center gap-1.5 text-xs font-bold text-gray-500 dark:text-gray-400 shrink-0 ml-auto">
                         <ArrowUpDown size={13} className="shrink-0" />
                         <span className="sr-only">Sortierung</span>
-                        <select
+                        <NativeSelect
                             value={sortKey}
                             onChange={e => { if (isValidSortKey(e.target.value)) { setSortKey(e.target.value); triggerHaptic('selection'); } }}
                             className="bg-gray-100 dark:bg-gray-800 rounded-full px-2.5 py-1 text-xs font-bold text-gray-700 dark:text-gray-200 border border-transparent focus:border-primary focus:outline-none cursor-pointer max-w-[11rem] truncate"
@@ -512,8 +514,8 @@ export default function Feed() {
                             {SORT_OPTIONS.map(o => (
                                 <option key={o.value} value={o.value}>{o.label}</option>
                             ))}
-                        </select>
-                    </label>
+                        </NativeSelect>
+                    </Label>
                 </div>
 
                 <AnimatePresence>
@@ -548,14 +550,14 @@ export default function Feed() {
                                 </div>
                                 <div className="flex items-center justify-between px-5 pb-2">
                                     <h2 className="font-display text-lg font-bold uppercase">Filter</h2>
-                                    <button
+                                    <Button variant="unstyled" size="unstyled"
                                         type="button"
                                         onClick={() => setShowFilters(false)}
                                         aria-label="Filter schließen"
                                         className="-mr-2 rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200 cursor-pointer"
                                     >
                                         <X size={20} />
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                             <div className="p-4 sm:p-5 space-y-6 min-w-0 overflow-x-clip pb-[calc(1.5rem+env(safe-area-inset-bottom))] md:pb-5">
@@ -563,16 +565,16 @@ export default function Feed() {
                             {/* Type & Price */}
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-white mb-2 block">Typ</label>
+                                    <Label className="text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-white mb-2 block">Typ</Label>
                                     <div className="flex gap-2">
-                                        <button onClick={() => { triggerHaptic('selection'); setFilterType('all'); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${filterType === 'all' ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>Alle</button>
-                                        <button onClick={() => { triggerHaptic('selection'); setFilterType('offer'); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${filterType === 'offer' ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>Angebote</button>
-                                        <button onClick={() => { triggerHaptic('selection'); setFilterType('search'); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${filterType === 'search' ? GESUCHE_PILL_ACTIVE : GESUCHE_PILL_IDLE}`}>Gesuche</button>
+                                        <Button variant="unstyled" size="unstyled" type="submit" onClick={() => { triggerHaptic('selection'); setFilterType('all'); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${filterType === 'all' ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>Alle</Button>
+                                        <Button variant="unstyled" size="unstyled" type="submit" onClick={() => { triggerHaptic('selection'); setFilterType('offer'); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${filterType === 'offer' ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>Angebote</Button>
+                                        <Button variant="unstyled" size="unstyled" type="submit" onClick={() => { triggerHaptic('selection'); setFilterType('search'); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${filterType === 'search' ? GESUCHE_PILL_ACTIVE : GESUCHE_PILL_IDLE}`}>Gesuche</Button>
                                     </div>
                                 </div>
                                 <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 px-3.5 pt-2.5 pb-8">
                                     <div className="flex items-baseline justify-between mb-1">
-                                        <label className="text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Preis pro Stunde</label>
+                                        <Label className="text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Preis pro Stunde</Label>
                                         <span className="text-xs font-bold text-gray-600 dark:text-gray-300">{minPrice}€ – {maxPrice}€</span>
                                     </div>
                                     <PriceRangeSlider
@@ -586,13 +588,13 @@ export default function Feed() {
 
                             {/* Grade */}
                             <div>
-                                <label className="text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-white mb-2 block">Klassenstufe</label>
+                                <Label className="text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-white mb-2 block">Klassenstufe</Label>
                                 <GradeSelector selectedGrades={filterGrade} onChange={setFilterGrade} className="justify-start" />
                             </div>
 
                             {/* Subjects */}
                             <div>
-                                <label className="text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-white mb-2 block">Fach</label>
+                                <Label className="text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-white mb-2 block">Fach</Label>
                                 <div className="flex flex-col gap-4 max-h-64 overflow-y-auto pr-2">
                                     {SUBJECT_CATEGORIES.map(category => (
                                         <div key={category.title}>
@@ -641,7 +643,7 @@ export default function Feed() {
                         >
                             Suchen
                         </Button>
-                        <button
+                        <Button variant="unstyled" size="unstyled"
                             type="button"
                             onClick={discardSavedSearch}
                             aria-label="Gemerkte Suche verwerfen"
@@ -649,7 +651,7 @@ export default function Feed() {
                             className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-200/60 dark:hover:bg-gray-800 transition-colors cursor-pointer"
                         >
                             <X size={15} />
-                        </button>
+                        </Button>
                     </div>
                 </div>
             )}
@@ -658,27 +660,27 @@ export default function Feed() {
             <div className="mb-6">
             <div className="flex items-center gap-1.5 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 pl-3 pr-1.5 py-1.5 shadow-sm overflow-x-auto">
                 <span className="text-[11px] font-extrabold uppercase tracking-wider text-gray-400 shrink-0">Infos</span>
-                <button
+                <Button variant="unstyled" size="unstyled"
                     type="button"
                     onClick={() => navigate('/coaching')}
                     className="shrink-0 inline-flex items-center min-h-[40px] px-3 rounded-full text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                     Coaching · {posterBlock.time} · {posterBlock.room}
-                </button>
-                <button
+                </Button>
+                <Button variant="unstyled" size="unstyled"
                     type="button"
                     onClick={() => navigate('/coaching', { state: { section: 'foerderung' } })}
                     className="shrink-0 inline-flex items-center min-h-[40px] px-3 rounded-full text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                     Förderunterricht
-                </button>
-                <button
+                </Button>
+                <Button variant="unstyled" size="unstyled"
                     type="button"
                     onClick={() => navigate('/eltern-leitfaden')}
                     className="shrink-0 inline-flex items-center min-h-[40px] px-3 rounded-full text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                     Eltern
-                </button>
+                </Button>
                 <Button
                     variant="outline"
                     size="sm"
@@ -772,13 +774,13 @@ export default function Feed() {
                                 )}
 
                                 <p>
-                                    <button
+                                    <Button variant="unstyled" size="unstyled"
                                         type="button"
                                         onClick={() => navigate('/coaching', { state: { section: 'foerderung' } })}
                                         className="underline font-bold text-sm text-indigo-900 dark:text-indigo-200"
                                     >
                                         Zur Coaching-Seite
-                                    </button>
+                                    </Button>
                                 </p>
 
                                 {supportBlock.learnCoachingText && (
@@ -955,7 +957,7 @@ export default function Feed() {
                                     )}
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <button
+                                    <Button variant="unstyled" size="unstyled"
                                         type="button"
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -966,7 +968,7 @@ export default function Feed() {
                                         title="Anzeige teilen"
                                     >
                                         <Share2 size={13} />
-                                    </button>
+                                    </Button>
                                 </div>
                             </CardFooter>
                         </Card>

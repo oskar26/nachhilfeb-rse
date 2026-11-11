@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { cn } from '../lib/utils';
 import { useState } from 'react';
 import { Check, CalendarDays, ChevronUp, ChevronDown } from 'lucide-react';
@@ -41,11 +42,11 @@ export function AvailabilityCalendar({
         matchWith ? (matchWith[day] || []).includes(slot) : false;
 
     // Filter active days and slots in read-only mode
-    const activeDays = DAYS.filter(d => 
+    const activeDays = DAYS.filter(d =>
         (availability[d] || []).length > 0 || (matchWith ? (matchWith[d] || []).length > 0 : false)
     );
 
-    const activeSlots = SLOTS.filter(slot => 
+    const activeSlots = SLOTS.filter(slot =>
         DAYS.some(d => isSelected(d, slot) || isMatch(d, slot))
     );
 
@@ -69,7 +70,7 @@ export function AvailabilityCalendar({
     return (
         <div className="overflow-x-auto -mx-2 px-2">
             <div className={cn("mx-auto", compact ? "min-w-[280px]" : "min-w-[320px] max-w-full")}>
-                <div 
+                <div
                     className="grid gap-px bg-gray-200 dark:bg-gray-700 rounded-2xl overflow-hidden text-center text-xs border border-gray-200 dark:border-gray-700 shadow-sm"
                     style={{ gridTemplateColumns: `56px repeat(${visibleDays.length}, 1fr)` }}
                 >
@@ -97,7 +98,7 @@ export function AvailabilityCalendar({
                                 {visibleDays.map(d => {
                                     const sel = isSelected(d, slot);
                                     const match = isMatch(d, slot);
-                                    
+
                                     let cellClass = "bg-white dark:bg-gray-900";
                                     let content = null;
 
@@ -117,7 +118,7 @@ export function AvailabilityCalendar({
                                     }
 
                                     return (
-                                        <button
+                                        <Button variant="unstyled" size="unstyled"
                                             key={d + slot}
                                             type="button"
                                             onClick={() => toggle(d, slot)}
@@ -132,7 +133,7 @@ export function AvailabilityCalendar({
                                             aria-label={`${DAY_LABELS[d]} ${slot}`}
                                         >
                                             {content}
-                                        </button>
+                                        </Button>
                                     );
                                 })}
                             </div>
@@ -143,9 +144,9 @@ export function AvailabilityCalendar({
                 {/* Show toggle button in read-only mode if we have active slots but are hiding some */}
                 {!isEditable && activeSlots.length < SLOTS.length && (
                     <div className="text-center mt-3">
-                        <button 
+                        <Button variant="unstyled" size="unstyled"
                             type="button"
-                            onClick={() => setShowAll(!showAll)} 
+                            onClick={() => setShowAll(!showAll)}
                             className="text-xs font-semibold text-primary-hover hover:underline inline-flex items-center gap-1"
                         >
                             {showAll ? (
@@ -153,7 +154,7 @@ export function AvailabilityCalendar({
                             ) : (
                                 <span className="inline-flex items-center gap-1">Ganzen Kalender anzeigen ({SLOTS.length} Zeiten) <ChevronDown size={14} /></span>
                             )}
-                        </button>
+                        </Button>
                     </div>
                 )}
 
@@ -166,15 +167,15 @@ export function AvailabilityCalendar({
                 {matchWith && !isEditable && (
                     <div className="flex items-center gap-4 mt-3 text-xs text-gray-500 dark:text-gray-400 justify-center flex-wrap">
                         <span className="flex items-center gap-1.5">
-                            <span className="w-3.5 h-3.5 rounded bg-emerald-500 flex items-center justify-center text-white text-[9px] font-bold"><Check size={8} strokeWidth={4} /></span> 
+                            <span className="w-3.5 h-3.5 rounded bg-emerald-500 flex items-center justify-center text-white text-[9px] font-bold"><Check size={8} strokeWidth={4} /></span>
                             Übereinstimmung
                         </span>
                         <span className="flex items-center gap-1.5">
-                            <span className="w-3.5 h-3.5 rounded bg-primary" /> 
+                            <span className="w-3.5 h-3.5 rounded bg-primary" />
                             Deine Zeit
                         </span>
                         <span className="flex items-center gap-1.5">
-                            <span className="w-3.5 h-3.5 rounded bg-blue-400 dark:bg-blue-500" /> 
+                            <span className="w-3.5 h-3.5 rounded bg-blue-400 dark:bg-blue-500" />
                             Deren Zeit
                         </span>
                     </div>

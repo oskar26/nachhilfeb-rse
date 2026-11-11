@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -46,7 +47,7 @@ export function RefinedGradeSelector({ grade, letter, onChange, className }: Ref
                 {GRADES.map(g => {
                     const isActive = selectedGrade === g;
                     return (
-                        <button
+                        <Button variant="unstyled" size="unstyled"
                             key={g}
                             type="button"
                             onClick={() => handleGradeClick(g)}
@@ -58,7 +59,7 @@ export function RefinedGradeSelector({ grade, letter, onChange, className }: Ref
                             )}
                         >
                             {g}
-                        </button>
+                        </Button>
                     );
                 })}
             </div>
@@ -74,7 +75,7 @@ export function RefinedGradeSelector({ grade, letter, onChange, className }: Ref
                         <p className="text-xs text-gray-400 mb-2 font-medium uppercase ml-1">Klasse {selectedGrade}...</p>
                         <div className="flex gap-2">
                             {LETTERS.map(l => (
-                                <button
+                                <Button variant="unstyled" size="unstyled"
                                     key={l}
                                     type="button"
                                     onClick={() => handleLetterClick(l)}
@@ -86,7 +87,7 @@ export function RefinedGradeSelector({ grade, letter, onChange, className }: Ref
                                     )}
                                 >
                                     {l}
-                                </button>
+                                </Button>
                             ))}
                         </div>
                     </motion.div>

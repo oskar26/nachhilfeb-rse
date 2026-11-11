@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import type { PointerEvent as ReactPointerEvent, RefObject } from 'react';
 import { createPortal } from 'react-dom';
@@ -235,14 +236,14 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
                 <span className="mt-2 block h-1 w-10 rounded-full bg-primary" aria-hidden />
             </div>
             {hasNotifications && unread > 0 && (
-                <button
+                <Button variant="unstyled" size="unstyled"
                     type="button"
                     onClick={markAllRead}
                     className="press flex shrink-0 items-center gap-1.5 rounded-full border border-black/15 px-3 py-2 text-[11px] font-bold text-gray-700 transition-colors hover:border-primary hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                     <CheckCheck size={13} />
                     Alle als gelesen
-                </button>
+                </Button>
             )}
         </div>
     );
@@ -272,10 +273,12 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
                     </p>
                     <div className="flex flex-col gap-2">
                         {items.map(n => (
-                            <motion.button
+                            <Button
                                 key={n.id}
+                                variant="unstyled"
+                                size="unstyled"
+                                hapticStyle={false}
                                 type="button"
-                                whileTap={reduceMotion ? undefined : { scale: 0.985 }}
                                 onClick={() => handleClick(n)}
                                 className={cn(
                                     'flex w-full select-none cursor-pointer items-start gap-3 rounded-2xl border p-3.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
@@ -301,7 +304,7 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
                                 {!n.read && (
                                     <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" aria-hidden />
                                 )}
-                            </motion.button>
+                            </Button>
                         ))}
                     </div>
                 </div>
@@ -314,11 +317,12 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
             {variant === 'desktop' ? (
                 <div className="relative">
                     {/* Glocke (Sidebar) */}
-                    <motion.button
+                    <Button
                         ref={buttonRef}
+                        variant="unstyled"
+                        size="unstyled"
+                        hapticStyle={false}
                         type="button"
-                        whileHover={reduceMotion ? undefined : { scale: 1.08 }}
-                        whileTap={reduceMotion ? undefined : { scale: 0.92 }}
                         onClick={toggleOpen}
                         className="relative select-none cursor-pointer rounded-2xl p-2.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
                         aria-label={triggerLabel}
@@ -332,21 +336,19 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
                                 <span className="relative h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-white dark:ring-gray-900" />
                             </span>
                         )}
-                    </motion.button>
+                    </Button>
                 </div>
             ) : (
                 /* Aufgeklebter Sticker — mobil, oben rechts unter der Safe-Area */
                 <div className="fixed right-4 top-[max(1rem,env(safe-area-inset-top))] z-40 md:hidden">
                     <motion.div style={reduceMotion ? undefined : { scale: stickerScale, opacity: stickerOpacity }}>
-                        <motion.button
+                        <Button
                             ref={buttonRef}
+                            variant="unstyled"
+                            size="unstyled"
+                            hapticStyle={false}
                             type="button"
                             onClick={toggleOpen}
-                            initial={reduceMotion ? false : { scale: 0.4, rotate: -24, opacity: 0 }}
-                            animate={{ scale: 1, rotate: -6, opacity: 1 }}
-                            whileHover={reduceMotion ? undefined : { scale: 1.06, rotate: -2 }}
-                            whileTap={reduceMotion ? undefined : { scale: 0.9, rotate: -9 }}
-                            transition={{ type: 'spring', stiffness: 420, damping: 24 }}
                             className={cn(
                                 'relative grid h-14 w-14 select-none cursor-pointer place-items-center rounded-2xl bg-primary text-black shadow-[0_14px_30px_-10px_rgba(0,0,0,0.35)] ring-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                                 unread > 0 ? 'ring-primary/60' : 'ring-black/10'
@@ -365,7 +367,7 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
                                     </span>
                                 </span>
                             )}
-                        </motion.button>
+                        </Button>
                     </motion.div>
                 </div>
             )}

@@ -1,10 +1,13 @@
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
-import { Button } from '../../components/ui/ButtonLegacy';
+import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/CardLegacy';
 import { TabBar } from '../../components/ui/TabBar';
-import { Input } from '../../components/ui/InputLegacy';
+import { Input } from '../../components/ui/input';
+import { Checkbox } from '../../components/ui/checkbox';
 import {
     Award,
     Search,
@@ -256,24 +259,24 @@ export default function CoachPanel() {
                         </div>
 
                         <div className="flex items-center gap-1.5 w-full sm:w-auto bg-gray-100 dark:bg-gray-800/60 p-1 rounded-xl">
-                            <button
+                            <Button variant="unstyled" size="unstyled" type="submit"
                                 onClick={() => setFilterCoach('all')}
                                 className={cn("px-3 py-1.5 rounded-lg text-xs font-bold transition-all", filterCoach === 'all' ? "bg-white dark:bg-gray-900 shadow-xs text-gray-900 dark:text-white" : "text-gray-500")}
                             >
                                 Alle ({students.length})
-                            </button>
-                            <button
+                            </Button>
+                            <Button variant="unstyled" size="unstyled" type="submit"
                                 onClick={() => setFilterCoach('coaches')}
                                 className={cn("px-3 py-1.5 rounded-lg text-xs font-bold transition-all", filterCoach === 'coaches' ? "bg-white dark:bg-gray-900 shadow-xs text-amber-700 dark:text-amber-300" : "text-gray-500")}
                             >
                                 Coaches ({students.filter(s => s.is_coach).length})
-                            </button>
-                            <button
+                            </Button>
+                            <Button variant="unstyled" size="unstyled" type="submit"
                                 onClick={() => setFilterCoach('non_coaches')}
                                 className={cn("px-3 py-1.5 rounded-lg text-xs font-bold transition-all", filterCoach === 'non_coaches' ? "bg-white dark:bg-gray-900 shadow-xs text-gray-700 dark:text-gray-300" : "text-gray-500")}
                             >
                                 Noch keine Coaches
-                            </button>
+                            </Button>
                         </div>
                     </div>
 
@@ -437,7 +440,7 @@ export default function CoachPanel() {
                         ) : (
                             <form onSubmit={handleSaveInfo} className="space-y-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold uppercase text-gray-500 ml-1">Titel der Info-Box</label>
+                                    <Label className="text-xs font-bold uppercase text-gray-500 ml-1">Titel der Info-Box</Label>
                                     <Input
                                         value={infoForm.title}
                                         onChange={e => setInfoForm({ ...infoForm, title: e.target.value })}
@@ -448,8 +451,8 @@ export default function CoachPanel() {
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold uppercase text-gray-500 ml-1">Beschreibungstext</label>
-                                    <textarea
+                                    <Label className="text-xs font-bold uppercase text-gray-500 ml-1">Beschreibungstext</Label>
+                                    <Textarea
                                         value={infoForm.description}
                                         onChange={e => setInfoForm({ ...infoForm, description: e.target.value })}
                                         placeholder="Erkläre das Angebot, Zielgruppe und Ablauf..."
@@ -461,7 +464,7 @@ export default function CoachPanel() {
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-bold uppercase text-gray-500 ml-1">Uhrzeit & Wochentag</label>
+                                        <Label className="text-xs font-bold uppercase text-gray-500 ml-1">Uhrzeit & Wochentag</Label>
                                         <Input
                                             value={infoForm.time}
                                             onChange={e => setInfoForm({ ...infoForm, time: e.target.value })}
@@ -471,7 +474,7 @@ export default function CoachPanel() {
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-bold uppercase text-gray-500 ml-1">Raum / Treffpunkt</label>
+                                        <Label className="text-xs font-bold uppercase text-gray-500 ml-1">Raum / Treffpunkt</Label>
                                         <Input
                                             value={infoForm.room}
                                             onChange={e => setInfoForm({ ...infoForm, room: e.target.value })}
@@ -483,16 +486,15 @@ export default function CoachPanel() {
                                 </div>
 
                                 <div className="flex items-center gap-3 p-3.5 bg-gray-50 dark:bg-gray-800/40 rounded-2xl border border-gray-100 dark:border-gray-800">
-                                    <input
-                                        type="checkbox"
+                                    <Checkbox
                                         id="is_visible"
                                         checked={infoForm.is_visible}
-                                        onChange={e => setInfoForm({ ...infoForm, is_visible: e.target.checked })}
-                                        className="w-4 h-4 rounded accent-primary focus:ring-[var(--ring))] cursor-pointer"
+                                        onCheckedChange={checked => setInfoForm({ ...infoForm, is_visible: checked === true })}
+                                        className="cursor-pointer"
                                     />
-                                    <label htmlFor="is_visible" className="text-xs font-bold cursor-pointer text-gray-800 dark:text-gray-200">
+                                    <Label htmlFor="is_visible" className="text-xs font-bold cursor-pointer text-gray-800 dark:text-gray-200">
                                         Infobox auf der Startseite einblenden (öffentlich aktiv)
-                                    </label>
+                                    </Label>
                                 </div>
 
                                 <div className="pt-2 flex justify-end">

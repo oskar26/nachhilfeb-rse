@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { Button } from './ui/ButtonLegacy';
+import { Button } from './ui/button';
 
 // Seiten, die auch ohne Verifizierung erreichbar bleiben:
 // Profil & Einstellungen enthalten die nötigen Schritte/Infos.

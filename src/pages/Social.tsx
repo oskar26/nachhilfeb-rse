@@ -12,7 +12,7 @@ import { useMemo, type ReactNode } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { EyeOff, Heart, Inbox, RotateCcw, Sparkles } from 'lucide-react';
-import { Button } from '../components/ui/ButtonLegacy';
+import { Button } from '../components/ui/button';
 import { EmptyState } from '../components/social/EmptyState';
 import { SocialFilterPills, type SocialFilterOption } from '../components/social/SocialFilterPills';
 import { useSocialStream } from '../components/social/useSocialStream';
@@ -217,7 +217,7 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
             </p>
 
             {stream.hiddenIds.length > 0 && (filter === 'alle' || filter === 'anfragen') && (
-                <button
+                <Button variant="unstyled" size="unstyled"
                     type="button"
                     onClick={() => {
                         triggerHaptic('light');
@@ -227,12 +227,12 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                 >
                     <EyeOff size={14} aria-hidden /> Verborgene Chats einblenden
                     <span className="rounded-full bg-primary px-2 py-0.5 font-mono text-[10px] font-black tabular-nums text-amber-950">{stream.hiddenIds.length}</span>
-                </button>
+                </Button>
             )}
 
             {stream.dismissedIds.length > 0 && (filter === 'alle' || filter === 'matches') && (
                 <div className="flex justify-center">
-                    <button
+                    <Button variant="unstyled" size="unstyled"
                         type="button"
                         onClick={() => {
                             triggerHaptic('success');
@@ -243,7 +243,7 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                     >
                         <RotateCcw size={13} aria-hidden />
                         <span>{stream.dismissedIds.length} ausgeblendete {stream.dismissedIds.length === 1 ? 'Match' : 'Matches'} wiederherstellen</span>
-                    </button>
+                    </Button>
                 </div>
             )}
 

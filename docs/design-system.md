@@ -80,8 +80,10 @@ Eine Skala, vier Ebenen:
 | `radius-3xl` | 24 px | Dialoge/Sheets |
 | `radius-4xl` | 32 px | besondere Posterflächen |
 
-Pillen (`rounded-full`) sind ausschließlich für Marken-CTAs, Filter-Chips und
-Avatare erlaubt. Nicht alles wird zur Pille.
+Pillen (`rounded-full`) sind die Button-Form der bestehenden Marke und gelten
+für alle Buttons, Filter-Chips und Avatare. Inputs/Selects bleiben bei
+`rounded-xl`, Cards bei `rounded-xl`/`rounded-2xl`, Dialoge bei
+`rounded-3xl`.
 
 ## Schatten
 
@@ -117,7 +119,11 @@ Schatten.
 - Karten nur, wenn Höhe/Hierarchie sie rechtfertigt. Keine Karten in Karten.
 - Toasts: Sonner (`@/components/ui/sonner`), keine zweite Toast-Bibliothek.
 - Buttons: primär Gelb mit Tinte, sekundär neutrale Fläche, destruktiv nur
-  für echte Lösch-/Sperraktionen. Ein Primary pro Gruppe.
+  für echte Lösch-/Sperraktionen. Ein Primary pro Gruppe. Größen: `sm` 32 px,
+  `default`/`md` 44 px, `lg` 56 px, `icon` 40 px. Alle Buttons sind pill.
+- Formularfelder: `Label` + `Input`/`Textarea`/`NativeSelect`/`Checkbox`/
+  `Switch`. Jedes Feld hat Hover-, Fokus-, Disabled- und
+  `aria-invalid`-Fehlerzustand. Fehlertext steht unter dem Feld.
 - Hover/Focus/Disabled/Active sind Pflicht. Fokusring: 2 px `--ring`,
   2 px Offset. `prefers-reduced-motion` wird respektiert.
 
@@ -142,7 +148,19 @@ Schatten.
 
 ## Migrationsregel
 
-Bestehende Seiten dürfen in diesem Setup noch alte Klassen enthalten. Jede
+Bestehende Seiten dürfen noch ihre vorhandenen Layout-Klassen enthalten. Jede
 Seite, die als Nächstes angefasst wird, wird auf diese Tokens und die
 shadcn-Primitives umgestellt. Neue UI darf keine neuen Hex-Werte, keine neue
 Icon-Bibliothek und keine neue Overlay-/Toast-Implementierung einführen.
+
+### Formularelemente (migriert)
+
+- Buttons: `Button` aus `@/components/ui/button`; bestehende Sonder-Buttons
+  nutzen `variant="unstyled" size="unstyled"` und behalten ihre Klassen.
+- Textfelder: `Input`; mehrzeilig: `Textarea`.
+- Auswahl: `NativeSelect` (native Semantik, shadcn-Styling) oder `Select`.
+- Checkboxen: `Checkbox`; Schalter: `Switch`; Labels: `Label`.
+- OTP: `InputOTP` + `InputOTPGroup`/`InputOTPSlot`.
+- Fehler: `aria-invalid` setzen; die Komponenten liefern Border-/Ring-Styles.
+- Keine rohen `<button>`, `<input>`, `<textarea>`, `<select>` oder
+  `motion.button` in Seiten/Komponenten. Ausnahme sind nur die shadcn-Interna.

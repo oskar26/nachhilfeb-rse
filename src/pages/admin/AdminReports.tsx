@@ -1,5 +1,9 @@
+import { Label } from '@/components/ui/label';
+import { NativeSelect } from '@/components/ui/native-select';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { useState, useEffect } from 'react';
-import { Button } from '../../components/ui/ButtonLegacy';
+import { Button } from '../../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../../components/ui/DialogLegacy';
 import {
     AlertTriangle,
@@ -331,7 +335,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
             <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between shrink-0">
                 <div className="relative flex-1 max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <input
+                    <Input
                         type="text"
                         placeholder="Meldungen durchsuchen..."
                         value={searchQuery}
@@ -341,7 +345,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                 </div>
                 
                 <div className="flex flex-wrap gap-2 items-center">
-                    <select
+                    <NativeSelect
                         value={filterCategory}
                         onChange={e => setFilterCategory(e.target.value)}
                         className="h-11 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm focus:outline-none"
@@ -352,9 +356,9 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                         <option value="chat">Chat</option>
                         <option value="datenschutz">Datenschutz</option>
                         <option value="sonstiges">Sonstiges</option>
-                    </select>
+                    </NativeSelect>
 
-                    <select
+                    <NativeSelect
                         value={filterPriority}
                         onChange={e => setFilterPriority(e.target.value)}
                         className="h-11 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm focus:outline-none"
@@ -363,9 +367,9 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                         <option value="normal">Normal</option>
                         <option value="hoch">Hoch</option>
                         <option value="kritisch">Kritisch</option>
-                    </select>
+                    </NativeSelect>
 
-                    <select
+                    <NativeSelect
                         value={filterSource}
                         onChange={e => setFilterSource(e.target.value as 'all' | 'auto' | 'manual')}
                         className="h-11 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm focus:outline-none"
@@ -374,25 +378,25 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                         <option value="all">Alle Quellen</option>
                         <option value="auto">Filter-Meldungen (Review)</option>
                         <option value="manual">Manuelle Meldungen</option>
-                    </select>
+                    </NativeSelect>
 
                     <Button onClick={fetchReports} variant="ghost" className="h-11 w-11 p-0 rounded-2xl" title="Aktualisieren">
                         <RefreshCw size={16} className={cn(loading && 'animate-spin')} />
                     </Button>
 
                     <div className="flex bg-gray-100 dark:bg-gray-900 p-1 rounded-2xl border dark:border-gray-800 shrink-0">
-                        <button
+                        <Button variant="unstyled" size="unstyled" type="submit"
                             onClick={() => setViewMode('kanban')}
                             className={cn('p-2 rounded-xl transition-all', viewMode === 'kanban' ? 'bg-white dark:bg-gray-800 shadow-sm font-bold text-gray-900 dark:text-white' : 'text-gray-400')}
                         >
                             <LayoutGrid size={16} />
-                        </button>
-                        <button
+                        </Button>
+                        <Button variant="unstyled" size="unstyled" type="submit"
                             onClick={() => setViewMode('list')}
                             className={cn('p-2 rounded-xl transition-all', viewMode === 'list' ? 'bg-white dark:bg-gray-800 shadow-sm font-bold text-gray-900 dark:text-white' : 'text-gray-400')}
                         >
                             <ListIcon size={16} />
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -503,9 +507,9 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                                     ID: {selectedReport.id.slice(0, 8)} • Stufe: {selectedReport.priority.toUpperCase()} • {REPORT_STATUS_LABELS[selectedReport.status] || selectedReport.status}
                                 </div>
                             </div>
-                            <button onClick={() => setSelectedReport(null)} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400">
+                            <Button variant="unstyled" size="unstyled" type="submit" onClick={() => setSelectedReport(null)} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400">
                                 <XCircle size={20} />
-                            </button>
+                            </Button>
                         </div>
 
                         {/* Detail Body */}
@@ -626,8 +630,8 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
 
                             {/* Internal notes */}
                             <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">SV-Interne Notizen</label>
-                                <textarea
+                                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">SV-Interne Notizen</Label>
+                                <Textarea
                                     className="w-full border dark:border-gray-800 rounded-xl p-3 bg-transparent text-sm min-h-[90px] focus:ring-2 focus:ring-primary outline-none"
                                     placeholder="Notizen zu Gesprächen, Warnungen, etc. (nur für Admins sichtbar)..."
                                     value={adminNotes}
@@ -710,12 +714,12 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                     {zoomedImage && (
                         <div className="relative aspect-auto max-h-[80vh] flex items-center justify-center bg-black/90">
                             <img src={zoomedImage} className="max-h-[80vh] max-w-full object-contain" />
-                            <button
+                            <Button variant="unstyled" size="unstyled" type="submit"
                                 onClick={() => setZoomedImage(null)}
                                 className="absolute top-4 right-4 bg-black/40 text-white p-2 rounded-full hover:bg-black/60"
                             >
                                 <XCircle size={20} />
-                            </button>
+                            </Button>
                         </div>
                     )}
                 </DialogContent>
@@ -732,8 +736,8 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                     </DialogHeader>
                     <div className="py-4 space-y-4">
                         <div className="space-y-1">
-                            <label className="text-[10px] font-bold uppercase text-gray-400">Aktionstyp</label>
-                            <select
+                            <Label className="text-[10px] font-bold uppercase text-gray-400">Aktionstyp</Label>
+                            <NativeSelect
                                 value={resolutionType}
                                 onChange={e => setResolutionType(e.target.value as any)}
                                 className="w-full mt-1 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 text-sm focus:outline-none"
@@ -742,7 +746,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                                 <option value="warn">Nutzer verwarnt (Verwarnungsnachricht gesendet)</option>
                                 <option value="ban">Nutzer gebannt (Temporär oder permanent)</option>
                                 <option value="delete">Inhalt gelöscht (Anzeige/Nachrichten gelöscht)</option>
-                            </select>
+                            </NativeSelect>
                         </div>
                         <p className="text-xs text-gray-500">
                             Hinweis: Für Bannen oder Löschen von Anzeigen navigiere bitte direkt in die jeweiligen Reiter 'Nutzer' bzw. 'Anzeigen' für eine detaillierte Ausführung.

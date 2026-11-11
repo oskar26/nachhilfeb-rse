@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
 import { Dialog, DialogContent } from './ui/DialogLegacy';
-import { Button } from './ui/ButtonLegacy';
+import { Button } from './ui/button';
 import { SubjectChip, SUBJECT_CATEGORIES, type Subject } from './SubjectChip';
 
 interface SubjectPickerDialogProps {
@@ -29,14 +29,14 @@ export default function SubjectPickerDialog({ open, onClose, selected, onToggle 
                                     Wähle deine Fächer – bereits gewählte sind ausgegraut.
                                 </p>
                             </div>
-                            <button
+                            <Button variant="unstyled" size="unstyled"
                                 type="button"
                                 onClick={onClose}
                                 aria-label="Fächer-Auswahl schließen"
                                 className="press grid h-11 w-11 shrink-0 place-items-center rounded-full bg-black/5 text-gray-900 transition-colors hover:bg-black/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
                             >
                                 <X size={18} />
-                            </button>
+                            </Button>
                         </div>
                         <div className="mt-3 h-1 w-10 rounded-full bg-primary" aria-hidden />
                     </div>

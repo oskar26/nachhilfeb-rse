@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { Bell, BellOff, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -59,33 +60,33 @@ export function PushPrompt() {
                                 : 'Aktiviere Mitteilungen, damit Neuigkeiten und Hinweise der Börse bei dir ankommen.'}
                         </p>
                     </div>
-                    <button
+                    <Button variant="unstyled" size="unstyled"
                         type="button"
                         onClick={handleDismiss}
                         aria-label="Hinweis schließen"
                         className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800"
                     >
                         <X size={16} />
-                    </button>
+                    </Button>
                 </div>
                 <div className="mt-3 flex gap-2">
                     {!denied && (
-                        <button
+                        <Button variant="unstyled" size="unstyled"
                             type="button"
                             onClick={handleEnable}
                             disabled={busy}
                             className="h-11 flex-1 rounded-full bg-primary text-sm font-bold text-black transition-transform active:scale-[0.98] disabled:opacity-60"
                         >
                             {busy ? 'Einen Moment …' : 'Aktivieren'}
-                        </button>
+                        </Button>
                     )}
-                    <button
+                    <Button variant="unstyled" size="unstyled"
                         type="button"
                         onClick={handleDismiss}
                         className="h-11 flex-1 rounded-full border border-gray-200 text-sm font-bold text-gray-600 dark:border-gray-700 dark:text-gray-300"
                     >
                         {denied ? 'Später erinnern' : 'Jetzt nicht'}
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>

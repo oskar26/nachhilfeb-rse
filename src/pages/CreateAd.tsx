@@ -1,7 +1,9 @@
+import { Label } from '@/components/ui/label';
+import { NativeSelect } from '@/components/ui/native-select';
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Button } from '../components/ui/ButtonLegacy';
-import { Input } from '../components/ui/InputLegacy';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../components/ui/CardLegacy';
 import { SubjectChip, SUBJECT_CATEGORIES, subjectLabelMap, type Subject } from '../components/SubjectChip';
 import { GradeSelector } from '../components/GradeSelector';
@@ -416,13 +418,13 @@ export default function CreateAd() {
         <div className="w-full max-w-3xl mx-auto px-3 sm:px-4 py-4 pb-24 min-w-0 box-border overflow-x-hidden">
             <div className="flex items-start justify-between gap-3 mb-2">
                 <h1 className="text-2xl font-bold">Anzeige aufgeben</h1>
-                <button
+                <Button variant="unstyled" size="unstyled"
                     type="button"
                     onClick={discardDraft}
                     className="text-xs font-semibold text-gray-400 hover:text-red-600 dark:hover:text-red-400 underline underline-offset-4 shrink-0 mt-1.5"
                 >
                     Entwurf verwerfen
-                </button>
+                </Button>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 sm:mb-6" aria-live="polite">
                 Entwurf wird automatisch auf diesem Gerät gespeichert
@@ -440,7 +442,7 @@ export default function CreateAd() {
                     </div>
                     {/* Progress bar */}
                     <div className="w-full bg-gray-100 dark:bg-gray-800 h-2 rounded-full overflow-hidden">
-                        <div 
+                        <div
                             className="bg-primary h-full transition-all duration-300 rounded-full"
                             style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
                         />
@@ -450,7 +452,7 @@ export default function CreateAd() {
                             const isCurrent = index === currentStep;
                             const isCompleted = index < currentStep;
                             return (
-                                <button
+                                <Button variant="unstyled" size="unstyled"
                                     key={index}
                                     type="button"
                                     onClick={() => jumpToStep(index)}
@@ -466,7 +468,7 @@ export default function CreateAd() {
                                     title={step}
                                 >
                                     {isCompleted ? <CheckCircle size={12} /> : index + 1}
-                                </button>
+                                </Button>
                             );
                         })}
                     </div>
@@ -477,13 +479,13 @@ export default function CreateAd() {
                     <div className="flex items-center justify-between min-w-[500px] relative px-4">
                         {/* Connecting Line */}
                         <div className="absolute top-4 left-8 right-8 h-0.5 bg-gray-100 dark:bg-gray-800 z-0" />
-                        
+
                         {STEPS.map((step, index) => {
                             const isCurrent = index === currentStep;
                             const isCompleted = index < currentStep;
                             return (
                                 <div key={index} className="flex flex-col items-center z-10">
-                                    <button 
+                                    <Button variant="unstyled" size="unstyled"
                                         type="button"
                                         onClick={() => jumpToStep(index)}
                                         disabled={index > currentStep && !isStepValid()}
@@ -497,7 +499,7 @@ export default function CreateAd() {
                                         )}
                                     >
                                         {isCompleted ? <CheckCircle size={14} /> : index + 1}
-                                    </button>
+                                    </Button>
                                     <span className={cn("text-[10px] mt-1.5 font-medium transition-colors whitespace-nowrap", isCurrent ? "text-gray-900 dark:text-white font-bold" : "text-gray-400")}>{step}</span>
                                 </div>
                             );
@@ -517,7 +519,7 @@ export default function CreateAd() {
                         <div className="space-y-6">
                             <>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <button
+                                        <Button variant="unstyled" size="unstyled"
                                             type="button"
                                             onClick={() => setFormData({ ...formData, type: 'offer' })}
                                             className={cn(
@@ -527,8 +529,8 @@ export default function CreateAd() {
                                         >
                                             <GraduationCap size={18} className="shrink-0" />
                                             <span>Ich biete Nachhilfe</span>
-                                        </button>
-                                        <button
+                                        </Button>
+                                        <Button variant="unstyled" size="unstyled"
                                             type="button"
                                             onClick={() => setFormData({ ...formData, type: 'search' })}
                                             className={cn(
@@ -538,7 +540,7 @@ export default function CreateAd() {
                                         >
                                             <Search size={18} className="shrink-0" />
                                             <span>Ich suche Nachhilfe</span>
-                                        </button>
+                                        </Button>
                                     </div>
 
                                     {formData.type === 'search' && (
@@ -550,7 +552,7 @@ export default function CreateAd() {
                                             </div>
                                         </div>
                                     )}
-                                    
+
                                     {/* Unterrichts-Format: Einzel / Kleingruppe / Egal */}
                                     <div>
                                         <span className="text-sm font-medium block">Unterrichts-Format</span>
@@ -560,7 +562,7 @@ export default function CreateAd() {
                                                 const Icon = f.value === 'single' ? User : f.value === 'group' ? Users : Shuffle;
                                                 const active = formData.session_format === f.value;
                                                 return (
-                                                    <button
+                                                    <Button variant="unstyled" size="unstyled"
                                                         key={f.value}
                                                         type="button"
                                                         onClick={() => setFormData({ ...formData, session_format: f.value })}
@@ -573,7 +575,7 @@ export default function CreateAd() {
                                                         <Icon size={18} className="shrink-0" />
                                                         <span className="text-xs sm:text-sm">{f.title}</span>
                                                         <span className="text-[10px] font-normal opacity-80">{f.hint}</span>
-                                                    </button>
+                                                    </Button>
                                                 );
                                             })}
                                         </div>
@@ -581,7 +583,7 @@ export default function CreateAd() {
 
                                     <div>
                                         <div className="flex items-baseline justify-between gap-3 mb-2">
-                                            <label htmlFor="ad-title" className="text-sm font-medium">Titel der Anzeige</label>
+                                            <Label htmlFor="ad-title" className="text-sm font-medium">Titel der Anzeige</Label>
                                             <span className="text-[11px] text-gray-500 shrink-0">Mind. 4 Zeichen</span>
                                         </div>
                                         <Input
@@ -604,7 +606,7 @@ export default function CreateAd() {
                         <div className="space-y-6">
                             <div>
                                 <div className="flex items-baseline justify-between gap-3 mb-2">
-                                    <label htmlFor="subject-search" className="text-sm font-medium">Welche Fächer?</label>
+                                    <Label htmlFor="subject-search" className="text-sm font-medium">Welche Fächer?</Label>
                                     <span className="text-[11px] text-gray-500 shrink-0" aria-live="polite">
                                         {formData.subjects.length > 0
                                             ? `${formData.subjects.length} gewählt`
@@ -625,26 +627,26 @@ export default function CreateAd() {
                                         autoComplete="off"
                                     />
                                     {subjectQuery && (
-                                        <button
+                                        <Button variant="unstyled" size="unstyled"
                                             type="button"
                                             onClick={() => setSubjectQuery('')}
                                             className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                                             aria-label="Fächersuche löschen"
                                         >
                                             <X size={15} />
-                                        </button>
+                                        </Button>
                                     )}
                                 </div>
                                 {subjectMatchCount === 0 ? (
                                     <div className="p-4 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 text-sm text-gray-500 text-center space-y-2">
                                         <p>Kein Fach gefunden für „{subjectQuery.trim()}“.</p>
-                                        <button
+                                        <Button variant="unstyled" size="unstyled"
                                             type="button"
                                             onClick={() => setSubjectQuery('')}
                                             className="text-xs font-bold underline underline-offset-4 hover:text-gray-900 dark:hover:text-white"
                                         >
                                             Suche zurücksetzen
-                                        </button>
+                                        </Button>
                                     </div>
                                 ) : (
                                 <div className="space-y-4">
@@ -673,7 +675,7 @@ export default function CreateAd() {
                                 )}
                             </div>
                             <div>
-                                <label className="text-sm font-medium mb-3 block">Für welche Klassenstufen? (Mehrfachauswahl)</label>
+                                <Label className="text-sm font-medium mb-3 block">Für welche Klassenstufen? (Mehrfachauswahl)</Label>
                                 {formData.type === 'search' ? (
                                     <div className="bg-gray-100 p-3 rounded text-sm text-gray-500">
                                         Automatisch ausgewählt: Klasse {profile.grade_level} (Dein Jahrgang)
@@ -693,15 +695,15 @@ export default function CreateAd() {
                         <div className="space-y-6">
                             <div>
                                 <div className="flex items-baseline justify-between gap-3 mb-1">
-                                    <label className="text-sm font-medium">Wo findet die Nachhilfe statt?</label>
+                                    <Label className="text-sm font-medium">Wo findet die Nachhilfe statt?</Label>
                                     {(formData.locations.length > 0 || formData.custom_location.trim()) && (
-                                        <button
+                                        <Button variant="unstyled" size="unstyled"
                                             type="button"
                                             onClick={() => setFormData(prev => ({ ...prev, locations: [], custom_location: '' }))}
                                             className="text-[11px] font-bold text-gray-400 hover:text-red-600 underline underline-offset-4 shrink-0"
                                         >
                                             Auswahl löschen
-                                        </button>
+                                        </Button>
                                     )}
                                 </div>
                                 <p className="text-[11px] text-gray-500 mb-3">Wähle alle Orte, die für dich passen. 19 Orte in 4 Gruppen, Mehrfachauswahl möglich.</p>
@@ -721,7 +723,7 @@ export default function CreateAd() {
                                                     {group.locations.map(loc => {
                                                         const active = formData.locations.includes(loc);
                                                         return (
-                                                            <button
+                                                            <Button variant="unstyled" size="unstyled"
                                                                 key={loc}
                                                                 type="button"
                                                                 onClick={() => toggleLocation(loc)}
@@ -734,7 +736,7 @@ export default function CreateAd() {
                                                                 )}
                                                             >
                                                                 {loc}
-                                                            </button>
+                                                            </Button>
                                                         );
                                                     })}
                                                 </div>
@@ -743,7 +745,7 @@ export default function CreateAd() {
                                     })}
                                 </div>
                                 <div className="mt-4 space-y-1.5">
-                                    <label htmlFor="custom-location" className="text-xs font-semibold text-gray-600 dark:text-gray-300">Eigener Ort (optional)</label>
+                                    <Label htmlFor="custom-location" className="text-xs font-semibold text-gray-600 dark:text-gray-300">Eigener Ort (optional)</Label>
                                     <div className="flex gap-2 items-center">
                                         <MapPin size={15} className="text-gray-400 shrink-0" aria-hidden="true" />
                                         <Input
@@ -764,13 +766,13 @@ export default function CreateAd() {
                             </div>
 
                             <div>
-                                <label className="text-sm font-medium mb-1 block">Wie lange dauert eine Einheit?</label>
+                                <Label className="text-sm font-medium mb-1 block">Wie lange dauert eine Einheit?</Label>
                                 <p className="text-[11px] text-gray-500 mb-3">Standard ist „Egal / nach Absprache“. Ihr klärt die Dauer dann im Chat. Feste Minuten sind exklusiv dazu.</p>
                                 <div className="flex flex-wrap gap-2 mb-3">
                                     {DURATION_PRESETS.map(dur => {
                                         const active = formData.duration_minutes.includes(dur);
                                         return (
-                                            <button
+                                            <Button variant="unstyled" size="unstyled"
                                                 key={dur}
                                                 type="button"
                                                 onClick={() => toggleDuration(dur)}
@@ -783,10 +785,10 @@ export default function CreateAd() {
                                                 )}
                                             >
                                                 {dur} Min.
-                                            </button>
+                                            </Button>
                                         );
                                     })}
-                                    <button
+                                    <Button variant="unstyled" size="unstyled"
                                         type="button"
                                         onClick={() => toggleDuration(DURATION_EGAL)}
                                         aria-pressed={formData.duration_minutes.includes(DURATION_EGAL)}
@@ -798,10 +800,10 @@ export default function CreateAd() {
                                         )}
                                     >
                                         Egal / nach Absprache
-                                    </button>
+                                    </Button>
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label htmlFor="custom-duration" className="text-xs font-semibold text-gray-600 dark:text-gray-300">Andere Dauer in Minuten (optional, ersetzt „Egal“)</label>
+                                    <Label htmlFor="custom-duration" className="text-xs font-semibold text-gray-600 dark:text-gray-300">Andere Dauer in Minuten (optional, ersetzt „Egal“)</Label>
                                     <div className="flex gap-2 items-center">
                                         <Input
                                             id="custom-duration"
@@ -830,30 +832,30 @@ export default function CreateAd() {
                     {currentStep === 3 && (
                         <div className="space-y-6">
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <button
+                                <Button variant="unstyled" size="unstyled"
                                     type="button"
                                     onClick={() => setFormData({ ...formData, price_mode: 'fixed' })}
                                     className={cn("p-4 border rounded-xl text-left hover:border-primary transition-all", formData.price_mode === 'fixed' && "border-primary bg-primary/5 ring-1 ring-primary")}
                                 >
                                     <span className="block font-bold">Festpreis</span>
                                     <span className="text-xs text-gray-500">Euro pro Einheit</span>
-                                </button>
-                                <button
+                                </Button>
+                                <Button variant="unstyled" size="unstyled"
                                     type="button"
                                     onClick={() => setFormData({ ...formData, price_mode: 'vb' })}
                                     className={cn("p-4 border rounded-xl text-left hover:border-primary transition-all", formData.price_mode === 'vb' && "border-primary bg-primary/5 ring-1 ring-primary")}
                                 >
                                     <span className="block font-bold">Verhandlungsbasis (VB)</span>
                                     <span className="text-xs text-gray-500">Preis wird besprochen</span>
-                                </button>
-                                <button
+                                </Button>
+                                <Button variant="unstyled" size="unstyled"
                                     type="button"
                                     onClick={() => setFormData({ ...formData, price_mode: 'free' })}
                                     className={cn("p-4 border rounded-xl text-left hover:border-primary transition-all", formData.price_mode === 'free' && "border-primary bg-primary/5 ring-1 ring-primary")}
                                 >
                                     <span className="block font-bold">Kostenlos</span>
                                     <span className="text-xs text-gray-500">Ehrenamtlich helfen</span>
-                                </button>
+                                </Button>
                             </div>
 
                             {formData.price_mode === 'fixed' && (
@@ -870,7 +872,7 @@ export default function CreateAd() {
                                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">€</span>
                                         </div>
                                         <span className="text-gray-500">pro</span>
-                                        <select
+                                        <NativeSelect
                                             className="bg-transparent border rounded-md p-2 text-sm"
                                             value={formData.price_unit}
                                             onChange={e => setFormData({ ...formData, price_unit: e.target.value })}
@@ -878,13 +880,13 @@ export default function CreateAd() {
                                             <option value="45min">45 min (Schulstunde)</option>
                                             <option value="60min">60 min (Stunde)</option>
                                             <option value="90min">90 min</option>
-                                        </select>
+                                        </NativeSelect>
                                     </div>
                                     {/* Quick Select */}
                                     <div className="flex gap-2 items-center flex-wrap">
                                         <span className="text-xs text-gray-500 font-medium">Schnellwahl:</span>
                                         {[6, 8, 10, 12, 15].map(p => (
-                                            <button
+                                            <Button variant="unstyled" size="unstyled"
                                                 key={p}
                                                 type="button"
                                                 onClick={() => setFormData(prev => ({ ...prev, price_value: p }))}
@@ -896,7 +898,7 @@ export default function CreateAd() {
                                                 )}
                                             >
                                                 {p}€
-                                            </button>
+                                            </Button>
                                         ))}
                                     </div>
 
@@ -966,7 +968,7 @@ export default function CreateAd() {
                         <div className="space-y-6">
                             <div>
                                 <div className="flex items-baseline justify-between gap-3 mb-2">
-                                    <label htmlFor="short-description" className="text-sm font-medium">Kurzbeschreibung (für den Feed)</label>
+                                    <Label htmlFor="short-description" className="text-sm font-medium">Kurzbeschreibung (für den Feed)</Label>
                                     <span className="text-[11px] text-gray-500 shrink-0">11–100 Zeichen</span>
                                 </div>
                                 <Input
@@ -980,7 +982,7 @@ export default function CreateAd() {
                             </div>
 
                             <div className="clear-both pt-4">
-                                <label className="text-sm font-medium mb-2 block">Ausführliche Beschreibung</label>
+                                <Label className="text-sm font-medium mb-2 block">Ausführliche Beschreibung</Label>
                                 <RichTextEditor
                                     value={formData.long_description}
                                     onChange={(html) => setFormData({ ...formData, long_description: html })}
@@ -990,17 +992,17 @@ export default function CreateAd() {
                             </div>
 
                             <div className="pt-4">
-                                <label className="text-sm font-medium mb-2 block flex items-center gap-2">
+                                <Label className="text-sm font-medium mb-2 block flex items-center gap-2">
                                     <LinkIcon size={16} /> Bild-Adressen (URLs)
-                                </label>
+                                </Label>
                                 <div className="space-y-2">
                                     {formData.image_urls.map((url, idx) => (
                                         <div key={idx} className="flex gap-2 items-center bg-gray-50 dark:bg-gray-900 p-2 rounded text-sm break-all">
                                             <img src={url} alt="" className="w-8 h-8 rounded object-cover bg-gray-200" />
                                             <span className="flex-1 truncate">{url}</span>
-                                            <button onClick={() => setFormData(prev => ({ ...prev, image_urls: prev.image_urls.filter((_, i) => i !== idx) }))}>
+                                            <Button variant="unstyled" size="unstyled" type="submit" onClick={() => setFormData(prev => ({ ...prev, image_urls: prev.image_urls.filter((_, i) => i !== idx) }))}>
                                                 <X size={16} className="text-red-500" />
-                                            </button>
+                                            </Button>
                                         </div>
                                     ))}
                                     <div className="flex gap-2">

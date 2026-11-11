@@ -1,9 +1,11 @@
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
-import { Button } from './ui/ButtonLegacy';
+import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/DialogLegacy';
-import { Input } from './ui/InputLegacy';
+import { Input } from './ui/input';
 import { toast } from 'sonner';
 import { X, ShieldAlert, AlertTriangle, ChevronRight, ChevronLeft, Camera, FileText, User, MessageCircle, Lock, Flag, type LucideIcon } from 'lucide-react';
 
@@ -20,7 +22,7 @@ type ReportCategory = 'profil' | 'anzeige' | 'chat' | 'datenschutz' | 'sonstiges
 export default function ReportWizard({ isOpen, onClose, reportedUserId, reportedAdId, relatedMessageIds = [] }: ReportWizardProps) {
     const { user } = useAuth();
     const [step, setStep] = useState(1);
-    
+
     // Form States
     const [category, setCategory] = useState<ReportCategory>('anzeige');
     const [subReason, setSubReason] = useState('');
@@ -28,7 +30,7 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
     const [priority, setPriority] = useState<'normal' | 'hoch' | 'kritisch'>('normal');
     const [evidenceUrls, setEvidenceUrls] = useState<string[]>([]);
     const [newEvidenceUrl, setNewEvidenceUrl] = useState('');
-    
+
     const [submitting, setSubmitting] = useState(false);
 
     if (!isOpen) return null;
@@ -129,12 +131,12 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
                         <ShieldAlert size={20} />
                         <span>Meldung einreichen (Schritt {step}/4)</span>
                     </DialogTitle>
-                    <button 
-                        onClick={onClose} 
+                    <Button variant="unstyled" size="unstyled" type="submit"
+                        onClick={onClose}
                         className="absolute right-0 top-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-250 transition-colors"
                     >
                         <X size={18} />
-                    </button>
+                    </Button>
                 </DialogHeader>
 
                 <div className="py-4 min-h-[250px] flex flex-col justify-between">
@@ -144,7 +146,7 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
                             <p className="text-sm font-semibold text-gray-500 dark:text-gray-450 uppercase mb-2">Was möchtest du melden?</p>
                             <div className="grid gap-2">
                                 {categories.map(c => (
-                                    <button
+                                    <Button variant="unstyled" size="unstyled" type="submit"
                                         key={c.value}
                                         onClick={() => { setCategory(c.value); setSubReason(''); }}
                                         className={`flex items-start text-left p-3 rounded-2xl border transition-all ${category === c.value ? 'border-red-400 bg-red-50/50 dark:bg-red-950/20 ring-1 ring-red-400' : 'border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900'}`}
@@ -154,7 +156,7 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
                                             <p className="font-bold text-sm">{c.label}</p>
                                             <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{c.desc}</p>
                                         </div>
-                                    </button>
+                                    </Button>
                                 ))}
                             </div>
                         </div>
@@ -166,13 +168,13 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
                             <p className="text-sm font-semibold text-gray-500 uppercase">Wähle den genauen Grund:</p>
                             <div className="flex flex-col gap-2">
                                 {subReasons[category].map(reason => (
-                                    <button
+                                    <Button variant="unstyled" size="unstyled" type="submit"
                                         key={reason}
                                         onClick={() => setSubReason(reason)}
                                         className={`w-full text-left px-4 py-3 rounded-xl border font-semibold text-sm transition-colors ${subReason === reason ? 'bg-red-500 text-white border-transparent' : 'bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 border-gray-100 dark:border-gray-800'}`}
                                     >
                                         {reason}
-                                    </button>
+                                    </Button>
                                 ))}
                             </div>
                         </div>
@@ -182,8 +184,8 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
                     {step === 3 && (
                         <div className="space-y-4">
                             <div>
-                                <label className="text-xs font-bold uppercase text-gray-500 block mb-1">Details zum Vorfall *</label>
-                                <textarea
+                                <Label className="text-xs font-bold uppercase text-gray-500 block mb-1">Details zum Vorfall *</Label>
+                                <Textarea
                                     className="w-full h-28 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 p-3 text-sm focus:outline-none focus:border-red-400 transition-colors"
                                     placeholder="Beschreibe den Vorfall so genau wie möglich. Was ist passiert? Wer war beteiligt?"
                                     value={description}
@@ -195,17 +197,17 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
                             </div>
 
                             <div>
-                                <label className="text-xs font-bold uppercase text-gray-500 block mb-2">Dringlichkeit</label>
+                                <Label className="text-xs font-bold uppercase text-gray-500 block mb-2">Dringlichkeit</Label>
                                 <div className="grid grid-cols-3 gap-2">
                                     {(['normal', 'hoch', 'kritisch'] as const).map(p => (
-                                        <button
+                                        <Button variant="unstyled" size="unstyled"
                                             key={p}
                                             type="button"
                                             onClick={() => setPriority(p)}
                                             className={`py-2 rounded-xl text-xs font-bold capitalize border transition-colors ${priority === p ? 'bg-red-500 text-white border-transparent' : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-800'}`}
                                         >
                                             {p}
-                                        </button>
+                                        </Button>
                                     ))}
                                 </div>
                             </div>
@@ -238,9 +240,9 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
                                         {evidenceUrls.map((url, i) => (
                                             <div key={i} className="flex items-center gap-1.5 text-xs bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-900 px-2 py-1 rounded-xl">
                                                 <span className="truncate max-w-[120px]">{url}</span>
-                                                <button onClick={() => setEvidenceUrls(prev => prev.filter((_, idx) => idx !== i))} className="text-red-500 hover:text-red-700">
+                                                <Button variant="unstyled" size="unstyled" type="submit" onClick={() => setEvidenceUrls(prev => prev.filter((_, idx) => idx !== i))} className="text-red-500 hover:text-red-700">
                                                     <X size={12} />
-                                                </button>
+                                                </Button>
                                             </div>
                                         ))}
                                     </div>
@@ -269,9 +271,9 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
                             Weiter <ChevronRight size={16} className="ml-1" />
                         </Button>
                     ) : (
-                        <Button 
-                            size="sm" 
-                            onClick={handleSubmit} 
+                        <Button
+                            size="sm"
+                            onClick={handleSubmit}
                             disabled={submitting}
                             className="rounded-full bg-red-600 hover:bg-red-700 text-white font-bold"
                         >

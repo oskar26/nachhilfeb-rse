@@ -1,3 +1,5 @@
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -175,7 +177,7 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
                 <div className="flex items-center gap-1.5 px-2 py-1 rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200/60 dark:border-gray-700/60">
                     <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider hidden sm:inline">Farbe:</span>
                     {COLOR_PRESETS.map((preset) => (
-                        <button
+                        <Button variant="unstyled" size="unstyled"
                             key={preset.color}
                             type="button"
                             onMouseDown={(e) => {
@@ -188,7 +190,7 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
                         />
                     ))}
                     <div className="w-px h-3.5 bg-gray-300 dark:bg-gray-600 mx-0.5" />
-                    <input
+                    <Input
                         type="color"
                         onInput={(event: any) => editor.chain().focus().setColor(event.target.value).run()}
                         value={editor.getAttributes('textStyle').color || '#000000'}
@@ -215,7 +217,7 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
             {isExpanded && (
                 <div className="bg-primary/5 text-[10px] text-primary/60 px-4 py-1 border-t dark:border-gray-700 flex justify-between">
                     <span>Vollbild Editor Modus</span>
-                    <button onClick={toggleFullscreen} className="hover:underline">Vollbild verlassen</button>
+                    <Button variant="unstyled" size="unstyled" type="submit" onClick={toggleFullscreen} className="hover:underline">Vollbild verlassen</Button>
                 </div>
             )}
         </div>
@@ -228,7 +230,7 @@ function Sep() {
 
 function ToolbarButton({ onClick, icon, title, active }: { onClick: () => void, icon: React.ReactNode, title: string, active?: boolean }) {
     return (
-        <button
+        <Button variant="unstyled" size="unstyled"
             type="button"
             onMouseDown={(e) => { e.preventDefault(); onClick(); }}
             className={cn(
@@ -240,6 +242,6 @@ function ToolbarButton({ onClick, icon, title, active }: { onClick: () => void, 
             title={title}
         >
             {icon}
-        </button>
+        </Button>
     );
 }

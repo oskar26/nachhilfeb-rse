@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { ShieldAlert, LogOut, MessageCircle, Clock, AlertTriangle } from 'lucide-react';
 import { Logo } from './ui/Logo';
@@ -138,21 +139,21 @@ export default function BannedScreen({ banReason, banType, bannedUntil }: Banned
 
                 {/* Actions */}
                 <div className="space-y-3 pt-2">
-                    <button
+                    <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={handleSupportRequest}
                         className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-white/10 hover:bg-white/15 text-white border border-white/20 rounded-2xl text-sm font-bold transition-all cursor-pointer"
                     >
                         <MessageCircle size={16} />
                         Einspruch einlegen / Support kontaktieren
-                    </button>
+                    </Button>
 
-                    <button
+                    <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={handleLogout}
                         className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-red-600/30 hover:bg-red-600/40 text-red-200 border border-red-600/30 rounded-2xl text-sm font-bold transition-all cursor-pointer"
                     >
                         <LogOut size={16} />
                         Abmelden
-                    </button>
+                    </Button>
                 </div>
 
                 {/* Footer */}

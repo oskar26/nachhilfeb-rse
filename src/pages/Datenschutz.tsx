@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import StaticLayout from '../components/StaticLayout';
 
 function scrollToId(id: string) {
@@ -65,13 +66,13 @@ export default function Datenschutz() {
                     <ol className="grid gap-1 sm:grid-cols-2 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
                         {toc.map((item) => (
                             <li key={item.id}>
-                                <button
+                                <Button variant="unstyled" size="unstyled"
                                     type="button"
                                     onClick={() => scrollToId(item.id)}
                                     className="flex min-h-[44px] w-full items-center rounded-xl px-3 py-2.5 text-left font-semibold text-amber-700 hover:bg-amber-50 hover:underline dark:text-primary dark:hover:bg-white/5"
                                 >
                                     {item.label}
-                                </button>
+                                </Button>
                             </li>
                         ))}
                     </ol>

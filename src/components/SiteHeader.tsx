@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'framer-motion';
@@ -199,7 +200,7 @@ export default function SiteHeader() {
                                 Anmelden
                             </Link>
                         )}
-                        <button
+                        <Button variant="unstyled" size="unstyled"
                             ref={burgerRef}
                             type="button"
                             className="press inline-flex h-11 w-11 min-h-11 min-w-11 items-center justify-center rounded-full border border-black/20 text-black hover:bg-black/5 lg:hidden"
@@ -235,7 +236,7 @@ export default function SiteHeader() {
                                     )}
                                 </AnimatePresence>
                             </span>
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </header>
@@ -269,7 +270,7 @@ export default function SiteHeader() {
                                 <span className="min-w-0 truncate font-display uppercase text-xl leading-none tracking-tight text-black">
                                     Nachhilfebörse <span className="text-amber-600">FWG</span>
                                 </span>
-                                <button
+                                <Button variant="unstyled" size="unstyled"
                                     ref={closeBtnRef}
                                     type="button"
                                     onClick={closeMenu}
@@ -277,7 +278,7 @@ export default function SiteHeader() {
                                     className="press inline-flex h-11 w-11 min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full border border-black/20 text-black hover:bg-black/5"
                                 >
                                     <X size={20} aria-hidden />
-                                </button>
+                                </Button>
                             </div>
 
                             <nav id="mobile-nav" aria-label="Bereiche mobil" className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-2">

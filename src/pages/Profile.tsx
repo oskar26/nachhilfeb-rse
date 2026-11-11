@@ -1,7 +1,9 @@
+import { Label } from '@/components/ui/label';
+import { NativeSelect } from '@/components/ui/native-select';
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Button } from '../components/ui/ButtonLegacy';
-import { Input } from '../components/ui/InputLegacy';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/CardLegacy';
 import { User, Shield, Loader2, Mail, Phone, Settings as SettingsIcon, Pen, Sparkles, CalendarDays, Award, Shuffle, Palette, X, Lock, Eye, Plus, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -19,7 +21,7 @@ import AvatarMakerModal from '../components/AvatarMakerModal';
 import ConfettiBurst from '../components/ConfettiBurst';
 import SubjectPickerDialog from '../components/SubjectPickerDialog';
 import { extractDominantGradient, getDefaultGradient, getRandomGradient, PRESET_GRADIENTS } from '../lib/colorExtractor';
-import { Switch } from '../components/ui/SwitchLegacy';
+import { Switch } from '../components/ui/switch';
 import { VerifiedPill } from '../components/ui/VerifiedPill';
 import { CONTACT_TYPES, getContactType, newContactId, type CustomContact } from '../components/CustomContacts';
 
@@ -340,7 +342,7 @@ export default function Profile() {
                 {/* Banner */}
                 <div className="h-36 transition-colors duration-700 shadow-inner relative flex justify-between items-start p-3.5 pr-16 gap-2 md:pr-3.5" style={{ background: bannerGradient }}>
                     <div className="flex items-center gap-1.5 flex-wrap relative z-10">
-                        <button
+                        <Button variant="unstyled" size="unstyled"
                             type="button"
                             onClick={() => setShowColorPicker(!showColorPicker)}
                             className={cn(
@@ -353,9 +355,9 @@ export default function Profile() {
                         >
                             <Palette size={13} />
                             <span>Farbe</span>
-                        </button>
+                        </Button>
                         {profile.avatar_url && (
-                            <button
+                            <Button variant="unstyled" size="unstyled"
                                 type="button"
                                 onClick={async () => {
                                     triggerHaptic('selection');
@@ -369,11 +371,11 @@ export default function Profile() {
                             >
                                 <Sparkles size={12} className="text-amber-500" />
                                 <span>Bild anpassen</span>
-                            </button>
+                            </Button>
                         )}
                     </div>
 
-                    <button
+                    <Button variant="unstyled" size="unstyled"
                         type="button"
                         onClick={async () => {
                             triggerHaptic('selection');
@@ -387,26 +389,26 @@ export default function Profile() {
                     >
                         <Shuffle size={13} />
                         <span>Zufall</span>
-                    </button>
+                    </Button>
 
                     {/* Floating Color Selection Overlay (Never collides with Avatar) */}
                     {showColorPicker && (
                         <div className="absolute top-12 left-3 right-3 z-30 p-3 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-gray-200/80 dark:border-gray-800 rounded-2xl shadow-xl animate-in fade-in slide-in-from-top-2 flex flex-col gap-2.5">
                             <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-1.5">
                                 <span className="text-[11px] font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">Banner-Farbe wählen</span>
-                                <button
+                                <Button variant="unstyled" size="unstyled"
                                     type="button"
                                     onClick={() => setShowColorPicker(false)}
                                     className="p-2 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
                                 >
                                     <X size={14} />
-                                </button>
+                                </Button>
                             </div>
                             <div className="flex flex-wrap items-center justify-between gap-2.5">
                                 <div className="flex items-center gap-1.5 flex-wrap">
                                     <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Presets:</span>
                                     {PRESET_GRADIENTS.map((p) => (
-                                        <button
+                                        <Button variant="unstyled" size="unstyled"
                                             key={p.name}
                                             type="button"
                                             onClick={async () => {
@@ -426,7 +428,7 @@ export default function Profile() {
                                 </div>
                                 <div className="flex items-center gap-1.5">
                                     <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Eigene:</span>
-                                    <input
+                                    <Input
                                         type="color"
                                         value={customColor}
                                         onChange={async (e) => {
@@ -459,9 +461,11 @@ export default function Profile() {
                                     <User size={48} />
                                 </div>
                             )}
-                            <motion.button
-                                whileHover={{ scale: 1.15 }}
-                                whileTap={{ scale: 0.9 }}
+                            <Button
+                                variant="unstyled"
+                                size="unstyled"
+                                hapticStyle={false}
+                                type="button"
                                 onClick={() => {
                                     triggerHaptic('light');
                                     setIsAvatarMakerOpen(true);
@@ -470,12 +474,12 @@ export default function Profile() {
                                 title="Avatar erstellen / ändern"
                             >
                                 <Pen size={14} />
-                            </motion.button>
+                            </Button>
                         </div>
                     </div>
 
                     <div className="mb-2">
-                        <button
+                        <Button variant="unstyled" size="unstyled"
                             type="button"
                             onClick={() => {
                                 triggerHaptic('light');
@@ -485,7 +489,7 @@ export default function Profile() {
                         >
                             <Sparkles size={13} />
                             <span>Avatar gestalten</span>
-                        </button>
+                        </Button>
                     </div>
 
                     <h1 className="text-2xl font-display uppercase leading-none tracking-tight text-gray-900 dark:text-white">
@@ -579,7 +583,7 @@ export default function Profile() {
                         {/* Names */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1.5 block">Vorname</label>
+                                <Label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1.5 block">Vorname</Label>
                                 <Input
                                     placeholder="Max"
                                     value={profile.first_name}
@@ -588,7 +592,7 @@ export default function Profile() {
                                 />
                             </div>
                             <div>
-                                <label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1.5 block">Nachname</label>
+                                <Label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1.5 block">Nachname</Label>
                                 <Input
                                     placeholder="Mustermann"
                                     value={profile.last_name}
@@ -600,7 +604,7 @@ export default function Profile() {
 
                         {/* Grade & Bio */}
                         <div>
-                            <label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-2 block">Klasse / Jahrgangsstufe</label>
+                            <Label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-2 block">Klasse / Jahrgangsstufe</Label>
                             {isEditing ? (
                                 <RefinedGradeSelector
                                     grade={profile.grade_level}
@@ -615,7 +619,7 @@ export default function Profile() {
                         </div>
 
                         <div>
-                            <label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1.5 block">Über mich (Bio)</label>
+                            <Label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1.5 block">Über mich (Bio)</Label>
                             {isEditing ? (
                                 <RichTextEditor
                                     value={profile.bio}
@@ -688,7 +692,7 @@ export default function Profile() {
                                             <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center shrink-0">
                                                 <ContactIcon size={16} className="text-gray-500" />
                                             </div>
-                                            <select
+                                            <NativeSelect
                                                 value={contact.type}
                                                 disabled={!isEditing}
                                                 onChange={e => updateCustomContact(idx, { type: e.target.value })}
@@ -698,7 +702,7 @@ export default function Profile() {
                                                 {CONTACT_TYPES.map(t => (
                                                     <option key={t.value} value={t.value}>{t.label}</option>
                                                 ))}
-                                            </select>
+                                            </NativeSelect>
                                             <Input
                                                 placeholder="z.B. @name oder Einladungslink"
                                                 value={contact.value || ''}
@@ -716,27 +720,27 @@ export default function Profile() {
                                                         />
                                                         <span className="text-xs text-gray-400 font-semibold">Öffentlich</span>
                                                     </div>
-                                                    <button
+                                                    <Button variant="unstyled" size="unstyled"
                                                         type="button"
                                                         onClick={() => removeCustomContact(idx)}
                                                         aria-label="Kontakt entfernen"
                                                         className="press grid h-10 w-10 shrink-0 place-items-center rounded-xl text-gray-500 hover:bg-gray-100 hover:text-red-600 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
                                                     >
                                                         <Trash2 size={16} />
-                                                    </button>
+                                                    </Button>
                                                 </div>
                                             )}
                                         </div>
                                     );
                                 })}
                                 {isEditing && (
-                                    <button
+                                    <Button variant="unstyled" size="unstyled"
                                         type="button"
                                         onClick={addCustomContact}
                                         className="inline-flex h-10 items-center gap-1.5 rounded-full border border-dashed border-gray-300 dark:border-gray-700 px-4 text-xs font-bold text-gray-600 dark:text-gray-300 transition-colors hover:border-primary hover:text-amber-950 dark:hover:text-primary"
                                     >
                                         <Plus size={15} /> Kontakt hinzufügen
-                                    </button>
+                                    </Button>
                                 )}
                             </div>
                         </div>
@@ -745,7 +749,7 @@ export default function Profile() {
 
                         <div>
                             <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
-                                <label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 block">Ich biete Nachhilfe</label>
+                                <Label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 block">Ich biete Nachhilfe</Label>
                                 <Button
                                     variant="outline"
                                     size="sm"
@@ -764,17 +768,17 @@ export default function Profile() {
                                 {editableSubjects.map(s => (
                                     <span key={s} className="relative inline-flex">
                                         <SubjectChip subject={s} className="pr-6" />
-                                        <button
+                                        <Button variant="unstyled" size="unstyled"
                                             type="button"
                                             onClick={() => toggleTeachesSubject(s)}
                                             aria-label={`${subjectLabelMap[s]} entfernen`}
                                             className="absolute right-0 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full text-gray-600 transition-colors hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 after:absolute after:-inset-2 after:content-['']"
                                         >
                                             <X size={12} strokeWidth={3} />
-                                        </button>
+                                        </Button>
                                     </span>
                                 ))}
-                                <button
+                                <Button variant="unstyled" size="unstyled"
                                     type="button"
                                     onClick={() => {
                                         triggerHaptic('light');
@@ -783,7 +787,7 @@ export default function Profile() {
                                     className="press inline-flex h-9 items-center gap-1 rounded-full border border-dashed border-gray-300 dark:border-gray-700 px-3 text-xs font-bold text-gray-600 dark:text-gray-300 transition-colors hover:border-primary hover:text-amber-950 dark:hover:text-primary sm:h-8"
                                 >
                                     <Plus size={14} /> Fach hinzufügen
-                                </button>
+                                </Button>
                             </div>
                             {editableSubjects.length === 0 && (
                                 <p className="text-xs text-gray-400 italic mt-2">Noch keine Fächer gewählt.</p>
@@ -818,7 +822,7 @@ export default function Profile() {
                                 <CalendarDays size={20} className="text-primary shrink-0" /> Wann hast du Zeit? (Verfügbarkeit)
                             </CardTitle>
                             {isEditing && (
-                                <button
+                                <Button variant="unstyled" size="unstyled"
                                     type="button"
                                     onClick={() => setPrivacyCalendar(!privacyCalendar)}
                                     className={cn(
@@ -829,7 +833,7 @@ export default function Profile() {
                                     )}
                                 >
                                     {privacyCalendar ? (<span className="inline-flex items-center gap-1"><Lock size={12} /> Nur Matching (Privat)</span>) : (<span className="inline-flex items-center gap-1"><Eye size={12} /> Öffentlich sichtbar</span>)}
-                                </button>
+                                </Button>
                             )}
                         </div>
                         <p className="text-xs text-gray-400 mt-1 font-medium leading-relaxed">

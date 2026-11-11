@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Button } from '../components/ui/ButtonLegacy';
+import { Button } from '../components/ui/button';
 import StaticLayout from '../components/StaticLayout';
 
 export default function Cookies() {

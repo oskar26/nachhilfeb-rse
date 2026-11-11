@@ -3,7 +3,7 @@ import { Home, PlusCircle, User, LogOut, Settings, MessageSquare, Inbox, Zap, He
 import AccessGuard from './AccessGuard';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import { Button } from './ui/ButtonLegacy';
+import { Button } from './ui/button';
 import { useRef, useState } from 'react';
 import NotificationCenter from './NotificationCenter';
 import InstallPrompt from './InstallPrompt';
@@ -185,7 +185,7 @@ export default function Layout() {
                     const Icon = item.icon;
                     if (item.isAction) {
                         return (
-                            <button
+                            <Button variant="unstyled" size="unstyled"
                                 key={item.to}
                                 type="button"
                                 onClick={() => {
@@ -199,7 +199,7 @@ export default function Layout() {
                                 <span className="press -mt-6 grid h-16 w-16 place-items-center rounded-full bg-primary text-gray-950 shadow-lg shadow-primary/40 border-4 border-white dark:border-gray-950 ring-1 ring-black/10">
                                     <PlusCircle size={26} strokeWidth={2.5} />
                                 </span>
-                            </button>
+                            </Button>
                         );
                     }
 

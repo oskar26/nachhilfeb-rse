@@ -1,3 +1,4 @@
+import { Input } from '@/components/ui/input';
 import { useEffect, useRef } from "react";
 import { cn } from "../lib/utils";
 
@@ -27,7 +28,7 @@ export function PriceRangeSlider({ min, max, value, onChange, className }: Price
 
     return (
         <div className={cn("container relative h-6 w-full flex items-center", className)}>
-            <input
+            <Input
                 type="range"
                 aria-label="Mindestpreis"
                 min={min}
@@ -40,7 +41,7 @@ export function PriceRangeSlider({ min, max, value, onChange, className }: Price
                 className="pointer-events-none absolute z-30 h-0 w-full cursor-pointer opacity-0 [&::-webkit-slider-thumb]:pointer-events-auto [&::-moz-range-thumb]:pointer-events-auto"
                 style={{ zIndex: minVal > max - 100 ? 5 : 3 }}
             />
-            <input
+            <Input
                 type="range"
                 aria-label="Höchstpreis"
                 min={min}

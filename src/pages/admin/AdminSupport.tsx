@@ -1,7 +1,8 @@
+import { NativeSelect } from '@/components/ui/native-select';
 import { useState, useEffect, useRef } from 'react';
 import { api, getStoredUser } from '../../lib/api';
-import { Button } from '../../components/ui/ButtonLegacy';
-import { Input } from '../../components/ui/InputLegacy';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
 import { Card, CardContent } from '../../components/ui/CardLegacy';
 import { 
     Search, Bug, Lightbulb, MessageCircle, Send, Loader2, 
@@ -255,7 +256,7 @@ export default function AdminSupport() {
                                     <p className="text-[10px] font-bold uppercase text-gray-400 mb-1.5">Status ändern</p>
                                     <div className="flex flex-wrap gap-1.5">
                                         {['open', 'in_progress', 'resolved', 'closed'].map(status => (
-                                            <button
+                                            <Button variant="unstyled" size="unstyled" type="submit"
                                                 key={status}
                                                 onClick={() => updateTicketStatus(activeTicket.id, status)}
                                                 className={cn(
@@ -266,7 +267,7 @@ export default function AdminSupport() {
                                                 )}
                                             >
                                                 {STATUS_TEXT[status] || status}
-                                            </button>
+                                            </Button>
                                         ))}
                                     </div>
                                 </div>
@@ -362,7 +363,7 @@ export default function AdminSupport() {
                         className="pl-10 h-11 rounded-2xl"
                     />
                 </div>
-                <select
+                <NativeSelect
                     value={filterType}
                     onChange={e => setFilterType(e.target.value)}
                     className="h-11 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm focus:outline-none"
@@ -371,8 +372,8 @@ export default function AdminSupport() {
                     <option value="bug">Bugs</option>
                     <option value="feature">Features</option>
                     <option value="support">Support</option>
-                </select>
-                <select
+                </NativeSelect>
+                <NativeSelect
                     value={filterStatus}
                     onChange={e => setFilterStatus(e.target.value)}
                     className="h-11 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm focus:outline-none"
@@ -382,7 +383,7 @@ export default function AdminSupport() {
                     <option value="in_progress">In Bearbeitung</option>
                     <option value="resolved">Gelöst</option>
                     <option value="closed">Geschlossen</option>
-                </select>
+                </NativeSelect>
                 <Button onClick={fetchTickets} variant="ghost" className="h-11 w-11 p-0 rounded-2xl shrink-0" title="Aktualisieren">
                     <RefreshCw size={16} className={cn(loading && 'animate-spin')} />
                 </Button>
@@ -405,7 +406,7 @@ export default function AdminSupport() {
                     <CardContent className="p-0">
                         <div className="divide-y dark:divide-gray-800">
                             {filteredTickets.map(ticket => (
-                                <button
+                                <Button variant="unstyled" size="unstyled" type="submit"
                                     key={ticket.id}
                                     onClick={() => openTicket(ticket)}
                                     className="w-full p-5 flex items-center gap-4 hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors text-left cursor-pointer"
@@ -426,7 +427,7 @@ export default function AdminSupport() {
                                             {ticket.user_name} · {new Date(ticket.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                         </p>
                                     </div>
-                                </button>
+                                </Button>
                             ))}
                         </div>
                     </CardContent>

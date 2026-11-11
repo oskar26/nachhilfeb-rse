@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
@@ -26,7 +27,7 @@ import {
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
-import { Switch } from '../components/ui/SwitchLegacy';
+import { Switch } from '../components/ui/switch';
 import { VerifiedPill } from '../components/ui/VerifiedPill';
 import ScreenshotLightbox from '../components/ScreenshotLightbox';
 import feedIphoneShot from '../../docs/screenshots/feed-iphone.png';
@@ -221,7 +222,7 @@ export default function Landing() {
     return (
         <main className="min-h-screen bg-[#faf7ef] text-gray-900 font-sans selection:bg-primary selection:text-black overflow-x-clip">
             {/* Skip-Link als Scroll-Button: reines href="#inhalt" wäre unter HashRouter eine 404-Route. */}
-            <button type="button" onClick={() => { const el = document.getElementById('inhalt') as HTMLElement | null; if (!el) return; el.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }); try { el.focus({ preventScroll: true }); } catch { el.focus(); } }} className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-primary focus:px-5 focus:py-2.5 focus:text-sm focus:font-bold focus:text-black">Zum Inhalt springen</button>
+            <Button variant="unstyled" size="unstyled" type="button" onClick={() => { const el = document.getElementById('inhalt') as HTMLElement | null; if (!el) return; el.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }); try { el.focus({ preventScroll: true }); } catch { el.focus(); } }} className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-primary focus:px-5 focus:py-2.5 focus:text-sm focus:font-bold focus:text-black">Zum Inhalt springen</Button>
             {/* THESIS: Die Boerse als helle Schulhof-Plakatwand: Papier, schwarze Schrift, Vollgelb als Akzent. Vertraut nichts dem Kleingedruckten an. OWN-WORLD: Papierweiss (#faf7ef) mit schwarzer Schrift, Anton-Posterzeilen mit gelbem Marker, Abriss-Tickets mit Perforation, Stempel-Badges, Fach-Ticker, Tabellenzahlen in Mono. STORY: In Sekunden klar: nur FWG, suchen und bieten, SV-verifiziert. Dann Anmeldung oder Eltern- und Coaching-Weiterlesen. FORM: Eigene Liste Nummer 5, Abi-Plakat und Siebdruck. FINISH: unreviewed and undocumented is unfinished. */}
 
             <SiteHeader />
@@ -487,7 +488,7 @@ export default function Landing() {
                         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-300">Klick auf eine Ansicht öffnet sie groß — im Popup mit Pfeiltasten durchblättern.</p>
                         <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 sm:gap-x-5 lg:grid-cols-4">
                             {BOARD_PRINTS.map((p, i) => (
-                                <button
+                                <Button variant="unstyled" size="unstyled"
                                     key={p.index}
                                     type="button"
                                     onClick={() => { setLightboxIndex(i); setLightboxOpen(true); }}
@@ -507,9 +508,9 @@ export default function Landing() {
                                         <span className="font-mono text-xs font-bold tabular-nums text-primary">{p.index}</span>
                                         <span className="board-caption text-xs font-bold sm:text-sm">{p.caption}</span>
                                     </span>
-                                </button>
+                                </Button>
                             ))}
-                            <button
+                            <Button variant="unstyled" size="unstyled"
                                 type="button"
                                 onClick={() => { setLightboxIndex(0); setLightboxOpen(true); }}
                                 aria-label="Alle Screenshots groß ansehen"
@@ -520,7 +521,7 @@ export default function Landing() {
                                     <Maximize2 size={22} aria-hidden />
                                     <span className="font-mono text-xs font-bold uppercase tracking-wide">Alle groß ansehen</span>
                                 </span>
-                            </button>
+                            </Button>
                         </div>
                     </div>
 

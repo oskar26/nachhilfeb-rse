@@ -1,8 +1,10 @@
+import { Label } from '@/components/ui/label';
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../lib/api';
-import { Button } from '../components/ui/ButtonLegacy';
-import { Input } from '../components/ui/InputLegacy';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Checkbox } from '../components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardFooter } from '../components/ui/CardLegacy';
 import { toast } from 'sonner';
 import { useTheme } from '../components/ThemeProvider';
@@ -143,7 +145,7 @@ export default function Login() {
         if (isBlocked) {
             return;
         }
-        
+
         if (mode === 'register' && !acceptedTerms) {
             setError("Bitte stimme den Nutzungsbedingungen zu.");
             return;
@@ -353,13 +355,13 @@ export default function Login() {
             {/* Left Side - Branding (Hidden on Mobile) */}
             <div className="hidden lg:flex w-1/2 bg-primary flex-col justify-between p-12 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary-hover to-[#d4ff33] opacity-50" />
-                
+
                 {/* Decorative circles */}
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-white/20 blur-3xl" />
                 <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-black/10 blur-3xl" />
 
                 <div className="relative z-10">
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="flex items-center gap-3.5 text-gray-900 font-black text-3xl tracking-tight"
@@ -370,7 +372,7 @@ export default function Login() {
                 </div>
 
                 <div className="relative z-10 max-w-[95ch]">
-                    <motion.h1 
+                    <motion.h1
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
@@ -378,7 +380,7 @@ export default function Login() {
                     >
                         Gemeinsam lernen,<br />besser werden.
                     </motion.h1>
-                    <motion.p 
+                    <motion.p
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
@@ -386,8 +388,8 @@ export default function Login() {
                     >
                         Finde Nachhilfe oder biete dein Wissen an. Exklusiv für Schülerinnen und Schüler des Friedrich-Wilhelm-Gymnasiums.
                     </motion.p>
-                    
-                    <motion.div 
+
+                    <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.3 }}
@@ -404,7 +406,7 @@ export default function Login() {
                         </div>
                     </motion.div>
                 </div>
-                
+
                 <div className="relative z-10 text-sm font-bold text-gray-800">
                     FWG Köln © {new Date().getFullYear()}
                 </div>
@@ -414,7 +416,7 @@ export default function Login() {
             <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 lg:p-12 relative overflow-y-auto max-h-screen">
                 <div className="lg:hidden absolute inset-0 bg-gradient-to-b from-primary/20 to-transparent pointer-events-none" />
 
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className="w-full max-w-md my-auto relative z-10"
@@ -432,18 +434,18 @@ export default function Login() {
 
                     <Card className="border-0 shadow-2xl shadow-black/5 dark:shadow-black/20 ring-1 ring-gray-200/50 dark:ring-gray-800/50 backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 overflow-hidden">
                         <div className="flex w-full border-b border-gray-100 dark:border-gray-800">
-                            <button 
+                            <Button variant="unstyled" size="unstyled" type="submit"
                                 className={`flex-1 py-4 text-sm font-bold transition-colors ${mode === 'login' ? 'text-primary border-b-2 border-primary bg-primary/5 dark:bg-primary/10' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/50'}`}
                                 onClick={() => { setMode('login'); setError(null); }}
                             >
                                 Anmelden
-                            </button>
-                            <button 
+                            </Button>
+                            <Button variant="unstyled" size="unstyled" type="submit"
                                 className={`flex-1 py-4 text-sm font-bold transition-colors ${mode === 'register' ? 'text-primary border-b-2 border-primary bg-primary/5 dark:bg-primary/10' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/50'}`}
                                 onClick={() => { setMode('register'); setError(null); }}
                             >
                                 Registrieren
-                            </button>
+                            </Button>
                         </div>
 
                         <CardHeader className="pt-6">
@@ -456,7 +458,7 @@ export default function Login() {
                                     : 'Schritt 1 von 2 · dauert ca. 2 Minuten. Danach: E-Mail bestätigen.'}
                             </CardDescription>
                         </CardHeader>
-                        
+
                         <CardContent className="space-y-4">
                             {isBlocked && (
                                 <div role="alert" className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800/50 flex items-start gap-2">
@@ -476,7 +478,7 @@ export default function Login() {
 
                             <form onSubmit={handleAuth} className="space-y-4">
                                 {/* Invisible Honeypot Field for Anti-Spam */}
-                                <input
+                                <Input
                                     type="text"
                                     name="website_hp_check"
                                     id="website_hp_check"
@@ -496,7 +498,7 @@ export default function Login() {
                                         </div>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div className="space-y-1">
-                                                <label className="text-xs font-bold uppercase text-gray-500 ml-1">Vorname *</label>
+                                                <Label className="text-xs font-bold uppercase text-gray-500 ml-1">Vorname *</Label>
                                                 <Input
                                                     placeholder="Max"
                                                     value={firstName}
@@ -506,7 +508,7 @@ export default function Login() {
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-xs font-bold uppercase text-gray-500 ml-1">Nachname *</label>
+                                                <Label className="text-xs font-bold uppercase text-gray-500 ml-1">Nachname *</Label>
                                                 <Input
                                                     placeholder="Mustermann"
                                                     value={lastName}
@@ -518,7 +520,7 @@ export default function Login() {
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className="text-xs font-bold uppercase text-gray-500 ml-1">Klasse/Stufe</label>
+                                            <Label className="text-xs font-bold uppercase text-gray-500 ml-1">Klasse/Stufe</Label>
                                             <RefinedGradeSelector
                                                 grade={grade}
                                                 letter={letter}
@@ -527,7 +529,7 @@ export default function Login() {
                                             />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-xs font-bold uppercase text-gray-500 ml-1">Geburtsdatum *</label>
+                                            <Label className="text-xs font-bold uppercase text-gray-500 ml-1">Geburtsdatum *</Label>
                                             <Input
                                                 type="date"
                                                 value={birthDate}
@@ -546,25 +548,24 @@ export default function Login() {
                                                     Da du unter 16 Jahre alt bist, brauchen wir die Zustimmung deiner Erziehungsberechtigten. Sprich die Anmeldung mit ihnen durch und zeig ihnen gern den <Link to="/eltern-leitfaden" className="underline font-bold" target="_blank">Eltern-Leitfaden</Link>.
                                                 </p>
                                                 <div className="flex items-start gap-2 pt-1">
-                                                    <input 
-                                                        type="checkbox" 
-                                                        id="parentalConsent" 
+                                                    <Checkbox
+                                                        id="parentalConsent"
                                                         checked={parentalConsent}
-                                                        onChange={(e) => setParentalConsent(e.target.checked)}
-                                                        className="mt-0.5 w-4 h-4 rounded cursor-pointer accent-[#b45309] dark:accent-[#facc15] focus:ring-[var(--ring))]"
+                                                        onCheckedChange={(checked) => setParentalConsent(checked === true)}
+                                                        className="mt-0.5 cursor-pointer"
                                                     />
-                                                    <label htmlFor="parentalConsent" className="text-xs font-semibold text-amber-900 dark:text-amber-200 cursor-pointer leading-tight">
+                                                    <Label htmlFor="parentalConsent" className="text-xs font-semibold text-amber-900 dark:text-amber-200 cursor-pointer leading-tight">
                                                         Meine Erziehungsberechtigten stimmen der Nutzung dieser Plattform zu. *
-                                                    </label>
+                                                    </Label>
                                                 </div>
                                             </div>
                                         )}
 
                                         <div className="space-y-1">
-                                            <label className="text-xs font-bold uppercase text-gray-500 ml-1 flex justify-between tracking-wider">
+                                            <Label className="text-xs font-bold uppercase text-gray-500 ml-1 flex justify-between tracking-wider">
                                                 <span>SV-Einmalcode</span>
                                                 <span className="text-xs text-amber-700 dark:text-primary lowercase font-semibold">optional</span>
-                                            </label>
+                                            </Label>
                                             <Input
                                                 placeholder="SV-XXXX-XXXX-XXXX"
                                                 value={inviteCode}
@@ -580,7 +581,7 @@ export default function Login() {
                                 )}
 
                                 <div className="space-y-1">
-                                    <label className="text-xs font-bold uppercase text-gray-500 ml-1">E-Mail Adresse</label>
+                                    <Label className="text-xs font-bold uppercase text-gray-500 ml-1">E-Mail Adresse</Label>
                                     <Input
                                         type="email"
                                         placeholder="E-Mail-Adresse"
@@ -592,9 +593,9 @@ export default function Login() {
                                 </div>
                                 <div className="space-y-1">
                                     <div className="flex justify-between items-center px-1">
-                                        <label className="text-xs font-bold uppercase text-gray-500">Passwort</label>
+                                        <Label className="text-xs font-bold uppercase text-gray-500">Passwort</Label>
                                         {mode === 'login' && (
-                                            <button type="button" onClick={handleResetPassword} className="text-xs text-primary font-bold hover:underline">Passwort vergessen?</button>
+                                            <Button variant="unstyled" size="unstyled" type="button" onClick={handleResetPassword} className="text-xs text-primary font-bold hover:underline">Passwort vergessen?</Button>
                                         )}
                                     </div>
                                     <Input
@@ -609,22 +610,21 @@ export default function Login() {
 
                                 {mode === 'register' && (
                                     <div className="flex items-start gap-3 mt-4 p-3 bg-gray-50 dark:bg-gray-950/50 rounded-xl border border-gray-100 dark:border-gray-800">
-                                        <input 
-                                            type="checkbox" 
-                                            id="terms" 
+                                        <Checkbox
+                                            id="terms"
                                             checked={acceptedTerms}
-                                            onChange={(e) => setAcceptedTerms(e.target.checked)}
-                                            className="mt-1 w-4 h-4 text-primary bg-white border-gray-300 rounded focus:ring-primary dark:focus:ring-primary dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 cursor-pointer"
+                                            onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                                            className="mt-1 cursor-pointer"
                                         />
-                                        <label htmlFor="terms" className="text-xs text-gray-600 dark:text-gray-400 cursor-pointer leading-relaxed">
+                                        <Label htmlFor="terms" className="text-xs text-gray-600 dark:text-gray-400 cursor-pointer leading-relaxed">
                                             Ich stimme den <Link to="/nutzungsbedingungen" className="text-primary font-bold hover:underline" target="_blank">Nutzungsbedingungen</Link> und der <Link to="/datenschutz" className="text-primary font-bold hover:underline" target="_blank">Datenschutzerklärung</Link> zu.
-                                        </label>
+                                        </Label>
                                     </div>
                                 )}
 
-                                <Button 
-                                    type="submit" 
-                                    className="w-full h-12 rounded-xl font-bold text-[15px] mt-6 shadow-md shadow-primary/20" 
+                                <Button
+                                    type="submit"
+                                    className="w-full h-12 rounded-xl font-bold text-[15px] mt-6 shadow-md shadow-primary/20"
                                     disabled={isLoading || isBlocked}
                                 >
                                     {isLoading ? 'Bitte warten...' : (mode === 'login' ? 'Einloggen' : 'Jetzt starten')}

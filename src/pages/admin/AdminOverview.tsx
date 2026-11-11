@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
@@ -70,13 +71,13 @@ function StatCard({ icon, label, value, subValue, color = 'default', onClick }: 
                         {icon}
                     </div>
                     {onClick ? (
-                        <button
+                        <Button variant="unstyled" size="unstyled"
                             type="button"
                             className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-400 hover:text-gray-600"
                             onClick={(e) => { e.stopPropagation(); onClick(); }}
                         >
                             <ArrowUpRight size={16} />
-                        </button>
+                        </Button>
                     ) : (
                         <ArrowUpRight size={16} className="text-gray-300" />
                     )}
@@ -198,7 +199,7 @@ export default function AdminOverview() {
 
             {/* Seitenaufrufe-Trend (7 Tage) */}
             {pageTrend.some(v => v > 0) && (
-                <button
+                <Button variant="unstyled" size="unstyled"
                     type="button"
                     onClick={() => navTo('analytics')}
                     className="w-full text-left bg-white dark:bg-gray-900 rounded-3xl border dark:border-gray-800 shadow-sm p-5 hover:shadow-md transition-all"
@@ -225,7 +226,7 @@ export default function AdminOverview() {
                             );
                         })}
                     </div>
-                </button>
+                </Button>
             )}
 
             {/* Quick actions */}
@@ -233,7 +234,7 @@ export default function AdminOverview() {
                 <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Schnellzugriff</h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {QUICK_ACTIONS.map(({ label, icon: Icon, tab, iconCls, hoverCls }) => (
-                        <button
+                        <Button variant="unstyled" size="unstyled" type="submit"
                             key={tab}
                             onClick={() => navTo(tab)}
                             className={cn(
@@ -243,7 +244,7 @@ export default function AdminOverview() {
                         >
                             <Icon size={18} className={iconCls} />
                             {label}
-                        </button>
+                        </Button>
                     ))}
                 </div>
             </div>
@@ -257,9 +258,9 @@ export default function AdminOverview() {
                             <AlertTriangle size={16} className="text-amber-500" />
                             Letzte Meldungen
                         </div>
-                        <button onClick={() => navTo('reports')} className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 flex items-center gap-1">
+                        <Button variant="unstyled" size="unstyled" type="submit" onClick={() => navTo('reports')} className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 flex items-center gap-1">
                             Alle <ArrowUpRight size={12} />
-                        </button>
+                        </Button>
                     </div>
                     <div className="divide-y dark:divide-gray-800">
                         {loading ? (
@@ -296,9 +297,9 @@ export default function AdminOverview() {
                             <UserPlus size={16} className="text-blue-500" />
                             Neue Nutzer
                         </div>
-                        <button onClick={() => navTo('users')} className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 flex items-center gap-1">
+                        <Button variant="unstyled" size="unstyled" type="submit" onClick={() => navTo('users')} className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 flex items-center gap-1">
                             Alle <ArrowUpRight size={12} />
-                        </button>
+                        </Button>
                     </div>
                     <div className="divide-y dark:divide-gray-800">
                         {loading ? (

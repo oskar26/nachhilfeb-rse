@@ -1,9 +1,10 @@
+import { Label } from '@/components/ui/label';
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Card, CardContent } from '../components/ui/CardLegacy';
-import { Input } from '../components/ui/InputLegacy';
-import { OtpInput } from '../components/ui/OtpInput';
-import { Button } from '../components/ui/ButtonLegacy';
+import { Input } from '../components/ui/input';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '../components/ui/input-otp';
+import { Button } from '../components/ui/button';
 import { MailCheck, RefreshCw, ArrowLeft } from 'lucide-react';
 import { api } from '../lib/api';
 import { toast } from 'sonner';
@@ -82,7 +83,7 @@ export default function VerifyEmail() {
 
                     <form onSubmit={handleVerify} className="space-y-4">
                         <div>
-                            <label className="text-sm font-medium mb-1.5 block">E-Mail-Adresse</label>
+                            <Label className="text-sm font-medium mb-1.5 block">E-Mail-Adresse</Label>
                             <Input
                                 type="email"
                                 value={email}
@@ -92,15 +93,28 @@ export default function VerifyEmail() {
                             />
                         </div>
                         <div>
-                            <label className="text-sm font-medium mb-1.5 block">Bestätigungs-Code</label>
-                            <OtpInput
+                            <Label className="text-sm font-medium mb-1.5 block">Bestätigungs-Code</Label>
+                            <InputOTP
+                                maxLength={6}
                                 value={code}
-                                onChange={setCode}
+                                onChange={value => setCode(value.toUpperCase())}
                                 onComplete={value => handleVerify(undefined, value)}
-                                numeric
+                                pattern="[0-9]*"
+                                inputMode="numeric"
                                 autoFocus
-                                ariaLabel="Bestätigungs-Code"
-                            />
+                                aria-label="Bestätigungs-Code"
+                                aria-invalid={Boolean(error)}
+                            >
+                                <InputOTPGroup>
+                                    {Array.from({ length: 6 }).map((_, index) => (
+                                        <InputOTPSlot
+                                            key={index}
+                                            index={index}
+                                            className="h-14 w-11 border-2 border-input text-lg font-bold sm:w-12"
+                                        />
+                                    ))}
+                                </InputOTPGroup>
+                            </InputOTP>
                         </div>
 
                         {error && (
@@ -116,7 +130,7 @@ export default function VerifyEmail() {
 
                     <div className="text-center text-sm">
                         <span className="text-gray-500">Kein Code angekommen? </span>
-                        <button
+                        <Button variant="unstyled" size="unstyled"
                             type="button"
                             onClick={handleResend}
                             disabled={isLoading || cooldown > 0 || !email}
@@ -124,7 +138,7 @@ export default function VerifyEmail() {
                         >
                             <RefreshCw size={14} />
                             {cooldown > 0 ? `Neuer Code in ${cooldown}s` : 'Neuen Code senden'}
-                        </button>
+                        </Button>
                     </div>
 
                     <div className="text-center">

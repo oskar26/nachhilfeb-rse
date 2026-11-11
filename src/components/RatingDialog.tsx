@@ -1,5 +1,6 @@
+import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
-import { Button } from './ui/ButtonLegacy';
+import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/DialogLegacy';
 import { Star } from 'lucide-react';
 import { api } from '../lib/api';
@@ -54,17 +55,17 @@ export function RatingDialog({ open, onOpenChange, targetUser, adId, onSuccess }
                 <div className="py-6 flex flex-col items-center gap-4">
                     <div className="flex gap-1">
                         {[1, 2, 3, 4, 5].map((star) => (
-                            <button
+                            <Button variant="unstyled" size="unstyled"
                                 key={star}
                                 type="button"
                                 onClick={() => setRating(star)}
                                 className={`transition-all ${rating >= star ? 'scale-110' : 'grayscale opacity-50 hover:opacity-100 hover:scale-110'}`}
                             >
                                 <Star fill={rating >= star ? "gold" : "none"} color={rating >= star ? "gold" : "currentColor"} size={32} />
-                            </button>
+                            </Button>
                         ))}
                     </div>
-                    <textarea
+                    <Textarea
                         className="w-full border rounded-md p-2 h-24 text-sm bg-gray-50 dark:bg-gray-900"
                         placeholder="Schreibe einen Kommentar (optional)..."
                         value={comment}

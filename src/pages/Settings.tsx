@@ -1,8 +1,10 @@
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { useTheme } from '../components/ThemeProvider';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/CardLegacy';
 import { Moon, Sun, Monitor, ChevronLeft, Shield, Trash2, Download, AlertTriangle, LifeBuoy, Share2, BookOpen } from 'lucide-react';
-import { Button } from '../components/ui/ButtonLegacy';
+import { Button } from '../components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
@@ -14,14 +16,14 @@ import { Logo } from '../components/ui/Logo';
 import { cn } from '../lib/utils';
 import { triggerHaptic } from '../lib/haptics';
 import { requestPushPermission } from '../lib/push';
-import { Switch } from '../components/ui/SwitchLegacy';
+import { Switch } from '../components/ui/switch';
 import { SubjectChip, SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
 
 export default function Settings() {
     const { theme, setTheme } = useTheme();
     const navigate = useNavigate();
     const { user } = useAuth();
-    
+
     const [settings, setSettings] = useState<{
         email_visible: boolean;
         phone_visible: boolean;
@@ -227,11 +229,12 @@ export default function Settings() {
                                 const Icon = item.icon;
                                 const isActive = theme === item.id;
                                 return (
-                                    <motion.button
+                                    <Button
+                                        variant="unstyled"
+                                        size="unstyled"
+                                        hapticStyle={false}
                                         key={item.id}
-                                        whileHover={{ scale: 1.04 }}
-                                        whileTap={{ scale: 0.94 }}
-                                        transition={{ type: "spring", stiffness: 450, damping: 25 }}
+                                        type="button"
                                         onClick={() => handleThemeChange(item.id as any)}
                                         className={cn(
                                             "flex flex-col items-center justify-center p-4 rounded-2xl border transition-all cursor-pointer select-none gap-2",
@@ -242,7 +245,7 @@ export default function Settings() {
                                     >
                                         <Icon size={22} className={isActive ? "text-primary-hover dark:text-primary" : ""} />
                                         <span className="text-xs">{item.label}</span>
-                                    </motion.button>
+                                    </Button>
                                 );
                             })}
                         </div>
@@ -455,7 +458,7 @@ export default function Settings() {
                         <Logo className="w-12 h-12 text-black dark:text-white" />
                     </div>
                     <div>
-                        <h3 
+                        <h3
                             className="font-black text-lg text-gray-900 dark:text-white cursor-pointer select-none"
                             onClick={() => {
                                 triggerHaptic('light');
@@ -480,11 +483,11 @@ export default function Settings() {
                             animate={{ opacity: 1, y: 0 }}
                             className="pt-4 border-t border-gray-100 dark:border-gray-800 space-y-3 text-left"
                         >
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">SV-Code Einlösen</label>
+                            <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">SV-Code Einlösen</Label>
                             <div className="flex gap-2">
-                                <input 
-                                    type="text" 
-                                    placeholder="SV-Einladungscode..." 
+                                <Input
+                                    type="text"
+                                    placeholder="SV-Einladungscode..."
                                     className="flex-1 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-primary outline-none font-mono uppercase text-gray-900 dark:text-white"
                                     id="secretCodeInput"
                                     onKeyDown={async (e) => {

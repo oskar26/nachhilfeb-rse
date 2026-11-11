@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { api, getStoredUser } from '../../lib/api';
-import { Button } from '../../components/ui/ButtonLegacy';
+import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/CardLegacy';
 import {
     MessageSquare,
@@ -193,9 +193,9 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
             <div className="p-4 bg-gray-50 dark:bg-gray-800/40 border-b dark:border-gray-800 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">
                     {onBack && (
-                        <button onClick={onBack} className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400">
+                        <Button variant="unstyled" size="unstyled" type="submit" onClick={onBack} className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400">
                             <ArrowLeft size={20} />
-                        </button>
+                        </Button>
                     )}
                     <div>
                         <div className="font-bold text-sm text-gray-800 dark:text-gray-200">

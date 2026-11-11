@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
 import { ChevronDown, Mail } from 'lucide-react';
 import StaticLayout from '../components/StaticLayout';
 import VerifySteps from '../components/VerifySteps';
@@ -148,21 +149,18 @@ export default function Nutzungsbedingungen() {
                     <h2 className="font-display uppercase text-2xl tracking-tight text-gray-900 dark:text-white">Inhalt</h2>
                     <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
                     <ol className="mt-4 grid gap-1 sm:grid-cols-2">
-                        {toc.map((item, i) => (
+                        {toc.map((item) => (
                             <li key={item.id}>
-                                <motion.button
+                                <Button
+                                    variant="unstyled"
+                                    size="unstyled"
+                                    hapticStyle={false}
                                     type="button"
                                     onClick={() => scrollToId(item.id)}
-                                    {...(reduceMotion ? {} : {
-                                        initial: { opacity: 0, y: 8 },
-                                        whileInView: { opacity: 1, y: 0 },
-                                        viewport: { once: true, margin: '-60px' },
-                                        transition: { duration: 0.45, delay: Math.min(i * 0.03, 0.3), ease: easeOut },
-                                    })}
                                     className="press flex min-h-[44px] w-full items-center rounded-xl px-3 py-2.5 text-left text-[15px] font-semibold text-gray-800 hover:bg-gray-100 hover:underline active:bg-primary/15 dark:text-gray-100 dark:hover:bg-white/5"
                                 >
                                     {item.label}
-                                </motion.button>
+                                </Button>
                             </li>
                         ))}
                     </ol>

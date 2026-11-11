@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
-import { Button } from '../components/ui/ButtonLegacy';
+import { Button } from '../components/ui/button';
 import { Card, CardHeader, CardContent } from '../components/ui/CardLegacy';
 import { SubjectChip } from '../components/SubjectChip';
 import { toast } from 'sonner';

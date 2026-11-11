@@ -1,6 +1,8 @@
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/DialogLegacy';
-import { Button } from './ui/ButtonLegacy';
+import { Button } from './ui/button';
 import { Shapes, Type, PenTool, Upload, RotateCcw, Trash2, Check, Sparkles, X, BookOpen, Pencil, GraduationCap, FlaskConical, Calculator, Lightbulb, Brain, Backpack, NotebookPen, Laptop, Palette, Globe, Smile, Laugh, Rocket, Star, Flame, Zap, Heart, ThumbsUp, Trophy, Music, Gamepad2, Bike, Dumbbell, Guitar, Headphones, Target, Camera, Medal, Flag, Puzzle, Dices, Timer, Tent, type LucideIcon } from 'lucide-react';
 import { compressImage } from '../lib/image';
 import { toast } from 'sonner';
@@ -341,17 +343,17 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                     <DialogDescription className="text-xs text-gray-500 dark:text-gray-400">
                         Wähle ein Symbol, Initialen, zeichne selbst oder lade ein Foto hoch.
                     </DialogDescription>
-                    <button
+                    <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={onClose}
                         className="absolute right-4 top-4 p-1.5 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
                     >
                         <X size={18} />
-                    </button>
+                    </Button>
                 </DialogHeader>
 
                 {/* Mode Selector Tabs */}
                 <div className="flex border-b dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 p-2 gap-1.5 overflow-x-auto">
-                    <button
+                    <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={() => { triggerHaptic('selection'); setMode('symbol'); }}
                         className={cn(
                             "flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shrink-0",
@@ -359,8 +361,8 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                         )}
                     >
                         <Shapes size={15} /> Symbol
-                    </button>
-                    <button
+                    </Button>
+                    <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={() => { triggerHaptic('selection'); setMode('text'); }}
                         className={cn(
                             "flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shrink-0",
@@ -368,8 +370,8 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                         )}
                     >
                         <Type size={15} /> Text / Initialen
-                    </button>
-                    <button
+                    </Button>
+                    <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={() => { triggerHaptic('selection'); setMode('draw'); }}
                         className={cn(
                             "flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shrink-0",
@@ -377,8 +379,8 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                         )}
                     >
                         <PenTool size={15} /> Zeichnen
-                    </button>
-                    <button
+                    </Button>
+                    <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={() => { triggerHaptic('selection'); setMode('upload'); }}
                         className={cn(
                             "flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shrink-0",
@@ -386,7 +388,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                         )}
                     >
                         <Upload size={15} /> Foto
-                    </button>
+                    </Button>
                 </div>
 
                 <div className="p-6 space-y-6">
@@ -448,10 +450,10 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                         <div className="space-y-4">
                             {/* Color Selector */}
                             <div>
-                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Hintergrundfarbe</label>
+                                <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Hintergrundfarbe</Label>
                                 <div className="flex items-center gap-2 overflow-x-auto pb-1">
                                     {BG_PALETTES.map(color => (
-                                        <button
+                                        <Button variant="unstyled" size="unstyled" type="submit"
                                             key={color}
                                             onClick={() => setSymbolBg(color)}
                                             style={{ backgroundColor: color }}
@@ -471,7 +473,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                                         <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">{cat.name}</span>
                                         <div className="grid grid-cols-6 gap-2 bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-2xl border dark:border-gray-800">
                                             {cat.items.map(({ name, label, Icon }) => (
-                                                <button
+                                                <Button variant="unstyled" size="unstyled" type="submit"
                                                     key={name}
                                                     title={label}
                                                     aria-label={label}
@@ -486,7 +488,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                                                     )}
                                                 >
                                                     <Icon size={24} />
-                                                </button>
+                                                </Button>
                                             ))}
                                         </div>
                                     </div>
@@ -499,8 +501,8 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                     {mode === 'text' && (
                         <div className="space-y-4">
                             <div>
-                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Deine Initialen (max. 2 Buchstaben)</label>
-                                <input
+                                <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Deine Initialen (max. 2 Buchstaben)</Label>
+                                <Input
                                     type="text"
                                     maxLength={2}
                                     value={textInitials}
@@ -511,10 +513,10 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                             </div>
 
                             <div>
-                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Schriftstil</label>
+                                <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Schriftstil</Label>
                                 <div className="grid grid-cols-2 gap-2">
                                     {MONOGRAM_FONTS.map((font, idx) => (
-                                        <button
+                                        <Button variant="unstyled" size="unstyled" type="submit"
                                             key={font.label}
                                             onClick={() => setTextFontIndex(idx)}
                                             className={cn(
@@ -525,16 +527,16 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                                             )}
                                         >
                                             {font.label}
-                                        </button>
+                                        </Button>
                                     ))}
                                 </div>
                             </div>
 
                             <div>
-                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Hintergrundfarbe</label>
+                                <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Hintergrundfarbe</Label>
                                 <div className="flex items-center gap-2 overflow-x-auto pb-1">
                                     {BG_PALETTES.map(color => (
-                                        <button
+                                        <Button variant="unstyled" size="unstyled" type="submit"
                                             key={color}
                                             onClick={() => setTextBg(color)}
                                             style={{ backgroundColor: color }}
@@ -548,10 +550,10 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                             </div>
 
                             <div>
-                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Textfarbe</label>
+                                <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Textfarbe</Label>
                                 <div className="flex items-center gap-2">
                                     {['#ffffff', '#000000', '#facc15', '#1e293b'].map(c => (
-                                        <button
+                                        <Button variant="unstyled" size="unstyled" type="submit"
                                             key={c}
                                             onClick={() => setTextColor(c)}
                                             style={{ backgroundColor: c }}
@@ -578,7 +580,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                                 {/* Color Palette */}
                                 <div className="flex items-center gap-1.5 overflow-x-auto">
                                     {['#000000', '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ffffff'].map(col => (
-                                        <button
+                                        <Button variant="unstyled" size="unstyled" type="submit"
                                             key={col}
                                             onClick={() => setBrushColor(col)}
                                             style={{ backgroundColor: col }}
@@ -594,7 +596,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                                 {/* Brush Size */}
                                 <div className="flex items-center gap-1 shrink-0">
                                     {[3, 7, 14].map(size => (
-                                        <button
+                                        <Button variant="unstyled" size="unstyled" type="submit"
                                             key={size}
                                             onClick={() => setBrushSize(size)}
                                             className={cn(
@@ -606,27 +608,27 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                                                 style={{ width: Math.min(14, size), height: Math.min(14, size) }}
                                                 className="bg-current rounded-full"
                                             />
-                                        </button>
+                                        </Button>
                                     ))}
                                 </div>
 
                                 {/* Actions */}
                                 <div className="flex items-center gap-1 shrink-0">
-                                    <button
+                                    <Button variant="unstyled" size="unstyled" type="submit"
                                         onClick={handleUndo}
                                         disabled={drawHistory.length <= 1}
                                         className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40"
                                         title="Rückgängig"
                                     >
                                         <RotateCcw size={14} />
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button variant="unstyled" size="unstyled" type="submit"
                                         onClick={handleClearDraw}
                                         className="p-1.5 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20"
                                         title="Leinwand löschen"
                                     >
                                         <Trash2 size={14} />
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         </div>
@@ -635,7 +637,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                     {/* MODE 4: PHOTO UPLOAD */}
                     {mode === 'upload' && (
                         <div className="space-y-4 text-center">
-                            <input
+                            <Input
                                 type="file"
                                 ref={fileInputRef}
                                 className="hidden"

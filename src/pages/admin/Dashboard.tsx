@@ -1,8 +1,8 @@
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../../lib/api';
-import { Button } from '../../components/ui/ButtonLegacy';
+import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/CardLegacy';
-import { Input } from '../../components/ui/InputLegacy';
+import { Input } from '../../components/ui/input';
 import { Trash2, Search, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../../lib/utils';

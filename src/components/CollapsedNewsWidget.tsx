@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -36,7 +37,7 @@ export function CollapsedNewsWidget() {
     return (
         <div className="w-full bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-amber-500/10 border border-amber-300/60 dark:border-amber-900/40 rounded-3xl overflow-hidden transition-all duration-300 shadow-sm">
             {/* Collapsed Header Bar */}
-            <button
+            <Button variant="unstyled" size="unstyled" type="submit"
                 onClick={() => setExpanded(e => !e)}
                 className="w-full p-4 flex items-center justify-between text-left hover:bg-amber-500/5 transition-colors gap-3"
             >
@@ -63,7 +64,7 @@ export function CollapsedNewsWidget() {
                     <span>{expanded ? 'Einklappen' : 'Mehr lesen'}</span>
                     {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 </div>
-            </button>
+            </Button>
 
             {/* Expandable Content */}
             {expanded && (

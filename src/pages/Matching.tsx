@@ -9,7 +9,7 @@ import {
     CalendarDays, CheckCircle2,
     BookOpen, GraduationCap, MapPin, Search, Euro, Zap
 } from 'lucide-react';
-import { Button } from '../components/ui/ButtonLegacy';
+import { Button } from '../components/ui/button';
 import { VerifiedPill } from '../components/ui/VerifiedPill';
 import { AvailabilityCalendar } from '../components/AvailabilityCalendar';
 import { MatchScoreBadge } from '../components/social/MatchScoreBadge';
@@ -191,7 +191,7 @@ export function MatchStreamCard({
                     </span>
                 )}
                 {availabilityMatches > 0 && (
-                    <button
+                    <Button variant="unstyled" size="unstyled"
                         type="button"
                         onClick={() => setShowCalendar(!showCalendar)}
                         aria-expanded={showCalendar}
@@ -202,7 +202,7 @@ export function MatchStreamCard({
                         <span className="font-mono tabular-nums">{availabilityMatches}</span>
                         Freistunden
                         <span className="text-[10px] underline">{showCalendar ? 'ausblenden' : 'ansehen'}</span>
-                    </button>
+                    </Button>
                 )}
             </div>
 

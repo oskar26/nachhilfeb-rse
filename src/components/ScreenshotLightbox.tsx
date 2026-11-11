@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { useCallback, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Dialog, DialogContent } from './ui/DialogLegacy';
@@ -65,7 +66,7 @@ export default function ScreenshotLightbox({ items, open, index, onIndexChange, 
                     <span className="font-mono text-xs font-bold tabular-nums text-gray-500">
                         {String(safeIndex + 1).padStart(2, '0')} / {String(count).padStart(2, '0')}
                     </span>
-                    <button
+                    <Button variant="unstyled" size="unstyled"
                         ref={closeRef}
                         type="button"
                         onClick={onClose}
@@ -73,7 +74,7 @@ export default function ScreenshotLightbox({ items, open, index, onIndexChange, 
                         className="press inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/15 text-gray-600 transition-colors hover:bg-black/5 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
                         <X size={18} aria-hidden />
-                    </button>
+                    </Button>
                 </div>
 
                 <img
@@ -83,16 +84,16 @@ export default function ScreenshotLightbox({ items, open, index, onIndexChange, 
                 />
 
                 <div className="mt-4 flex items-center justify-between gap-3 sm:gap-4">
-                    <button type="button" onClick={() => step(-1)} aria-label="Vorheriges Bild" disabled={count < 2} className={navButton}>
+                    <Button variant="unstyled" size="unstyled" type="button" onClick={() => step(-1)} aria-label="Vorheriges Bild" disabled={count < 2} className={navButton}>
                         <ChevronLeft size={20} aria-hidden />
-                    </button>
+                    </Button>
                     <p className="flex min-w-0 flex-1 flex-wrap items-baseline justify-center gap-x-2.5 gap-y-1 text-center">
                         {item.index && <span className="font-mono text-xs font-bold tabular-nums text-amber-600">{item.index}</span>}
                         <span className="board-caption text-sm font-bold">{item.caption}</span>
                     </p>
-                    <button type="button" onClick={() => step(1)} aria-label="Nächstes Bild" disabled={count < 2} className={navButton}>
+                    <Button variant="unstyled" size="unstyled" type="button" onClick={() => step(1)} aria-label="Nächstes Bild" disabled={count < 2} className={navButton}>
                         <ChevronRight size={20} aria-hidden />
-                    </button>
+                    </Button>
                 </div>
             </DialogContent>
         </Dialog>

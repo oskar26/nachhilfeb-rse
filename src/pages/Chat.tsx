@@ -1,10 +1,13 @@
+import { Label } from '@/components/ui/label';
+import { NativeSelect } from '@/components/ui/native-select';
+import { Textarea } from '@/components/ui/textarea';
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { startChatPoll } from '../lib/polling';
 import { useAuth } from '../context/AuthContext';
-import { Button } from '../components/ui/ButtonLegacy';
-import { Input } from '../components/ui/InputLegacy';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
 import { ChevronLeft, Send, Trash2, Check, CheckCheck, Pencil, MoreVertical, Ban, Calendar, CalendarDays, Download, EyeOff, Flag } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../lib/utils';
@@ -264,15 +267,15 @@ export default function Chat() {
                     <div className="font-semibold text-[17px] leading-tight truncate">{otherUser?.display_name || 'Unbekannt'}</div>
                 </div>
 
-                <button
+                <Button variant="unstyled" size="unstyled" type="submit"
                     onClick={() => setAppointmentModalOpen(true)}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary-hover dark:text-primary rounded-full text-xs font-bold transition-all border border-primary/20 shrink-0"
                     title="Termin für Nachhilfestunde vereinbaren"
                 >
                     <Calendar size={14} />
                     <span className="hidden sm:inline">Termin vereinbaren</span>
-                </button>
-                
+                </Button>
+
                 {/* Safety: Melden & Blockieren stehen direkt im Header, nicht versteckt im Menü */}
                 <Button
                     variant="ghost"
@@ -297,23 +300,23 @@ export default function Chat() {
 
                 {/* 3-dot menu */}
                 <div className="relative" ref={menuRef}>
-                    <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => setMenuOpen(!menuOpen)} 
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setMenuOpen(!menuOpen)}
                         className="rounded-full shrink-0 hover:bg-gray-100 dark:hover:bg-[#2a3942]"
                     >
                         <MoreVertical size={20} />
                     </Button>
                     {menuOpen && (
                         <div className="absolute right-0 top-full mt-1 w-56 bg-white dark:bg-[#233138] rounded-xl shadow-xl border border-gray-200 dark:border-[#2a3942] py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                            <button 
+                            <Button variant="unstyled" size="unstyled" type="submit"
                                 onClick={hideChatAndLeave}
                                 className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-[#2a3942] text-gray-700 dark:text-gray-200 transition-colors flex items-center gap-2"
                             >
                                 <EyeOff size={15} />
                                 Chat verbergen
-                            </button>
+                            </Button>
                         </div>
                     )}
                 </div>
@@ -330,7 +333,7 @@ export default function Chat() {
                         const isMe = msg.sender_id === user?.id;
                         const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                         const isEditing = editingId === msg.id;
-                        
+
                         // Show date divider if day changed
                         const prevMsg = idx > 0 ? messages[idx - 1] : null;
                         const showDate = !prevMsg || new Date(msg.created_at).toDateString() !== new Date(prevMsg.created_at).toDateString();
@@ -345,11 +348,11 @@ export default function Chat() {
                                     </div>
                                 )}
                                 <div className={cn("flex max-w-[85%] relative group", isMe ? "self-end" : "self-start")}>
-                                    <div 
+                                    <div
                                         className={cn(
                                             "px-3 py-1.5 rounded-lg shadow-sm text-[14.5px] leading-relaxed break-words relative min-w-[80px]",
-                                            isMe 
-                                                ? "bg-[#d9fdd3] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] rounded-tr-[4px]" 
+                                            isMe
+                                                ? "bg-[#d9fdd3] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] rounded-tr-[4px]"
                                                 : "bg-white dark:bg-[#202c33] text-[#111b21] dark:text-[#e9edef] rounded-tl-[4px]",
                                             msg.is_deleted && "italic opacity-70"
                                         )}
@@ -358,7 +361,7 @@ export default function Chat() {
                                             <span className="flex items-center gap-1 text-xs text-[#8696a0]"><Ban size={12} /> Diese Nachricht wurde gelöscht.</span>
                                         ) : isEditing ? (
                                             <div className="space-y-2 min-w-[200px]">
-                                                <textarea
+                                                <Textarea
                                                     value={editContent}
                                                     onChange={(e) => setEditContent(e.target.value)}
                                                     onKeyDown={(e) => handleEditKeyDown(e, msg.id)}
@@ -367,25 +370,25 @@ export default function Chat() {
                                                     autoFocus
                                                 />
                                                 <div className="flex gap-1.5 justify-end">
-                                                    <button 
+                                                    <Button variant="unstyled" size="unstyled" type="submit"
                                                         onClick={cancelEditing}
                                                         className="px-3 py-1 text-xs rounded-md bg-gray-200 dark:bg-[#3b4a54] text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-[#4a5b67] transition-colors"
                                                     >
                                                         Abbrechen
-                                                    </button>
-                                                    <button 
+                                                    </Button>
+                                                    <Button variant="unstyled" size="unstyled" type="submit"
                                                         onClick={() => saveEdit(msg.id)}
                                                         className="px-3 py-1 text-xs rounded-md bg-primary text-black font-medium hover:bg-primary-hover transition-colors"
                                                     >
                                                         Speichern
-                                                    </button>
+                                                    </Button>
                                                 </div>
                                             </div>
                                         ) : (
                                             <div>
                                                 <div className="whitespace-pre-wrap">{msg.content}</div>
                                                 {msg.content.includes('TERMIN-VEREINBARUNG') && (
-                                                    <button
+                                                    <Button variant="unstyled" size="unstyled"
                                                         type="button"
                                                         onClick={() => {
                                                             const lines = msg.content.split('\n');
@@ -403,11 +406,11 @@ export default function Chat() {
                                                         className="mt-2 text-xs font-bold bg-[#00a884] text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm hover:bg-[#008f72] transition-colors"
                                                     >
                                                         <Download size={13} /> In Kalender speichern (.ics)
-                                                    </button>
+                                                    </Button>
                                                 )}
                                             </div>
                                         )}
-                                        
+
                                         {!isEditing && (
                                             <div className="flex items-center justify-end gap-1 mt-0.5 -mb-0.5">
                                                 {msg.edited_at && !msg.is_deleted && (
@@ -422,24 +425,24 @@ export default function Chat() {
                                             </div>
                                         )}
                                     </div>
-                                    
+
                                     {/* Action buttons on hover - only for own non-deleted, non-editing messages */}
                                     {isMe && !msg.is_deleted && !isEditing && (
                                         <div className="absolute top-0 -left-[68px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                                            <button 
+                                            <Button variant="unstyled" size="unstyled" type="submit"
                                                 onClick={() => startEditing(msg)}
                                                 className="p-1.5 bg-white dark:bg-[#233138] text-[#54656f] dark:text-[#aebac1] rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-[#2a3942] transition-colors"
                                                 title="Bearbeiten"
                                             >
                                                 <Pencil size={13} />
-                                            </button>
-                                            <button 
+                                            </Button>
+                                            <Button variant="unstyled" size="unstyled" type="submit"
                                                 onClick={() => deleteMessage(msg.id)}
                                                 className="p-1.5 bg-white dark:bg-[#233138] text-red-500 dark:text-red-400 rounded-full shadow-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                                                 title="Löschen"
                                             >
                                                 <Trash2 size={13} />
-                                            </button>
+                                            </Button>
                                         </div>
                                     )}
                                 </div>
@@ -462,13 +465,13 @@ export default function Chat() {
                             autoComplete="off"
                         />
                     </div>
-                    <Button 
-                        type="submit" 
-                        size="icon" 
+                    <Button
+                        type="submit"
+                        size="icon"
                         className={cn(
                             "rounded-full w-11 h-11 shrink-0 transition-all duration-200",
-                            newMessage.trim() 
-                                ? "bg-[#00a884] hover:bg-[#008f72] text-white scale-100 shadow-md" 
+                            newMessage.trim()
+                                ? "bg-[#00a884] hover:bg-[#008f72] text-white scale-100 shadow-md"
                                 : "bg-gray-300 dark:bg-[#3b4a54] text-gray-500 dark:text-[#8696a0] scale-95"
                         )}
                         disabled={!newMessage.trim()}
@@ -493,8 +496,8 @@ export default function Chat() {
                 </DialogHeader>
                 <form onSubmit={handleCreateAppointment} className="space-y-4 py-3">
                     <div className="space-y-1">
-                        <label className="text-xs font-bold uppercase text-gray-500">Fach</label>
-                        <select
+                        <Label className="text-xs font-bold uppercase text-gray-500">Fach</Label>
+                        <NativeSelect
                             value={appSubject}
                             onChange={e => setAppSubject(e.target.value)}
                             className="w-full h-11 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-3 text-sm font-semibold"
@@ -509,12 +512,12 @@ export default function Chat() {
                             <option value="Biologie">Biologie</option>
                             <option value="Informatik">Informatik</option>
                             <option value="Geschichte">Geschichte</option>
-                        </select>
+                        </NativeSelect>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                            <label className="text-xs font-bold uppercase text-gray-500">Datum</label>
+                            <Label className="text-xs font-bold uppercase text-gray-500">Datum</Label>
                             <Input
                                 type="date"
                                 value={appDate}
@@ -524,7 +527,7 @@ export default function Chat() {
                             />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-bold uppercase text-gray-500">Uhrzeit</label>
+                            <Label className="text-xs font-bold uppercase text-gray-500">Uhrzeit</Label>
                             <Input
                                 type="time"
                                 value={appTime}

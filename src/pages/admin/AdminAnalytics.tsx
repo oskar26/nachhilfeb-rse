@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/CardLegacy';
-import { Button } from '../../components/ui/ButtonLegacy';
+import { Button } from '../../components/ui/button';
 import {
     BarChart3,
     TrendingUp,
@@ -490,7 +490,7 @@ export default function AdminAnalytics() {
                         </div>
                         <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl shrink-0" role="group" aria-label="Zeitraum wählen">
                             {([7, 30, 90] as StatsRange[]).map(d => (
-                                <button
+                                <Button variant="unstyled" size="unstyled"
                                     key={d}
                                     type="button"
                                     onClick={() => setStatsDays(d)}
@@ -499,7 +499,7 @@ export default function AdminAnalytics() {
                                         ? "px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-gray-900 shadow-xs text-gray-900 dark:text-white"
                                         : "px-3 py-1.5 rounded-lg text-xs font-bold text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"}>
                                     {d} Tage
-                                </button>
+                                </Button>
                             ))}
                         </div>
                     </div>

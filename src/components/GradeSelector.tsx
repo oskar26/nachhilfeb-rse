@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
 import { cn } from '../lib/utils';
 import { triggerHaptic } from '../lib/haptics';
 
@@ -25,11 +25,11 @@ export function GradeSelector({ selectedGrades, onChange, className }: GradeSele
             {GRADES.map(grade => {
                 const isSelected = selectedGrades.includes(grade);
                 return (
-                    <motion.button
+                    <Button
                         key={grade}
-                        whileHover={{ scale: 1.06 }}
-                        whileTap={{ scale: 0.92 }}
-                        transition={{ type: "spring", stiffness: 450, damping: 25 }}
+                        variant="unstyled"
+                        size="unstyled"
+                        hapticStyle={false}
                         onClick={() => toggleGrade(grade)}
                         className={cn(
                             "px-3.5 h-10 min-w-[2.5rem] rounded-xl flex items-center justify-center text-sm font-bold border transition-colors select-none cursor-pointer",
@@ -40,7 +40,7 @@ export function GradeSelector({ selectedGrades, onChange, className }: GradeSele
                         type="button"
                     >
                         {grade}
-                    </motion.button>
+                    </Button>
                 );
             })}
         </div>

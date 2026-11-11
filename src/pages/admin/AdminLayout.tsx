@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -122,13 +123,13 @@ export default function AdminLayout() {
                 <div className="h-16 flex items-center gap-3 px-6 border-b dark:border-gray-800 shrink-0">
                     <Logo className="w-7 h-7 text-black dark:text-white shrink-0" />
                     <span className="font-extrabold text-base tracking-tight text-gray-900 dark:text-white">SV Admin Panel</span>
-                    <button
+                    <Button variant="unstyled" size="unstyled" type="submit"
                         className="ml-auto md:hidden text-gray-400 hover:text-gray-600 p-3 -m-3"
                         onClick={() => setSidebarOpen(false)}
                         aria-label="Menü schließen"
                     >
                         <X size={20} />
-                    </button>
+                    </Button>
                 </div>
 
                 {/* Nav items */}
@@ -136,7 +137,7 @@ export default function AdminLayout() {
                     {NAV_ITEMS.map(({ label, value, icon: Icon }) => {
                         const isActive = activeTab === value;
                         return (
-                            <button
+                            <Button variant="unstyled" size="unstyled" type="submit"
                                 key={value}
                                 onClick={() => handleNavClick(value)}
                                 className={cn(
@@ -158,7 +159,7 @@ export default function AdminLayout() {
                                         {openTickets > 9 ? '9+' : openTickets}
                                     </span>
                                 )}
-                            </button>
+                            </Button>
                         );
                     })}
                 </nav>
@@ -173,13 +174,13 @@ export default function AdminLayout() {
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Top bar */}
                 <header className="h-16 bg-white dark:bg-gray-900 border-b dark:border-gray-800 flex items-center gap-4 px-6 shrink-0">
-                    <button
+                    <Button variant="unstyled" size="unstyled" type="submit"
                         className="md:hidden text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 p-3 -m-3"
                         onClick={() => setSidebarOpen(true)}
                         aria-label="Menü öffnen"
                     >
                         <Menu size={22} />
-                    </button>
+                    </Button>
 
                     {/* Breadcrumbs */}
                     <nav className="flex items-center gap-1.5 text-sm" aria-label="Breadcrumb">

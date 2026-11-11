@@ -1,6 +1,9 @@
+import { Label } from '@/components/ui/label';
+import { NativeSelect } from '@/components/ui/native-select';
+import { Textarea } from '@/components/ui/textarea';
 import { useState, useEffect, useCallback } from 'react';import { api } from '../../lib/api';
-import { Button } from '../../components/ui/ButtonLegacy';
-import { Input } from '../../components/ui/InputLegacy';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
 import { Card, CardContent } from '../../components/ui/CardLegacy';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../../components/ui/DialogLegacy';
 import {
@@ -319,7 +322,7 @@ export default function AdminUsers() {
                 
                 <div className="flex flex-wrap gap-2 items-center">
                     {/* Role filter */}
-                    <select
+                    <NativeSelect
                         value={filterRole}
                         onChange={e => { setFilterRole(e.target.value); setPage(0); }}
                         className="h-11 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -329,10 +332,10 @@ export default function AdminUsers() {
                         <option value="sv_admin">Admin</option>
                         <option value="coach_admin">Schüler-Coach</option>
                         <option value="parent">Elternteil</option>
-                    </select>
+                    </NativeSelect>
 
                     {/* Status filter */}
-                    <select
+                    <NativeSelect
                         value={filterStatus}
                         onChange={e => { setFilterStatus(e.target.value); setPage(0); }}
                         className="h-11 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -341,7 +344,7 @@ export default function AdminUsers() {
                         <option value="verified">Verifiziert</option>
                         <option value="unverified">Nicht verifiziert</option>
                         <option value="banned">Gesperrt</option>
-                    </select>
+                    </NativeSelect>
 
                     {/* Batch verify action */}
                     {unverifiedCount > 0 && (
@@ -365,18 +368,18 @@ export default function AdminUsers() {
 
                     {/* View Switcher */}
                     <div className="flex bg-gray-100 dark:bg-gray-900 p-1 rounded-2xl border dark:border-gray-800 shrink-0">
-                        <button
+                        <Button variant="unstyled" size="unstyled" type="submit"
                             onClick={() => setViewMode('list')}
                             className={cn('p-2 rounded-xl transition-all', viewMode === 'list' ? 'bg-white dark:bg-gray-800 shadow-sm font-bold text-gray-900 dark:text-white' : 'text-gray-400')}
                         >
                             <ListIcon size={16} />
-                        </button>
-                        <button
+                        </Button>
+                        <Button variant="unstyled" size="unstyled" type="submit"
                             onClick={() => setViewMode('grid')}
                             className={cn('p-2 rounded-xl transition-all', viewMode === 'grid' ? 'bg-white dark:bg-gray-800 shadow-sm font-bold text-gray-900 dark:text-white' : 'text-gray-400')}
                         >
                             <LayoutGrid size={16} />
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -631,27 +634,27 @@ export default function AdminUsers() {
                         <div className="space-y-4 py-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-bold uppercase text-gray-400 ml-1">Vorname</label>
+                                    <Label className="text-[10px] font-bold uppercase text-gray-400 ml-1">Vorname</Label>
                                     <Input value={editingUser.first_name || ''} onChange={e => setEditingUser({ ...editingUser, first_name: e.target.value })} className="rounded-xl" />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-bold uppercase text-gray-400 ml-1">Nachname</label>
+                                    <Label className="text-[10px] font-bold uppercase text-gray-400 ml-1">Nachname</Label>
                                     <Input value={editingUser.last_name || ''} onChange={e => setEditingUser({ ...editingUser, last_name: e.target.value })} className="rounded-xl" />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-bold uppercase text-gray-400 ml-1">Klassenstufe (z.B. 8, 10, Q1, Q2)</label>
+                                    <Label className="text-[10px] font-bold uppercase text-gray-400 ml-1">Klassenstufe (z.B. 8, 10, Q1, Q2)</Label>
                                     <Input value={editingUser.grade_level || ''} onChange={e => setEditingUser({ ...editingUser, grade_level: e.target.value })} className="rounded-xl" />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-bold uppercase text-gray-400 ml-1">Klassenbuchstabe (optional)</label>
+                                    <Label className="text-[10px] font-bold uppercase text-gray-400 ml-1">Klassenbuchstabe (optional)</Label>
                                     <Input value={editingUser.class_letter || ''} onChange={e => setEditingUser({ ...editingUser, class_letter: e.target.value })} className="rounded-xl" />
                                 </div>
                             </div>
                             <div className="space-y-1">
-                                <label className="text-[10px] font-bold uppercase text-gray-400 ml-1">Biografie / Beschreibung</label>
-                                <textarea
+                                <Label className="text-[10px] font-bold uppercase text-gray-400 ml-1">Biografie / Beschreibung</Label>
+                                <Textarea
                                     className="w-full border dark:border-gray-800 rounded-xl p-3 bg-transparent text-sm min-h-[100px] focus:ring-2 focus:ring-primary outline-none"
                                     value={editingUser.bio || ''}
                                     onChange={e => setEditingUser({ ...editingUser, bio: e.target.value })}
@@ -680,27 +683,27 @@ export default function AdminUsers() {
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="space-y-1">
-                            <label className="text-[10px] font-bold uppercase text-gray-400">Sperr-Typ</label>
+                            <Label className="text-[10px] font-bold uppercase text-gray-400">Sperr-Typ</Label>
                             <div className="flex gap-2 mt-1">
-                                <button
+                                <Button variant="unstyled" size="unstyled" type="submit"
                                     onClick={() => setBanType('permanent')}
                                     className={cn('flex-1 py-2 px-3 text-xs rounded-xl border text-center font-bold transition-all', banType === 'permanent' ? BAN_TYPE_ACTIVE : BAN_TYPE_IDLE)}
                                 >
                                     Permanent
-                                </button>
-                                <button
+                                </Button>
+                                <Button variant="unstyled" size="unstyled" type="submit"
                                     onClick={() => setBanType('temporary')}
                                     className={cn('flex-1 py-2 px-3 text-xs rounded-xl border text-center font-bold transition-all', banType === 'temporary' ? BAN_TYPE_ACTIVE : BAN_TYPE_IDLE)}
                                 >
                                     Temporär
-                                </button>
+                                </Button>
                             </div>
                         </div>
 
                         {banType === 'temporary' && (
                             <div className="space-y-1">
-                                <label className="text-[10px] font-bold uppercase text-gray-400">Dauer der Sperre</label>
-                                <select
+                                <Label className="text-[10px] font-bold uppercase text-gray-400">Dauer der Sperre</Label>
+                                <NativeSelect
                                     value={banDurationDays}
                                     onChange={e => setBanDurationDays(e.target.value)}
                                     className="w-full mt-1 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 text-sm focus:outline-none"
@@ -714,13 +717,13 @@ export default function AdminUsers() {
                                     <option value="14">14 Tage (2 Wochen)</option>
                                     <option value="30">30 Tage (1 Monat)</option>
                                     <option value="90">90 Tage (3 Monate)</option>
-                                </select>
+                                </NativeSelect>
                             </div>
                         )}
 
                         <div className="space-y-1">
-                            <label className="text-[10px] font-bold uppercase text-gray-400">Begründung (Pflichtfeld)</label>
-                            <textarea
+                            <Label className="text-[10px] font-bold uppercase text-gray-400">Begründung (Pflichtfeld)</Label>
+                            <Textarea
                                 className="w-full border dark:border-gray-800 rounded-xl p-3 bg-transparent text-sm min-h-[80px] focus:ring-2 focus:ring-primary outline-none mt-1"
                                 placeholder="z.B. Beleidigendes Verhalten im Chat, Spamming, falsche Angaben..."
                                 value={banReason}

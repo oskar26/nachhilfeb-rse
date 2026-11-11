@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-import { Button } from '../components/ui/ButtonLegacy';
+import { Button } from '../components/ui/button';
 import { Logo } from '../components/ui/Logo';
 import { useAuth } from '../context/AuthContext';
 
@@ -21,7 +21,7 @@ export default function NotFound() {
 
   return (
     <div className="min-h-screen bg-[#faf7ef] text-gray-900 font-sans selection:bg-primary selection:text-black overflow-x-clip flex flex-col">
-      <button type="button" onClick={() => document.getElementById('inhalt')?.scrollIntoView()} className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-primary focus:px-5 focus:py-2.5 focus:text-sm focus:font-bold focus:text-black">Zum Inhalt springen</button>
+      <Button variant="unstyled" size="unstyled" type="button" onClick={() => document.getElementById('inhalt')?.scrollIntoView()} className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-primary focus:px-5 focus:py-2.5 focus:text-sm focus:font-bold focus:text-black">Zum Inhalt springen</Button>
 
       {/* Dienstleiste */}
       <div className="bg-primary text-black">
@@ -34,12 +34,12 @@ export default function NotFound() {
       {/* Navigation — bewusst ohne zweiten primären CTA */}
       <header className="sticky top-0 z-50 border-b border-black/10 bg-[#faf7ef]/90 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-          <button onClick={() => navigate(primaryTarget)} className="flex items-center gap-3 min-w-0" aria-label="Nachhilfebörse Startseite">
+          <Button variant="unstyled" size="unstyled" type="submit" onClick={() => navigate(primaryTarget)} className="flex items-center gap-3 min-w-0" aria-label="Nachhilfebörse Startseite">
             <span className="grid place-items-center w-10 h-10 rounded-xl bg-primary text-black shadow-[0_6px_20px_-6px_rgba(250,204,21,0.6)] shrink-0">
               <Logo size={24} />
             </span>
             <span className="text-lg font-extrabold tracking-tight truncate">Nachhilfebörse <span className="text-amber-600">FWG</span></span>
-          </button>
+          </Button>
           <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-gray-500">Schwarzes Brett</span>
         </div>
       </header>
@@ -90,12 +90,12 @@ export default function NotFound() {
               {primaryLabel} <ArrowRight size={18} aria-hidden />
             </Button>
             {/* Zurück nur als unauffälliger Textlink mit History-Fallback */}
-            <button
+            <Button variant="unstyled" size="unstyled" type="submit"
               onClick={handleBack}
               className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-black transition-colors underline-offset-4 hover:underline"
             >
               <ArrowLeft size={15} aria-hidden /> Zurück
-            </button>
+            </Button>
           </div>
 
           {/* Tertiäre Textlinks */}
