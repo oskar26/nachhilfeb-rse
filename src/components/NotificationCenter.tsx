@@ -59,11 +59,11 @@ interface Props {
 
 function typeIcon(type: NotificationType) {
     switch (type) {
-        case 'message': return <MessageSquare size={16} className="text-blue-400" />;
-        case 'like':    return <Heart size={16} className="text-rose-400" />;
-        case 'alert':   return <AlertTriangle size={16} className="text-amber-400" />;
+        case 'message': return <MessageSquare size={16} className="text-muted-foreground" />;
+        case 'like':    return <Heart size={16} className="text-primary" />;
+        case 'alert':   return <AlertTriangle size={16} className="text-destructive" />;
         case 'review':  return <Star size={16} className="text-primary" />;
-        case 'match':   return <Zap size={16} className="text-violet-400" />;
+        case 'match':   return <Zap size={16} className="text-primary" />;
         default:        return <Bell size={16} className="text-muted-foreground" />;
     }
 }

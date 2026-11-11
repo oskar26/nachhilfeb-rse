@@ -391,12 +391,12 @@ export default function Landing() {
                 </div>
             </section>
 
-            <section id="brett" className="scroll-mt-24 border-y border-border bg-gray-950 text-gray-100 poster-grain">
+            <section id="brett" className="scroll-mt-24 border-y border-border bg-foreground text-background poster-grain">
                 <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
                     <motion.div {...anim()} className="max-w-3xl">
-                        <h2 className="break-words font-display uppercase leading-[0.95] text-4xl text-white sm:text-6xl">So sieht die <span className="bg-primary px-2 text-primary-foreground">Nachhilfebörse</span> aus.</h2>
+                        <h2 className="break-words font-display uppercase leading-[0.95] text-4xl text-background sm:text-6xl">So sieht die <span className="bg-primary px-2 text-primary-foreground">Nachhilfebörse</span> aus.</h2>
                         <motion.span {...wipeLine()} className="mt-4 block h-1.5 w-16 origin-left rounded-full bg-primary" aria-hidden />
-                        <p className="mt-4 text-lg leading-relaxed text-gray-300">Echte Screenshots aus der App: stöbern, anfragen, Profil zeigen. Am Handy, am iPad und am Desktop.</p>
+                        <p className="mt-4 text-lg leading-relaxed text-background/70">Echte Screenshots aus der App: stöbern, anfragen, Profil zeigen. Am Handy, am iPad und am Desktop.</p>
                     </motion.div>
                     <div className="board-stage relative mt-10">
                         <div
@@ -422,7 +422,7 @@ export default function Landing() {
                                             /* Der Anzeige-Shot liegt ohne Geräterahmen vor. Der Rahmen
                                                wird hier als ruhige Bühne ergänzt, damit Statusleiste,
                                                Inhalt und Bottom-Nav vollständig im Bild bleiben. */
-                                            <div className="rounded-[2rem] bg-gray-900 p-1.5 shadow-overlay ring-1 ring-white/10">
+                                            <div className="rounded-[2rem] bg-foreground p-1.5 shadow-overlay ring-1 ring-background/10">
                                                 <div className="overflow-hidden rounded-[1.65rem] bg-black">
                                                     <img
                                                         src={m.src}
@@ -468,10 +468,10 @@ export default function Landing() {
                         Lightbox-Popup (Klick auf eine Kachel), damit die Wand atmet. */}
                     <div className="mt-16">
                         <div className="flex flex-wrap items-end justify-between gap-4">
-                            <h3 className="font-display uppercase leading-[0.95] text-2xl text-white sm:text-4xl">Auch am Desktop.</h3>
-                            <p className="font-mono tabular-nums text-sm font-bold text-gray-400">07 ANSICHTEN · 01 PLATTFORM</p>
+                            <h3 className="font-display uppercase leading-[0.95] text-2xl text-background sm:text-4xl">Auch am Desktop.</h3>
+                            <p className="font-mono tabular-nums text-sm font-bold text-background/60">07 ANSICHTEN · 01 PLATTFORM</p>
                         </div>
-                        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-300">Klicke auf eine Ansicht, um sie groß zu öffnen. Mit den Pfeiltasten kannst du durchblättern.</p>
+                        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-background/70">Klicke auf eine Ansicht, um sie groß zu öffnen. Mit den Pfeiltasten kannst du durchblättern.</p>
                         <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 sm:gap-x-5 lg:grid-cols-4">
                             {BOARD_PRINTS.map((p, i) => (
                                 <Button variant="unstyled" size="unstyled"
@@ -479,7 +479,7 @@ export default function Landing() {
                                     type="button"
                                     onClick={() => { setLightboxIndex(i); setLightboxOpen(true); }}
                                     aria-label={`Screenshot groß ansehen: ${p.caption}`}
-                                    className="group block min-h-11 rounded-2xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-gray-950"
+                                    className="group block min-h-11 rounded-2xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-foreground"
                                     style={{ transform: `rotate(${i % 2 === 0 ? -0.8 : 0.8}deg)` }}
                                 >
                                     <span className="block overflow-hidden rounded-2xl ring-1 ring-white/10 transition-shadow group-hover:ring-primary/60">
@@ -500,10 +500,10 @@ export default function Landing() {
                                 type="button"
                                 onClick={() => { setLightboxIndex(0); setLightboxOpen(true); }}
                                 aria-label="Alle Screenshots groß ansehen"
-                                className="group block min-h-11 rounded-2xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-gray-950"
+                                className="group block min-h-11 rounded-2xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-foreground"
                                 style={{ transform: 'rotate(0.8deg)' }}
                             >
-                                <span className="flex aspect-[1606/1104] flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/20 bg-white/[0.03] px-3 text-center text-gray-300 transition-colors group-hover:border-primary group-hover:text-white">
+                                <span className="flex aspect-[1606/1104] flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-background/20 bg-background/[0.03] px-3 text-center text-background/70 transition-colors group-hover:border-primary group-hover:text-background">
                                     <Maximize2 size={24} aria-hidden />
                                     <span className="font-mono text-xs font-bold uppercase tracking-wide">Alle groß ansehen</span>
                                 </span>

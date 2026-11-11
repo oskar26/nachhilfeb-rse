@@ -24,43 +24,4 @@ export function Logo({ size = 32, className = '', ...props }: LogoProps) {
     );
 }
 
-interface LogoBadgeProps {
-    size?: 'sm' | 'md' | 'lg' | 'xl';
-    variant?: 'black' | 'yellow' | 'dark' | 'clean';
-    className?: string;
-}
-
-export function LogoBadge({ size = 'md', variant = 'black', className = '' }: LogoBadgeProps) {
-    const containerSizes = {
-        sm: 'w-8 h-8 rounded-xl p-1.5',
-        md: 'w-10 h-10 rounded-xl p-2',
-        lg: 'w-14 h-14 rounded-2xl p-2.5',
-        xl: 'w-20 h-20 rounded-3xl p-3.5',
-    }[size];
-
-    const iconSizes = {
-        sm: 20,
-        md: 24,
-        lg: 36,
-        xl: 52,
-    }[size];
-
-    const variantStyles = {
-        clean: '',
-        black: 'bg-black text-white dark:bg-white dark:text-black shadow-md ring-1 ring-white/10',
-        yellow: 'bg-primary text-black font-bold shadow-md shadow-primary/20 ring-1 ring-black/10',
-        dark: 'bg-gray-900 text-white shadow-md dark:bg-gray-800 dark:text-white',
-    }[variant];
-
-    if (variant === 'clean') {
-        return <Logo size={iconSizes} className={`text-black dark:text-white ${className}`} />;
-    }
-
-    return (
-        <div className={`inline-flex items-center justify-center shrink-0 transition-all ${containerSizes} ${variantStyles} ${className}`}>
-            <Logo size={iconSizes} />
-        </div>
-    );
-}
-
 export default Logo;

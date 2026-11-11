@@ -152,7 +152,7 @@ export const REQUEST_STATUS: Record<string, { label: string; dotClass: string }>
     pending: { label: 'Ausstehend', dotClass: 'bg-primary' },
     accepted: { label: 'Akzeptiert', dotClass: 'bg-green-500' },
     rejected: { label: 'Abgelehnt', dotClass: 'bg-red-500' },
-    completed: { label: 'Erledigt', dotClass: 'bg-gray-400' },
+    completed: { label: 'Erledigt', dotClass: 'bg-muted-foreground' },
 };
 
 export function requestStatusMeta(status: string): { label: string; dotClass: string } {

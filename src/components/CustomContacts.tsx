@@ -39,10 +39,10 @@ export function CustomContactsList({ contacts, className }: { contacts?: CustomC
                 return (
                     <span
                         key={c.id || `${c.type}-${c.value}`}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-2.5 py-1 text-xs font-semibold text-gray-700 dark:text-gray-300"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-xs font-semibold text-foreground"
                     >
                         <Icon size={13} aria-hidden="true" />
-                        <span className="text-gray-400 dark:text-gray-500">{label}:</span>
+                        <span className="text-muted-foreground">{label}:</span>
                         <span>{c.value}</span>
                     </span>
                 );
