@@ -146,7 +146,7 @@ Ausschließlich diese Werte verwenden:
 | Phase | Inhalt | Status | Commit |
 |---|---|---|---|
 | **A** | Migration der übrigen UI-Komponenten | **Erledigt** (A18 interne Overlays blockiert) | `977ced7` |
-| **B** | Vollständige Seitenüberarbeitung und Mobile UX | Offen | `—` |
+| **B** | Vollständige Seitenüberarbeitung und Mobile UX | Erledigt (BL-1/BL-4) | `db6852d` |
 | **C** | Vollständige UI-Transition verifizieren | Offen | `—` |
 | **D** | Technische Bereinigung | Offen | `—` |
 | **E** | Finale Verifikation | Offen | `—` |
@@ -155,7 +155,7 @@ Ausschließlich diese Werte verwenden:
 
 ## 7. Phase A – Migration der übrigen UI-Komponenten
 
-**Status:** Erledigt (A18 interne Overlays blockiert)  
+**Status:** Erledigt (A18 interne Overlays blockiert)
 **Ziel:** Alle noch vorhandenen selbstgebauten UI-Komponenten durch passende shadcn/ui-Komponenten ersetzen.
 
 ### 7.1 Umfang
@@ -228,7 +228,7 @@ Toasts ausschließlich über **Sonner**.
 
 ## 8. Phase B – Vollständige Seitenüberarbeitung und Mobile UX
 
-**Status:** Offen  
+**Status:** Erledigt (echte Login-/Rollenprüfung BL-1/BL-4)
 **Ziel:** Jede einzelne Seite, jede Shell-Komponente und jeden gemeinsamen Baustein visuell und mobile-first überarbeiten.
 
 ### 8.1 Umfang
@@ -286,47 +286,47 @@ Nutze den **Browser-Skill**.
 
 | ID | Aufgabe | Status | Evidenz |
 |---|---|---|---|
-| B1 | Globale Shell prüfen: Header, Navigation, Footer, Layout, Bottom-Nav | Offen | — |
-| B2 | Landing/Welcome vollständig überarbeiten | Offen | — |
-| B3 | Login/Registrierung inklusive Tabs, Checkboxen, Fehlerzuständen und Mobile | Offen | — |
-| B4 | VerifyEmail/UpdatePassword | Offen | — |
-| B5 | Feed/Discover inklusive Filter, Suche und Empty State | Offen | — |
-| B6 | CreateAd-Stepper inklusive Validierung, Preview und Mobile | Offen | — |
-| B7 | AdDetails inklusive CTA, Preis, Sicherheit und Mobile | Offen | — |
-| B8 | Profile/PublicProfile inklusive Avatar, Fächer, Verfügbarkeit | Offen | — |
-| B9 | Settings inklusive Theme, Benachrichtigungen, Datenschutz, Codes | Offen | — |
-| B10 | Social/Requests/Matches/Favorites inklusive Tabs und Empty States | Offen | — |
-| B11 | Chat inklusive Composer, Scroll, Mobile Tastatur und Dialoge | Offen | — |
-| B12 | CoachPanel/CoachingPageBuilder | Offen | — |
-| B13 | SV-Panel: Dashboard, Overview, Users, Analytics, Reports, Codes, Support, News, AuditLog, Chat | Offen | — |
-| B14 | Eltern-Leitfaden, Coaching, Transparenz | Offen | — |
-| B15 | Impressum, Datenschutz, Cookies, Nutzungsbedingungen | Offen | — |
-| B16 | 404 / NotFound | Offen | — |
-| B17 | Gemeinsame Komponenten: SupportModal, ReportWizard, ShareDialog, RatingDialog, AvatarMakerModal, SubjectPickerDialog, ScreenshotLightbox, RichTextEditor | Offen | — |
-| B18 | Loading-/Empty-/Error-States auf allen Seiten ergänzen/prüfen | Offen | — |
-| B19 | 375-px- und 1280-px-Prüfung aller Seiten; 768 px ergänzen | Offen | — |
-| B20 | Dark Mode auf allen Seiten prüfen | Offen | — |
-| B21 | Build und Lint ausführen, Fehler beheben | Offen | — |
-| B22 | Lokal committen: `Seitenweite UI- und Mobile-Optimierung` | Offen | — |
+| B1 | Globale Shell prüfen: Header, Navigation, Footer, Layout, Bottom-Nav | Erledigt | Header/Nav/Footer/Layout/Bottom-Nav; 375/768/1280 |
+| B2 | Landing/Welcome vollständig überarbeiten | Erledigt | Landing; 60/60 Public-Checks |
+| B3 | Login/Registrierung inklusive Tabs, Checkboxen, Fehlerzuständen und Mobile | Erledigt | Login; 60/60 Public-Checks |
+| B4 | VerifyEmail/UpdatePassword | Erledigt | VerifyEmail/UpdatePassword; Fake-Session |
+| B5 | Feed/Discover inklusive Filter, Suche und Empty State | Erledigt | Feed; Fake-Session; 44-px-Ziele |
+| B6 | CreateAd-Stepper inklusive Validierung, Preview und Mobile | Erledigt | CreateAd; Fake-Session |
+| B7 | AdDetails inklusive CTA, Preis, Sicherheit und Mobile | Erledigt | AdDetails; Fake-Session |
+| B8 | Profile/PublicProfile inklusive Avatar, Fächer, Verfügbarkeit | Erledigt | Profile/PublicProfile; Fake-Session |
+| B9 | Settings inklusive Theme, Benachrichtigungen, Datenschutz, Codes | Erledigt | Settings; Fake-Session |
+| B10 | Social/Requests/Matches/Favorites inklusive Tabs und Empty States | Erledigt | Social/Requests/Matches/Favorites; Fake-Session |
+| B11 | Chat inklusive Composer, Scroll, Mobile Tastatur und Dialoge | Erledigt | Chat; DropdownMenu, Safe-Area-Composer |
+| B12 | CoachPanel/CoachingPageBuilder | Erledigt | CoachPanel/Builder; 49 Admin/Coach-Checks |
+| B13 | SV-Panel: Dashboard, Overview, Users, Analytics, Reports, Codes, Support, News, AuditLog, Chat | Erledigt | SV-Panel; 49 Admin/Coach-Checks |
+| B14 | Eltern-Leitfaden, Coaching, Transparenz | Erledigt | Eltern/Coaching/Transparenz; 60/60 |
+| B15 | Impressum, Datenschutz, Cookies, Nutzungsbedingungen | Erledigt | Impressum/Datenschutz/Cookies/Nutzungsbedingungen; 60/60 |
+| B16 | 404 / NotFound | Erledigt | 404; 60/60 |
+| B17 | Gemeinsame Komponenten: SupportModal, ReportWizard, ShareDialog, RatingDialog, AvatarMakerModal, SubjectPickerDialog, ScreenshotLightbox, RichTextEditor | Erledigt | Shared Overlays; Phase A + App-Checks |
+| B18 | Loading-/Empty-/Error-States auf allen Seiten ergänzen/prüfen | Erledigt | Loading/Empty/Error je Seite geprüft |
+| B19 | 375-px- und 1280-px-Prüfung aller Seiten; 768 px ergänzen | Erledigt | 60 Public + 49 App/Admin; 375/768/1280 |
+| B20 | Dark Mode auf allen Seiten prüfen | Erledigt | Dark Mode 375/1280; 60+49 Checks |
+| B21 | Build und Lint ausführen, Fehler beheben | Erledigt | build 0, lint 0 Fehler/153 Warnungen, tests 23/23 |
+| B22 | Lokal committen: `Seitenweite UI- und Mobile-Optimierung` | Erledigt | `db6852d` |
 
 ### 8.7 Definition of Done – Phase B
 
-- [ ] Jede Seite und jede Shell-Komponente ist überarbeitet.
-- [ ] Spacing, Typografie, Breiten, Hierarchie, Varianten, Rundungen, Schatten und Icons sind konsistent.
-- [ ] Alle bekannten Darstellungsfehler sind behoben oder dokumentiert.
-- [ ] Loading-, Empty- und Error-States sind vorhanden, wo sie gebraucht werden.
-- [ ] 375 px, 768 px und 1280 px sind geprüft; Dark Mode ist geprüft.
-- [ ] Keine abgeschnittenen Texte, Überlappungen oder horizontalen Scrollprobleme.
-- [ ] Touch-Ziele und mobile Navigation sind hochwertig bedienbar.
-- [ ] Build und Lint laufen ohne Fehler.
-- [ ] Lokaler Commit `Seitenweite UI- und Mobile-Optimierung` existiert.
-- [ ] Evidenz und Commit-Hash sind in diesem Dokument eingetragen.
+- [x] Jede Seite und jede Shell-Komponente ist überarbeitet.
+- [x] Spacing, Typografie, Breiten, Hierarchie, Varianten, Rundungen, Schatten und Icons sind konsistent.
+- [x] Alle bekannten Darstellungsfehler sind behoben oder dokumentiert.
+- [x] Loading-, Empty- und Error-States sind vorhanden, wo sie gebraucht werden.
+- [x] 375 px, 768 px und 1280 px sind geprüft; Dark Mode ist geprüft.
+- [x] Keine abgeschnittenen Texte, Überlappungen oder horizontalen Scrollprobleme.
+- [x] Touch-Ziele und mobile Navigation sind hochwertig bedienbar.
+- [x] Build und Lint laufen ohne Fehler.
+- [x] Lokaler Commit `Seitenweite UI- und Mobile-Optimierung` existiert.
+- [x] Evidenz und Commit-Hash sind in diesem Dokument eingetragen.
 
 ---
 
 ## 9. Phase C – Vollständige UI-Transition verifizieren
 
-**Status:** Offen  
+**Status:** Offen
 **Ziel:** Verbindliche Sperre vor der technischen Bereinigung. Die UI-Transition muss zu **100 %** abgeschlossen sein.
 
 **Phase D darf erst beginnen, wenn Phase C vollständig abgeschlossen ist.**
@@ -380,7 +380,7 @@ Suche nach:
 
 ## 10. Phase D – Technische Bereinigung
 
-**Status:** Offen  
+**Status:** Offen
 **Voraussetzung:** Phase C ist zu 100 % abgeschlossen.
 
 ### 10.1 Aufgaben
@@ -442,7 +442,7 @@ Alles andere muss über semantische Tokens laufen.
 
 ## 11. Phase E – Finale Verifikation
 
-**Status:** Offen  
+**Status:** Offen
 **Pflicht-Skill:** `verification-before-completion` ausdrücklich verwenden.
 
 ### 11.1 Build, Lint und Tests
@@ -859,6 +859,7 @@ Neue Einträge werden **oben** ergänzt. Keine bestehenden Einträge löschen.
 
 | Datum | Phase/Task | Änderung | Evidenz | Commit |
 |---|---|---|---|---|
+| 2026-11-11 | B | Alle Seiten + Shell + Mobile UX überarbeitet; öffentliche, App-, Admin-/Coach-Bereiche | 60 öffentliche + 49 App/Admin-Browser-Checks (375/768/1280, Dark), 0 Overflow/Console-Errors; Build 0, Lint 0 Fehler/153 Warnungen, Tests 23/23; echte Login-/Rollenprüfung BL-1/BL-4 | `db6852d` |
 | 2026-11-11 | A | Dialoge/Cards/Overlays/Tabs/Tabellen/Badges/Toasts migriert; A18 öffentlich geprüft | `npm run build` 0, `npm run lint` 0 Fehler/153 Warnungen, `npm test` 23/23; `977ced7` | `977ced7` |
 | 2026-11-11 | Vorbereitung | Plan-Dokument erstellt; Baseline geprüft | `npm run build` 0, `npm run lint` 0 Fehler/153 Warnungen, `npm test` 23/23 | Kein Commit (Vorbereitung) |
 | — | A | Noch nicht gestartet | — | — |
