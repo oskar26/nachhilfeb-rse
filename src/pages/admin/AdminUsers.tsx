@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';import { api } from '../../lib/api';
-import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
-import { Card, CardContent } from '../../components/ui/Card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../../components/ui/Dialog';
+import { Button } from '../../components/ui/ButtonLegacy';
+import { Input } from '../../components/ui/InputLegacy';
+import { Card, CardContent } from '../../components/ui/CardLegacy';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../../components/ui/DialogLegacy';
 import {
     Search,
     Edit,
@@ -18,7 +18,7 @@ import {
     Check,
     Trash2,
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
 
 // Getrennte Sperr-Typ-Farben: aktiv (weiß auf rot) und ruhig (grau auf transparent) teilen sich nie ein Element.

@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
-import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/Card';
+import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/CardLegacy';
 import { SubjectChip, SUBJECT_CATEGORIES, subjectLabelMap, type Subject } from '../components/SubjectChip';
 import { GraduationCap, MapPin, Clock, Filter, Search, CalendarDays, ShieldCheck, ChevronDown, ChevronUp, Share2, Sparkles, Bookmark, X, SearchX, Award, Users, ArrowUpDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '../components/ui/Button';
+import { Button } from '../components/ui/ButtonLegacy';
 import { GradeSelector } from '../components/GradeSelector';
-import { Input } from '../components/ui/Input';
+import { Input } from '../components/ui/InputLegacy';
 import { PriceRangeSlider } from '../components/PriceRangeSlider';
 import { useAuth } from '../context/AuthContext';
 import { emptyAvailability, countMatches, type Availability } from '../lib/availability';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import ShareDialog from '../components/ShareDialog';
 import { cn, formatAdPrice, hourlyRate, type PriceDetails } from '../lib/utils';
 import {

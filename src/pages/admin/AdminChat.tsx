@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { api, getStoredUser } from '../../lib/api';
-import { Button } from '../../components/ui/Button';
-import { Card, CardContent } from '../../components/ui/Card';
+import { Button } from '../../components/ui/ButtonLegacy';
+import { Card, CardContent } from '../../components/ui/CardLegacy';
 import {
     MessageSquare,
     AlertTriangle,
@@ -12,7 +12,7 @@ import {
     RefreshCw,
     Ban,
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
 
 interface AdminChatProps {

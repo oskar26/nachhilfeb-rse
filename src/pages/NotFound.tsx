@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-import { Button } from '../components/ui/Button';
+import { Button } from '../components/ui/ButtonLegacy';
 import { Logo } from '../components/ui/Logo';
 import { useAuth } from '../context/AuthContext';
 

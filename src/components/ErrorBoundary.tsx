@@ -42,7 +42,7 @@ export default class ErrorBoundary extends Component<Props, State> {
                     <button
                         type="button"
                         onClick={this.handleReload}
-                        className="rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-black hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2 dark:focus-visible:ring-primary"
+                        className="rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-black hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring))] focus-visible:ring-offset-2 dark:focus-visible:ring-primary"
                     >
                         Seite neu laden
                     </button>

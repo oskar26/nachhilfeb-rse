@@ -12,7 +12,7 @@ import { useMemo, type ReactNode } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { EyeOff, Heart, Inbox, RotateCcw, Sparkles } from 'lucide-react';
-import { Button } from '../components/ui/Button';
+import { Button } from '../components/ui/ButtonLegacy';
 import { EmptyState } from '../components/social/EmptyState';
 import { SocialFilterPills, type SocialFilterOption } from '../components/social/SocialFilterPills';
 import { useSocialStream } from '../components/social/useSocialStream';

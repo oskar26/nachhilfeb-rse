@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { api } from '../lib/api';
-import { Button } from '../components/ui/Button';
-import { Card, CardContent } from '../components/ui/Card';
+import { Button } from '../components/ui/ButtonLegacy';
+import { Card, CardContent } from '../components/ui/CardLegacy';
 import { 
     ChevronLeft, GraduationCap, 
-    CheckCircle, MessageSquare, Star, 
-    Calendar, Share2, Award 
+    MessageSquare, Star,
+    Calendar, Share2, Award
 } from 'lucide-react';
 import { SubjectChip, subjectLabelMap } from '../components/SubjectChip';
 import type { Subject } from '../components/SubjectChip';

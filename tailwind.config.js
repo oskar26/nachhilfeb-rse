@@ -9,17 +9,17 @@ export default {
         extend: {
             colors: {
                 gray: {
-                    50: '#fafafa',
-                    100: '#f4f4f5',
-                    200: '#e4e4e7',
-                    300: '#d4d4d8',
-                    400: '#a1a1aa',
-                    500: '#71717a',
-                    600: '#52525b',
-                    700: '#27272a', // zinc-700 for input hover / elements
-                    800: '#1f1f22', // zinc-800-like for borders & cards
-                    900: '#121214', // obsidian dark for cards / surfaces
-                    950: '#09090b', // deep rich black for backgrounds
+                    50: '#faf7ef',
+                    100: '#f3eee3',
+                    200: '#e5ded0',
+                    300: '#d3c9b8',
+                    400: '#a89e8e',
+                    500: '#7b7265',
+                    600: '#5c554b',
+                    700: '#403b33',
+                    800: '#2a2722',
+                    900: '#1c1917',
+                    950: '#12100e',
                 },
                 warning: {
                     DEFAULT: '#F59E0B',
@@ -27,13 +27,17 @@ export default {
                     textDark: '#FDBA74',
                 },
                 primary: {
-                    DEFAULT: '#FACC15', // Accent Color (Buttons) updated to #FACC15
+                    DEFAULT: '#FACC15',
                     hover: '#EAB308',
-                    foreground: '#000000',
+                    foreground: '#1C1917',
+                },
+                brand: {
+                    DEFAULT: '#FACC15',
+                    ink: '#7C5A00',
                 },
                 secondary: {
-                    DEFAULT: '#3B82F6', // Blue (Blue-500)
-                    foreground: '#FFFFFF',
+                    DEFAULT: '#F1ECE1',
+                    foreground: '#1C1917',
                 },
                 subject: {
                     deutsch: '#1E90FF',

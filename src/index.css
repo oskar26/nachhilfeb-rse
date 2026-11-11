@@ -1,6 +1,8 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@config "../tailwind.config.js";
+@custom-variant dark (&:is(.dark *));
 
 @layer base {
   html {
@@ -10,60 +12,16 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     overflow-x: clip;
+    @apply font-sans;
   }
 
   body {
     overflow-x: clip;
-  }
-
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 48 96% 53%;
-    --primary-foreground: 0 0% 0%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 42 92% 33%;
-    --radius: 1rem;
-  }
-
-  .dark {
-    --background: 240 5.9% 3.9%;
-    --foreground: 220 14% 96%;
-    --card: 240 5.6% 7.3%;
-    --card-foreground: 220 14% 96%;
-    --popover: 240 5.6% 7.3%;
-    --popover-foreground: 220 14% 96%;
-    --primary: 48 96% 53%;
-    --primary-foreground: 0 0% 0%;
-    --secondary: 240 5% 12.7%;
-    --secondary-foreground: 220 14% 96%;
-    --muted: 240 5% 12.7%;
-    --muted-foreground: 218 11% 65%;
-    --accent: 240 5.2% 16.1%;
-    --accent-foreground: 220 14% 96%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 240 5% 12.7%;
-    --input: 240 5% 12.7%;
-    --ring: 48 96% 53%;
+    @apply bg-background text-foreground;
   }
 
   body {
-    @apply bg-gray-50 text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100;
-    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    @apply bg-background text-foreground antialiased;
     font-feature-settings: 'cv02','cv03','cv04','cv11';
     font-variant-ligatures: common-ligatures;
     -webkit-tap-highlight-color: transparent;
@@ -79,19 +37,18 @@
   }
 
   ::selection {
-    background: hsl(var(--primary) / 0.85);
-    color: #09090b;
+    background: var(--primary);
+    color: var(--primary-foreground);
   }
 
-  /* Single focus system: amber-700 light / primary dark — 2px + 2px offset */
+  /* Single focus system: brand ink on paper, brand yellow on dark */
   :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-    outline: 2px solid hsl(var(--ring));
+    outline: 2px solid var(--ring);
     outline-offset: 2px;
     border-radius: 4px;
   }
-  /* Dark needs lighter ring for contrast — override to primary */
   .dark :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-    outline-color: #facc15;
+    outline-color: var(--ring);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -127,6 +84,7 @@
   * {
     scrollbar-width: thin;
     scrollbar-color: rgba(0,0,0,0.18) transparent;
+    @apply border-border outline-ring/50;
   }
   .dark * {
     scrollbar-color: rgba(255,255,255,0.14) transparent;
@@ -152,11 +110,7 @@
     word-break: break-word;
   }
   .shadow-soft {
-    box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
-  }
-
-  .shadow-glow {
-    box-shadow: 0 4px 24px -6px rgba(250, 204, 21, 0.35), 0 2px 8px -2px rgba(250, 204, 21, 0.2);
+    box-shadow: var(--shadow-soft);
   }
 
   /* Glass: subtle border tuned for light vs dark — avoids white/20 invisibility */
@@ -175,26 +129,26 @@
 
   @keyframes boostShimmer {
     0% {
-      box-shadow: 0 0 0px rgba(250, 204, 21, 0);
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 0%, transparent);
       filter: brightness(1);
     }
     30% {
-      box-shadow: 0 0 24px 6px rgba(250, 204, 21, 0.7);
-      filter: brightness(1.15);
+      box-shadow: 0 0 24px 6px color-mix(in srgb, var(--primary) 55%, transparent);
+      filter: brightness(1.08);
     }
     60% {
-      box-shadow: 0 0 40px 10px rgba(250, 204, 21, 0.5);
-      filter: brightness(1.1);
+      box-shadow: 0 0 40px 10px color-mix(in srgb, var(--primary) 35%, transparent);
+      filter: brightness(1.04);
     }
     100% {
-      box-shadow: 0 0 0px rgba(250, 204, 21, 0);
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 0%, transparent);
       filter: brightness(1);
     }
   }
 
   /* Pulse glow for boosted ads */
   .boosted-glow {
-    box-shadow: 0 0 20px rgba(250, 204, 21, 0.15);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 45%, transparent);
   }
 
   /* ——— PLAKATWAND world (Welcome) ——— */
@@ -202,8 +156,8 @@
      Gelber Rand-Streifen links + versetzter weicher Schwarzschatten. */
   .dark-glow {
     box-shadow:
-      4px 0 0 0 #facc15,
-      0 18px 36px -14px rgba(0, 0, 0, 0.6);
+      4px 0 0 0 var(--primary),
+      0 18px 36px -14px rgb(0 0 0 / 0.35);
   }
   .poster-grain {
     background-image: radial-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px);
@@ -214,7 +168,7 @@
     background-size: 22px 22px;
   }
   .poster-outline {
-    -webkit-text-stroke: 2px #facc15;
+    -webkit-text-stroke: 2px var(--primary);
     color: transparent;
   }
   @media (min-width: 640px) {
@@ -243,8 +197,8 @@
     top: -12px;
     width: 84px;
     height: 24px;
-    background: rgba(250, 204, 21, 0.85);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    background: color-mix(in srgb, var(--primary) 85%, white);
+    box-shadow: 0 2px 6px rgb(0 0 0 / 0.18);
   }
   .tape::before { left: 18px; transform: rotate(-6deg); }
   .tape::after { right: 18px; transform: rotate(5deg); }
@@ -297,7 +251,7 @@
     padding: 0.5rem 1.25rem 0.5rem;
   }
   .board-phones:focus-visible {
-    box-shadow: 0 0 0 2px #facc15;
+    box-shadow: 0 0 0 2px var(--primary);
     border-radius: 1rem;
   }
   .board-phones::-webkit-scrollbar { display: none; }
@@ -507,19 +461,19 @@
   text-wrap: balance;
 }
 .prose blockquote, .ProseMirror blockquote {
-  border-left: 1px solid #f59e0b;
+  border-left: 1px solid var(--primary);
   padding-left: 1rem;
   font-style: italic;
-  color: #4b5563;
+  color: var(--muted-foreground);
   margin: 0.875rem 0;
-  background: rgba(245, 158, 11, 0.06);
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
   padding-top: 0.35rem;
   padding-bottom: 0.35rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
 }
 .dark .prose blockquote, .dark .ProseMirror blockquote {
-  color: #9ca3af;
-  background: rgba(245, 158, 11, 0.1);
+  color: var(--muted-foreground);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
 }
 .prose ul, .ProseMirror ul {
   list-style-type: disc;
@@ -537,7 +491,131 @@
 .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
-  color: #9ca3af;
+  color: var(--muted-foreground);
   pointer-events: none;
   height: 0;
+}
+
+@theme inline {
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-heading: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --spacing: 0.25rem;
+  --shadow-soft: 0 1px 2px rgb(28 25 23 / 0.04), 0 8px 24px rgb(28 25 23 / 0.06);
+  --shadow-card: 0 1px 2px rgb(28 25 23 / 0.05), 0 12px 32px rgb(28 25 23 / 0.08);
+  --shadow-overlay: 0 24px 64px rgb(28 25 23 / 0.18);
+  --color-brand-ink: var(--brand-ink);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: 0.5rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.5rem;
+  --radius-4xl: 2rem;
+}
+
+:root {
+  --background: #faf7ef;
+  --foreground: #1c1917;
+  --card: #fffdf8;
+  --card-foreground: #1c1917;
+  --popover: #fffdf8;
+  --popover-foreground: #1c1917;
+  --primary: #facc15;
+  --primary-hover: #eab308;
+  --primary-foreground: #1c1917;
+  --brand-ink: #7c5a00;
+  --secondary: #f1ece1;
+  --secondary-foreground: #1c1917;
+  --muted: #f3efe6;
+  --muted-foreground: #6b6358;
+  --accent: #f7f1df;
+  --accent-foreground: #1c1917;
+  --destructive: #b91c1c;
+  --destructive-foreground: #fff7f7;
+  --border: #e5dfd2;
+  --input: #d9d2c4;
+  --ring: #8a5a00;
+  --chart-1: #ca8a04;
+  --chart-2: #78716c;
+  --chart-3: #0f766e;
+  --chart-4: #b91c1c;
+  --chart-5: #a16207;
+  --radius: 0.75rem;
+  --sidebar: #f5f0e5;
+  --sidebar-foreground: #1c1917;
+  --sidebar-primary: #facc15;
+  --sidebar-primary-foreground: #1c1917;
+  --sidebar-accent: #ebe4d6;
+  --sidebar-accent-foreground: #1c1917;
+  --sidebar-border: #e5dfd2;
+  --sidebar-ring: #8a5a00;
+}
+
+.dark {
+  --background: #12100e;
+  --foreground: #f5f0e7;
+  --card: #1c1917;
+  --card-foreground: #f5f0e7;
+  --popover: #1c1917;
+  --popover-foreground: #f5f0e7;
+  --primary: #facc15;
+  --primary-hover: #eab308;
+  --primary-foreground: #1c1917;
+  --brand-ink: #facc15;
+  --secondary: #29251f;
+  --secondary-foreground: #f5f0e7;
+  --muted: #29251f;
+  --muted-foreground: #b8afa1;
+  --accent: #332d25;
+  --accent-foreground: #f5f0e7;
+  --destructive: #f87171;
+  --destructive-foreground: #1c1917;
+  --border: #332d25;
+  --input: #3a342b;
+  --ring: #facc15;
+  --chart-1: #facc15;
+  --chart-2: #d6cfc0;
+  --chart-3: #5eead4;
+  --chart-4: #fca5a5;
+  --chart-5: #fbbf24;
+  --sidebar: #1c1917;
+  --sidebar-foreground: #f5f0e7;
+  --sidebar-primary: #facc15;
+  --sidebar-primary-foreground: #1c1917;
+  --sidebar-accent: #332d25;
+  --sidebar-accent-foreground: #f5f0e7;
+  --sidebar-border: #332d25;
+  --sidebar-ring: #facc15;
 }

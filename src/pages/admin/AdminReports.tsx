@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Button } from '../../components/ui/Button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../../components/ui/Dialog';
+import { Button } from '../../components/ui/ButtonLegacy';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../../components/ui/DialogLegacy';
 import {
     AlertTriangle,
     Eye,
@@ -14,7 +14,7 @@ import {
     Image as ImageIcon,
     RefreshCw,
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
 import { api, getStoredUser } from '../../lib/api';
 

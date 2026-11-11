@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
-import { Card, CardContent } from '../../components/ui/Card';
-import { toast } from 'react-hot-toast';
+import { Card, CardContent } from '../../components/ui/CardLegacy';
+import { toast } from 'sonner';
 import {
     Users,
     FileText,

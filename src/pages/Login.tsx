@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../lib/api';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { Card, CardContent, CardDescription, CardHeader, CardFooter } from '../components/ui/Card';
-import { toast } from 'react-hot-toast';
+import { Button } from '../components/ui/ButtonLegacy';
+import { Input } from '../components/ui/InputLegacy';
+import { Card, CardContent, CardDescription, CardHeader, CardFooter } from '../components/ui/CardLegacy';
+import { toast } from 'sonner';
 import { useTheme } from '../components/ThemeProvider';
 import { Sun, Moon, CheckCircle, ShieldAlert, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -551,7 +551,7 @@ export default function Login() {
                                                         id="parentalConsent" 
                                                         checked={parentalConsent}
                                                         onChange={(e) => setParentalConsent(e.target.checked)}
-                                                        className="mt-0.5 w-4 h-4 rounded cursor-pointer accent-[#b45309] dark:accent-[#facc15] focus:ring-[hsl(var(--ring))]"
+                                                        className="mt-0.5 w-4 h-4 rounded cursor-pointer accent-[#b45309] dark:accent-[#facc15] focus:ring-[var(--ring))]"
                                                     />
                                                     <label htmlFor="parentalConsent" className="text-xs font-semibold text-amber-900 dark:text-amber-200 cursor-pointer leading-tight">
                                                         Meine Erziehungsberechtigten stimmen der Nutzung dieser Plattform zu. *

@@ -1,10 +1,10 @@
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../../lib/api';
-import { Button } from '../../components/ui/Button';
-import { Card, CardContent } from '../../components/ui/Card';
-import { Input } from '../../components/ui/Input';
+import { Button } from '../../components/ui/ButtonLegacy';
+import { Card, CardContent } from '../../components/ui/CardLegacy';
+import { Input } from '../../components/ui/InputLegacy';
 import { Trash2, Search, Sparkles } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
 import { useState, useEffect } from 'react';
 

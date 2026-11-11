@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { api } from '../../lib/api';
-import { Button } from '../../components/ui/Button';
-import { Card, CardContent } from '../../components/ui/Card';
+import { Button } from '../../components/ui/ButtonLegacy';
+import { Card, CardContent } from '../../components/ui/CardLegacy';
 import { Megaphone, Trash2, Plus, Calendar, AlertCircle } from 'lucide-react';
 import NewsIcon, { NEWS_ICONS } from '../../components/NewsIcon';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 interface Announcement {
     id: string;

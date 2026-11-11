@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
-import { Dialog, DialogContent } from './ui/Dialog';
-import { Button } from './ui/Button';
+import { Dialog, DialogContent } from './ui/DialogLegacy';
+import { Button } from './ui/ButtonLegacy';
 import { SubjectChip, SUBJECT_CATEGORIES, type Subject } from './SubjectChip';
 
 interface SubjectPickerDialogProps {

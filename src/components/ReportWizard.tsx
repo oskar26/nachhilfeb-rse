@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
-import { Button } from './ui/Button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/Dialog';
-import { Input } from './ui/Input';
-import { toast } from 'react-hot-toast';
+import { Button } from './ui/ButtonLegacy';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/DialogLegacy';
+import { Input } from './ui/InputLegacy';
+import { toast } from 'sonner';
 import { X, ShieldAlert, AlertTriangle, ChevronRight, ChevronLeft, Camera, FileText, User, MessageCircle, Lock, Flag, type LucideIcon } from 'lucide-react';
 
 interface ReportWizardProps {

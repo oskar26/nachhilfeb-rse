@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
-import { Switch } from '../components/ui/Switch';
+import { Switch } from '../components/ui/SwitchLegacy';
 import { VerifiedPill } from '../components/ui/VerifiedPill';
 import ScreenshotLightbox from '../components/ScreenshotLightbox';
 import feedIphoneShot from '../../docs/screenshots/feed-iphone.png';

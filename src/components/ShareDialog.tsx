@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Button } from './ui/Button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/Dialog';
+import { Button } from './ui/ButtonLegacy';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/DialogLegacy';
 import { Copy, Check, Share2, Mail, MessageSquare, X, QrCode } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { triggerHaptic } from '../lib/haptics';
 import { QRCodeSVG } from 'qrcode.react';
 

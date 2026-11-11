@@ -3,7 +3,7 @@ import { ShieldAlert, LogOut, MessageCircle, Clock, AlertTriangle } from 'lucide
 import { Logo } from './ui/Logo';
 import { useAuth } from '../context/AuthContext';
 import { api, getStoredUser } from '../lib/api';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 interface BannedScreenProps {
     banReason?: string | null;

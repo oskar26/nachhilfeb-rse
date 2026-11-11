@@ -1,9 +1,9 @@
 import { useEffect, useState, type MouseEvent, type ReactNode } from 'react';
 import { ArrowDown, ArrowUp, Check, ChevronDown, Plus, RotateCcw, Trash2 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { api } from '../../lib/api';
-import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
+import { Button } from '../../components/ui/ButtonLegacy';
+import { Input } from '../../components/ui/InputLegacy';
 import { cn } from '../../lib/utils';
 import { triggerHaptic } from '../../lib/haptics';
 import {
@@ -30,7 +30,7 @@ import {
     type CoachingTextBlock,
 } from '../Coaching';
 
-const textareaCls = 'w-full rounded-2xl border border-gray-200 bg-white p-3 text-sm text-gray-900 shadow-sm transition-all placeholder:text-gray-400 focus-visible:border-[hsl(var(--ring))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))]/25 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-50 dark:placeholder:text-gray-500 dark:focus-visible:border-primary dark:focus-visible:ring-primary/40';
+const textareaCls = 'w-full rounded-2xl border border-gray-200 bg-white p-3 text-sm text-gray-900 shadow-sm transition-all placeholder:text-gray-400 focus-visible:border-[var(--ring))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring))]/25 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-50 dark:placeholder:text-gray-500 dark:focus-visible:border-primary dark:focus-visible:ring-primary/40';
 
 const BUILTIN_BLOCKS: Array<{ type: Exclude<CoachingBlockType, 'text'>; label: string; description: string }> = [
     { type: 'poster', label: 'Plakat', description: 'Termin, Raum, Kontakt und Anmeldung' },
@@ -345,7 +345,7 @@ function BlockFrame({
 }) {
     return (
         <details id={`editor-${block.id}`} className="group scroll-mt-28 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm open:shadow-md dark:border-gray-800 dark:bg-gray-900">
-            <summary className="flex min-h-[68px] cursor-pointer list-none items-center gap-4 px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[hsl(var(--ring))] dark:focus-visible:ring-primary sm:px-5 [&::-webkit-details-marker]:hidden">
+            <summary className="flex min-h-[68px] cursor-pointer list-none items-center gap-4 px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ring))] dark:focus-visible:ring-primary sm:px-5 [&::-webkit-details-marker]:hidden">
                 <span className="min-w-0 flex-1">
                     <span className="block text-[10px] font-black uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400">{BLOCK_LABELS[block.type]}</span>
                     <span className="mt-0.5 block truncate text-sm font-black text-gray-900 dark:text-white">{blockTitle(block) || 'Ohne Titel'}</span>

@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Card, CardContent } from '../components/ui/Card';
-import { Input } from '../components/ui/Input';
+import { Card, CardContent } from '../components/ui/CardLegacy';
+import { Input } from '../components/ui/InputLegacy';
 import { OtpInput } from '../components/ui/OtpInput';
-import { Button } from '../components/ui/Button';
+import { Button } from '../components/ui/ButtonLegacy';
 import { MailCheck, RefreshCw, ArrowLeft } from 'lucide-react';
 import { api } from '../lib/api';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 export default function VerifyEmail() {
     const navigate = useNavigate();

@@ -14,7 +14,8 @@ import Landing from './pages/Landing';
 import Chat from './pages/Chat';
 import Social from './pages/Social';
 import { ThemeProvider } from './components/ThemeProvider';
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from './components/ui/sonner';
+import { TooltipProvider } from './components/ui/tooltip';
 import { CookieBanner } from './components/CookieBanner';
 import PublicProfile from './pages/PublicProfile';
 import Impressum from './pages/Impressum';
@@ -113,8 +114,9 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   return (
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-      <AuthProvider>
-        <Toaster position="top-right" toastOptions={{ style: { background: '#333', color: '#fff' } }} />
+      <TooltipProvider delay={300}>
+        <AuthProvider>
+          <Toaster position="top-right" closeButton />
         <HashRouter>
           <AnalyticsTracker />
           <Routes>
@@ -161,7 +163,8 @@ function App() {
           <NewsPopupModal />
           <PushPrompt />
         </HashRouter>
-      </AuthProvider>
+        </AuthProvider>
+      </TooltipProvider>
     </ThemeProvider>
   );
 }

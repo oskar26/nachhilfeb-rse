@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
+import { Button } from '../components/ui/ButtonLegacy';
+import { Input } from '../components/ui/InputLegacy';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/CardLegacy';
 import { User, Shield, Loader2, Mail, Phone, Settings as SettingsIcon, Pen, Sparkles, CalendarDays, Award, Shuffle, Palette, X, Lock, Eye, Plus, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { SubjectChip, SUBJECT_CATEGORIES, subjectLabelMap, type Subject } from '../components/SubjectChip';
 import { RefinedGradeSelector } from '../components/RefinedGradeSelector';
 import { Link, useNavigate } from 'react-router-dom';
@@ -19,7 +19,7 @@ import AvatarMakerModal from '../components/AvatarMakerModal';
 import ConfettiBurst from '../components/ConfettiBurst';
 import SubjectPickerDialog from '../components/SubjectPickerDialog';
 import { extractDominantGradient, getDefaultGradient, getRandomGradient, PRESET_GRADIENTS } from '../lib/colorExtractor';
-import { Switch } from '../components/ui/Switch';
+import { Switch } from '../components/ui/SwitchLegacy';
 import { VerifiedPill } from '../components/ui/VerifiedPill';
 import { CONTACT_TYPES, getContactType, newContactId, type CustomContact } from '../components/CustomContacts';
 

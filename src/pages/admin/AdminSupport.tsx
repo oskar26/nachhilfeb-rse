@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { api, getStoredUser } from '../../lib/api';
-import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
-import { Card, CardContent } from '../../components/ui/Card';
+import { Button } from '../../components/ui/ButtonLegacy';
+import { Input } from '../../components/ui/InputLegacy';
+import { Card, CardContent } from '../../components/ui/CardLegacy';
 import { 
     Search, Bug, Lightbulb, MessageCircle, Send, Loader2, 
     ChevronLeft, Clock, AlertCircle, RefreshCw, Shield, User 
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
 import { blockedReason, checkContent, loadFilterOverrides, type FilterOverrides } from '../../lib/profanity';
 import { maybeAutoReport } from '../../lib/autoreport';

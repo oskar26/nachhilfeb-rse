@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../../lib/api';
-import { Card, CardContent } from '../../components/ui/Card';
-import { Button } from '../../components/ui/Button';
+import { Card, CardContent } from '../../components/ui/CardLegacy';
+import { Button } from '../../components/ui/ButtonLegacy';
 import {
     ClipboardList,
     Clock,
@@ -12,9 +12,9 @@ import {
     RefreshCw,
     GraduationCap,
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../../components/ui/Dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../../components/ui/DialogLegacy';
 
 interface AuditLog {
     id: string;

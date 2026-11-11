@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../components/ui/Card';
+import { Button } from '../components/ui/ButtonLegacy';
+import { Input } from '../components/ui/InputLegacy';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../components/ui/CardLegacy';
 import { SubjectChip, SUBJECT_CATEGORIES, subjectLabelMap, type Subject } from '../components/SubjectChip';
 import { GradeSelector } from '../components/GradeSelector';
 import { RichTextEditor } from '../components/RichTextEditor';
@@ -10,7 +10,7 @@ import { ChevronLeft, ChevronRight, CheckCircle, Plus, X, Link as LinkIcon, Aler
 import { cn, formatAdPrice } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { sanitizeHtml } from '../lib/sanitize';
 import { triggerHaptic } from '../lib/haptics';
 

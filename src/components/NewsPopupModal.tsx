@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { X, Megaphone, Bell, CheckCircle2 } from 'lucide-react';
-import { Button } from './ui/Button';
+import { Button } from './ui/ButtonLegacy';
 import NewsIcon from './NewsIcon';
 
 interface Announcement {

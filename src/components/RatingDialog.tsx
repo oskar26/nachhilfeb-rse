@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Button } from './ui/Button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/Dialog';
+import { Button } from './ui/ButtonLegacy';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/DialogLegacy';
 import { Star } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 interface RatingDialogProps {
     open: boolean;

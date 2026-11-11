@@ -9,7 +9,7 @@ import {
     CalendarDays, CheckCircle2,
     BookOpen, GraduationCap, MapPin, Search, Euro, Zap
 } from 'lucide-react';
-import { Button } from '../components/ui/Button';
+import { Button } from '../components/ui/ButtonLegacy';
 import { VerifiedPill } from '../components/ui/VerifiedPill';
 import { AvailabilityCalendar } from '../components/AvailabilityCalendar';
 import { MatchScoreBadge } from '../components/social/MatchScoreBadge';

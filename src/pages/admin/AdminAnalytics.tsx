@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/Card';
-import { Button } from '../../components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/CardLegacy';
+import { Button } from '../../components/ui/ButtonLegacy';
 import {
     BarChart3,
     TrendingUp,
@@ -16,7 +16,7 @@ import {
     CheckCircle,
     Eye
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 interface GradeDist {
     grade: string;

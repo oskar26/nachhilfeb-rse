@@ -1,5 +1,7 @@
 # DESIGN.md — Welcome-Redesign „Abi-Plakat / Schulhof-Siebdruck“
 
+> **Aktuelle verbindliche Token-/Komponentenbasis:** [`docs/design-system.md`](docs/design-system.md) (Stand 2026-11-11). Die dortige Farb-, Typo-, Radius- und Komponentenregel ersetzt die alten Farbangaben in diesem Dokument, wo sie abweicht.
+
 Seed: `fbf6d820` · Direction-Index: **#5** · Stand: 2026-09-21
 
 ## Konzept

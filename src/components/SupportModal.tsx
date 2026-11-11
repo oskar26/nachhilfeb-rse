@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { cn } from '../lib/utils';
 import { triggerHaptic } from '../lib/haptics';
 import { blockedReason, checkContent, loadFilterOverrides, type FilterOverrides } from '../lib/profanity';

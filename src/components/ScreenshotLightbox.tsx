@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { Dialog, DialogContent } from './ui/Dialog';
+import { Dialog, DialogContent } from './ui/DialogLegacy';
 
 export interface ScreenshotLightboxItem {
     src: string;

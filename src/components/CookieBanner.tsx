@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Button } from './ui/Button';
+import { Button } from './ui/ButtonLegacy';
 import { Link } from 'react-router-dom';
 import { Cookie, ShieldCheck } from 'lucide-react';
 

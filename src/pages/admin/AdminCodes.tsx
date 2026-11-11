@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Button } from '../../components/ui/Button';
-import { Card, CardContent } from '../../components/ui/Card';
+import { Button } from '../../components/ui/ButtonLegacy';
+import { Card, CardContent } from '../../components/ui/CardLegacy';
 import {
     Key,
     Plus,
@@ -15,7 +15,7 @@ import {
     Users,
     UserMinus
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
 import { api } from '../../lib/api';
 
@@ -344,7 +344,7 @@ export default function AdminCodes() {
                                             placeholder="z.B. COACHING-AG, FWGSPECIAL, HERBST26"
                                             value={newPromoCode}
                                             onChange={e => setNewPromoCode(e.target.value)}
-                                            className="w-full h-10 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 text-sm font-bold tracking-wider uppercase focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] dark:focus:ring-primary"
+                                            className="w-full h-10 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 text-sm font-bold tracking-wider uppercase focus:outline-none focus:ring-2 focus:ring-[var(--ring))] dark:focus:ring-primary"
                                             required
                                         />
                                     </div>

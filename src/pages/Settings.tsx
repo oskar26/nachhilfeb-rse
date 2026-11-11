@@ -1,20 +1,20 @@
 import { useTheme } from '../components/ThemeProvider';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/Card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/CardLegacy';
 import { Moon, Sun, Monitor, ChevronLeft, Shield, Trash2, Download, AlertTriangle, LifeBuoy, Share2, BookOpen } from 'lucide-react';
-import { Button } from '../components/ui/Button';
+import { Button } from '../components/ui/ButtonLegacy';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import SupportModal from '../components/SupportModal';
 import ShareDialog from '../components/ShareDialog';
 import { Logo } from '../components/ui/Logo';
 import { cn } from '../lib/utils';
 import { triggerHaptic } from '../lib/haptics';
 import { requestPushPermission } from '../lib/push';
-import { Switch } from '../components/ui/Switch';
+import { Switch } from '../components/ui/SwitchLegacy';
 import { SubjectChip, SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
 
 export default function Settings() {

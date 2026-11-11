@@ -14,7 +14,7 @@ import {
     ExternalLink,
     GraduationCap,
 } from 'lucide-react';
-import { Button } from '../components/ui/Button';
+import { Button } from '../components/ui/ButtonLegacy';
 import { CustomContactsList } from '../components/CustomContacts';
 import {
     gradeLabel,
@@ -228,7 +228,7 @@ function AdLink({ ad, navigate }: { ad: { id?: string; short_description?: strin
             <button
                 type="button"
                 onClick={() => navigate(`/ad/${ad.id}`)}
-                className="mt-1 flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-full border border-gray-200 bg-white px-3.5 text-sm font-bold text-gray-600 transition-colors hover:border-primary hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:border-primary dark:hover:text-gray-100 dark:focus-visible:ring-primary"
+                className="mt-1 flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-full border border-gray-200 bg-white px-3.5 text-sm font-bold text-gray-600 transition-colors hover:border-primary hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring))] dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:border-primary dark:hover:text-gray-100 dark:focus-visible:ring-primary"
             >
                 <span>Anzeige ansehen</span>
                 <ExternalLink size={13} className="shrink-0" aria-hidden />

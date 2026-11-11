@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
-import { Button } from '../../components/ui/Button';
-import { Card, CardContent } from '../../components/ui/Card';
+import { Button } from '../../components/ui/ButtonLegacy';
+import { Card, CardContent } from '../../components/ui/CardLegacy';
 import { TabBar } from '../../components/ui/TabBar';
-import { Input } from '../../components/ui/Input';
+import { Input } from '../../components/ui/InputLegacy';
 import {
     Award,
     Search,
@@ -19,7 +19,7 @@ import {
     Megaphone,
     LayoutTemplate
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
 import { triggerHaptic } from '../../lib/haptics';
 import CoachingPageBuilder from './CoachingPageBuilder';
@@ -455,7 +455,7 @@ export default function CoachPanel() {
                                         placeholder="Erkläre das Angebot, Zielgruppe und Ablauf..."
                                         rows={4}
                                         required
-                                        className="w-full p-3 rounded-2xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] dark:focus:ring-primary"
+                                        className="w-full p-3 rounded-2xl border border-gray-200 dark:border-gray-800 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring))] dark:focus:ring-primary"
                                     />
                                 </div>
 
@@ -488,7 +488,7 @@ export default function CoachPanel() {
                                         id="is_visible"
                                         checked={infoForm.is_visible}
                                         onChange={e => setInfoForm({ ...infoForm, is_visible: e.target.checked })}
-                                        className="w-4 h-4 rounded accent-primary focus:ring-[hsl(var(--ring))] cursor-pointer"
+                                        className="w-4 h-4 rounded accent-primary focus:ring-[var(--ring))] cursor-pointer"
                                     />
                                     <label htmlFor="is_visible" className="text-xs font-bold cursor-pointer text-gray-800 dark:text-gray-200">
                                         Infobox auf der Startseite einblenden (öffentlich aktiv)

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api, getStoredToken, getStoredUser } from '../lib/api';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
-import { toast } from 'react-hot-toast';
+import { Button } from '../components/ui/ButtonLegacy';
+import { Input } from '../components/ui/InputLegacy';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/CardLegacy';
+import { toast } from 'sonner';
 
 export default function UpdatePassword() {
     const navigate = useNavigate();

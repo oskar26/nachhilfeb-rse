@@ -3,16 +3,16 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { startChatPoll } from '../lib/polling';
 import { useAuth } from '../context/AuthContext';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
+import { Button } from '../components/ui/ButtonLegacy';
+import { Input } from '../components/ui/InputLegacy';
 import { ChevronLeft, Send, Trash2, Check, CheckCheck, Pencil, MoreVertical, Ban, Calendar, CalendarDays, Download, EyeOff, Flag } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { cn } from '../lib/utils';
 import ReportWizard from '../components/ReportWizard';
 import { downloadICSFile } from '../lib/calendar';
 import { blockedReason, checkContent, loadFilterOverrides, type FilterOverrides } from '../lib/profanity';
 import { maybeAutoReport } from '../lib/autoreport';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/Dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/DialogLegacy';
 
 interface Message {
     id: string;
