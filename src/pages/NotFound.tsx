@@ -9,7 +9,7 @@ export default function NotFound() {
   const { user } = useAuth();
 
   const primaryTarget = user ? '/' : '/welcome';
-  const primaryLabel = user ? 'Zur Plattform' : 'Jetzt loslegen';
+  const primaryLabel = user ? 'Zur Übersicht' : 'Zur Startseite';
 
   const handleBack = () => {
     if (window.history.length > 1) {
@@ -26,7 +26,7 @@ export default function NotFound() {
       {/* Dienstleiste */}
       <div className="bg-primary text-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-9 flex items-center justify-between text-[11px] font-bold uppercase tracking-[0.14em]">
-          <span className="truncate">404 · Zettel abgerissen</span>
+          <span className="truncate">Seite nicht gefunden</span>
           <span className="hidden sm:inline">Nur FWG Köln</span>
         </div>
       </div>
@@ -54,14 +54,14 @@ export default function NotFound() {
           {/* 404-Stempel */}
           <div className="flex justify-center">
             <span className="inline-flex -rotate-6 items-center gap-2 rounded-xl border-2 border-primary px-4 py-2 font-display uppercase tracking-[0.22em] text-sm sm:text-base text-amber-600 stamp-ring">
-              404 · Nichts gefunden
+              404 · Seite nicht gefunden
             </span>
           </div>
 
           {/* Anton-Riesen-H1 */}
           <h1 className="mt-8 font-display uppercase leading-[0.92] tracking-tight break-words text-[17vw] sm:text-8xl lg:text-9xl">
-            Nichts klebt
-            <span className="block mt-1"><span className="inline-block bg-primary px-2 sm:px-3">hier.</span></span>
+            Seite nicht
+            <span className="block mt-1"><span className="inline-block bg-primary px-2 sm:px-3">gefunden.</span></span>
           </h1>
 
           {/* Subline */}
@@ -75,7 +75,7 @@ export default function NotFound() {
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] opacity-70">Gesucht · Zuletzt gesehen</p>
               <p className="mt-2 font-display uppercase text-2xl leading-none">Diese Seite am Brett</p>
               <p className="mt-2 text-sm font-semibold leading-relaxed">
-                Der Zettel ist weg — aber das Brett hängt noch voller Angebote.
+                Diese Seite gibt es nicht. Auf der Startseite findest du weitere Anzeigen.
               </p>
             </div>
           </div>
@@ -100,8 +100,8 @@ export default function NotFound() {
 
           {/* Tertiäre Textlinks */}
           <nav aria-label="Weiter stöbern" className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-gray-600">
-            <Link to="/" className="hover:text-black transition-colors underline-offset-4 hover:underline">Feed</Link>
-            <Link to="/welcome" className="hover:text-black transition-colors underline-offset-4 hover:underline">Welcome</Link>
+            <Link to="/" className="hover:text-black transition-colors underline-offset-4 hover:underline">Übersicht</Link>
+            <Link to="/welcome" className="hover:text-black transition-colors underline-offset-4 hover:underline">Startseite</Link>
             <Link to="/coaching" className="hover:text-black transition-colors underline-offset-4 hover:underline">Coaching</Link>
             <Link to="/eltern-leitfaden" className="hover:text-black transition-colors underline-offset-4 hover:underline">Eltern-Leitfaden</Link>
           </nav>

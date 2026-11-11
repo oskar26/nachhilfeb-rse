@@ -56,13 +56,13 @@ export default function UpdatePassword() {
             }
 
             if (error) {
-                toast.error("Fehler beim Aktualisieren: " + (error.message || 'Bitte erneut versuchen.'));
+                toast.error('Das Passwort konnte nicht geändert werden. Bitte versuche es erneut.');
             } else {
-                toast.success("Dein Passwort wurde erfolgreich aktualisiert!");
+                toast.success('Passwort geändert.');
                 navigate('/login');
             }
-        } catch (err: any) {
-            toast.error("Fehler beim Aktualisieren: " + (err.message || 'Unbekannter Fehler'));
+        } catch {
+            toast.error('Das Passwort konnte nicht geändert werden. Bitte versuche es erneut.');
         } finally {
             setIsLoading(false);
         }

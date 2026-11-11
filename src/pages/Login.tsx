@@ -153,7 +153,7 @@ export default function Login() {
 
         if (mode === 'register') {
             if (!firstName || !lastName || !birthDate) {
-                setError("Bitte fülle alle Pflichtfelder (Name, Nachname, Geburtsdatum) aus.");
+                setError("Bitte fülle alle Pflichtfelder (Vorname, Nachname, Geburtsdatum) aus.");
                 return;
             }
             if (isUnder16 && !parentalConsent) {
@@ -207,7 +207,7 @@ export default function Login() {
                 const isValidCode = !codeErr && checkData?.valid === true;
 
                 if (codeErr || !isValidCode) {
-                    setError("Ungültiger oder abgelaufener SV-Code.");
+                    setError("Ungültiger oder abgelaufener Code.");
                     setIsLoading(false);
                     return;
                 }
@@ -246,7 +246,7 @@ export default function Login() {
             if (signUpErr) {
                 console.error('Registrierung Fehler:', signUpErr);
                 if (signUpErr.message.includes("already registered") || signUpErr.message.includes("already been registered")) {
-                    toast.error("Diese E-Mail ist bereits registriert. Versuche dich einzuloggen.");
+                    toast.error("Diese E-Mail ist bereits registriert. Melde dich an.");
                 } else {
                     toast.error("Registrierungsfehler: " + signUpErr.message);
                 }
@@ -272,7 +272,7 @@ export default function Login() {
                 if ((signUpData as any).mailSent === false) {
                     toast("Achtung: Die Bestätigungs-E-Mail konnte nicht versendet werden. Prüfe deinen Spam-Ordner oder melde dich bei info@nachhilfe-sv.de.", { duration: 8000 });
                 } else {
-                    toast.success("Fast geschafft! Wir haben dir einen Bestätigungs-Code per E-Mail geschickt.");
+                    toast.success("Konto erstellt. Wir haben dir einen Bestätigungs-Code per E-Mail geschickt.");
                 }
                 navigate('/verify-email', { state: { email } });
                 setIsLoading(false);
@@ -303,17 +303,17 @@ export default function Login() {
                     const redeemResult = redeemErr ? 'invalid' : (redeemData?.role || 'student');
 
                     if (redeemErr || redeemResult === 'invalid') {
-                        toast.error("Konto erstellt, aber der SV-Code konnte nicht eingelöst werden. Bitte wende dich an die SV.");
+                        toast.error("Konto erstellt, aber der Code konnte nicht eingelöst werden. Bitte wende dich an die SV.");
                     } else {
-                        toast.success(`SV-Code erfolgreich eingelöst! Dein Account wurde als '${redeemResult}' freigeschaltet.`);
+                        toast.success(`Code eingelöst. Dein Konto wurde als '${redeemResult}' freigeschaltet.`);
                     }
                 }
 
                 if (!signUpData.session) {
-                    toast.success("Registrierung erfolgreich! Bitte bestätige deine E-Mail.");
+                    toast.success("Konto erstellt. Bitte bestätige deine E-Mail-Adresse.");
                     setMode('login');
                 } else {
-                    toast.success("Registrierung erfolgreich!");
+                    toast.success("Konto erstellt.");
                     if ((signUpData as any).mailSent === false) {
                         toast("Hinweis: Die Willkommens-E-Mail konnte nicht versendet werden. Falls du keine E-Mails erhältst, melde dich bei info@nachhilfe-sv.de.", { duration: 8000 });
                     }
@@ -336,7 +336,7 @@ export default function Login() {
         if (error) {
             toast.error("Fehler: " + error.message);
         } else {
-            toast.success("E-Mail zum Zurücksetzen des Passworts wurde gesendet!");
+            toast.success("E-Mail zum Zurücksetzen des Passworts wurde gesendet.");
         }
         setIsLoading(false);
     };
@@ -378,7 +378,7 @@ export default function Login() {
                         transition={{ delay: 0.1 }}
                         className="text-5xl font-extrabold text-gray-900 leading-tight mb-6"
                     >
-                        Gemeinsam lernen,<br />besser werden.
+                        Nachhilfe am FWG.
                     </motion.h1>
                     <motion.p
                         initial={{ opacity: 0, y: 20 }}
@@ -386,7 +386,7 @@ export default function Login() {
                         transition={{ delay: 0.2 }}
                         className="text-lg text-gray-800 font-medium mb-8"
                     >
-                        Finde Nachhilfe oder biete dein Wissen an. Exklusiv für Schülerinnen und Schüler des Friedrich-Wilhelm-Gymnasiums.
+                        Finde Nachhilfe oder biete dein Wissen an. Für Schülerinnen und Schüler des Friedrich-Wilhelm-Gymnasiums. Eltern nutzen das Konto ihres Kindes mit.
                     </motion.p>
 
                     <motion.div
@@ -399,7 +399,7 @@ export default function Login() {
                             <CheckCircle size={20} className="text-gray-900" /> Von der SV organisiert
                         </div>
                         <div className="flex items-center gap-3 text-gray-800 font-medium">
-                            <CheckCircle size={20} className="text-gray-900" /> Sicher und verifiziert
+                            <CheckCircle size={20} className="text-gray-900" /> Verifizierte Konten
                         </div>
                         <div className="flex items-center gap-3 text-gray-800 font-medium">
                             <CheckCircle size={20} className="text-gray-900" /> Von Schülern für Schüler
@@ -427,8 +427,8 @@ export default function Login() {
                         <p className="text-gray-500 mt-1 font-medium text-sm">Friedrich-Wilhelm-Gymnasium Köln</p>
                         <ul className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-xs font-semibold text-gray-600 dark:text-gray-400" aria-label="Vertrauen auf einen Blick">
                             <li className="flex items-center gap-1.5"><CheckCircle size={14} className="text-green-600 shrink-0" /> Von der SV organisiert</li>
-                            <li className="flex items-center gap-1.5"><CheckCircle size={14} className="text-green-600 shrink-0" /> Sicher und verifiziert</li>
-                            <li className="flex items-center gap-1.5"><CheckCircle size={14} className="text-green-600 shrink-0" /> Kostenlos fürs FWG</li>
+                            <li className="flex items-center gap-1.5"><CheckCircle size={14} className="text-green-600 shrink-0" /> Verifizierte Konten</li>
+                            <li className="flex items-center gap-1.5"><CheckCircle size={14} className="text-green-600 shrink-0" /> Nutzung kostenlos</li>
                         </ul>
                     </div>
 
@@ -450,12 +450,12 @@ export default function Login() {
 
                         <CardHeader className="pt-6">
                             <h2 className="text-2xl font-bold leading-tight tracking-tight text-gray-900 dark:text-gray-100">
-                                {mode === 'login' ? 'Willkommen zurück' : 'Account erstellen'}
+                                {mode === 'login' ? 'Willkommen zurück' : 'Konto erstellen'}
                             </h2>
                             <CardDescription>
                                 {mode === 'login'
                                     ? 'Melde dich mit deinen Zugangsdaten an.'
-                                    : 'Schritt 1 von 2 · dauert ca. 2 Minuten. Danach: E-Mail bestätigen.'}
+                                    : 'Schritt 1 von 2. Danach bestätigst du deine E-Mail-Adresse.'}
                             </CardDescription>
                         </CardHeader>
 
@@ -492,7 +492,7 @@ export default function Login() {
                                         <div className="flex items-start gap-3 p-3 rounded-xl border border-primary/40 bg-primary/5 dark:border-primary/25 dark:bg-primary/10">
                                             <Users size={16} className="mt-0.5 shrink-0 text-amber-700 dark:text-primary" aria-hidden />
                                             <p className="text-[11px] leading-relaxed text-gray-700 dark:text-gray-300">
-                                                <strong className="text-gray-900 dark:text-gray-100">Unsere Empfehlung:</strong> Sprich die Börse einmal mit deinen Eltern durch. In den Klassen 5 und 6 schauen viele Eltern mit, ältere nutzen sie selbstständig. Mehr im{' '}
+                                                <strong className="text-gray-900 dark:text-gray-100">Unsere Empfehlung:</strong> Sprich mit deinen Eltern über die Börse. In den Klassen 5 bis 7 empfehlen wir, das Konto gemeinsam zu betreuen. Ältere Schülerinnen und Schüler nutzen es meist selbstständig. Mehr im{' '}
                                                 <Link to="/eltern-leitfaden" className="font-bold text-amber-700 dark:text-primary hover:underline" target="_blank">Eltern-Leitfaden</Link>.
                                             </p>
                                         </div>
@@ -563,7 +563,7 @@ export default function Login() {
 
                                         <div className="space-y-1">
                                             <Label className="text-xs font-bold uppercase text-gray-500 ml-1 flex justify-between tracking-wider">
-                                                <span>SV-Einmalcode</span>
+                                                <span>Code (optional)</span>
                                                 <span className="text-xs text-amber-700 dark:text-primary lowercase font-semibold">optional</span>
                                             </Label>
                                             <Input
@@ -574,14 +574,14 @@ export default function Login() {
                                                 aria-describedby="sv-code-hint"
                                             />
                                             <p id="sv-code-hint" className="text-[11px] text-gray-500 dark:text-gray-400 ml-1 leading-snug">
-                                                Ohne Code: Verifizierung vor Ort im SV-Raum. Mit Code: sofort freigeschaltet.
+                                                Verifizierung im SV-Raum. Das SV-Team prüft, ob du das FWG besuchst.
                                             </p>
                                         </div>
                                     </div>
                                 )}
 
                                 <div className="space-y-1">
-                                    <Label className="text-xs font-bold uppercase text-gray-500 ml-1">E-Mail Adresse</Label>
+                                    <Label className="text-xs font-bold uppercase text-gray-500 ml-1">E-Mail-Adresse</Label>
                                     <Input
                                         type="email"
                                         placeholder="E-Mail-Adresse"
@@ -627,14 +627,14 @@ export default function Login() {
                                     className="w-full h-12 rounded-xl font-bold text-[15px] mt-6 shadow-md shadow-primary/20"
                                     disabled={isLoading || isBlocked}
                                 >
-                                    {isLoading ? 'Bitte warten...' : (mode === 'login' ? 'Einloggen' : 'Jetzt starten')}
+                                    {isLoading ? 'Bitte warten...' : (mode === 'login' ? 'Anmelden' : 'Konto erstellen')}
                                 </Button>
                             </form>
                         </CardContent>
                         {mode === 'register' && (
                             <CardFooter className="bg-amber-50/50 dark:bg-amber-950/20 py-4 px-6 mt-4 border-t border-amber-200/50 dark:border-amber-900/30 flex flex-col space-y-1">
                                 <p className="text-[11px] text-amber-900 dark:text-amber-300 font-semibold text-center w-full leading-relaxed inline-flex items-start justify-center gap-1">
-                                    <ShieldAlert size={13} className="shrink-0 mt-px" /> <span><strong>Hinweis:</strong> Neue Accounts müssen durch einen SV-Code oder vor Ort verifiziert werden, bevor Anzeigen erstellt werden können.</span>
+                                    <ShieldAlert size={13} className="shrink-0 mt-px" /> <span><strong>Hinweis:</strong> Neue Konten werden im SV-Raum verifiziert, bevor Anzeigen erstellt werden können.</span>
                                 </p>
                             </CardFooter>
                         )}

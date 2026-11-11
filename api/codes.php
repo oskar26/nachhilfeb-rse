@@ -384,7 +384,7 @@ if ($action === 'promo_create' && $method === 'POST') {
     ]);
 
     json_response([
-        'message' => "Promocode „{$code}“ erfolgreich erstellt.",
+        'message' => "Code „{$code}“ erstellt.",
         'id' => $id,
         'code' => $code
     ], 201);

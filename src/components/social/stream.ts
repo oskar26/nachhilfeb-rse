@@ -175,7 +175,7 @@ function itemTime(item: StreamItem): number {
 const TIER_LABEL: Record<StreamTierKey, string> = {
     offen: 'Aktion nötig',
     laeuft: 'Kontakt läuft',
-    matches: 'Neue Matches',
+    matches: 'Neue Vorschläge',
     wartet: 'Wartet auf Antwort',
     gemerkt: 'Gemerkte Anzeigen',
     archiv: 'Abgeschlossen',

@@ -526,7 +526,7 @@ export default function Profile() {
 
             {!profile.is_verified && (
                 <motion.div variants={itemVariants} className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-2xl text-sm text-amber-900 dark:text-amber-200 shadow-soft">
-                    <p className="font-extrabold mb-0.5">Account eingeschränkt</p>
+                    <p className="font-extrabold mb-0.5">Konto noch nicht verifiziert</p>
                     <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">Du musst dich im SV-Raum verifizieren lassen, um eigene Nachhilfeanzeigen zu veröffentlichen.</p>
                     <Link
                         to="/welcome"
@@ -542,7 +542,7 @@ export default function Profile() {
             {strengthPct < 100 && (
                 <motion.div variants={itemVariants} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-4 rounded-2xl shadow-soft" aria-label={`Profil-Fortschritt: ${strengthPct} Prozent`}>
                     <div className="flex items-center justify-between mb-2 gap-3">
-                        <p className="text-xs font-extrabold uppercase tracking-wider text-gray-400">Profil-Stärke</p>
+                        <p className="text-xs font-extrabold uppercase tracking-wider text-gray-400">Profil vervollständigen</p>
                         <p className="text-sm font-black text-gray-900 dark:text-white tabular-nums">{strengthPct}%</p>
                     </div>
                     <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden mb-3" role="progressbar" aria-valuenow={strengthPct} aria-valuemin={0} aria-valuemax={100}>
@@ -604,7 +604,7 @@ export default function Profile() {
 
                         {/* Grade & Bio */}
                         <div>
-                            <Label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-2 block">Klasse / Jahrgangsstufe</Label>
+                            <Label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-2 block">Klasse</Label>
                             {isEditing ? (
                                 <RefinedGradeSelector
                                     grade={profile.grade_level}
@@ -655,7 +655,7 @@ export default function Profile() {
                                                 onChange={() => toggleSetting('email_visible')}
                                                 label="E-Mail-Adresse öffentlich anzeigen"
                                             />
-                                            <span className="text-xs text-gray-400 font-semibold">Öffentlich</span>
+                                            <span className="text-xs text-gray-400 font-semibold">Sichtbar</span>
                                         </div>
                                     )}
                                 </div>
@@ -679,7 +679,7 @@ export default function Profile() {
                                                 onChange={() => toggleSetting('phone_visible')}
                                                 label="Telefonnummer öffentlich anzeigen"
                                             />
-                                            <span className="text-xs text-gray-400 font-semibold">Öffentlich</span>
+                                            <span className="text-xs text-gray-400 font-semibold">Sichtbar</span>
                                         </div>
                                     )}
                                 </div>
@@ -718,7 +718,7 @@ export default function Profile() {
                                                             onChange={() => updateCustomContact(idx, { is_public: !contact.is_public })}
                                                             label={`${getContactType(contact.type).label}-Kontakt öffentlich anzeigen`}
                                                         />
-                                                        <span className="text-xs text-gray-400 font-semibold">Öffentlich</span>
+                                                        <span className="text-xs text-gray-400 font-semibold">Sichtbar</span>
                                                     </div>
                                                     <Button variant="unstyled" size="unstyled"
                                                         type="button"
@@ -832,13 +832,13 @@ export default function Profile() {
                                             : "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300"
                                     )}
                                 >
-                                    {privacyCalendar ? (<span className="inline-flex items-center gap-1"><Lock size={12} /> Nur Matching (Privat)</span>) : (<span className="inline-flex items-center gap-1"><Eye size={12} /> Öffentlich sichtbar</span>)}
+                                    {privacyCalendar ? (<span className="inline-flex items-center gap-1"><Lock size={12} /> Nur für Vorschläge sichtbar</span>) : (<span className="inline-flex items-center gap-1"><Eye size={12} /> Öffentlich sichtbar</span>)}
                                 </Button>
                             )}
                         </div>
                         <p className="text-xs text-gray-400 mt-1 font-medium leading-relaxed">
                             {privacyCalendar
-                                ? 'Dein Zeitplan wird für den Smart-Matching-Algorithmus verwendet (z.B. passende Freistunden mit Tutoren/Schülern).'
+                                ? 'Dein Zeitplan wird für passende Vorschläge verwendet (zum Beispiel gemeinsame freie Zeiten mit anderen Schülerinnen und Schülern).'
                                 : 'Dein Kalender ist zusätzlich öffentlich auf deinem Profil sichtbar.'}
                             {isEditing ? ' Klicke auf die Zeiten unten, um deine freien Stunden einzutragen.' : ''}
                         </p>

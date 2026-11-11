@@ -43,17 +43,18 @@ export default function Datenschutz() {
                 {/* Leseeinheit 1: Zusammenfassung + Inhaltsübersicht gehören zusammen. */}
                 <div className="flex flex-col gap-4 sm:gap-5 min-w-0">
                 <section aria-labelledby="datenschutz-tldr" className="bg-white dark:bg-gray-900 p-6 sm:p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col gap-3">
-                    <h2 id="datenschutz-tldr" className="font-bold text-lg text-gray-900 dark:text-white">TL;DR: kurz und einfach gesagt</h2>
+                    <h2 id="datenschutz-tldr" className="font-bold text-lg text-gray-900 dark:text-white">TL;DR: kurz gesagt</h2>
                     <div className="text-[15px] leading-7 text-gray-600 dark:text-gray-300 flex flex-col gap-2">
                         <p>
                             Deine Daten gehören dir. Wir speichern nur, was die App zum Laufen braucht
-                            (Account, Anzeigen, Nachrichten). Wir verkaufen nichts, wir tracken nicht,
-                            es gibt keine Werbung und keine Weitergabe an Dritte.
+                            (Konto, Anzeigen, Nachrichten). Wir verkaufen keine Daten. Wir setzen keine Werbung
+                            und keine externen Analysewerkzeuge ein. Für die Verbesserung der App führen wir
+                            eine pseudonyme Nutzungsstatistik (siehe Abschnitt 2).
                         </p>
                         <p>
                             Deine <strong>E-Mail-Adresse und dein Geburtsdatum sehen andere Nutzer nie</strong>.
                             Du kannst jederzeit Auskunft, Korrektur oder Löschung verlangen – schreib uns
-                            einfach (siehe unten: „Was du jetzt tun kannst“).
+                            (siehe unten: „Was du jetzt tun kannst“).
                         </p>
                         <p className="text-sm">
                             Die ausführlichen Informationen nach Art. 13 DSGVO findest du in den Abschnitten unten.
@@ -94,32 +95,32 @@ export default function Datenschutz() {
                 </Section>
 
                 <Section id="d2" title="2. Welche Daten verarbeiten wir – und wofür?">
-                    <p><strong>Registrierung & Account (Art. 6 Abs. 1 lit. b DSGVO (Vertrag)):</strong> E-Mail-Adresse, selbst gewählter Name, Rolle (Schüler/in), Klassenstufe und Geburtsdatum (zur Prüfung der Alters- und Schulregeln). Das Passwort wird ausschließlich als sicherer Hash gespeichert – im Klartext kennt es niemand.</p>
+                    <p><strong>Registrierung & Konto (Art. 6 Abs. 1 lit. b DSGVO (Vertrag)):</strong> E-Mail-Adresse, selbst gewählter Name, Rolle (Schüler/in), Klassenstufe und Geburtsdatum (zur Prüfung der Alters- und Schulregeln). Das Passwort wird ausschließlich als sicherer Hash gespeichert. Im Klartext kennt es niemand.</p>
                     <p><strong>Profil & Anzeigen (Art. 6 Abs. 1 lit. b DSGVO):</strong> Alle Angaben, die du freiwillig in Profil und Anzeigen einträgst (Fächer, Beschreibung, Preise, Verfügbarkeiten, Profilbild). Anzeigen sind für alle angemeldeten Nutzer sichtbar.</p>
                     <p><strong>Nachrichten & Anfragen (Art. 6 Abs. 1 lit. b DSGVO):</strong> Chat-Nachrichten und Anfragen zwischen Nutzern, damit die Vermittlung funktioniert.</p>
                     <p><strong>Verifizierung & Sicherheit (Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse am Schutz Minderjähriger)):</strong> Verifizierungsstatus, Sperrstatus bei Regelverstößen sowie ein Protokoll von Moderationsmaßnahmen (wer wurde wann von wem aus welchem Grund verwarnt/gesperrt).</p>
-                    <p><strong>Nutzungsstatistik (Art. 6 Abs. 1 lit. f DSGVO):</strong> Wir erfassen, welche Seiten aufgerufen werden (Seitenpfad, Gerätetyp, Browser, Uhrzeit), um die App zu verbessern. Es werden <strong>keine IP-Adressen und keine Gerätekennungen gespeichert</strong>, keine Cookies zu Analysezwecken gesetzt und <strong>keine externen Analyse- oder Werbedienste</strong> (z. B. Google Analytics) eingesetzt. Bei <strong>angemeldeten</strong> Nutzerinnen und Nutzern wird zusätzlich die Konto-Kennung mitgeschrieben, damit wir sehen, wie viele verschiedene Personen aktiv sind – diese Auswertung ist damit nicht anonym, sondern <strong>pseudonym</strong>; sie wird <strong>nach 90 Tagen automatisch gelöscht</strong>. Wer das nicht möchte, kann der Verarbeitung widersprechen (siehe Abschnitt 6) – die Nutzung der Börse ist davon nicht betroffen. Zusätzlich zählen wir die Klicks auf die „Beliebt“-Schnellfilter im Feed (nur Fachname und Zeitpunkt, <strong>ohne jeden Nutzerbezug</strong>), um die Reihenfolge der beliebtesten Fächer zu bestimmen.</p>
+                    <p><strong>Nutzungsstatistik (Art. 6 Abs. 1 lit. f DSGVO):</strong> Wir erfassen, welche Seiten aufgerufen werden (Seitenpfad, Gerätetyp, Browser, Uhrzeit), um die App zu verbessern. Es werden <strong>keine IP-Adressen und keine Gerätekennungen gespeichert</strong>, keine Cookies zu Analysezwecken gesetzt und <strong>keine externen Analyse- oder Werbedienste</strong> (z. B. Google Analytics) eingesetzt. Bei <strong>angemeldeten</strong> Nutzerinnen und Nutzern wird zusätzlich die Konto-Kennung mitgeschrieben, damit wir sehen, wie viele verschiedene Personen aktiv sind. Diese Auswertung ist damit nicht anonym, sondern <strong>pseudonym</strong>; sie wird <strong>nach 90 Tagen automatisch gelöscht</strong>. Wer das nicht möchte, kann der Verarbeitung widersprechen (siehe Abschnitt 6). Die Nutzung der Börse ist davon nicht betroffen. Zusätzlich zählen wir die Klicks auf die „Beliebt“-Schnellfilter in der Übersicht (nur Fachname und Zeitpunkt, <strong>ohne jeden Nutzerbezug</strong>), um die Reihenfolge der beliebtesten Fächer zu bestimmen.</p>
                     <p><strong>Technisch notwendige Speicherung:</strong> Anmeldestatus und Einstellungen (z. B. Theme, Hinweis-Status) werden lokal in deinem Browser (Local Storage) abgelegt. Das ist für den Betrieb erforderlich; eine Einwilligung ist dafür nach § 25 Abs. 2 TDDDG nicht nötig.</p>
                 </Section>
 
                 <Section id="d3" title="3. Kinder und Jugendliche">
                     <p>
                         Unsere Plattform richtet sich an Schülerinnen und Schüler des FWG sowie deren Eltern.
-                        Für Nutzerinnen und Nutzer <strong>unter 16 Jahren</strong> holen wir die
+                        Für Nutzerinnen und Nutzer <strong>unter 16 Jahren</strong> holen wir die{' '}
                         <strong>Einwilligung der Erziehungsberechtigten</strong> ein (Art. 8 DSGVO):
-                        Bei der Registrierung wird sie abgefragt und dokumentiert, und bei der persönlichen
-                        <strong>Verifizierung im SV-Raum</strong> wird der Account zusätzlich geprüft.
-                        Ohne Einwilligung und ohne Verifizierung bleibt der Account eingeschränkt
+                        Bei der Registrierung wird sie abgefragt und dokumentiert, und bei der persönlichen{' '}
+                        <strong>Verifizierung im SV-Raum</strong> wird das Konto zusätzlich geprüft.
+                        Ohne Einwilligung und ohne Verifizierung bleibt das Konto eingeschränkt
                         (keine Anzeigenerstellung, keine Kontaktaufnahme). Wie die Nutzung zu Hause
                         begleitet wird, entscheiden Eltern und Kind gemeinsam; in den unteren Klassen
                         betreuen viele Eltern mit.
                     </p>
                     <p>
-                        Eltern können den Account ihres Kindes mitbetreuen und etwa Anzeigen und
+                        Eltern können das Konto ihres Kindes mitbetreuen und etwa Anzeigen und
                         Anfragen gemeinsam durchgehen. Die Einwilligung kann jederzeit
                         mit Wirkung für die Zukunft widerrufen werden – wende dich dazu an{' '}
                         <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-amber-700 dark:text-primary hover:underline break-anywhere">info@nachhilfe-sv.de</a>.
-                        Nach dem Widerruf wird der Account des Kindes deaktiviert.
+                        Nach dem Widerruf wird das Konto des Kindes deaktiviert.
                     </p>
                 </Section>
 
@@ -142,8 +143,8 @@ export default function Datenschutz() {
 
                 <Section id="d5" title="5. Wie lange speichern wir Daten?">
                     <ul className="list-disc pl-4 space-y-1">
-                        <li><strong>Accounts & Inhalte:</strong> solange dein Account besteht. Inaktive Anzeigen kannst du selbst löschen.</li>
-                        <li><strong>Nach Account-Löschung:</strong> Wir löschen Profil, Anzeigen und Nachrichten oder anonymisieren sie, soweit keine gesetzlichen Aufbewahrungspflichten entgegenstehen. Moderationsprotokolle (Sperren, Verwarnungen) bewahren wir zum Schutz der Community noch <strong>12 Monate</strong> auf und löschen sie danach.</li>
+                        <li><strong>Konto und Inhalte:</strong> solange dein Konto besteht. Inaktive Anzeigen kannst du selbst löschen.</li>
+                        <li><strong>Nach Konto-Löschung:</strong> Wir löschen Profil, Anzeigen und Nachrichten oder anonymisieren sie, soweit keine gesetzlichen Aufbewahrungspflichten entgegenstehen. Moderationsprotokolle (Sperren, Verwarnungen) bewahren wir zum Schutz der Community noch <strong>12 Monate</strong> auf und löschen sie danach.</li>
                         <li><strong>Nutzungsstatistik:</strong> Detaildaten (Seitenpfad, Gerät, Browser, Zeitpunkt, bei angemeldeten Nutzern die Konto-Kennung) werden nach <strong>90 Tagen automatisch gelöscht</strong>. Auswertungen im SV-Panel beziehen sich auf Zeiträume bis 30 Tage. Fächer-Klicks werden ohne jeden Nutzerbezug gezählt.</li>
                     </ul>
                 </Section>
@@ -157,8 +158,8 @@ export default function Datenschutz() {
                     </p>
                     <p>
                         Profil und Anzeigen kannst du in der App unter „Profil“ bzw. „Meine Anzeigen“ selbst
-                        verwalten. Die <strong>vollständige Löschung deines Accounts</strong> beantragst du
-                        über ein Support-Ticket in der App oder per E-Mail an{' '}
+                        verwalten. Die <strong>vollständige Löschung deines Kontos</strong> beantragst du
+                        über eine Anfrage in der App oder per E-Mail an{' '}
                         <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-amber-700 dark:text-primary hover:underline break-anywhere">info@nachhilfe-sv.de</a>{' '}
                         – wir bestätigen die Löschung innerhalb von 14 Tagen.
                     </p>
@@ -166,7 +167,7 @@ export default function Datenschutz() {
                         <strong>Widerspruch gegen die Nutzungsstatistik:</strong> Du kannst der Verarbeitung
                         zu Statistikzwecken jederzeit widersprechen (Art. 21 DSGVO) – formlos per E-Mail an{' '}
                         <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-amber-700 dark:text-primary hover:underline break-anywhere">info@nachhilfe-sv.de</a>{' '}
-                        oder über ein Support-Ticket. Deine Konto-Kennung wird dann aus den Statistikdaten
+                        oder über eine Anfrage. Deine Konto-Kennung wird dann aus den Statistikdaten
                         entfernt; die Nutzung der Börse bleibt vollständig möglich.
                     </p>
                     <p>
@@ -180,7 +181,7 @@ export default function Datenschutz() {
                         Die Übertragung erfolgt verschlüsselt (HTTPS). Passwörter werden gehasht gespeichert,
                         Zugriffe auf Verwaltungsfunktionen sind auf das SV-Team beschränkt und werden
                         protokolliert. Absolute Sicherheit im Internet gibt es nicht – bei Verdacht auf
-                        Missbrauch deines Accounts melde dich sofort bei uns.
+                        Missbrauch deines Kontos melde dich sofort bei uns.
                     </p>
                 </Section>
                 </div>
@@ -188,7 +189,7 @@ export default function Datenschutz() {
                 <section aria-labelledby="datenschutz-handeln" className="bg-white dark:bg-gray-900 p-6 sm:p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col gap-3">
                     <h2 id="datenschutz-handeln" className="font-bold text-lg text-gray-900 dark:text-white">Was du jetzt tun kannst</h2>
                     <ul className="text-[15px] leading-7 text-gray-600 dark:text-gray-300 list-disc pl-4 space-y-1">
-                        <li><strong>Support-Ticket in der App</strong> erstellen, für Auskunft, Korrektur oder Löschung deines Accounts.</li>
+                        <li><strong>Anfrage in der App</strong> erstellen, für Auskunft, Korrektur oder Löschung deines Kontos.</li>
                         <li><strong>E-Mail schreiben</strong> an <a href="mailto:info@nachhilfe-sv.de" className="font-bold text-amber-700 dark:text-primary hover:underline break-anywhere">info@nachhilfe-sv.de</a> – wir antworten und bestätigen Löschungen innerhalb von 14 Tagen.</li>
                         <li><strong>Beschwerde einreichen</strong> bei der LDI NRW (Kavalleriestr. 2–4, 40213 Düsseldorf), wenn du mit unserer Antwort nicht zufrieden bist.</li>
                     </ul>

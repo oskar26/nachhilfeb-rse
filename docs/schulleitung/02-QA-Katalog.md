@@ -184,9 +184,7 @@ behoben haben.“*
 
 **C8 · „Brauchen Minderjährige eine Einwilligung und wie wird die geprüft?“**
 Bei unter 16 Jahren ist die Einwilligung der Erziehungsberechtigten erforderlich (Art. 8 DSGVO).
-Die Einwilligung wird bei der Registrierung abgefragt, das Eltern-Dashboard dokumentiert die
-Verknüpfung, und im SV-Raum wird persönlich geprüft. Zusätzlich empfehlen wir, dass Eltern
-ihr Konto mit dem des Kindes verknüpfen — dann ist die Verantwortung doppelt sichtbar.
+Die Einwilligung wird bei der Registrierung abgefragt und mit Zeitstempel dokumentiert. Eltern nutzen das Konto ihres Kindes gemeinsam mit ihm. Im SV-Raum wird die Person persönlich geprüft.
 *Fundstelle: Art. 8 Abs. 1 und Abs. 2 DSGVO; Nutzungsbedingungen § 2.*
 
 **C9 · „Was ist mit einem Vertrag mit dem Hoster?“**
@@ -357,8 +355,8 @@ Rechtlich ist die SV keine Vermittlungsagentur: Sie veröffentlicht Anzeigen und
 frei — sie wird nicht Vertragspartei, verlangt kein Entgelt und schuldet keinen Erfolg. Das steht
 in den Nutzungsbedingungen und im Impressum.
 
-**E9 · „Und wenn jemand mit den 10–15 € pro 45 Minuten wuchert?“**
-In den Nutzungsbedingungen stehen Richtwerte (ca. 10–12 € / 45–60 Min). Wucherpreise,
+**E9 · „Und wenn jemand deutlich mehr als den Richtwert verlangt?“**
+In den Nutzungsbedingungen steht ein Richtwert von ca. 12 € pro Stunde. Der Preis ist individuell anpassbar. Wucherpreise,
 Lockangebote und versteckte Kosten sind unzulässig und werden gemeldet und entfernt.
 
 **E10 · „Was ist, wenn Eltern sich beschweren?“**
@@ -465,7 +463,7 @@ bleibt privat. Später denkbar: nur eine dokumentierte Empfehlung der Richtpreis
 **H5 · „Und wenn ein Elternteil sagt: Mein Kind darf da nicht rein?“**
 Dann bleibt es draußen. Kein Nachteil, keine Auffälligkeit. Die Nutzung ist freiwillig,
 und wer unter 16 ist, braucht sowieso die elterliche Einwilligung. Für Eltern, die es wollen,
-bleibt der Eltern-Leitfaden und das Eltern-Dashboard.
+bleibt der Eltern-Leitfaden.
 
 **H6 · „Was ist mit Schülern, die kein Handy oder kein Datenvolumen haben?“**
 Jede Klasse hat Zugang zu Rechnern im Computerraum, und die Schulbibliothek ist der Ort für

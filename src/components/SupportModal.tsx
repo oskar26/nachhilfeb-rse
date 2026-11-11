@@ -197,7 +197,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
         const msgCheck = checkContent(newMessage, filterOverrides);
         if (msgCheck.blocked) {
             toast.error(blockedReason(newMessage, filterOverrides) ?? 'Diese Nachricht wurde vom Inhaltsfilter blockiert.', { duration: 6000 });
-            void maybeAutoReport(msgCheck, newMessage, { category: 'sonstiges', reportedUserId: user?.id ?? null, place: 'Support-Chat' });
+            void maybeAutoReport(msgCheck, newMessage, { category: 'sonstiges', reportedUserId: user?.id ?? null, place: 'Nachrichten' });
             return;
         }
         try {
@@ -226,8 +226,8 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
             const payload = {
                 user_id: user.id,
                 type: 'support',
-                title: 'Direkter Support-Chat',
-                description: 'Direkt aus dem Support-Fenster gestarteter Chat.',
+                title: 'Direkte Nachrichten',
+                description: 'Direkt aus dem Hilfefenster gestartete Nachricht.',
             };
             const { error } = await api.support.createTicket(payload);
             if (error) throw error;
@@ -239,8 +239,8 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
             const ticket = (data?.[0] as SupportTicket) || {
                 id: `tmp-${Date.now()}`,
                 type: 'support',
-                title: 'Direkter Support-Chat',
-                description: 'Direkt aus dem Support-Fenster gestarteter Chat.',
+                title: 'Direkte Nachrichten',
+                description: 'Direkt aus dem Hilfefenster gestartete Nachricht.',
                 status: 'open',
                 created_at: new Date().toISOString(),
             };
@@ -306,9 +306,9 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                 </Button>
                             )}
                             <h2 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-1.5">
-                                {view === 'menu' && 'Hilfe & Support'}
-                                {view === 'form' && (ticketType === 'bug' ? <><Bug size={18} className="inline" /> Bug melden</> : <><Lightbulb size={18} className="inline" /> Feature vorschlagen</>)}
-                                {view === 'chat' && (activeTicket ? activeTicket.title : <><MessageCircle size={18} className="inline" /> Support-Chat</>)}
+                                {view === 'menu' && 'Hilfe'}
+                                {view === 'form' && (ticketType === 'bug' ? <><Bug size={18} className="inline" /> Fehler melden</> : <><Lightbulb size={18} className="inline" /> Verbesserung vorschlagen</>)}
+                                {view === 'chat' && (activeTicket ? activeTicket.title : <><MessageCircle size={18} className="inline" /> Nachrichten</>)}
                                 {view === 'success' && <><CheckCircle size={18} className="inline text-green-500" /> Eingereicht!</>}
                             </h2>
                         </div>
@@ -337,7 +337,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                         <Bug size={22} className="text-red-600 dark:text-red-400" />
                                     </div>
                                     <div>
-                                        <p className="font-extrabold text-sm text-gray-900 dark:text-white">Bug melden</p>
+                                        <p className="font-extrabold text-sm text-gray-900 dark:text-white">Fehler melden</p>
                                         <p className="text-xs text-gray-500 dark:text-gray-400">Etwas funktioniert nicht richtig? Lass es uns wissen.</p>
                                     </div>
                                 </Button>
@@ -350,8 +350,8 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                         <Lightbulb size={22} className="text-amber-600 dark:text-amber-400" />
                                     </div>
                                     <div>
-                                        <p className="font-extrabold text-sm text-gray-900 dark:text-white">Feature vorschlagen</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">Hast du eine Idee für ein neues Feature?</p>
+                                        <p className="font-extrabold text-sm text-gray-900 dark:text-white">Verbesserung vorschlagen</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">Hast du eine Idee für eine Verbesserung?</p>
                                     </div>
                                 </Button>
 
@@ -363,8 +363,8 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                         <MessageCircle size={22} className="text-blue-600 dark:text-blue-400" />
                                     </div>
                                     <div>
-                                        <p className="font-extrabold text-sm text-gray-900 dark:text-white">Support-Chat</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">Bisherige Tickets ansehen und weiterschreiben.</p>
+                                        <p className="font-extrabold text-sm text-gray-900 dark:text-white">Nachrichten</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">Bisherige Anfragen ansehen und weiterschreiben.</p>
                                     </div>
                                 </Button>
 
@@ -377,8 +377,8 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                         {startingDirectChat ? <Loader2 size={22} className="text-emerald-600 dark:text-emerald-400 animate-spin" /> : <Zap size={22} className="text-emerald-600 dark:text-emerald-400" />}
                                     </div>
                                     <div>
-                                        <p className="font-extrabold text-sm text-gray-900 dark:text-white">Direkt chatten</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">Sofort losschreiben – ganz ohne Ticket-Formular.</p>
+                                        <p className="font-extrabold text-sm text-gray-900 dark:text-white">Direkt schreiben</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">Schreibe direkt an das SV-Team. Du brauchst kein Formular.</p>
                                     </div>
                                 </Button>
 
@@ -440,7 +440,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                         onChange={e => setDescription(e.target.value)}
                                         placeholder={ticketType === 'bug' 
                                             ? 'Beschreibe den Fehler so genau wie möglich...\n\nWas hast du getan?\nWas hätte passieren sollen?\nWas ist stattdessen passiert?' 
-                                            : 'Beschreibe dein gewünschtes Feature...\n\nWas soll es können?\nWarum wäre es nützlich?'}
+                                            : 'Beschreibe deine gewünschte Verbesserung...\n\nWas soll es können?\nWarum wäre es nützlich?'}
                                         className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-transparent text-sm focus:ring-2 focus:ring-primary outline-none text-gray-900 dark:text-white min-h-[140px] resize-none"
                                         maxLength={2000}
                                     />
@@ -472,18 +472,18 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                 {loadingChat ? (
                                     <div className="py-12 flex flex-col items-center gap-3">
                                         <Loader2 size={24} className="text-primary animate-spin" />
-                                        <p className="text-sm text-gray-400">Lade Tickets...</p>
+                                        <p className="text-sm text-gray-400">Anfragen werden geladen...</p>
                                     </div>
                                 ) : chatTickets.length === 0 ? (
                                     <div className="py-12 text-center space-y-3">
                                         <MessageCircle size={40} className="mx-auto text-gray-300" />
-                                        <p className="text-sm text-gray-500 font-medium">Noch keine Tickets vorhanden.</p>
-                                        <p className="text-xs text-gray-400">Erstelle ein Bug-Report oder Feature-Request, um einen Support-Thread zu starten.</p>
+                                        <p className="text-sm text-gray-500 font-medium">Noch keine Anfragen.</p>
+                                        <p className="text-xs text-gray-400">Erstelle eine Anfrage, um ein Gespräch mit dem SV-Team zu beginnen.</p>
                                         <Button variant="unstyled" size="unstyled" type="submit"
                                             onClick={() => setView('menu')}
                                             className="px-4 py-2 bg-primary hover:bg-primary-hover text-primary-foreground rounded-xl text-xs font-bold transition-all"
                                         >
-                                            Neues Ticket erstellen
+                                            Neue Anfrage erstellen
                                         </Button>
                                     </div>
                                 ) : (
@@ -567,17 +567,17 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                 <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto">
                                     <CheckCircle size={32} className="text-green-600 dark:text-green-400" />
                                 </div>
-                                <h3 className="text-lg font-extrabold text-gray-900 dark:text-white">Erfolgreich eingereicht!</h3>
+                                <h3 className="text-lg font-extrabold text-gray-900 dark:text-white">Anfrage gesendet.</h3>
                                 <p className="text-sm text-gray-500 max-w-xs mx-auto">
-                                    Dein {ticketType === 'bug' ? 'Bug-Report' : 'Feature-Request'} wurde an das SV-Team gesendet. 
-                                    Du kannst den Status im Support-Chat verfolgen.
+                                    Deine Anfrage wurde an das SV-Team gesendet.
+                                    Du kannst den Status in den Nachrichten verfolgen.
                                 </p>
                                 <div className="flex gap-2 justify-center pt-2">
                                     <Button variant="unstyled" size="unstyled" type="submit"
                                         onClick={() => { openChatView(); }}
                                         className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-300 transition-all"
                                     >
-                                        Zum Support-Chat
+                                        Zu den Nachrichten
                                     </Button>
                                     <Button variant="unstyled" size="unstyled" type="submit"
                                         onClick={onClose}
@@ -599,7 +599,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                     value={newMessage}
                                     onChange={e => setNewMessage(e.target.value)}
                                     onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-                                    placeholder="Nachricht an SV-Team..."
+                                    placeholder="Nachricht an das SV-Team..."
                                     className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-primary outline-none text-gray-900 dark:text-white"
                                 />
                                 <Button variant="unstyled" size="unstyled" type="submit"

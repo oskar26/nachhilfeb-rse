@@ -118,7 +118,7 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $codeStmt->execute([$inviteCode]);
         $codeRecord = $codeStmt->fetch();
         if (!$codeRecord) {
-            json_error('Der eingegebene SV-Code ist ungültig oder wurde bereits eingelöst.', 400);
+            json_error('Der eingegebene Code ist ungültig oder wurde bereits eingelöst.', 400);
         }
     }
 
@@ -181,7 +181,7 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             if ($redeemStmt->rowCount() !== 1) {
                 $pdo->rollBack();
-                json_error('Der eingegebene SV-Code wurde soeben bereits eingelöst. Bitte versuche es erneut.', 409);
+                json_error('Der eingegebene Code wurde soeben bereits eingelöst. Bitte versuche es erneut.', 409);
             }
         }
 
@@ -402,7 +402,7 @@ if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($profile['ban_type'] === 'temporary' && !empty($profile['banned_until'])) {
             $bannedUntil = strtotime($profile['banned_until']);
             if ($bannedUntil > time()) {
-                json_error('Dein Account ist vorübergehend gesperrt bis ' . date('d.m.Y H:i', $bannedUntil), 403, [
+                json_error('Dein Konto ist vorübergehend gesperrt bis ' . date('d.m.Y H:i', $bannedUntil), 403, [
                     'is_banned' => true,
                     'ban_reason' => $profile['ban_reason'],
                     'banned_until' => $profile['banned_until']
@@ -412,7 +412,7 @@ if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 $profile['is_banned'] = 0;
             }
         } else {
-            json_error('Dein Account wurde dauerhaft gesperrt.', 403, [
+            json_error('Dein Konto wurde dauerhaft gesperrt.', 403, [
                 'is_banned' => true,
                 'ban_reason' => $profile['ban_reason']
             ]);

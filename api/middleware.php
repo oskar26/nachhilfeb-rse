@@ -62,7 +62,7 @@ function get_auth_user(): ?array {
         if ($user['ban_type'] === 'temporary' && !empty($user['banned_until'])) {
             $bannedUntil = strtotime($user['banned_until']);
             if ($bannedUntil > time()) {
-                json_error('Dein Account ist vorübergehend gesperrt bis ' . date('d.m.Y H:i', $bannedUntil), 403, [
+                json_error('Dein Konto ist vorübergehend gesperrt bis ' . date('d.m.Y H:i', $bannedUntil), 403, [
                     'is_banned' => true,
                     'ban_reason' => $user['ban_reason'],
                     'banned_until' => $user['banned_until']
@@ -73,7 +73,7 @@ function get_auth_user(): ?array {
                 $user['is_banned'] = 0;
             }
         } else {
-            json_error('Dein Account wurde dauerhaft gesperrt.', 403, [
+            json_error('Dein Konto wurde dauerhaft gesperrt.', 403, [
                 'is_banned' => true,
                 'ban_reason' => $user['ban_reason']
             ]);

@@ -190,7 +190,7 @@ export default function CreateAd() {
             case 4:
                 return formData.short_description.trim().length > 10
                     ? null
-                    : 'Schreibe einen Feed-Teaser mit mindestens 11 Zeichen (max. 100) – so erscheinen deine ersten Worte im Feed.';
+                    : 'Schreibe eine Kurzbeschreibung mit mindestens 11 Zeichen (max. 100). So erscheinen deine ersten Worte in der Übersicht.';
             default:
                 return null;
         }
@@ -417,7 +417,7 @@ export default function CreateAd() {
     return (
         <div className="w-full max-w-3xl mx-auto px-3 sm:px-4 py-4 pb-24 min-w-0 box-border overflow-x-hidden">
             <div className="flex items-start justify-between gap-3 mb-2">
-                <h1 className="text-2xl font-bold">Anzeige aufgeben</h1>
+                <h1 className="text-2xl font-bold">Anzeige erstellen</h1>
                 <Button variant="unstyled" size="unstyled"
                     type="button"
                     onClick={discardDraft}
@@ -548,7 +548,7 @@ export default function CreateAd() {
                                             <Lock size={18} className="shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
                                             <div className="text-xs leading-relaxed space-y-1">
                                                 <p className="font-bold text-sm">Dein Gesuch ist privat.</p>
-                                                <p>Es erscheint nicht öffentlich im Feed, sondern nur bei passenden Anbietern (Match) bzw. bei Nutzern, die diese Fächer laut Profil anbieten. Das SV-Team sieht es zur Moderation.</p>
+                                                <p>Es erscheint nicht öffentlich in der Übersicht, sondern nur bei passenden Anbietern und bei Nutzern, die diese Fächer laut Profil anbieten. Das SV-Team sieht es zur Moderation.</p>
                                             </div>
                                         </div>
                                     )}
@@ -556,7 +556,7 @@ export default function CreateAd() {
                                     {/* Unterrichts-Format: Einzel / Kleingruppe / Egal */}
                                     <div>
                                         <span className="text-sm font-medium block">Unterrichts-Format</span>
-                                        <span className="text-[11px] text-gray-500 block mb-2">Einzelnachhilfe, Kleingruppe (2–4 Schüler) oder flexibel?</span>
+                                        <span className="text-[11px] text-gray-500 block mb-2">Einzelunterricht, Kleingruppe (2 bis 4 Schüler) oder nach Absprache?</span>
                                         <div className="grid grid-cols-3 gap-2">
                                             {SESSION_FORMATS.map(f => {
                                                 const Icon = f.value === 'single' ? User : f.value === 'group' ? Users : Shuffle;
@@ -595,7 +595,7 @@ export default function CreateAd() {
                                             className="text-base sm:text-lg py-5 sm:py-6"
                                             maxLength={80}
                                         />
-                                        <p className="text-[11px] text-gray-500 mt-1.5">So erscheint deine Anzeige im Feed. Fach und Klasse im Titel helfen beim Finden.</p>
+                                        <p className="text-[11px] text-gray-500 mt-1.5">So erscheint deine Anzeige in der Übersicht. Fach und Klasse im Titel helfen beim Finden.</p>
                                     </div>
                             </>
                         </div>
@@ -615,7 +615,7 @@ export default function CreateAd() {
                                                 : '25 Fächer in 4 Gruppen'}
                                     </span>
                                 </div>
-                                <p className="text-[11px] text-gray-500 mb-3">Mindestens 1 Fach wählen. Tippe zum Filtern, statt lange zu scrollen.</p>
+                                <p className="text-[11px] text-gray-500 mb-3">Wähle mindestens ein Fach. Tippe zum Filtern, statt lange zu scrollen.</p>
                                 <div className="relative mb-4">
                                     <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                     <Input
@@ -706,7 +706,7 @@ export default function CreateAd() {
                                         </Button>
                                     )}
                                 </div>
-                                <p className="text-[11px] text-gray-500 mb-3">Wähle alle Orte, die für dich passen. 19 Orte in 4 Gruppen, Mehrfachauswahl möglich.</p>
+                                <p className="text-[11px] text-gray-500 mb-3">Wähle alle Orte, die für dich passen. Mehrfachauswahl ist möglich.</p>
                                 <div className="space-y-4">
                                     {LOCATION_GROUPS.map(group => {
                                         const GroupIcon = group.title === 'In der Schule' ? School : group.title === 'Online' ? Wifi : group.title === 'Außerhalb (öffentlich)' ? MapPin : Home;
@@ -918,28 +918,28 @@ export default function CreateAd() {
                                             {effectiveHourly.hourly >= 9 && effectiveHourly.hourly <= 14 && (
                                                 <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800/60">
                                                     <CheckCircle size={15} className="shrink-0 text-emerald-600 dark:text-emerald-400" />
-                                                    <span>Faire Preisempfehlung: ca. 10–12 € pro 45–60 Min Richtwert am FWG</span>
+                                                    <span>Richtwert am FWG: ca. 12 € pro Stunde. Der Preis ist individuell anpassbar.</span>
                                                 </div>
                                             )}
 
                                             {effectiveHourly.hourly < 9 && (
                                                 <div className="flex items-center gap-2 text-xs font-semibold text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/40 p-2.5 rounded-xl border border-sky-200 dark:border-sky-800/60">
                                                     <Info size={15} className="shrink-0 text-sky-600 dark:text-sky-400" />
-                                                    <span>Sehr günstig: unter dem Richtwert ca. 10–12 € pro 45–60 Min</span>
+                                                    <span>Unter dem Richtwert von ca. 12 € pro Stunde.</span>
                                                 </div>
                                             )}
 
                                             {effectiveHourly.hourly > 14 && effectiveHourly.hourly <= 18 && (
                                                 <div className="flex items-center gap-2 text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200 dark:border-amber-800/60">
                                                     <Info size={15} className="shrink-0 text-amber-600 dark:text-amber-400" />
-                                                    <span>Etwas über dem Durchschnitt. FWG-Richtwert: ca. 10–12 € pro 45–60 Min</span>
+                                                    <span>Etwas über dem FWG-Richtwert von ca. 12 € pro Stunde.</span>
                                                 </div>
                                             )}
 
                                             {effectiveHourly.hourly > 18 && (
                                                 <div className="flex items-center gap-2 text-xs font-semibold text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 p-2.5 rounded-xl border border-rose-200 dark:border-rose-800/60">
                                                     <AlertCircle size={15} className="shrink-0 text-rose-600 dark:text-rose-400" />
-                                                    <span>Relativ hoch für Schüler-Nachhilfe. Erlaubt, aber prüfe bitte, ob das beabsichtigt ist</span>
+                                                    <span>Deutlich über dem FWG-Richtwert. Bitte prüfe, ob der Preis so gemeint ist.</span>
                                                 </div>
                                             )}
                                         </div>
@@ -950,14 +950,14 @@ export default function CreateAd() {
                             {formData.price_mode === 'free' && (
                                 <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-2.5 text-xs text-emerald-800 dark:text-emerald-300 font-medium animate-in fade-in">
                                     <CheckCircle size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-                                    <span>Toll! Ehrenamtliche Nachhilfe stärkt den Zusammenhalt am FWG.</span>
+                                    <span>Du bietest die Nachhilfe kostenlos an.</span>
                                 </div>
                             )}
 
                             {formData.price_mode === 'vb' && (
                                 <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 flex items-center gap-2.5 text-xs text-blue-800 dark:text-blue-300 font-medium animate-in fade-in">
                                     <Info size={16} className="text-blue-600 dark:text-blue-400 shrink-0" />
-                                    <span>Tipp zur Orientierung: Am FWG sind ca. 10–12 € pro 45–60 Min ein beliebter und erprobter Richtwert.</span>
+                                    <span>Richtwert am FWG: ca. 12 € pro Stunde. Der Preis ist individuell anpassbar.</span>
                                 </div>
                             )}
                         </div>
@@ -968,13 +968,13 @@ export default function CreateAd() {
                         <div className="space-y-6">
                             <div>
                                 <div className="flex items-baseline justify-between gap-3 mb-2">
-                                    <Label htmlFor="short-description" className="text-sm font-medium">Kurzbeschreibung (für den Feed)</Label>
+                                    <Label htmlFor="short-description" className="text-sm font-medium">Kurzbeschreibung (für die Übersicht)</Label>
                                     <span className="text-[11px] text-gray-500 shrink-0">11–100 Zeichen</span>
                                 </div>
                                 <Input
                                     id="short-description"
                                     maxLength={100}
-                                    placeholder="Ein Satz, der Lust aufs Antippen macht …"
+                                    placeholder="Ein Satz, der dein Angebot zusammenfasst."
                                     value={formData.short_description}
                                     onChange={e => setFormData({ ...formData, short_description: e.target.value })}
                                 />
@@ -1029,7 +1029,7 @@ export default function CreateAd() {
                             <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg flex gap-3 text-yellow-800 text-sm mb-6">
                                 <AlertCircle className="shrink-0" />
                                 <div>
-                                    <p className="font-bold">{formData.type === 'search' ? 'Prüfe dein Gesuch' : 'Fast fertig!'}</p>
+                                    <p className="font-bold">{formData.type === 'search' ? 'Gesuch prüfen' : 'Anzeige prüfen'}</p>
                                     {formData.type === 'search' ? (
                                         <p>Nach dem Veröffentlichen sehen es nur passende Anbieter sowie das SV-Team zur Moderation.</p>
                                     ) : (
@@ -1095,7 +1095,7 @@ export default function CreateAd() {
 
                     {currentStep === STEPS.length - 1 ? (
                         <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold px-4 sm:px-5 shadow-lg shadow-primary/25">
-                            {isSubmitting ? 'Wird veröffentlicht...' : 'Jetzt veröffentlichen'} <CheckCircle size={16} className="ml-1 sm:ml-2 shrink-0" />
+                            {isSubmitting ? 'Anzeige wird veröffentlicht' : 'Anzeige veröffentlichen'} <CheckCircle size={16} className="ml-1 sm:ml-2 shrink-0" />
                         </Button>
                     ) : (
                         <Button

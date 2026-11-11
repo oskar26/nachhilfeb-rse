@@ -78,7 +78,7 @@ export function IncomingRequestCard({ req, onStatus, onComplete }: { req: AdRequ
                         isLoading={busy}
                         className="h-11 flex-1 rounded-full bg-primary px-4 text-sm font-bold text-black"
                     >
-                        <CheckCircle size={16} /> Akzeptieren
+                        <CheckCircle size={16} /> Annehmen
                     </Button>
                     <Button
                         variant="outline"
@@ -145,18 +145,18 @@ export function OutgoingRequestCard({ req, onComplete }: { req: AdRequestItem } 
 
             {req.status === 'pending' && (
                 <p className="mt-4 text-sm font-semibold text-gray-500 dark:text-gray-400">
-                    Warte auf Antwort – du bekommst Bescheid, sobald reagiert wird.
+                    Warte auf Antwort. Du bekommst eine Nachricht, sobald die andere Person reagiert.
                 </p>
             )}
             {req.status === 'rejected' && (
                 <p className="mt-4 text-sm font-semibold text-red-600 dark:text-red-400">
-                    Anfrage wurde abgelehnt. Im Feed findest du weitere passende Anzeigen.
+                    Anfrage wurde abgelehnt. In der Übersicht findest du weitere passende Anzeigen.
                 </p>
             )}
             {req.status === 'accepted' && (
                 <div className="mt-4 space-y-3">
                     <div className="flex items-center gap-2 rounded-2xl bg-green-50 px-4 py-3 text-sm font-bold text-green-800 dark:bg-green-950/30 dark:text-green-300">
-                        <CheckCircle size={16} className="shrink-0" aria-hidden /> Kontakt freigeschaltet!
+                        <CheckCircle size={16} className="shrink-0" aria-hidden /> Kontakt freigeschaltet.
                     </div>
                     <ContactChips person={req.owner} />
                     <CustomContactsList contacts={req.owner?.settings?.custom_contacts} />

@@ -20,7 +20,7 @@ kommerziellen Anbieter, ohne Werbung, mit Hosting in Deutschland.
 | Rolle | Was sie kann | Wie sie reinkommt |
 |---|---|---|
 | **Schüler/in** | Anzeigen erstellen, suchen, filtern, merken, anfragen, chatten, bewerten | Registrierung + persönliche Verifizierung im SV-Raum |
-| **Elternteil** | Kind verknüpfen, Anzeigen/Anfragen/Matches/Merkliste/Bewertungen einsehen, Profil des Kindes pflegen, Anzeigen pausieren | Registrierung + Verknüpfung mit 6-stelligem Code des Kindes (automatisch verifiziert) |
+| **Elternteil** | Das Konto des Kindes mitbetreuen, Anzeigen und Anfragen gemeinsam durchgehen | Kein eigener Zugang. Eltern nutzen das Konto ihres Kindes. Empfohlen für Klasse 5 bis 7. |
 | **Coach** (Coaching AG) | wie Schüler/in + Badge auf Profil und Anzeigen | Coaching AG, Schulung durch Frau Balistreri |
 | **SV-Admin** | Verifizieren, moderieren, Meldungen, Nutzerverwaltung, Codes, Analytics, Audit-Log | SV-Team, Rechte über Invite/Vergabe |
 
@@ -51,8 +51,8 @@ in der Oberfläche.
   versteckt** und werden erst nach angenommener Anfrage sichtbar
 
 **Eltern**
-- Eltern-Dashboard mit Live-Sicht auf Anzeigen, Anfragen, Matches, Merkliste, Bewertungen
-- Chat bleibt für Eltern **unlesbar** (nur Status) — bewusste Grenze
+- Gemeinsame Konto-Nutzung: Eltern sehen Anzeigen und Anfragen ihres Kindes mit.
+- Der Chat bleibt ein eigener Raum des Kindes. Eltern lesen ihn nicht.
 - Eltern-Leitfaden als eigene Infoseite
 - Eltern-Account wird mit der ersten Kind-Verknüpfung automatisch verifiziert
 
@@ -113,7 +113,7 @@ Ladekabel dabei. Reihenfolge einüben — nicht improvisieren.
 | 6 | Melde-Button | Meldegrund-Dialog | „In jedem Inhalt: melden, mit Grund. Wir sichten werktags.“ |
 | 7 | Anfrage/Chat | Match, Status, ICS-Export | „Terminabsprache im System, nicht über private Nummern.“ |
 | 8 | SV-Panel | Meldungen, Nutzer, Audit-Log | „Alles protokolliert: wer, wann, warum.“ |
-| 9 | Eltern-Dashboard | Kind verknüpft, Anzeigen sichtbar, Chat verdeckt | „Eltern sehen alles außer dem Chat — bewusst.“ |
+| 9 | Gemeinsame Konto-Nutzung | Eltern und Kind gehen Anzeigen und Anfragen gemeinsam durch. Der Chat bleibt beim Kind. | „Ein Konto pro Kind, gemeinsam betreut.“ |
 | 10 | Datenschutz/Transparenz | Löschfristen, Open Source, KI-Hinweis | „Und wir sagen offen, wie das entstanden ist.“ |
 
 **Regeln für die Demo**

@@ -1,6 +1,6 @@
 // Match-Engine: Fächer-/Stufen-/Verfügbarkeits-Scoring zwischen eigenen Anzeigen
 // und Kandidaten-Anzeigen. Aus src/pages/Matching.tsx extrahiert, damit auch das
-// Eltern-Dashboard (Matches-Tab pro Kind) dieselbe Logik nutzen kann.
+// Eltern, die das Konto ihres Kindes mitbetreuen, dieselbe Logik nutzen können.
 
 import {
     emptyAvailability,

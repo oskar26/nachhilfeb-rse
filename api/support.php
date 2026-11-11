@@ -160,7 +160,7 @@ if ($method === 'POST') {
 
     json_response([
         'id' => $newTicketId,
-        'message' => 'Support-Ticket erfolgreich übermittelt!'
+        'message' => 'Anfrage an das SV-Team gesendet.'
     ], 201);
 }
 

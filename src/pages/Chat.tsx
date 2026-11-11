@@ -185,7 +185,7 @@ export default function Chat() {
     };
 
     const deleteMessage = async (msgId: string) => {
-        if (!window.confirm('Möchtest du diese Nachricht wirklich löschen?')) return;
+        if (!window.confirm('Möchtest du diese Nachricht auf diesem Gerät ausblenden?')) return;
         // Kein Backend-Endpunkt zum Ändern von Nachrichten: Das Löschen bleibt lokal
         // sichtbar und ist nach dem Neuladen wieder da.
         setMessages(prev => prev.filter(m => m.id !== msgId));
@@ -194,7 +194,7 @@ export default function Chat() {
     const handleBlockUser = async () => {
         if (!otherUserId || !user) return;
         setMenuOpen(false);
-        if (!window.confirm(`${otherUser?.display_name || 'Diesen Nutzer'} blockieren? Der Chat wird auf diesem Gerät verborgen. Zum Schutz aller bleibt der Verlauf für die SV-Moderation gespeichert.`)) return;
+        if (!window.confirm(`${otherUser?.display_name || 'Diesen Nutzer'} Chat verbergen? Der Chat wird auf diesem Gerät verborgen. Zum Schutz aller bleibt der Verlauf für die SV-Moderation gespeichert.`)) return;
         // Kein Backend-Endpunkt für Nutzer-Blocks: Das Blockieren verbirgt den Chat nur auf diesem Gerät.
         if (requestId) hideChatId(requestId);
         toast.success('Chat auf diesem Gerät verborgen.');
@@ -291,8 +291,8 @@ export default function Chat() {
                     variant="ghost"
                     size="icon"
                     onClick={handleBlockUser}
-                    title="Nutzer blockieren"
-                    aria-label="Nutzer blockieren"
+                    title="Chat verbergen"
+                    aria-label="Chat verbergen"
                     className="rounded-full shrink-0 hover:bg-gray-100 dark:hover:bg-[#2a3942] text-red-600 dark:text-red-400"
                 >
                     <Ban size={19} />
@@ -326,7 +326,7 @@ export default function Chat() {
             <div className="flex-1 overflow-y-auto p-4 space-y-1.5 bg-[#efeae2] dark:bg-[#0b141a]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%239C92AC\' fill-opacity=\'0.03\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }}>
                 {messages.length === 0 ? (
                     <div className="text-center p-4 bg-[#fcf4cb]/90 dark:bg-[#1d2e2f] text-[#54656f] dark:text-[#8696a0] text-xs rounded-lg max-w-sm mx-auto shadow-sm">
-                        Hier beginnt euer Chat. Deine Nachrichten werden über eine verschlüsselte Verbindung (HTTPS) übertragen und sicher in Deutschland gespeichert. Bitte achte auf unsere <a href="#/nutzungsbedingungen" className="underline">Nutzungsbedingungen</a>.
+                        Hier beginnt euer Chat. Deine Nachrichten werden über eine verschlüsselte Verbindung (HTTPS) übertragen und auf Servern in Deutschland gespeichert. Bitte achte auf unsere <a href="#/nutzungsbedingungen" className="underline">Nutzungsbedingungen</a>.
                     </div>
                 ) : (
                     messages.map((msg, idx) => {
@@ -358,7 +358,7 @@ export default function Chat() {
                                         )}
                                     >
                                         {msg.is_deleted ? (
-                                            <span className="flex items-center gap-1 text-xs text-[#8696a0]"><Ban size={12} /> Diese Nachricht wurde gelöscht.</span>
+                                            <span className="flex items-center gap-1 text-xs text-[#8696a0]"><Ban size={12} /> Nachricht auf diesem Gerät ausgeblendet.</span>
                                         ) : isEditing ? (
                                             <div className="space-y-2 min-w-[200px]">
                                                 <Textarea
@@ -460,7 +460,7 @@ export default function Chat() {
                         <Input
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
-                            placeholder="Nachricht schreiben..."
+                            placeholder="Nachricht schreiben"
                             className="bg-white dark:bg-[#2a3942] border-none rounded-xl h-11 px-4 shadow-sm text-[15px] placeholder:text-[#8696a0] focus-visible:ring-1 focus-visible:ring-primary/30"
                             autoComplete="off"
                         />

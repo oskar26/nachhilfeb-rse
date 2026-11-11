@@ -201,7 +201,7 @@ export default function Feed() {
         room: string;
         is_visible: boolean;
     }>({
-        title: 'Kostenloses Coaching für Klasse 5 & 6!',
+        title: 'Coaching-AG für Klasse 5 und 6',
         description: 'Wöchentlich einmal bieten wir für alle Schülerinnen und Schüler der Jahrgangsstufen 5 und 6 die Möglichkeit, Hilfen zu einzelnen Fächern oder zur Lern- und Arbeitsorganisation allgemein durch Schülerinnen und Schüler der 8. Klassen zu erhalten. Diese werden jeweils vor den Herbstferien für ihre Aufgabe geschult und stellen dann bis zum Ende des Schuljahres ehrenamtlich ihre Hilfe zur Verfügung. Dieses Angebot wird in der Regel sehr gerne angenommen, da die Coaches einen guten Blick auf die Probleme der jüngeren Schüler haben.',
         time: 'Dienstags, 13:45 - 14:30 Uhr',
         room: 'Raum H310',
@@ -412,7 +412,7 @@ export default function Feed() {
                                     ? 'bg-primary text-black border-primary shadow-sm dark:bg-primary dark:text-black'
                                     : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-500'
                             }`}
-                            title="Nur Schüler-Coaches der AG anzeigen"
+                            title="Nur Coaches der Coaching-AG anzeigen"
                         >
                             <Award size={13} className={filterOnlyCoaches ? 'text-black dark:text-black' : 'text-gray-400'} />
                             <span className="hidden sm:inline">Schüler-Coaches</span>
@@ -442,7 +442,7 @@ export default function Feed() {
                     <Input
                         type="search"
                         aria-label="Anzeigen nach Fach oder Name durchsuchen"
-                        placeholder="Suchen nach Fächern, Namen..."
+                        placeholder="Nach Fach oder Name suchen"
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
                         className="pl-9"
@@ -487,7 +487,7 @@ export default function Feed() {
                         {loading
                             ? 'Ergebnisse werden geladen…'
                             : fetchError
-                                ? 'Ergebnisse konnten nicht geladen werden'
+                                ? 'Die Anzeigen konnten nicht geladen werden'
                                 : `${sortedAds.length} ${sortedAds.length === 1 ? 'Anzeige' : 'Anzeigen'}`}
                     </p>
                     <Button variant="unstyled" size="unstyled"
@@ -802,7 +802,7 @@ export default function Feed() {
                                     <h2 className="text-lg font-bold">Leitfaden für Eltern & Sicherheit</h2>
                                 </div>
                                 <p className="text-sm text-emerald-900 dark:text-emerald-200 leading-relaxed">
-                                    Sicherheit und Jugendschutz haben oberste Priorität. Alle Accounts werden persönlich durch die Schülervertretung verifiziert. Mehr zu Maßnahmen, Verhaltensregeln und Kontakt steht im ausführlichen Leitfaden.
+                                    Nur verifizierte Konten können Anzeigen erstellen, Kontakt aufnehmen oder Anzeigen ansehen. Im Profil ist sichtbar, ob jemand verifiziert ist. Mehr zu Maßnahmen, Verhaltensregeln und Kontakt steht im ausführlichen Leitfaden.
                                 </p>
                                 <div>
                                     <Button 
@@ -828,7 +828,7 @@ export default function Feed() {
                         <div className="w-24 h-24 mb-6 rounded-full bg-red-50 dark:bg-red-950/30 flex items-center justify-center">
                             <SearchX size={40} className="text-red-400 dark:text-red-500" />
                         </div>
-                        <h2 className="text-xl font-bold mb-2">Anzeigen konnten nicht geladen werden</h2>
+                        <h2 className="text-xl font-bold mb-2">Die Anzeigen konnten nicht geladen werden</h2>
                         <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">{apiErrorMessage(fetchError, 'Prüfe deine Internetverbindung und versuche es erneut.')}</p>
                         <Button onClick={() => fetchAds()} className="rounded-full shadow-md">Erneut versuchen</Button>
                     </div>
@@ -852,7 +852,7 @@ export default function Feed() {
                             </>
                         ) : hasActiveFilters ? (
                             <>
-                                <h3 className="text-xl font-bold mb-2">Keine Treffer für diese Filter</h3>
+                                <h3 className="text-xl font-bold mb-2">Keine Anzeigen für diese Filter</h3>
                                 <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">Keine Anzeige passt zu deiner aktuellen Suche. Setze die Filter zurück oder erstelle selbst eine Anzeige!</p>
                                 <div className="flex flex-wrap justify-center gap-2">
                                     <Button variant="outline" onClick={() => { resetAllFilters(); triggerHaptic('light'); }} className="rounded-full shadow-sm">Filter zurücksetzen</Button>
@@ -861,7 +861,7 @@ export default function Feed() {
                             </>
                         ) : (
                             <>
-                                <h3 className="text-xl font-bold mb-2">Der Feed ist leer</h3>
+                                <h3 className="text-xl font-bold mb-2">Noch keine Anzeigen</h3>
                                 <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">Aktuell gibt es keine aktiven Anzeigen. Erstelle selbst etwas!</p>
                                 <Button onClick={() => navigate('/create-ad')} className="rounded-full shadow-md">Anzeige erstellen</Button>
                             </>
@@ -881,7 +881,7 @@ export default function Feed() {
                             onClick={() => navigate(`/ad/${ad.id}`)}
                         >
                             {boosted && (
-                                <div className="bg-gradient-to-r from-yellow-400/20 via-amber-400/15 to-yellow-400/20 border-b border-yellow-400/30 px-4 py-1.5 flex items-center gap-1.5" title="Diese Anzeige wird hervorgehoben (z. B. Coach-Status oder Aktion). Warum? Siehe Seite „Schüler-Coaching“.">
+                                <div className="bg-gradient-to-r from-yellow-400/20 via-amber-400/15 to-yellow-400/20 border-b border-yellow-400/30 px-4 py-1.5 flex items-center gap-1.5" title="Diese Anzeige wird hervorgehoben (z. B. Coach-Status oder Aktion). Warum? Siehe Seite „Coaching-AG“.">
                                     <Sparkles size={12} className="text-yellow-600 dark:text-yellow-400" />
                                     <span className="text-[11px] font-bold text-yellow-700 dark:text-yellow-400 tracking-wide uppercase">Hervorgehobene Anzeige</span>
                                 </div>
@@ -907,7 +907,7 @@ export default function Feed() {
                                             <VerifiedPill />
                                         )}
                                         {ad.profiles?.is_coach && (
-                                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 px-2 py-0.5 rounded-full shrink-0" title="Mitglied der Schüler-Coaching AG">
+                                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 px-2 py-0.5 rounded-full shrink-0" title="Mitglied der Coaching-AG">
                                                 <Award size={12} className="text-amber-600 dark:text-amber-400" />
                                                 Coach
                                             </span>

@@ -72,9 +72,9 @@ Liste stehen — mit Person und Datum. Keine Zusagen ohne Eintrag.
 > Was Sie wissen sollten:
 > - Die SV **vermittelt nur den Kontakt**. Unterricht, Termine und Vergütung vereinbaren Sie
 >   direkt mit der Anbieter-Familie.
-> - Ihre Kinder benötigen **unter 16 Jahren Ihre Einwilligung**. Sie können ein eigenes
->   Eltern-Konto mit dem Konto Ihres Kindes verknüpfen und dann Anzeigen, Anfragen und Termine
->   einsehen — **den Chat sehen Sie nicht** (bewusste Grenze zum Schutz der Kinder).
+> - Ihre Kinder benötigen **unter 16 Jahren Ihre Einwilligung**. Sie können das Konto Ihres
+>   Kindes mitbetreuen und gemeinsam Anzeigen, Anfragen und Termine durchgehen. **Den Chat
+>   sehen Sie nicht** (bewusste Grenze zum Schutz der Kinder).
 > - Wir speichern keine IP-Adressen, setzen keine Werbe- oder Analyse-Cookies ein und geben
 >   keine Daten an Dritte weiter. Hosting in Deutschland.
 > - **Hinweis zur Absicherung:** Private Nachhilfe ist — anders als Schulveranstaltungen —

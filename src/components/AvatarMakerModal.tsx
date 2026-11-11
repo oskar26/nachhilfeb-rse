@@ -327,7 +327,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
         // den Erfolgs-Toast gibt es nur bei bestätigtem Speichern (Fehler meldet der Aufrufer).
         const saved = await onSave(url);
         if (saved !== false) {
-            toast.success("Profilbild aktualisiert!");
+            toast.success("Profilbild aktualisiert.");
         }
         onClose();
     };
@@ -338,7 +338,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                 <DialogHeader className="p-6 pb-2 relative border-b dark:border-gray-800">
                     <div className="flex items-center gap-2">
                         <Sparkles size={20} className="text-primary-hover" />
-                        <DialogTitle className="text-lg font-black">Profilbild-Maker</DialogTitle>
+                        <DialogTitle className="text-lg font-black">Profilbild erstellen</DialogTitle>
                     </div>
                     <DialogDescription className="text-xs text-gray-500 dark:text-gray-400">
                         Wähle ein Symbol, Initialen, zeichne selbst oder lade ein Foto hoch.
@@ -648,7 +648,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                                             const compressed = await compressImage(e.target.files[0]);
                                             setUploadedUrl(compressed);
                                             triggerHaptic('success');
-                                            toast.success("Foto geladen!");
+                                            toast.success("Foto ausgewählt.");
                                         } catch {
                                             toast.error("Fehler beim Komprimieren des Fotos.");
                                         }
@@ -664,7 +664,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                                 </div>
                                 <div>
                                     <p className="text-sm font-bold text-gray-800 dark:text-gray-200">Eigenes Foto hochladen</p>
-                                    <p className="text-xs text-gray-400 mt-0.5">Wird automatisch für beste Ladezeiten komprimiert</p>
+                                    <p className="text-xs text-gray-400 mt-0.5">Das Bild wird vor dem Hochladen verkleinert.</p>
                                 </div>
                             </div>
                         </div>

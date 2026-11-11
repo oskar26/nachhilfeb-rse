@@ -19,15 +19,15 @@ interface VerifyStep {
 }
 
 const STEPS_DU: VerifyStep[] = [
-    { icon: Smartphone, title: 'Melde dich an', text: 'Account anlegen. Das dauert keine große Pause.' },
-    { icon: DoorOpen, title: 'Komm in den SV-Raum', text: 'Sag einfach: „Hey, ich habe mich angemeldet, ich möchte mich verifizieren lassen.“' },
-    { icon: BadgeCheck, title: 'Wir schalten dich frei. Du bist verifiziert.', text: 'Erst dann kannst du Anzeigen erstellen und Kontakt aufnehmen.' },
+    { icon: Smartphone, title: 'Konto anlegen', text: 'Lege ein Konto mit deinen Angaben an.' },
+    { icon: DoorOpen, title: 'Im SV-Raum melden', text: 'Sag dem SV-Team, dass du dich verifizieren lassen möchtest, und nenne deinen Namen.' },
+    { icon: BadgeCheck, title: 'Freischaltung abwarten', text: 'Das SV-Team prüft, ob du das FWG besuchst, und schaltet dein Konto frei. Erst dann kannst du Anzeigen erstellen und Kontakt aufnehmen.' },
 ];
 
 const STEPS_SIE: VerifyStep[] = [
-    { icon: Smartphone, title: 'Anmelden', text: 'Ihr Kind erstellt seinen Account in der App.' },
-    { icon: DoorOpen, title: 'Im SV-Raum melden', text: 'Ihr Kind sagt dem SV-Team: „Ich möchte mich verifizieren lassen.“' },
-    { icon: BadgeCheck, title: 'Freigeschaltet = verifiziert', text: 'Erst dann kann Ihr Kind Anzeigen erstellen und Kontakt aufnehmen.' },
+    { icon: Smartphone, title: 'Konto anlegen', text: 'Ihr Kind erstellt sein Konto in der App.' },
+    { icon: DoorOpen, title: 'Im SV-Raum melden', text: 'Ihr Kind nennt dem SV-Team seinen Namen und bittet um Verifizierung.' },
+    { icon: BadgeCheck, title: 'Freischaltung abwarten', text: 'Das SV-Team prüft die Angaben und schaltet das Konto frei. Erst dann kann Ihr Kind Anzeigen erstellen und Kontakt aufnehmen.' },
 ];
 
 export interface VerifyStepsProps {

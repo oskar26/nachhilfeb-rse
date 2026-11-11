@@ -682,7 +682,7 @@ export default function CoachingPageBuilder() {
                     ) : (
                         <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-5 text-center dark:border-gray-700 dark:bg-gray-900/50">
                             <p className="text-sm font-bold text-gray-700 dark:text-gray-200">Der Seitenkopf ist gelöscht.</p>
-                            <Button type="button" variant="outline" onClick={() => mutate(document => ({ ...document, header: { id: 'header', type: 'header', title: 'Schüler-Coaching am FWG', intro: '' } }))} className="mt-3 min-h-[44px] rounded-xl font-bold">
+                            <Button type="button" variant="outline" onClick={() => mutate(document => ({ ...document, header: { id: 'header', type: 'header', title: 'Coaching-AG am FWG', intro: '' } }))} className="mt-3 min-h-[44px] rounded-xl font-bold">
                                 <Plus size={16} /> Seitenkopf hinzufügen
                             </Button>
                         </div>

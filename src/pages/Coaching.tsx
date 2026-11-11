@@ -8,22 +8,22 @@ import { api } from '../lib/api';
 const easeOut = [0.16, 1, 0.3, 1] as const;
 
 export const FALLBACK: Record<string, string> = {
-    hero_title: 'Schüler-Coaching am FWG',
-    hero_subtitle: 'Große helfen Kleinen: Geschulte Schülerinnen und Schüler ab Klasse 8 unterstützen die Klassen 5 und 6 beim Ankommen am Friedrich-Wilhelm-Gymnasium Köln. Ehrenamtlich, pädagogisch begleitet und für alle nach denselben fairen Regeln.',
+    hero_title: 'Coaching-AG am FWG',
+    hero_subtitle: 'Ältere unterstützen Jüngere: Geschulte Schülerinnen und Schüler ab Klasse 8 unterstützen die Klassen 5 und 6 beim Ankommen am Friedrich-Wilhelm-Gymnasium Köln. Ehrenamtlich, pädagogisch begleitet und für alle nach denselben fairen Regeln.',
     s_badge_title: 'Was bedeutet das Coach-Abzeichen?',
-    s_badge_body: 'Das goldene Coach-Badge auf Profilen und Anzeigen zeigt: Diese Person ist aktives Mitglied der Schüler-Coaching AG, wurde von der AG-Leitung geschult und vom SV-Team verifiziert.\n\nDas Badge steht für Vertrauenswürdigkeit als Person, nicht für Erfolgsgarantien und nicht für kostenlose Nachhilfe. Preise und Absprachen bleiben Sache der Beteiligten (siehe Nutzungsbedingungen).',
-    s_school_title: 'Das Coaching an unserer Schule',
-    s_school_body: 'Das Schüler-Coaching ist ein schulisches Angebot des FWG: Jede Woche dienstags von 13:45–14:30 Uhr in Raum H310 helfen geschulte Schülerinnen und Schüler der 8. Klassen den 5. und 6. Klassen. Es geht um einzelne Fächer und um die Lern- und Arbeitsorganisation allgemein. Die Coaches werden jeweils vor den Herbstferien geschult und engagieren sich ehrenamtlich bis zum Ende des Schuljahres. Das Angebot wird in der Regel sehr gerne angenommen, weil die Coaches einen guten Blick auf die Probleme der jüngeren Schülerinnen und Schüler haben.\n\nMehr dazu auf der Schul-Website: fwg-koeln.de/lebendige-schule/foerdern-und-fordern/coaching. Diese Nachhilfebörse der SV ergänzt das Angebot: Hier finden alle Jahrgangsstufen individuelle Nachhilfe. Die Coaches der AG sind dabei besonders sichtbar, damit man sie leicht findet.',
+    s_badge_body: 'Das Coach-Abzeichen auf Profilen und Anzeigen zeigt: Diese Person ist aktives Mitglied der Coaching-AG, wurde von der AG-Leitung geschult und vom SV-Team verifiziert.\n\nDas Abzeichen belegt Schulung und Verifizierung, nicht die Qualität der Nachhilfe. Preise und Absprachen bleiben Sache der Beteiligten (siehe Nutzungsbedingungen).',
+    s_school_title: 'Die Coaching-AG an unserer Schule',
+    s_school_body: 'Die Coaching-AG ist ein schulisches Angebot des FWG: Jeden Dienstag von 13:45 bis 14:30 Uhr in Raum H310 helfen geschulte Schülerinnen und Schüler ab Klasse 8 den Klassen 5 und 6, bei einzelnen Fächern oder bei der Lern- und Arbeitsorganisation. Die Coaches werden jeweils vor den Herbstferien geschult und engagieren sich ehrenamtlich bis zum Ende des Schuljahres. Die Coaches kennen den Schulalltag der jüngeren Schülerinnen und Schüler.\n\nMehr dazu auf der Schul-Website: fwg-koeln.de/lebendige-schule/foerdern-und-fordern/coaching. Diese Nachhilfebörse der SV ergänzt das Angebot: Hier finden alle Jahrgangsstufen individuelle Nachhilfe. Die Coaches der AG sind besonders sichtbar, damit man sie leicht findet.',
     s_who_title: 'Wer kann Coach werden?',
-    s_who_body: '• Schülerin oder Schüler des FWG ab Klasse 8\n• Teilnahme an der Coach-Schulung der AG-Leitung (findet jeweils vor den Herbstferien statt)\n• Zuverlässigkeit und respektvoller Umgang, auch auf der Plattform\n• Verifizierter Account auf der Nachhilfebörse\n\nInteressiert? Wende dich an Frau Balistreri oder sprich das SV-Team im SV-Raum an. Die Aufnahme erfolgt nach Schulung über einen persönlichen Coaching-Code. Für alle gelten dieselben Kriterien.',
+    s_who_body: '• Schülerin oder Schüler des FWG ab Klasse 8\n• Teilnahme an der Coach-Schulung der AG-Leitung (findet jeweils vor den Herbstferien statt)\n• Zuverlässigkeit und respektvoller Umgang, auch auf der Plattform\n• Verifiziertes Konto auf der Nachhilfebörse\n\nInteressiert? Wende dich an Frau Balistreri oder sprich das SV-Team im SV-Raum an. Die Aufnahme erfolgt nach der Schulung über einen persönlichen Coaching-Code. Für alle gelten dieselben Kriterien.',
     s_boost_title: 'Warum stehen manche Anzeigen oben?',
-    s_boost_body: 'Anzeigen mit dem Hinweis „Hervorgehoben“ erhalten eine bessere Platzierung und eine gelbe Markierung. Das passiert ausschließlich in zwei Fällen:\n\n• Coach-Status: Nach Einlösen eines Coaching-Codes werden Anzeigen des Coaches für 30 Tage hervorgehoben.\n• SV-Aktionen: Zeitlich begrenzte Hinweise des SV-Teams (z. B. zum Schuljahresstart).\n\nSichtbarkeit ist bei uns nicht käuflich: Es gibt keine bezahlten Boosts und keine Werbung. Zusätzlich erhalten Coach-Anzeigen einen kleinen, öffentlich dokumentierten Ranking-Vorteil (etwa +24 Stunden Aktualität bzw. leicht bessere Match-Einordnung). Das ist bewusst eine Anerkennung für das Ehrenamt der Coaches, für alle Coaches gleich und nur solange der Coach-Status aktiv ist. Versteckte Bevorzugungen gibt es nicht: Alles steht auf dieser Seite.',
+    s_boost_body: 'Anzeigen mit dem Hinweis „Hervorgehoben“ erhalten eine bessere Platzierung und eine gelbe Markierung. Das passiert ausschließlich in zwei Fällen:\n\n• Coach-Status: Nach Einlösen eines Coaching-Codes werden Anzeigen des Coaches für 30 Tage hervorgehoben.\n• SV-Aktionen: Zeitlich begrenzte Hinweise des SV-Teams (z. B. zum Schuljahresstart).\n\nEs gibt keine bezahlten Platzierungen und keine Werbung. Anzeigen von Coaches werden etwas höher einsortiert, solange der Coach-Status aktiv ist. Die Regeln für die Platzierung stehen auf dieser Seite.',
     s_fair_title: 'Gleiche Chancen für alle',
-    s_fair_body: '• Jede Schülerin und jeder Schüler kann kostenlos Anzeigen erstellen, mit oder ohne Badge.\n• Der Filter „Nur Coaches“ hilft beim Finden geprüfter Coaches, blendet aber niemanden aus: Alle Anzeigen bleiben für alle sichtbar.\n• Codes sind personenbezogen und begrenzt (in der Regel einmalig einlösbar) und werden nur nach Schulung vergeben, nicht auf Zuruf oder gegen Gegenleistung.\n• Die Vergabe von Codes und Coach-Status wird protokolliert und kann vom SV-Team geprüft werden.\n• Der kleine Ranking-Vorteil für Coaches steht öffentlich auf dieser Seite. Versteckte Bevorzugungen gibt es nicht.',
+    s_fair_body: '• Das Erstellen einer Anzeige ist kostenlos, mit oder ohne Abzeichen. Die Nachhilfe wird privat bezahlt.\n• Der Filter „Nur Coaches“ hilft beim Finden geprüfter Coaches, blendet aber niemanden aus: Alle Anzeigen bleiben für alle sichtbar.\n• Codes sind personenbezogen und begrenzt (in der Regel einmalig einlösbar) und werden nur nach Schulung vergeben, nicht auf Zuruf oder gegen Gegenleistung.\n• Die Vergabe von Codes und Coach-Status wird protokolliert und kann vom SV-Team geprüft werden.\n• Anzeigen von Coaches werden etwas höher einsortiert, solange der Coach-Status aktiv ist.',
     s_conduct_title: 'Verhalten als Coach',
-    s_conduct_body: '• Respektvoller, geduldiger Umgang, besonders mit jüngeren Schülern\n• Keine falschen Versprechen (z. B. garantierte Notenverbesserung)\n• Treffen möglichst in der Schule (z. B. Bibliothek, Mensa); private Treffen nur mit Wissen der Eltern\n• Bei Problemen: frühzeitig die AG-Leitung oder das SV-Team ansprechen',
+    s_conduct_body: '• Respektvoller, geduldiger Umgang, besonders mit jüngeren Schülerinnen und Schülern\n• Keine falschen Versprechen zu besseren Noten\n• Treffen möglichst in der Schule (z. B. Bibliothek, Mensa); private Treffen nur mit Wissen der Eltern\n• Bei Problemen: frühzeitig die AG-Leitung oder das SV-Team ansprechen',
     s_revoke_title: 'Entzug des Status & Widerspruch',
-    s_revoke_body: 'Bei Verstößen gegen diese Regeln oder die Nutzungsbedingungen (z. B. unzuverlässiges Verhalten, Missbrauch des Badges, unangemessene Inhalte) kann die AG-Leitung oder das SV-Team den Coach-Status entziehen. Du bekommst eine kurze Begründung direkt in der App oder per E-Mail.\n\nDagegen kannst du Widerspruch einlegen: Schreibe an info@nachhilfe-sv.de oder komme im SV-Raum vorbei. Das SV-Team prüft jeden Fall erneut.',
+    s_revoke_body: 'Bei Verstößen gegen diese Regeln oder die Nutzungsbedingungen (z. B. unzuverlässiges Verhalten, Missbrauch des Abzeichens, unangemessene Inhalte) kann die AG-Leitung oder das SV-Team den Coach-Status entziehen. Du bekommst eine kurze Begründung direkt in der App oder per E-Mail.\n\nDagegen kannst du Widerspruch einlegen: Schreibe an info@nachhilfe-sv.de oder komme im SV-Raum vorbei. Das SV-Team prüft jeden Fall erneut.',
     contact_text: 'AG-Leitung: Frau Balistreri · SV-Lehrer: Herr Schulz, Herr Steinberg',
 };
 
@@ -190,7 +190,7 @@ export function createDefaultCoachingDocument(legacy: Record<string, string> = F
                 room: 'Raum H310',
                 contactText: text('contact_text'),
                 email: COACH_MAIL,
-                mailSubject: 'Anmeldung Schüler-Coaching AG',
+                mailSubject: 'Anmeldung Coaching-AG',
                 ctaLabel: 'Per Mail anmelden',
                 hint: 'oder das SV-Team im SV-Raum ansprechen',
             },
@@ -201,14 +201,14 @@ export function createDefaultCoachingDocument(legacy: Record<string, string> = F
                 items: [
                     listItem('step-1', 'Melden', 'Schreib eine Mail an Frau Balistreri oder sprich das SV-Team im SV-Raum an.'),
                     listItem('step-2', 'Schulung', 'Nimm an der Coach-Schulung der AG-Leitung vor den Herbstferien teil.'),
-                    listItem('step-3', 'Badge & Start', 'Erhalte das Coach-Badge und starte dienstags in H310.'),
+                    listItem('step-3', 'Abzeichen und Start', 'Erhalte das Coach-Abzeichen und starte dienstags in H310.'),
                 ],
-                note: 'Die AG-Stunde dienstags in H310 ist ehrenamtlich. Private Nachhilfe über die Börse vereinbaren Familien direkt. Richtwert ca. 10–12 € pro 45–60 Min.',
+                note: 'Die AG-Stunde dienstags in H310 ist ehrenamtlich. Private Nachhilfe über die Börse vereinbaren Familien direkt. Richtwert ca. 12 € pro Stunde. Der Preis ist individuell anpassbar.',
                 verificationTitle: 'Verifizierung in der App',
                 verificationItems: [
-                    listItem('verify-1', 'Melde dich an', 'Account anlegen. Das dauert keine große Pause.'),
-                    listItem('verify-2', 'Komm in den SV-Raum', 'Sag einfach: „Hey, ich habe mich angemeldet, ich möchte mich verifizieren lassen.“'),
-                    listItem('verify-3', 'Wir schalten dich frei. Du bist verifiziert.', 'Erst dann kannst du Anzeigen erstellen und Kontakt aufnehmen.'),
+                    listItem('verify-1', 'Konto anlegen', 'Lege ein Konto mit deinen Angaben an.'),
+                    listItem('verify-2', 'Im SV-Raum melden', 'Sag dem SV-Team, dass du dich verifizieren lassen möchtest, und nenne deinen Namen.'),
+                    listItem('verify-3', 'Freischaltung abwarten', 'Das SV-Team prüft, ob du das FWG besuchst, und schaltet dein Konto frei. Erst dann kannst du Anzeigen erstellen und Kontakt aufnehmen.'),
                 ],
             },
             {
@@ -216,7 +216,7 @@ export function createDefaultCoachingDocument(legacy: Record<string, string> = F
                 type: 'benefits',
                 title: 'Darum lohnt sich das Coaching',
                 items: [
-                    listItem('benefit-1', 'Große helfen Kleinen', 'Klassen 5 und 6 erhalten Hilfe von geschulten Coaches ab Klasse 8.'),
+                    listItem('benefit-1', 'Ältere unterstützen Jüngere', 'Klassen 5 und 6 erhalten Hilfe von geschulten Coaches ab Klasse 8.'),
                     listItem('benefit-2', 'Begleitet & ehrenamtlich', 'Pädagogisch begleitet durch Frau Balistreri, ehrenamtlich bis zum Schuljahresende.'),
                     listItem('benefit-3', 'Fester Treffpunkt', 'Jeden Dienstag 13:45–14:30 Uhr in Raum H310. Einfach vorbeikommen.'),
                 ],
@@ -224,7 +224,7 @@ export function createDefaultCoachingDocument(legacy: Record<string, string> = F
             {
                 id: 'rules',
                 type: 'rules',
-                title: 'Die 7 Fairness-Regeln',
+                title: 'Regeln und Hinweise',
                 items: RULE_KEYS.map(([id, key]) => listItem(id, text(`${key}_title`), text(`${key}_body`))),
             },
             {
@@ -292,7 +292,7 @@ export function createDefaultCoachingDocument(legacy: Record<string, string> = F
                         ],
                     },
                 ],
-                learnCoachingText: 'Terminabsprachen für ein Lerncoaching trefft ihr gerne individuell persönlich oder per Mail mit Herrn Gampp, Frau Trottmann oder Frau Weyers:',
+                learnCoachingText: 'Termine für ein Lerncoaching vereinbart ihr persönlich oder per E-Mail mit Herrn Gampp, Frau Trottmann oder Frau Weyers:',
                 learnCoachingEmail: 'lerncoaching@fwg-koeln.nrw.schule',
             },
         ],

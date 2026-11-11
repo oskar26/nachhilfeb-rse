@@ -119,7 +119,7 @@ export default function AdDetails() {
         setSending(false);
     };
 
-    if (loading) return <div className="p-8 text-center">Lade Anzeige...</div>;
+    if (loading) return <div className="p-8 text-center">Anzeige wird geladen</div>;
     if (!ad) {
         const unavailable = adError?.status === 403 || adError?.status === 404;
         return (
@@ -134,7 +134,7 @@ export default function AdDetails() {
                         </h1>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                             {unavailable
-                                ? 'Dieses Gesuch ist privat, nicht mehr aktiv oder für dich nicht freigeschaltet.'
+                                ? 'Diese Anzeige ist privat, nicht mehr aktiv oder für dich nicht freigeschaltet.'
                                 : 'Diese Anzeige existiert nicht oder wurde entfernt.'}
                         </p>
                         <Button onClick={() => navigate(-1)} className="rounded-full">Zurück</Button>
@@ -222,7 +222,7 @@ export default function AdDetails() {
                             {ad.session_format && ad.session_format !== 'any' && (
                                 <span className="flex items-center gap-1 bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 px-2 py-1 rounded" title={ad.session_format === 'group' ? 'Kleingruppe (2–4 Schüler)' : 'Einzelunterricht'}>
                                     {ad.session_format === 'group' ? <Users size={14} /> : <User size={14} />}
-                                    {ad.session_format === 'group' ? 'Kleingruppe' : 'Einzeln'}
+                                    {ad.session_format === 'group' ? 'Kleingruppe' : 'Einzelunterricht'}
                                 </span>
                             )}
                             {ad.session_format === 'any' && (
@@ -301,7 +301,7 @@ export default function AdDetails() {
                                 )}
                                 {status === 'pending' && (
                                     <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg text-center text-yellow-800 font-medium">
-                                        Anfrage gesendet. Warte auf Antwort...
+                                        Anfrage gesendet. Warte auf Antwort.
                                     </div>
                                 )}
                                 {(status === 'accepted' || status === 'completed') && (

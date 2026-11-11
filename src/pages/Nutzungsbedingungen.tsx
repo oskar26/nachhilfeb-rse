@@ -71,14 +71,14 @@ const MAIL = 'info@nachhilfe-sv.de';
 const toc = [
     { id: 'p1', label: '§ 1 Was ist die Nachhilfebörse?' },
     { id: 'p2', label: '§ 2 Wer darf mitmachen?' },
-    { id: 'p3', label: '§ 3 Registrierung & Account' },
+    { id: 'p3', label: '§ 3 Registrierung & Konto' },
     { id: 'p4', label: '§ 4 Regeln für Anzeigen' },
-    { id: 'p5', label: '§ 5 Schüler-Coaching AG' },
+    { id: 'p5', label: '§ 5 Coaching-AG' },
     { id: 'p6', label: '§ 6 Kommunikation' },
     { id: 'p7', label: '§ 7 Moderation & Sanktionen' },
     { id: 'p8', label: '§ 8 Haftung' },
     { id: 'p9', label: '§ 9 Minderjährige & Vergütung' },
-    { id: 'p10', label: '§ 10 Kündigung & Account-Löschung' },
+    { id: 'p10', label: '§ 10 Kündigung & Konto-Löschung' },
     { id: 'p11', label: '§ 11 Änderungen & Kontakt' },
 ];
 
@@ -193,10 +193,10 @@ export default function Nutzungsbedingungen() {
 
                     <Para id="p2" nr="02" title="§ 2 Wer darf mitmachen?">
                         <ParaList items={[
-                            <span key="a"><strong>Schülerinnen und Schüler</strong> des Friedrich-Wilhelm-Gymnasiums Köln können Accounts erstellen, Anzeigen aufgeben und Nachrichten schreiben.</span>,
-                            <span key="b"><strong>Eltern</strong> können den Account ihres Kindes mitbetreuen. Wie eng, entscheiden sie gemeinsam mit ihrem Kind je nach Alter.</span>,
+                            <span key="a"><strong>Schülerinnen und Schüler</strong> des Friedrich-Wilhelm-Gymnasiums Köln können Konten erstellen, Anzeigen aufgeben und Nachrichten schreiben.</span>,
+                            <span key="b"><strong>Eltern</strong> können das Konto ihres Kindes mitbetreuen. Wie eng, entscheiden sie gemeinsam mit ihrem Kind je nach Alter.</span>,
                             <span key="c">Nutzerinnen und Nutzer <strong>unter 16 Jahren</strong> benötigen die <strong>Einwilligung eines Elternteils</strong> (Art. 8 DSGVO). Die Einwilligung wird bei der Registrierung eingeholt und dokumentiert.</span>,
-                            <span key="d">Nur <strong>verifizierte Accounts</strong> (Verifizierung im SV-Raum) können Anzeigen erstellen und Kontakt aufnehmen.</span>,
+                            <span key="d">Nur <strong>verifizierte Konten</strong> (Verifizierung im SV-Raum) können Anzeigen erstellen und Kontakt aufnehmen.</span>,
                         ]} />
                         <h4 className="pt-2 text-xs font-bold uppercase tracking-[0.14em] text-gray-500 dark:text-gray-400">
                             Verifizierung in 3 Schritten
@@ -204,9 +204,9 @@ export default function Nutzungsbedingungen() {
                         <VerifySteps tone="du" variant="rows" />
                     </Para>
 
-                    <Para id="p3" nr="03" title="§ 3 Registrierung & Account">
+                    <Para id="p3" nr="03" title="§ 3 Registrierung & Konto">
                         <ParaList items={[
-                            <span key="a">Pro Person ist <strong>ein Account</strong> vorgesehen. Die Angaben bei der Registrierung müssen zutreffen (keine falschen Namen, Klassen oder Rollen).</span>,
+                            <span key="a">Pro Person ist <strong>ein Konto</strong> vorgesehen. Die Angaben bei der Registrierung müssen zutreffen (keine falschen Namen, Klassen oder Rollen).</span>,
                             <span key="b">Deine <strong>Zugangsdaten sind geheim zu halten</strong>. Bei Verdacht auf Missbrauch informiere uns sofort über <a href={`mailto:${MAIL}`} className={MAIL_CLS}>{MAIL}</a>.</span>,
                             <span key="c">Die Angabe einer falschen Rolle oder die Umgehung der Verifizierung führt zur Sperrung.</span>,
                         ]} />
@@ -215,19 +215,19 @@ export default function Nutzungsbedingungen() {
                     <Para id="p4" nr="04" title="§ 4 Regeln für Anzeigen">
                         <ParaList items={[
                             <span key="a">Anzeigen müssen <strong>wahr, konkret und aktuell</strong> sein (Fächer, Klassenstufen, Preise). Veraltete Anzeigen sind zu deaktivieren oder zu löschen.</span>,
-                            <span key="b"><strong>Richtpreise:</strong> Als fair gelten <span className="font-mono tabular-nums">ca. 10–12 € pro 45–60 Minuten</span>. Wucherpreise oder Lockangebote mit versteckten Kosten sind untersagt.</span>,
+                            <span key="b"><strong>Richtpreise:</strong> Als Richtwert gelten <span className="font-mono tabular-nums">ca. 12 € pro Stunde</span>. Der Preis ist individuell anpassbar. Wucherpreise oder Lockangebote mit versteckten Kosten sind untersagt.</span>,
                             <span key="c">Verboten sind: Beleidigungen, Diskriminierung, Werbung für externe kommerzielle Anbieter, Kettenbriefe, politische oder religiöse Agitation sowie Inhalte, die gegen Gesetze verstoßen.</span>,
                             <span key="d">Fotos dürfen nur hochgeladen werden, wenn du die <strong>Rechte daran hast</strong> und abgebildete Personen einverstanden sind.</span>,
                         ]} />
                     </Para>
 
-                    <Para id="p5" nr="05" title="§ 5 Schüler-Coaching AG">
+                    <Para id="p5" nr="05" title="§ 5 Coaching-AG">
                         <p>
-                            Mitglieder der Schüler-Coaching AG erhalten nach Schulung ein <strong>Coach-Abzeichen</strong>.
-                            Was das Badge bedeutet, wer Coach werden kann und warum manche Anzeigen hervorgehoben
+                            Mitglieder der Coaching-AG erhalten nach Schulung ein <strong>Coach-Abzeichen</strong>.
+                            Was das Abzeichen bedeutet, wer Coach werden kann und warum manche Anzeigen hervorgehoben
                             werden, steht transparent auf der{' '}
                             <Link to="/coaching" className="font-bold text-amber-700 dark:text-primary hover:underline">Coaching-Seite</Link>.
-                            Das Badge steht für geprüfte Vertrauenswürdigkeit als Person – nicht für Erfolgsgarantien.
+                            Das Abzeichen steht für Schulung und Verifizierung, nicht für Erfolgsgarantien.
                         </p>
                     </Para>
 
@@ -254,7 +254,7 @@ export default function Nutzungsbedingungen() {
                             ))}
                         </ul>
                         <p>
-                            Gegen Maßnahmen kannst du <strong>Widerspruch einlegen</strong> – per Support-Ticket
+                            Gegen Maßnahmen kannst du <strong>Widerspruch einlegen</strong>. Nutze dafür eine Anfrage
                             in der App, per E-Mail an <a href={`mailto:${MAIL}`} className={MAIL_CLS}>{MAIL}</a> oder
                             persönlich im SV-Raum. Wir prüfen jeden Fall erneut.
                         </p>
@@ -277,16 +277,16 @@ export default function Nutzungsbedingungen() {
                         </p>
                     </Para>
 
-                    <Para id="p10" nr="10" title="§ 10 Kündigung & Account-Löschung">
+                    <Para id="p10" nr="10" title="§ 10 Kündigung & Konto-Löschung">
                         <p>
                             Du kannst die Nutzung <strong>jederzeit beenden</strong>. Die vollständige Löschung
-                            deines Accounts beantragst du über ein <strong>Support-Ticket in der App</strong> oder
+                            deines Kontos beantragst du über eine <strong>Anfrage in der App</strong> oder
                             per E-Mail an <a href={`mailto:${MAIL}`} className={MAIL_CLS}>{MAIL}</a>.
                             Wir bestätigen die Löschung innerhalb von <span className="font-mono tabular-nums">14 Tagen</span> (Details zur Speicherung in der{' '}
                             <Link to="/datenschutz" className="font-bold text-amber-700 dark:text-primary hover:underline">Datenschutzerklärung</Link>).
                         </p>
                         <p>
-                            Der Betreiber kann Accounts bei schweren Verstößen fristlos sperren (§ 7) und die
+                            Der Betreiber kann Konten bei schweren Verstößen fristlos sperren (§ 7) und die
                             Plattform insgesamt mit einer Ankündigungsfrist von <span className="font-mono tabular-nums">30 Tagen</span> einstellen.
                         </p>
                     </Para>

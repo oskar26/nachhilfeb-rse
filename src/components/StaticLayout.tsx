@@ -12,7 +12,7 @@ const FOOTER_LINKS: Array<[string, string]> = [
     ['Impressum', '/impressum'],
     ['Datenschutz', '/datenschutz'],
     ['Cookies', '/cookies'],
-    ['Schüler-Coaching', '/coaching'],
+    ['Coaching-AG', '/coaching'],
     ['Nutzungsbedingungen', '/nutzungsbedingungen'],
     ['Eltern-Leitfaden', '/eltern-leitfaden'],
     ['Transparenz', '/transparenz'],
@@ -105,7 +105,7 @@ export default function StaticLayout({ children, title, intro, showHeader = true
                             <span className="grid place-items-center w-11 h-11 rounded-xl bg-primary text-black"><Logo size={26} /></span>
                             <div>
                                 <p className="font-display uppercase text-2xl text-black leading-none">Nachhilfebörse</p>
-                                <p className="mt-1 text-xs font-semibold">Die clevere Art, am FWG zu lernen.</p>
+                                <p className="mt-1 text-xs font-semibold">Nachhilfebörse der Schülervertretung am FWG.</p>
                             </div>
                         </div>
                         <nav className="flex flex-wrap gap-x-6 gap-y-3 text-sm font-semibold" aria-label="Rechtliches und Infos">

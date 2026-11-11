@@ -52,7 +52,7 @@ Bezirksregierung, keine Vorlage beim Schulträger, keine Änderung der SV-Satzun
 ### Was schon fertig ist
 
 - Verifizierung nur vor Ort im SV-Raum · 7 Ordner-Rechte, Zugriffsstufen serverseitig erzwungen
-- Eltern-Einwilligung für Nutzer unter 16 J., Eltern-Dashboard mit Kind-Verknüpfung per Code
+- Eltern-Einwilligung für Nutzer unter 16 J., gemeinsame Konto-Nutzung durch Eltern (kein eigenes Elternkonto)
 - Melde-Button in jeder Anzeige, jeder Nachricht, jedem Profil · Moderations- und Audit-Protokoll
 - Inhaltsfilter (Wortliste DE/EN + SV-Filtertraining) vor dem Absenden
 - Datenschutzerklärung, Nutzungsbedingungen, Impressum, Cookie-Hinweise, Transparenzseite (offen

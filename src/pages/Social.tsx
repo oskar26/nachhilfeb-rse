@@ -68,7 +68,7 @@ const FILTER_TAB: Record<StreamFilter, string> = {
 const FILTER_LABEL: Record<StreamFilter, string> = {
     alle: 'Alle',
     anfragen: 'Anfragen',
-    matches: 'Matches',
+    matches: 'Vorschläge',
     merkliste: 'Merkliste',
 };
 
@@ -185,7 +185,7 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
         return (
             <div className="mx-auto w-full max-w-4xl p-4 sm:p-6">
                 <div className="rounded-3xl border border-dashed border-gray-300 bg-white/70 p-8 text-center text-sm font-semibold text-gray-500 dark:border-gray-700 dark:bg-gray-900/60 dark:text-gray-400">
-                    Bitte einloggen, um deinen Strom zu sehen.
+                    Bitte melde dich an, um deine Übersicht zu sehen.
                 </div>
             </div>
         );
@@ -202,18 +202,18 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                 </h1>
                 <div className="mt-1.5 h-1 w-10 rounded-full bg-primary" aria-hidden />
                 <p className="mt-3 max-w-[65ch] text-sm text-gray-500 dark:text-gray-400">
-                    Anfragen, Matches und gemerkte Anzeigen in einem Strom – das Wichtigste zuerst.
+                    Anfragen, Vorschläge und gemerkte Anzeigen auf einer Seite. Das Wichtigste steht oben.
                 </p>
             </header>
 
             <SocialFilterPills
-                ariaLabel="Strom nach Typ filtern"
+                ariaLabel="Übersicht nach Typ filtern"
                 options={pills}
                 value={filter}
                 onChange={selectFilter}
             />
             <p className="sr-only" aria-live="polite">
-                {counts[filter]} {counts[filter] === 1 ? 'Eintrag' : 'Einträge'} im Strom
+                {counts[filter]} {counts[filter] === 1 ? 'Eintrag' : 'Einträge'} in der Übersicht
             </p>
 
             {stream.hiddenIds.length > 0 && (filter === 'alle' || filter === 'anfragen') && (
@@ -239,17 +239,17 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                             stream.resetDismissed();
                         }}
                         className="flex min-h-[44px] cursor-pointer items-center gap-1.5 rounded-full border border-dashed border-gray-200 bg-white px-4 text-xs font-bold tabular-nums text-gray-500 transition-colors hover:border-primary hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-100 dark:focus-visible:ring-offset-gray-950"
-                        title="Ausgeblendete Matches wiederherstellen"
+                        title="Ausgeblendete Vorschläge wiederherstellen"
                     >
                         <RotateCcw size={13} aria-hidden />
-                        <span>{stream.dismissedIds.length} ausgeblendete {stream.dismissedIds.length === 1 ? 'Match' : 'Matches'} wiederherstellen</span>
+                        <span>{stream.dismissedIds.length} ausgeblendete {stream.dismissedIds.length === 1 ? 'Vorschlag' : 'Vorschläge'} wiederherstellen</span>
                     </Button>
                 </div>
             )}
 
             {/* Loading: Karten-Skelette statt leerem Bildschirm */}
             {stream.loading && (
-                <div className="space-y-4" role="status" aria-label="Dein Strom wird geladen">
+                <div className="space-y-4" role="status" aria-label="Deine Übersicht wird geladen">
                     <RequestSkeleton />
                     <MatchSkeleton />
                     <FavoriteSkeleton />
@@ -261,7 +261,7 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                 <EmptyState
                     icon={Inbox}
                     tone="error"
-                    title="Dein Strom konnte nicht geladen werden"
+                    title="Die Übersicht konnte nicht geladen werden"
                     text={apiErrorMessage(stream.error, 'Verbindung zum Server fehlgeschlagen. Prüfe deine Internetverbindung und versuch es erneut.')}
                     action={
                         <Button onClick={stream.reload} className="h-11 rounded-full bg-primary px-6 text-sm font-bold text-black">
@@ -276,19 +276,19 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                 <EmptyState
                     icon={filter === 'matches' ? Sparkles : filter === 'merkliste' ? Heart : Inbox}
                     title={
-                        filter === 'matches' ? 'Noch keine Matches'
+                        filter === 'matches' ? 'Noch keine Vorschläge'
                             : filter === 'merkliste' ? 'Merkliste ist leer'
-                                : filter === 'anfragen' ? 'Keine Anfragen im Strom'
-                                    : 'Dein Strom ist leer'
+                                : filter === 'anfragen' ? 'Keine Anfragen in der Übersicht'
+                                    : 'Noch keine Einträge'
                     }
                     text={
                         filter === 'matches'
-                            ? 'Sobald eine Anzeige zu deinen Fächern, Klassen und Freistunden passt, taucht sie hier auf.'
+                            ? 'Sobald eine Anzeige zu deinen Fächern, Klassen und deiner Verfügbarkeit passt, erscheint sie hier.'
                             : filter === 'merkliste'
-                                ? 'Merk Anzeigen aus dem Feed per Herz-Symbol – hier sammeln sie sich.'
+                                ? 'Merke Anzeigen in der Übersicht über das Herz-Symbol. Sie erscheinen dann hier.'
                                 : filter === 'anfragen'
                                     ? 'Sobald jemand Interesse an deiner Anzeige hat oder du eine Anfrage schickst, erscheint sie hier.'
-                                    : 'Anfragen, Matches und gemerkte Anzeigen laufen hier zusammen. Starte mit einer Anzeige!'
+                                    : 'Anfragen, Vorschläge und gemerkte Anzeigen findest du hier. Erstelle eine Anzeige.'
                     }
                     action={
                         filter === 'merkliste' ? (

@@ -152,13 +152,13 @@ export default function Settings() {
 
     const handleDeleteAccount = async () => {
         triggerHaptic('warning');
-        if (!confirm("Willst du deinen Account und all deine Anzeigen wirklich zur Löschung vormerken? Diese Aktion schickt eine Anfrage an die Administration.")) return;
+        if (!confirm("Willst du dein Konto und all deine Anzeigen wirklich zur Löschung vormerken? Diese Aktion schickt eine Anfrage an die Administration.")) return;
 
         try {
             const { error } = await api.support.createTicket({
                 user_id: user?.id,
-                subject: 'Account-Löschung angefordert (Art. 17 DSGVO)',
-                message: `Nutzer ${user?.email} fordert die vollständige Löschung seines Accounts an.`
+                subject: 'Konto-Löschung angefordert (Art. 17 DSGVO)',
+                message: `Nutzer ${user?.email} fordert die vollständige Löschung seines Kontos an.`
             } as any);
 
             if (error) throw error;
@@ -352,7 +352,7 @@ export default function Settings() {
                 <Card className="rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft">
                     <CardHeader className="p-6 pb-2">
                         <CardTitle className="flex items-center gap-2 text-base font-extrabold text-gray-900 dark:text-white">
-                            <Shield size={18} className="text-primary" /> Datenschutz & Ihre Rechte (DSGVO)
+                            <Shield size={18} className="text-primary" /> Datenschutz und deine Rechte
                         </CardTitle>
                         <CardDescription className="text-xs">
                             Auskunft, Datenübertragbarkeit und Löschung deiner Daten gemäß DSGVO
@@ -387,7 +387,7 @@ export default function Settings() {
                                 size="sm"
                                 className="rounded-full font-bold gap-1 text-xs text-red-600 hover:bg-red-100 dark:hover:bg-red-900/40 shrink-0"
                             >
-                                <Trash2 size={14} /> Account löschen
+                                <Trash2 size={14} /> Konto löschen
                             </Button>
                         </div>
                     </CardContent>
@@ -402,12 +402,12 @@ export default function Settings() {
                             <LifeBuoy size={18} className="text-primary" /> Hilfe, Feedback & Support
                         </CardTitle>
                         <CardDescription className="text-xs">
-                            Melde Bugs, schlage neue Funktionen vor oder chatte direkt mit den SV-Admins
+                            Melde Fehler, schlage Verbesserungen vor oder schreibe direkt an das SV-Team
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="p-6 pt-3 flex items-center justify-between gap-4">
                         <div className="text-xs text-gray-500">
-                            Wir antworten in der Regel innerhalb kurzer Zeit auf deine Anfragen.
+                            Wir melden uns, sobald wir deine Anfrage bearbeitet haben.
                         </div>
                         <Button
                             onClick={() => {
@@ -435,7 +435,7 @@ export default function Settings() {
                     </CardHeader>
                     <CardContent className="p-6 pt-3 flex items-center justify-between gap-4">
                         <div className="text-xs text-gray-500">
-                            Hilf mit, die FWG-Community zu vergrößern!
+                            Wenn dir die Börse hilft, kannst du sie weitergeben.
                         </div>
                         <Button
                             variant="outline"
@@ -473,7 +473,7 @@ export default function Settings() {
                         >
                             Nachhilfebörse FWG Köln
                         </h3>
-                        <p className="text-xs text-gray-400 font-semibold mt-0.5">Version 2.5.0 (Autumn Edition)</p>
+                        <p className="text-xs text-gray-400 font-semibold mt-0.5">Version 2.5.0</p>
                         <p className="text-xs text-gray-500 mt-1">Entwickelt für das FWG Köln von Oskar H.</p>
                     </div>
 
@@ -483,11 +483,11 @@ export default function Settings() {
                             animate={{ opacity: 1, y: 0 }}
                             className="pt-4 border-t border-gray-100 dark:border-gray-800 space-y-3 text-left"
                         >
-                            <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">SV-Code Einlösen</Label>
+                            <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">Code einlösen</Label>
                             <div className="flex gap-2">
                                 <Input
                                     type="text"
-                                    placeholder="SV-Einladungscode..."
+                                    placeholder="Code..."
                                     className="flex-1 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-primary outline-none font-mono uppercase text-gray-900 dark:text-white"
                                     id="secretCodeInput"
                                     onKeyDown={async (e) => {
@@ -504,12 +504,12 @@ export default function Settings() {
                                                 toast.error('Fehler beim Einlösen des Codes.');
                                             } else if (data === 'sv_admin' || data === 'coach_admin') {
                                                 triggerHaptic('success');
-                                                toast.success(data === 'sv_admin' ? 'SV-Admin-Rechte freigeschaltet! Lade neu...' : 'Coaching-Admin-Rechte freigeschaltet! Lade neu...');
+                                                toast.success(data === 'sv_admin' ? 'Du bist jetzt SV-Admin. Bitte lade die Seite neu.' : 'Du bist jetzt Coach-Admin. Bitte lade die Seite neu.');
                                                 (e.target as HTMLInputElement).value = '';
                                                 setTimeout(() => window.location.reload(), 1200);
                                             } else if (data && data !== 'invalid') {
                                                 triggerHaptic('success');
-                                                toast.success('Account verifiziert! Lade neu...');
+                                                toast.success('Konto verifiziert. Bitte lade die Seite neu.');
                                                 (e.target as HTMLInputElement).value = '';
                                                 setTimeout(() => window.location.reload(), 1200);
                                             } else {
@@ -520,7 +520,7 @@ export default function Settings() {
                                     }}
                                 />
                             </div>
-                            <p className="text-[10px] text-gray-400">Gib hier deinen offiziellen SV-Einladungscode ein und bestätige mit Enter.</p>
+                            <p className="text-[10px] text-gray-400">Wenn du einen Code erhalten hast, kannst du ihn hier einlösen und mit der Eingabetaste bestätigen.</p>
                         </motion.div>
                     )}
                 </Card>

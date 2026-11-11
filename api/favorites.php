@@ -119,7 +119,7 @@ if ($method === 'POST') {
                 ')->execute([
                     $notifId,
                     $owner['owner_id'],
-                    "Anzeige gemerkt! ⭐",
+                    "Anzeige gespeichert.",
                     "Jemand hat deine Anzeige „$adTitle“ auf die Merkliste gesetzt.",
                     json_encode(['ad_id' => $adId, 'link' => "/#/ad/$adId"])
                 ]);

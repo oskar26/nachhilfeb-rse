@@ -167,7 +167,7 @@ if ($method === 'POST') {
 
         json_response([
             'id' => $reviewId,
-            'message' => 'Bewertung erfolgreich abgegeben!',
+            'message' => 'Bewertung gespeichert.',
             'new_average' => $newAvg
         ], 201);
     } catch (Exception $e) {

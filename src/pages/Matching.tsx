@@ -1,5 +1,5 @@
 // Karten-Modul „Matches" für den Social-Strom: Match-Karte mit Score,
-// Fächer-Vergleich, Freistunden-Check und den Aktionen Übersehen/Kontakt.
+// Fächer-Vergleich, Zeiten-Check und den Aktionen Übersehen/Kontakt.
 // Reine Darstellung – Scoring (computeMatches) und Daten bleiben in
 // src/lib/matching.ts bzw. useSocialStream; Dismiss/Seen-State liegt im Stream.
 
@@ -69,7 +69,7 @@ export function MatchStreamCard({
 
     const isOffer = ad.type === 'offer';
     const leftTitle = isOffer ? 'Du suchst' : 'Du bietest';
-    const rightTitle = isOffer ? 'Er/sie bietet' : 'Er/sie sucht';
+    const rightTitle = isOffer ? 'Bietet Nachhilfe' : 'Sucht Nachhilfe';
     const leftSubjects = (myAd?.subjects?.length ? myAd.subjects : (mySubjects ?? [])) as string[];
     const rightSubjects = (ad.subjects || []) as string[];
 
@@ -78,7 +78,7 @@ export function MatchStreamCard({
             {/* Kopf: Typ-/Status-Chip links, großer Score rechts */}
             <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
-                    <TypeChip label="Match" dotClass="bg-emerald-500" icon={Zap} />
+                    <TypeChip label="Vorschlag" dotClass="bg-emerald-500" icon={Zap} />
                     <StatusChip label={seen ? 'Gesehen' : 'Neu'} dotClass={seen ? 'bg-gray-400' : 'bg-primary'} />
                     <span
                         className={cn(
@@ -107,7 +107,7 @@ export function MatchStreamCard({
                 )}
                 <div className="min-w-0">
                     <p className="truncate text-base font-bold text-gray-900 dark:text-white">
-                        {ad.profiles?.display_name ?? 'FWG Schüler/in'}
+                        {ad.profiles?.display_name ?? 'Schülerin oder Schüler des FWG'}
                     </p>
                     <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-gray-500 dark:text-gray-400">
                         <span className="font-mono tabular-nums">{formatGradeLabel(ad.profiles?.grade_level || ad.grade_levels?.[0])}</span>
@@ -127,7 +127,7 @@ export function MatchStreamCard({
 
             {/* Kurzbeschreibung */}
             <p className="mt-3 max-w-[65ch] text-sm leading-relaxed text-gray-700 line-clamp-2 dark:text-gray-300">
-                {ad.short_description || ad.long_description || 'Keine nähere Beschreibung angegeben.'}
+                {ad.short_description || ad.long_description || 'Keine Beschreibung angegeben.'}
             </p>
 
             {/* Gegenüberstellung: Du ↔ Gegenüber */}
@@ -174,7 +174,7 @@ export function MatchStreamCard({
                 </ul>
             </div>
 
-            {/* Meta-Zeile: Klasse · Preis · Ort · Freistunden */}
+            {/* Meta-Zeile: Klasse · Preis · Ort · Zeiten */}
             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 font-semibold dark:bg-gray-800">
                     <GraduationCap size={12} aria-hidden />
@@ -196,11 +196,11 @@ export function MatchStreamCard({
                         onClick={() => setShowCalendar(!showCalendar)}
                         aria-expanded={showCalendar}
                         className="inline-flex min-h-[44px] cursor-pointer items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 font-bold text-amber-900 transition-colors hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:text-primary dark:hover:bg-primary/15 dark:focus-visible:ring-offset-gray-900"
-                        title="Gemeinsame Freistunden ansehen"
+                        title="Gemeinsame Zeiten ansehen"
                     >
                         <CalendarDays size={12} aria-hidden />
                         <span className="font-mono tabular-nums">{availabilityMatches}</span>
-                        Freistunden
+                        Zeiten
                         <span className="text-[10px] underline">{showCalendar ? 'ausblenden' : 'ansehen'}</span>
                     </Button>
                 )}

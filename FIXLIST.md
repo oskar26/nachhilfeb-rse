@@ -1,5 +1,7 @@
 # FIXLIST — Konsistenz-, Bug- & Zugriffs-Runde (24.09.2026)
 
+> Hinweis: Das Eltern-Dashboard wurde am 11.10.2026 entfernt. Nennungen unten sind historisch. Eltern nutzen das Konto ihres Kindes gemeinsam mit ihm.
+
 Quelle: User-Feedback 24.09.2026 (Screenshots: Feed mobil, Eltern-Dashboard, Verknüpfungs-Modal).
 Format: Ist-Zustand (File:Line) → Fix → Abnahme.
 Architektur-Fakt: Prod-Backend = PHP/MySQL (`api/*.php`). `src/lib/supabase.ts` war nur eine Bridge (inzwischen entfernt); „Supabase“-Nennungen in älteren Fixes unten sind historisch.

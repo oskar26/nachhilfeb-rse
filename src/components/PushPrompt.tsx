@@ -52,7 +52,7 @@ export function PushPrompt() {
                     </span>
                     <div className="min-w-0 flex-1">
                         <p className="text-sm font-bold text-gray-900 dark:text-white">
-                            {denied ? 'Benachrichtigungen sind blockiert' : 'Keine Neuigkeit mehr verpassen?'}
+                            {denied ? 'Benachrichtigungen sind blockiert' : 'Benachrichtigungen aktivieren?'}
                         </p>
                         <p className="mt-0.5 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
                             {denied

@@ -10,8 +10,8 @@ function matchTier(score: number): MatchTier {
 }
 
 const TIER_LABEL: Record<MatchTier, string> = {
-    top: 'Top Match',
-    good: 'Guter Match',
+    top: 'Sehr passend',
+    good: 'Passend',
     ok: 'Passend',
 };
 
@@ -27,7 +27,7 @@ export function MatchScoreBadge({ score, className }: { score: number; className
                 'inline-flex shrink-0 flex-col items-center rounded-2xl bg-primary px-3.5 py-2 text-amber-950',
                 className
             )}
-            aria-label={`Match-Score ${score} Prozent – ${TIER_LABEL[tier]}`}
+            aria-label={`Übereinstimmung ${score} Prozent: ${TIER_LABEL[tier]}`}
         >
             <span className="flex items-center gap-1 font-mono text-2xl font-black leading-none tabular-nums">
                 <Zap size={16} className="shrink-0" fill="currentColor" aria-hidden />

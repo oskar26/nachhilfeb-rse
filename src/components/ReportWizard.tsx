@@ -106,7 +106,7 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
                 console.error("Error creating report:", error);
                 toast.error("Meldung konnte nicht eingereicht werden.");
             } else {
-                toast.success("Vielen Dank. Die SV prüft deine Meldung schnellstmöglich.");
+                toast.success("Vielen Dank. Die SV prüft deine Meldung.");
                 onClose();
                 // Reset Wizard
                 setStep(1);

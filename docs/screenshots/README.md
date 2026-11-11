@@ -7,14 +7,13 @@ Ablageort für die Bilder in der [`README.md`](../../README.md). Die README verl
 | Dateiname | Motiv | Route / Ort | Status |
 |---|---|---|---|
 | `01-welcome.png` | Landing / Startseite (Hero, CTA, drei Zielgruppen) | `/#/welcome` | vorhanden |
-| `02-feed.png` | Feed „Aktuelle Anzeigen“ (Suche, Filter, Anzeigenkarten) | `/#/` nach Login | vorhanden |
-| `03-anzeige-erstellen.png` | Stepper „Anzeige aufgeben“ (biete/suche) | `/#/create-ad` | vorhanden |
-| `04-anfrage-chat.png` | „Anfragen & Matches“ (Tabs, Posteingang) | `/#/requests` | vorhanden |
+| `02-feed.png` | Übersicht „Aktuelle Anzeigen“ (Suche, Filter, Anzeigenkarten) | `/#/` nach Login | vorhanden |
+| `03-anzeige-erstellen.png` | Stepper „Anzeige erstellen“ (biete/suche) | `/#/create-ad` | vorhanden |
+| `04-anfrage-chat.png` | „Anfragen und Vorschläge“ (Tabs, Posteingang) | `/#/requests` | vorhanden |
 | `05-profil.png` | Öffentliches Profil (Bio, Statistiken, Verfügbarkeit) | `/#/profile/:id` | vorhanden |
-| `06-eltern-dashboard.png` | Eltern-Dashboard (Kind, Fortschritt) | `/#/parent-dashboard` | **fehlt noch** |
 | `07-sv-panel.png` | SV-Panel (Nutzer, Anzeigen, Meldungen, Analytics) | `/#/sv-panel` | vorhanden |
-| `08-coaching.png` | Coaching-Seite „Schüler-Coaching am FWG“ | `/#/coaching` | vorhanden |
-| `09-dark-mode-pwa.png` | Dark Mode: eigenes Profil mit Profil-Stärke | `/#/profile`, Dark Mode | vorhanden |
+| `08-coaching.png` | Coaching-Seite „Coaching-AG am FWG“ | `/#/coaching` | vorhanden |
+| `09-dark-mode-pwa.png` | Dark Mode: eigenes Profil mit Profilfortschritt | `/#/profile`, Dark Mode | vorhanden |
 
 ## iPhone & iPad
 

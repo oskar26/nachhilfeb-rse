@@ -14,7 +14,7 @@ export default function Transparenz() {
                     <div className="text-[15px] leading-7 text-gray-600 dark:text-gray-300 space-y-2">
                         <p>
                             Die FWG-Nachhilfebörse ist ein <strong>nicht-kommerzielles Schülerprojekt</strong> der SV.
-                            Ein großer Teil des Codes und der Texte wurde <strong>mit Hilfe von KI erstellt</strong> —
+                            Ein großer Teil des Codes und der Texte wurde <strong>mit Hilfe von KI erstellt</strong>.
                             durch sogenanntes <strong>agentisches Coding</strong>. Das ist kein Geheimnis, sondern
                             wird hier offengelegt, damit du weißt, womit du es zu tun hast.
                         </p>
@@ -41,14 +41,14 @@ export default function Transparenz() {
                             <span>
                                 <strong>Seit Ende 2025</strong>, also <strong>über zehn Monate</strong>,
                                 entsteht die Plattform in dieser Form. Der Aufwand beläuft sich auf
-                                <strong> mehrere hundert Stunden</strong> Arbeit — oft in langen Entwicklungsläufen
+                                <strong> mehrere hundert Stunden</strong> Arbeit, oft in langen Entwicklungsläufen
                                 über viele Tage und Wochen.
                             </span>
                         </li>
                         <li className="flex gap-3">
                             <Code2 className="text-primary shrink-0 mt-1" size={20} aria-hidden="true" />
                             <span>
-                                <strong>Agentisches Coding:</strong> KI-Agenten schreiben, ändern und testen den Code;
+                                <strong>KI-Programme:</strong> KI-Programme schreiben, ändern und testen den Code;
                                 ein Mensch setzt Ziele, liest mit, verwirft und entscheidet. Features, Layout und
                                 Texte entstehen so im Dialog zwischen Mensch und Maschine.
                             </span>
@@ -56,9 +56,9 @@ export default function Transparenz() {
                         <li className="flex gap-3">
                             <Sparkles className="text-primary shrink-0 mt-1" size={20} aria-hidden="true" />
                             <span>
-                                <strong>AI-generated ist AI-generated:</strong> Ein wesentlicher Anteil von Code
+                                <strong>Ein großer Teil des Codes und der Texte wurde mit KI erstellt:</strong> Ein wesentlicher Anteil von Code
                                 und Texten ist maschinell erzeugt oder maschinell überarbeitet. Wir geben das
-                                klar zu — statt so zu tun, als wäre alles von Hand getippt.
+                                klar zu, statt so zu tun, als wäre alles von Hand getippt.
                             </span>
                         </li>
                         <li className="flex gap-3">
@@ -66,7 +66,7 @@ export default function Transparenz() {
                             <span>
                                 <strong>Verantwortung bleibt beim SV-Team:</strong> Über Sicherheit, Datenschutz,
                                 Moderation und die Frage, was live geht, entscheiden Menschen. KI schreibt mit,
-                                haftet aber nicht — und kann Fehler machen.
+                                haftet aber nicht und kann Fehler machen.
                             </span>
                         </li>
                     </ul>
@@ -77,7 +77,7 @@ export default function Transparenz() {
                     <div className="text-[15px] leading-7 text-gray-600 dark:text-gray-300 space-y-2">
                         <p>
                             Der gesamte Quellcode ist öffentlich einsehbar. Jeder kann ihn lesen, Fehler melden
-                            oder Verbesserungen vorschlagen — unabhängig davon, ob man sich auf der Plattform
+                            oder Verbesserungen vorschlagen, unabhängig davon, ob man sich auf der Plattform
                             anmeldet.
                         </p>
                         <p className="flex flex-wrap items-center gap-3 pt-1">

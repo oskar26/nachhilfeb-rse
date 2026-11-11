@@ -145,7 +145,7 @@ if ($method === 'POST') {
             send_email_new_chat_message(
                 $recip['email'],
                 $recip['first_name'] ?: $recip['display_name'] ?: 'Schüler/in',
-                $user['display_name'] ?: 'Ein/e Mitschüler/in',
+                $user['display_name'] ?: 'Mitschülerin oder Mitschüler',
                 $content,
                 $requestId
             );

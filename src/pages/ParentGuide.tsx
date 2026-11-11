@@ -49,7 +49,7 @@ export default function ParentGuide() {
     return (
         <StaticLayout
             title="Leitfaden für Eltern"
-            intro="Ein Konto pro Kind, je nach Alter gemeinsam betreut oder selbstständig genutzt. Hier steht, wie das geht und was die Börse sicher macht."
+            intro="Ein Konto pro Kind, je nach Alter gemeinsam betreut oder selbstständig genutzt. Hier steht, wie das geht und was die Börse für Sicherheit tut."
         >
             <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-16 min-w-0 flex flex-col gap-10 sm:gap-12">
 
@@ -71,7 +71,7 @@ export default function ParentGuide() {
                     <dl className="mt-5">
                         <SpecRowDark label="Zugang">Konten legen nur Schülerinnen und Schüler des Friedrich-Wilhelm-Gymnasiums an.</SpecRowDark>
                         <SpecRowDark label="Verifizierung">Ihr Kind meldet sich persönlich im SV-Raum und wird dort freigeschaltet.</SpecRowDark>
-                        <SpecRowDark label="Gemeinsam">Ihr Kind nutzt seinen Account, Sie schauen und unterstützen mit. Wie eng Sie begleiten, entscheiden Sie gemeinsam.</SpecRowDark>
+                        <SpecRowDark label="Gemeinsam">Ihr Kind nutzt sein Konto, Sie schauen und unterstützen mit. Wie eng Sie begleiten, entscheiden Sie gemeinsam.</SpecRowDark>
                         <SpecRowDark label="Treffen">Meist direkt in der Schule, z. B. Bibliothek oder Mensa.</SpecRowDark>
                         <SpecRowDark label="Schutz">Unverifizierte Konten bleiben eingeschränkt und können deaktiviert werden.</SpecRowDark>
                     </dl>
@@ -96,17 +96,17 @@ export default function ParentGuide() {
                             <strong className="text-gray-900 dark:text-white">Wer hilft:</strong> Engagierte Schülerinnen und Schüler ab Klasse 8, viele aus der Coaching-AG.
                         </p>
                         <p>
-                            <strong className="text-gray-900 dark:text-white">Coaching-AG:</strong> Schüler-Coaching AG von Frau Balistreri für die Stufen 5 und 6. Alle Regeln stehen auf der{' '}
+                            <strong className="text-gray-900 dark:text-white">Coaching-AG:</strong> Coaching-AG von Frau Balistreri für die Stufen 5 und 6. Alle Regeln stehen auf der{' '}
                             <Link to="/coaching" className="font-bold text-amber-700 dark:text-primary hover:underline">Coaching-Seite</Link>.
                         </p>
                     </div>
                     <div className="mt-6 rounded-2xl bg-[#faf7ef] dark:bg-gray-900 border border-black/10 dark:border-gray-800 p-5 sm:p-6">
-                        <p className="text-xs font-bold uppercase tracking-[0.14em] text-gray-500">Faire Preise</p>
+                        <p className="text-xs font-bold uppercase tracking-[0.14em] text-gray-500">Richtwert</p>
                         <p className="mt-2 font-mono tabular-nums text-2xl sm:text-3xl font-bold text-amber-600 dark:text-primary">
-                            ca. 10–12 € / 45–60 Min
+                            ca. 12 € pro Stunde
                         </p>
                         <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
-                            Fair von Schülern für Schüler: Richtwert der Nachhilfebörse.
+                            Richtwert der Nachhilfebörse. Der Preis ist individuell anpassbar. Die Nachhilfe wird privat bezahlt.
                         </p>
                     </div>
                 </motion.section>
@@ -132,13 +132,13 @@ export default function ParentGuide() {
                     </p>
                     <ul className="mt-5">
                         <CheckRow>
-                            <strong className="text-gray-900 dark:text-white">Ein Konto, gemeinsam genutzt:</strong> Ihr Kind nutzt seinen verifizierten Account, Sie schauen und unterstützen mit. Zum Beispiel beim Erstellen von Anzeigen oder beim Durchgehen von Anfragen.
+                            <strong className="text-gray-900 dark:text-white">Ein Konto pro Kind, das Sie mitbetreuen:</strong> Ihr Kind nutzt sein Konto, Sie schauen und unterstützen mit. Zum Beispiel beim Erstellen von Anzeigen oder beim Durchgehen von Anfragen.
                         </CheckRow>
                         <CheckRow>
-                            <strong className="text-gray-900 dark:text-white">Altersgerecht begleiten:</strong> In den Klassen 5 und 6 schauen viele Eltern mit, ältere Schülerinnen und Schüler nutzen die Börse selbstständig.
+                            <strong className="text-gray-900 dark:text-white">Altersgerecht begleiten:</strong> In den Klassen 5 bis 7 empfehlen wir die gemeinsame Betreuung. Ältere Schülerinnen und Schüler nutzen die Börse meist selbstständig.
                         </CheckRow>
                         <CheckRow>
-                            <strong className="text-gray-900 dark:text-white">Gemeinsam im Blick:</strong> Anzeigen, Anfragen, passende Matches und Merkliste können Sie zusammen durchgehen.
+                            <strong className="text-gray-900 dark:text-white">Gemeinsam im Blick:</strong> Anzeigen, Anfragen, passende Vorschläge und Merkliste können Sie zusammen durchgehen.
                         </CheckRow>
                         <CheckRow>
                             <strong className="text-gray-900 dark:text-white">Grenzen respektieren:</strong> Die Chat-Nachrichten gehören Ihrem Kind. So bleibt ihm ein eigener Raum, ganz gleich wie eng Sie begleiten.
@@ -170,7 +170,7 @@ export default function ParentGuide() {
                             <strong className="text-gray-900 dark:text-white">Melden:</strong> Jede Anzeige und jedes Profil lässt sich mit Begründung melden.
                         </CheckRow>
                         <CheckRow>
-                            <strong className="text-gray-900 dark:text-white">Prüfen:</strong> Das SV-Team sichtet Meldungen täglich.
+                            <strong className="text-gray-900 dark:text-white">Prüfen:</strong> Das SV-Team sichtet Meldungen mindestens einmal pro Woche, oft auch häufiger.
                         </CheckRow>
                         <CheckRow>
                             <strong className="text-gray-900 dark:text-white">Konsequenz:</strong> Verwarnung oder sofortige Sperrung bei Verstößen.
@@ -197,7 +197,7 @@ export default function ParentGuide() {
                     </h2>
                     <motion.span {...wipeLine()} className="mx-auto mt-2 block h-1 w-10 origin-left rounded-full bg-black" aria-hidden />
                     <p className="mt-4 text-[15px] leading-7 text-black/80 max-w-2xl mx-auto">
-                        Ihr Kind nutzt seinen Account, Sie schauen mit und unterstützen, so viel Sie möchten.
+                        Ihr Kind nutzt sein Konto, Sie schauen mit und unterstützen, so viel Sie möchten.
                         Bei Fragen, Problemen oder Beschwerden hilft das SV-Team.
                     </p>
                     <p className="mt-6 flex items-center justify-center gap-2 text-sm text-black/70">

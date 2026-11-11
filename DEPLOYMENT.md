@@ -195,7 +195,7 @@ ALTER TABLE public.tabellenname ENABLE ROW LEVEL SECURITY;
 - [ ] Feed zeigt Anzeigen korrekt an
 - [ ] Admin-Panel ist nur für `sv_admin`-Nutzer zugänglich
 - [ ] PWA-Installation funktioniert auf Mobilgeräten
-- [ ] BANANE-Aktionscode boosted Anzeigen korrekt
+- [ ] Hervorgehobene Anzeigen werden korrekt angezeigt
 
 ### Erste Admin-Einrichtung
 1. Registriere dich mit deiner E-Mail-Adresse

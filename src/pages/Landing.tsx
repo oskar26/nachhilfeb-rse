@@ -79,7 +79,7 @@ const FAECHER_TICKER: string[] = SUBJECT_CATEGORIES.flatMap((c) => c.subjects).m
    Das iPad (Querformat) steht bewusst daneben als eigener Print, nicht im Track:
    die Board-CSS ist auf drei hochkante Sheets komponiert. */
 const BOARD_DEVICES: { src: string; alt: string; caption: string }[] = [
-    { src: feedIphoneShot, alt: 'iPhone-Feed mit hervorgehobener Anzeige und Tab-Leiste', caption: 'Feed: Anzeigen stöbern' },
+    { src: feedIphoneShot, alt: 'iPhone-Übersicht mit hervorgehobener Anzeige und Tab-Leiste', caption: 'Übersicht: Anzeigen stöbern' },
     { src: mobileAnzeigeShot, alt: 'iPhone-Anzeigen-Detail mit Preis, Tags und Beschreibung', caption: 'Anzeige: Details zum Angebot' },
     { src: iphoneProfileShot, alt: 'iPhone-Profil mit Profil-Stärke und persönlichen Angaben', caption: 'Profil: zeigen, was du kannst' },
 ];
@@ -95,12 +95,12 @@ const IPAD_PRINT = {
 /* Desktop-Prints: der Rahmen ist eingebrannt (3 px #111, runde Ecken) — als
    geklebte Prints an die Plakatwand gesetzt, Mono-Index wie auf dem Prüfzettel. */
 const BOARD_PRINTS = [
-    { src: feedShot, index: '02', alt: 'Desktop-Feed „Aktuelle Anzeigen“ mit Suche und Filtern', caption: 'Feed & Suche' },
+    { src: feedShot, index: '02', alt: 'Desktop-Übersicht „Aktuelle Anzeigen“ mit Suche und Filtern', caption: 'Übersicht und Suche' },
     { src: createAdShot, index: '03', alt: 'Editor „Anzeige aufgeben“ im Schritt-für-Schritt-Modus', caption: 'Anzeige erstellen' },
-    { src: requestsShot, index: '04', alt: '„Anfragen & Matches“ mit Tabs und leerem Posteingang', caption: 'Anfragen & Matches' },
+    { src: requestsShot, index: '04', alt: 'Anfragen und Vorschläge mit Tabs und leerem Posteingang', caption: 'Anfragen und Vorschläge' },
     { src: profileShot, index: '05', alt: 'Öffentliches Profil mit Statistiken und Verfügbarkeits-Kalender', caption: 'Öffentliches Profil' },
     { src: svPanelShot, index: '07', alt: 'SV-Admin-Panel mit Nutzern, Anzeigen und Meldungen', caption: 'SV-Panel' },
-    { src: coachingShot, index: '08', alt: 'Coaching-Seite „Schüler-Coaching am FWG“', caption: 'Schüler-Coaching' },
+    { src: coachingShot, index: '08', alt: 'Coaching-Seite „Coaching-AG am FWG“', caption: 'Coaching-AG' },
     { src: darkModeShot, index: '09', alt: 'Dark Mode: eigenes Profil mit Profil-Stärke', caption: 'Dark Mode & PWA' },
 ];
 
@@ -247,14 +247,14 @@ export default function Landing() {
                             {...rise(0.13)}
                             className="mt-6 text-lg sm:text-xl text-gray-600 max-w-xl leading-relaxed"
                         >
-                            Mathe-SOS oder Englisch-Ass? Am FWG Köln Nachhilfe <strong className="text-black font-bold">suchen</strong> und <strong className="text-black font-bold">anbieten</strong>, direkt unter Mitschülerinnen und Mitschülern. Jede Anzeige kommt von einem verifizierten Account.
+                            Nachhilfe in Mathematik, Englisch und weiteren Fächern, direkt unter Mitschülerinnen und Mitschülern. Jede Anzeige stammt von einem verifizierten Konto.
                         </motion.p>
                         <motion.div
                             {...rise(0.21)}
                             className="mt-8 flex flex-wrap items-center gap-3"
                         >
                             <Link to={ziel} className="press inline-flex items-center justify-center h-14 px-8 text-base gap-2.5 rounded-full font-bold bg-primary text-black hover:bg-primary-hover shadow-md w-full sm:w-auto">
-                                Jetzt loslegen <ArrowRight size={18} aria-hidden />
+                                Anzeigen ansehen <ArrowRight size={18} aria-hidden />
                             </Link>
                             <Link to="/eltern-leitfaden"                     className="press inline-flex items-center justify-center h-14 px-8 text-base gap-2.5 rounded-full border border-black/20 text-black hover:bg-black/5 active:bg-primary/10 w-full sm:w-auto">
                                 Eltern-Leitfaden
@@ -269,7 +269,7 @@ export default function Landing() {
                                 { icon: BadgeCheck, label: 'SV-verifiziert' },
                                 { icon: ShieldCheck, label: 'Nur FWG Köln' },
                                 { icon: Lock, label: 'Server in Deutschland' },
-                                { icon: BadgeCheck, label: 'Kostenlos fürs FWG' },
+                                { icon: BadgeCheck, label: 'Nutzung kostenlos' },
                             ].map(s => (
                                 <li key={s.label}                                 className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-gray-700 shadow-sm">
                                     <s.icon size={15} className="text-amber-600" aria-hidden /> {s.label}
@@ -314,7 +314,7 @@ export default function Landing() {
                             </motion.div>
                             <motion.div {...rise(0.5, 14)} className="mt-5 flex items-center gap-2 text-xs text-gray-500">
                                 <span className="w-2 h-2 rounded-full bg-green-500" aria-hidden />
-                                <span className="font-mono tabular-nums">{liveStats && liveStats.page_views_30d > 0 ? `${liveStats.page_views_30d.toLocaleString('de-DE')} Seitenaufrufe (letzte 30 Tage)` : '— Seitenaufrufe (letzte 30 Tage)'}</span>
+                                <span className="font-mono tabular-nums">{liveStats && liveStats.page_views_30d > 0 ? `${liveStats.page_views_30d.toLocaleString('de-DE')} Seitenaufrufe (letzte 30 Tage)` : 'Keine Angabe zu Seitenaufrufen (letzte 30 Tage)'}</span>
                             </motion.div>
                         </motion.div>
                     </motion.div>
@@ -361,7 +361,7 @@ export default function Landing() {
                         ].map(s => (
                             <div key={s.label} className="flex items-baseline gap-3">
                                 <dd className="font-mono text-3xl font-bold tabular-nums text-black sm:text-4xl">
-                                    {s.value !== undefined && s.value !== null ? s.value.toLocaleString('de-DE') : '—'}
+                                    {s.value !== undefined && s.value !== null ? s.value.toLocaleString('de-DE') : 'Keine Angabe'}
                                 </dd>
                                 <dt className="text-sm font-semibold text-gray-600">{s.label}</dt>
                             </div>
@@ -381,15 +381,15 @@ export default function Landing() {
             <section id="wege" className="relative overflow-hidden bg-[#faf7ef] text-gray-900 poster-grain-dark scroll-mt-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
                     <motion.div {...anim()}>
-                        <h2 className="font-display uppercase leading-[0.95] break-words text-4xl sm:text-7xl max-w-3xl">Drei Wege an ein Ziel: bereit für die Klausur.</h2>
+                        <h2 className="font-display uppercase leading-[0.95] break-words text-4xl sm:text-7xl max-w-3xl">Drei Wege zur Nachhilfe.</h2>
                         <motion.span {...wipeLine()} className="mt-4 block h-1.5 w-16 origin-left rounded-full bg-primary" aria-hidden />
-                        <p className="mt-4 text-lg text-gray-600 max-w-2xl">Reiß dir deinen Streifen ab. Jeder Weg startet mit einem Klick und endet im Chat mit echten Mitschülern.</p>
+                        <p className="mt-4 text-lg text-gray-600 max-w-2xl">Wähle den Weg, der zu dir passt. Jeder Weg beginnt mit einer Anzeige oder einer Anfrage.</p>
                     </motion.div>
                     <div className="mt-10 divide-y-2 divide-dashed divide-gray-300 border-y-2 border-dashed border-gray-300">
                         {[
-                            { icon: Search, ink: '#1D4ED8', title: 'Ich suche Nachhilfe', text: 'Filtere nach Fach, Klasse und Preis. Direkter Kontakt in der App, verifizierte Mitschüler.', points: ['Filter für Fach & Klasse', 'Direkter Kontakt in der App', 'Verifizierte Mitschüler'], cta: 'Anzeigen stöbern', to: suchZiel },
-                            { icon: GraduationCap, ink: '#15803D', title: 'Ich biete Nachhilfe', text: 'Setze eigene Preise, mache flexible Termine aus und sammle Bewertungen für dein Profil.', points: ['Eigene Preise & Bedingungen', 'Flexible Termine', 'Bewertungen & Profilstatus'], cta: 'Anzeige erstellen', to: bietZiel },
-                            { icon: Users, ink: '#7B3FBF', title: 'Für Eltern', text: 'Betreuen Sie den Account gemeinsam mit Ihrem Kind oder lassen Sie es selbstständig nutzen, sobald es alt genug ist. So bleibt die Nachhilfe im Blick.', points: ['Ein Konto, gemeinsam genutzt', 'Gemeinsam Anzeigen & Anfragen ansehen', 'Kontakt zur SV bei Fragen'], cta: 'Eltern-Leitfaden', to: '/eltern-leitfaden' },
+                            { icon: Search, ink: '#1D4ED8', title: 'Ich suche Nachhilfe', text: 'Filtere nach Fach, Klasse und Preis. Kontakt über die App, sobald eine Anfrage angenommen ist.', points: ['Filter für Fach und Klasse', 'Kontakt nach Annahme', 'Verifizierte Konten'], cta: 'Anzeigen stöbern', to: suchZiel },
+                            { icon: GraduationCap, ink: '#15803D', title: 'Ich biete Nachhilfe', text: 'Lege deinen Preis fest, gib deine Zeiten an und antworte auf Anfragen.', points: ['Eigene Preise und Bedingungen', 'Flexible Termine', 'Bewertungen nach Kontakt'], cta: 'Anzeige erstellen', to: bietZiel },
+                            { icon: Users, ink: '#7B3FBF', title: 'Für Eltern', text: 'Betreuen Sie das Konto gemeinsam mit Ihrem Kind oder lassen Sie es selbstständig nutzen. In den Klassen 5 bis 7 empfehlen wir die gemeinsame Betreuung. So behalten Sie Anzeigen und Anfragen im Blick.', points: ['Ein Konto pro Kind', 'Gemeinsam Anzeigen und Anfragen ansehen', 'Kontakt zur SV bei Fragen'], cta: 'Eltern-Leitfaden', to: '/eltern-leitfaden' },
                         ].map((w, i) => (
                             <motion.article key={w.title} {...tiltIn(i)} className="group relative grid gap-5 py-8 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-8">
                                 <span className="grid place-items-center w-14 h-14 rounded-2xl text-white shrink-0 -rotate-3 group-hover:rotate-3 transition-transform" style={{ background: w.ink }}>
@@ -407,7 +407,7 @@ export default function Landing() {
                                 <Link
                                     to={w.to}
                                     aria-describedby={`wege-punkte-${i}`}
-                                    aria-label={`${w.cta} – ${w.title}`}
+                                    aria-label={`${w.cta}: ${w.title}`}
                                     className="press inline-flex items-center justify-center min-h-11 h-11 px-6 text-sm gap-2 rounded-full font-bold text-white justify-self-start sm:justify-self-end focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                                     style={{ background: w.ink }}
                                 >
@@ -432,7 +432,7 @@ export default function Landing() {
                                 <div
                                     ref={boardPhonesRef}
                                     className={`board-phones${boardDriven ? ' board-phones--driven' : ''}`}
-                                    aria-label="App-Ansichten auf dem Handy — beim Scrollen durchblättern"
+                                    aria-label="App-Ansichten auf dem Handy. Beim Scrollen durchblättern."
                                     tabIndex={boardDriven ? -1 : 0}
                                 >
                                     <motion.div className="board-track pt-4" style={boardDriven ? { x: boardX } : undefined}>
@@ -485,7 +485,7 @@ export default function Landing() {
                             <h3 className="font-display uppercase leading-[0.95] text-2xl text-white sm:text-4xl">Auch am Desktop.</h3>
                             <p className="font-mono tabular-nums text-sm font-bold text-gray-400">07 ANSICHTEN · 01 PLATTFORM</p>
                         </div>
-                        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-300">Klick auf eine Ansicht öffnet sie groß — im Popup mit Pfeiltasten durchblättern.</p>
+                        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-gray-300">Klicke auf eine Ansicht, um sie groß zu öffnen. Mit den Pfeiltasten kannst du durchblättern.</p>
                         <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 sm:gap-x-5 lg:grid-cols-4">
                             {BOARD_PRINTS.map((p, i) => (
                                 <Button variant="unstyled" size="unstyled"
@@ -551,12 +551,12 @@ export default function Landing() {
                     </motion.div>
                     <motion.dl {...anim(0.06)} className="mt-10 border-t-2 border-black">
                         {[
-                            { icon: Filter, t: 'Entdecken & Filtern', d: 'Präzise Filter für Klassenstufen, Fächer und Preisspannen. So findest du exakt, was du suchst.' },
-                            { icon: Bookmark, t: 'Merkliste', d: 'Spannende Anzeigen ablegen und später wiederfinden. Nichts geht verloren.' },
-                            { icon: MessageSquare, t: 'Sichere Anfragen', d: 'Anbieter direkt anschreiben. Handy und Moodle bleiben privat, bis die Anfrage angenommen ist.' },
+                            { icon: Filter, t: 'Entdecken & Filtern', d: 'Filter nach Fach, Klasse, Ort und Preis.' },
+                            { icon: Bookmark, t: 'Merkliste', d: 'Anzeigen speichern und später wiederfinden.' },
+                            { icon: MessageSquare, t: 'Private Kontaktdaten', d: 'Telefonnummer und Moodle-Name sehen andere erst, wenn du eine Anfrage annimmst.' },
                             { icon: Shield, t: 'Verifizierte Nutzer', d: 'Verifizierte Konten durch persönliche Prüfung im SV-Raum, dazu Moderation und Meldefunktion.' },
-                            { icon: ImageIcon, t: 'Starke Profile', d: 'Profilbild und ausführliche Biografie mit Text-Editor. Zeig, was du kannst.' },
-                            { icon: Smartphone, t: 'Als App installierbar', d: 'Auf den Homescreen legen und wie eine echte App nutzen, auf iOS wie Android (PWA).' },
+                            { icon: ImageIcon, t: 'Profil', d: 'Profilbild und ausführliche Beschreibung. Beschreibe deine Fächer und deine Erfahrung.' },
+                            { icon: Smartphone, t: 'Als App installierbar', d: 'Zum Startbildschirm hinzufügen und wie eine App öffnen, auf iOS und Android.' },
                         ].map((f, i) => (
                             <div key={f.t} className={`grid gap-3 py-5 sm:grid-cols-[3.5rem_1fr_1.4fr] sm:items-center sm:gap-6 ${i > 0 ? 'border-t border-gray-300' : ''}`}>
                                 <span className="grid place-items-center w-12 h-12 rounded-xl bg-primary text-black"><f.icon size={22} aria-hidden /></span>
@@ -575,7 +575,7 @@ export default function Landing() {
                         <Shield size={30} className="text-amber-600" aria-hidden />
                         <h2 className="mt-4 font-display uppercase leading-[0.95] text-4xl sm:text-5xl">Du entscheidest, wer was sieht.</h2>
                         <motion.span {...wipeLine()} className="mt-4 block h-1.5 w-16 origin-left rounded-full bg-primary" aria-hidden />
-                        <p className="mt-4 text-gray-600 leading-relaxed">Handy, Moodle, E-Mail: erst nach Annahme deiner Anfrage sichtbar. Schieb die Regler, so fühlt sich Kontrolle an.</p>
+                        <p className="mt-4 text-gray-600 leading-relaxed">Du entscheidest, welche Kontaktdaten sichtbar sind. Telefonnummer und Moodle-Name sehen andere erst nach Annahme einer Anfrage. Die E-Mail-Adresse kannst du im Profil öffentlich schalten.</p>
                         <div className="mt-6 space-y-3">
                             {[
                                 { label: 'Handynummer', desc: 'Nur für angenommene Anfragen', on: showPhone, set: setShowPhone },
@@ -594,14 +594,14 @@ export default function Landing() {
                                 </div>
                             ))}
                         </div>
-                        <p className="mt-4 inline-flex items-center gap-2 text-xs font-bold text-gray-500"><Lock size={13} aria-hidden /> Erst-nach-Annahme-Prinzip: Kontakte erscheinen erst nach angenommener Anfrage.</p>
+                        <p className="mt-4 inline-flex items-center gap-2 text-xs font-bold text-gray-500"><Lock size={13} aria-hidden /> Telefonnummer und Moodle-Name erscheinen erst nach angenommener Anfrage.</p>
                     </motion.div>
 
                     <motion.div {...anim(0.08)} className="rounded-3xl border border-black/5 bg-white shadow-soft p-6 sm:p-10 flex flex-col justify-center">
-                        <h2 className="font-display uppercase leading-[0.95] text-4xl sm:text-5xl text-gray-900">In drei Schritten verifiziert.</h2>
+                        <h2 className="font-display uppercase leading-[0.95] text-4xl sm:text-5xl text-gray-900">So wird dein Konto verifiziert.</h2>
                         <motion.span {...wipeLine()} className="mt-4 block h-1.5 w-16 origin-left rounded-full bg-primary" aria-hidden />
                         <VerifySteps tone="du" variant="spotlight" />
-                        <Link to={ziel} className="press mt-8 inline-flex items-center justify-center h-11 px-6 text-sm gap-2 rounded-full border border-black/20 text-black hover:bg-black/5 active:bg-primary/10 self-start">Jetzt loslegen <ArrowRight size={16} aria-hidden /></Link>
+                        <Link to={ziel} className="press mt-8 inline-flex items-center justify-center h-11 px-6 text-sm gap-2 rounded-full border border-black/20 text-black hover:bg-black/5 active:bg-primary/10 self-start">Zur Anmeldung <ArrowRight size={16} aria-hidden /></Link>
                     </motion.div>
                 </div>
             </section>
@@ -610,16 +610,16 @@ export default function Landing() {
             <section id="coaching" className="bg-primary text-black">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
                     <motion.div {...anim()} className="max-w-3xl">
-                        <p className="inline-flex items-center gap-2 rounded-full bg-black/10 px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-gray-900"><Sparkles size={13} aria-hidden /> Besonderes Engagement am FWG</p>
-                        <h2 className="mt-5 font-display uppercase leading-[0.95] break-words text-4xl sm:text-7xl">Die Schüler-Coaching AG</h2>
+                        <p className="inline-flex items-center gap-2 rounded-full bg-black/10 px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-gray-900"><Sparkles size={13} aria-hidden /> Coaching-AG am FWG</p>
+                        <h2 className="mt-5 font-display uppercase leading-[0.95] break-words text-4xl sm:text-7xl">Die Coaching-AG</h2>
                         <motion.span {...wipeLine()} className="mt-4 block h-1.5 w-16 origin-left rounded-full bg-black" aria-hidden />
-                        <p className="mt-4 text-lg font-medium text-black/70 leading-relaxed">Große helfen Kleinen: Unter Leitung von <strong className="text-black font-bold">Frau Balistreri</strong> begleiten geschulte Schülerinnen und Schüler <strong className="text-black font-bold">ab Klasse 8</strong> gezielt Kinder der <strong className="text-black font-bold">Klassen 5 und 6</strong> beim Start an unserer Schule.</p>
+                        <p className="mt-4 text-lg font-medium text-black/70 leading-relaxed">Ältere unterstützen Jüngere: Unter Leitung von <strong className="text-black font-bold">Frau Balistreri</strong> begleiten geschulte Schülerinnen und Schüler <strong className="text-black font-bold">ab Klasse 8</strong> gezielt Kinder der <strong className="text-black font-bold">Klassen 5 und 6</strong> beim Start an unserer Schule.</p>
                     </motion.div>
                     <div className="mt-10 grid md:grid-cols-3 gap-4">
                         {[
-                            { icon: GraduationCap, t: 'Pädagogisch begleitet', d: 'Coaches lernen Methoden fürs Lernen-Lernen und Arbeitsorganisation, nicht nur Fachwissen.' },
-                            { icon: Shield, t: 'Offizielles Coach-Abzeichen', d: 'Goldenes Badge auf Profil und Anzeigen: Eltern und 5./6.-Klässler erkennen geprüfte Coaches sofort.' },
-                            { icon: Users, t: 'Gemeinschaft & Fairness', d: 'Unkomplizierte Vermittlung, faire Richtpreise (ca. 10–12 € pro 45–60 Min) und ein sicherer Chat in der App.' },
+                            { icon: GraduationCap, t: 'Pädagogisch begleitet', d: 'Coaches lernen Lernmethoden und Arbeitsorganisation.' },
+                            { icon: Shield, t: 'Offizielles Coach-Abzeichen', d: 'Coaches mit Abzeichen haben die Schulung besucht und sind verifiziert.' },
+                            { icon: Users, t: 'Gemeinschaft & Fairness', d: 'Kontakt über die App. Richtwert: ca. 12 € pro Stunde, individuell anpassbar.' },
                         ].map((c, i) => (
                             <motion.div key={c.t} {...anim(i * 0.06)} className="rounded-3xl bg-white text-gray-900 p-7 shadow-soft border border-black/5">
                                 <c.icon size={26} className="text-amber-600" aria-hidden />
@@ -631,7 +631,7 @@ export default function Landing() {
                     <motion.div {...anim()} className="mt-6 rounded-3xl border-2 border-dashed border-black/30 p-7 sm:p-9 flex flex-col sm:flex-row sm:items-center gap-6 justify-between">
                         <div>
                             <p className="text-xs font-black uppercase tracking-[0.14em]">Schüler-Coach werden? Ab Klasse 8</p>
-                            <p className="mt-2 max-w-xl font-medium text-black/70">Lust, Fünft- und Sechstklässler zu unterstützen? Sprich Frau Balistreri oder die SV an. Alle Regeln findest du transparent auf der <Link to="/coaching" className="font-bold text-black underline underline-offset-4">Coaching-Seite</Link>.</p>
+                            <p className="mt-2 max-w-xl font-medium text-black/70">Du möchtest Schülerinnen und Schüler der Klassen 5 und 6 unterstützen? Sprich Frau Balistreri oder die SV an. Alle Regeln findest du transparent auf der <Link to="/coaching" className="font-bold text-black underline underline-offset-4">Coaching-Seite</Link>.</p>
                         </div>
                         <Link to={ziel} className="press inline-flex items-center justify-center h-14 px-8 text-base gap-2.5 rounded-full bg-white text-black hover:bg-black/5 border border-black/10 shadow-md font-bold shrink-0">Jetzt mitmachen</Link>
                     </motion.div>
@@ -645,15 +645,15 @@ export default function Landing() {
                         <span className="inline-grid place-items-center w-16 h-16 rounded-2xl bg-white border border-black/5 shadow-soft"><Shield className="text-blue-500" size={30} aria-hidden /></span>
                         <h2 className="mt-6 font-display uppercase leading-[0.95] break-words text-4xl sm:text-6xl text-gray-900">Informationen für Eltern</h2>
                         <motion.span {...wipeLine()} className="mt-4 block h-1.5 w-16 origin-left rounded-full bg-primary" aria-hidden />
-                        <p className="mt-4 text-lg text-gray-600 max-w-2xl leading-relaxed">Ihr Kind nutzt die Nachhilfebörse über sein eigenes Konto. Wie selbstständig es läuft, entscheiden Sie gemeinsam: In den Klassen 5 und 6 betreuen viele Eltern mit und behalten Anzeigen, Anfragen und Matches im Blick. Unter 16 Jahren brauchen wir Ihre Einwilligung.</p>
+                        <p className="mt-4 text-lg text-gray-600 max-w-2xl leading-relaxed">Ihr Kind nutzt die Nachhilfebörse über sein eigenes Konto. Wie selbstständig es läuft, entscheiden Sie gemeinsam: In den Klassen 5 bis 7 empfehlen wir die gemeinsame Betreuung. So behalten Sie Anzeigen und Anfragen im Blick. Unter 16 Jahren brauchen wir Ihre Einwilligung.</p>
                     </motion.div>
 
                     <div className="mt-10 grid gap-4 sm:grid-cols-2">
                         {[
-                            { icon: Users, t: 'Gemeinsam betreuen', d: 'Ihr Kind nutzt seinen verifizierten Account, Sie schauen mit und unterstützen. Wie eng Sie begleiten, entscheiden Sie gemeinsam.' },
-                            { icon: BadgeCheck, t: 'Sicher & geprüft', d: 'Alle Profile sind über die SV verifiziert. Treffen finden meist direkt in der Schule statt, z. B. in der Bibliothek oder Mensa.' },
-                            { icon: Lock, t: 'Keine Zahlungen über die App', d: 'Die Börse vermittelt nur den Kontakt. Vergütung und Umfang klären Sie direkt mit der Anbieter-Familie.' },
-                            { icon: Shield, t: 'Melden & Fragen', d: 'Jede Anzeige und jedes Profil lässt sich melden. Das SV-Team sichtet täglich und ist per E-Mail erreichbar.' },
+                            { icon: Users, t: 'Gemeinsam betreuen', d: 'Ihr Kind nutzt sein Konto, Sie schauen mit und unterstützen. Wie eng Sie begleiten, entscheiden Sie gemeinsam.' },
+                            { icon: BadgeCheck, t: 'Verifizierte Konten', d: 'Nur verifizierte Konten können Anzeigen erstellen, Kontakt aufnehmen oder Anzeigen ansehen. Im Profil ist sichtbar, ob jemand verifiziert ist.' },
+                            { icon: Lock, t: 'Keine Zahlungen über die App', d: 'Die Börse vermittelt nur den Kontakt. Vergütung und Umfang klären Sie direkt mit der Familie der Anbieterin oder des Anbieters.' },
+                            { icon: Shield, t: 'Melden & Fragen', d: 'Jede Anzeige und jedes Profil lässt sich melden. Das SV-Team sichtet Meldungen mindestens einmal pro Woche, oft auch häufiger. Bei Fragen: info@nachhilfe-sv.de.' },
                         ].map((f, i) => (
                             <motion.article key={f.t} {...tiltIn(i)} className="rounded-3xl border border-black/5 bg-white shadow-soft p-6">
                                 <span className="inline-grid place-items-center w-11 h-11 rounded-2xl bg-primary text-black"><f.icon size={20} aria-hidden /></span>
@@ -677,13 +677,13 @@ export default function Landing() {
                             <span className="grid place-items-center w-11 h-11 rounded-xl bg-primary text-black"><Logo size={26} /></span>
                             <div>
                                 <p className="font-display uppercase text-2xl text-black leading-none">Nachhilfebörse</p>
-                                <p className="mt-1 text-xs font-semibold">Die clevere Art, am FWG zu lernen.</p>
+                                <p className="mt-1 text-xs font-semibold">Nachhilfebörse der Schülervertretung am FWG.</p>
                             </div>
                         </div>
                         <nav className="flex flex-wrap gap-x-6 gap-y-3 text-sm font-semibold" aria-label="Rechtliches und Infos">
                             {[
                                 ['Impressum', '/impressum'], ['Datenschutz', '/datenschutz'], ['Cookies', '/cookies'],
-                                ['Schüler-Coaching', '/coaching'], ['Nutzungsbedingungen', '/nutzungsbedingungen'], ['Eltern-Leitfaden', '/eltern-leitfaden'],
+                                ['Coaching-AG', '/coaching'], ['Nutzungsbedingungen', '/nutzungsbedingungen'], ['Eltern-Leitfaden', '/eltern-leitfaden'],
                                 ['Transparenz', '/transparenz'],
                             ].map(([label, path]) => (
                                 <Link key={path} to={path} className="hover:text-black transition-colors">{label}</Link>

@@ -25,7 +25,7 @@ export default function BannedScreen({ banReason, banType, bannedUntil }: Banned
             const diff = end.getTime() - now.getTime();
 
             if (diff <= 0) {
-                setCountdown('Sperre abgelaufen – bitte lade die Seite neu.');
+                setCountdown('Die Sperre ist abgelaufen. Bitte lade die Seite neu.');
                 return;
             }
 
@@ -62,7 +62,7 @@ export default function BannedScreen({ banReason, banType, bannedUntil }: Banned
             const payload = {
                 user_id: user.id,
                 type: 'support',
-                title: 'Einspruch gegen Account-Sperre',
+                title: 'Einspruch gegen Kontosperre',
                 description: `Nutzer ${user.email} legt Einspruch gegen seine Sperre ein.\nGrund der Sperre: ${banReason || 'Nicht angegeben'}\nTyp: ${banType || 'unbekannt'}`,
                 device_info: {
                     userAgent: navigator.userAgent,
@@ -90,7 +90,7 @@ export default function BannedScreen({ banReason, banType, bannedUntil }: Banned
                 {/* Title */}
                 <div>
                     <h1 className="text-3xl font-black text-white tracking-tight mb-2">
-                        Account gesperrt
+                        Konto gesperrt
                     </h1>
                     <p className="text-red-300/80 text-sm font-medium">
                         Dein Zugang zur FWG Nachhilfebörse wurde von der SV eingeschränkt.
@@ -114,7 +114,7 @@ export default function BannedScreen({ banReason, banType, bannedUntil }: Banned
                         <Clock size={16} className="text-red-400 shrink-0" />
                         <div>
                             <p className="text-xs font-bold text-red-300 uppercase tracking-wider">
-                                {banType === 'temporary' ? 'Temporäre Sperre' : 'Permanente Sperre'}
+                                {banType === 'temporary' ? 'Vorübergehende Sperre' : 'Permanente Sperre'}
                             </p>
                             {banType === 'temporary' && bannedUntil ? (
                                 <div className="space-y-0.5">
@@ -144,7 +144,7 @@ export default function BannedScreen({ banReason, banType, bannedUntil }: Banned
                         className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-white/10 hover:bg-white/15 text-white border border-white/20 rounded-2xl text-sm font-bold transition-all cursor-pointer"
                     >
                         <MessageCircle size={16} />
-                        Einspruch einlegen / Support kontaktieren
+                        Einspruch einlegen
                     </Button>
 
                     <Button variant="unstyled" size="unstyled" type="submit"

@@ -1,193 +1,77 @@
-<div align="center">
+# FWG Nachhilfebörse
 
-# 🎓 FWG Nachhilfebörse
+Die schulinterne Nachhilfebörse der Schülervertretung am Friedrich-Wilhelm-Gymnasium Köln. Schülerinnen und Schüler der Klassen 5 bis 13 können Nachhilfe suchen oder selbst Nachhilfe anbieten.
 
-**Die schulinterne Nachhilfe-Plattform des Friedrich-Wilhelm-Gymnasiums Köln**  
-Nachhilfe suchen und anbieten, direkt unter Mitschülern: ohne kommerzielle Plattform, moderiert von der SV.
+- Website: [nachhilfe-sv.de](https://nachhilfe-sv.de)
+- Quellcode: [github.com/oskar26/nachhilfeb-rse](https://github.com/oskar26/nachhilfeb-rse)
+- Träger: Schülervertretung (SV) des Friedrich-Wilhelm-Gymnasiums Köln
+- Rechtliches: [Impressum](https://nachhilfe-sv.de/#/impressum), [Datenschutz](https://nachhilfe-sv.de/#/datenschutz), [Transparenz](https://nachhilfe-sv.de/#/transparenz)
 
-[![Live](https://img.shields.io/badge/Live-nachhilfe--sv.de-brightgreen?style=for-the-badge&logo=googlechrome&logoColor=white)](https://nachhilfe-sv.de)
-[![Status](https://img.shields.io/badge/Status-Aktiv-22c55e?style=for-the-badge)](https://nachhilfe-sv.de)
-[![Open Source](https://img.shields.io/badge/Open%20Source-GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/oskar26/nachhilfeb-rse)
-[![DSGVO](https://img.shields.io/badge/DSGVO-Hosting%20in%20DE-0ea5e9?style=for-the-badge)](https://nachhilfe-sv.de/#/datenschutz)
+## Was ist die Nachhilfebörse?
 
-</div>
+Die Nachhilfebörse ist eine Progressive Web App (PWA) für das FWG Köln. Sie vermittelt Kontakte zwischen Schülerinnen und Schülern, die Nachhilfe suchen, und solchen, die Nachhilfe anbieten.
 
----
+Die Nutzung der Börse ist kostenlos. Die Nachhilfe selbst wird privat zwischen den Familien vereinbart und bezahlt. Ein Richtwert sind etwa 12 € pro Stunde. Der Preis ist individuell anpassbar.
 
-## 📌 Was ist das?
+Nur verifizierte Konten können Anzeigen erstellen, Kontakt aufnehmen oder Anzeigen ansehen. Die Verifizierung erfolgt persönlich im SV-Raum. Das SV-Team prüft, ob die Person das FWG besucht, und schaltet das Konto frei.
 
-Die **FWG Nachhilfebörse** ist eine Progressive Web App (PWA) für das FWG Köln: Schüler:innen der Klassen 5 bis 13 finden Nachhilfe oder bieten sie an. Dazu kommen Verifikation über die Schülervertretung, Chat, Eltern-Dashboard und Pflicht zum Jugendschutz.
+## Funktionen
 
-| | |
-|---|---|
-| 🌐 **Website** | [https://nachhilfe-sv.de](https://nachhilfe-sv.de) |
-| 💻 **Quellcode** | [github.com/oskar26/nachhilfeb-rse](https://github.com/oskar26/nachhilfeb-rse) |
-| 🏫 **Träger** | Schülervertretung (SV) des Friedrich-Wilhelm-Gymnasiums Köln |
-| 📄 **Rechtliches** | [Impressum](https://nachhilfe-sv.de/#/impressum) · [Datenschutz](https://nachhilfe-sv.de/#/datenschutz) · [Transparenz](https://nachhilfe-sv.de/#/transparenz) |
+### Für Schülerinnen und Schüler
 
----
+- Anzeigen erstellen: Nachhilfe anbieten oder suchen, mit Fächern, Klasse, Ort, Format, Preis, Verfügbarkeit und Bildern.
+- Übersicht und Filter: nach Fach, Klasse, Preis, Ort und Verfügbarkeit.
+- Merkliste: Anzeigen speichern und später wiederfinden.
+- Anfragen und Chat: Kontakt aufnehmen und Termine absprechen.
+- Profile: Beschreibung, Fächer, Verifizierungsstatus.
+- Bewertungen: erst nach einem Kontakt möglich.
+- Coaching-AG: geschulte Schülerinnen und Schüler ab Klasse 8 unterstützen die Klassen 5 und 6.
 
-## 📸 Screenshots
+### Für Eltern
 
-Echte Ansichten der laufenden App. Benennung und Motive: [`docs/screenshots/README.md`](docs/screenshots/README.md).
+Eltern nutzen das Konto ihres Kindes gemeinsam mit ihm. Ein eigenes Elternkonto gibt es nicht. In den Klassen 5 bis 7 empfehlen wir die gemeinsame Betreuung. Wie eng Eltern mitbetreuen, entscheiden sie mit ihrem Kind.
 
-### Desktop
+Der Eltern-Leitfaden erklärt Sicherheit, Verifizierung, Preise und Kontaktwege: [nachhilfe-sv.de/#/eltern-leitfaden](https://nachhilfe-sv.de/#/eltern-leitfaden).
 
-| Startseite | Feed & Suche | Anzeige erstellen |
-|:---:|:---:|:---:|
-| ![Startseite mit Hero, Fächern und den drei Wegen](docs/screenshots/01-welcome.png) | ![Feed mit aktuellen Anzeigen, Suche und Filtern](docs/screenshots/02-feed.png) | ![Anzeige aufgeben im Schritt-für-Schritt-Editor](docs/screenshots/03-anzeige-erstellen.png) |
+### Für die SV
 
-| Anfragen & Matches | Profil | SV-Panel |
-|:---:|:---:|:---:|
-| ![Anfragen und Matches mit Tabs und Posteingang](docs/screenshots/04-anfrage-chat.png) | ![Öffentliches Profil mit Statistiken und Verfügbarkeit](docs/screenshots/05-profil.png) | ![SV-Admin-Panel mit Nutzern, Anzeigen und Meldungen](docs/screenshots/07-sv-panel.png) |
+- Verifizierung im SV-Raum.
+- Moderation von Meldungen und Nutzerverwaltung.
+- Statistik zu Anzeigen, Nutzern und Seitenaufrufen ohne externe Tracker.
 
-| Coaching | Dark Mode / PWA |
-|:---:|:---:|
-| ![Schüler-Coaching: In drei Schritten Coach werden](docs/screenshots/08-coaching.png) | ![Dark Mode mit eigenem Profil und PWA-Ansicht](docs/screenshots/09-dark-mode-pwa.png) |
+## Technik
 
-### iPhone & iPad
+- React 19, TypeScript, Vite, Tailwind CSS, Framer Motion, Tiptap.
+- PHP-API mit MySQL bei ALL-INKL.
+- PWA: zum Startbildschirm hinzufügen, Installationshinweis.
+- Dark Mode und Light Mode.
+- News-Hinweise und Push-Benachrichtigungen.
 
-| iPhone: Feed | iPhone: Anzeige | iPhone: Profil | iPad: Einstellungen |
-|:---:|:---:|:---:|:---:|
-| ![iPhone-Feed mit hervorgehobener Anzeige](docs/screenshots/feed-iphone.png) | ![iPhone-Anzeigen-Detail mit Preis und Beschreibung](docs/screenshots/mobile-anzeige.png) | ![iPhone-Profil mit Profil-Stärke](docs/screenshots/iphone-profile.png) | ![iPad-Einstellungen mit Erscheinungsbild und Push-Benachrichtigungen](docs/screenshots/ipad-settings.png) |
+## Sicherheit und Datenschutz
 
----
+- Unverifizierte Konten bleiben gesperrt. Das SV-Team kontrolliert sie bei der jährlichen Prüfung.
+- Serverseitiger Inhaltsfilter.
+- Keine externen Analyse- oder Werbedienste.
+- In der App-Datenbank werden keine IP-Adressen gespeichert. IP-Adressen werden für das Rate-Limiting verarbeitet.
+- Hosting in Deutschland.
+- Die Nutzungsstatistik ist bei angemeldeten Konten pseudonym und wird nach 90 Tagen gelöscht.
 
-## ✨ Funktionen
+Details: [Datenschutzerklärung](https://nachhilfe-sv.de/#/datenschutz), [Cookies](https://nachhilfe-sv.de/#/cookies).
 
-<details>
-<summary><b>Für Schüler:innen</b></summary>
+## Projekt
 
-- **🔍 Smart Matching:** Suche nach Fächern (nach Aufgabenfeldern farbcodiert), Klassenstufe (5–Q2), Preis, Ort und Verfügbarkeit
-- **📝 Anzeigen in Minuten:** Stepper für „biete“ und „suche“, inkl. Bilder und Zeitfenstern
-- **💬 Anfragen & Chat:** Terminabsprachen mit Match-Übersicht und Kalender-Export (ICS)
-- **⭐ Bewertungen:** nur nach echtem Kontakt, keine Fake-Reviews
-- **📌 Merkliste:** Anzeigen speichern und später vergleichen
-- **👤 Profile mit Bio:** Rich-Text-Bio, Fach-Tags, Verifizierungs-Hinweis
-- **🏅 Schüler-Coaching AG:** Badge für verifizierte Coaches ab Klasse 8
+Die Börse entsteht seit Ende 2025 mit KI-Unterstützung. Ein großer Teil des Codes und der Texte wurde mit KI erstellt. Ein Mensch setzt Ziele, prüft und entscheidet. Die Verantwortung für Inhalte, Sicherheit, Datenschutz und Features trägt das SV-Team.
 
-</details>
+Der Quellcode ist öffentlich. Fehler und Lücken können trotzdem vorkommen. Rückmeldungen an [technik@nachhilfe-sv.de](mailto:technik@nachhilfe-sv.de) oder als [Issue auf GitHub](https://github.com/oskar26/nachhilfeb-rse/issues).
 
-<details>
-<summary><b>Für Eltern</b></summary>
+## Mitmachen
 
-- **👨‍👩‍👧 Eltern-Dashboard:** Kind verknüpfen, Fortschritt einsehen
-- **🛡️ Leitfaden:** Was die Plattform kann, was sie nicht kann, wie Sicherheit funktioniert ([Eltern-Leitfaden](https://nachhilfe-sv.de/#/eltern-leitfaden))
+1. Fork erzeugen und Branch anlegen.
+2. Änderung mit klarer Commit-Nachricht.
+3. Pull Request öffnen und kurz beschreiben, was sich warum ändert.
 
-</details>
+## Lizenz und Rechte
 
-<details>
-<summary><b>Für die SV (Administration)</b></summary>
+Entwickelt für das Friedrich-Wilhelm-Gymnasium Köln, betrieben durch die Schülervertretung. Der Quellcode ist öffentlich. Die Plattform ist ein nicht-kommerzielles Schülerprojekt.
 
-- **✅ Verifikation:** SV-Raum, Codes/QR, Vor-Ort-Freischaltung
-- **🎟️ Promotion-Codes:** z. B. `BANANE` für den Start
-- **📣 Moderation:** Reports, Nutzerverwaltung, Audit-Log
-- **📊 Analytics:** Live-Stats (Anzeigen, Nutzer, Seitenaufrufe) ohne externe Tracker
-
-</details>
-
-<details>
-<summary><b>Technisch</b></summary>
-
-- **📱 PWA:** installierbar auf Handy und Desktop, Offline-Prompt, Bottom-Nav mobil / Sidebar Desktop
-- **🌗 Dark & Light Mode**
-- **🔔 News-Widget & Push-Hinweise**
-
-</details>
-
----
-
-## 📊 Projekt in Zahlen
-
-<div align="center">
-
-| ![Code](https://img.shields.io/static/v1?label=Zeilen%20Code&message=~37.200&color=0ea5e9&style=flat-square&labelColor=0f172a) | ![Files](https://img.shields.io/static/v1?label=TS%2FTSX&message=109&color=22c55e&style=flat-square&labelColor=0f172a) | ![Components](https://img.shields.io/static/v1?label=UI-Components&message=51&color=f59e0b&style=flat-square&labelColor=0f172a) | ![API](https://img.shields.io/static/v1?label=API-Module&message=27&color=a855f7&style=flat-square&labelColor=0f172a) |
-|:---:|:---:|:---:|:---:|
-| **SQL-Migrationen** | **Seit Ende 2025** | **> 10 Monate** | **Agentisches Coding** |
-| ![SQL](https://img.shields.io/static/v1?label=Migrationen&message=12&color=14b8a6&style=flat-square&labelColor=0f172a) | ![Since](https://img.shields.io/static/v1?label=Start&message=Ende%202025&color=ec4899&style=flat-square&labelColor=0f172a) | ![Duration](https://img.shields.io/static/v1?label=Dauer&message=%3E%2010%20Monate&color=ec4899&style=flat-square&labelColor=0f172a) | ![AI](https://img.shields.io/static/v1?label=Zeitaufwand&message=mehrere%20hundert%20Std.&color=a855f7&style=flat-square&labelColor=0f172a) |
-
-</div>
-
----
-
-## 🤖 Transparenz: KI-gestützte Entwicklung
-
-Dieses Projekt ist **Open Source** und erklärt seine Entstehung offen, auch auf der Website: [Transparenzhinweis](https://nachhilfe-sv.de/#/transparenz).
-
-- **Seit Ende 2025**, also **über zehn Monate**, entsteht die Nachhilfebörse im Wesentlichen durch **agentisches Coding**: KI-Agenten schreiben und iterieren den Code, ein Mensch setzt Ziele, prüft, entscheidet und dirigiert.
-- Der Aufwand beläuft sich auf **mehrere hundert Stunden**. Oft laufen dafür lange Workflows über viele Tage und Wochen.
-- Ein **großer Teil des Codes und der Texte ist AI-generated**. Das ist Absicht und wird hier nicht beschönigt: Die Plattform ist ein Schülerprojekt, das mit modernen Werkzeugen gebaut wird, nicht das Ergebnis eines klassischen Entwicklerteams.
-- **Verantwortung bleibt menschlich:** Inhalte, Sicherheitskonzept, Datenschutz und Entscheidungen über Features prüft und trägt das SV-Team. Fehler und Lücken können trotzdem vorkommen. Feedback an [technik@nachhilfe-sv.de](mailto:technik@nachhilfe-sv.de) oder als [Issue auf GitHub](https://github.com/oskar26/nachhilfeb-rse/issues).
-
-> Weniger Maschine. Mehr Haltung: Wir sagen, woher der Code kommt, damit ihr einschätzen könnt, was ihr benutzt.
-
----
-
-## 🔒 Sicherheit & Datenschutz (DSGVO)
-
-1. **Privatsphäre zuerst:** Inhalte sind nie automatisch öffentlich. Zugang nur nach persönlicher Verifikation im SV-Raum; unverifizierte Konten bleiben serverseitig gesperrt (keine Anzeigen, keine Kontakte) und werden bei der jährlichen Prüfung durch das SV-Team kontrolliert.
-2. **Serverseitiger Inhaltsfilter:** Profanity-Trigger auf Datenbankebene.
-3. **Kein Tracking-Müll:** keine externen Analyse-/Werbedienste, keine IP-Speicherung, Hosting in Deutschland.
-
-Details: [Datenschutzerklärung](https://nachhilfe-sv.de/#/datenschutz) · [Cookies](https://nachhilfe-sv.de/#/cookies)
-
----
-
-## 🛠️ Tech Stack
-
-| Ebene | Technologien |
-|---|---|
-| **Frontend** | React 19, TypeScript, Vite, TailwindCSS, Framer Motion, Lucide Icons, Tiptap |
-| **Backend & DB** | PHP-API (ALL-INKL MySQL) |
-| **PWA** | vite-plugin-pwa, Workbox |
-
----
-
-## 📁 Datenbank-Updates
-
-Schema und laufende Änderungen liegen unter [`sql/`](sql/) und [`sql-updates/`](sql-updates/).  
-Reihenfolge und Import-Schritte (phpMyAdmin / ALL-INKL): siehe [`sql-updates/README.md`](sql-updates/README.md).
-
----
-
-## 🗺️ Projektstruktur
-
-```
-nachhilfev2/
-├── src/
-│   ├── pages/          # Feed, Chat, Profile, Eltern, SV-Panel, Rechtliches …
-│   ├── components/     # UI, Layout, Modals
-│   ├── context/        # Auth, Theme
-│   └── lib/            # API-Client, Analytics, Helpers
-├── api/                # PHP-API (ALL-INKL)
-├── netlify/functions/  # Netlify Functions
-├── sql/ + sql-updates/ # Schema, Migrationen
-├── test/               # Node-Tests
-└── docs/               # Briefings, Screenshots
-```
-
----
-
-## 🤝 Mitmachen
-
-1. Fork erzeugen und Branch anlegen
-2. Änderung mit klarem Commit-Message
-3. PR aufmachen und kurz beschreiben, was sich warum ändert
-
-Issues und Fehler: [github.com/oskar26/nachhilfeb-rse/issues](https://github.com/oskar26/nachhilfeb-rse/issues)
-
----
-
-## 📄 Lizenz & Rechte
-
-Entwickelt für das **Friedrich-Wilhelm-Gymnasium Köln**, Betrieb durch die **Schülervertretung**.  
-Quellcode öffentlich auf GitHub; die Plattform selbst ist ein **nicht-kommerzielles Schülerprojekt**.  
-Rechtliches: [Impressum](https://nachhilfe-sv.de/#/impressum) · [Nutzungsbedingungen](https://nachhilfe-sv.de/#/nutzungsbedingungen)
-
----
-
-<div align="center">
-
-**[nachhilfe-sv.de](https://nachhilfe-sv.de)** · von Schülern, für Schüler, mit offenen Augen.
-
-</div>
+Rechtliches: [Impressum](https://nachhilfe-sv.de/#/impressum), [Nutzungsbedingungen](https://nachhilfe-sv.de/#/nutzungsbedingungen).

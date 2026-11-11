@@ -523,7 +523,7 @@ if ($method === 'POST') {
 
     json_response([
         'id' => $adId,
-        'message' => 'Anzeige erfolgreich erstellt!',
+        'message' => 'Anzeige erstellt.',
         'boosted' => (bool)$isBoosted
     ], 201);
 }

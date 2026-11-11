@@ -204,7 +204,7 @@ if ($method === 'POST') {
             send_email_new_ad_request(
                 $owner['email'],
                 $owner['first_name'] ?: $owner['display_name'] ?: 'Schüler/in',
-                $user['display_name'] ?: 'Ein/e Mitschüler/in',
+                $user['display_name'] ?: 'Mitschülerin oder Mitschüler',
                 $owner['ad_title'] ?: 'Deine Nachhilfe-Anzeige',
                 $message,
                 $requestId
@@ -217,7 +217,7 @@ if ($method === 'POST') {
     // In-App Benachrichtigung an den Eigentümer
     try {
         $notifId = generate_uuid();
-        $senderName = $user['display_name'] ?: 'Ein/e Mitschüler/in';
+        $senderName = $user['display_name'] ?: 'Mitschülerin oder Mitschüler';
         $adTitle = $owner['ad_title'] ?? 'deine Anzeige';
         $pdo->prepare('
             INSERT INTO notifications (id, user_id, type, title, message, data)
@@ -235,7 +235,7 @@ if ($method === 'POST') {
 
     json_response([
         'id' => $requestId,
-        'message' => 'Anfrage erfolgreich gesendet!'
+        'message' => 'Anfrage gesendet.'
     ], 201);
 }
 
@@ -291,7 +291,7 @@ if ($method === 'PATCH' || $method === 'PUT') {
                 send_email_request_status_update(
                     $targetRequester['email'],
                     $targetRequester['first_name'] ?: $targetRequester['display_name'] ?: 'Schüler/in',
-                    $user['display_name'] ?: 'Ein/e Mitschüler/in',
+                    $user['display_name'] ?: 'Mitschülerin oder Mitschüler',
                     $status,
                     $targetRequester['ad_title'] ?: 'Nachhilfe-Anzeige',
                     $id

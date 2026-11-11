@@ -756,7 +756,7 @@ export default function AdminCodes() {
                                     {inviteMaxUses === 'unlimited'
                                         ? 'Jeder Code ist unbegrenzt einlösbar'
                                         : `Jeder Code ist ${inviteMaxUses}× einlösbar`} und läuft automatisch ab.
-                                    Einlösen: bei der Registrierung im Feld „Einladungscode“ oder in den Einstellungen unter „SV-Code einlösen“.
+                                    Einlösen: bei der Registrierung im Feld „Einladungscode“ oder in den Einstellungen unter „Code einlösen“.
                                 </p>
                                 <div className="space-y-2">
                                     {generatedInviteCodes.map(c => (

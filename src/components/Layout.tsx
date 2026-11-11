@@ -104,7 +104,7 @@ export default function Layout() {
                     </NavLink>
                     
                     <NavLink to="/matches" onClick={handleNavClick} className={() => getDesktopNavLinkClass('social_tab', 'matches')}>
-                        <Zap size={20} /> Matches
+                        <Zap size={20} /> Vorschläge
                     </NavLink>
                     <NavLink to="/favorites" onClick={handleNavClick} className={() => getDesktopNavLinkClass('social_tab', 'watchlist')}>
                         <Heart size={20} /> Merkliste
@@ -115,7 +115,7 @@ export default function Layout() {
                         <PlusCircle size={20} /> Neue Anzeige
                     </NavLink>
 
-                    <p className="px-4 text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mt-6 mb-2">Account</p>
+                    <p className="px-4 text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mt-6 mb-2">Konto</p>
                     <NavLink to="/profile" onClick={handleNavClick} className={({ isActive }) => getDesktopNavLinkClass('path', '/profile', isActive)}>
                         <User size={20} /> Profil
                     </NavLink>
@@ -129,7 +129,7 @@ export default function Layout() {
                     {/* Coach Admin Panel (Frau Balistreri & SV) */}
                     {isCoachAdmin && (
                         <div className="mt-4 p-3 bg-primary/10 dark:bg-amber-950/20 border border-primary/25 dark:border-amber-900/30 rounded-2xl">
-                            <p className="px-2 text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-[0.08em] mb-1.5">Schüler-Coaching</p>
+                            <p className="px-2 text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-[0.08em] mb-1.5">Coaching-AG</p>
                             <NavLink to="/coach-panel" onClick={handleNavClick} className={({ isActive }) => `flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring))] dark:focus-visible:ring-primary ${isActive ? 'bg-primary/30 text-amber-950 dark:text-amber-50 font-extrabold' : 'text-amber-800 dark:text-amber-200 hover:bg-primary/10 dark:hover:bg-amber-900/40'}`}>
                                 <Award size={18} className="text-amber-600 dark:text-amber-400 shrink-0" />
                                 <span className="font-bold">Coaching Panel</span>

@@ -34,11 +34,10 @@ export default class ErrorBoundary extends Component<Props, State> {
             return (
                 <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-gray-50 px-6 text-center dark:bg-gray-950">
                     <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                        Ups, etwas ist schiefgelaufen.
+                        Die Seite konnte nicht geladen werden.
                     </h1>
                     <p className="max-w-sm text-sm text-gray-500">
-                        Die Ansicht konnte nicht geladen werden. Deine Daten sind sicher –
-                        lade die Seite einfach neu.
+                        Deine Daten bleiben gespeichert. Bitte lade die Seite neu.
                     </p>
                     <Button variant="unstyled" size="unstyled"
                         type="button"
