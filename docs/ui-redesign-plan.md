@@ -12,7 +12,7 @@
 >
 > **Letzte Aktualisierung:** 2026-11-11
 >
-> **Dokumentationsstatus:** Vorbereitung abgeschlossen; Phase A–E noch nicht gestartet.
+> **Dokumentationsstatus:** Phase A–E abgeschlossen; BL-1/BL-4 transparent dokumentiert.
 >
 > **Arbeitsweise:** Alle Arbeiten bleiben lokal. Kein `git push`, kein Deployment. Bestehende Nutzeränderungen werden nicht überschrieben, zurückgesetzt oder versehentlich committet.
 
@@ -149,7 +149,7 @@ Ausschließlich diese Werte verwenden:
 | **B** | Vollständige Seitenüberarbeitung und Mobile UX | Erledigt (BL-1/BL-4) | `db6852d` |
 | **C** | Vollständige UI-Transition verifizieren | Erledigt (interne Prüfung BL-1/BL-4) | `42e6a95` |
 | **D** | Technische Bereinigung | Erledigt | `c80463f` |
-| **E** | Finale Verifikation | Offen | `—` |
+| **E** | Finale Verifikation | Erledigt | `7142430` |
 
 ---
 
@@ -460,8 +460,8 @@ Alles andere muss über semantische Tokens laufen.
 
 ## 11. Phase E – Finale Verifikation
 
-**Status:** Offen
-**Pflicht-Skill:** `verification-before-completion` ausdrücklich verwenden.
+**Status:** Erledigt
+**Pflicht-Skill:** `verification-before-completion` ausdrücklich verwendet.
 
 ### 11.1 Build, Lint und Tests
 
@@ -513,34 +513,46 @@ Zusätzlich:
 
 | ID | Aufgabe | Status | Evidenz |
 |---|---|---|---|
-| E1 | `verification-before-completion` verwenden | Offen | — |
-| E2 | `npm run build` ausführen | Offen | — |
-| E3 | `npm run lint` ausführen | Offen | — |
-| E4 | `npm test` ausführen | Offen | — |
-| E5 | Alle Seiten bei 375 px prüfen | Offen | — |
-| E6 | Alle Seiten bei 768 px prüfen | Offen | — |
-| E7 | Alle Seiten bei 1280 px prüfen | Offen | — |
-| E8 | Dark Mode prüfen | Offen | — |
-| E9 | Wichtige Interaktionen/UI-Zustände prüfen | Offen | — |
-| E10 | Restesuche nach alten Komponenten/Farben/Styles/Imports/Dependencies | Offen | — |
-| E11 | Accessibility-Prüfung | Offen | — |
-| E12 | Git-Status/-Log/-Diff gegen `main` dokumentieren | Offen | — |
-| E13 | Finale Fehler beheben | Offen | — |
-| E14 | Bei Korrekturen lokal committen: `Finale UI-Verifikation und Fehlerkorrekturen` | Offen | — |
-| E15 | Gesamt-DoD prüfen und Dokumentation abschließen | Offen | — |
+| E1 | `verification-before-completion` verwenden | Erledigt | Skill geladen und jede Abschlussaussage mit frischer Ausgabe belegt |
+| E2 | `npm run build` ausführen | Erledigt | Exit 0 (`/tmp/opencode/phaseE-build-final.log`, nach Korrektur `/tmp/opencode/phaseE-build-correction.log`) |
+| E3 | `npm run lint` ausführen | Erledigt | Exit 0, 0 Fehler/153 bestehende Warnungen (`/tmp/opencode/phaseE-lint-final.log`) |
+| E4 | `npm test` ausführen | Erledigt | Exit 0, 23/23 Tests (`/tmp/opencode/phaseE-test-final.log`) |
+| E5 | Alle Seiten bei 375 px prüfen | Erledigt | 10 öffentliche Routen × 375 (60/60 inkl. Dark) + 25 interne Routen × 375; 0 Overflow |
+| E6 | Alle Seiten bei 768 px prüfen | Erledigt | 10 öffentliche × 768 + 25 interne × 768; 0 Overflow |
+| E7 | Alle Seiten bei 1280 px prüfen | Erledigt | 10 öffentliche × 1280 + 25 interne × 1280; 0 Overflow |
+| E8 | Dark Mode prüfen | Erledigt | Öffentlich alle 10 Routen; intern 375/1280; 0 Overflow/Console-Errors |
+| E9 | Wichtige Interaktionen/UI-Zustände prüfen | Erledigt | Overlays/Fokus/Escape 0 Fehler; Admin 48 Checks; Dialoge 0 Fehler; Fehler-/Empty-States intentional mit 500/`[]` geprüft |
+| E10 | Restesuche nach alten Komponenten/Farben/Styles/Imports/Dependencies | Erledigt | 0 Legacy-Imports, 0 `confirm/prompt/alert`, 0 Fremd-Icons, 0 rohe Tabellen, 0 feste Hex außer Datenfarben; `react.svg` entfernt |
+| E11 | Accessibility-Prüfung | Erledigt | Touch 0 echte Treffer; Fokus 0 Fehler; Dialog-ARIA 0 Fehler; Kontrast 24/24 Seiten-/Theme-Kombinationen ohne Verstoß |
+| E12 | Git-Status/-Log/-Diff gegen `main` dokumentieren | Erledigt | Branch `ui-redesign`; Working Tree nur untracked Nutzerdateien; 10 Commits seit Baseline; `149 files, +13398/−7571` gegen `main` |
+| E13 | Finale Fehler beheben | Erledigt | Keine UI-Fehler offen; nur ungenutzte `react.svg` entfernt. `create-ad`-`navigator.vibrate`-Meldung ist Testartefakt ohne User-Geste, keine UI-Regression |
+| E14 | Bei Korrekturen lokal committen: `Finale UI-Verifikation und Fehlerkorrekturen` | Erledigt | Commit `7142430` (ungenutzte `src/assets/react.svg` entfernt) |
+| E15 | Gesamt-DoD prüfen und Dokumentation abschließen | Erledigt | Gesamt-DoD unten vollständig abgehakt; BL-1/BL-4 bleiben dokumentiert |
 
-### 11.7 Definition of Done – Phase E
+### 11.7 Evidenz Phase E
 
-- [ ] Build, Lint und Tests laufen erfolgreich.
-- [ ] Jede Seite ist bei 375 px, 768 px und 1280 px geprüft.
-- [ ] Dark Mode ist geprüft.
-- [ ] Wichtige Interaktionen und Zustände sind geprüft.
-- [ ] Restesuche ist sauber.
-- [ ] Accessibility-Prüfung ist abgeschlossen.
-- [ ] Git-Status, Log und Diff gegen `main` sind dokumentiert.
-- [ ] Finale Korrekturen sind committed, falls nötig.
-- [ ] Gesamt-DoD ist erfüllt.
-- [ ] Dieses Dokument ist vollständig aktualisiert.
+- **Build/Lint/Tests:** Build Exit 0, Lint Exit 0 mit 0 Fehlern und 153 bestehenden `no-explicit-any`-Warnungen, Tests 23/23.
+- **Browser öffentlich:** 10 Routen × 375/768/1280 × Light/Dark = 60/60; `scrollWidth` 365/375, 758/768, 1270/1280; 0 Console-/Page-Errors; 0 Overflow.
+- **Browser intern:** 25 Routen (Feed, CreateAd, AdDetails, Profile, PublicProfile, Settings, Chat, Social, Requests, Matching, Favorites, CoachPanel, 12 Admin-Ansichten, VerifyEmail, UpdatePassword) × 375/768/1280, Dark zusätzlich 375/1280 = 125 Checks; 0 Overflow, 0 echte kleine Touch-Targets, 0 Page-Errors.
+- **Bekannte Testartefakte:** `create-ad` protokolliert `navigator.vibrate` als blockiert, weil der automatisierte Aufruf keine User-Geste hat; `verify-states` erzeugt absichtlich HTTP 500, um Fehlerzustände zu prüfen. Beides keine UI-Fehler.
+- **Interaktionen:** Notification-Sheet 48×48 vor/46×46 nach Scroll, Close 44×44, `aria-modal=true`, Fokus im Overlay, Escape schließt, Fokus kehrt zurück; RichTextEditor-Dialog Close 44×44; Coach-Buttons pill und 44 px; SocialFilterPills korrekt.
+- **Admin/Coach:** 48 Checks bei 375/768/1280, 0 horizontaler Overflow; Admin-Sheet, User-Aktionen, Report-Detail, Codes-Tabs, Support, Audit und Coach-Tabs geprüft.
+- **Zustände:** Fehlerzustände (500) und Empty States (`[]`) auf Overview, Users, Codes, AuditLog und Support geprüft; keine Page-Errors.
+- **Accessibility:** Fokus-Test 0 Fehler; Dialoge 0 Fehler; Touch-Audit findet nur `sr-only`-Skip-Links; Kontrastprüfung auf `/welcome`, `/login`, `/coaching`, `/eltern-leitfaden`, Feed und Admin-Users bei 375/1280 × Light/Dark = 24/24 ohne Verstoß.
+- **Grenze:** Echte Login-, Rollen- und Schreibflows bleiben wegen fehlendem Testzugang (BL-1/BL-4) mit Fake-Session/Fixture-API geprüft. Das ist die einzige verbleibende Einschränkung; kein UI-Codefehler.
+
+### 11.8 Definition of Done – Phase E
+
+- [x] Build, Lint und Tests laufen erfolgreich.
+- [x] Jede Seite ist bei 375 px, 768 px und 1280 px geprüft.
+- [x] Dark Mode ist geprüft.
+- [x] Wichtige Interaktionen und Zustände sind geprüft.
+- [x] Restesuche ist sauber.
+- [x] Accessibility-Prüfung ist abgeschlossen.
+- [x] Git-Status, Log und Diff gegen `main` sind dokumentiert.
+- [x] Finale Korrekturen sind committed, falls nötig.
+- [x] Gesamt-DoD ist erfüllt.
+- [x] Dieses Dokument ist vollständig aktualisiert.
 
 ---
 
@@ -792,11 +804,11 @@ Jede Seite wird in dieser Matrix geführt. Beim Ausfüllen pro Zelle `OK`, `Fehl
 | 2026-11-11 | Vorarbeit | `eeb264d` | `Setup shadcn/ui und Design-System` | Erledigt |
 | 2026-11-11 | Vorarbeit | `292fdf9` | `Formularelemente auf shadcn/ui migrieren` | Erledigt |
 | 2026-11-11 | Nutzerstand | `2569c3a` | `Texte vereinheitlichen und an bestätigte Produktregeln anpassen` | Erledigt |
-| — | A | `—` | `Migration weiterer UI-Komponenten` | Offen |
-| — | B | `—` | `Seitenweite UI- und Mobile-Optimierung` | Offen |
-| — | C | `—` | `UI-Transition vollständig abgeschlossen` | Offen |
-| — | D | `—` | `UI-Bereinigung und Theme-Konsolidierung` | Offen |
-| — | E | `—` | `Finale UI-Verifikation und Fehlerkorrekturen` | Offen |
+| 2026-11-11 | A | `977ced7` | `Migration weiterer UI-Komponenten` | Erledigt |
+| 2026-11-11 | B | `db6852d` | `Seitenweite UI- und Mobile-Optimierung` | Erledigt |
+| 2026-11-11 | C | `42e6a95` | `UI-Transition vollständig abgeschlossen` | Erledigt |
+| 2026-11-11 | D | `c80463f` | `UI-Bereinigung und Theme-Konsolidierung` | Erledigt |
+| 2026-11-11 | E | `7142430` | `Finale UI-Verifikation und Fehlerkorrekturen` | Erledigt |
 
 **Regeln für Einträge:**
 
@@ -877,16 +889,17 @@ Neue Einträge werden **oben** ergänzt. Keine bestehenden Einträge löschen.
 
 | Datum | Phase/Task | Änderung | Evidenz | Commit |
 |---|---|---|---|---|
+| 2026-11-11 | E | Finale Verifikation: alle Phasen, Seiten, Zustände, Accessibility und Git-Abschluss geprüft; ungenutzte `react.svg` entfernt | Build 0, Lint 0 Fehler/153 Warnungen, Tests 23/23; öffentlich 60/60, intern 125 Checks, Admin 48, Dialoge/Fokus 0 Fehler, Kontrast 24/24, 0 Overflow/Page-Errors; BL-1/BL-4 dokumentiert | `7142430` |
 | 2026-11-11 | D | Legacy-Dialoge/Card/TabBar + toter LogoBadge gelöscht; tote CSS-Utilities/Keyframes, ungenutzte Farbtokens und Dependencies entfernt; Farben auf Tokens konsolidiert | 0 Legacy-Importe/Altwert-Treffer; Build 0, Lint 0 Fehler/153 Warnungen, Tests 23/23; öffentlich 60/60 + Overlay-Recheck ohne Fehler; `+41/−724` | `c80463f` |
 | 2026-11-11 | C | UI-Transition verifiziert und Letztkorrekturen (44-px-Close, NotificationCenter, Buttons, Social-Chips, AppLoader, Feed/AdDetails-Härtung) | Statisch 0 aktive Eigenbau/Altimporte; öffentlich 60/60, intern 49, Feed/AdDetails 10/10 (375/768/1280, Dark); 0 Overflow/Console-Errors; Build 0, Lint 0 Fehler/153 Warnungen, Tests 23/23; interne Rollenprüfung BL-1/BL-4 | `42e6a95` |
 | 2026-11-11 | B | Alle Seiten + Shell + Mobile UX überarbeitet; öffentliche, App-, Admin-/Coach-Bereiche | 60 öffentliche + 49 App/Admin-Browser-Checks (375/768/1280, Dark), 0 Overflow/Console-Errors; Build 0, Lint 0 Fehler/153 Warnungen, Tests 23/23; echte Login-/Rollenprüfung BL-1/BL-4 | `db6852d` |
 | 2026-11-11 | A | Dialoge/Cards/Overlays/Tabs/Tabellen/Badges/Toasts migriert; A18 öffentlich geprüft | `npm run build` 0, `npm run lint` 0 Fehler/153 Warnungen, `npm test` 23/23; `977ced7` | `977ced7` |
 | 2026-11-11 | Vorbereitung | Plan-Dokument erstellt; Baseline geprüft | `npm run build` 0, `npm run lint` 0 Fehler/153 Warnungen, `npm test` 23/23 | Kein Commit (Vorbereitung) |
-| — | A | Noch nicht gestartet | — | — |
-| — | B | Noch nicht gestartet | — | — |
-| — | C | Noch nicht gestartet | — | — |
-| — | D | Noch nicht gestartet | — | — |
-| — | E | Noch nicht gestartet | — | — |
+| — | A | Abgeschlossen – siehe Eintrag 2026-11-11 | — | — |
+| — | B | Abgeschlossen – siehe Eintrag 2026-11-11 | — | — |
+| — | C | Abgeschlossen – siehe Eintrag 2026-11-11 | — | — |
+| — | D | Abgeschlossen – siehe Eintrag 2026-11-11 | — | — |
+| — | E | Abgeschlossen – siehe Eintrag 2026-11-11 | — | — |
 
 ---
 
@@ -896,33 +909,33 @@ Der Auftrag ist erst abgeschlossen, wenn **alle** Punkte erfüllt sind:
 
 ### 20.1 UI
 
-- [ ] Alle Eigenbau-Komponenten der Kategorien Dialoge, Dropdowns, Menüs, Tabs, Tooltips, Popovers, Tabellen, Cards, Badges und Toasts sind durch shadcn/ui ersetzt.
-- [ ] Alle Seiten und Shell-Komponenten sind visuell vereinheitlicht.
-- [ ] Mobile UX ist hochwertig, touch-optimiert und bei 375 px, 768 px und 1280 px geprüft.
-- [ ] Keine abgeschnittenen Texte, Überlappungen oder unnötigen horizontalen Scrollbereiche.
-- [ ] Loading-, Empty- und Error-States sind vollständig.
-- [ ] Dark Mode ist geprüft.
+- [x] Alle Eigenbau-Komponenten der Kategorien Dialoge, Dropdowns, Menüs, Tabs, Tooltips, Popovers, Tabellen, Cards, Badges und Toasts sind durch shadcn/ui ersetzt.
+- [x] Alle Seiten und Shell-Komponenten sind visuell vereinheitlicht.
+- [x] Mobile UX ist hochwertig, touch-optimiert und bei 375 px, 768 px und 1280 px geprüft.
+- [x] Keine abgeschnittenen Texte, Überlappungen oder unnötigen horizontalen Scrollbereiche.
+- [x] Loading-, Empty- und Error-States sind vollständig.
+- [x] Dark Mode ist geprüft.
 
 ### 20.2 Code/Design-System
 
-- [ ] Keine aktiven alten Imports oder alternativen Implementierungen.
-- [ ] Keine ungenutzten Eigenbau-Komponenten.
-- [ ] Keine festen Farbwerte außerhalb der Theme-Variablen (außer begründeten technischen Werten).
-- [ ] Keine doppelten/redundanten Styles.
-- [ ] Keine ungenutzten Dependencies.
-- [ ] Nur `lucide-react` als Icon-Bibliothek.
-- [ ] Theme-Tokens werden konsistent verwendet.
+- [x] Keine aktiven alten Imports oder alternativen Implementierungen.
+- [x] Keine ungenutzten Eigenbau-Komponenten.
+- [x] Keine festen Farbwerte außerhalb der Theme-Variablen (außer begründeten technischen Werten).
+- [x] Keine doppelten/redundanten Styles.
+- [x] Keine ungenutzten Dependencies.
+- [x] Nur `lucide-react` als Icon-Bibliothek.
+- [x] Theme-Tokens werden konsistent verwendet.
 
 ### 20.3 Qualität
 
-- [ ] `npm run build` erfolgreich.
-- [ ] `npm run lint` erfolgreich (0 Fehler).
-- [ ] `npm test` erfolgreich.
-- [ ] Browser-Prüfung aller Seiten bei 375/768/1280 px und Dark Mode.
-- [ ] Accessibility-Prüfung abgeschlossen.
-- [ ] Restesuche sauber.
-- [ ] Git-Status, Log und Diff gegen `main` dokumentiert.
-- [ ] Kein `git push`, kein Deployment.
+- [x] `npm run build` erfolgreich.
+- [x] `npm run lint` erfolgreich (0 Fehler).
+- [x] `npm test` erfolgreich.
+- [x] Browser-Prüfung aller Seiten bei 375/768/1280 px und Dark Mode.
+- [x] Accessibility-Prüfung abgeschlossen.
+- [x] Restesuche sauber.
+- [x] Git-Status, Log und Diff gegen `main` dokumentiert.
+- [x] Kein `git push`, kein Deployment.
 
 ---
 
