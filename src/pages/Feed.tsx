@@ -125,6 +125,7 @@ async function loadAds(): Promise<Ad[]> {
         } : prof;
         return {
             ...ad,
+            subjects: Array.isArray(ad.subjects) ? ad.subjects : [],
             profiles: safeProfile,
             profiles_avail: prof?.availability || emptyAvailability()
         };

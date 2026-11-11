@@ -34,11 +34,11 @@ import { Logo } from './components/ui/Logo';
 // Branded loading spinner
 function AppLoader() {
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-50 dark:bg-gray-950 gap-5 animate-in fade-in duration-300">
+    <div className="flex min-h-dvh flex-col items-center justify-center gap-5 bg-background text-foreground animate-in fade-in duration-300">
       <div className="relative flex items-center justify-center">
-        <Logo className="w-20 h-20 text-black dark:text-white shrink-0 animate-bounce drop-shadow-lg" />
+        <Logo className="h-20 w-20 shrink-0 text-foreground" />
       </div>
-      <div className="flex items-center gap-2.5 text-sm font-extrabold text-gray-900 dark:text-white tracking-wide mt-2">
+      <div className="mt-2 flex items-center gap-2.5 text-sm font-semibold tracking-wide text-foreground">
         <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         <span>Nachhilfebörse lädt...</span>
       </div>

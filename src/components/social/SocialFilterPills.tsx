@@ -37,7 +37,7 @@ export function SocialFilterPills({ options, value, onChange, ariaLabel }: Socia
                             'relative inline-flex min-h-11 cursor-pointer select-none items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
                             isActive
                                 ? 'border-primary text-primary-foreground'
-                                : 'border-border bg-card text-muted-foreground hover:border-ring/40 hover:text-gray-700 border-border dark:bg-gray-900 dark:text-muted-foreground dark:hover:text-gray-200'
+                                : 'border-border bg-card text-muted-foreground hover:border-ring/40 hover:text-foreground'
                         )}
                     >
                         {isActive && (

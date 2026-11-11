@@ -126,13 +126,13 @@ function OrderControls({
 }) {
     return (
         <div className="flex shrink-0 items-center gap-1">
-            <Button type="button" variant="ghost" size="icon" onClick={() => onMove(-1)} disabled={index === 0} aria-label={`${name} nach oben`} title="Nach oben" className="h-11 w-11 rounded-xl">
+            <Button type="button" variant="ghost" size="icon" onClick={() => onMove(-1)} disabled={index === 0} aria-label={`${name} nach oben`} title="Nach oben" className="h-11 w-11">
                 <ArrowUp size={17} />
             </Button>
-            <Button type="button" variant="ghost" size="icon" onClick={() => onMove(1)} disabled={index === total - 1} aria-label={`${name} nach unten`} title="Nach unten" className="h-11 w-11 rounded-xl">
+            <Button type="button" variant="ghost" size="icon" onClick={() => onMove(1)} disabled={index === total - 1} aria-label={`${name} nach unten`} title="Nach unten" className="h-11 w-11">
                 <ArrowDown size={17} />
             </Button>
-            <Button type="button" variant="destructive" size="icon" onClick={onDelete} aria-label={`${name} löschen`} title="Löschen" className="h-11 w-11 rounded-xl">
+            <Button type="button" variant="destructive" size="icon" onClick={onDelete} aria-label={`${name} löschen`} title="Löschen" className="h-11 w-11">
                 <Trash2 size={17} />
             </Button>
         </div>
@@ -190,7 +190,7 @@ function ListItemsEditor({
                     </div>
                 </div>
             ))}
-            <Button type="button" variant="outline" onClick={() => onChange([...items, { id: editorId('item'), title: 'Neuer Eintrag', body: '' }])} className="min-h-11 w-full rounded-xl font-semibold">
+            <Button type="button" variant="outline" onClick={() => onChange([...items, { id: editorId('item'), title: 'Neuer Eintrag', body: '' }])} className="min-h-11 w-full font-semibold">
                 <Plus size={16} /> {addLabel}
             </Button>
         </div>
@@ -215,7 +215,7 @@ function ParagraphsEditor({ paragraphs, onChange }: { paragraphs: string[]; onCh
                     <EditorTextarea id={`support-paragraph-${index}`} label="Absatztext" value={paragraph} onChange={value => onChange(paragraphs.map((current, paragraphIndex) => paragraphIndex === index ? value : current))} rows={4} />
                 </div>
             ))}
-            <Button type="button" variant="outline" onClick={() => onChange([...paragraphs, ''])} className="min-h-11 w-full rounded-xl font-semibold">
+            <Button type="button" variant="outline" onClick={() => onChange([...paragraphs, ''])} className="min-h-11 w-full font-semibold">
                 <Plus size={16} /> Absatz hinzufügen
             </Button>
         </div>
@@ -272,7 +272,7 @@ function ScheduleEditor({ block, onChange }: { block: CoachingSupportBlock; onCh
             <div className="space-y-3">
                 <div className="flex items-center justify-between gap-3">
                     <h4 className="text-sm font-semibold text-foreground">Tage</h4>
-                    <Button type="button" variant="outline" size="sm" onClick={addDay} className="min-h-11 rounded-xl font-semibold">
+                    <Button type="button" variant="outline" size="sm" onClick={addDay} className="min-h-11 font-semibold">
                         <Plus size={15} /> Tag
                     </Button>
                 </div>
@@ -290,7 +290,7 @@ function ScheduleEditor({ block, onChange }: { block: CoachingSupportBlock; onCh
             <div className="space-y-3">
                 <div className="flex items-center justify-between gap-3">
                     <h4 className="text-sm font-semibold text-foreground">Stundenplan</h4>
-                    <Button type="button" variant="outline" size="sm" onClick={addRow} disabled={block.days.length === 0} className="min-h-11 rounded-xl font-semibold">
+                    <Button type="button" variant="outline" size="sm" onClick={addRow} disabled={block.days.length === 0} className="min-h-11 font-semibold">
                         <Plus size={15} /> Zeile
                     </Button>
                 </div>
@@ -374,7 +374,7 @@ function HeaderEditor({ header, onUpdate, onDelete }: { header: CoachingHeaderBl
                     <p className="text-xs font-medium text-muted-foreground">Seitenkopf</p>
                     <h3 className="mt-0.5 truncate text-sm font-semibold text-foreground">{header.title || 'Ohne Titel'}</h3>
                 </div>
-                <Button type="button" variant="destructive" size="icon" onClick={onDelete} aria-label="Seitenkopf löschen" title="Löschen" className="h-11 w-11 rounded-xl">
+                <Button type="button" variant="destructive" size="icon" onClick={onDelete} aria-label="Seitenkopf löschen" title="Löschen" className="h-11 w-11">
                     <Trash2 size={17} />
                 </Button>
             </div>
@@ -512,7 +512,7 @@ export default function CoachingPageBuilder() {
                 <h2 className="text-lg font-semibold text-destructive">Coaching-Inhalte konnten nicht geladen werden</h2>
                 <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-foreground/80">Die gespeicherten Inhalte wurden nicht verändert. Bitte lade sie erneut, bevor du bearbeitest oder speicherst.</p>
                 <p className="mt-2 break-words text-xs text-muted-foreground">{loadError}</p>
-                <Button type="button" variant="outline" onClick={() => { setLoading(true); setLoadError(''); setReloadKey(current => current + 1); }} className="mt-4 min-h-11 rounded-xl font-semibold">
+                <Button type="button" variant="outline" onClick={() => { setLoading(true); setLoadError(''); setReloadKey(current => current + 1); }} className="mt-4 min-h-11 font-semibold">
                     <RotateCcw size={16} aria-hidden /> Erneut laden
                 </Button>
             </div>
@@ -654,10 +654,10 @@ export default function CoachingPageBuilder() {
                         </p>
                     </div>
                     <div className="flex flex-col gap-2 sm:flex-row">
-                        <Button type="button" variant="outline" onClick={handleReset} className="min-h-11 rounded-xl font-semibold">
+                        <Button type="button" variant="outline" onClick={handleReset} className="min-h-11 font-semibold">
                             <RotateCcw size={16} aria-hidden /> Auf Standard zurücksetzen
                         </Button>
-                        <Button type="button" onClick={handleSave} disabled={saving} isLoading={saving} className="min-h-11 rounded-xl font-semibold">
+                        <Button type="button" onClick={handleSave} disabled={saving} isLoading={saving} className="min-h-11 font-semibold">
                             {saving ? 'Speichern …' : 'Inhalte speichern'}
                         </Button>
                     </div>
@@ -683,7 +683,7 @@ export default function CoachingPageBuilder() {
                     ) : (
                         <div className="rounded-2xl border border-dashed border-border bg-muted/40 p-5 text-center">
                             <p className="text-sm font-semibold text-foreground">Der Seitenkopf ist gelöscht.</p>
-                            <Button type="button" variant="outline" onClick={() => mutate(document => ({ ...document, header: { id: 'header', type: 'header', title: 'Coaching-AG am FWG', intro: '' } }))} className="mt-3 min-h-11 rounded-xl font-semibold">
+                            <Button type="button" variant="outline" onClick={() => mutate(document => ({ ...document, header: { id: 'header', type: 'header', title: 'Coaching-AG am FWG', intro: '' } }))} className="mt-3 min-h-11 font-semibold">
                                 <Plus size={16} aria-hidden /> Seitenkopf hinzufügen
                             </Button>
                         </div>
@@ -709,7 +709,7 @@ export default function CoachingPageBuilder() {
                                         variant="outline"
                                         disabled={exists}
                                         onClick={() => addBlock(candidate.type)}
-                                        className="min-h-14 justify-start rounded-xl px-4 text-left"
+                                        className="min-h-14 justify-start rounded-2xl px-4 text-left"
                                     >
                                         <span className="min-w-0">
                                             <span className="block text-sm font-semibold">{candidate.label}</span>
@@ -718,7 +718,7 @@ export default function CoachingPageBuilder() {
                                     </Button>
                                 );
                             })}
-                            <Button type="button" variant="outline" onClick={() => addBlock('text')} className="min-h-14 justify-start rounded-xl px-4 text-left">
+                            <Button type="button" variant="outline" onClick={() => addBlock('text')} className="min-h-14 justify-start rounded-2xl px-4 text-left">
                                 <span>
                                     <span className="block text-sm font-semibold">Eigener Textabschnitt</span>
                                     <span className="mt-0.5 block text-xs font-normal text-muted-foreground">Freier Titel und Freitext</span>

@@ -417,7 +417,7 @@ export default function AdDetails() {
             {/* Share Dialog */}
             <ShareDialog
                 adId={ad.id}
-                adTitle={ad.subjects[0]?.toUpperCase()}
+                adTitle={ad.subjects?.[0]?.toUpperCase()}
                 isOpen={isShareOpen}
                 onClose={() => setIsShareOpen(false)}
             />

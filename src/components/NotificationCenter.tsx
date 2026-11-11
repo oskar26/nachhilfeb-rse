@@ -114,8 +114,8 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
 
     // Sticker schrumpft/fadet dezent beim Scrollen des Inhalts
     const { scrollY } = useScroll({ container: scrollRef });
-    const stickerScale = useSpring(useTransform(scrollY, [0, 64], [1, 0.84]), { stiffness: 320, damping: 30 });
-    const stickerOpacity = useSpring(useTransform(scrollY, [0, 96], [1, 0.55]), { stiffness: 320, damping: 30 });
+    const stickerScale = useSpring(useTransform(scrollY, [0, 64], [1, 0.95]), { stiffness: 320, damping: 30 });
+    const stickerOpacity = useSpring(useTransform(scrollY, [0, 96], [1, 0.8]), { stiffness: 320, damping: 30 });
 
     // ── Fetch ──────────────────────────────────────────────────────
     // silent=true: kein Spinner-Flash, Liste bleibt stehen (gegen Flackern)
@@ -286,7 +286,7 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
             size="unstyled"
             hapticStyle={false}
             type="button"
-            className="relative grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:text-muted-foreground hover:bg-muted hover:text-foreground"
+            className="relative grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             aria-label={triggerLabel}
         >
             <Bell size={20} />
@@ -306,7 +306,7 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
             hapticStyle={false}
             type="button"
             className={cn(
-                'relative grid size-11 shrink-0 cursor-pointer place-items-center rounded-full bg-primary text-primary-foreground ring-1 transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
+                'relative grid size-12 shrink-0 cursor-pointer place-items-center rounded-full bg-primary text-primary-foreground ring-1 transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
                 unread > 0 ? 'ring-primary/60' : 'ring-foreground/10'
             )}
             aria-label={triggerLabel}
@@ -331,7 +331,7 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
                     align="end"
                     sideOffset={8}
                     aria-label="Meldungen"
-                    className="hidden max-h-[520px] w-[380px] flex-col overflow-hidden rounded-t-3xl border border-border bg-background p-0 shadow-overlay border-border dark:bg-background md:flex"
+                    className="hidden max-h-[520px] w-[380px] flex-col overflow-hidden rounded-t-3xl border border-border bg-background p-0 shadow-overlay md:flex"
                 >
                     {headerContent}
                     {listContent}
@@ -348,14 +348,14 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
             <SheetContent
                 side="bottom"
                 showCloseButton={false}
-                className="max-h-[88dvh] gap-0 overflow-hidden rounded-t-3xl border-x border-t border-border bg-background p-0 border-border dark:bg-background md:hidden"
+                className="max-h-[88dvh] gap-0 overflow-hidden rounded-t-3xl border-x border-t border-border bg-background p-0 md:hidden"
             >
                 <SheetTitle className="sr-only">Meldungen</SheetTitle>
                 <SheetDescription className="sr-only">Benachrichtigungen und Aktivitäten</SheetDescription>
                 <div className="shrink-0 bg-background poster-grain-dark pt-3">
                     <div className="relative flex justify-center pb-1">
                         <span className="h-1.5 w-12 rounded-full bg-black/15" aria-hidden />
-                        <SheetClose className="absolute right-4 top-0 inline-flex size-11 items-center justify-center rounded-full text-muted-foreground hover:bg-black/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary text-muted-foreground dark:hover:bg-card/10">
+                        <SheetClose className="absolute right-4 top-0 inline-flex size-11 items-center justify-center rounded-full text-muted-foreground hover:bg-black/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:hover:bg-card/10">
                             <X size={18} />
                             <span className="sr-only">Schließen</span>
                         </SheetClose>
