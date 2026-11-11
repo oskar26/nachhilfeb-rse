@@ -334,68 +334,73 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
 
     return (
         <Dialog open={isOpen} onClose={onClose}>
-            <DialogContent className="sm:max-w-lg max-h-[90dvh] overflow-y-auto p-0">
-                <DialogHeader className="p-6 pb-2 relative border-b dark:border-gray-800">
+            <DialogContent showCloseButton={false} className="max-h-[92dvh] overflow-y-auto p-0 sm:max-w-lg">
+                <DialogHeader className="relative border-b border-border p-5 pr-16 sm:p-6 sm:pb-3">
                     <div className="flex items-center gap-2">
-                        <Sparkles size={20} className="text-primary-hover" />
-                        <DialogTitle className="text-lg font-black">Profilbild erstellen</DialogTitle>
+                        <Sparkles size={20} className="text-brand-ink dark:text-primary" aria-hidden />
+                        <DialogTitle className="text-base font-semibold">Profilbild erstellen</DialogTitle>
                     </div>
-                    <DialogDescription className="text-xs text-gray-500 dark:text-gray-400">
+                    <DialogDescription className="text-xs text-muted-foreground">
                         Wähle ein Symbol, Initialen, zeichne selbst oder lade ein Foto hoch.
                     </DialogDescription>
-                    <Button variant="unstyled" size="unstyled" type="submit"
+                    <Button variant="unstyled" size="unstyled" type="button"
                         onClick={onClose}
-                        className="absolute right-4 top-4 p-1.5 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                        aria-label="Profilbild-Dialog schließen"
+                        className="absolute right-2 top-2 grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     >
-                        <X size={18} />
+                        <X size={18} aria-hidden />
                     </Button>
                 </DialogHeader>
 
                 {/* Mode Selector Tabs */}
-                <div className="flex border-b dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 p-2 gap-1.5 overflow-x-auto">
-                    <Button variant="unstyled" size="unstyled" type="submit"
+                <div className="grid grid-cols-2 gap-1.5 border-b border-border bg-muted/40 p-2 sm:grid-cols-4">
+                    <Button variant="unstyled" size="unstyled" type="button"
                         onClick={() => { triggerHaptic('selection'); setMode('symbol'); }}
+                        aria-pressed={mode === 'symbol'}
                         className={cn(
-                            "flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shrink-0",
-                            mode === 'symbol' ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-xs" : "text-gray-500 hover:text-gray-800"
+                            "flex min-h-11 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition-colors",
+                            mode === 'symbol' ? "bg-card text-foreground shadow-soft" : "text-muted-foreground hover:bg-card/70 hover:text-foreground"
                         )}
                     >
                         <Shapes size={15} /> Symbol
                     </Button>
-                    <Button variant="unstyled" size="unstyled" type="submit"
+                    <Button variant="unstyled" size="unstyled" type="button"
                         onClick={() => { triggerHaptic('selection'); setMode('text'); }}
+                        aria-pressed={mode === 'text'}
                         className={cn(
-                            "flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shrink-0",
-                            mode === 'text' ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-xs" : "text-gray-500 hover:text-gray-800"
+                            "flex min-h-11 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition-colors",
+                            mode === 'text' ? "bg-card text-foreground shadow-soft" : "text-muted-foreground hover:bg-card/70 hover:text-foreground"
                         )}
                     >
                         <Type size={15} /> Text / Initialen
                     </Button>
-                    <Button variant="unstyled" size="unstyled" type="submit"
+                    <Button variant="unstyled" size="unstyled" type="button"
                         onClick={() => { triggerHaptic('selection'); setMode('draw'); }}
+                        aria-pressed={mode === 'draw'}
                         className={cn(
-                            "flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shrink-0",
-                            mode === 'draw' ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-xs" : "text-gray-500 hover:text-gray-800"
+                            "flex min-h-11 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition-colors",
+                            mode === 'draw' ? "bg-card text-foreground shadow-soft" : "text-muted-foreground hover:bg-card/70 hover:text-foreground"
                         )}
                     >
                         <PenTool size={15} /> Zeichnen
                     </Button>
-                    <Button variant="unstyled" size="unstyled" type="submit"
+                    <Button variant="unstyled" size="unstyled" type="button"
                         onClick={() => { triggerHaptic('selection'); setMode('upload'); }}
+                        aria-pressed={mode === 'upload'}
                         className={cn(
-                            "flex-1 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shrink-0",
-                            mode === 'upload' ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-xs" : "text-gray-500 hover:text-gray-800"
+                            "flex min-h-11 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition-colors",
+                            mode === 'upload' ? "bg-card text-foreground shadow-soft" : "text-muted-foreground hover:bg-card/70 hover:text-foreground"
                         )}
                     >
                         <Upload size={15} /> Foto
                     </Button>
                 </div>
 
-                <div className="p-6 space-y-6">
+                <div className="space-y-5 p-4 sm:p-6">
                     {/* Live Preview Bubble */}
                     <div className="flex flex-col items-center justify-center gap-2">
                         <div
-                            className="w-24 h-24 rounded-full shadow-lg border-4 border-white dark:border-gray-800 flex items-center justify-center overflow-hidden transition-all transform hover:scale-105"
+                            className="flex size-32 items-center justify-center overflow-hidden rounded-full border-4 border-card bg-muted shadow-soft"
                             style={{
                                 backgroundColor: mode === 'symbol' ? symbolBg : mode === 'text' ? textBg : undefined
                             }}
@@ -403,14 +408,14 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                             {mode === 'symbol' && (() => {
                                 const SelectedIcon = SYMBOL_MAP[selectedSymbol] || GraduationCap;
                                 return (
-                                    <span ref={symbolPreviewRef} className="flex items-center justify-center text-white select-none">
+                                    <span ref={symbolPreviewRef} className="flex select-none items-center justify-center text-white">
                                         <SelectedIcon size={52} strokeWidth={1.8} />
                                     </span>
                                 );
                             })()}
                             {mode === 'text' && (
                                 <span
-                                    className="text-3xl font-black select-none"
+                                    className="select-none text-3xl font-semibold"
                                     style={{
                                         color: textColor,
                                         fontFamily: MONOGRAM_FONTS[textFontIndex].font
@@ -436,13 +441,13 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                             )}
                             {mode === 'upload' && (
                                 uploadedUrl ? (
-                                    <img src={uploadedUrl} className="w-full h-full object-cover" />
+                                    <img src={uploadedUrl} alt="" className="h-full w-full object-cover" />
                                 ) : (
-                                    <Upload size={28} className="text-gray-400" />
+                                    <Upload size={28} className="text-muted-foreground" />
                                 )
                             )}
                         </div>
-                        <span className="text-[11px] font-semibold text-gray-400">Vorschau</span>
+                        <span className="text-xs font-semibold text-muted-foreground">Vorschau</span>
                     </div>
 
                     {/* MODE 1: SYMBOL */}
@@ -450,18 +455,21 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                         <div className="space-y-4">
                             {/* Color Selector */}
                             <div>
-                                <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Hintergrundfarbe</Label>
+                                <Label className="mb-2 block text-xs font-semibold text-foreground/80">Hintergrundfarbe</Label>
                                 <div className="flex items-center gap-2 overflow-x-auto pb-1">
                                     {BG_PALETTES.map(color => (
-                                        <Button variant="unstyled" size="unstyled" type="submit"
+                                        <Button variant="unstyled" size="unstyled" type="button"
                                             key={color}
                                             onClick={() => setSymbolBg(color)}
-                                            style={{ backgroundColor: color }}
+                                            aria-label={`Hintergrundfarbe ${color}`}
+                                            aria-pressed={symbolBg === color}
                                             className={cn(
-                                                "w-8 h-8 rounded-full border-2 transition-transform shrink-0",
-                                                symbolBg === color ? "border-black dark:border-white scale-110 shadow-md" : "border-transparent hover:scale-105"
+                                                "grid size-11 shrink-0 place-items-center rounded-full border-2 transition-colors",
+                                                symbolBg === color ? "border-primary ring-2 ring-primary/30" : "border-transparent hover:border-border"
                                             )}
-                                        />
+                                        >
+                                            <span className="block size-7 rounded-full border border-border" style={{ backgroundColor: color }} />
+                                        </Button>
                                     ))}
                                 </div>
                             </div>
@@ -470,10 +478,10 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                             <div className="space-y-3">
                                 {SYMBOL_CATEGORIES.map(cat => (
                                     <div key={cat.name}>
-                                        <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">{cat.name}</span>
-                                        <div className="grid grid-cols-6 gap-2 bg-gray-50 dark:bg-gray-900/50 p-2.5 rounded-2xl border dark:border-gray-800">
+                                        <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">{cat.name}</span>
+                                        <div className="grid grid-cols-5 gap-1.5 rounded-xl border border-border bg-muted/40 p-2 sm:grid-cols-6">
                                             {cat.items.map(({ name, label, Icon }) => (
-                                                <Button variant="unstyled" size="unstyled" type="submit"
+                                                <Button variant="unstyled" size="unstyled" type="button"
                                                     key={name}
                                                     title={label}
                                                     aria-label={label}
@@ -483,8 +491,8 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                                                         setSelectedSymbol(name);
                                                     }}
                                                     className={cn(
-                                                        "p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 transition-transform active:scale-95 flex items-center justify-center select-none",
-                                                        selectedSymbol === name && "bg-white dark:bg-gray-800 shadow-sm scale-110 border border-primary/30 text-gray-900 dark:text-white"
+                                                        "grid size-11 select-none place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-card hover:text-foreground",
+                                                        selectedSymbol === name && "border border-primary/30 bg-card text-foreground shadow-soft"
                                                     )}
                                                 >
                                                     <Icon size={24} />
@@ -501,29 +509,30 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                     {mode === 'text' && (
                         <div className="space-y-4">
                             <div>
-                                <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Deine Initialen (max. 2 Buchstaben)</Label>
+                                <Label className="mb-2 block text-xs font-semibold text-foreground/80">Deine Initialen (max. 2 Buchstaben)</Label>
                                 <Input
                                     type="text"
                                     maxLength={2}
                                     value={textInitials}
                                     onChange={(e) => setTextInitials(e.target.value.toUpperCase())}
                                     placeholder="z.B. MK"
-                                    className="w-full text-center text-xl font-black py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 uppercase tracking-widest outline-none focus:ring-2 focus:ring-primary"
+                                    className="w-full text-center text-xl font-semibold uppercase tracking-widest"
                                 />
                             </div>
 
                             <div>
-                                <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Schriftstil</Label>
+                                <Label className="mb-2 block text-xs font-semibold text-foreground/80">Schriftstil</Label>
                                 <div className="grid grid-cols-2 gap-2">
                                     {MONOGRAM_FONTS.map((font, idx) => (
-                                        <Button variant="unstyled" size="unstyled" type="submit"
+                                        <Button variant="unstyled" size="unstyled" type="button"
                                             key={font.label}
                                             onClick={() => setTextFontIndex(idx)}
+                                            aria-pressed={textFontIndex === idx}
                                             className={cn(
-                                                "p-2.5 rounded-xl border text-xs font-semibold transition-all",
+                                                "min-h-11 rounded-lg border px-3 py-2.5 text-xs font-semibold transition-colors",
                                                 textFontIndex === idx
-                                                    ? "border-primary bg-primary/10 text-primary-hover font-bold shadow-xs"
-                                                    : "border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800"
+                                                    ? "border-primary bg-primary/15 font-semibold text-brand-ink dark:text-primary"
+                                                    : "border-border hover:bg-muted"
                                             )}
                                         >
                                             {font.label}
@@ -533,35 +542,41 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                             </div>
 
                             <div>
-                                <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Hintergrundfarbe</Label>
+                                <Label className="mb-2 block text-xs font-semibold text-foreground/80">Hintergrundfarbe</Label>
                                 <div className="flex items-center gap-2 overflow-x-auto pb-1">
                                     {BG_PALETTES.map(color => (
-                                        <Button variant="unstyled" size="unstyled" type="submit"
+                                        <Button variant="unstyled" size="unstyled" type="button"
                                             key={color}
                                             onClick={() => setTextBg(color)}
-                                            style={{ backgroundColor: color }}
+                                            aria-label={`Hintergrundfarbe ${color}`}
+                                            aria-pressed={textBg === color}
                                             className={cn(
-                                                "w-8 h-8 rounded-full border-2 transition-transform shrink-0",
-                                                textBg === color ? "border-black dark:border-white scale-110 shadow-md" : "border-transparent hover:scale-105"
+                                                "grid size-11 shrink-0 place-items-center rounded-full border-2 transition-colors",
+                                                textBg === color ? "border-primary ring-2 ring-primary/30" : "border-transparent hover:border-border"
                                             )}
-                                        />
+                                        >
+                                            <span className="block size-7 rounded-full border border-border" style={{ backgroundColor: color }} />
+                                        </Button>
                                     ))}
                                 </div>
                             </div>
 
                             <div>
-                                <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Textfarbe</Label>
+                                <Label className="mb-2 block text-xs font-semibold text-foreground/80">Textfarbe</Label>
                                 <div className="flex items-center gap-2">
                                     {['#ffffff', '#000000', '#facc15', '#1e293b'].map(c => (
-                                        <Button variant="unstyled" size="unstyled" type="submit"
+                                        <Button variant="unstyled" size="unstyled" type="button"
                                             key={c}
                                             onClick={() => setTextColor(c)}
-                                            style={{ backgroundColor: c }}
+                                            aria-label={`Textfarbe ${c}`}
+                                            aria-pressed={textColor === c}
                                             className={cn(
-                                                "w-8 h-8 rounded-full border-2 transition-transform shrink-0",
-                                                textColor === c ? "border-primary scale-110 shadow-md" : "border-gray-300 dark:border-gray-700"
+                                                "grid size-11 shrink-0 place-items-center rounded-full border-2 transition-colors",
+                                                textColor === c ? "border-primary ring-2 ring-primary/30" : "border-border"
                                             )}
-                                        />
+                                        >
+                                            <span className="block size-7 rounded-full border border-border" style={{ backgroundColor: c }} />
+                                        </Button>
                                     ))}
                                 </div>
                             </div>
@@ -571,37 +586,42 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                     {/* MODE 3: DRAW */}
                     {mode === 'draw' && (
                         <div className="space-y-4">
-                            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                            <p className="text-xs text-muted-foreground text-center">
                                 Zeichne direkt in den Kreis oben mit der Maus oder dem Finger!
                             </p>
 
                             {/* Tool Controls */}
-                            <div className="flex items-center justify-between gap-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-2xl border dark:border-gray-800">
+                            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-muted/40 p-3">
                                 {/* Color Palette */}
-                                <div className="flex items-center gap-1.5 overflow-x-auto">
+                                <div className="flex w-full items-center gap-1.5 overflow-x-auto">
                                     {['#000000', '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ffffff'].map(col => (
-                                        <Button variant="unstyled" size="unstyled" type="submit"
+                                        <Button variant="unstyled" size="unstyled" type="button"
                                             key={col}
                                             onClick={() => setBrushColor(col)}
-                                            style={{ backgroundColor: col }}
+                                            aria-label={col === '#ffffff' ? 'Radierer / Weiß' : `Farbe ${col}`}
+                                            aria-pressed={brushColor === col}
                                             className={cn(
-                                                "w-6 h-6 rounded-full border transition-all shrink-0",
-                                                brushColor === col ? "ring-2 ring-primary scale-110" : "border-gray-300 dark:border-gray-700"
+                                                "grid size-11 shrink-0 place-items-center rounded-full border transition-colors",
+                                                brushColor === col ? "border-primary ring-2 ring-primary/30" : "border-border"
                                             )}
                                             title={col === '#ffffff' ? 'Radierer / Weiß' : col}
-                                        />
+                                        >
+                                            <span className="block size-7 rounded-full border border-border" style={{ backgroundColor: col }} />
+                                        </Button>
                                     ))}
                                 </div>
 
                                 {/* Brush Size */}
                                 <div className="flex items-center gap-1 shrink-0">
                                     {[3, 7, 14].map(size => (
-                                        <Button variant="unstyled" size="unstyled" type="submit"
+                                        <Button variant="unstyled" size="unstyled" type="button"
                                             key={size}
                                             onClick={() => setBrushSize(size)}
+                                            aria-label={`Strichstärke ${size}`}
+                                            aria-pressed={brushSize === size}
                                             className={cn(
-                                                "w-7 h-7 rounded-lg border flex items-center justify-center transition-colors",
-                                                brushSize === size ? "bg-primary text-black font-bold" : "border-gray-200 dark:border-gray-700 hover:bg-gray-100"
+                                                "grid size-11 place-items-center rounded-lg border transition-colors",
+                                                brushSize === size ? "border-primary bg-primary font-semibold text-primary-foreground" : "border-border hover:bg-muted"
                                             )}
                                         >
                                             <div
@@ -614,20 +634,22 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
 
                                 {/* Actions */}
                                 <div className="flex items-center gap-1 shrink-0">
-                                    <Button variant="unstyled" size="unstyled" type="submit"
+                                    <Button variant="unstyled" size="unstyled" type="button"
                                         onClick={handleUndo}
                                         disabled={drawHistory.length <= 1}
-                                        className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40"
+                                        aria-label="Rückgängig"
+                                        className="grid size-11 place-items-center rounded-full border border-border transition-colors hover:bg-muted disabled:opacity-40"
                                         title="Rückgängig"
                                     >
-                                        <RotateCcw size={14} />
+                                        <RotateCcw size={16} aria-hidden />
                                     </Button>
-                                    <Button variant="unstyled" size="unstyled" type="submit"
+                                    <Button variant="unstyled" size="unstyled" type="button"
                                         onClick={handleClearDraw}
-                                        className="p-1.5 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20"
+                                        aria-label="Leinwand löschen"
+                                        className="grid size-11 place-items-center rounded-full border border-destructive/25 text-destructive transition-colors hover:bg-destructive/10"
                                         title="Leinwand löschen"
                                     >
-                                        <Trash2 size={14} />
+                                        <Trash2 size={16} aria-hidden />
                                     </Button>
                                 </div>
                             </div>
@@ -655,29 +677,32 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                                     }
                                 }}
                             />
-                            <div
+                            <Button
+                                variant="unstyled"
+                                size="unstyled"
+                                type="button"
                                 onClick={() => fileInputRef.current?.click()}
-                                className="p-8 border-2 border-dashed border-gray-200 dark:border-gray-800 hover:border-primary rounded-3xl cursor-pointer transition-all hover:bg-gray-50 dark:hover:bg-gray-900/50 flex flex-col items-center justify-center gap-3"
+                                className="flex min-h-32 w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-border p-6 transition-colors hover:border-primary hover:bg-muted/50"
                             >
-                                <div className="p-4 rounded-full bg-primary/10 text-primary-hover">
-                                    <Upload size={28} />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-bold text-gray-800 dark:text-gray-200">Eigenes Foto hochladen</p>
-                                    <p className="text-xs text-gray-400 mt-0.5">Das Bild wird vor dem Hochladen verkleinert.</p>
-                                </div>
-                            </div>
+                                <span className="grid size-14 place-items-center rounded-full bg-primary/15 text-brand-ink dark:text-primary">
+                                    <Upload size={26} aria-hidden />
+                                </span>
+                                <span>
+                                    <span className="block text-sm font-semibold text-foreground">Eigenes Foto hochladen</span>
+                                    <span className="mt-0.5 block text-xs text-muted-foreground">Das Bild wird vor dem Hochladen verkleinert.</span>
+                                </span>
+                            </Button>
                         </div>
                     )}
                 </div>
 
                 {/* Footer Save Button */}
-                <div className="p-4 border-t dark:border-gray-800 flex items-center justify-between bg-gray-50/50 dark:bg-gray-900/50">
-                    <Button variant="ghost" size="sm" onClick={onClose} className="rounded-xl">
+                <div className="sticky bottom-0 z-10 flex items-center gap-2 border-t border-border bg-card/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur sm:p-4">
+                    <Button variant="ghost" onClick={onClose} className="h-11 flex-1 rounded-full">
                         Abbrechen
                     </Button>
-                    <Button onClick={handleSave} className="rounded-xl font-bold gap-2 shadow-md">
-                        <Check size={16} /> Als Profilbild speichern
+                    <Button onClick={handleSave} className="h-11 flex-[1.4] gap-2 rounded-full font-semibold">
+                        <Check size={16} aria-hidden /> Als Profilbild speichern
                     </Button>
                 </div>
             </DialogContent>

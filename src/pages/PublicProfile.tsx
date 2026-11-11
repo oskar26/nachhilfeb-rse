@@ -7,7 +7,7 @@ import { Card, CardContent } from '../components/ui/card';
 import {
     ChevronLeft, GraduationCap,
     MessageSquare, Star,
-    Calendar, Share2, Award
+    Calendar, Share2, Award, Loader2, UserX
 } from 'lucide-react';
 import { SubjectChip, subjectLabelMap } from '../components/SubjectChip';
 import type { Subject } from '../components/SubjectChip';
@@ -86,12 +86,25 @@ export default function PublicProfile() {
     }, [id]);
 
     if (loading) return (
-        <div className="flex flex-col items-center justify-center p-20 gap-3">
-            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-xs text-gray-400 font-bold uppercase">Profil wird geladen...</p>
+        <div className="flex flex-col items-center justify-center gap-3 p-20" role="status">
+            <Loader2 className="animate-spin text-brand-ink dark:text-primary" size={30} aria-hidden />
+            <p className="text-xs font-semibold text-muted-foreground">Profil wird geladen…</p>
         </div>
     );
-    if (!profile) return <div className="p-8 text-center text-red-500 font-bold">Profil nicht gefunden.</div>;
+    if (!profile) return (
+        <div className="mx-auto mt-10 max-w-md p-4">
+            <Card className="border-border bg-card shadow-soft">
+                <CardContent className="space-y-3 p-8 text-center">
+                    <div className="mx-auto grid size-14 place-items-center rounded-full bg-muted text-muted-foreground">
+                        <UserX size={24} aria-hidden />
+                    </div>
+                    <h1 className="text-lg font-semibold text-foreground">Profil nicht gefunden</h1>
+                    <p className="text-sm text-muted-foreground">Dieses Profil existiert nicht oder ist nicht mehr verfügbar.</p>
+                    <Button onClick={() => navigate(-1)} className="rounded-full">Zurück</Button>
+                </CardContent>
+            </Card>
+        </div>
+    );
 
     const teachingSubjects = Array.from(new Set<string>([
         ...(Array.isArray(profile.teaches_subjects) ? profile.teaches_subjects : []),
@@ -116,7 +129,7 @@ export default function PublicProfile() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="p-4 max-w-5xl mx-auto pb-28 space-y-6"
+            className="mx-auto w-full max-w-5xl space-y-5 p-4 pb-28 sm:p-6"
         >
             <motion.div variants={itemVariants} className="flex items-center justify-between gap-2">
                 <Button
@@ -125,9 +138,9 @@ export default function PublicProfile() {
                         triggerHaptic('light');
                         navigate(-1);
                     }}
-                    className="pl-0 hover:bg-transparent -ml-2 rounded-full font-bold"
+                    className="-ml-2 h-11 gap-1 rounded-full pl-2 font-semibold"
                 >
-                    <ChevronLeft className="mr-1" size={20} /> Zurück
+                    <ChevronLeft size={20} aria-hidden /> Zurück
                 </Button>
 
                 <Button
@@ -137,56 +150,56 @@ export default function PublicProfile() {
                         triggerHaptic('light');
                         setIsShareOpen(true);
                     }}
-                    className="rounded-full gap-1.5 font-bold border-gray-200 dark:border-gray-800 shadow-xs"
+                    className="h-11 rounded-full gap-1.5 border-border font-semibold"
                 >
-                    <Share2 size={15} className="text-primary-hover" />
+                    <Share2 size={15} className="text-brand-ink dark:text-primary" />
                     <span>Profil teilen</span>
                 </Button>
             </motion.div>
 
             {/* Profile Header */}
             <motion.div variants={itemVariants} className="relative">
-                <Card className="relative p-0 overflow-hidden border border-gray-200/80 dark:border-gray-800 shadow-xs bg-white dark:bg-gray-900 rounded-3xl">
+                <Card className="relative overflow-hidden border-border bg-card p-0 shadow-soft">
                     <div className="h-36 transition-all duration-700 shadow-inner" style={{ background: bannerGradient }}></div>
                     <CardContent className="pt-0 px-6 sm:px-8 pb-8 relative">
                         <div className="flex flex-col md:flex-row items-center md:items-end gap-6">
-                            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-white dark:bg-gray-950 p-1 shadow-md overflow-hidden border-4 border-white dark:border-gray-950 -mt-16 shrink-0">
+                            <div className="-mt-16 size-28 shrink-0 overflow-hidden rounded-2xl border-4 border-card bg-card p-1 shadow-soft sm:size-32">
                                 {profile.avatar_url ? (
                                     <img src={profile.avatar_url} className="w-full h-full object-cover rounded-2xl" />
                                 ) : (
-                                    <div className="w-full h-full bg-primary/20 flex items-center justify-center text-primary-hover font-black text-4xl rounded-2xl">
+                                    <div className="flex h-full w-full items-center justify-center rounded-2xl bg-primary/20 text-4xl font-semibold text-brand-ink dark:text-primary">
                                         {profile.display_name?.charAt(0) || '?'}
                                     </div>
                                 )}
                             </div>
                             <div className="text-center md:text-left pt-3 pb-1 flex-1">
-                                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-gray-900 dark:text-white flex items-center justify-center md:justify-start gap-2 flex-wrap">
+                                <h1 className="flex flex-wrap items-center justify-center gap-2 text-2xl font-semibold tracking-tight text-foreground md:justify-start sm:text-3xl">
                                     {profile.display_name || 'FWG Nutzer'}
                                     {profile.is_verified && (
                                         <VerifiedPill />
                                     )}
                                 </h1>
-                                <p className="text-gray-500 dark:text-gray-400 font-semibold flex items-center justify-center md:justify-start gap-2 mt-1">
+                                <p className="text-muted-foreground font-semibold flex items-center justify-center md:justify-start gap-2 mt-1">
                                     <GraduationCap size={18} /> Klasse {profile.grade_level || '?'}
                                 </p>
                                 {reviewCount > 0 && (
-                                    <p className="mt-1.5 flex items-center justify-center md:justify-start gap-1.5 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                        <Star size={15} className="text-yellow-500 fill-yellow-500" aria-hidden="true" />
+                                    <p className="mt-1.5 flex items-center justify-center md:justify-start gap-1.5 text-sm font-semibold text-foreground/80">
+                                        <Star size={15} className="fill-primary text-brand-ink dark:text-primary" aria-hidden />
                                         <span className="tabular-nums">{Number(profile.average_rating || 0).toFixed(1)}</span>
-                                        <span className="text-gray-500 dark:text-gray-400 font-normal">· {reviewCount} {reviewCount === 1 ? 'Bewertung' : 'Bewertungen'}</span>
+                                        <span className="text-muted-foreground font-normal">· {reviewCount} {reviewCount === 1 ? 'Bewertung' : 'Bewertungen'}</span>
                                     </p>
                                 )}
                             </div>
                             <div className="flex flex-wrap gap-2 justify-center md:justify-end">
                                 {profile.is_coach && (
-                                    <span className="bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 text-xs font-extrabold px-3 py-1.5 rounded-full border border-amber-300/80 dark:border-amber-700/60 flex items-center gap-1.5 shadow-xs">
-                                        <Award size={14} className="text-amber-600 dark:text-amber-400" /> Schüler-Coach (5./6. Klasse)
+                                    <span className="flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/15 px-3 py-1.5 text-xs font-semibold text-brand-ink dark:text-primary">
+                                        <Award size={14} aria-hidden /> Schüler-Coach (5./6. Klasse)
                                     </span>
                                 )}
                                 {ads.length > 0 && (
                                     <Button
                                         size="sm"
-                                        className="rounded-full bg-primary text-primary-foreground hover:bg-primary-hover font-bold h-9 px-4"
+                                        className="h-11 rounded-full px-4 font-semibold"
                                         onClick={() => navigate(`/ad/${ads[0].id}`)}
                                     >
                                         <MessageSquare size={14} className="mr-1.5" /> Anzeige öffnen
@@ -200,15 +213,15 @@ export default function PublicProfile() {
             </motion.div>
 
             {/* Ab md zweispaltig: links Bio/Kontakt/Statistik, rechts Verfügbarkeit + Anzeigen */}
-            <div className="grid gap-6 md:grid-cols-2 items-start">
+            <div className="grid items-start gap-6 lg:grid-cols-2">
                 <div className="space-y-6 min-w-0">
                     <motion.div variants={itemVariants}>
-                        <Card className="p-5 border border-gray-200/80 dark:border-gray-800 shadow-xs bg-white dark:bg-gray-900 rounded-3xl">
+                        <Card className="border-border bg-card p-5 shadow-soft">
                                 <div>
-                                    <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-2">Über mich</h3>
+                                    <h3 className="mb-2 text-xs font-semibold text-muted-foreground">Über mich</h3>
                                     <div
-                                        className="prose dark:prose-invert max-w-none text-sm text-gray-700 dark:text-gray-300 leading-relaxed bg-gray-50/60 dark:bg-gray-800/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-800/80"
-                                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(profile.bio || '<p class="text-gray-400 italic">Keine Biografie angegeben.</p>') }}
+                                        className="prose dark:prose-invert max-w-none text-sm text-foreground/80 leading-relaxed bg-muted/50 p-4 rounded-2xl border border-border"
+                                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(profile.bio || '<p class="text-muted-foreground italic">Keine Biografie angegeben.</p>') }}
                                     />
                                 </div>
                         </Card>
@@ -216,8 +229,8 @@ export default function PublicProfile() {
 
                     {teachingSubjects.length > 0 && (
                         <motion.div variants={itemVariants}>
-                            <Card className="p-5 border border-gray-200/80 dark:border-gray-800 shadow-xs bg-white dark:bg-gray-900 rounded-3xl">
-                                <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-3">Ich biete Nachhilfe</h3>
+                            <Card className="border-border bg-card p-5 shadow-soft">
+                                <h3 className="mb-3 text-xs font-semibold text-muted-foreground">Ich biete Nachhilfe</h3>
                                 <div className="flex flex-wrap gap-2">
                                     {teachingSubjects.map(s => <SubjectChip key={s} subject={s} />)}
                                 </div>
@@ -226,23 +239,23 @@ export default function PublicProfile() {
                     )}
 
                     <motion.div variants={itemVariants}>
-                        <Card className="p-5 border border-gray-200/80 dark:border-gray-800 shadow-xs bg-white dark:bg-gray-900 rounded-3xl">
-                            <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-3">Statistiken</h3>
-                                    <div className="space-y-2.5">
-                                        <div className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
-                                            <span className="text-xs text-gray-500 font-medium flex items-center gap-2"><Star size={14} className="text-yellow-500" /> Bewertung</span>
+                        <Card className="border-border bg-card p-5 shadow-soft">
+                            <h3 className="mb-2 text-xs font-semibold text-muted-foreground">Statistiken</h3>
+                                    <div className="divide-y divide-border">
+                                        <div className="flex items-center justify-between gap-3 py-3">
+                                            <span className="flex items-center gap-2 text-xs font-medium text-muted-foreground"><Star size={14} className="text-brand-ink dark:text-primary" aria-hidden /> Bewertung</span>
                                             <div className="flex items-center gap-1">
-                                                <span className="font-extrabold text-sm text-gray-900 dark:text-white tabular-nums">{reviewCount > 0 ? Number(profile.average_rating || 0).toFixed(1) : '-'}</span>
-                                                <span className="text-xs text-gray-500 font-semibold">({reviewCount})</span>
+                                                <span className="text-sm font-semibold tabular-nums text-foreground">{reviewCount > 0 ? Number(profile.average_rating || 0).toFixed(1) : '-'}</span>
+                                                <span className="text-xs font-semibold text-muted-foreground">({reviewCount})</span>
                                             </div>
                                         </div>
-                                        <div className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
-                                            <span className="text-xs text-gray-500 font-medium flex items-center gap-2"><MessageSquare size={14} className="text-blue-500" /> Aktive Anzeigen</span>
-                                            <span className="font-extrabold text-sm text-gray-900 dark:text-white">{ads.length}</span>
+                                        <div className="flex items-center justify-between gap-3 py-3">
+                                            <span className="flex items-center gap-2 text-xs font-medium text-muted-foreground"><MessageSquare size={14} className="text-brand-ink dark:text-primary" aria-hidden /> Aktive Anzeigen</span>
+                                            <span className="text-sm font-semibold text-foreground">{ads.length}</span>
                                         </div>
-                                        <div className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
-                                            <span className="text-xs text-gray-500 font-medium flex items-center gap-2"><Calendar size={14} className="text-primary" /> Dabei seit</span>
-                                            <span className="font-extrabold text-sm text-gray-900 dark:text-white">{(() => {
+                                        <div className="flex items-center justify-between gap-3 py-3">
+                                            <span className="flex items-center gap-2 text-xs font-medium text-muted-foreground"><Calendar size={14} className="text-brand-ink dark:text-primary" aria-hidden /> Dabei seit</span>
+                                            <span className="text-sm font-semibold text-foreground">{(() => {
                                                 const y = new Date(profile.created_at || '').getFullYear();
                                                 return Number.isFinite(y) ? y : '—';
                                             })()}</span>
@@ -256,9 +269,9 @@ export default function PublicProfile() {
                 <div className="space-y-6 min-w-0">
                     {profile.availability && (
                         <motion.div variants={itemVariants}>
-                            <Card className="p-5 border border-gray-200/80 dark:border-gray-800 shadow-xs bg-white dark:bg-gray-900 rounded-3xl">
-                                <h3 className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-1.5">
-                                    <Calendar size={14} className="text-primary" /> Wann hat {profile.display_name || 'dieser Nutzer'} Zeit?
+                            <Card className="border-border bg-card p-5 shadow-soft">
+                                <h3 className="mb-3 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                                    <Calendar size={14} className="text-brand-ink dark:text-primary" aria-hidden /> Wann hat {profile.display_name || 'dieser Nutzer'} Zeit?
                                 </h3>
                                 <AvailabilityCalendar
                                     availability={profile.availability}
@@ -270,9 +283,9 @@ export default function PublicProfile() {
 
             {/* Ads Feed */}
             <motion.div variants={itemVariants} className="space-y-4">
-                <h2 className="text-xl font-black text-gray-900 dark:text-white px-1 tracking-tight">Aktive Anzeigen ({ads.length})</h2>
+                <h2 className="px-1 text-xl font-semibold tracking-tight text-foreground">Aktive Anzeigen ({ads.length})</h2>
                 {ads.length === 0 ? (
-                    <Card className="bg-gray-50 dark:bg-gray-900/50 border-dashed border-2 py-12 text-center text-gray-500 rounded-3xl">
+                    <Card className="border-2 border-dashed border-border bg-muted/30 py-12 text-center text-sm text-muted-foreground shadow-none">
                         Dieser Nutzer hat aktuell keine öffentlichen Anzeigen geschaltet.
                     </Card>
                 ) : (
@@ -284,18 +297,18 @@ export default function PublicProfile() {
                                     triggerHaptic('light');
                                     navigate(`/ad/${ad.id}`);
                                 }}
-                                className="w-full text-left bg-white dark:bg-gray-900 border border-gray-200/80 dark:border-gray-800 hover:border-amber-400/70 dark:hover:border-amber-400/50 p-5 rounded-3xl shadow-xs transition-colors flex flex-col md:flex-row justify-between items-start md:items-center gap-4 cursor-pointer select-none"
+                                className="flex min-h-11 w-full cursor-pointer select-none flex-col items-start justify-between gap-4 rounded-2xl border border-border bg-card p-4 text-left transition-colors hover:border-primary/40 sm:p-5 md:flex-row md:items-center"
                             >
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-2">
                                         <span className={cn(
-                                            'text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase',
-                                            ad.type === 'offer' ? 'bg-yellow-400/20 text-yellow-900 dark:text-yellow-200' : 'bg-blue-500/20 text-blue-800 dark:text-blue-300'
+                                            'rounded-full border px-2.5 py-0.5 text-xs font-semibold',
+                                            ad.type === 'offer' ? 'border-primary/25 bg-primary/15 text-brand-ink dark:text-primary' : 'border-border bg-muted text-muted-foreground'
                                         )}>
                                             {ad.type === 'offer' ? 'Biete Nachhilfe' : 'Suche Nachhilfe'}
                                         </span>
                                     </div>
-                                    <p className="font-bold text-base text-gray-900 dark:text-white line-clamp-1">{ad.short_description}</p>
+                                    <p className="line-clamp-1 text-base font-semibold text-foreground">{ad.short_description}</p>
                                     <div className="flex flex-wrap gap-1.5">
                                         {ad.subjects?.map((s: Subject) => (
                                              <SubjectChip key={s} subject={s} />
@@ -303,7 +316,7 @@ export default function PublicProfile() {
                                     </div>
                                 </div>
                                 <div className="text-right shrink-0">
-                                    <span className="text-base font-extrabold text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-2xl">
+                                    <span className="rounded-full bg-muted px-4 py-2 text-base font-semibold tabular-nums text-foreground">
                                         {formatAdPrice(ad.price_details)}
                                     </span>
                                 </div>

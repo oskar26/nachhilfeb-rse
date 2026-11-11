@@ -71,14 +71,14 @@ export default function AccessGuard({ children }: { children: React.ReactNode })
         return (
             <div
                 role="alert"
-                className="flex flex-col items-center justify-center p-6 sm:p-12 text-center bg-white dark:bg-gray-900 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm mt-8 mx-auto max-w-xl"
+                className="mx-auto mt-8 flex max-w-xl flex-col items-center justify-center rounded-2xl border border-border bg-card p-6 text-center shadow-soft sm:p-12"
             >
-                <div className="w-20 h-20 mb-6 rounded-full bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center">
-                    <Icon size={36} className="text-amber-500" />
+                <div className="mb-6 grid size-20 place-items-center rounded-full bg-primary/15 text-brand-ink dark:text-primary">
+                    <Icon size={36} aria-hidden />
                 </div>
-                <h2 className="text-xl font-bold mb-2">{content.title}</h2>
-                <p className="text-gray-500 dark:text-gray-400 max-w-md mb-6">{content.text}</p>
-                <Button onClick={() => navigate(content.target)} className="rounded-full shadow-md">
+                <h2 className="mb-2 text-xl font-semibold text-foreground">{content.title}</h2>
+                <p className="mb-6 max-w-md text-sm text-muted-foreground">{content.text}</p>
+                <Button onClick={() => navigate(content.target)} className="h-11 rounded-full px-5">
                     {content.cta}
                 </Button>
             </div>

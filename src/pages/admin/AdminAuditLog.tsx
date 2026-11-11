@@ -3,6 +3,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { api } from '../../lib/api';
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
+import { Spinner } from '../../components/ui/spinner';
 import {
     ClipboardList,
     Clock,
@@ -56,9 +58,10 @@ const ACTION_LABELS: Record<string, string> = {
 export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter?: string }) {
     const [logs, setLogs] = useState<AuditLog[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState<string | null>(null);
     const [searchAction, setSearchAction] = useState(defaultFilter);
     const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
-    
+
     // Pagination state (Backend ohne Total-Count → Limit+1-Heuristik)
     const [page, setPage] = useState(0);
     const [totalCount, setTotalCount] = useState(0);
@@ -67,6 +70,7 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
 
     const fetchLogs = useCallback(async () => {
         setLoading(true);
+        setLoadError(null);
         try {
             // Backend liefert admin_name + paginierte Einträge; Details ggf. als JSON-String.
             // Limit+1-Trick: Ein überzähliger Eintrag zeigt an, dass eine weitere Seite existiert.
@@ -102,6 +106,7 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
             setHasMore(resolvedLogs.length > pageSize);
             setLogs(visibleLogs);
         } catch {
+            setLoadError('Audit Log konnte nicht geladen werden.');
             toast.error('Audit Log konnte nicht geladen werden.');
         } finally {
             setLoading(false);
@@ -113,26 +118,28 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
     }, [fetchLogs]);
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-300">
+        <div className="space-y-6">
             {/* Header & Filters */}
-            <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between shrink-0">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Audit Log</h1>
-                    <p className="text-gray-500 text-sm mt-0.5">Vollständiges Protokoll aller administrativen Eingriffe</p>
-                </div>
-                
-                <div className="flex gap-2 items-center flex-wrap">
+            <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
+                <header>
+                    <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Audit Log</h1>
+                    <p className="mt-0.5 text-sm text-muted-foreground">Vollständiges Protokoll aller administrativen Eingriffe</p>
+                </header>
+
+                <div className="flex flex-wrap items-center gap-2">
                     <Button
                         onClick={() => { setSearchAction(searchAction === 'coach' ? 'all' : 'coach'); setPage(0); }}
                         variant={searchAction === 'coach' ? 'primary' : 'outline'}
-                        className="h-11 rounded-2xl gap-2 text-sm"
+                        className="h-11 gap-2 text-sm"
                     >
-                        <GraduationCap size={16} /> Schüler-Coaching
+                        <GraduationCap size={16} aria-hidden /> Schüler-Coaching
                     </Button>
                     <NativeSelect
                         value={searchAction === 'coach' ? 'all' : searchAction}
                         onChange={e => { setSearchAction(e.target.value); setPage(0); }}
-                        className="h-11 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm focus:outline-none"
+                        wrapperClassName="w-full sm:w-52"
+                        className="w-full"
+                        aria-label="Nach Aktion filtern"
                     >
                         <option value="all">Alle Aktionen</option>
                         {Object.entries(ACTION_LABELS).map(([val, label]) => (
@@ -140,56 +147,69 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
                         ))}
                     </NativeSelect>
 
-                    <Button onClick={fetchLogs} variant="ghost" className="h-11 w-11 p-0 rounded-2xl" title="Aktualisieren">
-                        <RefreshCw size={16} className={cn(loading && 'animate-spin')} />
+                    <Button onClick={fetchLogs} variant="ghost" size="icon" className="h-11 w-11" title="Aktualisieren" aria-label="Audit Log aktualisieren">
+                        <RefreshCw size={16} className={cn(loading && 'animate-spin')} aria-hidden />
                     </Button>
                 </div>
             </div>
 
+            {loadError && (
+                <Alert variant="destructive">
+                    <AlertTitle>Audit Log nicht verfügbar</AlertTitle>
+                    <AlertDescription className="flex flex-col items-start gap-3">
+                        <span>{loadError}</span>
+                        <Button type="button" variant="outline" className="h-11" onClick={fetchLogs}>
+                            Erneut laden
+                        </Button>
+                    </AlertDescription>
+                </Alert>
+            )}
+
             {/* Logs List */}
-            <Card className="rounded-3xl border-none shadow-sm overflow-hidden">
+            <Card className="shadow-soft">
                 <CardContent className="p-0">
-                    {loading ? (
-                        <div className="py-20 text-center space-y-4">
-                            <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-                            <p className="text-gray-500 font-medium">Lade Audit-Trail...</p>
+                    {loadError ? null : loading ? (
+                        <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+                            <Spinner className="size-6 text-brand-ink dark:text-primary" />
+                            <p className="text-sm text-muted-foreground">Lade Audit-Trail...</p>
                         </div>
                     ) : logs.length === 0 ? (
-                        <div className="py-20 text-center space-y-3 bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-3xl">
-                            <ClipboardList size={48} className="mx-auto text-gray-300" />
-                            <p className="text-gray-500 font-medium text-lg">Keine Log-Einträge vorhanden</p>
-                            <p className="text-gray-400 text-xs">Es wurden bisher keine Aktionen protokolliert.</p>
+                        <div className="px-4 py-16 text-center">
+                            <ClipboardList size={32} className="mx-auto text-muted-foreground" aria-hidden />
+                            <p className="mt-3 text-base font-medium text-foreground">Keine Log-Einträge vorhanden</p>
+                            <p className="mt-1 text-xs text-muted-foreground">Es wurden bisher keine Aktionen protokolliert.</p>
                         </div>
                     ) : (
-                        <div className="divide-y dark:divide-gray-800">
+                        <div className="divide-y divide-border">
                             {logs.map(log => {
                                 const actionText = ACTION_LABELS[log.action] || log.action;
                                 return (
                                     <div
                                         key={log.id}
-                                        className="p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors"
+                                        className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5"
                                     >
-                                        <div className="space-y-1.5 min-w-0 flex-1">
-                                            <div className="flex items-center gap-2 flex-wrap">
+                                        <div className="min-w-0 flex-1 space-y-1.5">
+                                            <div className="flex flex-wrap items-center gap-2">
                                                 <span className={cn(
-                                                    'text-[10px] font-bold px-2 py-0.5 rounded-full uppercase',
-                                                    log.action.includes('ban') && 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-                                                    log.action.includes('verify') && 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-                                                    log.action.includes('report') && 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-                                                    log.action.includes('code') && 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                                    'rounded-full px-2.5 py-1 text-xs font-medium',
+                                                    log.action.includes('ban') && 'bg-destructive/10 text-destructive',
+                                                    log.action.includes('verify') && 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
+                                                    log.action.includes('report') && 'bg-amber-500/15 text-amber-700 dark:text-amber-400',
+                                                    log.action.includes('code') && 'bg-primary/15 text-brand-ink dark:text-primary',
+                                                    !log.action.includes('ban') && !log.action.includes('verify') && !log.action.includes('report') && !log.action.includes('code') && 'bg-muted text-muted-foreground'
                                                 )}>
                                                     {actionText}
                                                 </span>
-                                                <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">
+                                                <span className="break-words text-xs font-medium text-foreground">
                                                     {log.admin_profile?.display_name || 'System-Admin'}
                                                 </span>
-                                                <span className="text-gray-400 text-[10px] flex items-center gap-1">
-                                                    <Clock size={12} />
+                                                <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                    <Clock size={16} aria-hidden />
                                                     {new Date(log.created_at).toLocaleString('de-DE')}
                                                 </span>
                                             </div>
-                                            <div className="text-xs text-gray-500 font-medium truncate max-w-2xl">
-                                                Ziel: <span className="font-semibold text-gray-700 dark:text-gray-300">{log.target_type} ({log.target_id || '--'})</span>
+                                            <div className="break-words text-xs font-medium text-muted-foreground">
+                                                Ziel: <span className="font-semibold text-foreground">{log.target_type} ({log.target_id || '--'})</span>
                                                 {log.details && log.details.reason && ` • Grund: "${log.details.reason}"`}
                                             </div>
                                         </div>
@@ -199,9 +219,9 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
                                                 onClick={() => setSelectedLog(log)}
                                                 variant="outline"
                                                 size="sm"
-                                                className="h-8 rounded-lg gap-1.5 text-xs"
+                                                className="h-11 gap-1.5 text-xs"
                                             >
-                                                <Eye size={12} /> Details
+                                                <Eye size={16} aria-hidden /> Details
                                             </Button>
                                         </div>
                                     </div>
@@ -214,8 +234,8 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
 
             {/* Pagination Controls (ohne Backend-Total: nur Zurück/Weiter) */}
             {(page > 0 || hasMore) && (
-                <div className="flex items-center justify-between pt-4 shrink-0">
-                    <span className="text-xs text-gray-500">
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                    <span className="text-xs text-muted-foreground">
                         Seite {page + 1}{searchAction === 'all' && !hasMore && totalCount > 0 ? ` (${totalCount} Einträge)` : ''}
                     </span>
                     <div className="flex gap-1">
@@ -223,17 +243,21 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
                             onClick={() => setPage(p => Math.max(0, p - 1))}
                             disabled={page === 0}
                             variant="outline"
-                            className="h-9 w-9 p-0 rounded-xl"
+                            size="icon"
+                            className="h-11 w-11"
+                            aria-label="Vorherige Seite"
                         >
-                            <ChevronLeft size={16} />
+                            <ChevronLeft size={16} aria-hidden />
                         </Button>
                         <Button
                             onClick={() => setPage(p => p + 1)}
                             disabled={!hasMore}
                             variant="outline"
-                            className="h-9 w-9 p-0 rounded-xl"
+                            size="icon"
+                            className="h-11 w-11"
+                            aria-label="Nächste Seite"
                         >
-                            <ChevronRight size={16} />
+                            <ChevronRight size={16} aria-hidden />
                         </Button>
                     </div>
                 </div>
@@ -241,7 +265,7 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
 
             {/* Detail dialog */}
             <Dialog open={!!selectedLog} onOpenChange={() => setSelectedLog(null)}>
-                <DialogContent className="rounded-3xl max-w-lg">
+                <DialogContent className="max-w-lg [&_[data-slot=dialog-close]]:size-11">
                     <DialogHeader>
                         <DialogTitle>Aktions-Details</DialogTitle>
                         <DialogDescription>
@@ -249,41 +273,41 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
                         </DialogDescription>
                     </DialogHeader>
                     {selectedLog && (
-                        <div className="space-y-4 py-4">
-                            <div className="grid grid-cols-2 gap-4 text-xs">
-                                <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-xl border dark:border-gray-700">
-                                    <span className="text-gray-400 font-bold block mb-1">Aktion</span>
-                                    <span className="font-extrabold text-sm">{ACTION_LABELS[selectedLog.action] || selectedLog.action}</span>
+                        <div className="space-y-4 py-2">
+                            <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
+                                <div className="rounded-xl border border-border bg-muted/40 p-3">
+                                    <span className="mb-1 block font-medium text-muted-foreground">Aktion</span>
+                                    <span className="break-words text-sm font-semibold">{ACTION_LABELS[selectedLog.action] || selectedLog.action}</span>
                                 </div>
-                                <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-xl border dark:border-gray-700">
-                                    <span className="text-gray-400 font-bold block mb-1">Ausgeführt von</span>
-                                    <span className="font-bold flex items-center gap-1">
-                                        <User size={12} className="text-gray-400" />
+                                <div className="rounded-xl border border-border bg-muted/40 p-3">
+                                    <span className="mb-1 block font-medium text-muted-foreground">Ausgeführt von</span>
+                                    <span className="flex items-center gap-1 break-words font-medium">
+                                        <User size={16} className="shrink-0 text-muted-foreground" aria-hidden />
                                         {selectedLog.admin_profile?.display_name || 'System-Admin'}
                                     </span>
                                 </div>
                             </div>
 
                             <div className="space-y-1 text-xs">
-                                <span className="text-gray-400 font-bold block">Zeitpunkt</span>
-                                <span className="font-semibold">{new Date(selectedLog.created_at).toLocaleString('de-DE')}</span>
+                                <span className="block font-medium text-muted-foreground">Zeitpunkt</span>
+                                <span className="break-words font-medium">{new Date(selectedLog.created_at).toLocaleString('de-DE')}</span>
                             </div>
 
                             <div className="space-y-1 text-xs">
-                                <span className="text-gray-400 font-bold block">Ziel-Objekt</span>
-                                <span className="font-mono">{selectedLog.target_type} ({selectedLog.target_id || 'Keine ID'})</span>
+                                <span className="block font-medium text-muted-foreground">Ziel-Objekt</span>
+                                <span className="break-all font-mono">{selectedLog.target_type} ({selectedLog.target_id || 'Keine ID'})</span>
                             </div>
 
                             <div className="space-y-1">
-                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Rohdaten / Details (JSON)</span>
-                                <pre className="bg-gray-50 dark:bg-gray-950 p-4 rounded-2xl border dark:border-gray-800 text-xs font-mono overflow-x-auto text-gray-700 dark:text-gray-300">
+                                <span className="block text-xs font-medium text-muted-foreground">Rohdaten / Details (JSON)</span>
+                                <pre className="overflow-x-auto rounded-xl border border-border bg-muted/40 p-4 font-mono text-xs text-foreground">
                                     {JSON.stringify(selectedLog.details, null, 2)}
                                 </pre>
                             </div>
                         </div>
                     )}
                     <DialogFooter>
-                        <Button onClick={() => setSelectedLog(null)} className="rounded-xl w-full">Schließen</Button>
+                        <Button onClick={() => setSelectedLog(null)} className="h-11 w-full">Schließen</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

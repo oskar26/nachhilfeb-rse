@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { User, Shield, Loader2, Mail, Phone, Settings as SettingsIcon, Pen, Sparkles, CalendarDays, Award, Shuffle, Palette, X, Lock, Eye, Plus, Trash2 } from 'lucide-react';
+import { User, Shield, Loader2, Mail, Phone, Settings as SettingsIcon, Pen, Sparkles, CalendarDays, Award, Shuffle, Palette, X, Lock, Eye, Plus, Trash2, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { toast } from 'sonner';
@@ -313,7 +313,7 @@ export default function Profile() {
     if (loading) return (
         <div className="flex flex-col items-center justify-center p-20 gap-3">
             <Loader2 className="animate-spin text-primary" size={32} />
-            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Profil wird geladen...</p>
+            <p className="text-xs font-semibold text-muted-foreground">Profil wird geladen…</p>
         </div>
     );
 
@@ -335,10 +335,10 @@ export default function Profile() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="p-4 max-w-3xl mx-auto pb-28 space-y-6"
+            className="mx-auto w-full max-w-3xl space-y-5 p-4 pb-28 sm:p-6"
         >
             {/* Header with Dynamic Banner & Avatar */}
-            <motion.div variants={itemVariants} className="relative rounded-3xl overflow-hidden shadow-soft border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
+            <motion.div variants={itemVariants} className="relative rounded-3xl overflow-hidden shadow-soft border border-border bg-card">
                 {/* Banner */}
                 <div className="h-36 transition-colors duration-700 shadow-inner relative flex justify-between items-start p-3.5 pr-16 gap-2 md:pr-3.5" style={{ background: bannerGradient }}>
                     <div className="flex items-center gap-1.5 flex-wrap relative z-10">
@@ -346,10 +346,10 @@ export default function Profile() {
                             type="button"
                             onClick={() => setShowColorPicker(!showColorPicker)}
                             className={cn(
-                                "px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer border",
+                                "flex min-h-11 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold backdrop-blur-md transition-colors",
                                 showColorPicker
-                                    ? "bg-white text-black border-white"
-                                    : "bg-black/40 hover:bg-black/60 text-white backdrop-blur-md border-white/20"
+                                    ? "border-border bg-card text-foreground"
+                                    : "border-white/20 bg-black/45 text-white hover:bg-black/60"
                             )}
                             title="Banner-Farbe anpassen"
                         >
@@ -366,10 +366,10 @@ export default function Profile() {
                                     if (user) await api.profiles.update({ banner_color: grad }, user.id);
                                     toast.success("Farbe an Profilbild angepasst!");
                                 }}
-                                className="px-3 py-1.5 rounded-full text-xs font-bold bg-white/80 hover:bg-white text-black backdrop-blur-md transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                                className="flex min-h-11 items-center gap-1.5 rounded-full bg-card/85 px-3 text-xs font-semibold text-foreground backdrop-blur-md transition-colors hover:bg-card"
                                 title="Farbe automatisch an Profilbild anpassen"
                             >
-                                <Sparkles size={12} className="text-amber-500" />
+                                <Sparkles size={14} className="text-brand-ink dark:text-primary" aria-hidden />
                                 <span>Bild anpassen</span>
                             </Button>
                         )}
@@ -384,7 +384,7 @@ export default function Profile() {
                                             if (user) await api.profiles.update({ banner_color: newGrad }, user.id);
                             toast.success("Zufällige Farbe gewählt!");
                         }}
-                        className="px-2.5 py-1.5 rounded-full text-xs font-bold bg-black/40 hover:bg-black/60 text-white backdrop-blur-md transition-all flex items-center gap-1 shadow-sm cursor-pointer relative z-10"
+                        className="relative z-10 flex min-h-11 items-center gap-1 rounded-full bg-black/45 px-3 text-xs font-semibold text-white backdrop-blur-md transition-colors hover:bg-black/60"
                         title="Zufällige Farbe"
                     >
                         <Shuffle size={13} />
@@ -393,20 +393,20 @@ export default function Profile() {
 
                     {/* Floating Color Selection Overlay (Never collides with Avatar) */}
                     {showColorPicker && (
-                        <div className="absolute top-12 left-3 right-3 z-30 p-3 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-gray-200/80 dark:border-gray-800 rounded-2xl shadow-xl animate-in fade-in slide-in-from-top-2 flex flex-col gap-2.5">
-                            <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-1.5">
-                                <span className="text-[11px] font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">Banner-Farbe wählen</span>
+                        <div className="absolute left-3 right-3 top-14 z-30 flex flex-col gap-3 rounded-2xl border border-border bg-card/95 p-3 shadow-overlay backdrop-blur-xl animate-in fade-in slide-in-from-top-2">
+                            <div className="flex items-center justify-between border-b border-border pb-1.5">
+                                <span className="text-xs font-semibold text-foreground">Banner-Farbe wählen</span>
                                 <Button variant="unstyled" size="unstyled"
                                     type="button"
                                     onClick={() => setShowColorPicker(false)}
-                                    className="p-2 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                                    className="grid size-11 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
                                 >
                                     <X size={14} />
                                 </Button>
                             </div>
                             <div className="flex flex-wrap items-center justify-between gap-2.5">
                                 <div className="flex items-center gap-1.5 flex-wrap">
-                                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Presets:</span>
+                                    <span className="text-xs font-semibold text-muted-foreground">Presets:</span>
                                     {PRESET_GRADIENTS.map((p) => (
                                         <Button variant="unstyled" size="unstyled"
                                             key={p.name}
@@ -418,16 +418,18 @@ export default function Profile() {
                                                 toast.success(`${p.name} ausgewählt!`);
                                             }}
                                             className={cn(
-                                                "w-6 h-6 rounded-full transition-transform hover:scale-125 shadow-xs border border-white/80 dark:border-gray-800 cursor-pointer relative",
-                                                bannerGradient === p.gradient && "ring-2 ring-primary ring-offset-2 scale-110"
+                                                "relative grid size-11 place-items-center rounded-full border border-border p-2 transition-colors",
+                                                bannerGradient === p.gradient && "ring-2 ring-primary ring-offset-2"
                                             )}
-                                            style={{ background: p.gradient }}
                                             title={p.name}
-                                        />
+                                            aria-label={`Bannerfarbe ${p.name}`}
+                                        >
+                                            <span className="block size-6 rounded-full" style={{ background: p.gradient }} />
+                                        </Button>
                                     ))}
                                 </div>
                                 <div className="flex items-center gap-1.5">
-                                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Eigene:</span>
+                                    <span className="text-xs font-semibold text-muted-foreground">Eigene:</span>
                                     <Input
                                         type="color"
                                         value={customColor}
@@ -438,7 +440,7 @@ export default function Profile() {
                                             setBannerGradient(grad);
                                             if (user) await api.profiles.update({ banner_color: grad }, user.id);
                                         }}
-                                        className="w-7 h-7 p-0 border-0 rounded-lg cursor-pointer shadow-sm"
+                                        className="h-11 w-14 cursor-pointer rounded-lg p-1"
                                         title="Color Picker für eigene Farbe"
                                     />
                                 </div>
@@ -451,13 +453,13 @@ export default function Profile() {
                 <div className="flex flex-col items-center text-center px-4 pb-6 -mt-16 sm:px-6">
                     <div className="relative group mb-2">
                         <div
-                            className="relative p-1.5 rounded-full shadow-xl"
+                            className="relative p-1.5 rounded-full shadow-overlay"
                             style={{ background: bannerGradient }}
                         >
                             {profile.avatar_url ? (
-                                <img src={profile.avatar_url} className="w-28 h-28 rounded-full object-cover border-4 border-white dark:border-gray-950 shadow-inner" />
+                                <img src={profile.avatar_url} alt="" className="size-28 rounded-full border-4 border-card object-cover" />
                             ) : (
-                                <div className="w-28 h-28 rounded-full bg-white dark:bg-gray-900 border-4 border-white dark:border-gray-950 flex items-center justify-center text-gray-400 shadow-inner">
+                                <div className="grid size-28 place-items-center rounded-full border-4 border-card bg-muted text-muted-foreground">
                                     <User size={48} />
                                 </div>
                             )}
@@ -470,7 +472,7 @@ export default function Profile() {
                                     triggerHaptic('light');
                                     setIsAvatarMakerOpen(true);
                                 }}
-                                className="absolute bottom-1 right-1 bg-primary text-black p-2.5 rounded-full shadow-xl hover:bg-primary-hover transition-colors border-2 border-white dark:border-gray-950 cursor-pointer"
+                                className="absolute bottom-0 right-0 grid size-11 place-items-center rounded-full border-2 border-card bg-primary text-primary-foreground transition-colors hover:bg-primary-hover"
                                 title="Avatar erstellen / ändern"
                             >
                                 <Pen size={14} />
@@ -485,18 +487,18 @@ export default function Profile() {
                                 triggerHaptic('light');
                                 setIsAvatarMakerOpen(true);
                             }}
-                            className="px-3 py-1 rounded-full text-xs font-bold bg-primary/20 hover:bg-primary/30 text-primary-hover dark:text-primary transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                            className="flex min-h-11 items-center gap-1.5 rounded-full bg-primary/20 px-3 text-xs font-semibold text-brand-ink transition-colors hover:bg-primary/30 dark:text-primary"
                         >
                             <Sparkles size={13} />
                             <span>Avatar gestalten</span>
                         </Button>
                     </div>
 
-                    <h1 className="text-2xl font-display uppercase leading-none tracking-tight text-gray-900 dark:text-white">
+                    <h1 className="text-2xl font-display uppercase leading-none tracking-tight text-foreground">
                         {profile.first_name ? `${profile.first_name} ${profile.last_name}` : 'Profil einrichten'}
                     </h1>
                     <div className="mt-2 h-1 w-10 rounded-full bg-primary mx-auto" aria-hidden />
-                    <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mt-0.5">
+                    <p className="text-sm font-semibold text-muted-foreground mt-0.5">
                         {profile.grade_level 
                             ? ['EF', 'Q1', 'Q2'].includes(profile.grade_level)
                                 ? `Jahrgangsstufe ${profile.grade_level}`
@@ -506,18 +508,18 @@ export default function Profile() {
 
                     <div className="flex flex-wrap justify-center items-center mt-3 gap-2">
                         {profile.is_coach && (
-                            <div className="flex items-center text-amber-900 dark:text-amber-200 text-xs font-extrabold gap-1.5 bg-amber-100 dark:bg-amber-950/60 px-3 py-1 rounded-full border border-amber-300/80 dark:border-amber-700/60 shadow-xs">
-                                <Award size={14} className="text-amber-600 dark:text-amber-400" /> Schüler-Coach (5./6. Klasse)
+                            <div className="flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/15 px-3 py-1 text-xs font-semibold text-brand-ink dark:text-primary">
+                                <Award size={14} aria-hidden /> Schüler-Coach (5./6. Klasse)
                             </div>
                         )}
                         {profile.is_verified ? (
                             <VerifiedPill size="md" />
                         ) : (
-                            <div className="flex items-center text-amber-700 dark:text-amber-300 text-xs font-bold gap-1 bg-amber-100/80 dark:bg-amber-950/60 px-3 py-1 rounded-full border border-amber-200 dark:border-amber-800/80 shadow-xs">
-                                <Shield size={14} /> Nicht Verifiziert
+                            <div className="flex items-center gap-1 rounded-full border border-border bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
+                                <Shield size={14} aria-hidden /> Nicht Verifiziert
                             </div>
                         )}
-                        <Link to="/settings" onClick={() => triggerHaptic('light')} className="flex items-center text-gray-600 dark:text-gray-300 text-xs font-semibold gap-1 bg-gray-100/80 dark:bg-gray-800/80 px-3 py-1 rounded-full hover:bg-gray-200/80 transition-colors border border-gray-200/50 dark:border-gray-700/50">
+                        <Link to="/settings" onClick={() => triggerHaptic('light')} className="flex min-h-11 items-center gap-1 rounded-full border border-border bg-muted px-3 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted/70">
                             <SettingsIcon size={13} /> Einstellungen
                         </Link>
                     </div>
@@ -525,12 +527,12 @@ export default function Profile() {
             </motion.div>
 
             {!profile.is_verified && (
-                <motion.div variants={itemVariants} className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-2xl text-sm text-amber-900 dark:text-amber-200 shadow-soft">
-                    <p className="font-extrabold mb-0.5">Konto noch nicht verifiziert</p>
-                    <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">Du musst dich im SV-Raum verifizieren lassen, um eigene Nachhilfeanzeigen zu veröffentlichen.</p>
+                <motion.div variants={itemVariants} className="rounded-2xl border border-primary/25 bg-primary/10 p-4 text-sm text-foreground/80 shadow-soft">
+                    <p className="font-semibold">Konto noch nicht verifiziert</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Du musst dich im SV-Raum verifizieren lassen, um eigene Nachhilfeanzeigen zu veröffentlichen.</p>
                     <Link
                         to="/welcome"
-                        className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-bold text-amber-950 dark:text-primary bg-primary/30 dark:bg-primary/15 hover:bg-primary/50 dark:hover:bg-primary/25 px-3 py-1.5 rounded-full transition-colors"
+                        className="mt-2.5 inline-flex min-h-11 items-center gap-1.5 rounded-full bg-primary/25 px-3 text-xs font-semibold text-brand-ink transition-colors hover:bg-primary/40 dark:text-primary"
                     >
                         So geht's in 3 Schritten →
                     </Link>
@@ -540,18 +542,18 @@ export default function Profile() {
             {/* Goal gradient: head-start from signup (name+grade), never 0%.
                 Bei 100 % verschwindet das Widget; der Übergang wird oben gefeiert. */}
             {strengthPct < 100 && (
-                <motion.div variants={itemVariants} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-4 rounded-2xl shadow-soft" aria-label={`Profil-Fortschritt: ${strengthPct} Prozent`}>
+                <motion.div variants={itemVariants} className="bg-card border border-border p-4 rounded-2xl shadow-soft" aria-label={`Profil-Fortschritt: ${strengthPct} Prozent`}>
                     <div className="flex items-center justify-between mb-2 gap-3">
-                        <p className="text-xs font-extrabold uppercase tracking-wider text-gray-400">Profil vervollständigen</p>
-                        <p className="text-sm font-black text-gray-900 dark:text-white tabular-nums">{strengthPct}%</p>
+                        <p className="text-xs font-semibold text-muted-foreground">Profil vervollständigen</p>
+                        <p className="text-sm font-semibold tabular-nums text-foreground">{strengthPct}%</p>
                     </div>
-                    <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden mb-3" role="progressbar" aria-valuenow={strengthPct} aria-valuemin={0} aria-valuemax={100}>
+                    <div className="h-2 rounded-full bg-muted overflow-hidden mb-3" role="progressbar" aria-valuenow={strengthPct} aria-valuemin={0} aria-valuemax={100}>
                         <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${strengthPct}%` }} />
                     </div>
-                    <ul className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[11px] font-semibold">
+                    <ul className="grid grid-cols-1 gap-1.5 text-xs font-semibold sm:grid-cols-3">
                         {strengthChecks.map(c => (
-                            <li key={c.label} className={cn('flex items-center gap-1', c.done ? 'text-green-700 dark:text-green-400' : 'text-gray-400')}>
-                                <span aria-hidden>{c.done ? '✓' : '○'}</span> {c.label}
+                            <li key={c.label} className={cn('flex items-center gap-1.5', c.done ? 'text-brand-ink dark:text-primary' : 'text-muted-foreground')}>
+                                {c.done ? <Check size={12} aria-hidden /> : <span className="size-3 rounded-full border border-current" aria-hidden />} {c.label}
                             </li>
                         ))}
                     </ul>
@@ -560,10 +562,10 @@ export default function Profile() {
 
             {/* Profile Data Card */}
             <motion.div variants={itemVariants}>
-                <Card className="overflow-hidden rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft">
-                    <CardHeader className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-800 px-6 py-4">
-                        <div className="flex justify-between items-center">
-                            <h2 className="text-base font-extrabold leading-tight tracking-tight text-gray-900 dark:text-gray-100">Persönliche Angaben</h2>
+                <Card className="overflow-hidden border-border bg-card shadow-soft">
+                    <CardHeader className="border-b border-border bg-card px-4 py-4 sm:px-6">
+                        <div className="flex items-center justify-between gap-3">
+                            <h2 className="text-base font-semibold leading-tight tracking-tight text-foreground">Persönliche Angaben</h2>
                             <Button
                                 variant={isEditing ? "primary" : "secondary"}
                                 size="sm"
@@ -573,9 +575,10 @@ export default function Profile() {
                                     else setIsEditing(true);
                                 }}
                                 disabled={saving}
-                                className={cn("rounded-full font-extrabold", isEditing && "bg-green-500 hover:bg-green-600 text-white")}
+                                isLoading={saving}
+                                className="h-11 rounded-full px-5 font-semibold"
                             >
-                                {saving ? <Loader2 className="animate-spin" size={16} /> : (isEditing ? 'Speichern' : 'Bearbeiten')}
+                                {isEditing ? 'Speichern' : 'Bearbeiten'}
                             </Button>
                         </div>
                     </CardHeader>
@@ -583,7 +586,7 @@ export default function Profile() {
                         {/* Names */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <Label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1.5 block">Vorname</Label>
+                                <Label className="text-xs font-semibold text-foreground/80 mb-1.5 block">Vorname</Label>
                                 <Input
                                     placeholder="Max"
                                     value={profile.first_name}
@@ -592,7 +595,7 @@ export default function Profile() {
                                 />
                             </div>
                             <div>
-                                <Label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1.5 block">Nachname</Label>
+                                <Label className="text-xs font-semibold text-foreground/80 mb-1.5 block">Nachname</Label>
                                 <Input
                                     placeholder="Mustermann"
                                     value={profile.last_name}
@@ -604,7 +607,7 @@ export default function Profile() {
 
                         {/* Grade & Bio */}
                         <div>
-                            <Label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-2 block">Klasse</Label>
+                            <Label className="text-xs font-semibold text-foreground/80 mb-2 block">Klasse</Label>
                             {isEditing ? (
                                 <RefinedGradeSelector
                                     grade={profile.grade_level}
@@ -612,14 +615,14 @@ export default function Profile() {
                                     onChange={(g, l) => setProfile({ ...profile, grade_level: g, class_letter: l })}
                                 />
                             ) : (
-                                <div className="text-base font-bold text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800/50 p-3 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <div className="text-base font-semibold text-foreground bg-muted/50 p-3 rounded-xl border border-border">
                                     {profile.grade_level ? `${profile.grade_level}${profile.class_letter}` : 'Nicht angegeben'}
                                 </div>
                             )}
                         </div>
 
                         <div>
-                            <Label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1.5 block">Über mich (Bio)</Label>
+                            <Label className="text-xs font-semibold text-foreground/80 mb-1.5 block">Über mich (Bio)</Label>
                             {isEditing ? (
                                 <RichTextEditor
                                     value={profile.bio}
@@ -627,25 +630,25 @@ export default function Profile() {
                                     placeholder="Schreib kurz etwas über deine Fächer & Erfahrung..."
                                 />
                             ) : (
-                                <div className="text-sm text-gray-700 dark:text-gray-300 bg-gray-50/60 dark:bg-gray-800/40 p-4 rounded-xl border border-gray-100 dark:border-gray-800/80 leading-relaxed max-w-[95ch]" dangerouslySetInnerHTML={{ __html: sanitizeHtml(profile.bio || "<i>Keine Beschreibung hinterlegt.</i>") }} />
+                                <div className="text-sm text-foreground/80 bg-muted/50 p-4 rounded-xl border border-border leading-relaxed max-w-[95ch]" dangerouslySetInnerHTML={{ __html: sanitizeHtml(profile.bio || "<i>Keine Beschreibung hinterlegt.</i>") }} />
                             )}
                         </div>
 
-                        <div className="border-t border-gray-100 dark:border-gray-800 my-4" />
+                        <div className="border-t border-border my-4" />
 
                         {/* Contact Info */}
                         <div className="space-y-4">
-                            <h3 className="font-extrabold text-sm text-gray-900 dark:text-white">Kontaktmöglichkeiten</h3>
+                            <h3 className="text-sm font-semibold text-foreground">Kontaktmöglichkeiten</h3>
 
                             <div className="space-y-3">
                                 {/* Email */}
                                 <div className="flex flex-wrap items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center shrink-0">
-                                        <Mail size={16} className="text-gray-500" />
+                                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                                        <Mail size={16} className="text-muted-foreground" />
                                     </div>
                                     <Input
                                         value={profile.email}
-                                        className="h-10 min-w-0 flex-1 basis-40 text-xs"
+                                        className="h-11 min-w-0 flex-1 basis-40 text-sm"
                                         disabled
                                     />
                                     {isEditing && (
@@ -655,21 +658,21 @@ export default function Profile() {
                                                 onChange={() => toggleSetting('email_visible')}
                                                 label="E-Mail-Adresse öffentlich anzeigen"
                                             />
-                                            <span className="text-xs text-gray-400 font-semibold">Sichtbar</span>
+                                            <span className="text-xs text-muted-foreground font-semibold">Sichtbar</span>
                                         </div>
                                     )}
                                 </div>
 
                                 {/* Phone */}
                                 <div className="flex flex-wrap items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center shrink-0">
-                                        <Phone size={16} className="text-gray-500" />
+                                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                                        <Phone size={16} className="text-muted-foreground" />
                                     </div>
                                     <Input
                                         placeholder="Handynummer (Optional)"
                                         value={profile.phone_number}
                                         onChange={e => setProfile({ ...profile, phone_number: e.target.value })}
-                                        className="h-10 min-w-0 flex-1 basis-40 text-xs"
+                                        className="h-11 min-w-0 flex-1 basis-40 text-sm"
                                         disabled={!isEditing}
                                     />
                                     {isEditing && (
@@ -679,7 +682,7 @@ export default function Profile() {
                                                 onChange={() => toggleSetting('phone_visible')}
                                                 label="Telefonnummer öffentlich anzeigen"
                                             />
-                                            <span className="text-xs text-gray-400 font-semibold">Sichtbar</span>
+                                            <span className="text-xs text-muted-foreground font-semibold">Sichtbar</span>
                                         </div>
                                     )}
                                 </div>
@@ -689,15 +692,15 @@ export default function Profile() {
                                     const ContactIcon = getContactType(contact.type).icon;
                                     return (
                                         <div key={contact.id} className="flex flex-wrap items-center gap-2">
-                                            <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center shrink-0">
-                                                <ContactIcon size={16} className="text-gray-500" />
+                                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                                                <ContactIcon size={16} className="text-muted-foreground" />
                                             </div>
                                             <NativeSelect
                                                 value={contact.type}
                                                 disabled={!isEditing}
                                                 onChange={e => updateCustomContact(idx, { type: e.target.value })}
                                                 aria-label="Kontakt-Typ"
-                                                className="h-10 shrink-0 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 text-xs font-semibold text-gray-700 dark:text-gray-200 disabled:opacity-60"
+                                                className="h-11 shrink-0 px-3 text-xs font-semibold disabled:opacity-60"
                                             >
                                                 {CONTACT_TYPES.map(t => (
                                                     <option key={t.value} value={t.value}>{t.label}</option>
@@ -708,7 +711,7 @@ export default function Profile() {
                                                 value={contact.value || ''}
                                                 disabled={!isEditing}
                                                 onChange={e => updateCustomContact(idx, { value: e.target.value })}
-                                                className="h-10 min-w-0 flex-1 basis-32 text-xs"
+                                                className="h-11 min-w-0 flex-1 basis-32 text-sm"
                                             />
                                             {isEditing && (
                                                 <div className="flex w-full items-center justify-end gap-2 sm:w-auto sm:shrink-0">
@@ -718,13 +721,13 @@ export default function Profile() {
                                                             onChange={() => updateCustomContact(idx, { is_public: !contact.is_public })}
                                                             label={`${getContactType(contact.type).label}-Kontakt öffentlich anzeigen`}
                                                         />
-                                                        <span className="text-xs text-gray-400 font-semibold">Sichtbar</span>
+                                                        <span className="text-xs text-muted-foreground font-semibold">Sichtbar</span>
                                                     </div>
                                                     <Button variant="unstyled" size="unstyled"
                                                         type="button"
                                                         onClick={() => removeCustomContact(idx)}
                                                         aria-label="Kontakt entfernen"
-                                                        className="press grid h-10 w-10 shrink-0 place-items-center rounded-xl text-gray-500 hover:bg-gray-100 hover:text-red-600 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
+                                                        className="grid size-11 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                                                     >
                                                         <Trash2 size={16} />
                                                     </Button>
@@ -737,7 +740,7 @@ export default function Profile() {
                                     <Button variant="unstyled" size="unstyled"
                                         type="button"
                                         onClick={addCustomContact}
-                                        className="inline-flex h-10 items-center gap-1.5 rounded-full border border-dashed border-gray-300 dark:border-gray-700 px-4 text-xs font-bold text-gray-600 dark:text-gray-300 transition-colors hover:border-primary hover:text-amber-950 dark:hover:text-primary"
+                                        className="inline-flex h-11 items-center gap-1.5 rounded-full border border-dashed border-border px-4 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-brand-ink dark:hover:text-primary"
                                     >
                                         <Plus size={15} /> Kontakt hinzufügen
                                     </Button>
@@ -745,11 +748,11 @@ export default function Profile() {
                             </div>
                         </div>
 
-                        <div className="border-t border-gray-100 dark:border-gray-800 my-4" />
+                        <div className="border-t border-border my-4" />
 
                         <div>
                             <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
-                                <Label className="text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-400 block">Ich biete Nachhilfe</Label>
+                                <Label className="text-xs font-semibold text-foreground/80 block">Ich biete Nachhilfe</Label>
                                 <Button
                                     variant="outline"
                                     size="sm"
@@ -757,7 +760,7 @@ export default function Profile() {
                                         triggerHaptic('light');
                                         navigate('/create-ad');
                                     }}
-                                    className="rounded-full text-xs font-bold gap-1.5 h-9 sm:h-8"
+                                    className="h-11 gap-1.5 rounded-full px-4 text-xs font-semibold"
                                 >
                                     <Plus size={14} /> Anzeige erstellen
                                 </Button>
@@ -767,12 +770,12 @@ export default function Profile() {
                             <div className="flex flex-wrap items-center gap-2">
                                 {editableSubjects.map(s => (
                                     <span key={s} className="relative inline-flex">
-                                        <SubjectChip subject={s} className="pr-6" />
+                                        <SubjectChip subject={s} className="pr-11" />
                                         <Button variant="unstyled" size="unstyled"
                                             type="button"
                                             onClick={() => toggleTeachesSubject(s)}
                                             aria-label={`${subjectLabelMap[s]} entfernen`}
-                                            className="absolute right-0 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full text-gray-600 transition-colors hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 after:absolute after:-inset-2 after:content-['']"
+                                            className="absolute right-0 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full text-muted-foreground transition-colors hover:text-destructive"
                                         >
                                             <X size={12} strokeWidth={3} />
                                         </Button>
@@ -784,19 +787,19 @@ export default function Profile() {
                                         triggerHaptic('light');
                                         setIsSubjectPickerOpen(true);
                                     }}
-                                    className="press inline-flex h-9 items-center gap-1 rounded-full border border-dashed border-gray-300 dark:border-gray-700 px-3 text-xs font-bold text-gray-600 dark:text-gray-300 transition-colors hover:border-primary hover:text-amber-950 dark:hover:text-primary sm:h-8"
+                                    className="inline-flex h-11 items-center gap-1 rounded-full border border-dashed border-border px-4 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-brand-ink dark:hover:text-primary"
                                 >
                                     <Plus size={14} /> Fach hinzufügen
                                 </Button>
                             </div>
                             {editableSubjects.length === 0 && (
-                                <p className="text-xs text-gray-400 italic mt-2">Noch keine Fächer gewählt.</p>
+                                <p className="text-xs text-muted-foreground italic mt-2">Noch keine Fächer gewählt.</p>
                             )}
 
                             {/* Read-only: nur über aktive Angebots-Anzeigen */}
                             {adManagedSubjects.length > 0 && (
                                 <div className="mt-4">
-                                    <p className="text-[11px] font-extrabold uppercase tracking-wider text-gray-400 mb-2">
+                                    <p className="text-xs font-semibold text-muted-foreground mb-2">
                                         Aus deinen aktiven Anzeigen · über Anzeigen verwaltet
                                     </p>
                                     <div className="flex flex-wrap gap-2 opacity-80">
@@ -805,7 +808,7 @@ export default function Profile() {
                                 </div>
                             )}
 
-                            <p className="text-[11px] text-gray-400 mt-2.5 leading-relaxed">
+                            <p className="mt-2.5 text-xs leading-relaxed text-muted-foreground">
                                 Deine gewählten Fächer steuern, welche privaten Gesuche du im Feed siehst. Tippe auf ×, um ein Fach zu entfernen.
                             </p>
                         </div>
@@ -815,10 +818,10 @@ export default function Profile() {
 
             {/* Availability Calendar (Wann hast du Zeit?) */}
             <motion.div variants={itemVariants}>
-                <Card className="rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft bg-white/90 dark:bg-gray-900/90 backdrop-blur-md">
+                <Card className="border-border bg-card shadow-soft">
                     <CardHeader className="pb-3">
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                            <CardTitle className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
+                            <CardTitle className="flex items-center gap-2 text-lg font-semibold text-foreground">
                                 <CalendarDays size={20} className="text-primary shrink-0" /> Wann hast du Zeit? (Verfügbarkeit)
                             </CardTitle>
                             {isEditing && (
@@ -826,17 +829,17 @@ export default function Profile() {
                                     type="button"
                                     onClick={() => setPrivacyCalendar(!privacyCalendar)}
                                     className={cn(
-                                        "text-xs px-3 py-1.5 rounded-full border font-bold transition-all cursor-pointer shadow-2xs",
+                                        "min-h-11 rounded-full border px-3 text-xs font-semibold transition-colors",
                                         privacyCalendar
-                                            ? "bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
-                                            : "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300"
+                                            ? "border-border bg-muted text-muted-foreground"
+                                            : "border-primary/25 bg-primary/15 text-brand-ink dark:text-primary"
                                     )}
                                 >
                                     {privacyCalendar ? (<span className="inline-flex items-center gap-1"><Lock size={12} /> Nur für Vorschläge sichtbar</span>) : (<span className="inline-flex items-center gap-1"><Eye size={12} /> Öffentlich sichtbar</span>)}
                                 </Button>
                             )}
                         </div>
-                        <p className="text-xs text-gray-400 mt-1 font-medium leading-relaxed">
+                        <p className="text-xs text-muted-foreground mt-1 font-medium leading-relaxed">
                             {privacyCalendar
                                 ? 'Dein Zeitplan wird für passende Vorschläge verwendet (zum Beispiel gemeinsame freie Zeiten mit anderen Schülerinnen und Schülern).'
                                 : 'Dein Kalender ist zusätzlich öffentlich auf deinem Profil sichtbar.'}
@@ -862,7 +865,7 @@ export default function Profile() {
                                         triggerHaptic('light');
                                         setIsEditing(true);
                                     }}
-                                    className="rounded-xl text-xs font-bold gap-1.5 h-9 sm:h-8"
+                                    className="h-11 gap-1.5 rounded-full px-4 text-xs font-semibold"
                                 >
                                     <Pen size={13} /> Zeiten bearbeiten
                                 </Button>

@@ -271,17 +271,17 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
         <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
             <DialogContent
                 showCloseButton={false}
-                className="top-auto bottom-0 left-0 right-0 max-h-[90vh] max-w-none translate-x-0 translate-y-0 gap-0 overflow-hidden rounded-b-none rounded-t-3xl p-0 sm:top-1/2 sm:bottom-auto sm:left-1/2 sm:right-auto sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl"
+                className="bottom-0 left-0 right-0 top-auto max-h-[92dvh] max-w-none translate-x-0 translate-y-0 gap-0 overflow-hidden rounded-b-none rounded-t-3xl border border-border p-0 shadow-overlay sm:bottom-auto sm:left-1/2 sm:right-auto sm:top-1/2 sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl"
             >
                 <DialogDescription className="sr-only">
                     Support, Fehlermeldungen und Nachrichten an das SV-Team.
                 </DialogDescription>
-                <div className="flex max-h-[90vh] w-full flex-col overflow-hidden bg-white pb-[env(safe-area-inset-bottom)] dark:bg-gray-900">
+                <div className="flex max-h-[92dvh] w-full flex-col overflow-hidden bg-card pb-[env(safe-area-inset-bottom)]">
                     {/* Header */}
-                    <div className="flex items-center justify-between px-6 py-4 border-b dark:border-gray-800 shrink-0">
-                        <div className="flex items-center gap-2">
+                    <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-4 py-3 sm:px-6 sm:py-4">
+                        <div className="flex min-w-0 flex-1 items-center gap-2">
                             {view !== 'menu' && (
-                                <Button variant="unstyled" size="unstyled" type="submit"
+                                <Button variant="unstyled" size="unstyled" type="button"
                                     onClick={() => {
                                         if (activeTicket) {
                                             setActiveTicket(null);
@@ -289,98 +289,99 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                             setView('menu');
                                         }
                                     }}
-                                    className="text-gray-400 hover:text-gray-600 p-1 -ml-1"
+                                    aria-label="Zurück"
+                                    className="-ml-2 grid size-11 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
                                 >
-                                    <ChevronLeft size={20} />
+                                    <ChevronLeft size={20} aria-hidden />
                                 </Button>
                             )}
-                            <DialogTitle className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-1.5">
+                            <DialogTitle className="text-base font-semibold text-foreground flex items-center gap-1.5">
                                 {view === 'menu' && 'Hilfe'}
                                 {view === 'form' && (ticketType === 'bug' ? <><Bug size={18} className="inline" /> Fehler melden</> : <><Lightbulb size={18} className="inline" /> Verbesserung vorschlagen</>)}
                                 {view === 'chat' && (activeTicket ? activeTicket.title : <><MessageCircle size={18} className="inline" /> Nachrichten</>)}
-                                {view === 'success' && <><CheckCircle size={18} className="inline text-green-500" /> Eingereicht!</>}
+                                {view === 'success' && <><CheckCircle size={18} className="inline text-brand-ink dark:text-primary" /> Eingereicht!</>}
                             </DialogTitle>
                         </div>
-                        <Button variant="unstyled" size="unstyled" type="submit"
+                        <Button variant="unstyled" size="unstyled" type="button"
                             onClick={onClose}
-                            className="p-1.5 rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                            className="p-1.5 rounded-xl text-muted-foreground transition-colors hover:bg-muted"
                         >
                             <X size={20} />
                         </Button>
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1 min-h-0 overflow-y-auto p-6">
+                    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6">
                         {/* Menu View */}
                         {view === 'menu' && (
                             <div className="space-y-3">
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                                <p className="text-sm text-muted-foreground mb-4">
                                     Wie können wir dir helfen? Wähle eine Option:
                                 </p>
 
-                                <Button variant="unstyled" size="unstyled" type="submit"
+                                <Button variant="unstyled" size="unstyled" type="button"
                                     onClick={() => { setTicketType('bug'); setView('form'); triggerHaptic('light'); }}
-                                    className="w-full flex items-center gap-4 p-4 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-2xl text-left hover:bg-red-100/60 dark:hover:bg-red-950/30 transition-all group cursor-pointer"
+                                    className="group flex min-h-16 w-full items-center gap-4 rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted"
                                 >
-                                    <div className="w-12 h-12 rounded-2xl bg-red-500/20 flex items-center justify-center shrink-0">
-                                        <Bug size={22} className="text-red-600 dark:text-red-400" />
+                                    <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/15 text-brand-ink dark:text-primary">
+                                        <Bug size={22} className="" />
                                     </div>
                                     <div>
-                                        <p className="font-extrabold text-sm text-gray-900 dark:text-white">Fehler melden</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">Etwas funktioniert nicht richtig? Lass es uns wissen.</p>
+                                        <p className="text-sm font-semibold text-foreground">Fehler melden</p>
+                                        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Etwas funktioniert nicht richtig? Lass es uns wissen.</p>
                                     </div>
                                 </Button>
 
-                                <Button variant="unstyled" size="unstyled" type="submit"
+                                <Button variant="unstyled" size="unstyled" type="button"
                                     onClick={() => { setTicketType('feature'); setView('form'); triggerHaptic('light'); }}
-                                    className="w-full flex items-center gap-4 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/30 rounded-2xl text-left hover:bg-amber-100/60 dark:hover:bg-amber-950/30 transition-all group cursor-pointer"
+                                    className="group flex min-h-16 w-full items-center gap-4 rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted"
                                 >
-                                    <div className="w-12 h-12 rounded-2xl bg-amber-500/20 flex items-center justify-center shrink-0">
-                                        <Lightbulb size={22} className="text-amber-600 dark:text-amber-400" />
+                                    <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/15 text-brand-ink dark:text-primary">
+                                        <Lightbulb size={22} className="" />
                                     </div>
                                     <div>
-                                        <p className="font-extrabold text-sm text-gray-900 dark:text-white">Verbesserung vorschlagen</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">Hast du eine Idee für eine Verbesserung?</p>
+                                        <p className="text-sm font-semibold text-foreground">Verbesserung vorschlagen</p>
+                                        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Hast du eine Idee für eine Verbesserung?</p>
                                     </div>
                                 </Button>
 
-                                <Button variant="unstyled" size="unstyled" type="submit"
+                                <Button variant="unstyled" size="unstyled" type="button"
                                     onClick={() => { openChatView(); triggerHaptic('light'); }}
-                                    className="w-full flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 rounded-2xl text-left hover:bg-blue-100/60 dark:hover:bg-blue-950/30 transition-all group cursor-pointer"
+                                    className="group flex min-h-16 w-full items-center gap-4 rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted"
                                 >
-                                    <div className="w-12 h-12 rounded-2xl bg-blue-500/20 flex items-center justify-center shrink-0">
-                                        <MessageCircle size={22} className="text-blue-600 dark:text-blue-400" />
+                                    <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/15 text-brand-ink dark:text-primary">
+                                        <MessageCircle size={22} className="" />
                                     </div>
                                     <div>
-                                        <p className="font-extrabold text-sm text-gray-900 dark:text-white">Nachrichten</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">Bisherige Anfragen ansehen und weiterschreiben.</p>
+                                        <p className="text-sm font-semibold text-foreground">Nachrichten</p>
+                                        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Bisherige Anfragen ansehen und weiterschreiben.</p>
                                     </div>
                                 </Button>
 
-                                <Button variant="unstyled" size="unstyled" type="submit"
+                                <Button variant="unstyled" size="unstyled" type="button"
                                     onClick={() => { handleStartDirectChat(); }}
                                     disabled={startingDirectChat}
-                                    className="w-full flex items-center gap-4 p-4 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-2xl text-left hover:bg-emerald-100/60 dark:hover:bg-emerald-950/30 transition-all group cursor-pointer disabled:opacity-60"
+                                    className="w-full flex items-center gap-4 p-4 border border-border bg-card text-left transition-colors hover:bg-muted group cursor-pointer rounded-xl disabled:opacity-60"
                                 >
-                                    <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center shrink-0">
-                                        {startingDirectChat ? <Loader2 size={22} className="text-emerald-600 dark:text-emerald-400 animate-spin" /> : <Zap size={22} className="text-emerald-600 dark:text-emerald-400" />}
+                                    <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/15 text-brand-ink dark:text-primary">
+                                        {startingDirectChat ? <Loader2 size={22} className=" animate-spin" /> : <Zap size={22} className="" />}
                                     </div>
                                     <div>
-                                        <p className="font-extrabold text-sm text-gray-900 dark:text-white">Direkt schreiben</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">Schreibe direkt an das SV-Team. Du brauchst kein Formular.</p>
+                                        <p className="text-sm font-semibold text-foreground">Direkt schreiben</p>
+                                        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Schreibe direkt an das SV-Team. Du brauchst kein Formular.</p>
                                     </div>
                                 </Button>
 
-                                <Button variant="unstyled" size="unstyled" type="submit"
+                                <Button variant="unstyled" size="unstyled" type="button"
                                     onClick={() => { setShowReportWizard(true); triggerHaptic('light'); }}
-                                    className="w-full flex items-center gap-4 p-4 bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/30 rounded-2xl text-left hover:bg-orange-100/60 dark:hover:bg-orange-950/30 transition-all group cursor-pointer"
+                                    className="group flex min-h-16 w-full items-center gap-4 rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted"
                                 >
-                                    <div className="w-12 h-12 rounded-2xl bg-orange-500/20 flex items-center justify-center shrink-0">
-                                        <Flag size={22} className="text-orange-600 dark:text-orange-400" />
+                                    <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/15 text-brand-ink dark:text-primary">
+                                        <Flag size={22} className="" />
                                     </div>
                                     <div>
-                                        <p className="font-extrabold text-sm text-gray-900 dark:text-white">Inhalt melden</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">Anzeige, Profil, Chat oder Datenschutzverstoß melden.</p>
+                                        <p className="text-sm font-semibold text-foreground">Inhalt melden</p>
+                                        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Anzeige, Profil, Chat oder Datenschutzverstoß melden.</p>
                                     </div>
                                 </Button>
                             </div>
@@ -390,38 +391,38 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                         {view === 'form' && (
                             <div className="space-y-5">
                                 {/* Auto-detected Device Info */}
-                                <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 rounded-2xl p-3 space-y-1">
-                                    <p className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Automatisch erkannt</p>
+                                <div className="bg-muted/40 border border-border rounded-xl p-3 space-y-1">
+                                    <p className="text-xs font-semibold text-muted-foreground">Automatisch erkannt</p>
                                     <div className="flex flex-wrap gap-2">
-                                        <span className="flex items-center gap-1 text-xs bg-white dark:bg-gray-700 px-2 py-0.5 rounded-lg border dark:border-gray-600 text-gray-600 dark:text-gray-300">
+                                        <span className="flex items-center gap-1 text-xs bg-card px-2 py-0.5 rounded-lg border border-border text-muted-foreground">
                                             <Smartphone size={12} /> {deviceInfo.device}
                                         </span>
-                                        <span className="flex items-center gap-1 text-xs bg-white dark:bg-gray-700 px-2 py-0.5 rounded-lg border dark:border-gray-600 text-gray-600 dark:text-gray-300">
+                                        <span className="flex items-center gap-1 text-xs bg-card px-2 py-0.5 rounded-lg border border-border text-muted-foreground">
                                             <Monitor size={12} /> {deviceInfo.os}
                                         </span>
-                                        <span className="flex items-center gap-1 text-xs bg-white dark:bg-gray-700 px-2 py-0.5 rounded-lg border dark:border-gray-600 text-gray-600 dark:text-gray-300">
+                                        <span className="flex items-center gap-1 text-xs bg-card px-2 py-0.5 rounded-lg border border-border text-muted-foreground">
                                             <Globe size={12} /> {deviceInfo.browser}
                                         </span>
-                                        <span className="text-xs text-gray-400">
+                                        <span className="text-xs text-muted-foreground">
                                             {deviceInfo.screenWidth}×{deviceInfo.screenHeight}
                                         </span>
                                     </div>
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Titel *</Label>
+                                    <Label className="text-xs font-semibold text-foreground/80">Titel *</Label>
                                     <Input
                                         type="text"
                                         value={title}
                                         onChange={e => setTitle(e.target.value)}
                                         placeholder={ticketType === 'bug' ? 'z.B. Anzeige lädt nicht auf dem Handy' : 'z.B. Dunkelmodus für den Chat'}
-                                        className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-transparent text-sm focus:ring-2 focus:ring-primary outline-none text-gray-900 dark:text-white"
+                                        className="w-full"
                                         maxLength={120}
                                     />
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                    <Label className="text-xs font-semibold text-foreground/80">
                                         {ticketType === 'bug' ? 'Was ist passiert? *' : 'Beschreibe deine Idee *'}
                                     </Label>
                                     <Textarea
@@ -430,27 +431,20 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                         placeholder={ticketType === 'bug' 
                                             ? 'Beschreibe den Fehler so genau wie möglich...\n\nWas hast du getan?\nWas hätte passieren sollen?\nWas ist stattdessen passiert?' 
                                             : 'Beschreibe deine gewünschte Verbesserung...\n\nWas soll es können?\nWarum wäre es nützlich?'}
-                                        className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-transparent text-sm focus:ring-2 focus:ring-primary outline-none text-gray-900 dark:text-white min-h-[140px] resize-none"
+                                        className="min-h-36 w-full resize-none"
                                         maxLength={2000}
                                     />
-                                    <p className="text-[10px] text-gray-400 text-right">{description.length}/2000</p>
+                                    <p className="text-xs text-muted-foreground text-right">{description.length}/2000</p>
                                 </div>
 
-                                <Button variant="unstyled" size="unstyled" type="submit"
+                                <Button
+                                    type="button"
                                     onClick={handleSubmitTicket}
                                     disabled={submitting || !title.trim() || !description.trim()}
-                                    className={cn(
-                                        'w-full flex items-center justify-center gap-2 px-5 py-3 rounded-2xl text-sm font-black transition-all cursor-pointer',
-                                        submitting || !title.trim() || !description.trim()
-                                            ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
-                                            : 'bg-primary hover:bg-primary-hover text-primary-foreground shadow-sm'
-                                    )}
+                                    isLoading={submitting}
+                                    className="h-11 w-full gap-2 rounded-full text-sm font-semibold"
                                 >
-                                    {submitting ? (
-                                        <><Loader2 size={16} className="animate-spin" /> Wird gesendet...</>
-                                    ) : (
-                                        <><Send size={16} /> Absenden</>
-                                    )}
+                                    <Send size={16} aria-hidden /> Absenden
                                 </Button>
                             </div>
                         )}
@@ -459,49 +453,49 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                         {view === 'chat' && !activeTicket && (
                             <div className="space-y-3">
                                 {loadingChat ? (
-                                    <div className="py-12 flex flex-col items-center gap-3">
+                                    <div className="flex flex-col items-center gap-3 py-12">
                                         <Loader2 size={24} className="text-primary animate-spin" />
-                                        <p className="text-sm text-gray-400">Anfragen werden geladen...</p>
+                                        <p className="text-sm text-muted-foreground">Anfragen werden geladen...</p>
                                     </div>
                                 ) : chatTickets.length === 0 ? (
                                     <div className="py-12 text-center space-y-3">
-                                        <MessageCircle size={40} className="mx-auto text-gray-300" />
-                                        <p className="text-sm text-gray-500 font-medium">Noch keine Anfragen.</p>
-                                        <p className="text-xs text-gray-400">Erstelle eine Anfrage, um ein Gespräch mit dem SV-Team zu beginnen.</p>
-                                        <Button variant="unstyled" size="unstyled" type="submit"
+                                        <MessageCircle size={40} className="mx-auto text-muted-foreground/60" />
+                                        <p className="text-sm text-muted-foreground font-medium">Noch keine Anfragen.</p>
+                                        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Erstelle eine Anfrage, um ein Gespräch mit dem SV-Team zu beginnen.</p>
+                                        <Button variant="unstyled" size="unstyled" type="button"
                                             onClick={() => setView('menu')}
-                                            className="px-4 py-2 bg-primary hover:bg-primary-hover text-primary-foreground rounded-xl text-xs font-bold transition-all"
+                                            className="min-h-11 rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground"
                                         >
                                             Neue Anfrage erstellen
                                         </Button>
                                     </div>
                                 ) : (
                                     chatTickets.map(ticket => (
-                                        <Button variant="unstyled" size="unstyled" type="submit"
+                                        <Button variant="unstyled" size="unstyled" type="button"
                                             key={ticket.id}
                                             onClick={() => openTicketChat(ticket)}
-                                            className="w-full flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 rounded-2xl text-left hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer"
+                                            className="w-full flex items-start gap-3 p-4 rounded-xl border border-border bg-card text-left transition-colors hover:bg-muted cursor-pointer"
                                         >
                                             <div className={cn(
                                                 'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-lg',
-                                                ticket.type === 'bug' ? 'bg-red-100 dark:bg-red-900/30' : ticket.type === 'feature' ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-blue-100 dark:bg-blue-900/30'
+                                                'bg-primary/15 text-brand-ink dark:text-primary'
                                             )}>
                                                 {ticket.type === 'bug' ? <Bug size={18} /> : ticket.type === 'feature' ? <Lightbulb size={18} /> : <MessageCircle size={18} />}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2">
-                                                    <p className="font-bold text-sm text-gray-900 dark:text-white truncate">{ticket.title}</p>
+                                                    <p className="font-semibold text-sm text-foreground truncate">{ticket.title}</p>
                                                     <span className={cn(
-                                                        'text-[10px] px-2 py-0.5 rounded-full font-bold uppercase shrink-0',
-                                                        ticket.status === 'open' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                                                            : ticket.status === 'in_progress' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
-                                                            : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                                                        'shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold',
+                                                        ticket.status === 'open' ? 'bg-primary/15 text-brand-ink dark:text-primary'
+                                                            : ticket.status === 'in_progress' ? 'bg-muted text-foreground/80'
+                                                            : 'bg-muted text-muted-foreground'
                                                     )}>
                                                         {ticket.status === 'open' ? 'Offen' : ticket.status === 'in_progress' ? 'In Bearbeitung' : ticket.status === 'resolved' ? 'Gelöst' : 'Geschlossen'}
                                                     </span>
                                                 </div>
-                                                <p className="text-xs text-gray-500 truncate mt-0.5">{ticket.description}</p>
-                                                <p className="text-[10px] text-gray-400 mt-1">
+                                                <p className="text-xs text-muted-foreground truncate mt-0.5">{ticket.description}</p>
+                                                <p className="text-xs text-muted-foreground mt-1">
                                                     {new Date(ticket.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                                 </p>
                                             </div>
@@ -515,32 +509,32 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                         {view === 'chat' && activeTicket && (
                             <div className="space-y-3">
                                 {/* Ticket info */}
-                                <div className="bg-gray-50 dark:bg-gray-800/40 rounded-2xl p-3 border dark:border-gray-800 text-xs text-gray-500 space-y-1">
-                                    <p><span className="font-bold">Typ:</span> {activeTicket.type === 'bug' ? 'Bug' : activeTicket.type === 'feature' ? 'Feature' : 'Support'}</p>
-                                    <p><span className="font-bold">Status:</span> {activeTicket.status}</p>
-                                    <p className="text-gray-400 line-clamp-2">{activeTicket.description}</p>
+                                <div className="space-y-1 rounded-xl border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+                                    <p><span className="font-semibold">Typ:</span> {activeTicket.type === 'bug' ? 'Bug' : activeTicket.type === 'feature' ? 'Feature' : 'Support'}</p>
+                                    <p><span className="font-semibold">Status:</span> {activeTicket.status}</p>
+                                    <p className="text-muted-foreground line-clamp-2">{activeTicket.description}</p>
                                 </div>
 
                                 {/* Messages */}
                                 <div className="space-y-2 min-h-[120px]">
                                     {messages.length === 0 && (
-                                        <p className="text-center text-xs text-gray-400 py-8">Noch keine Nachrichten. Schreib dem Support-Team!</p>
+                                        <p className="text-center text-xs text-muted-foreground py-8">Noch keine Nachrichten. Schreib dem Support-Team!</p>
                                     )}
                                     {messages.map(msg => (
                                         <div
                                             key={msg.id}
                                             className={cn(
-                                                'max-w-[85%] rounded-2xl px-4 py-2.5 text-sm',
+                                                'max-w-[85%] rounded-xl px-4 py-2.5 text-sm',
                                                 msg.is_admin_reply
-                                                    ? 'bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/30 mr-auto'
-                                                    : 'bg-primary/15 dark:bg-primary/10 ml-auto'
+                                                    ? 'mr-auto border border-border bg-muted'
+                                                    : 'ml-auto bg-primary/15'
                                             )}
                                         >
-                                            <p className="text-[10px] font-bold text-gray-400 mb-0.5">
+                                            <p className="text-xs font-semibold text-muted-foreground mb-0.5">
                                                 {msg.is_admin_reply ? (<span className="inline-flex items-center gap-1"><Shield size={12} /> SV Admin</span>) : 'Du'}
                                             </p>
-                                            <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap">{msg.content}</p>
-                                            <p className="text-[10px] text-gray-400 text-right mt-1">
+                                            <p className="whitespace-pre-wrap text-foreground">{msg.content}</p>
+                                            <p className="text-xs text-muted-foreground text-right mt-1">
                                                 {new Date(msg.created_at).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
                                             </p>
                                         </div>
@@ -553,24 +547,24 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                         {/* Success View */}
                         {view === 'success' && (
                             <div className="py-8 text-center space-y-4">
-                                <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto">
-                                    <CheckCircle size={32} className="text-green-600 dark:text-green-400" />
+                                <div className="mx-auto grid size-16 place-items-center rounded-full bg-primary/15 text-brand-ink dark:text-primary">
+                                    <CheckCircle size={32} aria-hidden />
                                 </div>
-                                <h3 className="text-lg font-extrabold text-gray-900 dark:text-white">Anfrage gesendet.</h3>
-                                <p className="text-sm text-gray-500 max-w-xs mx-auto">
+                                <h3 className="text-lg font-semibold text-foreground">Anfrage gesendet.</h3>
+                                <p className="text-sm text-muted-foreground max-w-xs mx-auto">
                                     Deine Anfrage wurde an das SV-Team gesendet.
                                     Du kannst den Status in den Nachrichten verfolgen.
                                 </p>
                                 <div className="flex gap-2 justify-center pt-2">
-                                    <Button variant="unstyled" size="unstyled" type="submit"
+                                    <Button variant="unstyled" size="unstyled" type="button"
                                         onClick={() => { openChatView(); }}
-                                        className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-300 transition-all"
+                                        className="min-h-11 rounded-full bg-muted px-4 text-xs font-semibold text-foreground transition-colors hover:bg-muted/70"
                                     >
                                         Zu den Nachrichten
                                     </Button>
-                                    <Button variant="unstyled" size="unstyled" type="submit"
+                                    <Button variant="unstyled" size="unstyled" type="button"
                                         onClick={onClose}
-                                        className="px-4 py-2 bg-primary hover:bg-primary-hover text-primary-foreground rounded-xl text-xs font-bold transition-all"
+                                        className="min-h-11 rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
                                     >
                                         Schließen
                                     </Button>
@@ -581,7 +575,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
 
                     {/* Chat input footer */}
                     {view === 'chat' && activeTicket && (
-                        <div className="border-t dark:border-gray-800 p-4 shrink-0 bg-gray-50/50 dark:bg-gray-900/50">
+                        <div className="shrink-0 border-t border-border bg-muted/30 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:p-4">
                             <div className="flex gap-2">
                                 <Input
                                     type="text"
@@ -589,19 +583,16 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                     onChange={e => setNewMessage(e.target.value)}
                                     onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
                                     placeholder="Nachricht an das SV-Team..."
-                                    className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-primary outline-none text-gray-900 dark:text-white"
+                                    className="flex-1"
                                 />
-                                <Button variant="unstyled" size="unstyled" type="submit"
+                                <Button
+                                    type="button"
                                     onClick={handleSendMessage}
                                     disabled={!newMessage.trim()}
-                                    className={cn(
-                                        'p-2.5 rounded-xl transition-all',
-                                        newMessage.trim()
-                                            ? 'bg-primary text-primary-foreground hover:bg-primary-hover cursor-pointer'
-                                            : 'bg-gray-200 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
-                                    )}
+                                    aria-label="Nachricht senden"
+                                    className="size-11 shrink-0 rounded-full"
                                 >
-                                    <Send size={18} />
+                                    <Send size={18} aria-hidden />
                                 </Button>
                             </div>
                         </div>

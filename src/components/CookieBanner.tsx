@@ -33,29 +33,34 @@ export function CookieBanner() {
     if (!show) return null;
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 p-4 z-[9999] animate-in slide-in-from-bottom-5 duration-500">
-            <div className="max-w-3xl mx-auto bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 p-5 rounded-3xl shadow-2xl flex flex-col sm:flex-row gap-4 items-start border border-gray-200 dark:border-gray-700">
-                <div className="flex items-start gap-3 flex-1">
-                    <div className="mt-0.5 w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0">
-                        <Cookie size={20} className="text-primary-hover" aria-hidden="true" />
+        <div
+            role="region"
+            aria-label="Datenschutzhinweis"
+            className="fixed inset-x-0 bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] z-40 animate-in slide-in-from-bottom-5 px-4 duration-500 md:bottom-[calc(1rem+env(safe-area-inset-bottom,0px))]"
+        >
+            <div className="mx-auto flex max-h-[calc(100dvh-9rem)] max-w-3xl flex-col gap-3 overflow-y-auto rounded-3xl border border-border bg-card p-4 text-card-foreground shadow-overlay sm:flex-row sm:items-start sm:gap-4 sm:p-5">
+                <div className="flex flex-1 items-start gap-3">
+                    <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/15">
+                        <Cookie size={20} className="text-brand-ink dark:text-primary" aria-hidden="true" />
                     </div>
-                    <div className="flex-1 text-sm">
-                        <p className="font-bold text-gray-900 dark:text-white mb-1 flex items-center gap-2">
-                            <ShieldCheck size={15} className="text-green-500" aria-hidden="true" /> Datenschutz und Cookies
+                    <div className="min-w-0 flex-1 text-sm">
+                        <p className="mb-1 flex items-center gap-2 font-bold text-foreground">
+                            <ShieldCheck size={16} className="text-brand-ink dark:text-primary" aria-hidden="true" /> Datenschutz und Cookies
                         </p>
-                        <p className="text-gray-500 dark:text-gray-400 text-xs leading-relaxed">
-                            Nur zur Info: Wir speichern <strong>technisch Notwendiges</strong> in deinem Browser (Anmeldung, Einstellungen wie Dark Mode). Zusätzlich zählen wir ohne IP-Adresse, welche Seiten aufgerufen werden und welche „Beliebt“-Fächer in der Übersicht angetippt werden. Bei angemeldeten Konten wird die Konto-Kennung pseudonym mitgezählt. <strong>Externe Anbieter setzen wir nicht ein.</strong> Mehr dazu in unserer{' '}
-                            <Link to="/datenschutz" className="underline font-semibold hover:text-primary-hover">
+                        <p className="text-xs leading-relaxed text-muted-foreground">
+                            Nur zur Info: Wir speichern <strong className="text-foreground">technisch Notwendiges</strong> in deinem Browser (Anmeldung, Einstellungen wie Dark Mode).
+                            <span className="hidden sm:inline"> Zusätzlich zählen wir ohne IP-Adresse, welche Seiten aufgerufen werden und welche „Beliebt“-Fächer in der Übersicht angetippt werden. Bei angemeldeten Konten wird die Konto-Kennung pseudonym mitgezählt.</span>{' '}
+                            <strong className="text-foreground">Externe Anbieter setzen wir nicht ein.</strong> Mehr dazu in unserer{' '}
+                            <Link to="/datenschutz" className="font-semibold text-brand-ink underline underline-offset-2 hover:no-underline dark:text-primary">
                                 Datenschutzerklärung
                             </Link>{' '}
-                            und den <Link to="/cookies" className="underline font-semibold hover:text-primary-hover">Cookie-Hinweisen</Link>.
+                            und den <Link to="/cookies" className="font-semibold text-brand-ink underline underline-offset-2 hover:no-underline dark:text-primary">Cookie-Hinweisen</Link>.
                         </p>
                     </div>
                 </div>
-                <div className="flex shrink-0 w-full sm:w-auto">
+                <div className="flex w-full shrink-0 sm:w-auto">
                     <Button
-                        size="sm"
-                        className="flex-1 sm:flex-none font-bold shadow-lg text-xs rounded-full"
+                        className="h-11 min-h-11 flex-1 rounded-full text-sm font-bold sm:flex-none"
                         onClick={dismiss}
                     >
                         Verstanden

@@ -104,43 +104,59 @@ export default function AdminLayout() {
     };
 
     const sidebarContent = (
-        <>
-            <div className="h-16 flex items-center gap-3 px-6 border-b dark:border-gray-800 shrink-0">
-                <Logo className="w-7 h-7 text-black dark:text-white shrink-0" />
-                <span className="font-extrabold text-base tracking-tight text-gray-900 dark:text-white">SV Admin Panel</span>
-                <Button variant="unstyled" size="unstyled" type="submit"
-                    className="ml-auto md:hidden text-gray-400 hover:text-gray-600 p-3 -m-3"
+        <div className="flex h-full min-h-0 flex-col">
+            <div className="flex h-16 shrink-0 items-center gap-3 border-b border-border px-4">
+                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground">
+                    <Logo className="size-5" />
+                </span>
+                <span className="min-w-0 flex-1 truncate text-sm font-semibold tracking-tight text-foreground">SV Admin Panel</span>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    type="button"
+                    className="-mr-2 h-11 w-11 shrink-0 rounded-full xl:hidden"
                     onClick={() => setSidebarOpen(false)}
                     aria-label="Menü schließen"
                 >
-                    <X size={20} />
+                    <X size={20} aria-hidden />
                 </Button>
             </div>
 
-            <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+            <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain p-3" aria-label="SV-Admin-Navigation">
                 {NAV_ITEMS.map(({ label, value, icon: Icon }) => {
                     const isActive = activeTab === value;
+                    const count = value === 'reports' ? openReports : value === 'support' ? openTickets : 0;
                     return (
-                        <Button variant="unstyled" size="unstyled" type="submit"
+                        <Button
+                            variant="unstyled"
+                            size="unstyled"
+                            type="button"
                             key={value}
                             onClick={() => handleNavClick(value)}
+                            aria-current={isActive ? 'page' : undefined}
                             className={cn(
-                                'w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all',
+                                'flex min-h-11 w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
                                 isActive
-                                    ? 'bg-primary/10 text-primary-hover font-bold'
-                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                    ? 'border-primary/30 bg-primary/15 font-semibold text-foreground dark:border-primary/25'
+                                    : 'border-transparent text-muted-foreground hover:bg-muted hover:text-foreground'
                             )}
                         >
-                            <Icon size={18} className={isActive ? 'text-primary-hover' : 'text-gray-400'} />
-                            <span className="flex-1 text-left">{label}</span>
-                            {value === 'reports' && openReports > 0 && (
-                                <span className="w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-black">
-                                    {openReports > 9 ? '9+' : openReports}
-                                </span>
-                            )}
-                            {value === 'support' && openTickets > 0 && (
-                                <span className="w-5 h-5 bg-blue-500 text-white text-[10px] rounded-full flex items-center justify-center font-black">
-                                    {openTickets > 9 ? '9+' : openTickets}
+                            <Icon
+                                size={20}
+                                aria-hidden
+                                className={cn('shrink-0', isActive ? 'text-brand-ink dark:text-primary' : 'text-muted-foreground')}
+                            />
+                            <span className="min-w-0 flex-1 break-words">{label}</span>
+                            {count > 0 && (
+                                <span
+                                    className={cn(
+                                        'inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-xs font-semibold tabular-nums',
+                                        value === 'reports'
+                                            ? 'bg-destructive/10 text-destructive'
+                                            : 'bg-primary/20 text-brand-ink dark:text-primary'
+                                    )}
+                                >
+                                    {count > 9 ? '9+' : count}
                                 </span>
                             )}
                         </Button>
@@ -148,19 +164,19 @@ export default function AdminLayout() {
                 })}
             </nav>
 
-            <div className="p-4 border-t dark:border-gray-800 text-[10px] text-gray-400 text-center">
+            <div className="shrink-0 border-t border-border px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] text-center text-xs text-muted-foreground">
                 FWG Nachhilfebörse · SV Admin
             </div>
-        </>
+        </div>
     );
 
     return (
-        <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
+        <div className="flex min-h-full shrink-0 flex-col bg-background md:flex-row">
             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
                 <SheetContent
                     side="left"
                     showCloseButton={false}
-                    className="w-72 max-w-[85vw] gap-0 border-r border-gray-200 bg-white p-0 dark:border-gray-800 dark:bg-gray-900 md:hidden"
+                    className="w-80 max-w-[85vw] gap-0 border-r border-border bg-card p-0"
                 >
                     <SheetTitle className="sr-only">Admin-Menü</SheetTitle>
                     <SheetDescription className="sr-only">Navigation im SV-Admin-Panel</SheetDescription>
@@ -168,32 +184,36 @@ export default function AdminLayout() {
                 </SheetContent>
             </Sheet>
 
-            <aside className="hidden w-64 shrink-0 flex-col border-r border-gray-200 bg-white md:flex dark:border-gray-800 dark:bg-gray-900">
+            <aside className="hidden w-64 shrink-0 flex-col border-border bg-card/60 xl:sticky xl:top-0 xl:flex xl:h-[calc(100dvh-2rem)] xl:self-start xl:border-r">
                 {sidebarContent}
             </aside>
 
             {/* Main content */}
-            <div className="flex-1 flex flex-col min-w-0">
+            <div className="flex min-w-0 flex-1 flex-col">
                 {/* Top bar */}
-                <header className="h-16 bg-white dark:bg-gray-900 border-b dark:border-gray-800 flex items-center gap-4 px-6 shrink-0">
-                    <Button variant="unstyled" size="unstyled" type="submit"
-                        className="md:hidden text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 p-3 -m-3"
+                <header className="sticky top-0 z-30 flex min-h-16 items-center gap-2 border-b border-border bg-card/95 px-4 backdrop-blur sm:px-6">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        type="button"
+                        className="-ml-2 h-11 w-11 shrink-0 rounded-full xl:hidden"
                         onClick={() => setSidebarOpen(true)}
                         aria-label="Menü öffnen"
                     >
-                        <Menu size={22} />
+                        <Menu size={22} aria-hidden />
                     </Button>
 
                     {/* Breadcrumbs */}
-                    <nav className="flex items-center gap-1.5 text-sm" aria-label="Breadcrumb">
+                    <nav className="flex min-w-0 items-center gap-1.5 text-sm" aria-label="Breadcrumb">
                         {breadcrumbs.map((crumb, i) => (
-                            <span key={crumb} className="flex items-center gap-1.5">
-                                {i > 0 && <ChevronRight size={14} className="text-gray-400" />}
+                            <span key={crumb} className="flex min-w-0 items-center gap-1.5">
+                                {i > 0 && <ChevronRight size={16} className="shrink-0 text-muted-foreground" aria-hidden />}
                                 <span
                                     className={cn(
+                                        'min-w-0 truncate',
                                         i === breadcrumbs.length - 1
-                                            ? 'font-bold text-gray-900 dark:text-white'
-                                            : 'text-gray-400'
+                                            ? 'font-semibold text-foreground'
+                                            : 'text-muted-foreground'
                                     )}
                                 >
                                     {crumb}
@@ -202,16 +222,14 @@ export default function AdminLayout() {
                         ))}
                     </nav>
 
-                    <div className="ml-auto flex items-center gap-2">
-                        <span className="hidden md:flex items-center gap-1.5 text-xs text-red-600 bg-red-50 dark:bg-red-950/30 dark:text-red-400 px-3 py-1.5 rounded-full font-bold border border-red-100 dark:border-red-900/40">
-                            <ShieldCheck size={12} />
-                            SV Einsicht aktiv
-                        </span>
-                    </div>
+                    <span className="ml-auto hidden shrink-0 items-center gap-1.5 rounded-full border border-destructive/20 bg-destructive/5 px-3 py-1.5 text-xs font-medium text-destructive xl:flex">
+                        <ShieldCheck size={16} aria-hidden />
+                        SV Einsicht aktiv
+                    </span>
                 </header>
 
                 {/* Page content */}
-                <main className="flex-1 p-6 overflow-auto">
+                <main className="mx-auto w-full max-w-7xl flex-1 p-4 pb-8 sm:p-6">
                     <Outlet />
                 </main>
             </div>

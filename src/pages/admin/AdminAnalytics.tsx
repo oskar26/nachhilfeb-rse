@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
+import { Spinner } from '../../components/ui/spinner';
 import {
     BarChart3,
     TrendingUp,
@@ -106,6 +108,7 @@ export default function AdminAnalytics() {
     const [dailyViews, setDailyViews] = useState<DailyDist[]>([]);
     const [uniqueLoggedIn, setUniqueLoggedIn] = useState(0);
     const [pageStatsLoading, setPageStatsLoading] = useState(false);
+    const [loadError, setLoadError] = useState<string | null>(null);
 
     // Raw datasets for CSV Export (Anzeigen als Stichprobe, Nutzer/Aufrufe als Aggregat)
     const [rawAds, setRawAds] = useState<any[]>([]);
@@ -184,6 +187,7 @@ export default function AdminAnalytics() {
 
     const fetchAnalytics = async () => {
         setLoading(true);
+        setLoadError(null);
         try {
             // Alle Kennzahlen kommen aus dem PHP-Backend (keine direkten Tabellenzugriffe,
             // kein Volltabellen-Nutzerexport – Nutzerkennzahlen als Aggregate aus overview)
@@ -323,6 +327,7 @@ export default function AdminAnalytics() {
             }
 
         } catch {
+            setLoadError('Analytics konnten nicht geladen werden.');
             toast.error('Analytics konnten nicht geladen werden.');
         } finally {
             setLoading(false);
@@ -393,8 +398,9 @@ export default function AdminAnalytics() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+            <div className="flex min-h-[400px] flex-col items-center justify-center gap-3">
+                <Spinner className="size-6 text-brand-ink dark:text-primary" />
+                <p className="text-sm text-muted-foreground">Lade Analytics...</p>
             </div>
         );
     }
@@ -407,69 +413,81 @@ export default function AdminAnalytics() {
     const rangeLabel = statsDays === 7 ? 'letzte 7 Tage' : statsDays === 90 ? 'letzte 90 Tage' : 'letzte 30 Tage';
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-6 sm:space-y-8">
             {/* Header with CSV Export Dropdown */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-                        <BarChart3 className="text-primary-hover" size={24} /> Analytics & Statistik Dashboard
+            <div className="flex flex-col gap-4">
+                <header className="min-w-0">
+                    <h1 className="flex items-center gap-2 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+                        <BarChart3 className="shrink-0 text-brand-ink dark:text-primary" size={24} aria-hidden /> Analytics & Statistik Dashboard
                     </h1>
-                    <p className="text-gray-500 text-sm mt-1">Ausführliche Live-Analysen, Besuchszeiten, Geräte-Statistiken & CSV-Export.</p>
-                </div>
+                    <p className="mt-1 text-sm text-muted-foreground">Ausführliche Live-Analysen, Besuchszeiten, Geräte-Statistiken & CSV-Export.</p>
+                </header>
 
-                <div className="flex flex-wrap gap-2 shrink-0">
-                    <Button onClick={exportUsersCSV} variant="outline" size="sm" className="rounded-xl text-xs gap-1.5 font-bold">
-                        <Download size={14} /> Nutzer CSV
+                <div className="flex flex-wrap gap-2 sm:shrink-0">
+                    <Button onClick={exportUsersCSV} variant="outline" className="h-11 gap-1.5 text-xs">
+                        <Download size={16} aria-hidden /> Nutzer CSV
                     </Button>
-                    <Button onClick={exportAdsCSV} variant="outline" size="sm" className="rounded-xl text-xs gap-1.5 font-bold">
-                        <Download size={14} /> Anzeigen CSV
+                    <Button onClick={exportAdsCSV} variant="outline" className="h-11 gap-1.5 text-xs">
+                        <Download size={16} aria-hidden /> Anzeigen CSV
                     </Button>
-                    <Button onClick={exportAnalyticsCSV} variant="outline" size="sm" className="rounded-xl text-xs gap-1.5 font-bold bg-primary/10 border-primary/20 text-primary-hover">
-                        <Download size={14} /> Aufrufe CSV
+                    <Button onClick={exportAnalyticsCSV} className="h-11 gap-1.5 text-xs">
+                        <Download size={16} aria-hidden /> Aufrufe CSV
                     </Button>
                 </div>
             </div>
 
+            {loadError && (
+                <Alert variant="destructive">
+                    <AlertTitle>Analytics nicht verfügbar</AlertTitle>
+                    <AlertDescription className="flex flex-col items-start gap-3">
+                        <span>{loadError}</span>
+                        <Button type="button" variant="outline" className="h-11" onClick={fetchAnalytics}>
+                            Erneut laden
+                        </Button>
+                    </AlertDescription>
+                </Alert>
+            )}
+
             {/* Top Stat Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card className="rounded-3xl border-none shadow-sm bg-blue-50/60 dark:bg-indigo-950/20">
-                    <CardContent className="p-5 space-y-1">
-                        <span className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider block">Registrierte Nutzer</span>
-                        <div className="text-3xl font-black">{userStats.total}</div>
-                        <span className="text-[10px] text-gray-400 block font-semibold">
+            <div className="grid grid-cols-2 gap-3 2xl:grid-cols-4 2xl:gap-4">
+                <Card className="shadow-soft">
+                    <CardContent className="space-y-1 p-4 sm:p-5">
+                        <span className="block text-xs font-medium text-muted-foreground">Registrierte Nutzer</span>
+                        <div className="text-2xl font-semibold tabular-nums tracking-tight sm:text-3xl">{userStats.total}</div>
+                        <span className="block text-xs text-muted-foreground">
                             {userStats.students} Schüler · {userStats.parents} Eltern
                         </span>
                     </CardContent>
                 </Card>
 
-                <Card className="rounded-3xl border-none shadow-sm bg-emerald-50/60 dark:bg-emerald-950/20">
-                    <CardContent className="p-5 space-y-1">
-                        <span className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider block">Aktive Anzeigen</span>
-                        <div className="text-3xl font-black">{adStats.active}</div>
-                        <span className="text-[10px] text-gray-400 block font-semibold">
+                <Card className="shadow-soft">
+                    <CardContent className="space-y-1 p-4 sm:p-5">
+                        <span className="block text-xs font-medium text-muted-foreground">Aktive Anzeigen</span>
+                        <div className="text-2xl font-semibold tabular-nums tracking-tight sm:text-3xl">{adStats.active}</div>
+                        <span className="block text-xs text-muted-foreground">
                             {adStats.offers} Angebote · {adStats.searches} Gesuche
                         </span>
                     </CardContent>
                 </Card>
 
-                <Card className="rounded-3xl border-none shadow-sm bg-purple-50/60 dark:bg-purple-950/20">
-                    <CardContent className="p-5 space-y-1">
-                        <span className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider block">Erfasste Aufrufe</span>
-                        <div className="text-3xl font-black">{totalPageViews}</div>
-                        <span className="text-[10px] text-gray-400 block font-semibold">
+                <Card className="shadow-soft">
+                    <CardContent className="space-y-1 p-4 sm:p-5">
+                        <span className="block text-xs font-medium text-muted-foreground">Erfasste Aufrufe</span>
+                        <div className="text-2xl font-semibold tabular-nums tracking-tight sm:text-3xl">{totalPageViews}</div>
+                        <span className="block text-xs text-muted-foreground">
                             {uniqueLoggedIn} eingeloggte Besucher · Gesamt
                         </span>
                     </CardContent>
                 </Card>
 
-                <Card className="rounded-3xl border-none shadow-sm bg-amber-50/60 dark:bg-amber-950/20">
-                    <CardContent className="p-5 space-y-1">
-                        <span className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider block">Durchschn. Bewertung</span>
-                        <div className="text-3xl font-black flex items-center gap-1.5">
-                            <Star className="text-yellow-500 shrink-0" size={20} fill="currentColor" />
+                <Card className="shadow-soft">
+                    <CardContent className="space-y-1 p-4 sm:p-5">
+                        <span className="block text-xs font-medium text-muted-foreground">Durchschn. Bewertung</span>
+                        <div className="flex items-center gap-1.5 text-2xl font-semibold tabular-nums tracking-tight sm:text-3xl">
+                            <Star className="shrink-0 text-brand-ink dark:text-primary" size={20} fill="currentColor" aria-hidden />
                             {engagementStats.avgRating > 0 ? engagementStats.avgRating.toFixed(1) : '--'}
                         </div>
-                        <span className="text-[10px] text-gray-400 block font-semibold">
+                        <span className="block text-xs text-muted-foreground">
                             aus {engagementStats.totalReviews} Bewertungen
                         </span>
                     </CardContent>
@@ -477,18 +495,18 @@ export default function AdminAnalytics() {
             </div>
 
             {/* SECTION 0: AUFRUFE-VERLAUF (hoster-artig) */}
-            <Card className="rounded-3xl border-none shadow-sm">
+            <Card className="shadow-soft">
                 <CardHeader>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
                         <div>
-                            <CardTitle className="text-base font-bold flex items-center gap-2">
-                                <TrendingUp size={18} className="text-primary-hover" /> Aufrufe-Verlauf
+                            <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                                <TrendingUp size={20} className="text-brand-ink dark:text-primary" aria-hidden /> Aufrufe-Verlauf
                             </CardTitle>
                             <CardDescription>
                                 Seitenaufrufe pro Tag ({rangeLabel}) · anonyme Server-Statistik (ohne IP)
                             </CardDescription>
                         </div>
-                        <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl shrink-0" role="group" aria-label="Zeitraum wählen">
+                        <div className="flex shrink-0 items-center gap-1 rounded-full bg-muted p-1" role="group" aria-label="Zeitraum wählen">
                             {([7, 30, 90] as StatsRange[]).map(d => (
                                 <Button variant="unstyled" size="unstyled"
                                     key={d}
@@ -496,8 +514,8 @@ export default function AdminAnalytics() {
                                     onClick={() => setStatsDays(d)}
                                     aria-pressed={statsDays === d}
                                     className={d === statsDays
-                                        ? "px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-gray-900 shadow-xs text-gray-900 dark:text-white"
-                                        : "px-3 py-1.5 rounded-lg text-xs font-bold text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"}>
+                                        ? "min-h-11 rounded-full bg-card px-3 text-xs font-medium text-foreground shadow-soft"
+                                        : "min-h-11 rounded-full px-3 text-xs font-medium text-muted-foreground hover:text-foreground"}>
                                     {d} Tage
                                 </Button>
                             ))}
@@ -506,34 +524,33 @@ export default function AdminAnalytics() {
                 </CardHeader>
                 <CardContent>
                     {pageStatsLoading ? (
-                        <div className="py-12 text-center text-gray-400 text-xs font-bold uppercase tracking-wider">Lade Verlauf…</div>
+                        <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground">
+                            <Spinner className="size-4" /> Lade Verlauf…
+                        </div>
                     ) : dailyViews.every(d => d.count === 0) ? (
-                        <div className="text-center py-12 text-gray-400 text-xs italic">
+                        <div className="py-12 text-center text-sm text-muted-foreground">
                             Noch keine Aufrufdaten im Zeitraum. Sobald Nutzer Seiten aufrufen, erscheint hier der Verlauf.
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
-                            <div className="flex items-end gap-1 h-36 pt-4 px-2 border-b dark:border-gray-800" style={{ minWidth: `${Math.max(dailyViews.length * 14, 280)}px` }}>
+                            <div className="flex h-40 items-end gap-1 border-b border-border px-2" style={{ minWidth: `${Math.max(dailyViews.length * 14, 280)}px` }}>
                                 {dailyViews.map(d => {
                                     const pct = (d.count / maxDailyCount) * 100;
                                     const label = new Date(d.day + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
                                     return (
-                                        <div key={d.day} className="flex-1 flex flex-col items-center gap-1 group relative min-w-[10px]">
+                                        <div key={d.day} className="group relative h-full min-w-[10px] flex-1">
                                             <div
-                                                className="w-full bg-emerald-500/70 group-hover:bg-emerald-500 rounded-t transition-all duration-300 min-h-[2px]"
-                                                style={{ height: `${pct}%` }}
+                                                className="absolute inset-x-0 bottom-0 rounded-t-sm bg-primary/80 transition-colors group-hover:bg-primary"
+                                                style={{ height: `${Math.max(pct, 2)}%` }}
+                                                role="img"
+                                                aria-label={`${d.count} Aufrufe am ${label}`}
+                                                title={`${d.count} Aufrufe (${label})`}
                                             />
-                                            {(statsDays === 7 || d.count === maxDailyCount) && (
-                                                <span className="text-[9px] text-gray-400 font-mono">{label}</span>
-                                            )}
-                                            <div className="absolute -top-8 bg-gray-900 text-white text-[10px] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-nowrap">
-                                                {d.count} Aufrufe ({label})
-                                            </div>
                                         </div>
                                     );
                                 })}
                             </div>
-                            <div className="flex justify-between text-[10px] text-gray-400 font-bold uppercase px-2 pt-2">
+                            <div className="flex justify-between px-2 pt-2 text-xs text-muted-foreground">
                                 <span>{dailyViews.length > 0 ? new Date(dailyViews[0].day + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}</span>
                                 <span>Heute</span>
                             </div>
@@ -543,42 +560,46 @@ export default function AdminAnalytics() {
             </Card>
 
             {/* SECTION 1: BESUCHSZEITEN & GERÄTE-VERTEILUNG */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-4 2xl:grid-cols-3 2xl:gap-6">
                 {/* 24-Stunden Besuchszeiten Histogramm */}
-                <Card className="lg:col-span-2 rounded-3xl border-none shadow-sm">
+                <Card className="shadow-soft 2xl:col-span-2">
                     <CardHeader>
-                        <CardTitle className="text-base font-bold flex items-center gap-2">
-                            <Clock size={18} className="text-primary-hover" /> Besuchszeiten-Verteilung (Spitzenzeiten 24h)
+                        <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                            <Clock size={20} className="text-brand-ink dark:text-primary" aria-hidden /> Besuchszeiten-Verteilung (Spitzenzeiten 24h)
                         </CardTitle>
                         <CardDescription>Uhrzeiten, zu denen die Nachhilfebörse am häufigsten aufgerufen wird</CardDescription>
                     </CardHeader>
                     <CardContent>
                         {hourlyDistribution.length === 0 ? (
-                            <div className="text-center py-12 text-gray-400 text-xs italic">
+                            <div className="py-12 text-center text-sm text-muted-foreground">
                                 Noch keine Aufrufdaten vorhanden. Sobald Nutzer Seiten aufrufen, erscheint hier ein Spitzenzeiten-Diagramm.
                             </div>
                         ) : (
                             <div className="space-y-4">
-                                <div className="flex items-end gap-1 h-36 pt-4 px-2 border-b dark:border-gray-800">
+                                <div className="flex h-40 items-end gap-1 border-b border-border px-2">
                                     {hourlyDistribution.map(h => {
                                         const pct = (h.count / maxHourlyCount) * 100;
                                         return (
-                                            <div key={h.hour} className="flex-1 flex flex-col items-center gap-1 group relative">
-                                                <div 
-                                                    className="w-full bg-primary/70 group-hover:bg-primary-hover rounded-t transition-all duration-300 min-h-[2px]" 
-                                                    style={{ height: `${pct}%` }} 
+                                            <div key={h.hour} className="group relative h-full flex-1">
+                                                <div
+                                                    className="absolute inset-x-0 bottom-0 rounded-t-sm bg-primary/80 transition-colors group-hover:bg-primary"
+                                                    style={{ height: `${Math.max(pct, 2)}%` }}
+                                                    role="img"
+                                                    aria-label={`${h.count} Aufrufe um ${h.hour}:00`}
+                                                    title={`${h.count} Aufrufe (${h.hour}:00)`}
                                                 />
-                                                <span className="text-[9px] text-gray-400 font-mono">{h.hour}h</span>
-                                                
-                                                {/* Tooltip */}
-                                                <div className="absolute -top-8 bg-gray-900 text-white text-[10px] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-nowrap">
-                                                    {h.count} Aufrufe ({h.hour}:00)
-                                                </div>
                                             </div>
                                         );
                                     })}
                                 </div>
-                                <div className="flex justify-between text-[10px] text-gray-400 font-bold uppercase px-2">
+                                <div className="flex justify-between px-2 font-mono text-xs text-muted-foreground">
+                                    <span>0h</span>
+                                    <span>6h</span>
+                                    <span>12h</span>
+                                    <span>18h</span>
+                                    <span>23h</span>
+                                </div>
+                                <div className="flex flex-col gap-1 px-2 text-xs text-muted-foreground sm:flex-row sm:justify-between">
                                     <span>Nacht (00:00 - 06:00)</span>
                                     <span>Morgen / Schule (06:00 - 14:00)</span>
                                     <span>Nachmittag / Abend (14:00 - 23:00)</span>
@@ -589,10 +610,10 @@ export default function AdminAnalytics() {
                 </Card>
 
                 {/* Geräte-Verteilung */}
-                <Card className="rounded-3xl border-none shadow-sm">
+                <Card className="shadow-soft">
                     <CardHeader>
-                        <CardTitle className="text-base font-bold flex items-center gap-2">
-                            <Monitor size={18} className="text-primary-hover" /> Verwendete Geräte
+                        <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                            <Monitor size={20} className="text-brand-ink dark:text-primary" aria-hidden /> Verwendete Geräte
                         </CardTitle>
                         <CardDescription>Aufteilung nach Gerätetypen</CardDescription>
                     </CardHeader>
@@ -606,24 +627,26 @@ export default function AdminAnalytics() {
                             const percentage = deviceTotal > 0 ? Math.round((d.count / deviceTotal) * 100) : 0;
                             return (
                                 <div key={d.type} className="space-y-1">
-                                    <div className="flex justify-between text-xs font-semibold">
-                                        <span className="flex items-center gap-1.5"><Icon size={14} className="text-primary-hover" /> {label}</span>
-                                        <span className="text-gray-500">{d.count} ({percentage}%)</span>
+                                    <div className="flex items-center justify-between gap-2 text-xs font-medium">
+                                        <span className="flex items-center gap-1.5"><Icon size={16} className="text-muted-foreground" aria-hidden /> {label}</span>
+                                        <span className="text-muted-foreground tabular-nums">{d.count} ({percentage}%)</span>
                                     </div>
-                                    <div className="w-full h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                                        <div className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full" style={{ width: `${percentage}%` }} />
+                                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                                        <div className="h-full rounded-full bg-primary" style={{ width: `${percentage}%` }} />
                                     </div>
                                 </div>
                             );
                         })}
 
                         {/* Top-Seiten List */}
-                        <div className="pt-4 border-t dark:border-gray-800 space-y-2">
-                            <span className="text-xs font-bold uppercase text-gray-400 block mb-2">Beliebteste Seiten</span>
-                            {topPages.map(p => (
-                                <div key={p.path} className="flex justify-between items-center text-xs">
-                                    <span className="font-mono text-gray-700 dark:text-gray-300">{p.path}</span>
-                                    <span className="font-bold bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">{p.count} Aufrufe</span>
+                        <div className="space-y-2 border-t border-border pt-4">
+                            <span className="mb-2 block text-xs font-medium text-muted-foreground">Beliebteste Seiten</span>
+                            {topPages.length === 0 ? (
+                                <p className="text-xs text-muted-foreground">Noch keine Seitenaufrufe erfasst.</p>
+                            ) : topPages.map(p => (
+                                <div key={p.path} className="flex items-center justify-between gap-2 text-xs">
+                                    <span className="min-w-0 break-all font-mono text-foreground">{p.path}</span>
+                                    <span className="shrink-0 rounded-full bg-muted px-2.5 py-1 font-medium tabular-nums text-foreground">{p.count} Aufrufe</span>
                                 </div>
                             ))}
                         </div>
@@ -632,28 +655,30 @@ export default function AdminAnalytics() {
             </div>
 
             {/* SECTION 2: PLATTFORM-GRAPHE */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
+
                 {/* 1. Stufen-Verteilung */}
-                <Card className="rounded-3xl border-none shadow-sm">
+                <Card className="shadow-soft">
                     <CardHeader>
-                        <CardTitle className="text-base font-bold flex items-center gap-2">
-                            <Users size={18} className="text-primary-hover" /> Stufen-Verteilung
+                        <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                            <Users size={20} className="text-brand-ink dark:text-primary" aria-hidden /> Stufen-Verteilung
                         </CardTitle>
                         <CardDescription>Anzahl der verifizierten Schüler nach Klassenstufen</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {gradeDistribution.map(g => {
+                        {gradeDistribution.length === 0 ? (
+                            <p className="py-8 text-center text-sm text-muted-foreground">Keine Daten vorhanden.</p>
+                        ) : gradeDistribution.map(g => {
                             const percentage = (g.count / maxGradeCount) * 100;
                             return (
                                 <div key={g.grade} className="space-y-1">
-                                    <div className="flex justify-between text-xs font-semibold">
+                                    <div className="flex justify-between gap-2 text-xs font-medium">
                                         <span>{['EF', 'Q1', 'Q2'].includes(g.grade) ? `Stufe ${g.grade}` : `Klasse ${g.grade}`}</span>
-                                        <span className="text-gray-500">{g.count} Schüler</span>
+                                        <span className="text-muted-foreground tabular-nums">{g.count} Schüler</span>
                                     </div>
-                                    <div className="w-full h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                                        <div 
-                                            className="h-full bg-gradient-to-r from-primary/70 to-primary-hover rounded-full transition-all duration-500" 
+                                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                                        <div
+                                            className="h-full rounded-full bg-primary transition-[width] duration-300"
                                             style={{ width: `${percentage}%` }}
                                         />
                                     </div>
@@ -664,25 +689,27 @@ export default function AdminAnalytics() {
                 </Card>
 
                 {/* 2. Beliebte Fächer */}
-                <Card className="rounded-3xl border-none shadow-sm">
+                <Card className="shadow-soft">
                     <CardHeader>
-                        <CardTitle className="text-base font-bold flex items-center gap-2">
-                            <TrendingUp size={18} className="text-primary-hover" /> Beliebte Schulfächer
+                        <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                            <TrendingUp size={20} className="text-brand-ink dark:text-primary" aria-hidden /> Beliebte Schulfächer
                         </CardTitle>
                         <CardDescription>Häufigkeit der Fächer in Angeboten und Gesuchen</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {subjectDistribution.map(s => {
+                        {subjectDistribution.length === 0 ? (
+                            <p className="py-8 text-center text-sm text-muted-foreground">Keine Daten vorhanden.</p>
+                        ) : subjectDistribution.map(s => {
                             const percentage = (s.count / maxSubjectCount) * 100;
                             return (
                                 <div key={s.subject} className="space-y-1">
-                                    <div className="flex justify-between text-xs font-semibold">
+                                    <div className="flex justify-between gap-2 text-xs font-medium">
                                         <span className="capitalize">{s.subject}</span>
-                                        <span className="text-gray-500">{s.count} Anzeigen</span>
+                                        <span className="text-muted-foreground tabular-nums">{s.count} Anzeigen</span>
                                     </div>
-                                    <div className="w-full h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                                        <div 
-                                            className="h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full transition-all duration-500" 
+                                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                                        <div
+                                            className="h-full rounded-full bg-primary transition-[width] duration-300"
                                             style={{ width: `${percentage}%` }}
                                         />
                                     </div>
@@ -693,25 +720,27 @@ export default function AdminAnalytics() {
                 </Card>
 
                 {/* 3. Preis-Verteilung */}
-                <Card className="rounded-3xl border-none shadow-sm">
+                <Card className="shadow-soft">
                     <CardHeader>
-                        <CardTitle className="text-base font-bold flex items-center gap-2">
-                            <Euro size={18} className="text-primary-hover" /> Preisstrukturen
+                        <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                            <Euro size={20} className="text-brand-ink dark:text-primary" aria-hidden /> Preisstrukturen
                         </CardTitle>
                         <CardDescription>Aufteilung der angegebenen Stundensätze (€ / 45 Min)</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {priceDistribution.map(p => {
+                        {priceDistribution.length === 0 ? (
+                            <p className="py-8 text-center text-sm text-muted-foreground">Keine Daten vorhanden.</p>
+                        ) : priceDistribution.map(p => {
                             const percentage = (p.count / maxPriceCount) * 100;
                             return (
                                 <div key={p.range} className="space-y-1">
-                                    <div className="flex justify-between text-xs font-semibold">
+                                    <div className="flex justify-between gap-2 text-xs font-medium">
                                         <span>{p.range}</span>
-                                        <span className="text-gray-500">{p.count} Anzeigen</span>
+                                        <span className="text-muted-foreground tabular-nums">{p.count} Anzeigen</span>
                                     </div>
-                                    <div className="w-full h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                                        <div 
-                                            className="h-full bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full transition-all duration-500" 
+                                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                                        <div
+                                            className="h-full rounded-full bg-primary transition-[width] duration-300"
                                             style={{ width: `${percentage}%` }}
                                         />
                                     </div>
@@ -722,63 +751,63 @@ export default function AdminAnalytics() {
                 </Card>
 
                 {/* 4. Plattform-Status */}
-                <Card className="rounded-3xl border-none shadow-sm">
+                <Card className="shadow-soft">
                     <CardHeader>
-                        <CardTitle className="text-base font-bold flex items-center gap-2">
-                            <CheckCircle size={18} className="text-primary-hover" /> Plattform-Status & Verifizierung
+                        <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                            <CheckCircle size={20} className="text-brand-ink dark:text-primary" aria-hidden /> Plattform-Status & Verifizierung
                         </CardTitle>
                         <CardDescription>Zustand von Verifizierungen und Raten</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4 text-sm font-semibold">
-                        <div className="flex justify-between items-center py-2 border-b dark:border-gray-800">
-                            <span className="text-gray-500">Verifizierungsrate:</span>
-                            <span className="text-green-600 dark:text-green-400">
+                    <CardContent className="divide-y divide-border text-sm">
+                        <div className="flex flex-wrap items-center justify-between gap-2 py-3">
+                            <span className="text-muted-foreground">Verifizierungsrate:</span>
+                            <span className="font-medium text-emerald-700 tabular-nums dark:text-emerald-400">
                                 {userStats.total > 0 ? Math.round((userStats.verified / userStats.total) * 100) : 0}% ({userStats.verified} von {userStats.total})
                             </span>
                         </div>
-                        <div className="flex justify-between items-center py-2 border-b dark:border-gray-800">
-                            <span className="text-gray-500">Erfolgsquote (Anfragen angenommen):</span>
-                            <span className="text-blue-600 dark:text-blue-400">
+                        <div className="flex flex-wrap items-center justify-between gap-2 py-3">
+                            <span className="text-muted-foreground">Erfolgsquote (Anfragen angenommen):</span>
+                            <span className="font-medium tabular-nums text-foreground">
                                 {engagementStats.totalRequests > 0 ? Math.round((engagementStats.acceptedRequests / engagementStats.totalRequests) * 100) : 0}%
                             </span>
                         </div>
-                        <div className="flex justify-between items-center py-2 border-b dark:border-gray-800">
-                            <span className="text-gray-500">Unbehandelte Meldungen:</span>
-                            <span className={reportsCount.open > 0 ? 'text-red-500' : 'text-gray-500'}>
+                        <div className="flex flex-wrap items-center justify-between gap-2 py-3">
+                            <span className="text-muted-foreground">Unbehandelte Meldungen:</span>
+                            <span className={reportsCount.open > 0 ? 'font-medium text-destructive' : 'font-medium text-muted-foreground'}>
                                 {reportsCount.open} offene Meldungen
                             </span>
                         </div>
-                        <div className="flex justify-between items-center py-2">
-                            <span className="text-gray-500">SV-Admins im Dienst:</span>
-                            <span>{userStats.admins} SV-Admins</span>
+                        <div className="flex flex-wrap items-center justify-between gap-2 py-3">
+                            <span className="text-muted-foreground">SV-Admins im Dienst:</span>
+                            <span className="font-medium tabular-nums text-foreground">{userStats.admins} SV-Admins</span>
                         </div>
                     </CardContent>
                 </Card>
 
                 {/* 5. Meistaufgerufene Anzeigen */}
-                <Card className="rounded-3xl border-none shadow-sm">
+                <Card className="shadow-soft">
                     <CardHeader>
-                        <CardTitle className="text-base font-bold flex items-center gap-2">
-                            <Eye size={18} className="text-primary-hover" /> Meistaufgerufene Anzeigen
+                        <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                            <Eye size={20} className="text-brand-ink dark:text-primary" aria-hidden /> Meistaufgerufene Anzeigen
                         </CardTitle>
                         <CardDescription>Anonyme Aufrufzählung pro Anzeigendetailseite</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-2">
                         {topAds.length === 0 || topAds.every(a => a.views === 0) ? (
-                            <div className="text-center py-8 text-gray-400 text-xs italic">
+                            <div className="py-8 text-center text-sm text-muted-foreground">
                                 Noch keine Aufrufe gezählt. Sobald Anzeigen geöffnet werden, erscheinen sie hier.
                             </div>
                         ) : (
                             topAds.map((a, i) => (
-                                <div key={a.id || i} className="flex items-center gap-3 py-2 border-b dark:border-gray-800 last:border-0">
-                                    <span className="w-6 h-6 rounded-lg bg-primary/10 text-primary-hover text-xs font-black flex items-center justify-center shrink-0">
+                                <div key={a.id || i} className="flex items-center gap-3 border-b border-border py-2 last:border-0">
+                                    <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-primary/15 text-xs font-semibold tabular-nums text-brand-ink dark:text-primary">
                                         {i + 1}
                                     </span>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-xs font-bold truncate">{a.title}</p>
-                                        <p className="text-[10px] text-gray-400 font-semibold">{a.type}</p>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="break-words text-xs font-medium">{a.title}</p>
+                                        <p className="text-xs text-muted-foreground">{a.type}</p>
                                     </div>
-                                    <span className="font-bold bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full text-xs shrink-0">
+                                    <span className="shrink-0 rounded-full bg-muted px-2.5 py-1 text-xs font-medium tabular-nums">
                                         {a.views} {a.views === 1 ? 'Aufruf' : 'Aufrufe'}
                                     </span>
                                 </div>

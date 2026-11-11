@@ -44,17 +44,17 @@ export function PushPrompt() {
     };
 
     return (
-        <div className="fixed inset-x-0 bottom-0 z-[70] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4">
-            <div className="mx-auto max-w-md rounded-3xl border border-gray-200 bg-white p-4 shadow-2xl dark:border-gray-700 dark:bg-gray-900">
+        <div className="fixed inset-x-0 bottom-[calc(6.5rem+env(safe-area-inset-bottom,0px))] z-30 p-3 sm:bottom-4 sm:p-4">
+            <div className="mx-auto max-w-md rounded-2xl border border-border bg-card p-4 shadow-overlay">
                 <div className="flex items-start gap-3">
-                    <span className="rounded-2xl bg-primary/15 p-2.5 text-primary-hover">
+                    <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/15 text-brand-ink dark:text-primary">
                         {denied ? <BellOff size={20} /> : <Bell size={20} />}
                     </span>
                     <div className="min-w-0 flex-1">
-                        <p className="text-sm font-bold text-gray-900 dark:text-white">
+                        <p className="text-sm font-semibold text-foreground">
                             {denied ? 'Benachrichtigungen sind blockiert' : 'Benachrichtigungen aktivieren?'}
                         </p>
-                        <p className="mt-0.5 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+                        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
                             {denied
                                 ? 'Du hast Benachrichtigungen abgelehnt. Aktiviere sie in den Browser-Einstellungen dieser Seite, um Neuigkeiten und Hinweise der Börse zu erhalten.'
                                 : 'Aktiviere Mitteilungen, damit Neuigkeiten und Hinweise der Börse bei dir ankommen.'}
@@ -64,7 +64,7 @@ export function PushPrompt() {
                         type="button"
                         onClick={handleDismiss}
                         aria-label="Hinweis schließen"
-                        className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800"
+                        className="grid size-11 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
                     >
                         <X size={16} />
                     </Button>
@@ -75,7 +75,7 @@ export function PushPrompt() {
                             type="button"
                             onClick={handleEnable}
                             disabled={busy}
-                            className="h-11 flex-1 rounded-full bg-primary text-sm font-bold text-black transition-transform active:scale-[0.98] disabled:opacity-60"
+                            className="h-11 flex-1 rounded-full text-sm font-semibold"
                         >
                             {busy ? 'Einen Moment …' : 'Aktivieren'}
                         </Button>
@@ -83,7 +83,7 @@ export function PushPrompt() {
                     <Button variant="unstyled" size="unstyled"
                         type="button"
                         onClick={handleDismiss}
-                        className="h-11 flex-1 rounded-full border border-gray-200 text-sm font-bold text-gray-600 dark:border-gray-700 dark:text-gray-300"
+                        className="h-11 flex-1 rounded-full border border-border text-sm font-semibold text-muted-foreground"
                     >
                         {denied ? 'Später erinnern' : 'Jetzt nicht'}
                     </Button>

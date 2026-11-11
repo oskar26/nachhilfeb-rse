@@ -43,7 +43,7 @@ export function RefinedGradeSelector({ grade, letter, onChange, className }: Ref
 
     return (
         <div className={cn("flex flex-col gap-4", className)}>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Jahrgangsstufe">
                 {GRADES.map(g => {
                     const isActive = selectedGrade === g;
                     return (
@@ -51,11 +51,12 @@ export function RefinedGradeSelector({ grade, letter, onChange, className }: Ref
                             key={g}
                             type="button"
                             onClick={() => handleGradeClick(g)}
+                            aria-pressed={isActive}
                             className={cn(
-                                "px-3.5 h-10 min-w-[2.5rem] rounded-2xl flex items-center justify-center text-sm font-bold border transition-all duration-300",
+                                "flex h-11 min-w-11 items-center justify-center rounded-lg border px-3.5 text-sm font-semibold transition-colors",
                                 isActive
-                                    ? "bg-primary text-black border-primary ring-2 ring-primary ring-offset-2 scale-105"
-                                    : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 hover:border-primary hover:text-primary"
+                                    ? "border-primary bg-primary text-primary-foreground"
+                                    : "border-border bg-card text-muted-foreground hover:border-ring/40 hover:text-foreground"
                             )}
                         >
                             {g}
@@ -72,18 +73,19 @@ export function RefinedGradeSelector({ grade, letter, onChange, className }: Ref
                         exit={{ height: 0, opacity: 0 }}
                         className="overflow-hidden"
                     >
-                        <p className="text-xs text-gray-400 mb-2 font-medium uppercase ml-1">Klasse {selectedGrade}...</p>
-                        <div className="flex gap-2">
+                        <p className="mb-2 ml-1 text-xs font-medium text-muted-foreground">Klasse {selectedGrade} …</p>
+                        <div className="flex gap-2" role="group" aria-label="Klassenbuchstabe">
                             {LETTERS.map(l => (
                                 <Button variant="unstyled" size="unstyled"
                                     key={l}
                                     type="button"
                                     onClick={() => handleLetterClick(l)}
+                                    aria-pressed={selectedLetter === l}
                                     className={cn(
-                                        "w-10 h-10 rounded-lg flex items-center justify-center text-lg font-bold border transition-colors uppercase",
+                                        "flex size-11 items-center justify-center rounded-lg border text-lg font-semibold uppercase transition-colors",
                                         selectedLetter === l
-                                            ? "bg-primary text-black border-primary"
-                                            : "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                                            ? "border-primary bg-primary text-primary-foreground"
+                                            : "border-border bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
                                     )}
                                 >
                                     {l}

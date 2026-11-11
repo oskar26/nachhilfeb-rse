@@ -37,13 +37,13 @@ export function FavoriteStreamCard({
         <StreamCardShell>
             <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
-                    <TypeChip label="Merkliste" dotClass="bg-rose-500" icon={Heart} />
-                    <StatusChip label="Gemerkt" dotClass="bg-gray-400" />
+                    <TypeChip label="Merkliste" dotClass="bg-muted-foreground" icon={Heart} />
+                    <StatusChip label="Gemerkt" dotClass="bg-muted-foreground" />
                 </div>
                 <Button
                     size="icon"
                     variant="ghost"
-                    className="h-11 w-11 shrink-0 rounded-full text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                    className="size-11 shrink-0 rounded-full text-muted-foreground hover:text-foreground"
                     onClick={() => onShare({ id: ad.id, title: ad.title })}
                     title="Anzeige teilen"
                     aria-label="Anzeige teilen"
@@ -56,17 +56,17 @@ export function FavoriteStreamCard({
                 <span
                     className={
                         ad.type === 'offer'
-                            ? 'inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
-                            : 'inline-flex shrink-0 items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
+                            ? 'inline-flex shrink-0 items-center gap-1 rounded-full border border-primary/25 bg-primary/15 px-2.5 py-1 text-xs font-semibold text-brand-ink dark:text-primary'
+                            : 'inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground'
                     }
                 >
                     {ad.type === 'offer' ? <GraduationCap size={13} aria-hidden /> : <User size={13} aria-hidden />}
                     {ad.type === 'offer' ? 'Bietet' : 'Suche'}
                 </span>
-                <h3 className="min-w-0 truncate text-base font-bold text-gray-900 dark:text-white">{ad.title}</h3>
+                <h3 className="min-w-0 truncate text-base font-semibold text-foreground">{ad.title}</h3>
             </div>
 
-            <p className="mt-1 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+            <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                 <GraduationCap size={13} aria-hidden />
                 {ad.profiles?.display_name ? `${ad.profiles.display_name} · ` : ''}
                 {gradeLabel(ad.profiles?.grade_level)}
@@ -75,10 +75,10 @@ export function FavoriteStreamCard({
             <div className="mt-3 flex flex-wrap gap-1.5">
                 {ad.subjects.map((s: string) => <SubjectChip key={s} subject={s as Subject} />)}
             </div>
-            <p className="mt-3 max-w-[65ch] text-sm leading-relaxed text-gray-700 line-clamp-2 dark:text-gray-300">{ad.short_description}</p>
+            <p className="mt-3 line-clamp-2 max-w-[65ch] text-sm leading-relaxed text-muted-foreground">{ad.short_description}</p>
 
-            <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-4 dark:border-gray-800">
-                <span className="font-mono text-sm font-bold tabular-nums text-gray-900 dark:text-white">
+            <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+                <span className="font-mono text-sm font-semibold tabular-nums text-foreground">
                     {formatAdPrice(ad.price_details)}
                 </span>
                 <div className="flex flex-wrap items-center gap-2">
@@ -86,13 +86,13 @@ export function FavoriteStreamCard({
                         variant="outline"
                         disabled={busy}
                         isLoading={busy}
-                        className="h-11 rounded-full border-gray-200 bg-white px-4 text-sm font-bold text-gray-600 hover:text-red-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
+                        className="h-11 rounded-full border-border bg-card px-4 text-sm font-semibold text-muted-foreground hover:text-destructive"
                         onClick={() => void remove()}
                     >
                         Entfernen
                     </Button>
                     <Button
-                        className="h-11 rounded-full bg-primary px-4 text-sm font-bold text-black"
+                        className="h-11 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground"
                         onClick={() => navigate(`/ad/${ad.id}`)}
                     >
                         Ansehen <ExternalLink size={14} />
@@ -106,26 +106,26 @@ export function FavoriteStreamCard({
 /** Helles Karten-Skelett für die Merklisten-Karten. */
 export function FavoriteSkeleton() {
     return (
-        <div className="animate-pulse rounded-3xl border border-gray-200 bg-white p-5 shadow-soft dark:border-gray-800 dark:bg-gray-900">
+        <div className="animate-pulse rounded-2xl border border-border bg-card p-5 shadow-soft">
             <div className="flex items-start justify-between gap-3">
-                <div className="h-6 w-20 rounded-full bg-gray-100 dark:bg-gray-800/70" />
-                <div className="h-11 w-11 rounded-full bg-gray-100 dark:bg-gray-800/70" />
+                <div className="h-6 w-20 rounded-full bg-muted" />
+                <div className="h-11 w-11 rounded-full bg-muted" />
             </div>
             <div className="mt-4 space-y-2.5">
-                <div className="h-4 w-3/5 rounded-full bg-gray-200 dark:bg-gray-800" />
-                <div className="h-3 w-2/5 rounded-full bg-gray-100 dark:bg-gray-800/70" />
+                <div className="h-4 w-3/5 rounded-full bg-border" />
+                <div className="h-3 w-2/5 rounded-full bg-muted" />
             </div>
             <div className="mt-4 flex flex-wrap gap-1.5">
-                <div className="h-6 w-16 rounded-full bg-gray-100 dark:bg-gray-800/70" />
-                <div className="h-6 w-20 rounded-full bg-gray-100 dark:bg-gray-800/70" />
+                <div className="h-6 w-16 rounded-full bg-muted" />
+                <div className="h-6 w-20 rounded-full bg-muted" />
             </div>
             <div className="mt-4 space-y-2">
-                <div className="h-3 w-full rounded-full bg-gray-100 dark:bg-gray-800/70" />
-                <div className="h-3 w-4/5 rounded-full bg-gray-100 dark:bg-gray-800/70" />
+                <div className="h-3 w-full rounded-full bg-muted" />
+                <div className="h-3 w-4/5 rounded-full bg-muted" />
             </div>
-            <div className="mt-5 flex items-center justify-between gap-3 border-t border-gray-100 pt-4 dark:border-gray-800">
-                <div className="h-4 w-20 rounded-full bg-gray-100 dark:bg-gray-800/70" />
-                <div className="h-11 w-32 rounded-full bg-gray-100 dark:bg-gray-800/70" />
+            <div className="mt-5 flex items-center justify-between gap-3 border-t border-border pt-4">
+                <div className="h-4 w-20 rounded-full bg-muted" />
+                <div className="h-11 w-32 rounded-full bg-muted" />
             </div>
         </div>
     );

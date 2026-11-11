@@ -32,18 +32,14 @@ export default class ErrorBoundary extends Component<Props, State> {
         if (this.state.hasError) {
             if (this.props.fallback) return this.props.fallback;
             return (
-                <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-gray-50 px-6 text-center dark:bg-gray-950">
-                    <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-background px-6 text-center text-foreground">
+                    <h1 className="text-xl font-semibold">
                         Die Seite konnte nicht geladen werden.
                     </h1>
-                    <p className="max-w-sm text-sm text-gray-500">
+                    <p className="max-w-sm text-sm text-muted-foreground">
                         Deine Daten bleiben gespeichert. Bitte lade die Seite neu.
                     </p>
-                    <Button variant="unstyled" size="unstyled"
-                        type="button"
-                        onClick={this.handleReload}
-                        className="rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-black hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring))] focus-visible:ring-offset-2 dark:focus-visible:ring-primary"
-                    >
+                    <Button type="button" onClick={this.handleReload} className="h-11 rounded-full px-5 font-semibold">
                         Seite neu laden
                     </Button>
                 </div>

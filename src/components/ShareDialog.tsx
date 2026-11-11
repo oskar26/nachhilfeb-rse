@@ -99,43 +99,45 @@ export default function ShareDialog({
 
     return (
         <Dialog open={isOpen} onClose={onClose}>
-            <DialogContent className="sm:max-w-md p-0 overflow-hidden">
-                <DialogHeader className="p-6 pb-2 relative border-b dark:border-gray-800">
-                    <DialogTitle className="text-lg font-black">{dialogTitle}</DialogTitle>
-                    <DialogDescription className="text-xs text-gray-500 dark:text-gray-400">
+            <DialogContent showCloseButton={false} className="max-h-[90dvh] overflow-y-auto p-0 sm:max-w-md">
+                <DialogHeader className="relative border-b border-border p-5 pr-16 sm:p-6 sm:pb-3">
+                    <DialogTitle className="text-base font-semibold">{dialogTitle}</DialogTitle>
+                    <DialogDescription className="text-xs leading-relaxed text-muted-foreground">
                         {dialogSubtitle}
                     </DialogDescription>
-                    <Button variant="unstyled" size="unstyled" type="submit"
+                    <Button variant="unstyled" size="unstyled" type="button"
                         onClick={onClose}
-                        className="absolute right-4 top-4 p-1.5 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                        aria-label="Dialog schließen"
+                        className="absolute right-2 top-2 grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     >
-                        <X size={18} />
+                        <X size={18} aria-hidden />
                     </Button>
                 </DialogHeader>
 
-                <div className="p-6 space-y-4">
+                <div className="space-y-4 p-5 sm:p-6">
                     {/* Copy Link Field */}
-                    <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900 p-2.5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xs">
+                    <div className="flex items-center gap-2 rounded-xl border border-border bg-muted/40 p-2">
                         <Input
                             type="text"
                             value={shareUrl}
                             readOnly
-                            className="bg-transparent text-xs w-full text-gray-700 dark:text-gray-300 font-medium select-all outline-none pl-2"
+                            aria-label="Link zum Teilen"
+                            className="w-full min-w-0 border-0 bg-transparent text-xs font-medium text-foreground select-all focus-visible:ring-0"
                         />
                         <Button
                             size="sm"
-                            variant="ghost"
-                            className="h-8 px-3 shrink-0 rounded-xl font-bold text-xs gap-1.5 bg-white dark:bg-gray-800 border dark:border-gray-700 shadow-xs"
+                            variant="outline"
+                            className="h-11 shrink-0 gap-1.5 rounded-full px-3 text-xs font-semibold"
                             onClick={handleCopy}
                         >
                             {copied ? (
                                 <>
-                                    <Check size={14} className="text-green-500" />
-                                    <span className="text-green-600 dark:text-green-400">Kopiert</span>
+                                    <Check size={14} className="text-brand-ink dark:text-primary" aria-hidden />
+                                    <span>Kopiert</span>
                                 </>
                             ) : (
                                 <>
-                                    <Copy size={14} />
+                                    <Copy size={14} aria-hidden />
                                     <span>Kopieren</span>
                                 </>
                             )}
@@ -146,10 +148,10 @@ export default function ShareDialog({
                     <div className="grid grid-cols-3 gap-2.5">
                         <Button
                             variant="outline"
-                            className="flex flex-col items-center justify-center p-3.5 h-auto rounded-2xl text-xs gap-1.5 font-bold border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 shadow-xs"
+                            className="flex h-auto min-h-20 flex-col items-center justify-center gap-1.5 rounded-xl p-3 text-xs font-semibold"
                             onClick={handleSystemShare}
                         >
-                            <Share2 size={20} className="text-blue-500" />
+                            <Share2 size={20} className="text-brand-ink dark:text-primary" aria-hidden />
                             <span>Teilen</span>
                         </Button>
 
@@ -158,37 +160,37 @@ export default function ShareDialog({
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={() => triggerHaptic('light')}
-                            className="flex flex-col items-center justify-center p-3.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-green-50/50 dark:hover:bg-green-950/20 rounded-2xl text-xs gap-1.5 font-bold text-center shadow-xs transition-colors"
+                            className="flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-xl border border-border bg-card p-3 text-center text-xs font-semibold transition-colors hover:bg-muted"
                         >
-                            <MessageSquare size={20} className="text-green-500 mx-auto" />
+                            <MessageSquare size={20} className="text-brand-ink dark:text-primary" aria-hidden />
                             <span>WhatsApp</span>
                         </a>
 
                         <a
                             href={emailUrl}
                             onClick={() => triggerHaptic('light')}
-                            className="flex flex-col items-center justify-center p-3.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 rounded-2xl text-xs gap-1.5 font-bold text-center shadow-xs transition-colors"
+                            className="flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-xl border border-border bg-card p-3 text-center text-xs font-semibold transition-colors hover:bg-muted"
                         >
-                            <Mail size={20} className="text-indigo-500 mx-auto" />
+                            <Mail size={20} className="text-brand-ink dark:text-primary" aria-hidden />
                             <span>E-Mail</span>
                         </a>
                     </div>
 
                     {/* QR Code Section */}
-                    <div className="pt-2 border-t dark:border-gray-800">
+                    <div className="border-t border-border pt-4">
                         <Button variant="unstyled" size="unstyled"
                             type="button"
                             onClick={() => setShowQr(!showQr)}
-                            className="w-full py-2.5 px-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-900/60 text-xs font-bold flex items-center justify-center gap-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-muted/40 px-3 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
                         >
-                            <QrCode size={16} />
+                            <QrCode size={16} aria-hidden />
                             <span>{showQr ? 'QR-Code verbergen' : 'QR-Code zum Abscannen anzeigen'}</span>
                         </Button>
 
                         {showQr && (
-                            <div className="mt-3 flex flex-col items-center justify-center p-4 bg-white dark:bg-gray-950 rounded-2xl border dark:border-gray-800 shadow-inner animate-in fade-in zoom-in-95">
-                                <QRCodeSVG value={shareUrl!} size={220} title="QR-Code zum Abscannen" className="w-44 h-44 rounded-xl" />
-                                <p className="text-[11px] text-gray-400 font-semibold mt-2 text-center">
+                            <div className="mt-3 flex flex-col items-center justify-center rounded-xl border border-border bg-card p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] animate-in fade-in zoom-in-95">
+                                <QRCodeSVG value={shareUrl!} size={220} title="QR-Code zum Abscannen" className="size-44 rounded-lg" />
+                                <p className="mt-2 text-center text-xs font-medium text-muted-foreground">
                                     Scanne diesen Code mit deiner Handy-Kamera
                                 </p>
                             </div>

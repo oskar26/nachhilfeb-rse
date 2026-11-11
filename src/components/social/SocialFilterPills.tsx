@@ -34,10 +34,10 @@ export function SocialFilterPills({ options, value, onChange, ariaLabel }: Socia
                             if (!isActive) onChange(option.key);
                         }}
                         className={cn(
-                            'relative inline-flex min-h-[44px] cursor-pointer items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-bold transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-950',
+                            'relative inline-flex min-h-11 cursor-pointer select-none items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
                             isActive
-                                ? 'border-primary text-black'
-                                : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+                                ? 'border-primary text-primary-foreground'
+                                : 'border-border bg-card text-muted-foreground hover:border-ring/40 hover:text-gray-700 border-border dark:bg-gray-900 dark:text-muted-foreground dark:hover:text-gray-200'
                         )}
                     >
                         {isActive && (
@@ -52,8 +52,8 @@ export function SocialFilterPills({ options, value, onChange, ariaLabel }: Socia
                         {typeof option.count === 'number' && (
                             <span
                                 className={cn(
-                                    'relative z-10 inline-flex min-w-[1.25rem] items-center justify-center rounded-full px-1.5 py-0.5 font-mono text-[10px] font-black leading-none tabular-nums',
-                                    isActive ? 'bg-white text-amber-950' : 'bg-primary text-amber-950'
+                                    'relative z-10 inline-flex min-w-[1.25rem] items-center justify-center rounded-full px-1.5 py-0.5 font-mono text-[10px] font-semibold leading-none tabular-nums',
+                                    isActive ? 'bg-primary-foreground text-primary' : 'bg-primary text-primary-foreground'
                                 )}
                             >
                                 {option.count}

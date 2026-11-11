@@ -18,18 +18,18 @@ interface SubjectPickerDialogProps {
 export default function SubjectPickerDialog({ open, onClose, selected, onToggle }: SubjectPickerDialogProps) {
     return (
         <Dialog open={open} onClose={onClose}>
-            <DialogContent className="p-0" aria-label="Fächer auswählen">
+            <DialogContent showCloseButton={false} className="max-h-[92dvh] p-0" aria-label="Fächer auswählen">
                 <DialogTitle className="sr-only">Fächer auswählen</DialogTitle>
                 <DialogDescription className="sr-only">
                     Wähle die Fächer aus, für die du Nachhilfe suchst oder anbietest.
                 </DialogDescription>
-                <div className="max-h-[75vh] overflow-y-auto overscroll-contain">
+                <div className="max-h-[92dvh] overflow-y-auto overscroll-contain">
                     {/* Poster-Kopf */}
-                    <div className="sticky top-0 z-10 border-b border-black/10 bg-[#faf7ef] poster-grain-dark px-5 pb-4 pt-5 text-gray-900 dark:border-gray-800 dark:bg-gray-900 dark:text-white">
+                    <div className="sticky top-0 z-10 border-b border-border bg-background px-5 pb-4 pt-5 text-foreground">
                         <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
                                 <h2 className="font-display text-xl uppercase leading-none tracking-tight">Fach hinzufügen</h2>
-                                <p className="mt-1.5 text-xs leading-relaxed text-gray-600 dark:text-gray-400">
+                                <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
                                     Wähle deine Fächer – bereits gewählte sind ausgegraut.
                                 </p>
                             </div>
@@ -37,7 +37,7 @@ export default function SubjectPickerDialog({ open, onClose, selected, onToggle 
                                 type="button"
                                 onClick={onClose}
                                 aria-label="Fächer-Auswahl schließen"
-                                className="press grid h-11 w-11 shrink-0 place-items-center rounded-full bg-black/5 text-gray-900 transition-colors hover:bg-black/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
+                                className="press grid size-11 shrink-0 place-items-center rounded-full bg-muted text-foreground transition-colors hover:bg-muted/70"
                             >
                                 <X size={18} />
                             </Button>
@@ -49,7 +49,7 @@ export default function SubjectPickerDialog({ open, onClose, selected, onToggle 
                     <div className="space-y-5 px-5 py-5">
                         {SUBJECT_CATEGORIES.map((category) => (
                             <div key={category.title}>
-                                <h3 className="mb-2 text-[11px] font-extrabold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                <h3 className="mb-2 text-xs font-semibold text-muted-foreground">
                                     {category.title}
                                 </h3>
                                 <div className="flex flex-wrap gap-2">
@@ -81,11 +81,11 @@ export default function SubjectPickerDialog({ open, onClose, selected, onToggle 
                     </div>
 
                     {/* Fußzeile */}
-                    <div className="sticky bottom-0 z-10 flex items-center justify-between gap-3 border-t border-gray-100 bg-white/95 px-5 py-3.5 backdrop-blur dark:border-gray-800 dark:bg-gray-900/95">
-                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 tabular-nums">
+                    <div className="sticky bottom-0 z-10 flex items-center justify-between gap-3 border-t border-border bg-card/95 px-5 py-3.5 pb-[calc(0.875rem+env(safe-area-inset-bottom))] backdrop-blur">
+                        <p className="text-xs font-semibold tabular-nums text-muted-foreground">
                             {selected.length} {selected.length === 1 ? 'Fach' : 'Fächer'} gewählt
                         </p>
-                        <Button size="sm" onClick={onClose} className="h-10 rounded-full px-5 font-bold">
+                        <Button size="sm" onClick={onClose} className="h-11 rounded-full px-5 font-semibold">
                             Fertig
                         </Button>
                     </div>

@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { api } from '../../lib/api';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
+import { Spinner } from '../../components/ui/spinner';
 import { cn } from '../../lib/utils';
 import { triggerHaptic } from '../../lib/haptics';
 import {
@@ -32,7 +33,7 @@ import {
     type CoachingTextBlock,
 } from '../Coaching';
 
-const textareaCls = 'w-full rounded-2xl border border-gray-200 bg-white p-3 text-sm text-gray-900 shadow-sm transition-all placeholder:text-gray-400 focus-visible:border-[var(--ring))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring))]/25 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-50 dark:placeholder:text-gray-500 dark:focus-visible:border-primary dark:focus-visible:ring-primary/40';
+const textareaCls = 'w-full rounded-xl border border-input bg-transparent p-3 text-sm text-foreground shadow-soft transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30';
 
 const BUILTIN_BLOCKS: Array<{ type: Exclude<CoachingBlockType, 'text'>; label: string; description: string }> = [
     { type: 'poster', label: 'Plakat', description: 'Termin, Raum, Kontakt und Anmeldung' },
@@ -81,8 +82,8 @@ function EditorField({
 }) {
     return (
         <div className="min-w-0 space-y-1.5">
-            <Label htmlFor={id} className="ml-1 text-[11px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">{label}</Label>
-            <Input id={id} type={type} value={value} placeholder={placeholder} onChange={event => onChange(event.target.value)} className="rounded-xl" />
+            <Label htmlFor={id} className="ml-1 text-xs font-medium text-muted-foreground">{label}</Label>
+            <Input id={id} type={type} value={value} placeholder={placeholder} onChange={event => onChange(event.target.value)} />
         </div>
     );
 }
@@ -104,7 +105,7 @@ function EditorTextarea({
 }) {
     return (
         <div className="min-w-0 space-y-1.5">
-            <Label htmlFor={id} className="ml-1 text-[11px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">{label}</Label>
+            <Label htmlFor={id} className="ml-1 text-xs font-medium text-muted-foreground">{label}</Label>
             <Textarea id={id} value={value} rows={rows} placeholder={placeholder} onChange={event => onChange(event.target.value)} className={textareaCls} />
         </div>
     );
@@ -131,7 +132,7 @@ function OrderControls({
             <Button type="button" variant="ghost" size="icon" onClick={() => onMove(1)} disabled={index === total - 1} aria-label={`${name} nach unten`} title="Nach unten" className="h-11 w-11 rounded-xl">
                 <ArrowDown size={17} />
             </Button>
-            <Button type="button" variant="ghost" size="icon" onClick={onDelete} aria-label={`${name} löschen`} title="Löschen" className="h-11 w-11 rounded-xl text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30">
+            <Button type="button" variant="destructive" size="icon" onClick={onDelete} aria-label={`${name} löschen`} title="Löschen" className="h-11 w-11 rounded-xl">
                 <Trash2 size={17} />
             </Button>
         </div>
@@ -172,9 +173,9 @@ function ListItemsEditor({
     return (
         <div className="space-y-3">
             {items.map((item, index) => (
-                <div key={item.id} className="rounded-2xl border border-gray-200 bg-gray-50/70 p-4 dark:border-gray-800 dark:bg-gray-950/30">
+                <div key={item.id} className="rounded-xl border border-border bg-muted/40 p-4">
                     <div className="mb-3 flex items-center justify-between gap-3">
-                        <span className="text-xs font-bold text-gray-600 dark:text-gray-300">Eintrag {index + 1}</span>
+                        <span className="text-xs font-medium text-muted-foreground">Eintrag {index + 1}</span>
                         <OrderControls
                             name={`Eintrag ${index + 1}`}
                             index={index}
@@ -189,7 +190,7 @@ function ListItemsEditor({
                     </div>
                 </div>
             ))}
-            <Button type="button" variant="outline" onClick={() => onChange([...items, { id: editorId('item'), title: 'Neuer Eintrag', body: '' }])} className="min-h-[44px] w-full rounded-xl font-bold">
+            <Button type="button" variant="outline" onClick={() => onChange([...items, { id: editorId('item'), title: 'Neuer Eintrag', body: '' }])} className="min-h-11 w-full rounded-xl font-semibold">
                 <Plus size={16} /> {addLabel}
             </Button>
         </div>
@@ -200,9 +201,9 @@ function ParagraphsEditor({ paragraphs, onChange }: { paragraphs: string[]; onCh
     return (
         <div className="space-y-3">
             {paragraphs.map((paragraph, index) => (
-                <div key={`paragraph-${index}`} className="rounded-2xl border border-gray-200 bg-gray-50/70 p-4 dark:border-gray-800 dark:bg-gray-950/30">
+                <div key={`paragraph-${index}`} className="rounded-xl border border-border bg-muted/40 p-4">
                     <div className="mb-3 flex items-center justify-between gap-3">
-                        <span className="text-xs font-bold text-gray-600 dark:text-gray-300">Absatz {index + 1}</span>
+                        <span className="text-xs font-medium text-muted-foreground">Absatz {index + 1}</span>
                         <OrderControls
                             name={`Absatz ${index + 1}`}
                             index={index}
@@ -214,7 +215,7 @@ function ParagraphsEditor({ paragraphs, onChange }: { paragraphs: string[]; onCh
                     <EditorTextarea id={`support-paragraph-${index}`} label="Absatztext" value={paragraph} onChange={value => onChange(paragraphs.map((current, paragraphIndex) => paragraphIndex === index ? value : current))} rows={4} />
                 </div>
             ))}
-            <Button type="button" variant="outline" onClick={() => onChange([...paragraphs, ''])} className="min-h-[44px] w-full rounded-xl font-bold">
+            <Button type="button" variant="outline" onClick={() => onChange([...paragraphs, ''])} className="min-h-11 w-full rounded-xl font-semibold">
                 <Plus size={16} /> Absatz hinzufügen
             </Button>
         </div>
@@ -270,15 +271,15 @@ function ScheduleEditor({ block, onChange }: { block: CoachingSupportBlock; onCh
         <div className="space-y-5">
             <div className="space-y-3">
                 <div className="flex items-center justify-between gap-3">
-                    <h4 className="text-sm font-black text-gray-900 dark:text-white">Tage</h4>
-                    <Button type="button" variant="outline" size="sm" onClick={addDay} className="min-h-[44px] rounded-xl font-bold">
+                    <h4 className="text-sm font-semibold text-foreground">Tage</h4>
+                    <Button type="button" variant="outline" size="sm" onClick={addDay} className="min-h-11 rounded-xl font-semibold">
                         <Plus size={15} /> Tag
                     </Button>
                 </div>
                 {block.days.map((day, index) => (
-                    <div key={day.id} className="rounded-2xl border border-gray-200 bg-gray-50/70 p-4 dark:border-gray-800 dark:bg-gray-950/30">
+                    <div key={day.id} className="rounded-xl border border-border bg-muted/40 p-4">
                         <div className="mb-3 flex items-center justify-between gap-3">
-                            <span className="text-xs font-bold text-gray-600 dark:text-gray-300">Spalte {index + 1}</span>
+                            <span className="text-xs font-medium text-muted-foreground">Spalte {index + 1}</span>
                             <OrderControls name={`Tag ${index + 1}`} index={index} total={block.days.length} onMove={direction => moveDay(index, direction)} onDelete={() => deleteDay(day.id)} />
                         </div>
                         <EditorField id={`schedule-day-${day.id}`} label="Tagesname" value={day.label} onChange={value => updateDay(day.id, value)} />
@@ -288,15 +289,15 @@ function ScheduleEditor({ block, onChange }: { block: CoachingSupportBlock; onCh
 
             <div className="space-y-3">
                 <div className="flex items-center justify-between gap-3">
-                    <h4 className="text-sm font-black text-gray-900 dark:text-white">Stundenplan</h4>
-                    <Button type="button" variant="outline" size="sm" onClick={addRow} disabled={block.days.length === 0} className="min-h-[44px] rounded-xl font-bold">
+                    <h4 className="text-sm font-semibold text-foreground">Stundenplan</h4>
+                    <Button type="button" variant="outline" size="sm" onClick={addRow} disabled={block.days.length === 0} className="min-h-11 rounded-xl font-semibold">
                         <Plus size={15} /> Zeile
                     </Button>
                 </div>
                 {block.rows.map((row, rowIndex) => (
-                    <div key={row.id} className="rounded-2xl border border-gray-200 bg-gray-50/70 p-4 dark:border-gray-800 dark:bg-gray-950/30">
+                    <div key={row.id} className="rounded-xl border border-border bg-muted/40 p-4">
                         <div className="mb-3 flex items-center justify-between gap-3">
-                            <span className="text-xs font-bold text-gray-600 dark:text-gray-300">Zeile {rowIndex + 1}</span>
+                            <span className="text-xs font-medium text-muted-foreground">Zeile {rowIndex + 1}</span>
                             <OrderControls
                                 name={`Stundenplanzeile ${rowIndex + 1}`}
                                 index={rowIndex}
@@ -346,17 +347,17 @@ function BlockFrame({
     children: ReactNode;
 }) {
     return (
-        <details id={`editor-${block.id}`} className="group scroll-mt-28 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm open:shadow-md dark:border-gray-800 dark:bg-gray-900">
-            <summary className="flex min-h-[68px] cursor-pointer list-none items-center gap-4 px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ring))] dark:focus-visible:ring-primary sm:px-5 [&::-webkit-details-marker]:hidden">
+        <details id={`editor-${block.id}`} className="group scroll-mt-28 overflow-hidden rounded-2xl border border-border bg-card shadow-soft open:shadow-card">
+            <summary className="flex min-h-[68px] cursor-pointer list-none items-center gap-4 px-4 py-3 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/50 sm:px-5 [&::-webkit-details-marker]:hidden">
                 <span className="min-w-0 flex-1">
-                    <span className="block text-[10px] font-black uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400">{BLOCK_LABELS[block.type]}</span>
-                    <span className="mt-0.5 block truncate text-sm font-black text-gray-900 dark:text-white">{blockTitle(block) || 'Ohne Titel'}</span>
+                    <span className="block text-xs font-medium text-muted-foreground">{BLOCK_LABELS[block.type]}</span>
+                    <span className="mt-0.5 block truncate text-sm font-semibold text-foreground">{blockTitle(block) || 'Ohne Titel'}</span>
                 </span>
-                <ChevronDown size={19} className="shrink-0 text-gray-500 transition-transform duration-200 group-open:rotate-180 dark:text-gray-400" aria-hidden />
+                <ChevronDown size={20} className="shrink-0 text-muted-foreground transition-transform duration-200 group-open:rotate-180" aria-hidden />
             </summary>
-            <div className="border-t border-gray-100 p-4 dark:border-gray-800 sm:p-5">
+            <div className="border-t border-border p-4 sm:p-5">
                 <div className="mb-5 flex items-center justify-between gap-3">
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Inhalt, Reihenfolge und Löschen</p>
+                    <p className="text-xs text-muted-foreground">Inhalt, Reihenfolge und Löschen</p>
                     <OrderControls name={BLOCK_LABELS[block.type]} index={index} total={total} onMove={onMove} onDelete={onDelete} />
                 </div>
                 <div className="space-y-5">{children}</div>
@@ -367,13 +368,13 @@ function BlockFrame({
 
 function HeaderEditor({ header, onUpdate, onDelete }: { header: CoachingHeaderBlock; onUpdate: (header: CoachingHeaderBlock) => void; onDelete: () => void }) {
     return (
-        <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <div className="flex items-center justify-between gap-3 border-b border-gray-100 px-4 py-3 dark:border-gray-800 sm:px-5">
-                <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400">Seitenkopf</p>
-                    <h3 className="mt-0.5 text-sm font-black text-gray-900 dark:text-white">{header.title || 'Ohne Titel'}</h3>
+        <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
+            <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
+                <div className="min-w-0">
+                    <p className="text-xs font-medium text-muted-foreground">Seitenkopf</p>
+                    <h3 className="mt-0.5 truncate text-sm font-semibold text-foreground">{header.title || 'Ohne Titel'}</h3>
                 </div>
-                <Button type="button" variant="ghost" size="icon" onClick={onDelete} aria-label="Seitenkopf löschen" title="Löschen" className="h-11 w-11 rounded-xl text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30">
+                <Button type="button" variant="destructive" size="icon" onClick={onDelete} aria-label="Seitenkopf löschen" title="Löschen" className="h-11 w-11 rounded-xl">
                     <Trash2 size={17} />
                 </Button>
             </div>
@@ -499,20 +500,20 @@ export default function CoachingPageBuilder() {
     if (loading && draft === null) {
         return (
             <div className="py-20 text-center">
-                <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-[3px] border-amber-500 border-t-transparent" />
-                <p className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Coaching-Inhalte werden geladen …</p>
+                <Spinner className="mx-auto mb-3 size-6 text-brand-ink dark:text-primary" />
+                <p className="text-xs font-medium text-muted-foreground">Coaching-Inhalte werden geladen …</p>
             </div>
         );
     }
 
     if (loadError) {
         return (
-            <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center dark:border-red-900 dark:bg-red-950/30">
-                <h2 className="text-lg font-black text-red-950 dark:text-red-100">Coaching-Inhalte konnten nicht geladen werden</h2>
-                <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-red-800 dark:text-red-200">Die gespeicherten Inhalte wurden nicht verändert. Bitte lade sie erneut, bevor du bearbeitest oder speicherst.</p>
-                <p className="mt-2 text-xs text-red-700 dark:text-red-300">{loadError}</p>
-                <Button type="button" variant="outline" onClick={() => { setLoading(true); setLoadError(''); setReloadKey(current => current + 1); }} className="mt-4 min-h-[44px] rounded-xl font-bold">
-                    <RotateCcw size={16} /> Erneut laden
+            <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-center">
+                <h2 className="text-lg font-semibold text-destructive">Coaching-Inhalte konnten nicht geladen werden</h2>
+                <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-foreground/80">Die gespeicherten Inhalte wurden nicht verändert. Bitte lade sie erneut, bevor du bearbeitest oder speicherst.</p>
+                <p className="mt-2 break-words text-xs text-muted-foreground">{loadError}</p>
+                <Button type="button" variant="outline" onClick={() => { setLoading(true); setLoadError(''); setReloadKey(current => current + 1); }} className="mt-4 min-h-11 rounded-xl font-semibold">
+                    <RotateCcw size={16} aria-hidden /> Erneut laden
                 </Button>
             </div>
         );
@@ -558,14 +559,14 @@ export default function CoachingPageBuilder() {
                 <>
                     <EditorField id={`${steps.id}-title`} label="Überschrift" value={steps.title} onChange={value => updateBlock(steps.id, { ...steps, title: value })} />
                     <div>
-                        <h4 className="mb-3 text-sm font-black text-gray-900 dark:text-white">Coach werden</h4>
+                        <h4 className="mb-3 text-sm font-semibold text-foreground">Coach werden</h4>
                         <ListItemsEditor idPrefix={`${steps.id}-step`} items={steps.items} onChange={items => updateBlock(steps.id, { ...steps, items })} addLabel="Schritt hinzufügen" />
                     </div>
                     <EditorTextarea id={`${steps.id}-note`} label="Hinweis unter den Schritten" value={steps.note} onChange={value => updateBlock(steps.id, { ...steps, note: value })} rows={4} />
-                    <div className="space-y-4 border-t border-gray-100 pt-5 dark:border-gray-800">
+                    <div className="space-y-4 border-t border-border pt-5 ">
                         <EditorField id={`${steps.id}-verification-title`} label="Überschrift der Verifizierung" value={steps.verificationTitle} onChange={value => updateBlock(steps.id, { ...steps, verificationTitle: value })} />
                         <div>
-                            <h4 className="mb-3 text-sm font-black text-gray-900 dark:text-white">Verifizierung in der App</h4>
+                            <h4 className="mb-3 text-sm font-semibold text-foreground">Verifizierung in der App</h4>
                             <ListItemsEditor idPrefix={`${steps.id}-verify`} items={steps.verificationItems} onChange={verificationItems => updateBlock(steps.id, { ...steps, verificationItems })} addLabel="Verifizierungsschritt hinzufügen" bodyRows={3} />
                         </div>
                     </div>
@@ -613,18 +614,18 @@ export default function CoachingPageBuilder() {
                 <div className="space-y-5">
                     <EditorField id={`${support.id}-title`} label="Überschrift" value={support.title} onChange={value => updateBlock(support.id, { ...support, title: value })} />
                     <div>
-                        <h4 className="mb-3 text-sm font-black text-gray-900 dark:text-white">Beschreibung</h4>
+                        <h4 className="mb-3 text-sm font-semibold text-foreground">Beschreibung</h4>
                         <ParagraphsEditor paragraphs={support.paragraphs} onChange={paragraphs => updateBlock(support.id, { ...support, paragraphs })} />
                     </div>
-                    <div className="grid gap-4 border-t border-gray-100 pt-5 sm:grid-cols-2 dark:border-gray-800">
+                    <div className="grid gap-4 border-t border-border pt-5 sm:grid-cols-2 ">
                         <EditorField id={`${support.id}-registration-text`} label="Text vor Anmeldungs-E-Mail" value={support.registrationText} onChange={value => updateBlock(support.id, { ...support, registrationText: value })} />
                         <EditorField id={`${support.id}-registration-email`} label="Anmeldungs-E-Mail" type="email" value={support.registrationEmail} onChange={value => updateBlock(support.id, { ...support, registrationEmail: value })} />
                     </div>
-                    <div className="border-t border-gray-100 pt-5 dark:border-gray-800">
-                        <h4 className="mb-3 text-sm font-black text-gray-900 dark:text-white">Stundenplan</h4>
+                    <div className="border-t border-border pt-5 ">
+                        <h4 className="mb-3 text-sm font-semibold text-foreground">Stundenplan</h4>
                         <ScheduleEditor block={support} onChange={next => updateBlock(support.id, next)} />
                     </div>
-                    <div className="grid gap-4 border-t border-gray-100 pt-5 sm:grid-cols-2 dark:border-gray-800">
+                    <div className="grid gap-4 border-t border-border pt-5 sm:grid-cols-2 ">
                         <EditorTextarea id={`${support.id}-learn-text`} label="Text zum Lerncoaching" value={support.learnCoachingText} onChange={value => updateBlock(support.id, { ...support, learnCoachingText: value })} rows={5} />
                         <EditorField id={`${support.id}-learn-email`} label="Lerncoaching-E-Mail" type="email" value={support.learnCoachingEmail} onChange={value => updateBlock(support.id, { ...support, learnCoachingEmail: value })} />
                     </div>
@@ -643,20 +644,20 @@ export default function CoachingPageBuilder() {
 
     return (
         <div className="min-w-0">
-            <div className="sticky top-2 z-30 rounded-2xl border border-gray-200 bg-white/95 p-3 shadow-md backdrop-blur dark:border-gray-800 dark:bg-gray-950/95 sm:p-4">
+            <div className="sticky top-2 z-30 rounded-2xl border border-border bg-card/95 p-3 shadow-card backdrop-blur sm:p-4">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                     <div className="min-w-0">
-                        <h2 className="text-lg font-black text-gray-900 dark:text-white">Coaching-Inhalte</h2>
-                        <p role="status" className={cn('mt-0.5 flex items-center gap-1.5 text-xs font-bold', dirty ? 'text-amber-700 dark:text-amber-300' : 'text-gray-500 dark:text-gray-400')}>
-                            {dirty ? <span className="h-2 w-2 rounded-full bg-amber-500" aria-hidden /> : <Check size={14} aria-hidden />}
+                        <h2 className="text-lg font-semibold text-foreground">Coaching-Inhalte</h2>
+                        <p role="status" className={cn('mt-0.5 flex items-center gap-1.5 text-xs font-medium', dirty ? 'text-amber-700 dark:text-amber-400' : 'text-muted-foreground')}>
+                            {dirty ? <span className="size-2 rounded-full bg-amber-500" aria-hidden /> : <Check size={16} aria-hidden />}
                             {dirty ? 'Ungespeicherte Änderungen' : 'Alle Änderungen gespeichert'}
                         </p>
                     </div>
                     <div className="flex flex-col gap-2 sm:flex-row">
-                        <Button type="button" variant="outline" onClick={handleReset} className="min-h-[44px] rounded-xl font-bold">
-                            <RotateCcw size={16} /> Auf Standard zurücksetzen
+                        <Button type="button" variant="outline" onClick={handleReset} className="min-h-11 rounded-xl font-semibold">
+                            <RotateCcw size={16} aria-hidden /> Auf Standard zurücksetzen
                         </Button>
-                        <Button type="button" onClick={handleSave} disabled={saving} isLoading={saving} className="min-h-[44px] rounded-xl bg-primary font-black text-primary-foreground hover:bg-primary-hover">
+                        <Button type="button" onClick={handleSave} disabled={saving} isLoading={saving} className="min-h-11 rounded-xl font-semibold">
                             {saving ? 'Speichern …' : 'Inhalte speichern'}
                         </Button>
                     </div>
@@ -665,9 +666,9 @@ export default function CoachingPageBuilder() {
 
             <div className="mt-5 grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(400px,0.85fr)] 2xl:gap-6">
                 <div className="min-w-0 space-y-4">
-                    <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900 sm:p-5">
-                        <h3 className="text-base font-black text-gray-900 dark:text-white">Texte und Kontaktdaten</h3>
-                        <p className="mt-1 max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-300">Alle Inhalte der Coaching-Seite sind hier bearbeitbar. Blöcke lassen sich hinzufügen, umsortieren oder löschen; das bestehende Design bleibt unverändert.</p>
+                    <div className="rounded-2xl border border-border bg-card p-4 shadow-soft sm:p-5">
+                        <h3 className="text-base font-semibold text-foreground">Texte und Kontaktdaten</h3>
+                        <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">Alle Inhalte der Coaching-Seite sind hier bearbeitbar. Blöcke lassen sich hinzufügen, umsortieren oder löschen; das bestehende Design bleibt unverändert.</p>
                     </div>
 
                     {draft.header ? (
@@ -680,24 +681,24 @@ export default function CoachingPageBuilder() {
                             }}
                         />
                     ) : (
-                        <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-5 text-center dark:border-gray-700 dark:bg-gray-900/50">
-                            <p className="text-sm font-bold text-gray-700 dark:text-gray-200">Der Seitenkopf ist gelöscht.</p>
-                            <Button type="button" variant="outline" onClick={() => mutate(document => ({ ...document, header: { id: 'header', type: 'header', title: 'Coaching-AG am FWG', intro: '' } }))} className="mt-3 min-h-[44px] rounded-xl font-bold">
-                                <Plus size={16} /> Seitenkopf hinzufügen
+                        <div className="rounded-2xl border border-dashed border-border bg-muted/40 p-5 text-center">
+                            <p className="text-sm font-semibold text-foreground">Der Seitenkopf ist gelöscht.</p>
+                            <Button type="button" variant="outline" onClick={() => mutate(document => ({ ...document, header: { id: 'header', type: 'header', title: 'Coaching-AG am FWG', intro: '' } }))} className="mt-3 min-h-11 rounded-xl font-semibold">
+                                <Plus size={16} aria-hidden /> Seitenkopf hinzufügen
                             </Button>
                         </div>
                     )}
 
                     {draft.blocks.length > 0 ? draft.blocks.map(renderBlockEditor) : (
-                        <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center dark:border-gray-700 dark:bg-gray-900/50">
-                            <h3 className="text-base font-black text-gray-900 dark:text-white">Noch keine Inhaltsblöcke</h3>
-                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Füge unten einen Standardblock oder einen eigenen Textabschnitt hinzu.</p>
+                        <div className="rounded-2xl border border-dashed border-border bg-muted/40 p-8 text-center">
+                            <h3 className="text-base font-semibold text-foreground">Noch keine Inhaltsblöcke</h3>
+                            <p className="mt-1 text-sm text-muted-foreground">Füge unten einen Standardblock oder einen eigenen Textabschnitt hinzu.</p>
                         </div>
                     )}
 
-                    <section className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900 sm:p-5">
-                        <h3 className="text-base font-black text-gray-900 dark:text-white">Block hinzufügen</h3>
-                        <p className="mt-1 text-xs leading-5 text-gray-500 dark:text-gray-400">Gelöschte Standardblöcke können jederzeit wieder hinzugefügt werden.</p>
+                    <section className="rounded-2xl border border-border bg-card p-4 shadow-soft sm:p-5">
+                        <h3 className="text-base font-semibold text-foreground">Block hinzufügen</h3>
+                        <p className="mt-1 text-xs leading-5 text-muted-foreground">Gelöschte Standardblöcke können jederzeit wieder hinzugefügt werden.</p>
                         <div className="mt-4 grid gap-2 sm:grid-cols-2">
                             {BUILTIN_BLOCKS.map(candidate => {
                                 const exists = draft.blocks.some(block => block.type === candidate.type);
@@ -708,19 +709,19 @@ export default function CoachingPageBuilder() {
                                         variant="outline"
                                         disabled={exists}
                                         onClick={() => addBlock(candidate.type)}
-                                        className="min-h-[56px] justify-start rounded-xl px-4 text-left"
+                                        className="min-h-14 justify-start rounded-xl px-4 text-left"
                                     >
                                         <span className="min-w-0">
-                                            <span className="block text-sm font-black">{candidate.label}</span>
-                                            <span className="mt-0.5 block truncate text-[11px] font-normal text-gray-500 dark:text-gray-400">{exists ? 'Bereits vorhanden' : candidate.description}</span>
+                                            <span className="block text-sm font-semibold">{candidate.label}</span>
+                                            <span className="mt-0.5 block truncate text-xs font-normal text-muted-foreground">{exists ? 'Bereits vorhanden' : candidate.description}</span>
                                         </span>
                                     </Button>
                                 );
                             })}
-                            <Button type="button" variant="outline" onClick={() => addBlock('text')} className="min-h-[56px] justify-start rounded-xl px-4 text-left">
+                            <Button type="button" variant="outline" onClick={() => addBlock('text')} className="min-h-14 justify-start rounded-xl px-4 text-left">
                                 <span>
-                                    <span className="block text-sm font-black">Eigener Textabschnitt</span>
-                                    <span className="mt-0.5 block text-[11px] font-normal text-gray-500 dark:text-gray-400">Freier Titel und Freitext</span>
+                                    <span className="block text-sm font-semibold">Eigener Textabschnitt</span>
+                                    <span className="mt-0.5 block text-xs font-normal text-muted-foreground">Freier Titel und Freitext</span>
                                 </span>
                             </Button>
                         </div>
@@ -729,10 +730,10 @@ export default function CoachingPageBuilder() {
 
                 <aside className="min-w-0 xl:sticky xl:top-24">
                     <div className="mb-2 flex items-center justify-between gap-3">
-                        <h3 className="text-sm font-black text-gray-900 dark:text-white">Live-Vorschau</h3>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">Links sind deaktiviert</span>
+                        <h3 className="text-sm font-semibold text-foreground">Live-Vorschau</h3>
+                        <span className="text-xs text-muted-foreground">Links sind deaktiviert</span>
                     </div>
-                    <div onClickCapture={handlePreviewClickCapture} className="max-h-[calc(100vh-8rem)] overflow-auto rounded-2xl border border-gray-200 bg-gray-50 shadow-sm dark:border-gray-800 dark:bg-gray-950">
+                    <div onClickCapture={handlePreviewClickCapture} className="max-h-[calc(100vh-8rem)] overflow-auto rounded-2xl border border-border bg-muted/40 shadow-soft">
                         <CoachingView document={draft} preview />
                     </div>
                 </aside>

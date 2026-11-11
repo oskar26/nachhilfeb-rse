@@ -45,37 +45,41 @@ export function RatingDialog({ open, onOpenChange, targetUser, adId, onSuccess }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent>
+            <DialogContent showCloseButton={false} className="max-h-[90dvh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Bewertung für {targetUser?.display_name}</DialogTitle>
+                    <DialogTitle className="text-base font-semibold">Bewertung für {targetUser?.display_name}</DialogTitle>
                     <DialogDescription>
                         Wie war die Nachhilfe? Dein Feedback hilft anderen Schülern.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="py-6 flex flex-col items-center gap-4">
-                    <div className="flex gap-1">
+                <div className="flex flex-col items-center gap-4 py-4">
+                    <div className="flex items-center gap-1" role="radiogroup" aria-label="Sterne-Bewertung">
                         {[1, 2, 3, 4, 5].map((star) => (
                             <Button variant="unstyled" size="unstyled"
                                 key={star}
                                 type="button"
+                                role="radio"
+                                aria-checked={rating === star}
+                                aria-label={`${star} von 5 Sternen`}
                                 onClick={() => setRating(star)}
-                                className={`transition-all ${rating >= star ? 'scale-110' : 'grayscale opacity-50 hover:opacity-100 hover:scale-110'}`}
+                                className={`grid size-11 place-items-center rounded-full transition-colors ${rating >= star ? 'text-brand-ink dark:text-primary' : 'text-muted-foreground hover:text-foreground'}`}
                             >
-                                <Star fill={rating >= star ? "gold" : "none"} color={rating >= star ? "gold" : "currentColor"} size={32} />
+                                <Star fill={rating >= star ? 'currentColor' : 'none'} size={30} strokeWidth={1.75} aria-hidden />
                             </Button>
                         ))}
                     </div>
                     <Textarea
-                        className="w-full border rounded-md p-2 h-24 text-sm bg-gray-50 dark:bg-gray-900"
+                        className="min-h-24 w-full resize-none"
                         placeholder="Schreibe einen Kommentar (optional)..."
                         value={comment}
                         onChange={e => setComment(e.target.value)}
+                        aria-label="Kommentar zur Bewertung"
                     />
                 </div>
                 <DialogFooter>
-                    <Button variant="ghost" onClick={() => onOpenChange(false)}>Abbrechen</Button>
-                    <Button onClick={handleSubmit} disabled={loading || rating === 0}>
-                        {loading ? 'Sende...' : 'Bewertung absenden'}
+                    <Button variant="ghost" onClick={() => onOpenChange(false)} className="h-11 rounded-full">Abbrechen</Button>
+                    <Button onClick={handleSubmit} disabled={loading || rating === 0} isLoading={loading} className="h-11 rounded-full">
+                        Bewertung absenden
                     </Button>
                 </DialogFooter>
             </DialogContent>

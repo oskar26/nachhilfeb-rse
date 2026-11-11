@@ -1,6 +1,5 @@
-import { Input } from '@/components/ui/input';
-import { useEffect, useRef } from "react";
-import { cn } from "../lib/utils";
+import { Slider } from '@/components/ui/slider';
+import { cn } from '../lib/utils';
 
 interface PriceRangeSliderProps {
     min: number;
@@ -10,70 +9,32 @@ interface PriceRangeSliderProps {
     className?: string;
 }
 
+/**
+ * Zwei-Griff-Preisspanne auf Basis des shadcn/Base-UI-Sliders.
+ * Der Slider liefert 44-px-Touchflächen über die Thumb-Polsterung.
+ */
 export function PriceRangeSlider({ min, max, value, onChange, className }: PriceRangeSliderProps) {
     const minVal = Math.min(Math.max(value.min, min), max);
     const maxVal = Math.min(Math.max(value.max, min), max);
-    const range = useRef<HTMLDivElement>(null);
-
-    const getPercent = (v: number) => Math.round(((v - min) / (max - min)) * 100);
-
-    useEffect(() => {
-        const minPercent = Math.round(((minVal - min) / (max - min)) * 100);
-        const maxPercent = Math.round(((maxVal - min) / (max - min)) * 100);
-        if (range.current) {
-            range.current.style.left = `${minPercent}%`;
-            range.current.style.width = `${maxPercent - minPercent}%`;
-        }
-    }, [minVal, maxVal, min, max]);
 
     return (
-        <div className={cn("container relative h-6 w-full flex items-center", className)}>
-            <Input
-                type="range"
-                aria-label="Mindestpreis"
+        <div className={cn("relative w-full pb-6 pt-2", className)}>
+            <Slider
                 min={min}
                 max={max}
-                value={minVal}
-                onChange={(event) => {
-                    const next = Math.min(Number(event.target.value), maxVal - 1);
-                    if (next !== minVal) onChange(next, maxVal);
+                step={1}
+                minStepsBetweenValues={1}
+                value={[minVal, maxVal]}
+                onValueChange={(next) => {
+                    const [nextMin, nextMax] = next as number[];
+                    if (nextMin !== minVal || nextMax !== maxVal) onChange(nextMin, nextMax);
                 }}
-                className="pointer-events-none absolute z-30 h-0 w-full cursor-pointer opacity-0 [&::-webkit-slider-thumb]:pointer-events-auto [&::-moz-range-thumb]:pointer-events-auto"
-                style={{ zIndex: minVal > max - 100 ? 5 : 3 }}
+                aria-label="Preisspanne"
             />
-            <Input
-                type="range"
-                aria-label="Höchstpreis"
-                min={min}
-                max={max}
-                value={maxVal}
-                onChange={(event) => {
-                    const next = Math.max(Number(event.target.value), minVal + 1);
-                    if (next !== maxVal) onChange(minVal, next);
-                }}
-                className="pointer-events-none absolute z-40 h-0 w-full cursor-pointer opacity-0 [&::-webkit-slider-thumb]:pointer-events-auto [&::-moz-range-thumb]:pointer-events-auto"
-            />
-
-            <div className="slider relative w-full">
-                <div className="slider__track absolute rounded h-1.5 w-full bg-gray-200 dark:bg-gray-700 z-10" />
-                <div ref={range} className="slider__range absolute rounded h-1.5 bg-primary z-20" />
-
-                <div
-                    className="absolute h-5 w-5 rounded-full bg-white dark:bg-gray-900 border-2 border-primary shadow z-50 -ml-2.5 -top-2 flex items-center justify-center pointer-events-none"
-                    style={{ left: `${getPercent(minVal)}%` }}
-                >
-                    <div className="w-1.5 h-1.5 bg-primary rounded-full" />
-                </div>
-                <div
-                    className="absolute h-5 w-5 rounded-full bg-white dark:bg-gray-900 border-2 border-primary shadow z-50 -ml-2.5 -top-2 flex items-center justify-center pointer-events-none"
-                    style={{ left: `${getPercent(maxVal)}%` }}
-                >
-                    <div className="w-1.5 h-1.5 bg-primary rounded-full" />
-                </div>
+            <div className="mt-3 flex items-center justify-between text-xs font-semibold tabular-nums text-muted-foreground">
+                <span>{minVal}€</span>
+                <span>{maxVal}€</span>
             </div>
-
-            <div className="absolute top-6 left-0 text-xs font-bold text-gray-500">{minVal}€</div>
-            <div className="absolute top-6 right-0 text-xs font-bold text-gray-500">{maxVal}€</div>
         </div>
     );
 }

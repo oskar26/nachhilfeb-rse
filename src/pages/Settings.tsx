@@ -201,30 +201,30 @@ export default function Settings() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="p-4 max-w-3xl mx-auto pb-28 space-y-6"
+            className="mx-auto w-full max-w-3xl space-y-5 p-4 pb-28 sm:p-6"
         >
-            <motion.div variants={itemVariants} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+            <motion.div variants={itemVariants} className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
                     <Button
                         variant="ghost"
                         onClick={() => {
                             triggerHaptic('light');
                             navigate(-1);
                         }}
-                        className="pl-0 hover:bg-transparent -ml-2 rounded-full font-bold"
+                        className="-ml-2 mb-1 h-11 gap-1 rounded-full pl-2 font-semibold"
                     >
-                        <ChevronLeft className="mr-1" size={20} /> Zurück
+                        <ChevronLeft size={20} aria-hidden /> Zurück
                     </Button>
+                    <h1 className="font-display text-2xl uppercase leading-none tracking-tight text-foreground">Einstellungen</h1>
+                    <div className="mt-1.5 h-1 w-10 rounded-full bg-primary" aria-hidden />
                 </div>
-                <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Einstellungen</h1>
-                <div className="w-16" />
             </motion.div>
 
             {/* Appearance Theme Card */}
             <motion.div variants={itemVariants}>
-                <Card className="rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft overflow-hidden">
+                <Card className="overflow-hidden border-border bg-card shadow-soft">
                     <CardHeader className="p-6 pb-2">
-                        <CardTitle className="text-base font-extrabold">Erscheinungsbild</CardTitle>
+                        <CardTitle className="text-base font-semibold">Erscheinungsbild</CardTitle>
                         <CardDescription className="text-xs">Wähle deinen bevorzugten Design-Modus</CardDescription>
                     </CardHeader>
                     <CardContent className="p-6 pt-3">
@@ -245,13 +245,13 @@ export default function Settings() {
                                         type="button"
                                         onClick={() => handleThemeChange(item.id as any)}
                                         className={cn(
-                                            "flex flex-col items-center justify-center p-4 rounded-2xl border transition-all cursor-pointer select-none gap-2",
+                                            "flex min-h-[88px] cursor-pointer select-none flex-col items-center justify-center gap-2 rounded-xl border p-4 transition-colors",
                                             isActive
-                                                ? "bg-primary/20 border-primary text-primary-hover dark:text-primary font-extrabold shadow-xs"
-                                                : "bg-gray-50/60 dark:bg-gray-800/40 border-gray-100 dark:border-gray-800 text-gray-500 hover:text-gray-900 dark:hover:text-gray-200"
+                                                ? "border-primary/40 bg-primary/15 font-semibold text-brand-ink dark:text-primary"
+                                                : "border-border bg-muted/40 text-muted-foreground hover:text-foreground"
                                         )}
                                     >
-                                        <Icon size={22} className={isActive ? "text-primary-hover dark:text-primary" : ""} />
+                                        <Icon size={22} aria-hidden />
                                         <span className="text-xs">{item.label}</span>
                                     </Button>
                                 );
@@ -263,20 +263,20 @@ export default function Settings() {
 
             {/* Notifications Card */}
             <motion.div variants={itemVariants}>
-                <Card className="rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft">
+                <Card className="border-border bg-card shadow-soft">
                     <CardHeader className="p-6 pb-2">
-                        <CardTitle className="text-base font-extrabold">Benachrichtigungen</CardTitle>
+                        <CardTitle className="text-base font-semibold">Benachrichtigungen</CardTitle>
                         <CardDescription className="text-xs">Erhalte Neuigkeiten und Hinweise der Börse direkt im Browser</CardDescription>
                     </CardHeader>
                     <CardContent className="p-6 pt-3 flex items-center justify-between">
-                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                        <span className="text-sm font-semibold text-foreground/80">
                             {notificationsEnabled ? 'Aktiviert' : 'Deaktiviert'}
                         </span>
                         <Button
                             variant={notificationsEnabled ? "outline" : "primary"}
                             size="sm"
                             onClick={requestNotifications}
-                            className="rounded-full font-bold text-xs"
+                            className="h-11 rounded-full px-4 text-xs font-semibold"
                         >
                             {notificationsEnabled ? 'Neu anfragen' : 'Aktivieren'}
                         </Button>
@@ -286,16 +286,16 @@ export default function Settings() {
 
             {/* Privacy & Visibility Settings Card */}
             <motion.div variants={itemVariants}>
-                <Card className="rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft">
+                <Card className="border-border bg-card shadow-soft">
                     <CardHeader className="p-6 pb-2">
-                        <CardTitle className="text-base font-extrabold">Datenschutz & Sichtbarkeit</CardTitle>
+                        <CardTitle className="text-base font-semibold">Datenschutz & Sichtbarkeit</CardTitle>
                         <CardDescription className="text-xs">Steuere, welche Kontaktdaten in deinen Anzeigen öffentlich zu sehen sind</CardDescription>
                     </CardHeader>
                     <CardContent className="p-6 pt-3 space-y-4">
-                        <div className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
+                        <div className="flex items-center justify-between p-3 bg-muted/60 rounded-2xl border border-border">
                             <div>
-                                <h4 className="font-bold text-xs text-gray-900 dark:text-white">E-Mail-Adresse anzeigen</h4>
-                                <p className="text-[11px] text-gray-500">Zeigt deine E-Mail-Adresse öffentlich im Profil/Anzeigen an</p>
+                                <h4 className="font-semibold text-sm text-foreground">E-Mail-Adresse anzeigen</h4>
+                                <p className="mt-0.5 text-xs text-muted-foreground">Zeigt deine E-Mail-Adresse öffentlich im Profil/Anzeigen an</p>
                             </div>
                             <Switch
                                 checked={settings.email_visible}
@@ -304,10 +304,10 @@ export default function Settings() {
                             />
                         </div>
 
-                        <div className="flex items-center justify-between p-3 bg-gray-50/80 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
+                        <div className="flex items-center justify-between p-3 bg-muted/60 rounded-2xl border border-border">
                             <div>
-                                <h4 className="font-bold text-xs text-gray-900 dark:text-white">Telefonnummer anzeigen</h4>
-                                <p className="text-[11px] text-gray-500">Zeigt deine Telefonnummer öffentlich für Anfragen an</p>
+                                <h4 className="font-semibold text-sm text-foreground">Telefonnummer anzeigen</h4>
+                                <p className="mt-0.5 text-xs text-muted-foreground">Zeigt deine Telefonnummer öffentlich für Anfragen an</p>
                             </div>
                             <Switch
                                 checked={settings.phone_visible}
@@ -320,24 +320,24 @@ export default function Settings() {
             </motion.div>
 
             <motion.div variants={itemVariants}>
-                <Card className="rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft">
+                <Card className="border-border bg-card shadow-soft">
                     <CardHeader className="p-6 pb-2">
-                        <CardTitle className="text-base font-extrabold flex items-center gap-2 text-gray-900 dark:text-white">
-                            <BookOpen size={18} className="text-primary" /> Ich biete Nachhilfe
+                        <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground">
+                            <BookOpen size={18} className="text-brand-ink dark:text-primary" aria-hidden /> Ich biete Nachhilfe
                         </CardTitle>
                         <CardDescription className="text-xs">
                             Wähle die Fächer, in denen du Nachhilfe geben kannst. Wer Fächer angibt, sieht im Feed passende Gesuche.
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="p-6 pt-3 space-y-4">
-                        <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed">
+                        <p className="text-xs text-muted-foreground leading-relaxed">
                             Gesuche sind privat und erscheinen nicht öffentlich. Trag hier deine Fächer ein, damit du passende Gesuche im Feed sehen kannst.
                             {settings.teaches_subjects.length > 0 ? ` Aktuell gewählt: ${settings.teaches_subjects.length}.` : ''}
                         </p>
                         <div className="space-y-4">
                             {SUBJECT_CATEGORIES.map(category => (
                                 <div key={category.title}>
-                                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{category.title}</h4>
+                                    <h4 className="mb-2 text-xs font-semibold text-muted-foreground">{category.title}</h4>
                                     <div className="flex flex-wrap gap-2">
                                         {category.subjects.map((s) => (
                                             <SubjectChip
@@ -357,37 +357,37 @@ export default function Settings() {
 
             {/* DSGVO Data Protection & Rights Card */}
             <motion.div variants={itemVariants}>
-                <Card className="rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft">
+                <Card className="border-border bg-card shadow-soft">
                     <CardHeader className="p-6 pb-2">
-                        <CardTitle className="flex items-center gap-2 text-base font-extrabold text-gray-900 dark:text-white">
-                            <Shield size={18} className="text-primary" /> Datenschutz und deine Rechte
+                        <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground">
+                            <Shield size={18} className="text-brand-ink dark:text-primary" aria-hidden /> Datenschutz und deine Rechte
                         </CardTitle>
                         <CardDescription className="text-xs">
                             Auskunft, Datenübertragbarkeit und Löschung deiner Daten gemäß DSGVO
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="p-6 pt-3 space-y-4">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-gray-50/80 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-800">
+                        <div className="flex flex-col items-start justify-between gap-3 rounded-xl border border-border bg-muted/50 p-4 sm:flex-row sm:items-center">
                             <div>
-                                <h4 className="font-bold text-xs text-gray-900 dark:text-white">Datenübertragbarkeit (Art. 20 DSGVO)</h4>
-                                <p className="text-[11px] text-gray-500">Lade eine Kopie all deiner gespeicherten Daten als JSON herunter.</p>
+                                <h4 className="font-semibold text-sm text-foreground">Datenübertragbarkeit (Art. 20 DSGVO)</h4>
+                                <p className="mt-0.5 text-xs text-muted-foreground">Lade eine Kopie all deiner gespeicherten Daten als JSON herunter.</p>
                             </div>
                             <Button
                                 onClick={handleExportData}
                                 variant="outline"
                                 size="sm"
-                                className="rounded-full font-bold gap-1.5 text-xs shrink-0"
+                                className="h-11 shrink-0 gap-1.5 rounded-full px-4 text-xs font-semibold"
                             >
                                 <Download size={14} /> Daten exportieren
                             </Button>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-red-50/50 dark:bg-red-950/20 rounded-2xl border border-red-100 dark:border-red-900/30">
+                        <div className="flex flex-col items-start justify-between gap-3 rounded-xl border border-destructive/25 bg-destructive/5 p-4 sm:flex-row sm:items-center">
                             <div>
-                                <h4 className="font-bold text-xs text-red-900 dark:text-red-300 flex items-center gap-1.5">
+                                <h4 className="flex items-center gap-1.5 text-sm font-semibold text-destructive">
                                     <AlertTriangle size={14} /> Recht auf Löschung (Art. 17 DSGVO)
                                 </h4>
-                                <p className="text-[11px] text-red-700 dark:text-red-400">Stellt eine Löschanfrage an das SV-Team (Bestätigung innerhalb von 14 Tagen).</p>
+                                <p className="mt-0.5 text-xs text-muted-foreground">Stellt eine Löschanfrage an das SV-Team (Bestätigung innerhalb von 14 Tagen).</p>
                             </div>
                             <Button
                                 onClick={() => {
@@ -396,7 +396,7 @@ export default function Settings() {
                                 }}
                                 variant="ghost"
                                 size="sm"
-                                className="rounded-full font-bold gap-1 text-xs text-red-600 hover:bg-red-100 dark:hover:bg-red-900/40 shrink-0"
+                                className="h-11 shrink-0 gap-1 rounded-full px-4 text-xs font-semibold text-destructive hover:bg-destructive/10"
                             >
                                 <Trash2 size={14} /> Konto löschen
                             </Button>
@@ -407,17 +407,17 @@ export default function Settings() {
 
             {/* Support, Feedback & Bug Report Card */}
             <motion.div variants={itemVariants}>
-                <Card className="rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft">
+                <Card className="border-border bg-card shadow-soft">
                     <CardHeader className="p-6 pb-2">
-                        <CardTitle className="flex items-center gap-2 text-base font-extrabold text-gray-900 dark:text-white">
-                            <LifeBuoy size={18} className="text-primary" /> Hilfe, Feedback & Support
+                        <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground">
+                            <LifeBuoy size={18} className="text-brand-ink dark:text-primary" aria-hidden /> Hilfe, Feedback & Support
                         </CardTitle>
                         <CardDescription className="text-xs">
                             Melde Fehler, schlage Verbesserungen vor oder schreibe direkt an das SV-Team
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="p-6 pt-3 flex items-center justify-between gap-4">
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground">
                             Wir melden uns, sobald wir deine Anfrage bearbeitet haben.
                         </div>
                         <Button
@@ -425,7 +425,7 @@ export default function Settings() {
                                 triggerHaptic('light');
                                 setIsSupportOpen(true);
                             }}
-                            className="rounded-full font-bold text-xs bg-primary hover:bg-primary-hover text-primary-foreground shrink-0 shadow-xs"
+                            className="h-11 shrink-0 rounded-full px-4 text-xs font-semibold"
                         >
                             Support-Center öffnen
                         </Button>
@@ -435,17 +435,17 @@ export default function Settings() {
 
             {/* Share App Card */}
             <motion.div variants={itemVariants}>
-                <Card className="rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft">
+                <Card className="border-border bg-card shadow-soft">
                     <CardHeader className="p-6 pb-2">
-                        <CardTitle className="flex items-center gap-2 text-base font-extrabold text-gray-900 dark:text-white">
-                            <Share2 size={18} className="text-primary" /> App weiterempfehlen
+                        <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground">
+                            <Share2 size={18} className="text-brand-ink dark:text-primary" aria-hidden /> App weiterempfehlen
                         </CardTitle>
                         <CardDescription className="text-xs">
                             Teile die Nachhilfebörse mit Mitschülern & Freunden via WhatsApp, QR-Code oder Direktlink
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="p-6 pt-3 flex items-center justify-between gap-4">
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground">
                             Wenn dir die Börse hilft, kannst du sie weitergeben.
                         </div>
                         <Button
@@ -454,7 +454,7 @@ export default function Settings() {
                                 triggerHaptic('light');
                                 setIsShareOpen(true);
                             }}
-                            className="rounded-full font-bold text-xs shrink-0 gap-1.5"
+                            className="rounded-full font-semibold text-xs shrink-0 gap-1.5"
                         >
                             <Share2 size={14} /> Teilen & QR-Code
                         </Button>
@@ -464,13 +464,13 @@ export default function Settings() {
 
             {/* App Info & Secret Developer Mode Card */}
             <motion.div variants={itemVariants}>
-                <Card className="rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft text-center p-6 space-y-4">
+                <Card className="border-border bg-card shadow-soft text-center p-6 space-y-4">
                     <div className="flex justify-center">
-                        <Logo className="w-12 h-12 text-black dark:text-white" />
+                        <Logo className="size-12 text-foreground" />
                     </div>
                     <div>
                         <h3
-                            className="font-black text-lg text-gray-900 dark:text-white cursor-pointer select-none"
+                            className="inline-flex min-h-11 cursor-pointer select-none items-center justify-center text-lg font-semibold text-foreground"
                             onClick={() => {
                                 triggerHaptic('light');
                                 const next = tapCount + 1;
@@ -484,22 +484,22 @@ export default function Settings() {
                         >
                             Nachhilfebörse FWG Köln
                         </h3>
-                        <p className="text-xs text-gray-400 font-semibold mt-0.5">Version 2.5.0</p>
-                        <p className="text-xs text-gray-500 mt-1">Entwickelt für das FWG Köln von Oskar H.</p>
+                        <p className="text-xs text-muted-foreground font-semibold mt-0.5">Version 2.5.0</p>
+                        <p className="text-xs text-muted-foreground mt-1">Entwickelt für das FWG Köln von Oskar H.</p>
                     </div>
 
                     {showSecretInput && (
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="pt-4 border-t border-gray-100 dark:border-gray-800 space-y-3 text-left"
+                            className="pt-4 border-t border-border space-y-3 text-left"
                         >
-                            <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">Code einlösen</Label>
+                            <Label className="block text-xs font-semibold text-foreground/80">Code einlösen</Label>
                             <div className="flex gap-2">
                                 <Input
                                     type="text"
                                     placeholder="Code..."
-                                    className="flex-1 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-primary outline-none font-mono uppercase text-gray-900 dark:text-white"
+                                    className="flex-1 font-mono uppercase"
                                     id="secretCodeInput"
                                     onKeyDown={async (e) => {
                                         if (e.key === 'Enter') {
@@ -531,7 +531,7 @@ export default function Settings() {
                                     }}
                                 />
                             </div>
-                            <p className="text-[10px] text-gray-400">Wenn du einen Code erhalten hast, kannst du ihn hier einlösen und mit der Eingabetaste bestätigen.</p>
+                            <p className="text-xs text-muted-foreground">Wenn du einen Code erhalten hast, kannst du ihn hier einlösen und mit der Eingabetaste bestätigen.</p>
                         </motion.div>
                     )}
                 </Card>

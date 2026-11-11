@@ -58,10 +58,10 @@ export function IncomingRequestCard({ req, onStatus, onComplete }: { req: AdRequ
             <div className="mt-3 flex items-start gap-3">
                 <Avatar person={req.requester} />
                 <div className="min-w-0">
-                    <h3 className="truncate text-base font-bold text-gray-900 dark:text-white">
+                    <h3 className="truncate text-base font-semibold text-foreground">
                         {req.requester?.display_name || 'Unbekannt'}
                     </h3>
-                    <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                    <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
                         <GraduationCap size={13} aria-hidden /> {gradeLabel(req.requester?.grade_level)}
                     </p>
                 </div>
@@ -76,7 +76,7 @@ export function IncomingRequestCard({ req, onStatus, onComplete }: { req: AdRequ
                         onClick={() => void act('accepted')}
                         disabled={busy}
                         isLoading={busy}
-                        className="h-11 flex-1 rounded-full bg-primary px-4 text-sm font-bold text-black"
+                        className="h-11 flex-1 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground"
                     >
                         <CheckCircle size={16} /> Annehmen
                     </Button>
@@ -84,7 +84,7 @@ export function IncomingRequestCard({ req, onStatus, onComplete }: { req: AdRequ
                         variant="outline"
                         onClick={() => void act('rejected')}
                         disabled={busy}
-                        className="h-11 flex-1 rounded-full border-gray-200 bg-white px-4 text-sm font-bold text-red-600 hover:bg-red-50 dark:border-gray-700 dark:bg-gray-900 dark:text-red-400 dark:hover:bg-red-950/20"
+                        className="h-11 flex-1 rounded-full border-border bg-card px-4 text-sm font-semibold text-destructive hover:bg-destructive/10"
                     >
                         <XCircle size={16} /> Ablehnen
                     </Button>
@@ -97,14 +97,14 @@ export function IncomingRequestCard({ req, onStatus, onComplete }: { req: AdRequ
                     <CustomContactsList contacts={req.requester?.settings?.custom_contacts} />
                     <div className="flex flex-col gap-2 sm:flex-row">
                         <Button
-                            className="h-11 flex-1 rounded-full bg-primary px-4 text-sm font-bold text-black"
+                            className="h-11 flex-1 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground"
                             onClick={() => navigate(`/chat/${req.id}`)}
                         >
                             <MessageSquare size={16} /> Chat öffnen
                         </Button>
                         <Button
                             variant="outline"
-                            className="h-11 flex-1 rounded-full border-gray-200 bg-white px-4 text-sm font-bold dark:border-gray-700 dark:bg-gray-900"
+                            className="h-11 flex-1 rounded-full border-border bg-card px-4 text-sm font-semibold"
                             onClick={() => onComplete(req)}
                         >
                             <Star size={16} /> Bewerten
@@ -124,17 +124,17 @@ export function OutgoingRequestCard({ req, onComplete }: { req: AdRequestItem } 
     return (
         <StreamCardShell>
             <div className="flex flex-wrap items-center justify-between gap-2">
-                <TypeChip label="Anfrage · Ausgehend" dotClass="bg-blue-500" icon={MessageSquare} />
+                <TypeChip label="Anfrage · Ausgehend" dotClass="bg-foreground/40" icon={MessageSquare} />
                 <StatusChip label={statusMeta.label} dotClass={statusMeta.dotClass} />
             </div>
 
             <div className="mt-3 flex items-start gap-3">
                 <Avatar person={req.owner} />
                 <div className="min-w-0">
-                    <h3 className="truncate text-base font-bold text-gray-900 dark:text-white">
+                    <h3 className="truncate text-base font-semibold text-foreground">
                         Anfrage an {req.owner?.display_name || 'Unbekannt'}
                     </h3>
-                    <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                    <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
                         <GraduationCap size={13} aria-hidden /> {gradeLabel(req.owner?.grade_level)}
                     </p>
                 </div>
@@ -144,32 +144,32 @@ export function OutgoingRequestCard({ req, onComplete }: { req: AdRequestItem } 
             {req.message && <MessageQuote message={req.message} />}
 
             {req.status === 'pending' && (
-                <p className="mt-4 text-sm font-semibold text-gray-500 dark:text-gray-400">
+                <p className="mt-4 text-sm font-semibold text-muted-foreground">
                     Warte auf Antwort. Du bekommst eine Nachricht, sobald die andere Person reagiert.
                 </p>
             )}
             {req.status === 'rejected' && (
-                <p className="mt-4 text-sm font-semibold text-red-600 dark:text-red-400">
+                <p className="mt-4 text-sm font-semibold text-destructive">
                     Anfrage wurde abgelehnt. In der Übersicht findest du weitere passende Anzeigen.
                 </p>
             )}
             {req.status === 'accepted' && (
                 <div className="mt-4 space-y-3">
-                    <div className="flex items-center gap-2 rounded-2xl bg-green-50 px-4 py-3 text-sm font-bold text-green-800 dark:bg-green-950/30 dark:text-green-300">
+                    <div className="flex items-center gap-2 rounded-xl border border-primary/25 bg-primary/10 px-4 py-3 text-sm font-semibold text-foreground/80">
                         <CheckCircle size={16} className="shrink-0" aria-hidden /> Kontakt freigeschaltet.
                     </div>
                     <ContactChips person={req.owner} />
                     <CustomContactsList contacts={req.owner?.settings?.custom_contacts} />
                     <div className="flex flex-col gap-2 sm:flex-row">
                         <Button
-                            className="h-11 flex-1 rounded-full bg-primary px-4 text-sm font-bold text-black"
+                            className="h-11 flex-1 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground"
                             onClick={() => navigate(`/chat/${req.id}`)}
                         >
                             <MessageSquare size={16} /> Chat öffnen
                         </Button>
                         <Button
                             variant="outline"
-                            className="h-11 flex-1 rounded-full border-gray-200 bg-white px-4 text-sm font-bold dark:border-gray-700 dark:bg-gray-900"
+                            className="h-11 flex-1 rounded-full border-border bg-card px-4 text-sm font-semibold"
                             onClick={() => onComplete(req)}
                         >
                             <Star size={16} /> Bewerten
@@ -184,22 +184,22 @@ export function OutgoingRequestCard({ req, onComplete }: { req: AdRequestItem } 
 /** Skelett in Karten-Form – verhindert das Aufblitzen des Leerzustands beim Laden. */
 export function RequestSkeleton() {
     return (
-        <div className="animate-pulse rounded-3xl border border-gray-200 bg-white p-4 shadow-soft dark:border-gray-800 dark:bg-gray-900 sm:p-5">
+        <div className="animate-pulse rounded-2xl border border-border bg-card p-4 shadow-soft sm:p-5">
             <div className="flex items-start justify-between gap-3">
-                <div className="h-6 w-36 rounded-full bg-gray-100 dark:bg-gray-800/70" />
-                <div className="h-6 w-24 rounded-full bg-gray-100 dark:bg-gray-800/70" />
+                <div className="h-6 w-36 rounded-full bg-muted" />
+                <div className="h-6 w-24 rounded-full bg-muted" />
             </div>
             <div className="mt-3 flex items-center gap-3">
-                <div className="h-11 w-11 shrink-0 rounded-full bg-gray-100 dark:bg-gray-800" />
+                <div className="h-11 w-11 shrink-0 rounded-full bg-muted" />
                 <div className="min-w-0 flex-1 space-y-2">
-                    <div className="h-4 w-2/5 rounded-full bg-gray-200 dark:bg-gray-800" />
-                    <div className="h-3 w-1/3 rounded-full bg-gray-100 dark:bg-gray-800/70" />
+                    <div className="h-4 w-2/5 rounded-full bg-border" />
+                    <div className="h-3 w-1/3 rounded-full bg-muted" />
                 </div>
             </div>
-            <div className="mt-4 h-12 rounded-2xl bg-gray-100 dark:bg-gray-800/70" />
+            <div className="mt-4 h-12 rounded-2xl bg-muted" />
             <div className="mt-4 flex gap-2">
-                <div className="h-11 flex-1 rounded-full bg-gray-100 dark:bg-gray-800/70" />
-                <div className="h-11 flex-1 rounded-full bg-gray-100 dark:bg-gray-800/70" />
+                <div className="h-11 flex-1 rounded-full bg-muted" />
+                <div className="h-11 flex-1 rounded-full bg-muted" />
             </div>
         </div>
     );
@@ -214,7 +214,7 @@ function Avatar({ person }: { person?: RequestPerson | null }) {
             className="h-11 w-11 shrink-0 rounded-full object-cover"
         />
     ) : (
-        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gray-100 text-sm font-bold text-gray-600 dark:bg-gray-800 dark:text-gray-300" aria-hidden>
+        <div className="grid size-11 shrink-0 place-items-center rounded-full bg-muted text-sm font-semibold text-muted-foreground" aria-hidden>
             {initial}
         </div>
     );
@@ -224,11 +224,11 @@ function AdLink({ ad, navigate }: { ad: { id?: string; short_description?: strin
     if (!ad.id) return null;
     return (
         <div className="mt-2">
-            <p className="truncate px-1 text-xs text-gray-500 dark:text-gray-400">für „{ad.short_description || 'Anzeige'}“</p>
+            <p className="truncate px-1 text-xs text-muted-foreground">für „{ad.short_description || 'Anzeige'}“</p>
             <Button variant="unstyled" size="unstyled"
                 type="button"
                 onClick={() => navigate(`/ad/${ad.id}`)}
-                className="mt-1 flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-full border border-gray-200 bg-white px-3.5 text-sm font-bold text-gray-600 transition-colors hover:border-primary hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring))] dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:border-primary dark:hover:text-gray-100 dark:focus-visible:ring-primary"
+                className="mt-1 flex min-h-11 w-full items-center justify-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-sm font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
             >
                 <span>Anzeige ansehen</span>
                 <ExternalLink size={13} className="shrink-0" aria-hidden />
@@ -240,9 +240,9 @@ function AdLink({ ad, navigate }: { ad: { id?: string; short_description?: strin
 /** Nachricht als helle Zitat-Box mit kurzem gelbem Akzentstrich (Signatur). */
 function MessageQuote({ message }: { message: string }) {
     return (
-        <figure className="mt-3 max-w-[65ch] rounded-2xl bg-gray-50 px-4 py-3 dark:bg-gray-800/40">
+        <figure className="mt-3 max-w-[65ch] rounded-xl bg-muted/50 px-4 py-3">
             <span className="mb-2 block h-1 w-10 rounded-full bg-primary" aria-hidden />
-            <blockquote className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+            <blockquote className="text-sm leading-relaxed text-foreground/80">
                 „{message}“
             </blockquote>
         </figure>
@@ -254,16 +254,16 @@ function ContactChips({ person }: { person?: RequestPerson | null }) {
     const chips: ReactNode[] = [];
     if (person?.phone_number && person?.settings?.phone_visible) {
         chips.push(
-            <span key="phone" className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                <Phone size={13} className="shrink-0 text-gray-400" aria-hidden />
+            <span key="phone" className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+                <Phone size={13} className="shrink-0 text-muted-foreground" aria-hidden />
                 <span className="truncate font-mono tabular-nums">{person.phone_number}</span>
             </span>
         );
     }
     if (person?.email && person?.settings?.email_visible) {
         chips.push(
-            <span key="mail" className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                <Mail size={13} className="shrink-0 text-gray-400" aria-hidden />
+            <span key="mail" className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+                <Mail size={13} className="shrink-0 text-muted-foreground" aria-hidden />
                 <span className="truncate">{person.email}</span>
             </span>
         );

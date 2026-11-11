@@ -3,6 +3,7 @@ import { api } from '../lib/api';
 import { X, Megaphone, Bell, CheckCircle2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from './ui/dialog';
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from './ui/sheet';
 import NewsIcon from './NewsIcon';
 
 interface Announcement {
@@ -23,9 +24,23 @@ function getDismissedNews(): string[] {
     }
 }
 
+function useIsMobile(): boolean {
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+        if (typeof window.matchMedia !== 'function') return;
+        const mq = window.matchMedia('(max-width: 639px)');
+        const update = () => setIsMobile(mq.matches);
+        update();
+        mq.addEventListener('change', update);
+        return () => mq.removeEventListener('change', update);
+    }, []);
+    return isMobile;
+}
+
 export function NewsPopupModal() {
     const [news, setNews] = useState<Announcement | null>(null);
     const [open, setOpen] = useState(false);
+    const isMobile = useIsMobile();
 
     const fetchLatestUnseenNews = useCallback(async () => {
         try {
@@ -93,76 +108,97 @@ export function NewsPopupModal() {
 
     if (!news) return null;
 
+    const header = (
+        <div className="flex h-auto min-h-16 items-center justify-between gap-3 border-b border-border bg-primary/15 px-4 py-3">
+            <span className="inline-flex items-center gap-2 rounded-full bg-background/90 px-3 py-1.5 text-xs font-semibold text-foreground shadow-soft">
+                <Megaphone size={16} className="text-brand-ink dark:text-primary" aria-hidden />
+                <span>Neue Schul-Mitteilung</span>
+            </span>
+            <Button
+                variant="unstyled"
+                size="unstyled"
+                hapticStyle={false}
+                type="button"
+                onClick={handleDismiss}
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-background/80 text-muted-foreground transition-colors hover:text-foreground"
+                aria-label="Schließen"
+            >
+                <X size={20} aria-hidden />
+            </Button>
+        </div>
+    );
+
+    const content = (Title: typeof DialogTitle | typeof SheetTitle, Description: typeof DialogDescription | typeof SheetDescription) => (
+        <>
+            {header}
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-5 sm:p-6">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-card text-foreground shadow-soft">
+                    <NewsIcon value={news.icon} size={24} />
+                </div>
+
+                <div>
+                    <Title className="text-lg font-semibold leading-snug text-foreground">
+                        {news.title}
+                    </Title>
+                    <p className="mt-1 text-xs font-medium text-muted-foreground">
+                        {new Date(news.created_at).toLocaleDateString('de-DE', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}
+                    </p>
+                </div>
+
+                <Description className="whitespace-pre-wrap border-l-2 border-border pl-4 text-sm font-medium leading-relaxed text-muted-foreground">
+                    {news.body}
+                </Description>
+
+                {/* Actions */}
+                <div className="space-y-2 pb-[env(safe-area-inset-bottom,0px)] pt-2">
+                    <Button
+                        onClick={handleDismiss}
+                        className="h-12 min-h-12 w-full gap-2 rounded-full text-sm font-bold"
+                    >
+                        <CheckCircle2 size={16} aria-hidden /> Verstanden &amp; dauerhaft ausblenden
+                    </Button>
+
+                    {'Notification' in window && Notification.permission === 'default' && (
+                        <Button
+                            variant="unstyled"
+                            size="unstyled"
+                            hapticStyle={false}
+                            type="button"
+                            onClick={requestNotificationPermission}
+                            className="flex min-h-11 w-full items-center justify-center gap-1.5 text-center text-xs font-semibold text-muted-foreground hover:text-foreground"
+                        >
+                            <Bell size={16} aria-hidden /> Benachrichtigungen aktivieren
+                        </Button>
+                    )}
+                </div>
+            </div>
+        </>
+    );
+
+    if (isMobile) {
+        return (
+            <Sheet open={open} onOpenChange={(nextOpen) => { if (!nextOpen) handleDismiss(); }}>
+                <SheetContent
+                    side="bottom"
+                    showCloseButton={false}
+                    className="flex max-h-[85dvh] flex-col gap-0 overflow-hidden rounded-t-3xl border-t border-border bg-card p-0 text-card-foreground"
+                >
+                    {content(SheetTitle, SheetDescription)}
+                </SheetContent>
+            </Sheet>
+        );
+    }
+
     return (
         <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen) handleDismiss(); }}>
-            <DialogContent showCloseButton={false} className="max-w-md gap-0 overflow-hidden rounded-3xl p-0">
-                {/* Header pattern banner */}
-                <div className="flex h-20 items-center justify-between bg-primary/20 p-4">
-                    <div className="flex items-center gap-2 rounded-full bg-white/80 px-3 py-1.5 text-xs font-black uppercase tracking-wider text-gray-800 shadow-sm dark:bg-gray-900/80 dark:text-gray-200">
-                        <Megaphone size={14} className="text-primary-hover" />
-                        <span>Neue Schul-Mitteilung</span>
-                    </div>
-                    <Button
-                        variant="unstyled"
-                        size="unstyled"
-                        hapticStyle={false}
-                        type="button"
-                        onClick={handleDismiss}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-gray-500 transition-colors hover:text-gray-900 dark:bg-gray-800/80 dark:hover:text-white"
-                        aria-label="Schließen"
-                    >
-                        <X size={16} />
-                    </Button>
-                </div>
-
-                {/* Content */}
-                <div className="-mt-6 space-y-4 p-6">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl border bg-white text-gray-700 shadow-md dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
-                        <NewsIcon value={news.icon} size={28} />
-                    </div>
-
-                    <div>
-                        <DialogTitle className="text-lg font-black leading-snug text-gray-900 dark:text-white">
-                            {news.title}
-                        </DialogTitle>
-                        <p className="mt-1 text-xs font-semibold text-gray-400">
-                            {new Date(news.created_at).toLocaleDateString('de-DE', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })}
-                        </p>
-                    </div>
-
-                    <DialogDescription className="rounded-2xl border border-gray-100 bg-gray-50 p-4 text-sm font-medium leading-relaxed whitespace-pre-wrap text-gray-700 dark:border-gray-800/80 dark:bg-gray-800/50 dark:text-gray-300">
-                        {news.body}
-                    </DialogDescription>
-
-                    {/* Actions */}
-                    <div className="space-y-2 pt-2">
-                        <Button
-                            onClick={handleDismiss}
-                            className="h-11 w-full gap-2 rounded-2xl bg-primary font-extrabold text-black shadow-md hover:bg-primary/95"
-                        >
-                            <CheckCircle2 size={16} /> Verstanden & dauerhaft ausblenden
-                        </Button>
-
-                        {'Notification' in window && Notification.permission === 'default' && (
-                            <Button
-                                variant="unstyled"
-                                size="unstyled"
-                                hapticStyle={false}
-                                type="button"
-                                onClick={requestNotificationPermission}
-                                className="flex w-full items-center justify-center gap-1 py-1 text-center text-[11px] font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                            >
-                                <Bell size={12} /> Benachrichtigungen aktivieren
-                            </Button>
-                        )}
-                    </div>
-                </div>
+            <DialogContent showCloseButton={false} className="max-w-md gap-0 overflow-hidden rounded-3xl border border-border bg-card p-0 text-card-foreground">
+                {content(DialogTitle, DialogDescription)}
             </DialogContent>
         </Dialog>
     );

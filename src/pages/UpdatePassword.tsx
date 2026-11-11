@@ -32,7 +32,7 @@ export default function UpdatePassword() {
 
     const handleUpdatePassword = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (password.length < 8) {
             toast.error("Das Passwort muss mindestens 8 Zeichen lang sein.");
             return;
@@ -69,38 +69,42 @@ export default function UpdatePassword() {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50 dark:bg-gray-950">
-            <Card className="w-full max-w-md border-0 shadow-lg ring-1 ring-gray-900/5">
-                <CardHeader>
-                    <CardTitle>Neues Passwort erstellen</CardTitle>
+        <div className="flex min-h-dvh flex-col items-center justify-center bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] text-foreground">
+            <Card className="w-full max-w-md border-border bg-card shadow-soft">
+                <CardHeader className="space-y-1.5">
+                    <CardTitle className="text-xl font-semibold">Neues Passwort erstellen</CardTitle>
                     <CardDescription>
                         Bitte gib dein neues Passwort zweimal ein, um es zu bestätigen.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleUpdatePassword} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label className="text-sm font-medium">Neues Passwort</Label>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="new-password" className="text-sm font-medium">Neues Passwort</Label>
                             <Input
+                                id="new-password"
                                 type="password"
                                 placeholder="Min. 8 Zeichen"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                                autoComplete="new-password"
                                 required
                             />
                         </div>
-                        <div className="space-y-2">
-                            <Label className="text-sm font-medium">Passwort bestätigen</Label>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="confirm-password" className="text-sm font-medium">Passwort bestätigen</Label>
                             <Input
+                                id="confirm-password"
                                 type="password"
                                 placeholder="Passwort wiederholen"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
+                                autoComplete="new-password"
                                 required
                             />
                         </div>
-                        <Button type="submit" className="w-full font-bold" disabled={isLoading}>
-                            {isLoading ? 'Wird gespeichert...' : 'Passwort aktualisieren'}
+                        <Button type="submit" className="w-full font-semibold" disabled={isLoading} isLoading={isLoading}>
+                            {isLoading ? 'Wird gespeichert…' : 'Passwort aktualisieren'}
                         </Button>
                     </form>
                 </CardContent>

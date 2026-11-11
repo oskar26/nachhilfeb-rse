@@ -25,13 +25,13 @@ function scrollToId(id: string) {
 // Listenwüsten vermeiden: Regeln als nummerierte Stapelliste (Copy unverändert).
 function ParaList({ items, start = 1 }: { items: React.ReactNode[]; start?: number }) {
     return (
-        <ol className="mt-2 divide-y divide-gray-100 dark:divide-gray-800 border-y border-gray-100 dark:border-gray-800">
+        <ol className="mt-2 divide-y divide-border border-y border-border">
             {items.map((item, i) => (
                 <li key={i} className="grid grid-cols-[2.5rem_1fr] gap-3 py-3">
-                    <span className="font-mono tabular-nums font-bold text-gray-900 dark:text-white" aria-hidden>
+                    <span className="font-mono font-bold tabular-nums text-foreground" aria-hidden>
                         {String(start + i).padStart(2, '0')}
                     </span>
-                    <div className="text-[15px] leading-7 text-gray-600 dark:text-gray-300">{item}</div>
+                    <div className="text-base leading-7 text-muted-foreground">{item}</div>
                 </li>
             ))}
         </ol>
@@ -49,23 +49,23 @@ function Para({ id, nr, title, children, open = false }: {
         <details
             id={id}
             open={open}
-            className="group scroll-mt-24 rounded-3xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-soft"
+            className="group scroll-mt-24 rounded-3xl border border-border bg-card shadow-soft"
         >
-            <summary className="flex min-h-[44px] cursor-pointer list-none items-center gap-3 p-5 sm:p-6 [&::-webkit-details-marker]:hidden">
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary font-mono text-[11px] font-bold tabular-nums text-black dark:bg-primary dark:text-black" aria-hidden>
+            <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 p-5 sm:p-6 [&::-webkit-details-marker]:hidden">
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary font-mono text-xs font-bold tabular-nums text-primary-foreground" aria-hidden>
                     {nr}
                 </span>
-                <h3 className="flex-1 font-display uppercase tracking-tight text-lg text-gray-900 dark:text-white">{title}</h3>
-                <ChevronDown size={18} className="shrink-0 text-amber-700 transition-transform duration-200 ease-out group-open:rotate-180 dark:text-primary" aria-hidden />
+                <h3 className="flex-1 break-words font-display uppercase tracking-tight text-lg text-foreground">{title}</h3>
+                <ChevronDown size={20} className="shrink-0 text-brand-ink transition-transform duration-200 ease-out group-open:rotate-180 dark:text-primary" aria-hidden />
             </summary>
-            <div className="accordion-body px-5 pb-5 sm:px-6 sm:pb-6 text-[15px] leading-7 text-gray-600 dark:text-gray-300 flex flex-col gap-3 max-w-prose">
+            <div className="accordion-body flex max-w-prose flex-col gap-3 px-5 pb-5 text-base leading-7 text-muted-foreground sm:px-6 sm:pb-6">
                 {children}
             </div>
         </details>
     );
 }
 
-const MAIL_CLS = 'font-bold text-amber-700 dark:text-primary hover:underline break-anywhere';
+const MAIL_CLS = 'font-bold text-brand-ink dark:text-primary hover:underline break-anywhere';
 const MAIL = 'info@nachhilfe-sv.de';
 
 const toc = [
@@ -86,14 +86,14 @@ const SANKTIONEN: Array<{ v: string; m: React.ReactNode }> = [
     { v: 'Leichter Verstoß (z. B. veraltete Anzeige, falsche Kategorie)', m: (<span><strong>Verwarnung</strong> mit Hinweis auf die verletzte Regel</span>) },
     { v: 'Rechtswidrige oder beleidigende Inhalte', m: (<span><strong>Entfernung einzelner Inhalte</strong> (Anzeigen, Bilder, Nachrichten)</span>) },
     { v: 'Schwere oder wiederholte Verstöße', m: (<span><strong>Zeitweise Sperrung</strong> (z. B. <span className="font-mono tabular-nums">7 Tage</span>) oder <strong>dauerhafte Sperrung</strong></span>) },
-    { v: 'Pflichtverletzung als Coach', m: (<span><strong>Entzug des Coach-Status</strong> nach den Regeln der <Link to="/coaching" className="font-bold text-amber-700 dark:text-primary hover:underline">Coaching-Seite</Link></span>) },
+    { v: 'Pflichtverletzung als Coach', m: (<span><strong>Entzug des Coach-Status</strong> nach den Regeln der <Link to="/coaching" className="font-bold text-brand-ink hover:underline dark:text-primary">Coaching-Seite</Link></span>) },
 ];
 
 export default function Nutzungsbedingungen() {
     const reduceMotion = useReducedMotion();
     const anim = (delay = 0) => reduceMotion ? {} : {
-        initial: { opacity: 0, y: 28 },
-        whileInView: { opacity: 1, y: 0 },
+        initial: { y: 28 },
+        whileInView: { y: 0 },
         viewport: { once: true, margin: '-80px 0px' },
         transition: { duration: 0.7, delay, ease: easeOut },
     };
@@ -112,29 +112,29 @@ export default function Nutzungsbedingungen() {
             intro="Stand: Oktober 2026 · Betreiber: SV FWG Köln."
         >
             {/* Sektions-Rhythmus: Leseeinheiten innen eng (gap-4/5), Sektionen großzügig (gap-10/12). */}
-            <div className="max-w-3xl mx-auto px-4 sm:px-6 pb-16 min-w-0 flex flex-col gap-10 sm:gap-12">
+            <div className="mx-auto flex min-w-0 max-w-3xl flex-col gap-10 px-4 pb-16 sm:gap-12 sm:px-6">
                 {/* Leseeinheit 1: Zusammenfassung + Inhaltsübersicht gehören zusammen. */}
                 <div className="flex flex-col gap-4 sm:gap-5 min-w-0">
                 {/* Gelbe TL;DR-Box zum Einstieg (H2 trägt das Gewicht, kein Kicker) */}
                 <motion.section
                     aria-labelledby="nutz-kurz"
                     {...anim()}
-                    className="relative overflow-hidden rounded-3xl bg-primary text-black p-6 sm:p-8 border border-black/10 shadow-soft"
+                    className="relative overflow-hidden rounded-3xl border border-border bg-primary p-6 text-primary-foreground shadow-soft sm:p-8"
                 >
                     <div className="absolute inset-0 poster-grain-dark" aria-hidden />
                     <div className="relative">
                         <h2 id="nutz-kurz" className="font-display uppercase text-2xl tracking-tight">Kurz gesagt</h2>
-                        <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-black" aria-hidden />
-                        <div className="mt-3 text-[15px] leading-7 font-medium text-black/80 flex flex-col gap-2 max-w-prose">
+                        <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary-foreground" aria-hidden />
+                        <div className="mt-3 flex max-w-prose flex-col gap-2 text-base font-medium leading-7 text-primary-foreground/80">
                             <p>
-                                Die Nachhilfebörse ist ein <strong className="text-black">kostenloses Schülerprojekt von Schülern für Schüler</strong>.
+                                Die Nachhilfebörse ist ein <strong className="text-primary-foreground">kostenloses Schülerprojekt von Schülern für Schüler</strong>.
                                 Du bist für deine Inhalte selbst verantwortlich, bleibst fair und freundlich – und klärst
                                 Geld und Treffen vorher mit deinen Eltern.
                             </p>
                             <p>
-                                Bei Problemen meldest du Inhalte über die <strong className="text-black">Meldefunktion</strong> in der App oder
+                                Bei Problemen meldest du Inhalte über die <strong className="text-primary-foreground">Meldefunktion</strong> in der App oder
                                 schreibst uns an{' '}
-                                <a href={`mailto:${MAIL}`} className="font-bold text-black underline underline-offset-4 break-anywhere">{MAIL}</a>.
+                                <a href={`mailto:${MAIL}`} className="break-anywhere font-bold text-primary-foreground underline underline-offset-4">{MAIL}</a>.
                             </p>
                         </div>
                     </div>
@@ -144,9 +144,9 @@ export default function Nutzungsbedingungen() {
                 <motion.nav
                     aria-label="Inhaltsübersicht"
                     {...anim()}
-                    className="rounded-3xl bg-white dark:bg-gray-900 p-6 sm:p-8 border border-gray-100 dark:border-gray-800 shadow-soft"
+                    className="rounded-3xl border border-border bg-card p-6 shadow-soft sm:p-8"
                 >
-                    <h2 className="font-display uppercase text-2xl tracking-tight text-gray-900 dark:text-white">Inhalt</h2>
+                    <h2 className="font-display uppercase text-2xl tracking-tight text-foreground">Inhalt</h2>
                     <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
                     <ol className="mt-4 grid gap-1 sm:grid-cols-2">
                         {toc.map((item) => (
@@ -157,7 +157,7 @@ export default function Nutzungsbedingungen() {
                                     hapticStyle={false}
                                     type="button"
                                     onClick={() => scrollToId(item.id)}
-                                    className="press flex min-h-[44px] w-full items-center rounded-xl px-3 py-2.5 text-left text-[15px] font-semibold text-gray-800 hover:bg-gray-100 hover:underline active:bg-primary/15 dark:text-gray-100 dark:hover:bg-white/5"
+                                    className="press flex min-h-11 w-full items-center rounded-xl px-3 py-2.5 text-left text-base font-semibold text-foreground hover:bg-muted hover:underline active:bg-primary/15"
                                 >
                                     {item.label}
                                 </Button>
@@ -170,7 +170,7 @@ export default function Nutzungsbedingungen() {
                 {/* Paragrafen als aufklappbare Details-Gruppen */}
                 <section aria-labelledby="nutz-paragrafen" className="flex flex-col gap-6 sm:gap-8 min-w-0">
                     <div className="flex flex-col gap-2">
-                    <h2 id="nutz-paragrafen" className="font-display uppercase text-2xl tracking-tight text-gray-900 dark:text-white">
+                    <h2 id="nutz-paragrafen" className="font-display uppercase text-2xl tracking-tight text-foreground">
                         Paragrafen im Detail
                     </h2>
                     <motion.span {...wipeLine()} className="h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
@@ -198,10 +198,12 @@ export default function Nutzungsbedingungen() {
                             <span key="c">Nutzerinnen und Nutzer <strong>unter 16 Jahren</strong> benötigen die <strong>Einwilligung eines Elternteils</strong> (Art. 8 DSGVO). Die Einwilligung wird bei der Registrierung eingeholt und dokumentiert.</span>,
                             <span key="d">Nur <strong>verifizierte Konten</strong> (Verifizierung im SV-Raum) können Anzeigen erstellen und Kontakt aufnehmen.</span>,
                         ]} />
-                        <h4 className="pt-2 text-xs font-bold uppercase tracking-[0.14em] text-gray-500 dark:text-gray-400">
+                        <h4 className="pt-2 text-sm font-semibold text-muted-foreground">
                             Verifizierung in 3 Schritten
                         </h4>
-                        <VerifySteps tone="du" variant="rows" />
+                        <div className="[&_li]:transform-none! [&_li]:opacity-100!">
+                            <VerifySteps tone="du" variant="rows" />
+                        </div>
                     </Para>
 
                     <Para id="p3" nr="03" title="§ 3 Registrierung & Konto">
@@ -226,7 +228,7 @@ export default function Nutzungsbedingungen() {
                             Mitglieder der Coaching-AG erhalten nach Schulung ein <strong>Coach-Abzeichen</strong>.
                             Was das Abzeichen bedeutet, wer Coach werden kann und warum manche Anzeigen hervorgehoben
                             werden, steht transparent auf der{' '}
-                            <Link to="/coaching" className="font-bold text-amber-700 dark:text-primary hover:underline">Coaching-Seite</Link>.
+                            <Link to="/coaching" className="font-bold text-brand-ink hover:underline dark:text-primary">Coaching-Seite</Link>.
                             Das Abzeichen steht für Schulung und Verifizierung, nicht für Erfolgsgarantien.
                         </p>
                     </Para>
@@ -242,12 +244,12 @@ export default function Nutzungsbedingungen() {
 
                     <Para id="p7" nr="07" title="§ 7 Moderation & Sanktionen">
                         <p>Bei Verstößen gegen diese Bedingungen kann das SV-Team je nach Schwere folgende Maßnahmen ergreifen:</p>
-                        <ul className="divide-y divide-gray-100 dark:divide-gray-800 border-y border-gray-100 dark:border-gray-800">
+                        <ul className="divide-y divide-border border-y border-border">
                             {SANKTIONEN.map((s) => (
                                 <li key={s.v} className="py-3">
-                                    <p className="text-[15px] text-gray-900 dark:text-white"><strong>Verstoß:</strong> {s.v}</p>
-                                    <p className="mt-1 text-[15px]">
-                                        <strong className="text-gray-900 dark:text-white">Maßnahme:</strong>{' '}
+                                    <p className="text-base text-foreground"><strong>Verstoß:</strong> {s.v}</p>
+                                    <p className="mt-1 text-base">
+                                        <strong className="text-foreground">Maßnahme:</strong>{' '}
                                         {s.m}
                                     </p>
                                 </li>
@@ -283,7 +285,7 @@ export default function Nutzungsbedingungen() {
                             deines Kontos beantragst du über eine <strong>Anfrage in der App</strong> oder
                             per E-Mail an <a href={`mailto:${MAIL}`} className={MAIL_CLS}>{MAIL}</a>.
                             Wir bestätigen die Löschung innerhalb von <span className="font-mono tabular-nums">14 Tagen</span> (Details zur Speicherung in der{' '}
-                            <Link to="/datenschutz" className="font-bold text-amber-700 dark:text-primary hover:underline">Datenschutzerklärung</Link>).
+                            <Link to="/datenschutz" className="font-bold text-brand-ink hover:underline dark:text-primary">Datenschutzerklärung</Link>).
                         </p>
                         <p>
                             Der Betreiber kann Konten bei schweren Verstößen fristlos sperren (§ 7) und die
@@ -309,20 +311,20 @@ export default function Nutzungsbedingungen() {
                 <motion.section
                     aria-labelledby="nutz-kontakt"
                     {...anim()}
-                    className="rounded-3xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white border border-black/5 shadow-soft p-6 sm:p-8"
+                    className="rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8"
                 >
                     <h2 id="nutz-kontakt" className="font-display uppercase text-2xl tracking-tight">
                         Fragen zu den Regeln?
                     </h2>
                     <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
-                    <p className="mt-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300 max-w-prose">
+                    <p className="mt-3 max-w-prose text-base leading-7 text-muted-foreground">
                         Melde Inhalte über die Meldefunktion in der App oder schreib uns direkt.
                     </p>
                     <a
                         href={`mailto:${MAIL}`}
-                        className="press mt-5 inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-primary px-8 py-3 text-sm font-bold text-black hover:bg-primary-hover w-full sm:w-auto"
+                        className="press mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-primary px-8 py-3 text-sm font-bold text-primary-foreground hover:bg-primary-hover sm:w-auto"
                     >
-                        <Mail size={18} aria-hidden /> {MAIL}
+                        <Mail size={16} aria-hidden /> {MAIL}
                     </a>
                 </motion.section>
             </div>

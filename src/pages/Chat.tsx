@@ -17,6 +17,7 @@ import { blockedReason, checkContent, loadFilterOverrides, type FilterOverrides 
 import { maybeAutoReport } from '../lib/autoreport';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../components/ui/alert-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
 
 interface Message {
     id: string;
@@ -70,14 +71,12 @@ export default function Chat() {
     const [editContent, setEditContent] = useState('');
 
     // Header menu state
-    const [menuOpen, setMenuOpen] = useState(false);
     const [confirmDialog, setConfirmDialog] = useState<{
         title: string;
         description: string;
         confirmLabel: string;
         onConfirm: () => void;
     } | null>(null);
-    const menuRef = useRef<HTMLDivElement>(null);
 
     // Report/Block state
     const [reportOpen, setReportOpen] = useState(false);
@@ -158,17 +157,6 @@ export default function Chat() {
         scrollToBottom();
     }, [messages]);
 
-    // Close menu on outside click
-    useEffect(() => {
-        function handleClick(e: MouseEvent) {
-            if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-                setMenuOpen(false);
-            }
-        }
-        if (menuOpen) document.addEventListener('mousedown', handleClick);
-        return () => document.removeEventListener('mousedown', handleClick);
-    }, [menuOpen]);
-
     const sendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newMessage.trim() || !user || !requestId) return;
@@ -206,7 +194,6 @@ export default function Chat() {
 
     const handleBlockUser = async () => {
         if (!otherUserId || !user) return;
-        setMenuOpen(false);
         setConfirmDialog({
             title: 'Chat verbergen?',
             description: `${otherUser?.display_name || 'Diesen Nutzer'} Chat verbergen? Der Chat wird auf diesem Gerät verborgen. Zum Schutz aller bleibt der Verlauf für die SV-Moderation gespeichert.`,
@@ -221,7 +208,6 @@ export default function Chat() {
     };
 
     const hideChatAndLeave = () => {
-        setMenuOpen(false);
         if (!requestId) {
             navigate('/requests');
             return;
@@ -275,83 +261,82 @@ export default function Chat() {
         }
     };
 
-    if (loading) return <div className="p-8 text-center text-gray-500 animate-pulse">Lade Chat...</div>;
+    if (loading) return (
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8" role="status">
+            <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <p className="text-sm text-muted-foreground">Lade Chat…</p>
+        </div>
+    );
 
     return (
         <>
-        <div className="flex flex-col h-[100dvh] md:h-[calc(100vh-2rem)] max-w-2xl mx-auto bg-gray-50 dark:bg-[#111b21] md:rounded-3xl md:overflow-hidden md:border border-gray-200 dark:border-gray-700/50 shadow-xl">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-card">
             {/* Header */}
-            <div className="bg-white dark:bg-[#202c33] border-b border-gray-200 dark:border-[#2a3942] p-3 px-2 flex items-center gap-2 shrink-0 sticky top-0 z-10">
-                <Button variant="ghost" size="icon" onClick={() => navigate('/requests')} className="rounded-full shrink-0 hover:bg-gray-100 dark:hover:bg-[#2a3942]">
-                    <ChevronLeft />
+            <header className="flex shrink-0 items-center gap-0.5 border-b border-border bg-card/95 p-1.5 backdrop-blur md:gap-1 md:p-2">
+                <Button variant="ghost" size="icon" onClick={() => navigate('/requests')} className="size-11 shrink-0 rounded-full" aria-label="Zurück zu den Anfragen">
+                    <ChevronLeft size={20} aria-hidden />
                 </Button>
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary-hover overflow-hidden shadow-sm shrink-0">
-                        {otherUser?.avatar_url ? <img src={otherUser.avatar_url} className="w-full h-full object-cover" /> : (otherUser?.display_name?.charAt(0) || '?')}
+                <div className="flex min-w-0 flex-1 items-center gap-2.5 px-0.5">
+                    <div className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-full bg-primary/20 text-sm font-semibold text-brand-ink dark:text-primary">
+                        {otherUser?.avatar_url ? <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" /> : (otherUser?.display_name?.charAt(0) || '?')}
                     </div>
-                    <div className="font-semibold text-[17px] leading-tight truncate">{otherUser?.display_name || 'Unbekannt'}</div>
+                    <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold leading-tight text-foreground">{otherUser?.display_name || 'Unbekannt'}</p>
+                        <p className="text-xs text-muted-foreground">Chat</p>
+                    </div>
                 </div>
 
-                <Button variant="unstyled" size="unstyled" type="submit"
+                <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => setAppointmentModalOpen(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary-hover dark:text-primary rounded-full text-xs font-bold transition-all border border-primary/20 shrink-0"
+                    className="size-11 shrink-0 rounded-full"
                     title="Termin für Nachhilfestunde vereinbaren"
+                    aria-label="Termin vereinbaren"
                 >
-                    <Calendar size={14} />
-                    <span className="hidden sm:inline">Termin vereinbaren</span>
+                    <Calendar size={19} aria-hidden />
                 </Button>
-
-                {/* Safety: Melden & Blockieren stehen direkt im Header, nicht versteckt im Menü */}
                 <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setReportOpen(true)}
                     title="Nutzer melden"
                     aria-label="Nutzer melden"
-                    className="rounded-full shrink-0 hover:bg-gray-100 dark:hover:bg-[#2a3942] text-orange-600 dark:text-orange-400"
+                    className="size-11 shrink-0 rounded-full text-destructive hover:bg-destructive/10"
                 >
-                    <Flag size={19} />
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleBlockUser}
-                    title="Chat verbergen"
-                    aria-label="Chat verbergen"
-                    className="rounded-full shrink-0 hover:bg-gray-100 dark:hover:bg-[#2a3942] text-red-600 dark:text-red-400"
-                >
-                    <Ban size={19} />
+                    <Flag size={19} aria-hidden />
                 </Button>
 
-                {/* 3-dot menu */}
-                <div className="relative" ref={menuRef}>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setMenuOpen(!menuOpen)}
-                        className="rounded-full shrink-0 hover:bg-gray-100 dark:hover:bg-[#2a3942]"
+                <DropdownMenu>
+                    <DropdownMenuTrigger
+                        aria-label="Weitere Optionen"
+                        className="grid size-11 shrink-0 place-items-center rounded-full text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                     >
-                        <MoreVertical size={20} />
-                    </Button>
-                    {menuOpen && (
-                        <div className="absolute right-0 top-full mt-1 w-56 bg-white dark:bg-[#233138] rounded-xl shadow-xl border border-gray-200 dark:border-[#2a3942] py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                            <Button variant="unstyled" size="unstyled" type="submit"
-                                onClick={hideChatAndLeave}
-                                className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-[#2a3942] text-gray-700 dark:text-gray-200 transition-colors flex items-center gap-2"
-                            >
-                                <EyeOff size={15} />
-                                Chat verbergen
-                            </Button>
-                        </div>
-                    )}
-                </div>
-            </div>
+                        <MoreVertical size={20} aria-hidden />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" sideOffset={6} className="min-w-56 p-1">
+                        <DropdownMenuItem onClick={() => setAppointmentModalOpen(true)} className="min-h-11 gap-2.5 px-3">
+                            <CalendarDays size={16} aria-hidden /> Termin vereinbaren
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setReportOpen(true)} className="min-h-11 gap-2.5 px-3">
+                            <Flag size={16} aria-hidden /> Nutzer melden
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={handleBlockUser} className="min-h-11 gap-2.5 px-3">
+                            <Ban size={16} aria-hidden /> Chat verbergen
+                        </DropdownMenuItem>
+                        <DropdownMenuItem variant="destructive" onClick={hideChatAndLeave} className="min-h-11 gap-2.5 px-3">
+                            <EyeOff size={16} aria-hidden /> Chat verbergen und verlassen
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </header>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-1.5 bg-[#efeae2] dark:bg-[#0b141a]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%239C92AC\' fill-opacity=\'0.03\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }}>
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-background px-3 py-4 sm:px-4">
                 {messages.length === 0 ? (
-                    <div className="text-center p-4 bg-[#fcf4cb]/90 dark:bg-[#1d2e2f] text-[#54656f] dark:text-[#8696a0] text-xs rounded-lg max-w-sm mx-auto shadow-sm">
-                        Hier beginnt euer Chat. Deine Nachrichten werden über eine verschlüsselte Verbindung (HTTPS) übertragen und auf Servern in Deutschland gespeichert. Bitte achte auf unsere <a href="#/nutzungsbedingungen" className="underline">Nutzungsbedingungen</a>.
+                    <div className="mx-auto max-w-sm rounded-2xl border border-border bg-card p-4 text-center text-xs leading-relaxed text-muted-foreground shadow-soft">
+                        Hier beginnt euer Chat. Deine Nachrichten werden über eine verschlüsselte Verbindung (HTTPS) übertragen und auf Servern in Deutschland gespeichert. Bitte achte auf unsere <a href="#/nutzungsbedingungen" className="font-semibold text-brand-ink underline underline-offset-4 dark:text-primary">Nutzungsbedingungen</a>.
                     </div>
                 ) : (
                     messages.map((msg, idx) => {
@@ -366,45 +351,39 @@ export default function Chat() {
                         return (
                             <div key={msg.id} className="flex flex-col">
                                 {showDate && (
-                                    <div className="text-center my-3">
-                                        <span className="text-[11px] font-medium uppercase tracking-wide text-[#54656f] dark:text-[#8696a0] bg-white/80 dark:bg-[#182229] px-3 py-1.5 rounded-lg shadow-sm">
+                                    <div className="my-3 text-center">
+                                        <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-soft">
                                             {new Date(msg.created_at).toLocaleDateString([], { weekday: 'long', day: '2-digit', month: 'long' })}
                                         </span>
                                     </div>
                                 )}
-                                <div className={cn("flex max-w-[85%] relative group", isMe ? "self-end" : "self-start")}>
+                                <div className={cn("relative flex max-w-[85%]", isMe ? "self-end" : "self-start")}>
                                     <div
                                         className={cn(
-                                            "px-3 py-1.5 rounded-lg shadow-sm text-[14.5px] leading-relaxed break-words relative min-w-[80px]",
+                                            "relative min-w-20 break-words rounded-2xl px-3 py-2 text-sm leading-relaxed shadow-soft",
                                             isMe
-                                                ? "bg-[#d9fdd3] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] rounded-tr-[4px]"
-                                                : "bg-white dark:bg-[#202c33] text-[#111b21] dark:text-[#e9edef] rounded-tl-[4px]",
+                                                ? "rounded-br-md bg-primary text-primary-foreground"
+                                                : "rounded-bl-md border border-border bg-card text-card-foreground",
                                             msg.is_deleted && "italic opacity-70"
                                         )}
                                     >
                                         {msg.is_deleted ? (
-                                            <span className="flex items-center gap-1 text-xs text-[#8696a0]"><Ban size={12} /> Nachricht auf diesem Gerät ausgeblendet.</span>
+                                            <span className="flex items-center gap-1 text-xs opacity-70"><Ban size={12} aria-hidden /> Nachricht auf diesem Gerät ausgeblendet.</span>
                                         ) : isEditing ? (
-                                            <div className="space-y-2 min-w-[200px]">
+                                            <div className="min-w-[200px] space-y-2">
                                                 <Textarea
                                                     value={editContent}
                                                     onChange={(e) => setEditContent(e.target.value)}
                                                     onKeyDown={(e) => handleEditKeyDown(e, msg.id)}
-                                                    className="w-full bg-white/80 dark:bg-[#2a3942] border border-gray-300 dark:border-[#3b4a54] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                                                    className="min-h-20 w-full resize-none bg-card text-sm text-foreground"
                                                     rows={2}
                                                     autoFocus
                                                 />
-                                                <div className="flex gap-1.5 justify-end">
-                                                    <Button variant="unstyled" size="unstyled" type="submit"
-                                                        onClick={cancelEditing}
-                                                        className="px-3 py-1 text-xs rounded-md bg-gray-200 dark:bg-[#3b4a54] text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-[#4a5b67] transition-colors"
-                                                    >
+                                                <div className="flex justify-end gap-1.5">
+                                                    <Button variant="outline" size="sm" type="button" onClick={cancelEditing} className="h-11 rounded-full bg-card px-4 text-xs text-foreground">
                                                         Abbrechen
                                                     </Button>
-                                                    <Button variant="unstyled" size="unstyled" type="submit"
-                                                        onClick={() => saveEdit(msg.id)}
-                                                        className="px-3 py-1 text-xs rounded-md bg-primary text-black font-medium hover:bg-primary-hover transition-colors"
-                                                    >
+                                                    <Button size="sm" type="button" onClick={() => saveEdit(msg.id)} className="h-11 rounded-full px-4 text-xs font-semibold">
                                                         Speichern
                                                     </Button>
                                                 </div>
@@ -413,7 +392,9 @@ export default function Chat() {
                                             <div>
                                                 <div className="whitespace-pre-wrap">{msg.content}</div>
                                                 {msg.content.includes('TERMIN-VEREINBARUNG') && (
-                                                    <Button variant="unstyled" size="unstyled"
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
                                                         type="button"
                                                         onClick={() => {
                                                             const lines = msg.content.split('\n');
@@ -428,48 +409,43 @@ export default function Chat() {
                                                                 durationMinutes: 45
                                                             });
                                                         }}
-                                                        className="mt-2 text-xs font-bold bg-[#00a884] text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm hover:bg-[#008f72] transition-colors"
+                                                        className="mt-2 h-11 gap-1.5 rounded-full bg-card px-3 text-xs font-semibold text-foreground"
                                                     >
-                                                        <Download size={13} /> In Kalender speichern (.ics)
+                                                        <Download size={14} aria-hidden /> In Kalender speichern (.ics)
                                                     </Button>
                                                 )}
                                             </div>
                                         )}
 
                                         {!isEditing && (
-                                            <div className="flex items-center justify-end gap-1 mt-0.5 -mb-0.5">
+                                            <div className={cn("mt-1 flex items-center justify-end gap-1", isMe ? "text-primary-foreground/75" : "text-muted-foreground")}>
                                                 {msg.edited_at && !msg.is_deleted && (
-                                                    <span className="text-[10px] text-[#667781] dark:text-[#8696a0] italic leading-none">(bearbeitet)</span>
+                                                    <span className="text-xs italic leading-none">(bearbeitet)</span>
                                                 )}
-                                                <span className="text-[11px] text-[#667781] dark:text-[#8696a0] leading-none ml-1">{time}</span>
+                                                <span className="ml-1 text-xs leading-none tabular-nums">{time}</span>
                                                 {isMe && !msg.is_deleted && (
-                                                    <span className={cn("text-[12px] -mt-0.5 ml-0.5", msg.read_at ? "text-[#53bdeb]" : "text-[#8696a0]")}>
-                                                        {msg.read_at ? <CheckCheck size={15} /> : <Check size={15} />}
+                                                    <span className="ml-0.5">
+                                                        {msg.read_at ? <CheckCheck size={14} aria-hidden /> : <Check size={14} aria-hidden />}
                                                     </span>
+                                                )}
+                                                {isMe && !msg.is_deleted && (
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger aria-label="Nachricht bearbeiten oder ausblenden" className="-my-2 -mr-2 ml-0.5 grid size-11 place-items-center rounded-full transition-colors hover:bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-white/10">
+                                                            <MoreVertical size={14} aria-hidden />
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end" sideOffset={6} className="min-w-44 p-1">
+                                                            <DropdownMenuItem onClick={() => startEditing(msg)} className="min-h-11 gap-2.5 px-3">
+                                                                <Pencil size={15} aria-hidden /> Bearbeiten
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem variant="destructive" onClick={() => deleteMessage(msg.id)} className="min-h-11 gap-2.5 px-3">
+                                                                <Trash2 size={15} aria-hidden /> Ausblenden
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
                                                 )}
                                             </div>
                                         )}
                                     </div>
-
-                                    {/* Action buttons on hover - only for own non-deleted, non-editing messages */}
-                                    {isMe && !msg.is_deleted && !isEditing && (
-                                        <div className="absolute top-0 -left-[68px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                                            <Button variant="unstyled" size="unstyled" type="submit"
-                                                onClick={() => startEditing(msg)}
-                                                className="p-1.5 bg-white dark:bg-[#233138] text-[#54656f] dark:text-[#aebac1] rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-[#2a3942] transition-colors"
-                                                title="Bearbeiten"
-                                            >
-                                                <Pencil size={13} />
-                                            </Button>
-                                            <Button variant="unstyled" size="unstyled" type="submit"
-                                                onClick={() => deleteMessage(msg.id)}
-                                                className="p-1.5 bg-white dark:bg-[#233138] text-red-500 dark:text-red-400 rounded-full shadow-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                                                title="Löschen"
-                                            >
-                                                <Trash2 size={13} />
-                                            </Button>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         );
@@ -479,29 +455,24 @@ export default function Chat() {
             </div>
 
             {/* Input Area */}
-            <div className="bg-[#f0f2f5] dark:bg-[#202c33] p-2 px-3 flex items-end gap-2 shrink-0 pb-safe border-t border-gray-200/50 dark:border-[#2a3942]">
-                <form onSubmit={sendMessage} className="flex-1 flex gap-2 items-end">
-                    <div className="flex-1 relative">
-                        <Input
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            placeholder="Nachricht schreiben"
-                            className="bg-white dark:bg-[#2a3942] border-none rounded-xl h-11 px-4 shadow-sm text-[15px] placeholder:text-[#8696a0] focus-visible:ring-1 focus-visible:ring-primary/30"
-                            autoComplete="off"
-                        />
-                    </div>
+            <div className="shrink-0 border-t border-border bg-card p-2 px-3 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
+                <form onSubmit={sendMessage} className="flex items-end gap-2">
+                    <Input
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        placeholder="Nachricht schreiben"
+                        className="h-11 flex-1 rounded-xl text-base"
+                        autoComplete="off"
+                        aria-label="Nachricht schreiben"
+                    />
                     <Button
                         type="submit"
                         size="icon"
-                        className={cn(
-                            "rounded-full w-11 h-11 shrink-0 transition-all duration-200",
-                            newMessage.trim()
-                                ? "bg-[#00a884] hover:bg-[#008f72] text-white scale-100 shadow-md"
-                                : "bg-gray-300 dark:bg-[#3b4a54] text-gray-500 dark:text-[#8696a0] scale-95"
-                        )}
+                        className="size-11 shrink-0 rounded-full"
                         disabled={!newMessage.trim()}
+                        aria-label="Nachricht senden"
                     >
-                        <Send size={18} className="ml-0.5" />
+                        <Send size={18} className="ml-0.5" aria-hidden />
                     </Button>
                 </form>
             </div>
@@ -509,10 +480,10 @@ export default function Chat() {
 
         {/* Appointment Booking Modal */}
         <Dialog open={appointmentModalOpen} onOpenChange={setAppointmentModalOpen}>
-            <DialogContent className="rounded-3xl max-w-md">
+            <DialogContent showCloseButton={false} className="max-h-[90dvh] overflow-y-auto rounded-3xl sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <CalendarDays className="text-primary-hover" size={20} />
+                    <DialogTitle className="flex items-center gap-2 text-base font-semibold">
+                        <CalendarDays className="text-brand-ink dark:text-primary" size={20} aria-hidden />
                         Nachhilfetermin vereinbaren
                     </DialogTitle>
                     <DialogDescription>
@@ -521,11 +492,11 @@ export default function Chat() {
                 </DialogHeader>
                 <form onSubmit={handleCreateAppointment} className="space-y-4 py-3">
                     <div className="space-y-1">
-                        <Label className="text-xs font-bold uppercase text-gray-500">Fach</Label>
+                        <Label className="text-xs font-semibold text-foreground/80">Fach</Label>
                         <NativeSelect
                             value={appSubject}
                             onChange={e => setAppSubject(e.target.value)}
-                            className="w-full h-11 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-3 text-sm font-semibold"
+                            className="w-full text-sm font-semibold"
                         >
                             <option value="Mathematik">Mathematik</option>
                             <option value="Englisch">Englisch</option>
@@ -542,30 +513,30 @@ export default function Chat() {
 
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                            <Label className="text-xs font-bold uppercase text-gray-500">Datum</Label>
+                            <Label className="text-xs font-semibold text-foreground/80">Datum</Label>
                             <Input
                                 type="date"
                                 value={appDate}
                                 onChange={e => setAppDate(e.target.value)}
                                 required
-                                className="h-11 rounded-xl"
+                                className="h-11"
                             />
                         </div>
                         <div className="space-y-1">
-                            <Label className="text-xs font-bold uppercase text-gray-500">Uhrzeit</Label>
+                            <Label className="text-xs font-semibold text-foreground/80">Uhrzeit</Label>
                             <Input
                                 type="time"
                                 value={appTime}
                                 onChange={e => setAppTime(e.target.value)}
                                 required
-                                className="h-11 rounded-xl"
+                                className="h-11"
                             />
                         </div>
                     </div>
 
                     <DialogFooter className="pt-2">
-                        <Button type="button" variant="ghost" onClick={() => setAppointmentModalOpen(false)} className="rounded-xl">Abbrechen</Button>
-                        <Button type="submit" className="rounded-xl bg-primary text-black font-extrabold">Termin vorschlagen</Button>
+                        <Button type="button" variant="ghost" onClick={() => setAppointmentModalOpen(false)} className="h-11 rounded-full">Abbrechen</Button>
+                        <Button type="submit" className="h-11 rounded-full font-semibold">Termin vorschlagen</Button>
                     </DialogFooter>
                 </form>
             </DialogContent>

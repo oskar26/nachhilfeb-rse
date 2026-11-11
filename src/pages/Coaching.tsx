@@ -30,7 +30,7 @@ export const FALLBACK: Record<string, string> = {
 
 const COACH_MAIL = 'Rosalia.Balistreri@fwg-koeln.nrw.schule';
 const COACHING_DOCUMENT_VERSION = 1 as const;
-const LINK_CLS = 'font-bold text-amber-700 dark:text-primary hover:underline';
+const LINK_CLS = 'font-bold text-brand-ink dark:text-primary hover:underline';
 
 export interface CoachingListItem {
     id: string;
@@ -578,25 +578,25 @@ const RULE_ICONS: LucideIcon[] = [Award, School, ClipboardCheck, Megaphone, Scal
 
 export function scheduleCellClass(text: string): string {
     const value = text.trim();
-    if (!value) return 'border p-2 border-gray-200 dark:border-gray-800';
+    if (!value) return 'border p-2 border-border';
     if (/^E(?:\s|$)/i.test(value)) {
-        return 'border p-2 bg-blue-200/50 dark:bg-blue-900/50 border-gray-200 dark:border-gray-800 text-blue-800 dark:text-blue-200 font-bold';
+        return 'border p-2 bg-blue-200/50 dark:bg-blue-900/50 border-border text-blue-800 dark:text-blue-200 font-bold';
     }
     if (/^L(?:\s|$)/i.test(value)) {
-        return 'border p-2 bg-pink-200/50 dark:bg-pink-900/50 border-gray-200 dark:border-gray-800 text-pink-800 dark:text-pink-200 font-bold';
+        return 'border p-2 bg-pink-200/50 dark:bg-pink-900/50 border-border text-pink-800 dark:text-pink-200 font-bold';
     }
     if (/^M(?:\s|$)/i.test(value)) {
-        return 'border p-2 bg-green-200/50 dark:bg-green-900/50 border-gray-200 dark:border-gray-800 text-green-800 dark:text-green-200 font-bold';
+        return 'border p-2 bg-green-200/50 dark:bg-green-900/50 border-border text-green-800 dark:text-green-200 font-bold';
     }
-    return 'border p-2 bg-yellow-200/50 dark:bg-yellow-900/50 border-gray-200 dark:border-gray-800 text-yellow-800 dark:text-yellow-200 font-bold';
+    return 'border p-2 bg-yellow-200/50 dark:bg-yellow-900/50 border-border text-yellow-800 dark:text-yellow-200 font-bold';
 }
 
 export function CoachingView({ document, preview = false }: { document: CoachingDocument; preview?: boolean }) {
     const reduceMotion = useReducedMotion();
     const idPrefix = preview ? 'preview-' : '';
     const anim = (delay = 0) => reduceMotion ? {} : {
-        initial: { opacity: 0, y: 18 },
-        whileInView: { opacity: 1, y: 0 },
+        initial: { y: 18 },
+        whileInView: { y: 0 },
         viewport: { once: true, margin: '-80px 0px' },
         transition: { duration: 0.55, delay, ease: easeOut },
     };
@@ -611,30 +611,30 @@ export function CoachingView({ document, preview = false }: { document: Coaching
     const renderBlock = (block: CoachingBlock): ReactNode => {
         if (block.type === 'poster') {
             return (
-                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="relative overflow-hidden rounded-3xl bg-primary p-6 text-black shadow-soft sm:p-10">
+                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="relative overflow-hidden rounded-3xl bg-primary p-6 text-primary-foreground shadow-soft sm:p-10">
                     <div className="absolute inset-0 poster-grain-dark" aria-hidden />
                     <div className="relative">
                         {block.stamp ? (
                             <div className="flex flex-wrap items-start justify-end gap-4">
-                                <span className="stamp-ring rotate-6 rounded border-2 border-black/60 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.2em] text-black/70" aria-hidden>{block.stamp}</span>
+                                <span className="stamp-ring rotate-6 rounded border-2 border-primary-foreground/60 px-2 py-0.5 text-xs font-black uppercase tracking-[0.2em] text-primary-foreground/70" aria-hidden>{block.stamp}</span>
                             </div>
                         ) : null}
                         <h2 id={`${idPrefix}${block.id}-title`} className="mt-3 font-display text-3xl uppercase leading-[0.95] tracking-tight sm:text-5xl">{block.title}</h2>
                         {(block.time || block.room) ? (
-                            <p className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[15px] font-bold">
+                            <p className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-base font-bold">
                                 {block.time ? <span className="inline-flex items-center gap-1.5"><Clock size={16} aria-hidden /><span className="font-mono tabular-nums">{block.time}</span></span> : null}
                                 {block.room ? <span className="inline-flex items-center gap-1.5"><MapPin size={16} aria-hidden /><span className="font-mono tabular-nums">{block.room}</span></span> : null}
                             </p>
                         ) : null}
-                        {block.contactText ? <p className="mt-3 max-w-prose text-[15px] font-medium leading-7 text-black/75">{block.contactText}</p> : null}
+                        {block.contactText ? <p className="mt-3 max-w-prose text-base font-medium leading-7 text-primary-foreground/80">{block.contactText}</p> : null}
                         {block.ctaLabel || block.hint ? (
                             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
                                 {block.ctaLabel ? (
-                                    <a href={`mailto:${block.email}?subject=${encodeURIComponent(block.mailSubject)}`} className="press inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-white px-8 py-3 text-sm font-bold text-black border border-black/10 shadow-md hover:bg-black/5 sm:w-auto">
-                                        <Mail size={18} aria-hidden /> {block.ctaLabel}
+                                    <a href={`mailto:${block.email}?subject=${encodeURIComponent(block.mailSubject)}`} className="press inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-8 py-3 text-sm font-bold text-foreground shadow-md hover:bg-muted sm:w-auto">
+                                        <Mail size={16} aria-hidden /> {block.ctaLabel}
                                     </a>
                                 ) : null}
-                                {block.hint ? <span className="text-center text-sm font-semibold text-black/70 sm:text-left">{block.hint}</span> : null}
+                                {block.hint ? <span className="text-center text-sm font-semibold text-primary-foreground/70 sm:text-left">{block.hint}</span> : null}
                             </div>
                         ) : null}
                     </div>
@@ -644,32 +644,32 @@ export function CoachingView({ document, preview = false }: { document: Coaching
 
         if (block.type === 'steps') {
             return (
-                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-3xl border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900 sm:p-8">
-                    <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-2xl uppercase tracking-tight text-gray-900 dark:text-white sm:text-3xl">{block.title}</h2>
+                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8">
+                    <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-2xl uppercase tracking-tight sm:text-3xl">{block.title}</h2>
                     <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
                     {block.items.length > 0 ? (
-                        <ol className="mt-6 divide-y-2 divide-dashed divide-gray-300 border-y-2 border-dashed border-gray-300 dark:divide-gray-700 dark:border-gray-700">
+                        <ol className="mt-6 divide-y-2 divide-dashed divide-border border-y-2 border-dashed border-border">
                             {block.items.map((item, index) => (
                                 <li key={item.id} className="grid gap-1 py-5 sm:grid-cols-[3.5rem_1fr] sm:items-start sm:gap-4">
-                                    <span className="font-mono text-3xl font-bold tabular-nums text-gray-900 dark:text-white" aria-hidden>{String(index + 1).padStart(2, '0')}</span>
+                                    <span className="font-mono text-3xl font-bold tabular-nums text-foreground" aria-hidden>{String(index + 1).padStart(2, '0')}</span>
                                     <div className="min-w-0">
-                                        <p className="text-[15px] font-bold text-gray-900 dark:text-white">{item.title}</p>
-                                        <div className="mt-1 max-w-prose text-[15px] leading-7 text-gray-600 dark:text-gray-300">{renderBody(item.body)}</div>
+                                        <p className="text-base font-bold text-foreground">{item.title}</p>
+                                        <div className="mt-1 max-w-prose text-base leading-7 text-muted-foreground">{renderBody(item.body)}</div>
                                     </div>
                                 </li>
                             ))}
                         </ol>
                     ) : null}
-                    {block.note ? <div className="mt-5 max-w-prose text-[15px] leading-7 text-gray-600 dark:text-gray-300">{renderBody(block.note)}</div> : null}
+                    {block.note ? <div className="mt-5 max-w-prose text-base leading-7 text-muted-foreground">{renderBody(block.note)}</div> : null}
                     {block.verificationTitle || block.verificationItems.length > 0 ? (
-                        <div className="mt-5 border-t border-gray-100 pt-5 dark:border-gray-800">
-                            {block.verificationTitle ? <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-gray-500 dark:text-gray-400">{block.verificationTitle}</h3> : null}
+                        <div className="mt-5 border-t border-border pt-5">
+                            {block.verificationTitle ? <h3 className="text-sm font-semibold text-muted-foreground">{block.verificationTitle}</h3> : null}
                             {block.verificationItems.length > 0 ? (
                                 <ol className="mt-3 flex flex-wrap gap-2">
                                     {block.verificationItems.map((item, index) => (
-                                        <li key={item.id} className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-2 text-sm text-gray-600 dark:border-gray-700 dark:text-gray-300">
-                                            <span className="font-mono font-bold tabular-nums text-gray-900 dark:text-white" aria-hidden>{index + 1}</span>
-                                            <span><strong className="text-gray-900 dark:text-white">{item.title}:</strong> {item.body}</span>
+                                        <li key={item.id} className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-2 text-sm text-muted-foreground">
+                                            <span className="font-mono font-bold tabular-nums text-foreground" aria-hidden>{index + 1}</span>
+                                            <span><strong className="text-foreground">{item.title}:</strong> {item.body}</span>
                                         </li>
                                     ))}
                                 </ol>
@@ -682,16 +682,16 @@ export function CoachingView({ document, preview = false }: { document: Coaching
 
         if (block.type === 'benefits') {
             return (
-                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-3xl bg-white p-6 text-gray-900 shadow-soft dark:bg-gray-900 dark:text-white border border-gray-100 dark:border-gray-800 sm:p-8">
+                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8">
                     <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-2xl uppercase tracking-tight sm:text-3xl">{block.title}</h2>
                     <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
                     {block.items.length > 0 ? (
                         <ul className="mt-6 grid gap-4 sm:grid-cols-3">
                             {block.items.map((item, index) => (
-                                <li key={item.id} className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-[#faf7ef] dark:bg-gray-800/40 p-5">
-                                    <span className="font-mono text-sm font-bold tabular-nums text-amber-600 dark:text-primary" aria-hidden>{String(index + 1).padStart(2, '0')}</span>
+                                <li key={item.id} className="border-t-2 border-dashed border-border pt-4">
+                                    <span className="font-mono text-sm font-bold tabular-nums text-brand-ink dark:text-primary" aria-hidden>{String(index + 1).padStart(2, '0')}</span>
                                     <p className="mt-2 font-display text-lg uppercase tracking-tight">{item.title}</p>
-                                    <div className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">{renderBody(item.body)}</div>
+                                    <div className="mt-2 text-sm leading-relaxed text-muted-foreground">{renderBody(item.body)}</div>
                                 </li>
                             ))}
                         </ul>
@@ -702,19 +702,19 @@ export function CoachingView({ document, preview = false }: { document: Coaching
 
         if (block.type === 'rules') {
             return (
-                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-3xl border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900 sm:p-8">
-                    <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-2xl uppercase tracking-tight text-gray-900 dark:text-white sm:text-3xl">{block.title}</h2>
+                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8">
+                    <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-2xl uppercase tracking-tight sm:text-3xl">{block.title}</h2>
                     <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
                     {block.items.length > 0 ? (
-                        <div className="mt-6 border-t-2 border-gray-900 dark:border-white">
+                        <div className="mt-6 border-t-2 border-foreground">
                             {block.items.map((item, index) => {
                                 const Icon = RULE_ICONS[index] ?? Scale;
                                 return (
-                                    <article key={item.id} className="grid gap-3 border-b border-gray-100 py-6 last:border-b-0 dark:border-gray-800 sm:grid-cols-[3rem_1fr] sm:gap-5">
-                                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-primary text-black" aria-hidden><Icon size={22} /></span>
+                                    <article key={item.id} className="grid gap-3 border-b border-border py-6 last:border-b-0 sm:grid-cols-[3rem_1fr] sm:gap-5">
+                                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground" aria-hidden><Icon size={20} /></span>
                                         <div className="min-w-0">
-                                            <h3 className="font-display text-xl uppercase tracking-tight text-gray-900 dark:text-white">{item.title}</h3>
-                                            <div className="mt-2 max-w-prose space-y-2 text-[15px] leading-7 text-gray-600 dark:text-gray-300">{renderBody(item.body)}</div>
+                                            <h3 className="font-display text-xl uppercase tracking-tight text-foreground">{item.title}</h3>
+                                            <div className="mt-2 max-w-prose space-y-2 text-base leading-7 text-muted-foreground">{renderBody(item.body)}</div>
                                         </div>
                                     </article>
                                 );
@@ -727,16 +727,16 @@ export function CoachingView({ document, preview = false }: { document: Coaching
 
         if (block.type === 'contact') {
             return (
-                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-3xl border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900 sm:p-8">
-                    <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-xl uppercase tracking-tight text-gray-900 dark:text-white">{block.title}</h2>
+                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8">
+                    <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-xl uppercase tracking-tight text-foreground">{block.title}</h2>
                     <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
                     {block.text || block.email ? (
-                        <p className="mt-3 max-w-prose text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+                        <p className="mt-3 max-w-prose text-base leading-7 text-muted-foreground">
                             {block.text}{block.text && block.email ? ' · ' : ''}{block.email ? <>E-Mail: <a href={`mailto:${block.email}`} className={`${LINK_CLS} break-anywhere`}>{block.email}</a></> : null}
                         </p>
                     ) : null}
                     {block.parentText || block.parentLinkLabel ? (
-                        <p className="mt-2 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+                        <p className="mt-2 text-base leading-7 text-muted-foreground">
                             {block.parentText}{block.parentText && block.parentLinkLabel ? ' ' : ''}
                             {block.parentLinkLabel ? <Link to={block.parentLinkPath} className={LINK_CLS}>{block.parentLinkLabel}</Link> : null}
                         </p>
@@ -747,36 +747,39 @@ export function CoachingView({ document, preview = false }: { document: Coaching
 
         if (block.type === 'support') {
             return (
-                <motion.section key={block.id} id={block.id === supportAnchorId ? `${idPrefix}foerderung` : undefined} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="scroll-mt-24 rounded-3xl border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900 sm:p-8">
-                    <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-2xl uppercase tracking-tight text-gray-900 dark:text-white sm:text-3xl">{block.title}</h2>
+                <motion.section key={block.id} id={block.id === supportAnchorId ? `${idPrefix}foerderung` : undefined} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="scroll-mt-24 rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8">
+                    <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-2xl uppercase tracking-tight sm:text-3xl">{block.title}</h2>
                     <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
-                    <div className="mt-4 max-w-prose space-y-2 text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+                    <div className="mt-4 max-w-prose space-y-2 text-base leading-7 text-muted-foreground">
                         {block.paragraphs.filter(paragraph => paragraph.trim()).map((paragraph, index) => <p key={`${block.id}-paragraph-${index}`}>{linkify(paragraph)}</p>)}
                         {block.registrationText || block.registrationEmail ? (
                             <p>
                                 {block.registrationText}{block.registrationText && block.registrationEmail ? ' ' : ''}
-                                {block.registrationEmail ? <a href={`mailto:${block.registrationEmail}`} className={LINK_CLS}>{block.registrationEmail}</a> : null}
+                                {block.registrationEmail ? <a href={`mailto:${block.registrationEmail}`} className={`${LINK_CLS} break-anywhere`}>{block.registrationEmail}</a> : null}
                             </p>
                         ) : null}
                     </div>
                     {block.days.length > 0 ? (
-                        <div className="mt-4 max-w-full overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800">
-                            <Table className="w-full min-w-[440px] border-collapse text-center text-xs md:text-sm">
-                                <TableHeader>
-                                    <TableRow>{block.days.map(day => <TableHead key={day.id} className="border border-gray-200 p-2 font-mono tabular-nums dark:border-gray-800">{day.label}</TableHead>)}</TableRow>
-                                </TableHeader>
-                                <TableBody className="font-mono tabular-nums">
-                                    {block.rows.map(row => (
-                                        <TableRow key={row.id}>{row.cells.map(cell => <TableCell key={cell.id} className={scheduleCellClass(cell.text)}>{cell.text}</TableCell>)}</TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                        <div className="mt-5">
+                            <p className="mb-2 text-xs font-semibold text-muted-foreground md:hidden">Stundenplan · seitlich scrollbar</p>
+                            <div className="max-w-full overflow-x-auto rounded-xl border border-border" tabIndex={0} role="region" aria-label="Stundenplan des Förderunterrichts">
+                                <Table className="w-full min-w-[440px] border-collapse text-center text-xs md:text-sm">
+                                    <TableHeader>
+                                        <TableRow>{block.days.map(day => <TableHead key={day.id} className="border border-border p-2 font-mono tabular-nums">{day.label}</TableHead>)}</TableRow>
+                                    </TableHeader>
+                                    <TableBody className="font-mono tabular-nums">
+                                        {block.rows.map(row => (
+                                            <TableRow key={row.id}>{row.cells.map(cell => <TableCell key={cell.id} className={scheduleCellClass(cell.text)}>{cell.text}</TableCell>)}</TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
                         </div>
                     ) : null}
                     {block.learnCoachingText || block.learnCoachingEmail ? (
-                        <p className="mt-4 max-w-prose text-[15px] leading-7 text-gray-600 dark:text-gray-300">
+                        <p className="mt-4 max-w-prose text-base leading-7 text-muted-foreground">
                             {block.learnCoachingText}{block.learnCoachingText && block.learnCoachingEmail ? ' ' : ''}
-                            {block.learnCoachingEmail ? <a href={`mailto:${block.learnCoachingEmail}`} className={LINK_CLS}>{block.learnCoachingEmail}</a> : null}
+                            {block.learnCoachingEmail ? <a href={`mailto:${block.learnCoachingEmail}`} className={`${LINK_CLS} break-anywhere`}>{block.learnCoachingEmail}</a> : null}
                         </p>
                     ) : null}
                 </motion.section>
@@ -784,10 +787,10 @@ export function CoachingView({ document, preview = false }: { document: Coaching
         }
 
         return (
-            <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-3xl border border-gray-100 bg-white p-6 shadow-soft dark:border-gray-800 dark:bg-gray-900 sm:p-8">
-                <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-2xl uppercase tracking-tight text-gray-900 dark:text-white sm:text-3xl">{block.title}</h2>
+            <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8">
+                <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-2xl uppercase tracking-tight sm:text-3xl">{block.title}</h2>
                 <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
-                {block.body ? <div className="mt-5 max-w-prose space-y-3 text-[15px] leading-7 text-gray-600 dark:text-gray-300">{renderBody(block.body)}</div> : null}
+                {block.body ? <div className="mt-5 max-w-prose space-y-3 text-base leading-7 text-muted-foreground">{renderBody(block.body)}</div> : null}
             </motion.section>
         );
     };

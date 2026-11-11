@@ -67,87 +67,91 @@ export default function VerifyEmail() {
     };
 
     return (
-        <div className="w-full max-w-md mx-auto px-4 py-10">
-            <Card>
-                <CardContent className="p-6 space-y-5">
-                    <div className="text-center space-y-2">
-                        <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary">
-                            <MailCheck size={24} />
-                        </div>
-                        <h1 className="text-xl font-bold">E-Mail bestätigen</h1>
-                        <p className="text-sm text-gray-500">
-                            Wir haben dir einen <strong>6-stelligen Code</strong> per E-Mail geschickt.
-                            Gib ihn hier ein, um dein Konto freizuschalten. Nichts im Postfach? Schau auch im <strong>Spam-Ordner</strong> nach.
-                        </p>
-                    </div>
-
-                    <form onSubmit={handleVerify} className="space-y-4">
-                        <div>
-                            <Label className="text-sm font-medium mb-1.5 block">E-Mail-Adresse</Label>
-                            <Input
-                                type="email"
-                                value={email}
-                                onChange={e => setEmail(e.target.value)}
-                                placeholder="E-Mail-Adresse"
-                                autoComplete="email"
-                            />
-                        </div>
-                        <div>
-                            <Label className="text-sm font-medium mb-1.5 block">Bestätigungs-Code</Label>
-                            <InputOTP
-                                maxLength={6}
-                                value={code}
-                                onChange={value => setCode(value.toUpperCase())}
-                                onComplete={value => handleVerify(undefined, value)}
-                                pattern="[0-9]*"
-                                inputMode="numeric"
-                                autoFocus
-                                aria-label="Bestätigungs-Code"
-                                aria-invalid={Boolean(error)}
-                            >
-                                <InputOTPGroup>
-                                    {Array.from({ length: 6 }).map((_, index) => (
-                                        <InputOTPSlot
-                                            key={index}
-                                            index={index}
-                                            className="h-14 w-11 border-2 border-input text-lg font-bold sm:w-12"
-                                        />
-                                    ))}
-                                </InputOTPGroup>
-                            </InputOTP>
-                        </div>
-
-                        {error && (
-                            <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/40 rounded-xl p-3">
-                                {error}
+        <div className="flex min-h-dvh flex-col items-center justify-center bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] text-foreground">
+            <div className="w-full max-w-md">
+                <Card className="border-border bg-card shadow-soft">
+                    <CardContent className="space-y-6 p-5 sm:p-6">
+                        <div className="space-y-2 text-center">
+                            <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-primary text-primary-foreground">
+                                <MailCheck size={26} aria-hidden />
+                            </div>
+                            <h1 className="text-xl font-semibold text-foreground">E-Mail bestätigen</h1>
+                            <p className="text-sm leading-relaxed text-muted-foreground">
+                                Wir haben dir einen <strong className="text-foreground">6-stelligen Code</strong> per E-Mail geschickt.
+                                Gib ihn hier ein, um dein Konto freizuschalten. Nichts im Postfach? Schau auch im <strong className="text-foreground">Spam-Ordner</strong> nach.
                             </p>
-                        )}
+                        </div>
 
-                        <Button type="submit" disabled={isLoading} className="w-full">
-                            {isLoading ? 'Wird geprüft…' : 'E-Mail bestätigen'}
-                        </Button>
-                    </form>
+                        <form onSubmit={handleVerify} className="space-y-4">
+                            <div className="space-y-1.5">
+                                <Label htmlFor="verify-email" className="text-sm font-medium">E-Mail-Adresse</Label>
+                                <Input
+                                    id="verify-email"
+                                    type="email"
+                                    value={email}
+                                    onChange={e => setEmail(e.target.value)}
+                                    placeholder="E-Mail-Adresse"
+                                    autoComplete="email"
+                                    aria-invalid={Boolean(error)}
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium">Bestätigungs-Code</Label>
+                                <InputOTP
+                                    maxLength={6}
+                                    value={code}
+                                    onChange={value => setCode(value.toUpperCase())}
+                                    onComplete={value => handleVerify(undefined, value)}
+                                    pattern="[0-9]*"
+                                    inputMode="numeric"
+                                    autoFocus
+                                    aria-label="Bestätigungs-Code"
+                                    aria-invalid={Boolean(error)}
+                                >
+                                    <InputOTPGroup className="w-full justify-between gap-1.5 sm:justify-start sm:gap-2">
+                                        {Array.from({ length: 6 }).map((_, index) => (
+                                            <InputOTPSlot
+                                                key={index}
+                                                index={index}
+                                                className="h-14 min-w-0 flex-1 border-2 border-input text-lg font-semibold sm:w-12 sm:flex-none"
+                                            />
+                                        ))}
+                                    </InputOTPGroup>
+                                </InputOTP>
+                            </div>
 
-                    <div className="text-center text-sm">
-                        <span className="text-gray-500">Kein Code angekommen? </span>
-                        <Button variant="unstyled" size="unstyled"
-                            type="button"
-                            onClick={handleResend}
-                            disabled={isLoading || cooldown > 0 || !email}
-                            className="font-bold text-primary hover:underline disabled:opacity-50 disabled:no-underline inline-flex items-center gap-1"
-                        >
-                            <RefreshCw size={14} />
-                            {cooldown > 0 ? `Neuer Code in ${cooldown}s` : 'Neuen Code senden'}
-                        </Button>
-                    </div>
+                            {error && (
+                                <p className="rounded-xl border border-destructive/25 bg-destructive/5 p-3 text-sm text-destructive" role="alert">
+                                    {error}
+                                </p>
+                            )}
 
-                    <div className="text-center">
-                        <Link to="/login" className="text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 inline-flex items-center gap-1">
-                            <ArrowLeft size={14} /> Zurück zum Login
-                        </Link>
-                    </div>
-                </CardContent>
-            </Card>
+                            <Button type="submit" disabled={isLoading} isLoading={isLoading} className="w-full">
+                                E-Mail bestätigen
+                            </Button>
+                        </form>
+
+                        <div className="text-center text-sm">
+                            <span className="text-muted-foreground">Kein Code angekommen? </span>
+                            <Button variant="unstyled" size="unstyled"
+                                type="button"
+                                onClick={handleResend}
+                                disabled={isLoading || cooldown > 0 || !email}
+                                className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-brand-ink underline-offset-4 hover:underline disabled:pointer-events-none disabled:opacity-50 dark:text-primary"
+                            >
+                                <RefreshCw size={14} aria-hidden />
+                                {cooldown > 0 ? `Neuer Code in ${cooldown}s` : 'Neuen Code senden'}
+                            </Button>
+                        </div>
+
+                        <div className="border-t border-border pt-4 text-center">
+                            <Link to="/login" className="inline-flex min-h-11 items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
+                                <ArrowLeft size={14} aria-hidden /> Zurück zum Login
+                            </Link>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     );
 }

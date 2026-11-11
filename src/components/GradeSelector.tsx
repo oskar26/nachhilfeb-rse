@@ -21,7 +21,7 @@ export function GradeSelector({ selectedGrades, onChange, className }: GradeSele
     };
 
     return (
-        <div className={cn("flex flex-wrap gap-2", className)}>
+        <div className={cn("flex flex-wrap gap-2", className)} role="group" aria-label="Klassenstufen">
             {GRADES.map(grade => {
                 const isSelected = selectedGrades.includes(grade);
                 return (
@@ -31,11 +31,12 @@ export function GradeSelector({ selectedGrades, onChange, className }: GradeSele
                         size="unstyled"
                         hapticStyle={false}
                         onClick={() => toggleGrade(grade)}
+                        aria-pressed={isSelected}
                         className={cn(
-                            "px-3.5 h-10 min-w-[2.5rem] rounded-xl flex items-center justify-center text-sm font-bold border transition-colors select-none cursor-pointer",
+                            "flex h-11 min-w-11 select-none items-center justify-center rounded-lg border px-3.5 text-sm font-semibold transition-colors",
                             isSelected
-                                ? "bg-primary text-primary-foreground border-primary shadow-md shadow-yellow-500/20 font-extrabold"
-                                : "bg-white dark:bg-gray-800/80 border-gray-200 dark:border-gray-700/80 text-gray-600 dark:text-gray-300 hover:border-primary/60 hover:text-gray-900 dark:hover:text-white"
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border bg-card text-muted-foreground hover:border-ring/40 hover:text-foreground"
                         )}
                         type="button"
                     >

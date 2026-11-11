@@ -3,8 +3,21 @@ import { api } from '../../lib/api';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../../components/ui/alert-dialog';
-import { Trash2, Search, Sparkles } from 'lucide-react';
+import { Badge } from '../../components/ui/badge';
+import { Spinner } from '../../components/ui/spinner';
+import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '../../components/ui/alert-dialog';
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '../../components/ui/empty';
+import { Trash2, Search, Sparkles, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
 import { useState, useEffect } from 'react';
@@ -74,6 +87,7 @@ function AdManagement() {
     const [ads, setAds] = useState<any[]>([]);
     const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(false);
+    const [loadError, setLoadError] = useState<string | null>(null);
     const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
     useEffect(() => {
@@ -82,6 +96,7 @@ function AdManagement() {
 
     const fetchAds = async () => {
         setLoading(true);
+        setLoadError(null);
         try {
             // Anzeigen bringen ihre eingebetteten Profildaten bereits mit (ads.php: profiles) – kein separater profiles-Lookup nötig.
             const { data: adsData, error: adsError } = await api.ads.list({ all: true });
@@ -90,6 +105,7 @@ function AdManagement() {
             setAds(adsData || []);
         } catch (err) {
             console.error(err);
+            setLoadError('Anzeigen konnten nicht geladen werden.');
             toast.error('Anzeigen konnten nicht geladen werden.');
         } finally {
             setLoading(false);
@@ -125,66 +141,93 @@ function AdManagement() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="relative max-w-md flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="relative w-full sm:max-w-md">
+                    <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} aria-hidden />
                     <Input
                         placeholder="Anzeigen suchen nach Beschreibung, Name..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        className="pl-10 h-11 rounded-2xl"
+                        className="h-11 pl-11"
+                        aria-label="Anzeigen durchsuchen"
                     />
                 </div>
-                <div className="text-sm text-gray-500 font-medium">
-                    Gesamt: <span className="font-bold text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">{ads.length} Anzeigen</span>
-                </div>
+                <p className="text-sm text-muted-foreground">
+                    Gesamt: <span className="inline-flex items-center rounded-full bg-muted px-3 py-1 font-semibold tabular-nums text-foreground">{ads.length} Anzeigen</span>
+                </p>
             </div>
 
-            {loading ? (
-                <div className="py-20 text-center space-y-4">
-                    <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-                    <p className="text-gray-500 font-medium">Lade Anzeigen...</p>
+            {loadError && (
+                <Alert variant="destructive">
+                    <AlertTitle>Anzeigen nicht verfügbar</AlertTitle>
+                    <AlertDescription className="flex flex-col items-start gap-3">
+                        <span>{loadError}</span>
+                        <Button type="button" variant="outline" className="h-11" onClick={fetchAds}>
+                            Erneut laden
+                        </Button>
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            {loadError ? null : loading ? (
+                <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card py-16 text-center">
+                    <Spinner className="size-6 text-brand-ink dark:text-primary" />
+                    <p className="text-sm text-muted-foreground">Lade Anzeigen...</p>
                 </div>
             ) : filteredAds.length === 0 ? (
-                <div className="py-20 text-center border-2 border-dashed rounded-3xl text-gray-400 dark:border-gray-800 italic">
-                    Keine Anzeigen gefunden.
-                </div>
+                <Empty className="border border-border bg-card py-16">
+                    <EmptyHeader>
+                        <EmptyMedia variant="icon">
+                            <FileText aria-hidden />
+                        </EmptyMedia>
+                        <EmptyTitle>Keine Anzeigen gefunden</EmptyTitle>
+                        <EmptyDescription>Passe die Suche an oder lade die Liste neu.</EmptyDescription>
+                    </EmptyHeader>
+                </Empty>
             ) : (
-                <Card className="rounded-3xl border-none shadow-sm overflow-hidden">
+                <Card className="shadow-soft">
                     <CardContent className="p-0">
-                        <div className="divide-y dark:divide-gray-800">
+                        <ul className="divide-y divide-border">
                             {filteredAds.map(ad => (
-                                <div key={ad.id} className={cn(
-                                    'p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors',
-                                    ad.is_hidden && 'bg-gray-100/50 dark:bg-gray-950/50'
+                                <li key={ad.id} className={cn(
+                                    'flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5',
+                                    ad.is_hidden && 'bg-muted/40'
                                 )}>
-                                    <div className="space-y-1">
-                                        <div className="flex items-center gap-2">
-                                            <span className={cn(
-                                                'text-[10px] font-bold px-2 py-0.5 rounded-full uppercase',
-                                                ad.type === 'offer' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                                            )}>
+                                    <div className="min-w-0 flex-1 space-y-1.5">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <Badge variant={ad.type === 'offer' ? 'secondary' : 'outline'}>
                                                 {ad.type === 'offer' ? 'Bietet' : 'Sucht'}
-                                            </span>
-                                            <span className="font-bold">{ad.short_description}</span>
-                                            {ad.is_hidden && <span className="text-[10px] bg-red-100 text-red-800 px-2 py-0.5 rounded-full font-bold uppercase">Versteckt</span>}
-                                            {ad.boosted && <span className="text-[10px] bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full font-bold uppercase inline-flex items-center gap-1">Geboostet <Sparkles size={11} /></span>}
+                                            </Badge>
+                                            <span className="min-w-0 break-words text-sm font-semibold text-foreground">{ad.short_description}</span>
+                                            {ad.is_hidden && <Badge variant="destructive">Versteckt</Badge>}
+                                            {ad.boosted && (
+                                                <Badge>
+                                                    Geboostet <Sparkles size={16} aria-hidden />
+                                                </Badge>
+                                            )}
                                         </div>
-                                        <div className="text-sm text-gray-500">
-                                            Von <span className="font-semibold">{ad.profiles?.display_name || `${ad.profiles?.first_name || ''} ${ad.profiles?.last_name || ''}`}</span> • {new Date(ad.created_at).toLocaleDateString('de-DE')}
-                                        </div>
+                                        <p className="text-sm text-muted-foreground">
+                                            Von <span className="font-medium text-foreground">{ad.profiles?.display_name || `${ad.profiles?.first_name || ''} ${ad.profiles?.last_name || ''}`}</span> • {new Date(ad.created_at).toLocaleDateString('de-DE')}
+                                        </p>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <Button size="sm" variant="outline" className="rounded-xl border-gray-200" onClick={() => toggleHide(ad.id, ad.is_hidden)}>
+                                    <div className="flex shrink-0 flex-wrap items-center gap-2">
+                                        <Button size="sm" variant="outline" className="h-11" onClick={() => toggleHide(ad.id, ad.is_hidden)}>
                                             {ad.is_hidden ? 'Einblenden' : 'Verstecken'}
                                         </Button>
-                                        <Button size="icon" variant="destructive" className="h-9 w-9 rounded-xl" onClick={() => setPendingDeleteId(ad.id)}>
-                                            <Trash2 size={16} />
+                                        <Button
+                                            size="icon"
+                                            variant="destructive"
+                                            className="h-11 w-11"
+                                            onClick={() => setPendingDeleteId(ad.id)}
+                                            aria-label="Anzeige löschen"
+                                            title="Anzeige löschen"
+                                        >
+                                            <Trash2 size={16} aria-hidden />
                                         </Button>
                                     </div>
-                                </div>
+                                </li>
                             ))}
-                        </div>
+                        </ul>
                     </CardContent>
                 </Card>
             )}

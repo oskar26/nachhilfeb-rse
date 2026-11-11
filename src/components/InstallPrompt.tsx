@@ -105,24 +105,25 @@ export default function InstallPrompt() {
     // ── iOS instructions ──────────────────────────────────────────
     if (ios) {
         return (
-            <div className="md:hidden fixed bottom-24 left-4 right-4 z-[200] animate-in slide-in-from-bottom-4 duration-300">
-                <div className="relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-2xl ring-1 ring-black/10 dark:ring-white/10 p-5">
+            <div className="fixed inset-x-4 bottom-[calc(6.5rem+env(safe-area-inset-bottom,0px))] z-30 animate-in slide-in-from-bottom-4 duration-300 md:hidden">
+                <div className="relative rounded-2xl border border-border bg-card/95 p-5 shadow-overlay backdrop-blur-xl">
                     <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={handleDismiss}
-                        className="absolute top-4 right-4 p-1.5 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                        aria-label="Installationshinweis schließen"
+                        className="absolute right-3 top-3 grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     >
                         <X size={16} />
                     </Button>
 
                     <div className="flex items-start gap-4">
-                        <Logo className="w-10 h-10 text-black dark:text-white shrink-0" />
+                        <Logo className="size-10 shrink-0 text-foreground" />
                         <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-sm text-gray-900 dark:text-white">
+                            <p className="text-sm font-semibold text-foreground">
                                 Nachhilfebörse als App installieren
                             </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                                 Tippe auf den{' '}
-                                <span className="inline-flex items-center gap-1 font-medium text-primary">
+                                <span className="inline-flex items-center gap-1 font-medium text-brand-ink dark:text-primary">
                                     <Share size={12} /> Teilen-Button
                                 </span>{' '}
                                 und dann <strong>"Zum Home-Bildschirm"</strong>
@@ -131,7 +132,7 @@ export default function InstallPrompt() {
                     </div>
 
                     {/* Arrow pointing down towards Safari bar */}
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white/80 dark:bg-gray-900/80 rotate-45 backdrop-blur-xl ring-1 ring-black/10 dark:ring-white/10 [clip-path:polygon(100%_0,100%_100%,0_100%)]" />
+                    <div className="absolute -bottom-2 left-1/2 size-4 -translate-x-1/2 rotate-45 border-b border-r border-border bg-card [clip-path:polygon(100%_0,100%_100%,0_100%)]" />
                 </div>
             </div>
         );
@@ -139,18 +140,18 @@ export default function InstallPrompt() {
 
     // ── Mobile bottom sheet (Render-Helper, keine Komponente: stabile Identität) ──
     const renderMobileSheet = () => (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-[200] animate-in slide-in-from-bottom-full duration-400">
-            <div className="bg-white/85 dark:bg-gray-900/85 backdrop-blur-2xl rounded-t-[2rem] shadow-2xl ring-1 ring-black/10 dark:ring-white/10 px-6 pt-5 pb-8">
+        <div className="fixed inset-x-3 bottom-[calc(6.5rem+env(safe-area-inset-bottom,0px))] z-30 animate-in slide-in-from-bottom-full duration-300 md:hidden">
+            <div className="rounded-3xl border border-border bg-card/95 px-5 pt-4 pb-5 shadow-overlay backdrop-blur-2xl">
                 {/* Drag handle */}
-                <div className="w-10 h-1 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto mb-5" />
+                <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" />
 
                 <div className="flex items-center gap-4 mb-4">
-                    <Logo className="w-12 h-12 text-black dark:text-white shrink-0" />
+                    <Logo className="size-12 shrink-0 text-foreground" />
                     <div>
-                        <p className="font-bold text-base text-gray-900 dark:text-white leading-tight">
+                        <p className="text-base font-semibold leading-tight text-foreground">
                             Nachhilfebörse als App installieren
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">
+                        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
                             Schneller Zugriff, Offline-Funktionen, Benachrichtigungen
                         </p>
                     </div>
@@ -159,13 +160,13 @@ export default function InstallPrompt() {
                 <div className="flex gap-3 mt-5">
                     <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={handleDismiss}
-                        className="flex-1 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                        className="h-11 flex-1 rounded-full border border-border text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
                     >
                         Später
                     </Button>
                     <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={handleInstall}
-                        className="flex-[2] py-3 rounded-2xl bg-primary text-white text-sm font-semibold flex items-center justify-center gap-2 shadow-md hover:opacity-90 active:scale-[0.98] transition-all"
+                        className="h-11 flex-[2] gap-2 rounded-full text-sm font-semibold"
                     >
                         <Download size={16} />
                         Installieren
@@ -177,29 +178,30 @@ export default function InstallPrompt() {
 
     // ── Desktop top banner (Render-Helper, keine Komponente: stabile Identität) ──
     const renderDesktopBanner = () => (
-        <div className="hidden md:block fixed top-4 left-1/2 -translate-x-1/2 z-[200] animate-in slide-in-from-top-4 duration-300 max-w-lg w-full px-4">
-            <div className="bg-white/85 dark:bg-gray-900/85 backdrop-blur-2xl rounded-2xl shadow-xl ring-1 ring-black/10 dark:ring-white/10 p-4 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow">
+        <div className="fixed left-1/2 top-4 z-30 hidden w-full max-w-lg -translate-x-1/2 px-4 animate-in slide-in-from-top-4 duration-300 md:block">
+            <div className="flex items-center gap-4 rounded-2xl border border-border bg-card/95 p-4 shadow-overlay backdrop-blur-2xl">
+                <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary text-lg font-semibold text-primary-foreground">
                     N
                 </div>
                 <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm text-gray-900 dark:text-white">
+                    <p className="text-sm font-semibold text-foreground">
                         Nachhilfebörse als App installieren
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    <p className="truncate text-xs text-muted-foreground">
                         Schneller Zugriff &amp; Offline-Funktionen
                     </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                     <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={handleInstall}
-                        className="px-4 py-2 bg-primary text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 hover:opacity-90 transition-opacity"
+                        className="h-11 gap-1.5 rounded-full px-4 text-xs font-semibold"
                     >
                         <Download size={13} /> Installieren
                     </Button>
                     <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={handleDismiss}
-                        className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                        aria-label="Installationshinweis schließen"
+                        className="grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     >
                         <X size={16} />
                     </Button>

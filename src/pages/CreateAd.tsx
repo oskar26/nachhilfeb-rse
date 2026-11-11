@@ -8,7 +8,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../compone
 import { SubjectChip, SUBJECT_CATEGORIES, subjectLabelMap, type Subject } from '../components/SubjectChip';
 import { GradeSelector } from '../components/GradeSelector';
 import { RichTextEditor } from '../components/RichTextEditor';
-import { ChevronLeft, ChevronRight, CheckCircle, Plus, X, Link as LinkIcon, AlertCircle, Lock, GraduationCap, Search, Users, User, Shuffle, School, Wifi, Home, MapPin, Calculator, Info } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle, Plus, X, Link as LinkIcon, AlertCircle, Lock, GraduationCap, Search, Users, User, Shuffle, School, Wifi, Home, MapPin, Calculator, Info, Loader2 } from 'lucide-react';
 import { cn, formatAdPrice } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
@@ -393,21 +393,26 @@ export default function CreateAd() {
         [filteredSubjectGroups]
     );
 
-    if (loadingProfile) return <div className="p-10 text-center">Laden...</div>;
+    if (loadingProfile) return (
+        <div className="flex flex-col items-center justify-center gap-3 p-20" role="status">
+            <Loader2 className="animate-spin text-brand-ink dark:text-primary" size={32} aria-hidden />
+            <p className="text-xs font-semibold text-muted-foreground">Profil wird geladen…</p>
+        </div>
+    );
 
     if (!isVerified) {
         return (
-            <div className="p-4 max-w-lg mx-auto mt-10">
-                <Card className="border-red-200 bg-red-50 dark:bg-warning-bgDark dark:border-warning-bgDark shadow-soft">
-                    <CardContent className="p-6 text-center space-y-4">
-                        <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-600 dark:bg-black/20 dark:text-warning-textDark">
-                            <Lock size={24} />
+            <div className="mx-auto mt-10 max-w-lg p-4">
+                <Card className="border-destructive/25 bg-destructive/5 shadow-soft">
+                    <CardContent className="space-y-4 p-6 text-center">
+                        <div className="mx-auto grid size-14 place-items-center rounded-full bg-destructive/10 text-destructive">
+                            <Lock size={24} aria-hidden />
                         </div>
-                        <h2 className="text-xl font-bold text-red-800 dark:text-warning-textDark">Verifizierung notwendig</h2>
-                        <p className="text-sm text-red-700 dark:text-warning-textDark opacity-90">
+                        <h2 className="text-xl font-semibold text-foreground">Verifizierung notwendig</h2>
+                        <p className="text-sm text-muted-foreground">
                             Du musst dich im SV-Raum verifizieren lassen, um Anzeigen erstellen zu können.
                         </p>
-                        <Button onClick={() => navigate('/profile')} variant="outline" className="w-full dark:border-warning-textDark/20 dark:text-warning-textDark hover:dark:bg-warning-textDark/10">Zum Profil</Button>
+                        <Button onClick={() => navigate('/profile')} variant="outline" className="w-full">Zum Profil</Button>
                     </CardContent>
                 </Card>
             </div>
@@ -415,35 +420,38 @@ export default function CreateAd() {
     }
 
     return (
-        <div className="w-full max-w-3xl mx-auto px-3 sm:px-4 py-4 pb-24 min-w-0 box-border overflow-x-hidden">
-            <div className="flex items-start justify-between gap-3 mb-2">
-                <h1 className="text-2xl font-bold">Anzeige erstellen</h1>
+        <div className="mx-auto box-border w-full max-w-3xl min-w-0 space-y-6 overflow-x-hidden p-4 pb-28 sm:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                    <h1 className="font-display text-2xl uppercase leading-none tracking-tight text-foreground">Anzeige erstellen</h1>
+                    <div className="mt-1.5 h-1 w-10 rounded-full bg-primary" aria-hidden />
+                </div>
                 <Button variant="unstyled" size="unstyled"
                     type="button"
                     onClick={discardDraft}
-                    className="text-xs font-semibold text-gray-400 hover:text-red-600 dark:hover:text-red-400 underline underline-offset-4 shrink-0 mt-1.5"
+                    className="mt-1 min-h-11 shrink-0 text-xs font-semibold text-muted-foreground underline underline-offset-4 hover:text-destructive"
                 >
                     Entwurf verwerfen
                 </Button>
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 sm:mb-6" aria-live="polite">
+            <p className="-mt-3 text-xs text-muted-foreground" aria-live="polite">
                 Entwurf wird automatisch auf diesem Gerät gespeichert
                 {draftSavedAt ? ` · Stand ${new Date(draftSavedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr` : ''}
                 . Er verschwindet nach dem Veröffentlichen.
             </p>
 
             {/* Stepper */}
-            <div className="bg-white dark:bg-gray-900 p-4 rounded-3xl shadow-sm border dark:border-gray-800 mb-6">
+            <div className="rounded-2xl border border-border bg-card p-4 shadow-soft">
                 {/* Mobile Stepper (< sm) */}
-                <div className="sm:hidden space-y-2.5">
-                    <div className="flex items-center justify-between text-xs font-bold">
-                        <span className="text-primary font-black uppercase tracking-wider">Schritt {currentStep + 1} von {STEPS.length}</span>
-                        <span className="text-gray-900 dark:text-white font-extrabold truncate ml-2">{STEPS[currentStep]}</span>
+                <div className="space-y-3 lg:hidden">
+                    <div className="flex items-center justify-between gap-2 text-xs font-semibold">
+                        <span className="text-brand-ink dark:text-primary">Schritt {currentStep + 1} von {STEPS.length}</span>
+                        <span className="ml-2 truncate font-semibold text-foreground">{STEPS[currentStep]}</span>
                     </div>
                     {/* Progress bar */}
-                    <div className="w-full bg-gray-100 dark:bg-gray-800 h-2 rounded-full overflow-hidden">
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                         <div
-                            className="bg-primary h-full transition-all duration-300 rounded-full"
+                            className="h-full rounded-full bg-primary transition-all duration-300"
                             style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
                         />
                     </div>
@@ -458,16 +466,17 @@ export default function CreateAd() {
                                     onClick={() => jumpToStep(index)}
                                     disabled={index > currentStep && !isStepValid()}
                                     className={cn(
-                                        "w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-all",
+                                        "flex size-11 items-center justify-center rounded-full text-xs font-semibold transition-colors",
                                         isCurrent
-                                            ? "bg-primary text-black font-black scale-110 shadow-xs ring-2 ring-primary/30"
+                                            ? "bg-primary font-semibold text-primary-foreground ring-2 ring-primary/30"
                                             : isCompleted
-                                                ? "bg-green-500 text-white cursor-pointer"
-                                                : "bg-gray-100 text-gray-400 dark:bg-gray-800 cursor-not-allowed opacity-60"
+                                                ? "bg-primary/20 text-brand-ink dark:text-primary"
+                                                : "cursor-not-allowed bg-muted text-muted-foreground opacity-70"
                                     )}
                                     title={step}
+                                    aria-current={isCurrent ? 'step' : undefined}
                                 >
-                                    {isCompleted ? <CheckCircle size={12} /> : index + 1}
+                                    {isCompleted ? <CheckCircle size={16} aria-hidden /> : index + 1}
                                 </Button>
                             );
                         })}
@@ -475,32 +484,32 @@ export default function CreateAd() {
                 </div>
 
                 {/* Desktop Stepper (sm and up) */}
-                <div className="hidden sm:block overflow-x-auto">
-                    <div className="flex items-center justify-between min-w-[500px] relative px-4">
+                <div className="hidden overflow-x-auto lg:block">
+                    <div className="relative flex min-w-[520px] items-center justify-between px-4">
                         {/* Connecting Line */}
-                        <div className="absolute top-4 left-8 right-8 h-0.5 bg-gray-100 dark:bg-gray-800 z-0" />
+                        <div className="absolute left-8 right-8 top-5 h-0.5 bg-border" aria-hidden />
 
                         {STEPS.map((step, index) => {
                             const isCurrent = index === currentStep;
                             const isCompleted = index < currentStep;
                             return (
-                                <div key={index} className="flex flex-col items-center z-10">
+                                <div key={index} className="relative z-10 flex flex-col items-center">
                                     <Button variant="unstyled" size="unstyled"
                                         type="button"
                                         onClick={() => jumpToStep(index)}
                                         disabled={index > currentStep && !isStepValid()}
                                         className={cn(
-                                            "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ring-4 ring-white dark:ring-gray-900 transition-all",
+                                            "flex size-11 items-center justify-center rounded-full text-xs font-semibold ring-4 ring-card transition-colors",
                                             isCurrent
-                                                ? "bg-primary text-black scale-110 shadow-md"
+                                                ? "bg-primary text-primary-foreground"
                                                 : isCompleted
-                                                    ? "bg-green-500 text-white cursor-pointer"
-                                                    : "bg-gray-100 text-gray-400 dark:bg-gray-800 cursor-not-allowed opacity-60"
+                                                    ? "bg-primary/20 text-brand-ink dark:text-primary"
+                                                    : "cursor-not-allowed bg-muted text-muted-foreground opacity-70"
                                         )}
                                     >
-                                        {isCompleted ? <CheckCircle size={14} /> : index + 1}
+                                        {isCompleted ? <CheckCircle size={16} aria-hidden /> : index + 1}
                                     </Button>
-                                    <span className={cn("text-[10px] mt-1.5 font-medium transition-colors whitespace-nowrap", isCurrent ? "text-gray-900 dark:text-white font-bold" : "text-gray-400")}>{step}</span>
+                                    <span className={cn("mt-1.5 whitespace-nowrap text-xs font-medium transition-colors", isCurrent ? "font-semibold text-foreground" : "text-muted-foreground")}>{step}</span>
                                 </div>
                             );
                         })}
@@ -508,11 +517,11 @@ export default function CreateAd() {
                 </div>
             </div>
 
-            <Card className="w-full min-w-0 overflow-hidden">
-                <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-4">
+            <Card className="w-full min-w-0 overflow-hidden border-border bg-card">
+                <CardHeader className="border-b border-border p-4 pb-3 sm:p-6 sm:pb-4">
                     <CardTitle className="text-lg sm:text-xl">{STEPS[currentStep]}</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6 min-h-[280px] p-4 sm:p-6">
+                <CardContent className="min-h-[280px] space-y-6 p-4 sm:p-6">
 
                     {/* Step 0: Type & Title */}
                     {currentStep === 0 && (
@@ -523,8 +532,8 @@ export default function CreateAd() {
                                             type="button"
                                             onClick={() => setFormData({ ...formData, type: 'offer' })}
                                             className={cn(
-                                                "py-3.5 px-4 text-center rounded-xl border-2 transition-all font-semibold flex items-center justify-center gap-2",
-                                                formData.type === 'offer' ? "border-primary bg-primary/10 text-primary-hover shadow-xs" : "border-gray-200 text-gray-500 hover:border-gray-300 dark:border-gray-700"
+                                                "flex min-h-14 items-center justify-center gap-2 rounded-xl border-2 px-4 py-3.5 text-center font-semibold transition-colors",
+                                                formData.type === 'offer' ? "border-primary bg-primary/10 text-brand-ink dark:text-primary" : "border-border text-muted-foreground hover:border-ring/40"
                                             )}
                                         >
                                             <GraduationCap size={18} className="shrink-0" />
@@ -534,8 +543,8 @@ export default function CreateAd() {
                                             type="button"
                                             onClick={() => setFormData({ ...formData, type: 'search' })}
                                             className={cn(
-                                                "py-3.5 px-4 text-center rounded-xl border-2 transition-all font-semibold flex items-center justify-center gap-2",
-                                                formData.type === 'search' ? "border-secondary bg-secondary/10 text-secondary shadow-xs" : "border-gray-200 text-gray-500 hover:border-gray-300 dark:border-gray-700"
+                                                "flex min-h-14 items-center justify-center gap-2 rounded-xl border-2 px-4 py-3.5 text-center font-semibold transition-colors",
+                                                formData.type === 'search' ? "border-primary bg-primary/10 text-brand-ink dark:text-primary" : "border-border text-muted-foreground hover:border-ring/40"
                                             )}
                                         >
                                             <Search size={18} className="shrink-0" />
@@ -544,10 +553,10 @@ export default function CreateAd() {
                                     </div>
 
                                     {formData.type === 'search' && (
-                                        <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 rounded-2xl p-4 flex gap-3 text-blue-900 dark:text-blue-200">
-                                            <Lock size={18} className="shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
+                                        <div className="border border-primary/25 bg-primary/10 rounded-2xl p-4 flex gap-3 text-foreground/80">
+                                            <Lock size={18} className="shrink-0 mt-0.5 text-brand-ink dark:text-primary" />
                                             <div className="text-xs leading-relaxed space-y-1">
-                                                <p className="font-bold text-sm">Dein Gesuch ist privat.</p>
+                                                <p className="font-semibold text-sm">Dein Gesuch ist privat.</p>
                                                 <p>Es erscheint nicht öffentlich in der Übersicht, sondern nur bei passenden Anbietern und bei Nutzern, die diese Fächer laut Profil anbieten. Das SV-Team sieht es zur Moderation.</p>
                                             </div>
                                         </div>
@@ -556,7 +565,7 @@ export default function CreateAd() {
                                     {/* Unterrichts-Format: Einzel / Kleingruppe / Egal */}
                                     <div>
                                         <span className="text-sm font-medium block">Unterrichts-Format</span>
-                                        <span className="text-[11px] text-gray-500 block mb-2">Einzelunterricht, Kleingruppe (2 bis 4 Schüler) oder nach Absprache?</span>
+                                        <span className="text-xs text-muted-foreground block mb-2">Einzelunterricht, Kleingruppe (2 bis 4 Schüler) oder nach Absprache?</span>
                                         <div className="grid grid-cols-3 gap-2">
                                             {SESSION_FORMATS.map(f => {
                                                 const Icon = f.value === 'single' ? User : f.value === 'group' ? Users : Shuffle;
@@ -568,13 +577,13 @@ export default function CreateAd() {
                                                         onClick={() => setFormData({ ...formData, session_format: f.value })}
                                                         aria-pressed={active}
                                                         className={cn(
-                                                            "py-3 px-2 text-center rounded-xl border-2 transition-all font-semibold flex flex-col items-center justify-center gap-1",
-                                                            active ? "border-primary bg-primary/10 text-primary-hover shadow-xs" : "border-gray-200 text-gray-500 hover:border-gray-300 dark:border-gray-700 dark:text-gray-400"
+                                                            "flex min-h-20 flex-col items-center justify-center gap-1 rounded-xl border-2 px-2 py-3 text-center font-semibold transition-colors",
+                                                            active ? "border-primary bg-primary/10 text-brand-ink dark:text-primary" : "border-border text-muted-foreground hover:border-ring/40"
                                                         )}
                                                     >
                                                         <Icon size={18} className="shrink-0" />
                                                         <span className="text-xs sm:text-sm">{f.title}</span>
-                                                        <span className="text-[10px] font-normal opacity-80">{f.hint}</span>
+                                                        <span className="text-xs font-normal opacity-80">{f.hint}</span>
                                                     </Button>
                                                 );
                                             })}
@@ -584,7 +593,7 @@ export default function CreateAd() {
                                     <div>
                                         <div className="flex items-baseline justify-between gap-3 mb-2">
                                             <Label htmlFor="ad-title" className="text-sm font-medium">Titel der Anzeige</Label>
-                                            <span className="text-[11px] text-gray-500 shrink-0">Mind. 4 Zeichen</span>
+                                            <span className="text-xs text-muted-foreground shrink-0">Mind. 4 Zeichen</span>
                                         </div>
                                         <Input
                                             id="ad-title"
@@ -592,10 +601,10 @@ export default function CreateAd() {
                                             value={formData.title}
                                             onChange={e => setFormData({ ...formData, title: e.target.value })}
                                             autoFocus
-                                            className="text-base sm:text-lg py-5 sm:py-6"
+                                            className="text-base sm:text-lg"
                                             maxLength={80}
                                         />
-                                        <p className="text-[11px] text-gray-500 mt-1.5">So erscheint deine Anzeige in der Übersicht. Fach und Klasse im Titel helfen beim Finden.</p>
+                                        <p className="text-xs text-muted-foreground mt-1.5">So erscheint deine Anzeige in der Übersicht. Fach und Klasse im Titel helfen beim Finden.</p>
                                     </div>
                             </>
                         </div>
@@ -607,7 +616,7 @@ export default function CreateAd() {
                             <div>
                                 <div className="flex items-baseline justify-between gap-3 mb-2">
                                     <Label htmlFor="subject-search" className="text-sm font-medium">Welche Fächer?</Label>
-                                    <span className="text-[11px] text-gray-500 shrink-0" aria-live="polite">
+                                    <span className="text-xs text-muted-foreground shrink-0" aria-live="polite">
                                         {formData.subjects.length > 0
                                             ? `${formData.subjects.length} gewählt`
                                             : subjectQuery.trim()
@@ -615,9 +624,9 @@ export default function CreateAd() {
                                                 : '25 Fächer in 4 Gruppen'}
                                     </span>
                                 </div>
-                                <p className="text-[11px] text-gray-500 mb-3">Wähle mindestens ein Fach. Tippe zum Filtern, statt lange zu scrollen.</p>
+                                <p className="text-xs text-muted-foreground mb-3">Wähle mindestens ein Fach. Tippe zum Filtern, statt lange zu scrollen.</p>
                                 <div className="relative mb-4">
-                                    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                                     <Input
                                         id="subject-search"
                                         placeholder="Fach suchen – z. B. Mathe …"
@@ -630,7 +639,7 @@ export default function CreateAd() {
                                         <Button variant="unstyled" size="unstyled"
                                             type="button"
                                             onClick={() => setSubjectQuery('')}
-                                            className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                                            className="absolute right-1.5 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
                                             aria-label="Fächersuche löschen"
                                         >
                                             <X size={15} />
@@ -638,12 +647,12 @@ export default function CreateAd() {
                                     )}
                                 </div>
                                 {subjectMatchCount === 0 ? (
-                                    <div className="p-4 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 text-sm text-gray-500 text-center space-y-2">
+                                    <div className="p-4 rounded-xl border border-dashed border-border text-sm text-muted-foreground text-center space-y-2">
                                         <p>Kein Fach gefunden für „{subjectQuery.trim()}“.</p>
                                         <Button variant="unstyled" size="unstyled"
                                             type="button"
                                             onClick={() => setSubjectQuery('')}
-                                            className="text-xs font-bold underline underline-offset-4 hover:text-gray-900 dark:hover:text-white"
+                                            className="text-xs font-semibold underline underline-offset-4 hover:text-foreground"
                                         >
                                             Suche zurücksetzen
                                         </Button>
@@ -651,8 +660,8 @@ export default function CreateAd() {
                                 ) : (
                                 <div className="space-y-4">
                                     {filteredSubjectGroups.map(category => (
-                                        <div key={category.title} className="bg-gray-50 dark:bg-gray-900/30 p-4 rounded-xl border border-gray-100 dark:border-gray-800/50">
-                                            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">{category.title}</h4>
+                                        <div key={category.title} className="rounded-xl bg-muted/40 p-4">
+                                            <h4 className="mb-3 text-xs font-semibold text-muted-foreground">{category.title}</h4>
                                             <div className="flex flex-wrap gap-2">
                                                 {category.subjects.map(s => (
                                                     <SubjectChip
@@ -660,7 +669,7 @@ export default function CreateAd() {
                                                         subject={s}
                                                         selected={formData.subjects.includes(s)}
                                                         onClick={() => toggleSubject(s)}
-                                                        className="cursor-pointer hover:shadow-md"
+                                                        className="cursor-pointer"
                                                     />
                                                 ))}
                                             </div>
@@ -669,7 +678,7 @@ export default function CreateAd() {
                                 </div>
                                 )}
                                 {formData.subjects.length > 0 && (
-                                    <p className="text-[11px] text-gray-500 mt-3">
+                                    <p className="text-xs text-muted-foreground mt-3">
                                         Ausgewählt: {formData.subjects.map(s => subjectLabelMap[s] ?? s).join(' • ')}
                                     </p>
                                 )}
@@ -677,7 +686,7 @@ export default function CreateAd() {
                             <div>
                                 <Label className="text-sm font-medium mb-3 block">Für welche Klassenstufen? (Mehrfachauswahl)</Label>
                                 {formData.type === 'search' ? (
-                                    <div className="bg-gray-100 p-3 rounded text-sm text-gray-500">
+                                    <div className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">
                                         Automatisch ausgewählt: Klasse {profile.grade_level} (Dein Jahrgang)
                                     </div>
                                 ) : (
@@ -700,20 +709,20 @@ export default function CreateAd() {
                                         <Button variant="unstyled" size="unstyled"
                                             type="button"
                                             onClick={() => setFormData(prev => ({ ...prev, locations: [], custom_location: '' }))}
-                                            className="text-[11px] font-bold text-gray-400 hover:text-red-600 underline underline-offset-4 shrink-0"
+                                            className="min-h-11 shrink-0 text-xs font-semibold text-muted-foreground underline underline-offset-4 hover:text-destructive"
                                         >
                                             Auswahl löschen
                                         </Button>
                                     )}
                                 </div>
-                                <p className="text-[11px] text-gray-500 mb-3">Wähle alle Orte, die für dich passen. Mehrfachauswahl ist möglich.</p>
+                                <p className="text-xs text-muted-foreground mb-3">Wähle alle Orte, die für dich passen. Mehrfachauswahl ist möglich.</p>
                                 <div className="space-y-4">
                                     {LOCATION_GROUPS.map(group => {
                                         const GroupIcon = group.title === 'In der Schule' ? School : group.title === 'Online' ? Wifi : group.title === 'Außerhalb (öffentlich)' ? MapPin : Home;
                                         const selectedInGroup = group.locations.filter(l => formData.locations.includes(l)).length;
                                         return (
                                             <div key={group.title}>
-                                                <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 flex items-center gap-1.5">
+                                                <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                                                     <GroupIcon size={13} /> {group.title}
                                                     <span className="font-medium normal-case tracking-normal opacity-70">
                                                         · {group.locations.length} Orte{selectedInGroup > 0 ? `, ${selectedInGroup} gewählt` : ''}
@@ -731,8 +740,8 @@ export default function CreateAd() {
                                                                 className={cn(
                                                                     "px-3.5 min-h-[44px] py-2 rounded-full text-sm border transition-colors font-medium",
                                                                     active
-                                                                        ? "bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-black"
-                                                                        : "bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                                                                        ? "border-primary bg-primary text-primary-foreground"
+                                                                        : "border-border bg-card text-foreground/80 hover:bg-muted"
                                                                 )}
                                                             >
                                                                 {loc}
@@ -745,9 +754,9 @@ export default function CreateAd() {
                                     })}
                                 </div>
                                 <div className="mt-4 space-y-1.5">
-                                    <Label htmlFor="custom-location" className="text-xs font-semibold text-gray-600 dark:text-gray-300">Eigener Ort (optional)</Label>
+                                    <Label htmlFor="custom-location" className="text-xs font-semibold text-muted-foreground">Eigener Ort (optional)</Label>
                                     <div className="flex gap-2 items-center">
-                                        <MapPin size={15} className="text-gray-400 shrink-0" aria-hidden="true" />
+                                        <MapPin size={15} className="text-muted-foreground shrink-0" aria-hidden="true" />
                                         <Input
                                             id="custom-location"
                                             placeholder="z. B. Stadtbibliothek am Neumarkt …"
@@ -759,7 +768,7 @@ export default function CreateAd() {
                                     </div>
                                 </div>
                                 {(formData.locations.length > 0 || formData.custom_location.trim()) && (
-                                    <p className="text-[11px] text-gray-500 mt-2" aria-live="polite">
+                                    <p className="text-xs text-muted-foreground mt-2" aria-live="polite">
                                         Ausgewählt ({formData.locations.length + (formData.custom_location.trim() ? 1 : 0)}): {[ ...formData.locations, ...(formData.custom_location.trim() ? [formData.custom_location.trim()] : []) ].join(' • ')}
                                     </p>
                                 )}
@@ -767,7 +776,7 @@ export default function CreateAd() {
 
                             <div>
                                 <Label className="text-sm font-medium mb-1 block">Wie lange dauert eine Einheit?</Label>
-                                <p className="text-[11px] text-gray-500 mb-3">Standard ist „Egal / nach Absprache“. Ihr klärt die Dauer dann im Chat. Feste Minuten sind exklusiv dazu.</p>
+                                <p className="text-xs text-muted-foreground mb-3">Standard ist „Egal / nach Absprache“. Ihr klärt die Dauer dann im Chat. Feste Minuten sind exklusiv dazu.</p>
                                 <div className="flex flex-wrap gap-2 mb-3">
                                     {DURATION_PRESETS.map(dur => {
                                         const active = formData.duration_minutes.includes(dur);
@@ -780,8 +789,8 @@ export default function CreateAd() {
                                                 className={cn(
                                                     "min-w-16 px-4 h-12 rounded-xl text-sm font-semibold border flex items-center justify-center transition-all",
                                                     active
-                                                        ? "bg-blue-100 border-blue-500 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200"
-                                                        : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                                                        ? "border-primary bg-primary/15 text-brand-ink dark:text-primary"
+                                                        : "border-border bg-card text-foreground/80 hover:border-ring/40"
                                                 )}
                                             >
                                                 {dur} Min.
@@ -795,15 +804,15 @@ export default function CreateAd() {
                                         className={cn(
                                             "px-4 h-12 rounded-xl text-sm font-semibold border flex items-center justify-center transition-all",
                                             formData.duration_minutes.includes(DURATION_EGAL)
-                                                ? "bg-blue-100 border-blue-500 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200"
-                                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                                                ? "border-primary bg-primary/15 text-brand-ink dark:text-primary"
+                                                : "border-border bg-card text-foreground/80 hover:border-ring/40"
                                         )}
                                     >
                                         Egal / nach Absprache
                                     </Button>
                                 </div>
                                 <div className="space-y-1.5">
-                                    <Label htmlFor="custom-duration" className="text-xs font-semibold text-gray-600 dark:text-gray-300">Andere Dauer in Minuten (optional, ersetzt „Egal“)</Label>
+                                    <Label htmlFor="custom-duration" className="text-xs font-semibold text-muted-foreground">Andere Dauer in Minuten (optional, ersetzt „Egal“)</Label>
                                     <div className="flex gap-2 items-center">
                                         <Input
                                             id="custom-duration"
@@ -821,7 +830,7 @@ export default function CreateAd() {
                                             }))}
                                             className="max-w-[170px]"
                                         />
-                                        <span className="text-[11px] text-gray-500">Minuten, 5–480</span>
+                                        <span className="text-xs text-muted-foreground">Minuten, 5–480</span>
                                     </div>
                                 </div>
                             </div>
@@ -837,24 +846,24 @@ export default function CreateAd() {
                                     onClick={() => setFormData({ ...formData, price_mode: 'fixed' })}
                                     className={cn("p-4 border rounded-xl text-left hover:border-primary transition-all", formData.price_mode === 'fixed' && "border-primary bg-primary/5 ring-1 ring-primary")}
                                 >
-                                    <span className="block font-bold">Festpreis</span>
-                                    <span className="text-xs text-gray-500">Euro pro Einheit</span>
+                                    <span className="block font-semibold">Festpreis</span>
+                                    <span className="text-xs text-muted-foreground">Euro pro Einheit</span>
                                 </Button>
                                 <Button variant="unstyled" size="unstyled"
                                     type="button"
                                     onClick={() => setFormData({ ...formData, price_mode: 'vb' })}
                                     className={cn("p-4 border rounded-xl text-left hover:border-primary transition-all", formData.price_mode === 'vb' && "border-primary bg-primary/5 ring-1 ring-primary")}
                                 >
-                                    <span className="block font-bold">Verhandlungsbasis (VB)</span>
-                                    <span className="text-xs text-gray-500">Preis wird besprochen</span>
+                                    <span className="block font-semibold">Verhandlungsbasis (VB)</span>
+                                    <span className="text-xs text-muted-foreground">Preis wird besprochen</span>
                                 </Button>
                                 <Button variant="unstyled" size="unstyled"
                                     type="button"
                                     onClick={() => setFormData({ ...formData, price_mode: 'free' })}
                                     className={cn("p-4 border rounded-xl text-left hover:border-primary transition-all", formData.price_mode === 'free' && "border-primary bg-primary/5 ring-1 ring-primary")}
                                 >
-                                    <span className="block font-bold">Kostenlos</span>
-                                    <span className="text-xs text-gray-500">Ehrenamtlich helfen</span>
+                                    <span className="block font-semibold">Kostenlos</span>
+                                    <span className="text-xs text-muted-foreground">Ehrenamtlich helfen</span>
                                 </Button>
                             </div>
 
@@ -869,11 +878,11 @@ export default function CreateAd() {
                                                 onChange={e => setFormData({ ...formData, price_value: e.target.value })}
                                                 className="pl-8"
                                             />
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">€</span>
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                                         </div>
-                                        <span className="text-gray-500">pro</span>
+                                        <span className="text-muted-foreground">pro</span>
                                         <NativeSelect
-                                            className="bg-transparent border rounded-md p-2 text-sm"
+                                            className="w-full sm:w-auto"
                                             value={formData.price_unit}
                                             onChange={e => setFormData({ ...formData, price_unit: e.target.value })}
                                         >
@@ -884,17 +893,17 @@ export default function CreateAd() {
                                     </div>
                                     {/* Quick Select */}
                                     <div className="flex gap-2 items-center flex-wrap">
-                                        <span className="text-xs text-gray-500 font-medium">Schnellwahl:</span>
+                                        <span className="text-xs text-muted-foreground font-medium">Schnellwahl:</span>
                                         {[6, 8, 10, 12, 15].map(p => (
                                             <Button variant="unstyled" size="unstyled"
                                                 key={p}
                                                 type="button"
                                                 onClick={() => setFormData(prev => ({ ...prev, price_value: p }))}
                                                 className={cn(
-                                                    "px-3 py-1 rounded-full text-xs font-semibold border transition-all",
+                                                    "min-h-11 rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
                                                     Number(formData.price_value) === p
-                                                        ? "bg-primary text-black border-primary"
-                                                        : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-transparent hover:border-gray-300 dark:hover:border-gray-700"
+                                                        ? "bg-primary text-primary-foreground border-primary"
+                                                        : "bg-muted text-foreground/80 border-transparent hover:border-ring/40"
                                                 )}
                                             >
                                                 {p}€
@@ -904,41 +913,41 @@ export default function CreateAd() {
 
                                     {/* Effective Hourly Rate & FWG Benchmark Advice */}
                                     {effectiveHourly && (
-                                        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-3 mt-4">
+                                        <div className="p-4 rounded-2xl bg-muted/50 border border-border space-y-3 mt-4">
                                             <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2 text-xs font-semibold text-gray-600 dark:text-gray-400">
-                                                    <Calculator size={15} className="text-gray-400" />
+                                                <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                                                    <Calculator size={15} className="text-muted-foreground" />
                                                     <span>Effektiver Stundenlohn (60 Min.):</span>
                                                 </div>
-                                                <span className="font-mono font-bold text-sm text-gray-900 dark:text-white">
+                                                <span className="font-mono font-semibold text-sm text-foreground">
                                                     {effectiveHourly.formatted} € / 60 Min.
                                                 </span>
                                             </div>
 
                                             {effectiveHourly.hourly >= 9 && effectiveHourly.hourly <= 14 && (
-                                                <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800/60">
-                                                    <CheckCircle size={15} className="shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                                <div className="flex items-center gap-2 rounded-xl border border-primary/25 bg-primary/10 p-2.5 text-xs font-semibold text-foreground/80">
+                                                    <CheckCircle size={15} className="shrink-0 text-brand-ink dark:text-primary" aria-hidden />
                                                     <span>Richtwert am FWG: ca. 12 € pro Stunde. Der Preis ist individuell anpassbar.</span>
                                                 </div>
                                             )}
 
                                             {effectiveHourly.hourly < 9 && (
-                                                <div className="flex items-center gap-2 text-xs font-semibold text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/40 p-2.5 rounded-xl border border-sky-200 dark:border-sky-800/60">
-                                                    <Info size={15} className="shrink-0 text-sky-600 dark:text-sky-400" />
+                                                <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-2.5 text-xs font-semibold text-muted-foreground">
+                                                    <Info size={15} className="shrink-0 text-muted-foreground" aria-hidden />
                                                     <span>Unter dem Richtwert von ca. 12 € pro Stunde.</span>
                                                 </div>
                                             )}
 
                                             {effectiveHourly.hourly > 14 && effectiveHourly.hourly <= 18 && (
-                                                <div className="flex items-center gap-2 text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200 dark:border-amber-800/60">
-                                                    <Info size={15} className="shrink-0 text-amber-600 dark:text-amber-400" />
+                                                <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-2.5 text-xs font-semibold text-foreground/80">
+                                                    <Info size={15} className="shrink-0 text-brand-ink dark:text-primary" aria-hidden />
                                                     <span>Etwas über dem FWG-Richtwert von ca. 12 € pro Stunde.</span>
                                                 </div>
                                             )}
 
                                             {effectiveHourly.hourly > 18 && (
-                                                <div className="flex items-center gap-2 text-xs font-semibold text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 p-2.5 rounded-xl border border-rose-200 dark:border-rose-800/60">
-                                                    <AlertCircle size={15} className="shrink-0 text-rose-600 dark:text-rose-400" />
+                                                <div className="flex items-center gap-2 rounded-xl border border-destructive/25 bg-destructive/5 p-2.5 text-xs font-semibold text-destructive">
+                                                    <AlertCircle size={15} className="shrink-0" aria-hidden />
                                                     <span>Deutlich über dem FWG-Richtwert. Bitte prüfe, ob der Preis so gemeint ist.</span>
                                                 </div>
                                             )}
@@ -948,15 +957,15 @@ export default function CreateAd() {
                             )}
 
                             {formData.price_mode === 'free' && (
-                                <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-2.5 text-xs text-emerald-800 dark:text-emerald-300 font-medium animate-in fade-in">
-                                    <CheckCircle size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                <div className="flex items-center gap-2.5 rounded-2xl border border-primary/25 bg-primary/10 p-4 text-xs font-medium text-foreground/80 animate-in fade-in">
+                                    <CheckCircle size={16} className="shrink-0 text-brand-ink dark:text-primary" aria-hidden />
                                     <span>Du bietest die Nachhilfe kostenlos an.</span>
                                 </div>
                             )}
 
                             {formData.price_mode === 'vb' && (
-                                <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 flex items-center gap-2.5 text-xs text-blue-800 dark:text-blue-300 font-medium animate-in fade-in">
-                                    <Info size={16} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                                <div className="flex items-center gap-2.5 rounded-2xl border border-primary/25 bg-primary/10 p-4 text-xs font-medium text-foreground/80 animate-in fade-in">
+                                    <Info size={16} className="text-brand-ink dark:text-primary shrink-0" />
                                     <span>Richtwert am FWG: ca. 12 € pro Stunde. Der Preis ist individuell anpassbar.</span>
                                 </div>
                             )}
@@ -969,7 +978,7 @@ export default function CreateAd() {
                             <div>
                                 <div className="flex items-baseline justify-between gap-3 mb-2">
                                     <Label htmlFor="short-description" className="text-sm font-medium">Kurzbeschreibung (für die Übersicht)</Label>
-                                    <span className="text-[11px] text-gray-500 shrink-0">11–100 Zeichen</span>
+                                    <span className="text-xs text-muted-foreground shrink-0">11–100 Zeichen</span>
                                 </div>
                                 <Input
                                     id="short-description"
@@ -978,7 +987,7 @@ export default function CreateAd() {
                                     value={formData.short_description}
                                     onChange={e => setFormData({ ...formData, short_description: e.target.value })}
                                 />
-                                <span className="text-xs text-gray-400 float-right mt-1">{formData.short_description.trim().length}/100 · mind. 11</span>
+                                <span className="text-xs text-muted-foreground float-right mt-1">{formData.short_description.trim().length}/100 · mind. 11</span>
                             </div>
 
                             <div className="clear-both pt-4">
@@ -997,11 +1006,11 @@ export default function CreateAd() {
                                 </Label>
                                 <div className="space-y-2">
                                     {formData.image_urls.map((url, idx) => (
-                                        <div key={idx} className="flex gap-2 items-center bg-gray-50 dark:bg-gray-900 p-2 rounded text-sm break-all">
-                                            <img src={url} alt="" className="w-8 h-8 rounded object-cover bg-gray-200" />
+                                        <div key={idx} className="flex items-center gap-2 rounded-xl bg-muted/50 p-2 text-sm">
+                                            <img src={url} alt="" className="size-10 shrink-0 rounded-lg bg-border object-cover" />
                                             <span className="flex-1 truncate">{url}</span>
-                                            <Button variant="unstyled" size="unstyled" type="submit" onClick={() => setFormData(prev => ({ ...prev, image_urls: prev.image_urls.filter((_, i) => i !== idx) }))}>
-                                                <X size={16} className="text-red-500" />
+                                            <Button variant="unstyled" size="unstyled" type="button" onClick={() => setFormData(prev => ({ ...prev, image_urls: prev.image_urls.filter((_, i) => i !== idx) }))} aria-label="Bild entfernen" className="grid size-11 shrink-0 place-items-center rounded-full text-destructive hover:bg-destructive/10">
+                                                <X size={16} aria-hidden />
                                             </Button>
                                         </div>
                                     ))}
@@ -1015,7 +1024,7 @@ export default function CreateAd() {
                                             <Plus size={16} />
                                         </Button>
                                     </div>
-                                    <p className="text-[10px] text-gray-400">
+                                    <p className="text-xs text-muted-foreground">
                                         Empfehlung: Nutze kostenlose Image-Hoster (z.B. Imgur, Unsplash), da wir keine direkten Uploads hosten.
                                     </p>
                                 </div>
@@ -1026,10 +1035,10 @@ export default function CreateAd() {
                     {/* Step 5: Preview */}
                     {currentStep === 5 && (
                         <div className="space-y-4">
-                            <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg flex gap-3 text-yellow-800 text-sm mb-6">
-                                <AlertCircle className="shrink-0" />
+                            <div className="mb-6 flex gap-3 rounded-2xl border border-primary/25 bg-primary/10 p-4 text-sm text-foreground/80">
+                                <AlertCircle className="shrink-0 text-brand-ink dark:text-primary" aria-hidden />
                                 <div>
-                                    <p className="font-bold">{formData.type === 'search' ? 'Gesuch prüfen' : 'Anzeige prüfen'}</p>
+                                    <p className="font-semibold">{formData.type === 'search' ? 'Gesuch prüfen' : 'Anzeige prüfen'}</p>
                                     {formData.type === 'search' ? (
                                         <p>Nach dem Veröffentlichen sehen es nur passende Anbieter sowie das SV-Team zur Moderation.</p>
                                     ) : (
@@ -1038,23 +1047,23 @@ export default function CreateAd() {
                                 </div>
                             </div>
 
-                            <div className="border rounded-xl overflow-hidden shadow-sm">
-                                <div className="bg-gray-50 dark:bg-gray-900 p-6 border-b">
-                                    <h2 className="text-2xl font-bold mb-2">{formData.title}</h2>
+                            <div className="overflow-hidden rounded-2xl border border-border bg-card">
+                                <div className="border-b border-border bg-muted/50 p-5 sm:p-6">
+                                    <h2 className="mb-2 break-anywhere text-2xl font-semibold">{formData.title}</h2>
                                     <div className="flex flex-wrap gap-2 mb-4">
-                                        <span className="px-3 py-1 bg-primary text-black rounded-full text-sm font-bold tabular-nums">
+                                        <span className="px-3 py-1 bg-primary text-primary-foreground rounded-full text-sm font-semibold tabular-nums">
                                             {formatAdPrice({
                                                 mode: formData.price_mode,
                                                 value: Number(formData.price_value) || 0,
                                                 unit: formData.price_unit,
                                             })}
                                         </span>
-                                        <span className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-sm font-semibold">
+                                        <span className="rounded-full bg-muted px-3 py-1 text-sm font-semibold text-foreground/80">
                                             {formData.session_format === 'single' ? 'Einzelunterricht' : formData.session_format === 'group' ? 'Kleingruppe' : 'Format: Egal'}
                                         </span>
                                         {formData.subjects.map(s => <SubjectChip key={s} subject={s} />)}
                                     </div>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    <p className="text-sm text-muted-foreground">
                                         {[ ...formData.locations, ...(formData.custom_location ? [formData.custom_location] : []) ].join(' • ') || 'Kein Ort gewählt'}
                                         {'  ·  '}
                                         {(() => {
@@ -1063,15 +1072,15 @@ export default function CreateAd() {
                                             return all.map(d => d === 0 ? 'Dauer: Egal' : `${d} Min.`).join(' • ');
                                         })()}
                                     </p>
-                                    <p className="text-gray-600 dark:text-gray-300 mt-2">{formData.short_description}</p>
+                                    <p className="text-muted-foreground mt-2">{formData.short_description}</p>
                                 </div>
-                                <div className="p-6 prose dark:prose-invert max-w-none">
-                                    <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(formData.long_description || '<p class="text-gray-400 italic">Keine Beschreibung</p>') }} />
+                                <div className="prose max-w-none p-5 dark:prose-invert sm:p-6">
+                                    <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(formData.long_description || '<p class="text-muted-foreground italic">Keine Beschreibung</p>') }} />
 
                                     {formData.image_urls.length > 0 && (
                                         <div className="grid grid-cols-2 gap-4 mt-6">
                                             {formData.image_urls.map((url, i) => (
-                                                <img key={i} src={url} className="rounded-lg w-full h-48 object-cover bg-gray-100" />
+                                                <img key={i} src={url} className="rounded-lg w-full h-48 object-cover bg-muted" />
                                             ))}
                                         </div>
                                     )}
@@ -1082,9 +1091,9 @@ export default function CreateAd() {
                     )}
 
                 </CardContent>
-                <CardFooter className="sticky bottom-0 z-10 flex flex-col gap-2 border-t border-gray-100 dark:border-gray-800 pt-4 sm:pt-6 p-4 sm:p-6 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-b-3xl shadow-[0_-8px_24px_-16px_rgba(0,0,0,0.15)]">
+                <CardFooter className="sticky bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] z-10 flex flex-col gap-2 rounded-b-2xl border-t border-border bg-card/95 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur-md sm:p-6 sm:pb-6 md:bottom-0">
                     {!isStepValid() && stepHint && currentStep < STEPS.length - 1 && (
-                        <p className="w-full text-xs font-medium text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl px-3 py-2" role="status">
+                        <p className="w-full rounded-xl border border-primary/25 bg-primary/10 px-3 py-2 text-xs font-medium text-foreground/80" role="status">
                             Noch offen: {stepHint}
                         </p>
                     )}
@@ -1094,8 +1103,8 @@ export default function CreateAd() {
                     </Button>
 
                     {currentStep === STEPS.length - 1 ? (
-                        <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold px-4 sm:px-5 shadow-lg shadow-primary/25">
-                            {isSubmitting ? 'Anzeige wird veröffentlicht' : 'Anzeige veröffentlichen'} <CheckCircle size={16} className="ml-1 sm:ml-2 shrink-0" />
+                        <Button onClick={handleSubmit} disabled={isSubmitting} isLoading={isSubmitting} className="px-4 font-semibold sm:px-5">
+                            {isSubmitting ? 'Anzeige wird veröffentlicht' : 'Anzeige veröffentlichen'} <CheckCircle size={16} className="ml-1 shrink-0 sm:ml-2" aria-hidden />
                         </Button>
                     ) : (
                         <Button

@@ -4,6 +4,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { useState, useEffect } from 'react';
 import { Button } from '../../components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
+import { Spinner } from '../../components/ui/spinner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../../components/ui/dialog';
 import {
     AlertTriangle,
@@ -22,15 +24,15 @@ import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
 import { api, getStoredUser } from '../../lib/api';
 
-// Getrennte Status-Farben: aktiv (Farbe auf Farbe) und ruhig (grau auf grau) teilen sich nie ein Element.
-const REPORT_ICON_OPEN = 'bg-red-50 text-red-600 dark:bg-red-950/20';
-const REPORT_ICON_CLOSED = 'bg-gray-100 text-gray-500 dark:bg-gray-800';
-const PRIO_BADGE_KRITISCH = 'bg-red-100 text-red-700 animate-pulse';
-const PRIO_BADGE_HOCH = 'bg-amber-100 text-amber-700';
-const PRIO_BADGE_NORMAL = 'bg-gray-100 text-gray-700';
-const PRIO_BAR_KRITISCH = 'bg-red-600 text-white animate-pulse';
-const PRIO_BAR_HOCH = 'bg-amber-700 text-white';
-const PRIO_BAR_NORMAL = 'bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
+// Status-Farben: Rot/Grün/Amber tragen nur Bedeutung (offen/gelöst/Warnung), neutrale Flächen bleiben Papier.
+const REPORT_ICON_OPEN = 'bg-destructive/10 text-destructive';
+const REPORT_ICON_CLOSED = 'bg-muted text-muted-foreground';
+const PRIO_BADGE_KRITISCH = 'bg-destructive/10 text-destructive';
+const PRIO_BADGE_HOCH = 'bg-amber-500/15 text-amber-700 dark:text-amber-400';
+const PRIO_BADGE_NORMAL = 'bg-muted text-muted-foreground';
+const PRIO_BAR_KRITISCH = 'bg-destructive text-white';
+const PRIO_BAR_HOCH = 'bg-amber-600 text-white';
+const PRIO_BAR_NORMAL = 'bg-muted text-foreground';
 const REPORT_STATUS_LABELS: Record<string, string> = {
     open: 'Offen',
     investigating: 'In Prüfung',
@@ -100,6 +102,7 @@ interface Report {
 export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: string, userId2: string, reportId: string) => void }) {
     const [reports, setReports] = useState<Report[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
     
     // Filters
@@ -123,6 +126,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
 
     const fetchReports = async () => {
         setLoading(true);
+        setLoadError(null);
         try {
             // reports.php liefert flache *_name-Felder; die Zuordnung unten nutzt die bestehenden Fallbacks.
             const { data, error } = await api.reports.list();
@@ -137,6 +141,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
             })));
         } catch (error: any) {
             console.error('Error fetching reports:', error);
+            setLoadError('Meldungen konnten nicht geladen werden.');
             toast.error('Meldungen konnten nicht geladen werden.');
         } finally {
             setLoading(false);
@@ -330,25 +335,28 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
     };
 
     return (
-        <div className="space-y-6 h-full flex flex-col min-h-0 animate-in fade-in duration-300">
+        <div className="space-y-6">
             {/* Header / Filter bar */}
-            <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between shrink-0">
-                <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <div className="flex flex-col gap-3">
+                <div className="relative w-full 2xl:max-w-md">
+                    <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} aria-hidden />
                     <Input
                         type="text"
                         placeholder="Meldungen durchsuchen..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 pl-10 pr-4 py-2.5 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                        className="h-11 pl-11"
+                        aria-label="Meldungen durchsuchen"
                     />
                 </div>
-                
-                <div className="flex flex-wrap gap-2 items-center">
+
+                <div className="flex flex-wrap items-center gap-2">
                     <NativeSelect
                         value={filterCategory}
                         onChange={e => setFilterCategory(e.target.value)}
-                        className="h-11 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm focus:outline-none"
+                        wrapperClassName="w-full sm:w-44"
+                        className="w-full"
+                        aria-label="Nach Kategorie filtern"
                     >
                         <option value="all">Alle Kategorien</option>
                         <option value="profil">Profil/Nutzer</option>
@@ -361,7 +369,9 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                     <NativeSelect
                         value={filterPriority}
                         onChange={e => setFilterPriority(e.target.value)}
-                        className="h-11 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm focus:outline-none"
+                        wrapperClassName="w-full sm:w-44"
+                        className="w-full"
+                        aria-label="Nach Priorität filtern"
                     >
                         <option value="all">Alle Prioritäten</option>
                         <option value="normal">Normal</option>
@@ -372,7 +382,9 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                     <NativeSelect
                         value={filterSource}
                         onChange={e => setFilterSource(e.target.value as 'all' | 'auto' | 'manual')}
-                        className="h-11 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm focus:outline-none"
+                        wrapperClassName="w-full sm:w-52"
+                        className="w-full"
+                        aria-label="Nach Quelle filtern"
                         title="Quelle der Meldung"
                     >
                         <option value="all">Alle Quellen</option>
@@ -380,48 +392,76 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                         <option value="manual">Manuelle Meldungen</option>
                     </NativeSelect>
 
-                    <Button onClick={fetchReports} variant="ghost" className="h-11 w-11 p-0 rounded-2xl" title="Aktualisieren">
-                        <RefreshCw size={16} className={cn(loading && 'animate-spin')} />
+                    <Button onClick={fetchReports} variant="ghost" size="icon" className="h-11 w-11" title="Aktualisieren" aria-label="Meldungen aktualisieren">
+                        <RefreshCw size={16} aria-hidden className={cn(loading && 'animate-spin')} />
                     </Button>
 
-                    <div className="flex bg-gray-100 dark:bg-gray-900 p-1 rounded-2xl border dark:border-gray-800 shrink-0">
-                        <Button variant="unstyled" size="unstyled" type="submit"
+                    <div className="flex shrink-0 items-center gap-1 rounded-full border border-border bg-muted p-1">
+                        <Button
+                            variant="unstyled"
+                            size="unstyled"
+                            type="button"
                             onClick={() => setViewMode('kanban')}
-                            className={cn('p-2 rounded-xl transition-all', viewMode === 'kanban' ? 'bg-white dark:bg-gray-800 shadow-sm font-bold text-gray-900 dark:text-white' : 'text-gray-400')}
+                            aria-pressed={viewMode === 'kanban'}
+                            aria-label="Board-Ansicht"
+                            className={cn(
+                                'grid h-11 w-11 place-items-center rounded-full transition-colors',
+                                viewMode === 'kanban' ? 'bg-card text-foreground shadow-soft' : 'text-muted-foreground hover:text-foreground'
+                            )}
                         >
-                            <LayoutGrid size={16} />
+                            <LayoutGrid size={16} aria-hidden />
                         </Button>
-                        <Button variant="unstyled" size="unstyled" type="submit"
+                        <Button
+                            variant="unstyled"
+                            size="unstyled"
+                            type="button"
                             onClick={() => setViewMode('list')}
-                            className={cn('p-2 rounded-xl transition-all', viewMode === 'list' ? 'bg-white dark:bg-gray-800 shadow-sm font-bold text-gray-900 dark:text-white' : 'text-gray-400')}
+                            aria-pressed={viewMode === 'list'}
+                            aria-label="Listenansicht"
+                            className={cn(
+                                'grid h-11 w-11 place-items-center rounded-full transition-colors',
+                                viewMode === 'list' ? 'bg-card text-foreground shadow-soft' : 'text-muted-foreground hover:text-foreground'
+                            )}
                         >
-                            <ListIcon size={16} />
+                            <ListIcon size={16} aria-hidden />
                         </Button>
                     </div>
                 </div>
             </div>
 
-            {/* Main content grid */}
-            <div className="flex-1 flex gap-6 overflow-hidden min-h-0">
+            {loadError && (
+                <Alert variant="destructive">
+                    <AlertTitle>Meldungen nicht verfügbar</AlertTitle>
+                    <AlertDescription className="flex flex-col items-start gap-3">
+                        <span>{loadError}</span>
+                        <Button type="button" variant="outline" className="h-11" onClick={fetchReports}>
+                            Erneut laden
+                        </Button>
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            {/* Main content: board/list + detail */}
+            <div className="flex min-h-0 flex-col gap-4 2xl:flex-row 2xl:gap-6">
                 {/* Reports board/list */}
-                <div className="flex-1 overflow-auto min-h-0 pr-1">
-                    {loading ? (
-                        <div className="py-20 text-center space-y-4">
-                            <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-                            <p className="text-gray-500 font-medium">Lade Meldungen...</p>
+                <div className={cn('min-w-0 flex-1', selectedReport && 'hidden 2xl:block')}>
+                    {loadError ? null : loading ? (
+                        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card py-16 text-center">
+                            <Spinner className="size-6 text-brand-ink dark:text-primary" />
+                            <p className="text-sm text-muted-foreground">Lade Meldungen...</p>
                         </div>
                     ) : filteredReports.length === 0 ? (
-                        <div className="py-20 text-center space-y-3 bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-3xl">
-                            <AlertTriangle size={48} className="mx-auto text-green-500" />
-                            <p className="text-gray-500 font-medium text-lg">Keine Meldungen</p>
-                            <p className="text-gray-400 text-xs">Aktuell sind keine Meldungen in dieser Ansicht vorhanden.</p>
+                        <div className="rounded-2xl border border-border bg-card px-4 py-16 text-center">
+                            <AlertTriangle size={32} className="mx-auto text-muted-foreground" aria-hidden />
+                            <p className="mt-3 text-base font-medium text-foreground">Keine Meldungen</p>
+                            <p className="mt-1 text-xs text-muted-foreground">Aktuell sind keine Meldungen in dieser Ansicht vorhanden.</p>
                         </div>
                     ) : viewMode === 'kanban' ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 h-full items-start">
+                        <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2 2xl:grid-cols-4">
                             {/* Open reports column */}
                             <KanbanColumn
                                 title="Offen / Neu"
-                                badgeColor="bg-red-500"
+                                badgeColor="bg-destructive"
                                 reports={columns.open}
                                 selectedId={selectedReport?.id}
                                 onSelect={handleSelectReport}
@@ -437,7 +477,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                             {/* Resolved reports column */}
                             <KanbanColumn
                                 title="Gelöst / Erledigt"
-                                badgeColor="bg-green-500"
+                                badgeColor="bg-emerald-600"
                                 reports={columns.resolved}
                                 selectedId={selectedReport?.id}
                                 onSelect={handleSelectReport}
@@ -445,107 +485,110 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                             {/* Dismissed column */}
                             <KanbanColumn
                                 title="Abgewiesen"
-                                badgeColor="bg-gray-400"
+                                badgeColor="bg-muted-foreground"
                                 reports={columns.dismissed}
                                 selectedId={selectedReport?.id}
                                 onSelect={handleSelectReport}
                             />
                         </div>
                     ) : (
-                        <div className="space-y-3">
+                        <div className="space-y-2">
                             {filteredReports.map(r => (
-                                <div
+                                <Button
+                                    variant="unstyled"
+                                    size="unstyled"
+                                    type="button"
                                     key={r.id}
                                     onClick={() => handleSelectReport(r)}
                                     className={cn(
-                                        'p-4 bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-3xl shadow-sm hover:shadow-md cursor-pointer flex items-center justify-between gap-4 transition-all',
-                                        selectedReport?.id === r.id && 'ring-2 ring-primary'
+                                        'flex w-full items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4 text-left shadow-soft transition-colors hover:border-primary/40',
+                                        selectedReport?.id === r.id && 'ring-2 ring-ring'
                                     )}
                                 >
-                                    <div className="flex items-center gap-3 min-w-0">
+                                    <div className="flex min-w-0 items-center gap-3">
                                         <div className={cn(
-                                            'w-10 h-10 rounded-2xl flex items-center justify-center shrink-0',
+                                            'grid size-10 shrink-0 place-items-center rounded-xl',
                                             r.status === 'open' || r.status === 'investigating' ? REPORT_ICON_OPEN : REPORT_ICON_CLOSED
                                         )}>
-                                            <AlertTriangle size={18} />
+                                            <AlertTriangle size={20} aria-hidden />
                                         </div>
                                         <div className="min-w-0">
-                                            <div className="font-bold truncate text-sm">
-                                                {r.reason} • <span className="text-gray-400 font-medium capitalize text-xs">{r.category}</span>
+                                            <div className="break-words text-sm font-medium text-foreground">
+                                                {r.reason} • <span className="text-xs font-normal capitalize text-muted-foreground">{r.category}</span>
                                             </div>
-                                            <div className="text-xs text-gray-400 mt-0.5 truncate">
+                                            <div className="mt-0.5 break-words text-xs text-muted-foreground">
                                                 Gemeldet von {(r.reporter as any)?.display_name || 'Anonym'} • {new Date(r.created_at).toLocaleDateString('de-DE')}
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex shrink-0 items-center gap-2">
                                         <span className={cn(
-                                            'text-[10px] font-bold px-2 py-0.5 rounded-full uppercase',
+                                            'rounded-full px-2.5 py-1 text-xs font-medium',
                                             r.priority === 'kritisch' ? PRIO_BADGE_KRITISCH : r.priority === 'hoch' ? PRIO_BADGE_HOCH : PRIO_BADGE_NORMAL
                                         )}>
                                             {r.priority}
                                         </span>
-                                        <ChevronRight size={16} className="text-gray-400" />
+                                        <ChevronRight size={16} className="text-muted-foreground" aria-hidden />
                                     </div>
-                                </div>
+                                </Button>
                             ))}
                         </div>
                     )}
                 </div>
 
-                {/* Right detail panel */}
+                {/* Right detail panel (mobil ersetzt sie die Liste) */}
                 {selectedReport && (
-                    <div className="w-full md:w-[450px] bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-3xl shadow-lg flex flex-col overflow-hidden shrink-0 animate-in slide-in-from-right duration-200">
+                    <div className="flex w-full shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-overlay 2xl:w-[440px]">
                         {/* Detail Header */}
-                        <div className="p-5 border-b dark:border-gray-800 flex justify-between items-center shrink-0">
-                            <div>
-                                <div className="font-bold text-base flex items-center gap-1.5">
-                                    <AlertTriangle size={18} className="text-red-500" />
+                        <div className="flex items-start justify-between gap-3 border-b border-border p-4 sm:p-5">
+                            <div className="min-w-0">
+                                <div className="flex items-center gap-1.5 text-base font-semibold">
+                                    <AlertTriangle size={20} className="shrink-0 text-destructive" aria-hidden />
                                     Meldungsdetails
                                 </div>
-                                <div className="text-xs text-gray-400 mt-0.5 font-semibold">
+                                <div className="mt-0.5 break-words text-xs font-medium text-muted-foreground">
                                     ID: {selectedReport.id.slice(0, 8)} • Stufe: {selectedReport.priority.toUpperCase()} • {REPORT_STATUS_LABELS[selectedReport.status] || selectedReport.status}
                                 </div>
                             </div>
-                            <Button variant="unstyled" size="unstyled" type="submit" onClick={() => setSelectedReport(null)} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400">
-                                <XCircle size={20} />
+                            <Button variant="ghost" size="icon" type="button" onClick={() => setSelectedReport(null)} className="h-11 w-11 shrink-0" aria-label="Meldungsdetails schließen">
+                                <XCircle size={20} aria-hidden />
                             </Button>
                         </div>
 
                         {/* Detail Body */}
-                        <div className="flex-1 p-5 overflow-y-auto space-y-6">
+                        <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-4 sm:p-5">
                             {/* Involved Users */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="p-3 bg-gray-50 dark:bg-gray-800/40 rounded-2xl border dark:border-gray-800 text-xs">
-                                    <span className="text-gray-400 font-bold block mb-1">Meldender (User)</span>
-                                    <div className="font-bold flex items-center gap-1">
-                                        <User size={12} className="text-gray-400" />
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <div className="rounded-xl border border-border bg-muted/40 p-3 text-xs">
+                                    <span className="mb-1 block font-medium text-muted-foreground">Meldender (User)</span>
+                                    <div className="flex items-center gap-1 break-words font-medium">
+                                        <User size={16} className="shrink-0 text-muted-foreground" aria-hidden />
                                         {selectedReport.reporter?.display_name || 'System'}
                                     </div>
                                 </div>
-                                <div className="p-3 bg-gray-50 dark:bg-gray-800/40 rounded-2xl border dark:border-gray-800 text-xs">
-                                    <span className="text-gray-400 font-bold block mb-1">Gegen (Ziel)</span>
-                                    <div className="font-bold flex items-center gap-1 text-red-600 dark:text-red-400">
-                                        <User size={12} />
+                                <div className="rounded-xl border border-border bg-muted/40 p-3 text-xs">
+                                    <span className="mb-1 block font-medium text-muted-foreground">Gegen (Ziel)</span>
+                                    <div className="flex items-center gap-1 break-words font-medium text-destructive">
+                                        <User size={16} className="shrink-0" aria-hidden />
                                         {selectedReport.user?.display_name || selectedReport.ad?.short_description || 'Unbekannt'}
                                     </div>
                                 </div>
                             </div>
 
                             {/* Reason & Category */}
-                            <div className="space-y-1">
-                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Kategorie / Grund</span>
-                                <div className="flex gap-1.5 flex-wrap">
-                                    <span className="px-2.5 py-1 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-bold capitalize">
+                            <div className="space-y-1.5">
+                                <span className="block text-xs font-medium text-muted-foreground">Kategorie / Grund</span>
+                                <div className="flex flex-wrap gap-1.5">
+                                    <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium capitalize text-foreground">
                                         {selectedReport.category}
                                     </span>
                                     {selectedReport.sub_reason && (
-                                        <span className="px-2.5 py-1 rounded-xl bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 text-xs font-bold">
+                                        <span className="rounded-full bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive">
                                             {selectedReport.sub_reason}
                                         </span>
                                     )}
                                     <span className={cn(
-                                        'px-2.5 py-1 rounded-xl text-xs font-bold uppercase',
+                                        'rounded-full px-2.5 py-1 text-xs font-medium',
                                         selectedReport.priority === 'kritisch' ? PRIO_BAR_KRITISCH : selectedReport.priority === 'hoch' ? PRIO_BAR_HOCH : PRIO_BAR_NORMAL
                                     )}>
                                         Prio: {selectedReport.priority}
@@ -555,8 +598,8 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
 
                             {/* Description */}
                             <div className="space-y-1">
-                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Meldungsbeschreibung</span>
-                                <div className="bg-gray-50 dark:bg-gray-950 p-4 rounded-2xl border dark:border-gray-800 text-sm italic shadow-inner text-gray-700 dark:text-gray-300">
+                                <span className="block text-xs font-medium text-muted-foreground">Meldungsbeschreibung</span>
+                                <div className="rounded-xl border border-border bg-muted/40 p-4 text-sm italic text-foreground/80">
                                     "{selectedReport.description || 'Keine Beschreibung angegeben.'}"
                                 </div>
                             </div>
@@ -566,25 +609,25 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                                 const auto = getAutoEvidence(selectedReport);
                                 if (!auto) return null;
                                 return (
-                                    <div className="space-y-2 bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-900/50 p-4 rounded-2xl">
-                                        <span className="text-[10px] font-bold text-violet-500 uppercase tracking-wider block">
+                                    <div className="space-y-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+                                        <span className="block text-xs font-medium text-amber-700 dark:text-amber-400">
                                             Automatische Filtermeldung • Schwere: {auto.severity ?? '–'}
                                         </span>
                                         {auto.hits && auto.hits.length > 0 && (
-                                            <div className="flex gap-1.5 flex-wrap">
+                                            <div className="flex flex-wrap gap-1.5">
                                                 {auto.hits.map((h, i) => (
-                                                    <span key={i} className="px-2.5 py-1 rounded-xl bg-violet-100 dark:bg-violet-900/40 text-violet-800 dark:text-violet-200 text-xs font-mono font-bold">
+                                                    <span key={i} className="rounded-full bg-amber-500/15 px-2.5 py-1 font-mono text-xs font-medium text-amber-800 dark:text-amber-300">
                                                         {h}
                                                     </span>
                                                 ))}
                                             </div>
                                         )}
                                         {auto.excerpt && (
-                                            <div className="bg-white dark:bg-gray-950 p-3 rounded-xl border dark:border-gray-800 text-sm italic text-gray-700 dark:text-gray-300">
+                                            <div className="rounded-xl border border-border bg-card p-3 text-sm italic text-foreground/80">
                                                 "{auto.excerpt}"
                                             </div>
                                         )}
-                                        <p className="text-[11px] text-violet-600 dark:text-violet-300 font-medium">
+                                        <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
                                             Wahr oder falsch? Mit „Zutreffend" bestätigst du den Verstoß, mit „Fehlalarm" wird die Meldung abgewiesen und die getroffenen Wörter werden für den Filter freigegeben (Training).
                                         </p>
                                     </div>
@@ -594,19 +637,23 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                             {/* Evidence Screenshots */}
                             {selectedReport.evidence && selectedReport.evidence.length > 0 && (
                                 <div className="space-y-2">
-                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Screenshots / Evidenz</span>
+                                    <span className="block text-xs font-medium text-muted-foreground">Screenshots / Evidenz</span>
                                     <div className="grid grid-cols-3 gap-2">
                                         {selectedReport.evidence.map((imgUrl, i) => (
-                                            <div
+                                            <Button
+                                                variant="unstyled"
+                                                size="unstyled"
+                                                type="button"
                                                 key={i}
-                                                className="aspect-video relative rounded-xl border dark:border-gray-800 overflow-hidden cursor-zoom-in group shrink-0"
+                                                className="group relative aspect-video shrink-0 overflow-hidden rounded-xl border border-border focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                                                 onClick={() => setZoomedImage(imgUrl)}
+                                                aria-label={`Screenshot ${i + 1} vergrößern`}
                                             >
-                                                <img src={imgUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                                                <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors flex items-center justify-center">
-                                                    <ImageIcon size={16} className="text-white drop-shadow-md opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                </div>
-                                            </div>
+                                                <img src={imgUrl} alt="" className="size-full object-cover" />
+                                                <span className="absolute inset-0 flex items-center justify-center bg-black/10 transition-colors group-hover:bg-black/20">
+                                                    <ImageIcon size={20} className="text-white" aria-hidden />
+                                                </span>
+                                            </Button>
                                         ))}
                                     </div>
                                 </div>
@@ -614,75 +661,76 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
 
                             {/* Chat insight helper */}
                             {selectedReport.category === 'chat' && (selectedReport.reported_user_id && selectedReport.reporter_id) && (
-                                <div className="bg-primary/10 border border-primary/20 p-4 rounded-2xl space-y-2.5">
-                                    <div className="flex gap-2 items-start text-xs text-primary-hover font-bold">
-                                        <MessageSquare size={16} className="shrink-0 mt-0.5" />
+                                <div className="space-y-2.5 rounded-xl border border-primary/20 bg-primary/10 p-4">
+                                    <div className="flex items-start gap-2 text-xs font-medium text-brand-ink dark:text-primary">
+                                        <MessageSquare size={16} className="mt-0.5 shrink-0" aria-hidden />
                                         <span>Als Admin kannst du den Chatverlauf dieses Vorfalls zu Moderationszwecken einsehen.</span>
                                     </div>
                                     <Button
                                         onClick={() => onOpenChat(selectedReport.reporter_id, selectedReport.reported_user_id!, selectedReport.id)}
-                                        className="w-full bg-primary hover:bg-primary/90 text-black font-bold text-xs h-9 rounded-xl flex items-center justify-center gap-1"
+                                        className="h-11 w-full gap-1.5 text-xs"
                                     >
-                                        <Eye size={14} /> Chat-Einsicht öffnen
+                                        <Eye size={16} aria-hidden /> Chat-Einsicht öffnen
                                     </Button>
                                 </div>
                             )}
 
                             {/* Internal notes */}
-                            <div className="space-y-1">
-                                <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">SV-Interne Notizen</Label>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="report-admin-notes" className="block text-xs font-medium text-muted-foreground">SV-Interne Notizen</Label>
                                 <Textarea
-                                    className="w-full border dark:border-gray-800 rounded-xl p-3 bg-transparent text-sm min-h-[90px] focus:ring-2 focus:ring-primary outline-none"
+                                    id="report-admin-notes"
+                                    className="min-h-[90px]"
                                     placeholder="Notizen zu Gesprächen, Warnungen, etc. (nur für Admins sichtbar)..."
                                     value={adminNotes}
                                     onChange={e => setAdminNotes(e.target.value)}
                                 />
-                                <Button size="sm" variant="outline" className="h-8 text-xs rounded-xl" onClick={saveAdminNotes}>Notizen speichern</Button>
+                                <Button size="sm" variant="outline" className="h-11 text-xs" onClick={saveAdminNotes}>Notizen speichern</Button>
                             </div>
                         </div>
 
                         {/* Action buttons footer */}
-                        <div className="p-4 bg-gray-50 dark:bg-gray-800/40 border-t dark:border-gray-800 shrink-0">
+                        <div className="shrink-0 border-t border-border bg-muted/40 p-4">
                             {selectedReport.status === 'open' || selectedReport.status === 'investigating' ? (
                                 <div className="flex flex-col gap-2">
                                     {getAutoEvidence(selectedReport) && (
-                                        <div className="flex gap-2">
+                                        <div className="flex flex-col gap-2 sm:flex-row">
                                             <Button
                                                 onClick={handleFalsePositive}
                                                 variant="outline"
-                                                className="flex-1 h-10 text-xs font-bold rounded-xl border-violet-300 text-violet-700 hover:bg-violet-50 dark:border-violet-800 dark:text-violet-300"
+                                                className="h-11 flex-1 text-xs"
                                             >
                                                 Fehlalarm – Wörter freigeben
                                             </Button>
                                             <Button
                                                 onClick={handleConfirmViolation}
-                                                className="flex-1 h-10 text-xs font-bold rounded-xl bg-violet-600 hover:bg-violet-700 text-white"
+                                                className="h-11 flex-1 text-xs"
                                             >
                                                 Zutreffend – Verstoß bestätigen
                                             </Button>
                                         </div>
                                     )}
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-col gap-2 sm:flex-row">
                                         <Button
                                             onClick={handleDismiss}
                                             variant="outline"
-                                            className="flex-1 h-10 text-xs font-bold rounded-xl border-gray-200"
+                                            className="h-11 flex-1 text-xs"
                                         >
                                             Abweisen
                                         </Button>
                                         <Button
                                             onClick={() => setShowResolveDialog(true)}
-                                            className="flex-1 h-10 text-xs font-bold rounded-xl bg-green-600 hover:bg-green-700 text-white"
+                                            className="h-11 flex-1 text-xs"
                                         >
                                             Meldung Lösen
                                         </Button>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-col gap-2 sm:flex-row">
                                         {selectedReport.status === 'open' && (
                                             <Button
                                                 onClick={handleInvestigate}
                                                 variant="ghost"
-                                                className="flex-1 h-9 text-[10px] font-bold rounded-xl text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/40"
+                                                className="h-11 flex-1 text-xs"
                                             >
                                                 In Prüfung setzen
                                             </Button>
@@ -691,7 +739,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                                             <Button
                                                 onClick={handleEscalate}
                                                 variant="ghost"
-                                                className="flex-1 h-9 text-[10px] font-bold rounded-xl text-amber-600 hover:bg-amber-50"
+                                                className="h-11 flex-1 text-xs text-amber-700 hover:bg-amber-500/10 dark:text-amber-400"
                                             >
                                                 Auf Kritisch eskalieren
                                             </Button>
@@ -699,7 +747,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                                     </div>
                                 </div>
                             ) : (
-                                <div className="text-center py-2 text-xs font-bold uppercase tracking-wider text-gray-400">
+                                <div className="py-2 text-center text-xs font-medium text-muted-foreground">
                                     Status: {REPORT_STATUS_LABELS[selectedReport.status] || selectedReport.status} ({selectedReport.resolution_type ? RESOLUTION_LABELS[selectedReport.resolution_type] || selectedReport.resolution_type : 'Erledigt'})
                                 </div>
                             )}
@@ -710,15 +758,16 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
 
             {/* Zoomed evidence dialog */}
             <Dialog open={!!zoomedImage} onOpenChange={() => setZoomedImage(null)}>
-                <DialogContent className="max-w-3xl p-0 bg-transparent overflow-hidden">
+                <DialogContent className="max-w-3xl overflow-hidden bg-transparent p-0 [&_[data-slot=dialog-close]]:size-11">
                     {zoomedImage && (
-                        <div className="relative aspect-auto max-h-[80vh] flex items-center justify-center bg-black/90">
-                            <img src={zoomedImage} className="max-h-[80vh] max-w-full object-contain" />
-                            <Button variant="unstyled" size="unstyled" type="submit"
+                        <div className="relative flex max-h-[80vh] items-center justify-center bg-black/90">
+                            <img src={zoomedImage} alt="Vergrößerte Evidenz" className="max-h-[80vh] max-w-full object-contain" />
+                            <Button variant="secondary" size="icon"
                                 onClick={() => setZoomedImage(null)}
-                                className="absolute top-4 right-4 bg-black/40 text-white p-2 rounded-full hover:bg-black/60"
+                                className="absolute top-4 right-4 h-11 w-11"
+                                aria-label="Vergrößerung schließen"
                             >
-                                <XCircle size={20} />
+                                <XCircle size={20} aria-hidden />
                             </Button>
                         </div>
                     )}
@@ -727,20 +776,21 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
 
             {/* Resolve Modal Dialog */}
             <Dialog open={showResolveDialog} onOpenChange={setShowResolveDialog}>
-                <DialogContent className="rounded-3xl max-w-md">
+                <DialogContent className="max-w-md [&_[data-slot=dialog-close]]:size-11">
                     <DialogHeader>
                         <DialogTitle>Meldung auflösen</DialogTitle>
                         <DialogDescription>
                             Wähle die Konsequenz bzw. das Resultat für diese Meldung aus.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="py-4 space-y-4">
-                        <div className="space-y-1">
-                            <Label className="text-[10px] font-bold uppercase text-gray-400">Aktionstyp</Label>
+                    <div className="space-y-4 py-2">
+                        <div className="space-y-1.5">
+                            <Label htmlFor="resolve-type" className="text-sm font-medium">Aktionstyp</Label>
                             <NativeSelect
+                                id="resolve-type"
                                 value={resolutionType}
                                 onChange={e => setResolutionType(e.target.value as any)}
-                                className="w-full mt-1 rounded-xl border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 text-sm focus:outline-none"
+                                className="w-full"
                             >
                                 <option value="dismiss">Keine weitere Aktion (Nur schließen)</option>
                                 <option value="warn">Nutzer verwarnt (Verwarnungsnachricht gesendet)</option>
@@ -748,13 +798,13 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                                 <option value="delete">Inhalt gelöscht (Anzeige/Nachrichten gelöscht)</option>
                             </NativeSelect>
                         </div>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-muted-foreground">
                             Hinweis: Für Bannen oder Löschen von Anzeigen navigiere bitte direkt in die jeweiligen Reiter 'Nutzer' bzw. 'Anzeigen' für eine detaillierte Ausführung.
                         </p>
                     </div>
                     <DialogFooter>
-                        <Button variant="ghost" onClick={() => setShowResolveDialog(false)} className="rounded-xl">Abbrechen</Button>
-                        <Button onClick={handleResolve} className="rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold">Lösen bestätigen</Button>
+                        <Button variant="ghost" onClick={() => setShowResolveDialog(false)} className="h-11">Abbrechen</Button>
+                        <Button onClick={handleResolve} className="h-11">Lösen bestätigen</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -773,61 +823,57 @@ interface KanbanColumnProps {
 
 function KanbanColumn({ title, badgeColor, reports, selectedId, onSelect }: KanbanColumnProps) {
     return (
-        <div className="flex flex-col bg-gray-100/60 dark:bg-gray-900/40 border dark:border-gray-800/80 rounded-3xl p-4 h-full min-h-[500px]">
+        <div className="flex min-h-[200px] flex-col rounded-2xl border border-border bg-muted/40 p-3">
             {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b dark:border-gray-800 mb-4 shrink-0">
-                <span className="font-bold text-sm text-gray-700 dark:text-gray-300">{title}</span>
-                <span className={cn('text-white text-xs px-2.5 py-0.5 rounded-full font-black', badgeColor)}>
+            <div className="mb-3 flex shrink-0 items-center justify-between gap-2 border-b border-border pb-3">
+                <span className="text-sm font-semibold text-foreground">{title}</span>
+                <span className={cn('rounded-full px-2.5 py-1 text-xs font-semibold text-white tabular-nums', badgeColor)}>
                     {reports.length}
                 </span>
             </div>
-            
+
             {/* Cards container */}
-            <div className="flex-1 overflow-y-auto space-y-3 pr-1 min-h-0">
+            <div className="space-y-2">
                 {reports.map(r => (
-                    <div
+                    <Button
+                        variant="unstyled"
+                        size="unstyled"
+                        type="button"
                         key={r.id}
                         onClick={() => onSelect(r)}
                         className={cn(
-                            'p-4 bg-white dark:bg-gray-900 border dark:border-gray-800/50 rounded-2xl shadow-sm hover:shadow transition-all cursor-pointer flex flex-col gap-2.5',
-                            selectedId === r.id && 'ring-2 ring-primary border-transparent'
+                            'flex w-full flex-col gap-2.5 rounded-xl border border-border bg-card p-3 text-left shadow-soft transition-colors hover:border-primary/40',
+                            selectedId === r.id && 'ring-2 ring-ring'
                         )}
                     >
-                        <div className="flex justify-between items-start gap-2">
-                            <span className={cn(
-                                'text-[9px] font-bold px-2 py-0.5 rounded-full uppercase',
-                                r.category === 'chat' && 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-                                r.category === 'anzeige' && 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-                                r.category === 'profil' && 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-                                r.category === 'datenschutz' && 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-                                r.category === 'sonstiges' && 'bg-gray-100 text-gray-700 dark:bg-gray-800'
-                            )}>
+                        <div className="flex items-start justify-between gap-2">
+                            <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium capitalize text-muted-foreground">
                                 {r.category}
                             </span>
                             <span className={cn(
-                                'w-2 h-2 rounded-full',
-                                r.priority === 'kritisch' ? 'bg-red-500 animate-ping' : r.priority === 'hoch' ? 'bg-amber-500' : 'bg-gray-300'
+                                'mt-1.5 size-2 shrink-0 rounded-full',
+                                r.priority === 'kritisch' ? 'bg-destructive' : r.priority === 'hoch' ? 'bg-amber-500' : 'bg-muted-foreground/40'
                             )} title={`Priorität: ${r.priority}`} />
                         </div>
-                        
+
                         <div>
-                            <div className="font-extrabold text-xs text-gray-900 dark:text-gray-100 leading-tight">
+                            <div className="text-xs font-semibold leading-tight text-foreground">
                                 {r.reason}
                             </div>
                             {r.description && (
-                                <p className="text-[11px] text-gray-400 mt-1 line-clamp-2 italic">
+                                <p className="mt-1 line-clamp-2 text-xs italic text-muted-foreground">
                                     "{r.description}"
                                 </p>
                             )}
                         </div>
 
-                        <div className="text-[10px] text-gray-400 border-t dark:border-gray-800 pt-2 mt-1">
-                            Gegen: <span className="font-bold text-gray-500">{r.user?.display_name || r.ad?.short_description || 'Unbekannt'}</span>
+                        <div className="mt-1 border-t border-border pt-2 text-xs text-muted-foreground">
+                            Gegen: <span className="font-medium text-foreground">{r.user?.display_name || r.ad?.short_description || 'Unbekannt'}</span>
                         </div>
-                    </div>
+                    </Button>
                 ))}
                 {reports.length === 0 && (
-                    <div className="text-center py-10 text-xs text-gray-400 italic">
+                    <div className="py-10 text-center text-xs italic text-muted-foreground">
                         Keine Meldungen vorhanden.
                     </div>
                 )}

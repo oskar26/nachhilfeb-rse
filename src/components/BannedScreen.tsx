@@ -78,58 +78,54 @@ export default function BannedScreen({ banReason, banType, bannedUntil }: Banned
     };
 
     return (
-        <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-red-950 via-gray-950 to-gray-900 flex items-center justify-center p-6">
-            <div className="max-w-md w-full text-center space-y-6">
-                {/* Logo */}
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))]">
+            <div className="w-full max-w-md space-y-5 rounded-2xl border border-destructive/25 bg-card p-5 text-center shadow-overlay sm:p-6">
                 <div className="flex justify-center">
-                    <div className="w-20 h-20 bg-red-500/20 rounded-3xl flex items-center justify-center border border-red-500/30">
-                        <ShieldAlert size={42} className="text-red-400" />
+                    <div className="grid size-16 place-items-center rounded-2xl bg-destructive/10 text-destructive">
+                        <ShieldAlert size={34} aria-hidden />
                     </div>
                 </div>
 
-                {/* Title */}
                 <div>
-                    <h1 className="text-3xl font-black text-white tracking-tight mb-2">
+                    <h1 className="mb-1 text-2xl font-semibold tracking-tight text-foreground">
                         Konto gesperrt
                     </h1>
-                    <p className="text-red-300/80 text-sm font-medium">
+                    <p className="text-sm font-medium text-muted-foreground">
                         Dein Zugang zur FWG Nachhilfebörse wurde von der SV eingeschränkt.
                     </p>
                 </div>
 
-                {/* Reason Card */}
-                <div className="bg-red-900/30 border border-red-800/40 rounded-2xl p-5 text-left space-y-3">
+                <div className="space-y-3 rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-left">
                     <div className="flex items-start gap-3">
-                        <AlertTriangle size={18} className="text-red-400 mt-0.5 shrink-0" />
+                        <AlertTriangle size={18} className="mt-0.5 shrink-0 text-destructive" aria-hidden />
                         <div className="space-y-1">
-                            <p className="text-xs font-bold text-red-300 uppercase tracking-wider">Grund der Sperre</p>
-                            <p className="text-sm text-red-200/90 font-medium leading-relaxed">
+                            <p className="text-xs font-semibold text-destructive">Grund der Sperre</p>
+                            <p className="text-sm font-medium leading-relaxed text-foreground/80">
                                 {banReason || 'Kein spezifischer Grund angegeben. Bitte kontaktiere die SV.'}
                             </p>
                         </div>
                     </div>
 
-                    {/* Ban Type & Duration */}
-                    <div className="flex items-center gap-3 pt-2 border-t border-red-800/30">
-                        <Clock size={16} className="text-red-400 shrink-0" />
+                    <div className="flex items-center gap-3 border-t border-destructive/20 pt-3">
+                        <Clock size={16} className="shrink-0 text-destructive" aria-hidden />
                         <div>
-                            <p className="text-xs font-bold text-red-300 uppercase tracking-wider">
+                            <p className="text-xs font-semibold text-destructive">
                                 {banType === 'temporary' ? 'Vorübergehende Sperre' : 'Permanente Sperre'}
                             </p>
                             {banType === 'temporary' && bannedUntil ? (
                                 <div className="space-y-0.5">
-                                    <p className="text-xs text-red-200/70">
-                                        Bis: {new Date(bannedUntil).toLocaleString('de-DE', { 
+                                    <p className="text-xs text-muted-foreground">
+                                        Bis: {new Date(bannedUntil).toLocaleString('de-DE', {
                                             day: '2-digit', month: '2-digit', year: 'numeric',
-                                            hour: '2-digit', minute: '2-digit' 
+                                            hour: '2-digit', minute: '2-digit'
                                         })} Uhr
                                     </p>
-                                    <p className="text-sm font-mono text-red-200 font-bold">
-                                        ⏱ {countdown}
+                                    <p className="font-mono text-sm font-semibold tabular-nums text-foreground">
+                                        {countdown}
                                     </p>
                                 </div>
                             ) : (
-                                <p className="text-xs text-red-200/70">
+                                <p className="text-xs text-muted-foreground">
                                     Diese Sperre hat kein automatisches Ablaufdatum.
                                 </p>
                             )}
@@ -137,29 +133,21 @@ export default function BannedScreen({ banReason, banType, bannedUntil }: Banned
                     </div>
                 </div>
 
-                {/* Actions */}
-                <div className="space-y-3 pt-2">
-                    <Button variant="unstyled" size="unstyled" type="submit"
-                        onClick={handleSupportRequest}
-                        className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-white/10 hover:bg-white/15 text-white border border-white/20 rounded-2xl text-sm font-bold transition-all cursor-pointer"
-                    >
-                        <MessageCircle size={16} />
+                <div className="space-y-2.5">
+                    <Button variant="outline" onClick={handleSupportRequest} className="h-11 w-full gap-2 rounded-full text-sm font-semibold">
+                        <MessageCircle size={16} aria-hidden />
                         Einspruch einlegen
                     </Button>
 
-                    <Button variant="unstyled" size="unstyled" type="submit"
-                        onClick={handleLogout}
-                        className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-red-600/30 hover:bg-red-600/40 text-red-200 border border-red-600/30 rounded-2xl text-sm font-bold transition-all cursor-pointer"
-                    >
-                        <LogOut size={16} />
+                    <Button variant="ghost" onClick={handleLogout} className="h-11 w-full gap-2 rounded-full text-sm font-semibold text-destructive hover:bg-destructive/10">
+                        <LogOut size={16} aria-hidden />
                         Abmelden
                     </Button>
                 </div>
 
-                {/* Footer */}
-                <div className="pt-4 flex items-center justify-center gap-2">
-                    <Logo className="w-5 h-5 text-red-400/50" />
-                    <p className="text-[11px] text-red-400/50 font-medium">
+                <div className="flex items-center justify-center gap-2 border-t border-border pt-4">
+                    <Logo className="size-5 text-muted-foreground" />
+                    <p className="text-xs font-medium text-muted-foreground">
                         Nachhilfebörse FWG Köln · SV Administration
                     </p>
                 </div>

@@ -125,20 +125,21 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent showCloseButton={false} className="max-h-[92dvh] overflow-y-auto sm:max-w-md">
                 <DialogHeader className="relative">
-                    <DialogTitle className="flex items-center gap-2 text-red-500">
+                    <DialogTitle className="flex items-center gap-2 text-base font-semibold text-destructive">
                         <ShieldAlert size={20} />
                         <span>Meldung einreichen (Schritt {step}/4)</span>
                     </DialogTitle>
                     <DialogDescription className="sr-only">
                         Meldung mit Kategorie, Grund, Beschreibung und optionalen Nachweisen einreichen.
                     </DialogDescription>
-                    <Button variant="unstyled" size="unstyled" type="submit"
+                    <Button variant="unstyled" size="unstyled" type="button"
                         onClick={onClose}
-                        className="absolute right-0 top-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-250 transition-colors"
+                        aria-label="Meldung schließen"
+                        className="absolute right-0 top-0 grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     >
-                        <X size={18} />
+                        <X size={18} aria-hidden />
                     </Button>
                 </DialogHeader>
 
@@ -146,18 +147,18 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
                     {/* STEP 1: CATEGORY */}
                     {step === 1 && (
                         <div className="space-y-3">
-                            <p className="text-sm font-semibold text-gray-500 dark:text-gray-450 uppercase mb-2">Was möchtest du melden?</p>
+                            <p className="mb-2 text-sm font-semibold text-muted-foreground">Was möchtest du melden?</p>
                             <div className="grid gap-2">
                                 {categories.map(c => (
-                                    <Button variant="unstyled" size="unstyled" type="submit"
+                                    <Button variant="unstyled" size="unstyled" type="button"
                                         key={c.value}
                                         onClick={() => { setCategory(c.value); setSubReason(''); }}
-                                        className={`flex items-start text-left p-3 rounded-2xl border transition-all ${category === c.value ? 'border-red-400 bg-red-50/50 dark:bg-red-950/20 ring-1 ring-red-400' : 'border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900'}`}
+                                        className={`flex min-h-11 items-start rounded-xl border p-3 text-left transition-colors ${category === c.value ? 'border-destructive/50 bg-destructive/5 ring-1 ring-destructive/40' : 'border-border hover:bg-muted/60'}`}
                                     >
-                                        <span className="mr-3 mt-0.5 text-red-500"><c.icon size={22} /></span>
+                                        <span className="mr-3 mt-0.5 text-destructive"><c.icon size={22} aria-hidden /></span>
                                         <div>
-                                            <p className="font-bold text-sm">{c.label}</p>
-                                            <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{c.desc}</p>
+                                            <p className="font-semibold text-sm">{c.label}</p>
+                                            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{c.desc}</p>
                                         </div>
                                     </Button>
                                 ))}
@@ -168,13 +169,13 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
                     {/* STEP 2: SUB REASON */}
                     {step === 2 && (
                         <div className="space-y-4">
-                            <p className="text-sm font-semibold text-gray-500 uppercase">Wähle den genauen Grund:</p>
+                            <p className="text-sm font-semibold text-muted-foreground">Wähle den genauen Grund:</p>
                             <div className="flex flex-col gap-2">
                                 {subReasons[category].map(reason => (
-                                    <Button variant="unstyled" size="unstyled" type="submit"
+                                    <Button variant="unstyled" size="unstyled" type="button"
                                         key={reason}
                                         onClick={() => setSubReason(reason)}
-                                        className={`w-full text-left px-4 py-3 rounded-xl border font-semibold text-sm transition-colors ${subReason === reason ? 'bg-red-500 text-white border-transparent' : 'bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 border-gray-100 dark:border-gray-800'}`}
+                                        className={`min-h-11 w-full rounded-xl border px-4 py-3 text-left text-sm font-semibold transition-colors ${subReason === reason ? 'border-transparent bg-destructive text-destructive-foreground' : 'border-border bg-muted/40 hover:bg-muted'}`}
                                     >
                                         {reason}
                                     </Button>
@@ -187,27 +188,27 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
                     {step === 3 && (
                         <div className="space-y-4">
                             <div>
-                                <Label className="text-xs font-bold uppercase text-gray-500 block mb-1">Details zum Vorfall *</Label>
+                                <Label className="mb-1 block text-xs font-semibold text-foreground/80">Details zum Vorfall *</Label>
                                 <Textarea
-                                    className="w-full h-28 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 p-3 text-sm focus:outline-none focus:border-red-400 transition-colors"
+                                    className="min-h-28 w-full resize-none bg-muted/40"
                                     placeholder="Beschreibe den Vorfall so genau wie möglich. Was ist passiert? Wer war beteiligt?"
                                     value={description}
                                     onChange={e => setDescription(e.target.value)}
                                     minLength={15}
                                     required
                                 />
-                                <p className="text-[10px] text-gray-400 mt-1">Mindestens 15 Zeichen. Aktuell: {description.length}</p>
+                                <p className="mt-1 text-xs text-muted-foreground">Mindestens 15 Zeichen. Aktuell: {description.length}</p>
                             </div>
 
                             <div>
-                                <Label className="text-xs font-bold uppercase text-gray-500 block mb-2">Dringlichkeit</Label>
+                                <Label className="mb-2 block text-xs font-semibold text-foreground/80">Dringlichkeit</Label>
                                 <div className="grid grid-cols-3 gap-2">
                                     {(['normal', 'hoch', 'kritisch'] as const).map(p => (
                                         <Button variant="unstyled" size="unstyled"
                                             key={p}
                                             type="button"
                                             onClick={() => setPriority(p)}
-                                            className={`py-2 rounded-xl text-xs font-bold capitalize border transition-colors ${priority === p ? 'bg-red-500 text-white border-transparent' : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-800'}`}
+                                            className={`min-h-11 rounded-xl border py-2 text-xs font-semibold capitalize transition-colors ${priority === p ? 'border-transparent bg-destructive text-destructive-foreground' : 'border-border bg-muted/40 hover:bg-muted'}`}
                                         >
                                             {p}
                                         </Button>
@@ -221,16 +222,16 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
                     {step === 4 && (
                         <div className="space-y-4">
                             <div>
-                                <h4 className="font-bold text-sm mb-1">Bild-Nachweise hinzufügen (Optional)</h4>
-                                <p className="text-xs text-gray-450 mb-3">Du kannst URLs von Screenshots oder Belegen hochladen (z.B. Imgur/Schulcloud).</p>
+                                <h4 className="mb-1 text-sm font-semibold">Bild-Nachweise hinzufügen (Optional)</h4>
+                                <p className="mb-3 text-xs text-muted-foreground">Du kannst URLs von Screenshots oder Belegen hochladen (z.B. Imgur/Schulcloud).</p>
                                 <div className="flex gap-2">
                                     <Input
                                         placeholder="https://imgur.com/xyz.png"
                                         value={newEvidenceUrl}
                                         onChange={e => setNewEvidenceUrl(e.target.value)}
-                                        className="h-9 text-xs"
+                                        className="h-11 text-xs"
                                     />
-                                    <Button size="sm" className="h-9" onClick={handleAddEvidence}>
+                                    <Button size="sm" className="h-11" onClick={handleAddEvidence}>
                                         <Camera size={14} className="mr-1" /> Hinzufügen
                                     </Button>
                                 </div>
@@ -238,13 +239,13 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
 
                             {evidenceUrls.length > 0 && (
                                 <div className="space-y-1.5">
-                                    <p className="text-xs font-bold uppercase text-gray-400">Hinzugefügte Nachweise ({evidenceUrls.length})</p>
+                                    <p className="text-xs font-semibold text-muted-foreground">Hinzugefügte Nachweise ({evidenceUrls.length})</p>
                                     <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
                                         {evidenceUrls.map((url, i) => (
-                                            <div key={i} className="flex items-center gap-1.5 text-xs bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-900 px-2 py-1 rounded-xl">
+                                            <div key={i} className="flex items-center gap-1.5 rounded-xl border border-destructive/25 bg-destructive/5 px-2 py-1 text-xs text-destructive">
                                                 <span className="truncate max-w-[120px]">{url}</span>
-                                                <Button variant="unstyled" size="unstyled" type="submit" onClick={() => setEvidenceUrls(prev => prev.filter((_, idx) => idx !== i))} className="text-red-500 hover:text-red-700">
-                                                    <X size={12} />
+                                                <Button variant="unstyled" size="unstyled" type="button" onClick={() => setEvidenceUrls(prev => prev.filter((_, idx) => idx !== i))} aria-label="Nachweis entfernen" className="grid size-11 place-items-center rounded-full text-destructive hover:bg-destructive/10">
+                                                    <X size={14} aria-hidden />
                                                 </Button>
                                             </div>
                                         ))}
@@ -252,17 +253,17 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
                                 </div>
                             )}
 
-                            <div className="bg-red-50/50 dark:bg-red-950/10 border border-red-200 dark:border-red-900/30 p-3 rounded-2xl flex gap-2 text-xs text-red-800 dark:text-red-300">
-                                <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+                            <div className="flex gap-2 rounded-xl border border-destructive/25 bg-destructive/5 p-3 text-xs text-destructive">
+                                <AlertTriangle size={16} className="mt-0.5 shrink-0" aria-hidden />
                                 <p className="leading-relaxed">Missbrauch der Meldefunktion kann zu einer Sperre deines Kontos führen. Bitte melde nur tatsächliche Verstöße.</p>
                             </div>
                         </div>
                     )}
                 </div>
 
-                <DialogFooter className="border-t border-gray-200 dark:border-gray-800 pt-4 flex justify-between">
+                <DialogFooter className="sticky bottom-0 flex justify-between border-t border-border bg-popover pt-4">
                     {step > 1 ? (
-                        <Button variant="outline" size="sm" onClick={handleBack} className="rounded-full">
+                        <Button variant="outline" size="sm" onClick={handleBack} className="h-11 rounded-full px-4">
                             <ChevronLeft size={16} className="mr-1" /> Zurück
                         </Button>
                     ) : (
@@ -270,7 +271,7 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
                     )}
 
                     {step < 4 ? (
-                        <Button size="sm" onClick={handleNext} className="rounded-full bg-red-500 hover:bg-red-600 text-white font-bold">
+                        <Button size="sm" onClick={handleNext} className="h-11 rounded-full bg-destructive px-5 font-semibold text-destructive-foreground hover:bg-destructive/90">
                             Weiter <ChevronRight size={16} className="ml-1" />
                         </Button>
                     ) : (
@@ -278,7 +279,7 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
                             size="sm"
                             onClick={handleSubmit}
                             disabled={submitting}
-                            className="rounded-full bg-red-600 hover:bg-red-700 text-white font-bold"
+                            className="h-11 rounded-full bg-destructive px-5 font-semibold text-destructive-foreground hover:bg-destructive/90"
                         >
                             {submitting ? 'Wird gesendet...' : 'Meldung abschicken'}
                         </Button>

@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { api, getStoredUser } from '../../lib/api';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
+import { Spinner } from '../../components/ui/spinner';
 import {
     MessageSquare,
     AlertTriangle,
@@ -40,6 +42,7 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState(false);
     const [granting, setGranting] = useState(false);
+    const [loadError, setLoadError] = useState<string | null>(null);
     const [chatFound, setChatFound] = useState(true);
     const [names, setNames] = useState<{ user1: string; user2: string }>({ user1: 'Nutzer 1', user2: 'Nutzer 2' });
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -64,6 +67,7 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
     const setupAccessAndLoad = async () => {
         setLoading(true);
         setGranting(true);
+        setLoadError(null);
         try {
             const adminId = getStoredUser()?.id;
             if (!adminId) throw new Error('Nicht authentifiziert');
@@ -124,6 +128,7 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
             setChatFound(true);
         } catch (error: any) {
             console.error('Error loading chat for admin:', error);
+            setLoadError('Fehler beim Laden des Chats: ' + error.message);
             toast.error('Fehler beim Laden des Chats: ' + error.message);
         } finally {
             setLoading(false);
@@ -133,7 +138,7 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
 
     const handleExport = () => {
         if (messages.length === 0) return;
-        
+
         const chatLog = messages.map(m => {
             const time = new Date(m.created_at).toLocaleString('de-DE');
             const senderName = m.sender_id === userId1 ? names.user1 : names.user2;
@@ -145,7 +150,7 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
             `Bericht-ID: ${reportId}\n` +
             `Zeitpunkt: ${new Date().toLocaleString('de-DE')}\n` +
             `Parteien: ${names.user1} ↔ ${names.user2}\n` +
-            `==========================================\n\n` + 
+            `==========================================\n\n` +
             chatLog;
 
         const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
@@ -167,19 +172,19 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
 
     if (!userId1 || !userId2 || !reportId) {
         return (
-            <Card className="rounded-3xl border-none shadow-sm bg-white dark:bg-gray-900 overflow-hidden py-16 text-center">
-                <CardContent className="space-y-4 max-w-md mx-auto">
-                    <div className="w-16 h-16 bg-red-50 dark:bg-red-950/20 text-red-500 rounded-full flex items-center justify-center mx-auto">
-                        <Lock size={32} />
+            <Card className="overflow-hidden py-16 text-center shadow-soft">
+                <CardContent className="mx-auto max-w-md space-y-4">
+                    <div className="mx-auto grid size-16 place-items-center rounded-full bg-destructive/10 text-destructive">
+                        <Lock size={32} aria-hidden />
                     </div>
-                    <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Kein Chat ausgewählt</h2>
-                    <p className="text-gray-500 text-sm">
-                        Aus Sicherheitsgründen können Chats im Admin-Panel nicht frei durchsucht werden. 
+                    <h2 className="text-xl font-semibold text-foreground">Kein Chat ausgewählt</h2>
+                    <p className="text-sm text-muted-foreground">
+                        Aus Sicherheitsgründen können Chats im Admin-Panel nicht frei durchsucht werden.
                         Bitte wähle eine aktive Meldung unter 'Meldungen' aus und klicke auf 'Chat-Einsicht öffnen'.
                     </p>
                     {onBack && (
-                        <Button onClick={onBack} variant="outline" className="rounded-2xl gap-2 mt-4 text-xs font-bold">
-                            <ArrowLeft size={14} /> Zurück zu den Meldungen
+                        <Button onClick={onBack} variant="outline" className="mt-4 h-11 gap-2 text-xs">
+                            <ArrowLeft size={16} aria-hidden /> Zurück zu den Meldungen
                         </Button>
                     )}
                 </CardContent>
@@ -188,62 +193,74 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
     }
 
     return (
-        <Card className="rounded-3xl border-none shadow-sm bg-white dark:bg-gray-900 overflow-hidden flex flex-col h-[600px]">
+        <Card className="flex h-[calc(100dvh-17rem)] min-h-[380px] flex-col overflow-hidden shadow-soft md:h-[600px]">
             {/* Header */}
-            <div className="p-4 bg-gray-50 dark:bg-gray-800/40 border-b dark:border-gray-800 flex items-center justify-between shrink-0">
-                <div className="flex items-center gap-3">
+            <div className="flex shrink-0 flex-col gap-3 border-b border-border bg-muted/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex min-w-0 items-center gap-3">
                     {onBack && (
-                        <Button variant="unstyled" size="unstyled" type="submit" onClick={onBack} className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400">
-                            <ArrowLeft size={20} />
+                        <Button variant="ghost" size="icon" type="button" onClick={onBack} className="h-11 w-11 shrink-0" aria-label="Zurück zu den Meldungen">
+                            <ArrowLeft size={20} aria-hidden />
                         </Button>
                     )}
-                    <div>
-                        <div className="font-bold text-sm text-gray-800 dark:text-gray-200">
+                    <div className="min-w-0">
+                        <div className="break-words text-sm font-semibold text-foreground">
                             {names.user1} ↔ {names.user2}
                         </div>
-                        <div className="text-[10px] text-gray-400 font-semibold mt-0.5">
+                        <div className="mt-0.5 break-words text-xs font-medium text-muted-foreground">
                             Meldeverfahren Einsicht • ID: {reportId.slice(0, 8)}
                         </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <span className="flex items-center gap-1 text-[10px] text-red-600 bg-red-100 dark:bg-red-950/30 dark:text-red-400 px-2.5 py-1 rounded-md font-bold uppercase tracking-wider">
-                        <Shield size={12} />
+                <div className="flex flex-wrap items-center gap-2">
+                    <span className="flex items-center gap-1 rounded-full bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive">
+                        <Shield size={16} aria-hidden />
                         SV Einsicht
                     </span>
                     {messages.length > 0 && (
-                        <Button onClick={handleExport} variant="outline" size="sm" className="h-8 rounded-lg gap-1.5 text-xs">
-                            <Download size={12} /> Exportieren
+                        <Button onClick={handleExport} variant="outline" size="sm" className="h-11 gap-1.5 text-xs">
+                            <Download size={16} aria-hidden /> Exportieren
                         </Button>
                     )}
-                    <Button onClick={setupAccessAndLoad} variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-lg">
-                        <RefreshCw size={14} className={cn(loading && 'animate-spin')} />
+                    <Button onClick={setupAccessAndLoad} variant="ghost" size="icon" className="h-11 w-11" aria-label="Chat aktualisieren">
+                        <RefreshCw size={16} className={cn(loading && 'animate-spin')} aria-hidden />
                     </Button>
                 </div>
             </div>
 
             {/* Chat Body */}
-            <div className="flex-1 p-4 bg-gray-50 dark:bg-gray-950/40 overflow-y-auto space-y-4 min-h-0 flex flex-col">
-                {granting ? (
-                    <div className="m-auto text-center space-y-2">
-                        <div className="w-8 h-8 border-3 border-red-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                        <p className="text-xs text-gray-400 font-medium">Fordere temporäre RLS-Einsichtsrechte an...</p>
+            <div className="flex min-h-0 flex-1 flex-col space-y-4 overflow-y-auto bg-muted/20 p-4">
+                {loadError ? (
+                    <div className="m-auto w-full max-w-sm">
+                        <Alert variant="destructive">
+                            <AlertTitle>Chat nicht verfügbar</AlertTitle>
+                            <AlertDescription className="space-y-3">
+                                <span className="block break-words">{loadError}</span>
+                                <Button type="button" variant="outline" className="h-11" onClick={setupAccessAndLoad}>
+                                    Erneut laden
+                                </Button>
+                            </AlertDescription>
+                        </Alert>
+                    </div>
+                ) : granting ? (
+                    <div className="m-auto text-center">
+                        <Spinner className="mx-auto size-6 text-brand-ink dark:text-primary" />
+                        <p className="mt-2 text-xs font-medium text-muted-foreground">Fordere temporäre RLS-Einsichtsrechte an...</p>
                     </div>
                 ) : loading ? (
-                    <div className="m-auto text-center space-y-2">
-                        <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-                        <p className="text-xs text-gray-400">Lade Chatnachrichten...</p>
+                    <div className="m-auto text-center">
+                        <Spinner className="mx-auto size-6 text-brand-ink dark:text-primary" />
+                        <p className="mt-2 text-xs text-muted-foreground">Lade Chatnachrichten...</p>
                     </div>
                 ) : !chatFound ? (
-                    <div className="m-auto text-center max-w-sm space-y-2 text-gray-400 py-20">
-                        <MessageSquare size={32} className="mx-auto opacity-50" />
-                        <p className="text-sm font-bold">Kein Chat vorhanden</p>
+                    <div className="m-auto max-w-sm space-y-2 py-20 text-center text-muted-foreground">
+                        <MessageSquare size={32} className="mx-auto opacity-50" aria-hidden />
+                        <p className="text-sm font-semibold">Kein Chat vorhanden</p>
                         <p className="text-xs">Die beiden Beteiligten haben bisher keine Chatnachrichten ausgetauscht.</p>
                     </div>
                 ) : messages.length === 0 ? (
-                    <div className="m-auto text-center max-w-sm space-y-1 text-gray-400">
-                        <MessageSquare size={32} className="mx-auto opacity-50" />
+                    <div className="m-auto max-w-sm space-y-1 text-center text-muted-foreground">
+                        <MessageSquare size={32} className="mx-auto opacity-50" aria-hidden />
                         <p className="text-sm">Dieser Chat ist leer.</p>
                     </div>
                 ) : (
@@ -256,32 +273,32 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
                             <div
                                 key={msg.id}
                                 className={cn(
-                                    'flex flex-col gap-1 max-w-[75%] p-3 rounded-2xl shadow-sm border dark:border-gray-800 transition-colors',
-                                    isUser1 
-                                        ? 'self-start bg-white dark:bg-gray-900' 
-                                        : 'self-end bg-blue-50/50 dark:bg-blue-950/20 border-blue-100/50',
-                                    profanity && 'bg-red-50/80 border-red-200 dark:bg-red-950/20 dark:border-red-900/40'
+                                    'flex max-w-[85%] flex-col gap-1 rounded-2xl border p-3 shadow-soft sm:max-w-[75%]',
+                                    isUser1
+                                        ? 'self-start border-border bg-card'
+                                        : 'self-end border-primary/20 bg-primary/10',
+                                    profanity && 'border-destructive/30 bg-destructive/10'
                                 )}
                             >
-                                <div className="flex justify-between items-center gap-4">
-                                    <span className="font-extrabold text-[10px] text-gray-400">
+                                <div className="flex items-center justify-between gap-4">
+                                    <span className="break-words text-xs font-semibold text-muted-foreground">
                                         {senderName}
                                     </span>
-                                    <span className="text-[9px] text-gray-400">
+                                    <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
                                         {new Date(msg.created_at).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
                                     </span>
                                 </div>
-                                
+
                                 <p className={cn(
-                                    'text-sm text-gray-800 dark:text-gray-200 mt-0.5 break-words whitespace-pre-wrap',
-                                    msg.is_deleted && 'text-gray-400 italic'
+                                    'mt-0.5 whitespace-pre-wrap break-words text-sm text-foreground',
+                                    msg.is_deleted && 'italic text-muted-foreground'
                                 )}>
-                                    {msg.is_deleted ? (<span className="inline-flex items-center gap-1"><Ban size={12} /> Diese Nachricht wurde gelöscht</span>) : msg.content}
+                                    {msg.is_deleted ? (<span className="inline-flex items-center gap-1"><Ban size={16} aria-hidden /> Diese Nachricht wurde gelöscht</span>) : msg.content}
                                 </p>
 
                                 {profanity && (
-                                    <div className="flex items-center gap-1 mt-1.5 text-[9px] font-bold text-red-600 dark:text-red-400 bg-red-100/50 dark:bg-red-900/30 px-1.5 py-0.5 rounded">
-                                        <AlertTriangle size={10} />
+                                    <div className="mt-1.5 flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive">
+                                        <AlertTriangle size={16} aria-hidden />
                                         Möglicher Regelverstoß (Beleidigung)
                                     </div>
                                 )}

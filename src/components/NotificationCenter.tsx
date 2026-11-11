@@ -64,7 +64,7 @@ function typeIcon(type: NotificationType) {
         case 'alert':   return <AlertTriangle size={16} className="text-amber-400" />;
         case 'review':  return <Star size={16} className="text-primary" />;
         case 'match':   return <Zap size={16} className="text-violet-400" />;
-        default:        return <Bell size={16} className="text-gray-400" />;
+        default:        return <Bell size={16} className="text-muted-foreground" />;
     }
 }
 
@@ -191,12 +191,12 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
     const triggerLabel = unread > 0 ? `Benachrichtigungen, ${unread} ungelesen` : 'Benachrichtigungen';
 
     const headerContent = (
-        <div className="flex items-center justify-between gap-3 border-b border-black/10 bg-[#faf7ef] poster-grain-dark px-5 pb-4 pt-3.5 text-gray-900">
+        <div className="flex items-center justify-between gap-3 border-b border-border bg-background poster-grain-dark px-5 pb-4 pt-3.5 text-foreground">
             <div className="min-w-0">
                 <div className="flex items-center gap-2.5">
                     <h2 className="font-display text-base uppercase leading-none tracking-tight">Meldungen</h2>
                     {unread > 0 && (
-                        <span className="grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1.5 text-[11px] font-black leading-none text-gray-950 tabular-nums">
+                        <span className="grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1.5 text-xs font-black leading-none text-primary-foreground tabular-nums">
                             {badgeCount}
                         </span>
                     )}
@@ -207,7 +207,7 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
                 <Button variant="unstyled" size="unstyled"
                     type="button"
                     onClick={markAllRead}
-                    className="press flex shrink-0 items-center gap-1.5 rounded-full border border-black/15 px-3 py-2 text-[11px] font-bold text-gray-700 transition-colors hover:border-primary hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="press flex shrink-0 items-center gap-1.5 rounded-full border border-border px-3 py-2 text-xs font-bold text-muted-foreground transition-colors hover:border-ring hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                     <CheckCheck size={13} />
                     Alle als gelesen
@@ -226,17 +226,17 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
 
             {!loading && !hasNotifications && (
                 <div className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center">
-                    <div className="grid h-14 w-14 place-items-center rounded-2xl bg-primary text-black ring-1 ring-black/5">
+                    <div className="grid h-14 w-14 place-items-center rounded-2xl bg-primary text-primary-foreground ring-1 ring-black/5">
                         <BellOff size={24} />
                     </div>
-                    <p className="font-display text-lg uppercase leading-none tracking-tight text-gray-900 dark:text-gray-50">Nichts Neues</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Du bist auf dem aktuellen Stand.</p>
+                    <p className="font-display text-lg uppercase leading-none tracking-tight text-foreground">Nichts Neues</p>
+                    <p className="text-xs text-muted-foreground">Du bist auf dem aktuellen Stand.</p>
                 </div>
             )}
 
             {!loading && hasNotifications && Object.entries(groups).map(([label, items]) => (
                 <div key={label} className="mb-1 last:mb-0">
-                    <p className="px-2 pb-1.5 pt-2 font-display text-[11px] uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">
+                    <p className="px-2 pb-1.5 pt-2 font-display text-xs uppercase tracking-[0.18em] text-muted-foreground">
                         {label}
                     </p>
                     <div className="flex flex-col gap-2">
@@ -251,21 +251,21 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
                                 className={cn(
                                     'flex w-full select-none cursor-pointer items-start gap-3 rounded-2xl border p-3.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                                     n.read
-                                        ? 'border-gray-200/90 bg-white/85 hover:bg-white dark:border-gray-800 dark:bg-gray-900/70 dark:hover:bg-gray-900'
+                                        ? 'border-border bg-card/85 hover:bg-card'
                                         : 'border-primary/45 bg-primary/[0.07] hover:bg-primary/10 dark:border-primary/30 dark:bg-primary/[0.06] dark:hover:bg-primary/10'
                                 )}
                             >
-                                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary ring-1 ring-black/5">
+                                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary ring-1 ring-black/5">
                                     {typeIcon(n.type)}
                                 </span>
                                 <span className="min-w-0 flex-1">
-                                    <span className="block text-[13px] font-bold leading-snug text-gray-900 dark:text-gray-50">
+                                    <span className="block text-sm font-bold leading-snug text-foreground">
                                         {n.title}
                                     </span>
-                                    <span className="mt-0.5 block text-xs leading-relaxed text-gray-500 line-clamp-2 dark:text-gray-400">
+                                    <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground line-clamp-2 dark:text-muted-foreground">
                                         {n.body}
                                     </span>
-                                    <span className="mt-1.5 block text-[10px] font-semibold tabular-nums text-gray-400 dark:text-gray-500">
+                                    <span className="mt-1.5 block text-xs font-semibold tabular-nums text-muted-foreground dark:text-muted-foreground">
                                         {relativeTime(n.created_at)}
                                     </span>
                                 </span>
@@ -286,14 +286,14 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
             size="unstyled"
             hapticStyle={false}
             type="button"
-            className="relative select-none cursor-pointer rounded-2xl p-2.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+            className="relative grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:text-muted-foreground hover:bg-muted hover:text-foreground"
             aria-label={triggerLabel}
         >
             <Bell size={20} />
             {unread > 0 && (
                 <span className="absolute right-1.5 top-1.5 grid place-items-center" aria-hidden>
                     <span className="absolute inset-0 animate-ping rounded-full bg-primary/70" />
-                    <span className="relative h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-white dark:ring-gray-900" />
+                    <span className="relative h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-card" />
                 </span>
             )}
         </Button>
@@ -306,17 +306,16 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
             hapticStyle={false}
             type="button"
             className={cn(
-                'relative grid h-14 w-14 select-none cursor-pointer place-items-center rounded-2xl bg-primary text-black shadow-[0_14px_30px_-10px_rgba(0,0,0,0.35)] ring-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                unread > 0 ? 'ring-primary/60' : 'ring-black/10'
+                'relative grid size-11 shrink-0 cursor-pointer place-items-center rounded-full bg-primary text-primary-foreground ring-1 transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
+                unread > 0 ? 'ring-primary/60' : 'ring-foreground/10'
             )}
             aria-label={triggerLabel}
         >
-            <span className="absolute top-2 h-1 w-10 rounded-full bg-black/20" aria-hidden />
-            <Bell size={22} strokeWidth={2.25} className="mt-1.5" />
+            <Bell size={20} strokeWidth={2} aria-hidden />
             {unread > 0 && (
                 <span className="absolute -right-1.5 -top-1.5 grid place-items-center">
                     <span className="absolute inset-0 animate-ping rounded-full bg-primary/70" aria-hidden />
-                    <span className="relative grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1 text-[10px] font-black leading-none text-gray-950 ring-2 ring-[#f8f9fa] tabular-nums dark:ring-gray-950">
+                    <span className="relative grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1 text-xs font-black leading-none text-primary-foreground ring-2 ring-card tabular-nums">
                         {badgeCount}
                     </span>
                 </span>
@@ -332,7 +331,7 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
                     align="end"
                     sideOffset={8}
                     aria-label="Meldungen"
-                    className="hidden max-h-[520px] w-[380px] flex-col overflow-hidden rounded-3xl border border-gray-200/80 bg-[#faf7ef] p-0 shadow-2xl dark:border-gray-800 dark:bg-gray-950 md:flex"
+                    className="hidden max-h-[520px] w-[380px] flex-col overflow-hidden rounded-t-3xl border border-border bg-background p-0 shadow-overlay border-border dark:bg-background md:flex"
                 >
                     {headerContent}
                     {listContent}
@@ -349,14 +348,14 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
             <SheetContent
                 side="bottom"
                 showCloseButton={false}
-                className="max-h-[88dvh] gap-0 overflow-hidden rounded-t-3xl border-x border-t border-gray-200/80 bg-[#faf7ef] p-0 dark:border-gray-800 dark:bg-gray-950 md:hidden"
+                className="max-h-[88dvh] gap-0 overflow-hidden rounded-t-3xl border-x border-t border-border bg-background p-0 border-border dark:bg-background md:hidden"
             >
                 <SheetTitle className="sr-only">Meldungen</SheetTitle>
                 <SheetDescription className="sr-only">Benachrichtigungen und Aktivitäten</SheetDescription>
-                <div className="shrink-0 bg-[#faf7ef] poster-grain-dark pt-3">
+                <div className="shrink-0 bg-background poster-grain-dark pt-3">
                     <div className="relative flex justify-center pb-1">
                         <span className="h-1.5 w-12 rounded-full bg-black/15" aria-hidden />
-                        <SheetClose className="absolute right-4 top-0 inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:bg-black/5 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:text-gray-300 dark:hover:bg-white/10">
+                        <SheetClose className="absolute right-4 top-0 inline-flex size-11 items-center justify-center rounded-full text-muted-foreground hover:bg-black/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary text-muted-foreground dark:hover:bg-card/10">
                             <X size={18} />
                             <span className="sr-only">Schließen</span>
                         </SheetClose>

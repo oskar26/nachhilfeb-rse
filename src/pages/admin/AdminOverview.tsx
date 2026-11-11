@@ -2,7 +2,9 @@ import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
-import { Card, CardContent } from '../../components/ui/card';
+import { Card } from '../../components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
+import { Skeleton } from '../../components/ui/skeleton';
 import { toast } from 'sonner';
 import {
     Users,
@@ -18,17 +20,17 @@ import {
 import { cn } from '../../lib/utils';
 
 const REPORT_STATUS_STYLES: Record<string, { label: string; cls: string }> = {
-    open: { label: 'Offen', cls: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
-    investigating: { label: 'In Prüfung', cls: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
-    resolved: { label: 'Gelöst', cls: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
-    dismissed: { label: 'Abgewiesen', cls: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400' },
+    open: { label: 'Offen', cls: 'bg-destructive/10 text-destructive' },
+    investigating: { label: 'In Prüfung', cls: 'bg-amber-500/15 text-amber-700 dark:text-amber-400' },
+    resolved: { label: 'Gelöst', cls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400' },
+    dismissed: { label: 'Abgewiesen', cls: 'bg-muted text-muted-foreground' },
 };
 
 const QUICK_ACTIONS = [
-    { label: 'Codes & Verifikation', icon: ShieldCheck, tab: 'codes', iconCls: 'text-green-600 dark:text-green-400', hoverCls: 'hover:border-green-300 dark:hover:border-green-800' },
-    { label: 'Nutzerverwaltung', icon: Users, tab: 'users', iconCls: 'text-blue-600 dark:text-blue-400', hoverCls: 'hover:border-blue-300 dark:hover:border-blue-800' },
-    { label: 'Meldungen prüfen', icon: AlertTriangle, tab: 'reports', iconCls: 'text-amber-600 dark:text-amber-400', hoverCls: 'hover:border-amber-300 dark:hover:border-amber-800' },
-    { label: 'Audit Log', icon: Clock, tab: 'auditlog', iconCls: 'text-gray-500 dark:text-gray-400', hoverCls: 'hover:border-gray-300 dark:hover:border-gray-700' },
+    { label: 'Codes & Verifikation', icon: ShieldCheck, tab: 'codes' },
+    { label: 'Nutzerverwaltung', icon: Users, tab: 'users' },
+    { label: 'Meldungen prüfen', icon: AlertTriangle, tab: 'reports' },
+    { label: 'Audit Log', icon: Clock, tab: 'auditlog' },
 ];
 
 interface Stats {
@@ -44,51 +46,31 @@ interface StatCardProps {
     label: string;
     value: number;
     subValue: string;
-    color?: 'default' | 'amber' | 'red' | 'blue' | 'green';
-    onClick?: () => void;
+    onClick: () => void;
+    emphasis?: boolean;
 }
 
-function StatCard({ icon, label, value, subValue, color = 'default', onClick }: StatCardProps) {
-    const valueClass = {
-        default: '',
-        amber: 'text-amber-600',
-        red: 'text-red-600',
-        blue: 'text-blue-600',
-        green: 'text-green-600',
-    }[color];
-
+function StatCard({ icon, label, value, subValue, onClick, emphasis }: StatCardProps) {
     return (
-        <Card
-            className={cn(
-                'rounded-3xl border-none shadow-sm bg-white dark:bg-gray-900 hover:shadow-md transition-all',
-                onClick && 'cursor-pointer active:scale-[0.98]'
-            )}
+        <Button
+            variant="unstyled"
+            size="unstyled"
+            type="button"
             onClick={onClick}
+            className="group flex min-h-[132px] w-full flex-col items-stretch justify-between gap-4 rounded-2xl border border-border bg-card p-4 text-left shadow-soft transition-colors hover:border-primary/40 hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:p-5"
         >
-            <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                    <div className="w-10 h-10 rounded-2xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
-                        {icon}
-                    </div>
-                    {onClick ? (
-                        <Button variant="unstyled" size="unstyled"
-                            type="button"
-                            className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-400 hover:text-gray-600"
-                            onClick={(e) => { e.stopPropagation(); onClick(); }}
-                        >
-                            <ArrowUpRight size={16} />
-                        </Button>
-                    ) : (
-                        <ArrowUpRight size={16} className="text-gray-300" />
-                    )}
-                </div>
-                <div className="space-y-1">
-                    <h3 className="text-sm font-medium text-gray-500">{label}</h3>
-                    <div className={cn('text-3xl font-bold tracking-tight', valueClass)}>{value}</div>
-                    <p className="text-xs text-gray-400 font-medium">{subValue}</p>
-                </div>
-            </CardContent>
-        </Card>
+            <div className="flex items-start justify-between gap-2">
+                <span className="grid size-10 place-items-center rounded-xl bg-muted text-muted-foreground">
+                    {icon}
+                </span>
+                <ArrowUpRight size={16} className="text-muted-foreground transition-colors group-hover:text-foreground" aria-hidden />
+            </div>
+            <div className="space-y-1">
+                <div className={cn('text-2xl font-semibold tracking-tight tabular-nums sm:text-3xl', emphasis && value > 0 && 'text-destructive')}>{value}</div>
+                <div className="text-sm font-medium text-foreground">{label}</div>
+                <div className="text-xs text-muted-foreground">{subValue}</div>
+            </div>
+        </Button>
     );
 }
 
@@ -99,6 +81,7 @@ export default function AdminOverview() {
     const [recentUsers, setRecentUsers] = useState<any[]>([]);
     const [pageTrend, setPageTrend] = useState<number[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState<string | null>(null);
 
     useEffect(() => {
         fetchAll();
@@ -106,6 +89,7 @@ export default function AdminOverview() {
 
     const fetchAll = async () => {
         setLoading(true);
+        setLoadError(null);
         try {
             const [{ data: overview, error: overviewError }, { data: reportsData }] = await Promise.all([
                 api.admin.overview(),
@@ -145,6 +129,7 @@ export default function AdminOverview() {
                 setPageTrend(trend);
             } catch { /* Verlauf ist optional – Dashboard bleibt nutzbar */ }
         } catch {
+            setLoadError('Übersicht konnte nicht geladen werden.');
             toast.error('Übersicht konnte nicht geladen werden.');
         } finally {
             setLoading(false);
@@ -154,72 +139,85 @@ export default function AdminOverview() {
     const navTo = (tab: string) => navigate(`?tab=${tab}`);
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-6 sm:space-y-8">
             {/* Page title */}
-            <div>
-                <h1 className="text-2xl font-bold tracking-tight">Übersicht</h1>
-                <p className="text-gray-500 text-sm mt-1">Zusammenfassung des aktuellen Systemstatus</p>
-            </div>
+            <header>
+                <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">Übersicht</h1>
+                <p className="mt-1 text-sm text-muted-foreground">Zusammenfassung des aktuellen Systemstatus</p>
+            </header>
+
+            {loadError && (
+                <Alert variant="destructive">
+                    <AlertTitle>Übersicht nicht verfügbar</AlertTitle>
+                    <AlertDescription className="flex flex-col items-start gap-3">
+                        <span>{loadError}</span>
+                        <Button type="button" variant="outline" className="h-11" onClick={fetchAll}>
+                            Erneut laden
+                        </Button>
+                    </AlertDescription>
+                </Alert>
+            )}
 
             {/* Stat cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {!loadError && (
+            <div className="grid grid-cols-2 gap-3 2xl:grid-cols-4 2xl:gap-4">
                 <StatCard
-                    icon={<Users className="text-blue-500" size={20} />}
+                    icon={<Users size={20} aria-hidden />}
                     label="Nutzer"
                     value={stats.users}
                     subValue={`${stats.verified} verifiziert`}
-                    color="blue"
                     onClick={() => navTo('users')}
                 />
                 <StatCard
-                    icon={<FileText className="text-green-500" size={20} />}
+                    icon={<FileText size={20} aria-hidden />}
                     label="Anzeigen"
                     value={stats.ads}
                     subValue="Aktive Angebote"
-                    color="green"
                     onClick={() => navTo('ads')}
                 />
                 <StatCard
-                    icon={<AlertTriangle className="text-amber-500" size={20} />}
+                    icon={<AlertTriangle size={20} aria-hidden />}
                     label="Offene Meldungen"
                     value={stats.reports}
                     subValue="Handlungsbedarf"
-                    color="amber"
+                    emphasis
                     onClick={() => navTo('reports')}
                 />
                 <StatCard
-                    icon={<Ban className="text-red-500" size={20} />}
+                    icon={<Ban size={20} aria-hidden />}
                     label="Gesperrt"
                     value={stats.banned}
                     subValue="Inaktive Accounts"
-                    color="red"
                     onClick={() => navTo('users')}
                 />
             </div>
+            )}
 
             {/* Seitenaufrufe-Trend (7 Tage) */}
-            {pageTrend.some(v => v > 0) && (
-                <Button variant="unstyled" size="unstyled"
+            {!loadError && pageTrend.some(v => v > 0) && (
+                <Button
+                    variant="unstyled"
+                    size="unstyled"
                     type="button"
                     onClick={() => navTo('analytics')}
-                    className="w-full text-left bg-white dark:bg-gray-900 rounded-3xl border dark:border-gray-800 shadow-sm p-5 hover:shadow-md transition-all"
+                    className="w-full rounded-2xl border border-border bg-card p-4 text-left shadow-soft transition-colors hover:border-primary/40 sm:p-5"
                 >
-                    <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm font-bold flex items-center gap-2">
-                            <TrendingUp size={16} className="text-emerald-500" />
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                        <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                            <TrendingUp size={16} className="text-brand-ink dark:text-primary" aria-hidden />
                             Seitenaufrufe · letzte 7 Tage
                         </span>
-                        <span className="text-xs text-gray-400 flex items-center gap-1">
-                            Details <ArrowUpRight size={12} />
+                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                            Details <ArrowUpRight size={16} aria-hidden />
                         </span>
                     </div>
-                    <div className="flex items-end gap-1.5 h-14">
+                    <div className="flex h-16 items-end gap-1.5" aria-hidden>
                         {pageTrend.map((v, i) => {
                             const max = Math.max(...pageTrend, 1);
                             return (
                                 <div
                                     key={i}
-                                    className="flex-1 bg-emerald-500/70 rounded-t min-h-[3px]"
+                                    className="min-h-[3px] flex-1 rounded-t-sm bg-primary/80"
                                     style={{ height: `${Math.max((v / max) * 100, 6)}%` }}
                                     title={`${v} Aufrufe`}
                                 />
@@ -230,94 +228,103 @@ export default function AdminOverview() {
             )}
 
             {/* Quick actions */}
-            <div>
-                <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Schnellzugriff</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {QUICK_ACTIONS.map(({ label, icon: Icon, tab, iconCls, hoverCls }) => (
-                        <Button variant="unstyled" size="unstyled" type="submit"
+            <section>
+                <h2 className="mb-3 text-sm font-medium text-muted-foreground">Schnellzugriff</h2>
+                <div className="grid grid-cols-2 gap-2 2xl:grid-cols-4 2xl:gap-3">
+                    {QUICK_ACTIONS.map(({ label, icon: Icon, tab }) => (
+                        <Button
+                            variant="unstyled"
+                            size="unstyled"
+                            type="button"
                             key={tab}
                             onClick={() => navTo(tab)}
-                            className={cn(
-                                'flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-gray-900 border dark:border-gray-800 shadow-sm hover:shadow-md transition-all text-left font-medium text-sm',
-                                hoverCls
-                            )}
+                            className="flex min-h-12 items-center gap-3 rounded-xl border border-border bg-card p-3 text-left text-sm font-medium text-foreground shadow-soft transition-colors hover:border-primary/40 hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                         >
-                            <Icon size={18} className={iconCls} />
-                            {label}
+                            <Icon size={20} className="shrink-0 text-muted-foreground" aria-hidden />
+                            <span className="min-w-0 break-words">{label}</span>
                         </Button>
                     ))}
                 </div>
-            </div>
+            </section>
 
             {/* Recent activity */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {!loadError && (
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-2 xl:gap-6">
                 {/* Recent reports */}
-                <div className="bg-white dark:bg-gray-900 rounded-3xl border dark:border-gray-800 shadow-sm overflow-hidden">
-                    <div className="p-5 border-b dark:border-gray-800 flex items-center justify-between">
-                        <div className="flex items-center gap-2 font-bold text-sm">
-                            <AlertTriangle size={16} className="text-amber-500" />
+                <Card className="shadow-soft">
+                    <div className="flex items-center justify-between gap-3 border-b border-border p-4">
+                        <div className="flex items-center gap-2 text-sm font-semibold">
+                            <AlertTriangle size={16} className="text-amber-600 dark:text-amber-400" aria-hidden />
                             Letzte Meldungen
                         </div>
-                        <Button variant="unstyled" size="unstyled" type="submit" onClick={() => navTo('reports')} className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 flex items-center gap-1">
-                            Alle <ArrowUpRight size={12} />
+                        <Button variant="ghost" size="sm" type="button" onClick={() => navTo('reports')} className="h-11 gap-1 px-3 text-xs">
+                            Alle <ArrowUpRight size={16} aria-hidden />
                         </Button>
                     </div>
-                    <div className="divide-y dark:divide-gray-800">
+                    <div className="divide-y divide-border">
                         {loading ? (
-                            <div className="p-6 text-center text-gray-400 text-sm">Lade...</div>
+                            <div className="space-y-3 p-4">
+                                <Skeleton className="h-4 w-3/4" />
+                                <Skeleton className="h-3 w-1/2" />
+                                <Skeleton className="h-4 w-2/3" />
+                                <Skeleton className="h-3 w-1/2" />
+                            </div>
                         ) : recentReports.length === 0 ? (
-                            <div className="p-6 text-center text-gray-400 text-sm">Keine Meldungen vorhanden.</div>
+                            <p className="p-6 text-center text-sm text-muted-foreground">Keine Meldungen vorhanden.</p>
                         ) : (
                             recentReports.map((r) => (
-                                <div key={r.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
-                                    <div className="flex items-center justify-between gap-2">
-                                        <div>
-                                            <div className="font-medium text-sm">{r.reason || r.category || 'Kein Grund angegeben'}</div>
-                                            <div className="text-xs text-gray-400 mt-0.5">
-                                                {(r as any).reporter_name || 'Anonym'} → {(r as any).reported_user_name || (r as any).reported_ad_title || 'Unbekannt'}
-                                            </div>
+                                <div key={r.id} className="flex items-start justify-between gap-3 p-4">
+                                    <div className="min-w-0">
+                                        <div className="break-words text-sm font-medium text-foreground">{r.reason || r.category || 'Kein Grund angegeben'}</div>
+                                        <div className="mt-0.5 break-words text-xs text-muted-foreground">
+                                            {(r as any).reporter_name || 'Anonym'} → {(r as any).reported_user_name || (r as any).reported_ad_title || 'Unbekannt'}
                                         </div>
-                                        <span className={cn(
-                                            'text-[10px] font-bold px-2 py-0.5 rounded-full uppercase',
-                                            (REPORT_STATUS_STYLES[r.status] || REPORT_STATUS_STYLES.dismissed).cls
-                                        )}>
-                                            {REPORT_STATUS_STYLES[r.status]?.label || r.status}
-                                        </span>
                                     </div>
+                                    <span className={cn(
+                                        'shrink-0 rounded-full px-2.5 py-1 text-xs font-medium',
+                                        (REPORT_STATUS_STYLES[r.status] || REPORT_STATUS_STYLES.dismissed).cls
+                                    )}>
+                                        {REPORT_STATUS_STYLES[r.status]?.label || r.status}
+                                    </span>
                                 </div>
                             ))
                         )}
                     </div>
-                </div>
+                </Card>
 
                 {/* Recent users */}
-                <div className="bg-white dark:bg-gray-900 rounded-3xl border dark:border-gray-800 shadow-sm overflow-hidden">
-                    <div className="p-5 border-b dark:border-gray-800 flex items-center justify-between">
-                        <div className="flex items-center gap-2 font-bold text-sm">
-                            <UserPlus size={16} className="text-blue-500" />
+                <Card className="shadow-soft">
+                    <div className="flex items-center justify-between gap-3 border-b border-border p-4">
+                        <div className="flex items-center gap-2 text-sm font-semibold">
+                            <UserPlus size={16} className="text-muted-foreground" aria-hidden />
                             Neue Nutzer
                         </div>
-                        <Button variant="unstyled" size="unstyled" type="submit" onClick={() => navTo('users')} className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 flex items-center gap-1">
-                            Alle <ArrowUpRight size={12} />
+                        <Button variant="ghost" size="sm" type="button" onClick={() => navTo('users')} className="h-11 gap-1 px-3 text-xs">
+                            Alle <ArrowUpRight size={16} aria-hidden />
                         </Button>
                     </div>
-                    <div className="divide-y dark:divide-gray-800">
+                    <div className="divide-y divide-border">
                         {loading ? (
-                            <div className="p-6 text-center text-gray-400 text-sm">Lade...</div>
+                            <div className="space-y-3 p-4">
+                                <Skeleton className="h-4 w-3/4" />
+                                <Skeleton className="h-3 w-1/2" />
+                                <Skeleton className="h-4 w-2/3" />
+                                <Skeleton className="h-3 w-1/2" />
+                            </div>
                         ) : recentUsers.length === 0 ? (
-                            <div className="p-6 text-center text-gray-400 text-sm">Keine Nutzer gefunden.</div>
+                            <p className="p-6 text-center text-sm text-muted-foreground">Keine Nutzer gefunden.</p>
                         ) : (
                             recentUsers.map((u) => (
-                                <div key={u.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary-hover text-sm shrink-0">
+                                <div key={u.id} className="flex items-center gap-3 p-4">
+                                    <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary/15 text-sm font-semibold text-brand-ink dark:text-primary">
                                         {(u.display_name || u.first_name || '?').charAt(0).toUpperCase()}
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="font-medium text-sm truncate">{u.display_name || `${u.first_name} ${u.last_name}`}</div>
-                                        <div className="text-xs text-gray-400 truncate">{u.email || u.auth_email}</div>
+                                    <div className="min-w-0 flex-1">
+                                        <div className="break-words text-sm font-medium text-foreground">{u.display_name || `${u.first_name} ${u.last_name}`}</div>
+                                        <div className="break-all text-xs text-muted-foreground">{u.email || u.auth_email}</div>
                                     </div>
                                     {u.role === 'sv_admin' && (
-                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 uppercase shrink-0">
+                                        <span className="shrink-0 rounded-full bg-primary/15 px-2.5 py-1 text-xs font-medium text-brand-ink dark:text-primary">
                                             Admin
                                         </span>
                                     )}
@@ -325,8 +332,9 @@ export default function AdminOverview() {
                             ))
                         )}
                     </div>
-                </div>
+                </Card>
             </div>
+            )}
         </div>
     );
 }

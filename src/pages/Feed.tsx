@@ -9,6 +9,7 @@ import { GraduationCap, MapPin, Clock, Filter, Search, CalendarDays, ShieldCheck
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle } from '../components/ui/sheet';
+import { Skeleton } from '../components/ui/skeleton';
 import { GradeSelector } from '../components/GradeSelector';
 import { Input } from '../components/ui/input';
 import { PriceRangeSlider } from '../components/PriceRangeSlider';
@@ -67,9 +68,9 @@ interface Ad {
     profiles_avail?: Availability;
 }
 
-// Getrennte Konstanten: aktive (weiß auf Farbe) und inaktive (grau auf grau) States teilen sich nie ein Element.
-const GESUCHE_PILL_ACTIVE = 'bg-blue-600 text-white shadow-sm';
-const GESUCHE_PILL_IDLE = 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300';
+// Aktive Filterpille und Ruhezustand nutzen dieselbe Markenfläche.
+const GESUCHE_PILL_ACTIVE = 'bg-primary text-primary-foreground';
+const GESUCHE_PILL_IDLE = 'bg-muted text-muted-foreground';
 // „Beliebt:“-Fächer (B2): Standardliste, bis echte Klicks ein Ranking liefern
 const POPULAR_FALLBACK: Subject[] = ['mathematik', 'deutsch', 'englisch', 'physik', 'latein', 'franzoesisch', 'chemie', 'informatik'];
 let popularSubjectsMemory: Subject[] | null = null;
@@ -391,13 +392,13 @@ export default function Feed() {
                     </div>
                     <div className="flex items-center gap-1.5 flex-wrap min-w-0">
                         {user && (
-                            <Button variant="unstyled" size="unstyled" type="submit"
+                            <Button variant="unstyled" size="unstyled" type="button"
                                 onClick={() => { setFilterByTime(!filterByTime); triggerHaptic('selection'); }}
                                 aria-pressed={filterByTime}
-                                className={`flex items-center gap-1 text-xs px-3 min-h-[44px] py-1.5 rounded-full border font-semibold transition-all cursor-pointer ${
+                                className={`flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors ${
                                     filterByTime
-                                        ? 'bg-primary text-black border-primary shadow-sm dark:bg-primary dark:text-black'
-                                        : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-500'
+                                        ? 'border-primary bg-primary text-primary-foreground'
+                                        : 'border-border bg-card text-muted-foreground hover:text-foreground'
                                 }`}
                                 title="Passende Zeiten oben anzeigen"
                             >
@@ -405,41 +406,41 @@ export default function Feed() {
                                 <span className="hidden sm:inline">Zeitlich passend</span>
                             </Button>
                         )}
-                        <Button variant="unstyled" size="unstyled" type="submit"
+                        <Button variant="unstyled" size="unstyled" type="button"
                             onClick={() => { setFilterOnlyCoaches(!filterOnlyCoaches); triggerHaptic('selection'); }}
                             aria-pressed={filterOnlyCoaches}
-                            className={`flex items-center gap-1 text-xs px-3 min-h-[44px] py-1.5 rounded-full border font-semibold transition-all cursor-pointer ${
+                            className={`flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors ${
                                 filterOnlyCoaches
-                                    ? 'bg-primary text-black border-primary shadow-sm dark:bg-primary dark:text-black'
-                                    : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-500'
+                                    ? 'border-primary bg-primary text-primary-foreground'
+                                    : 'border-border bg-card text-muted-foreground hover:text-foreground'
                             }`}
                             title="Nur Coaches der Coaching-AG anzeigen"
                         >
-                            <Award size={13} className={filterOnlyCoaches ? 'text-black dark:text-black' : 'text-gray-400'} />
+                            <Award size={14} className="shrink-0" aria-hidden />
                             <span className="hidden sm:inline">Schüler-Coaches</span>
                             <span className="sm:hidden">Coaches</span>
                         </Button>
-                        <Button variant="outline" size="sm" className="h-11 px-4 rounded-full text-sm font-bold gap-1.5 border-gray-200 dark:border-gray-800 shadow-2xs" onClick={() => setShowFilters(!showFilters)} aria-expanded={showFilters} aria-haspopup="dialog">
-                            <Filter size={15} /> Filter
+                        <Button variant="outline" size="sm" className="h-11 gap-1.5 rounded-full border-border px-4 text-sm font-semibold" onClick={() => setShowFilters(!showFilters)} aria-expanded={showFilters} aria-haspopup="dialog">
+                            <Filter size={15} aria-hidden /> Filter
                             {activeFilterCount > 0 && (
-                                <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-black leading-none text-amber-950">{activeFilterCount}</span>
+                                <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-xs font-semibold leading-none text-primary-foreground tabular-nums">{activeFilterCount}</span>
                             )}
                         </Button>
                         <Button
                             variant="ghost"
                             size="sm"
                             onClick={savedSearch ? discardSavedSearch : saveCurrentSearch}
-                            className="h-11 px-3.5 text-sm text-primary-hover dark:text-primary font-bold rounded-full border border-primary/20 bg-primary/10 hover:bg-primary/20 shadow-2xs"
+                            className="h-11 gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-3.5 text-sm font-semibold text-brand-ink hover:bg-primary/20 dark:text-primary"
                             title={savedSearch ? 'Gespeicherte Suche entfernen' : 'Aktuelle Filter speichern (ersetzt die bisherige Suche)'}
                             aria-pressed={!!savedSearch}
                         >
-                            {savedSearch ? <><Bookmark size={15} className="fill-current" /> Gemerkt</> : <><Bookmark size={15} /> Merken</>}
+                            {savedSearch ? <><Bookmark size={15} className="fill-current" aria-hidden /> Gemerkt</> : <><Bookmark size={15} aria-hidden /> Merken</>}
                         </Button>
                     </div>
                 </div>
 
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} aria-hidden />
                     <Input
                         type="search"
                         aria-label="Anzeigen nach Fach oder Name durchsuchen"
@@ -451,10 +452,10 @@ export default function Feed() {
                 </div>
 
                 {/* Quick Subject Filter Chips */}
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 no-scrollbar text-xs min-w-0">
-                    <span className="text-gray-900 dark:text-white font-extrabold shrink-0 text-xs uppercase mr-1">Beliebt:</span>
+                <div className="no-scrollbar -mx-4 flex min-w-0 items-center gap-1.5 overflow-x-auto px-4 pb-1 text-xs sm:mx-0 sm:px-0">
+                    <span className="mr-1 shrink-0 text-xs font-semibold text-muted-foreground">Beliebt:</span>
                     {popularSubjects.map((subj) => (
-                        <Button variant="unstyled" size="unstyled" type="submit"
+                        <Button variant="unstyled" size="unstyled" type="button"
                             key={subj}
                             onClick={() => {
                                 setFilterSubject(filterSubject === subj ? null : subj);
@@ -463,28 +464,28 @@ export default function Feed() {
                             }}
                             aria-pressed={filterSubject === subj}
                             className={cn(
-                                "px-3 min-h-[44px] py-2 rounded-full border transition-all shrink-0 font-medium",
+                                "min-h-11 shrink-0 rounded-full border px-3 py-2 font-medium transition-colors",
                                 filterSubject === subj
-                                    ? "bg-primary text-black font-bold border-primary shadow-sm"
-                                    : "bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-800 hover:border-gray-300"
+                                    ? "border-primary bg-primary font-semibold text-primary-foreground"
+                                    : "border-border bg-card text-muted-foreground hover:border-ring/40 hover:text-foreground"
                             )}
                         >
                             {subjectLabelMap[subj] || subj}
                         </Button>
                     ))}
                     {filterSubject && (
-                        <Button variant="unstyled" size="unstyled" type="submit"
+                        <Button variant="unstyled" size="unstyled" type="button"
                             onClick={() => setFilterSubject(null)}
                             aria-label="Fachfilter zurücksetzen"
-                            className="px-2.5 py-1 rounded-full bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400 text-xs font-bold shrink-0 inline-flex items-center gap-1"
+                            className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full bg-destructive/10 px-3 text-xs font-semibold text-destructive"
                         >
-                            <X size={12} /> Zurücksetzen
+                            <X size={12} aria-hidden /> Zurücksetzen
                         </Button>
                     )}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 min-w-0">
-                    <p className="text-xs font-bold text-gray-400 shrink-0" aria-live="polite">
+                <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5">
+                    <p className="shrink-0 text-xs font-semibold text-muted-foreground" aria-live="polite">
                         {loading
                             ? 'Ergebnisse werden geladen…'
                             : fetchError
@@ -497,19 +498,19 @@ export default function Feed() {
                         aria-hidden={!hasActiveFilters || loading}
                         tabIndex={hasActiveFilters && !loading ? 0 : -1}
                         className={cn(
-                            "flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-opacity duration-200 shrink-0 cursor-pointer",
+                            "flex min-h-11 shrink-0 cursor-pointer items-center gap-1 rounded-full bg-muted px-3 text-xs font-semibold text-muted-foreground transition-opacity duration-200 hover:text-foreground",
                             hasActiveFilters && !loading ? 'opacity-100' : 'pointer-events-none opacity-0'
                         )}
                     >
-                        <X size={12} /> Filter zurücksetzen
+                        <X size={12} aria-hidden /> Filter zurücksetzen
                     </Button>
-                    <Label className="flex items-center gap-1.5 text-xs font-bold text-gray-500 dark:text-gray-400 shrink-0 ml-auto">
-                        <ArrowUpDown size={13} className="shrink-0" />
+                    <Label className="ml-auto flex shrink-0 items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                        <ArrowUpDown size={13} className="shrink-0" aria-hidden />
                         <span className="sr-only">Sortierung</span>
                         <NativeSelect
                             value={sortKey}
                             onChange={e => { if (isValidSortKey(e.target.value)) { setSortKey(e.target.value); triggerHaptic('selection'); } }}
-                            className="bg-gray-100 dark:bg-gray-800 rounded-full px-2.5 py-1 text-xs font-bold text-gray-700 dark:text-gray-200 border border-transparent focus:border-primary focus:outline-none cursor-pointer max-w-[11rem] truncate"
+                            className="max-w-[11rem] cursor-pointer truncate rounded-full border-transparent bg-muted px-3 text-xs font-semibold text-foreground"
                             aria-label="Anzeigen sortieren"
                         >
                             {SORT_OPTIONS.map(o => (
@@ -523,41 +524,41 @@ export default function Feed() {
                     <SheetContent
                         side="bottom"
                         showCloseButton={false}
-                        className="flex max-h-[85dvh] flex-col gap-0 overflow-hidden rounded-t-3xl border-t border-gray-100 bg-white p-0 shadow-soft dark:border-gray-800 dark:bg-gray-900 md:inset-x-auto md:right-4 md:bottom-4 md:left-auto md:top-auto md:max-h-[70vh] md:w-[420px] md:rounded-3xl md:border"
+                        className="flex max-h-[88dvh] flex-col gap-0 overflow-hidden rounded-t-3xl border-t border-border bg-card p-0 shadow-overlay md:inset-x-auto md:right-4 md:bottom-4 md:left-auto md:top-auto md:max-h-[75dvh] md:w-[420px] md:rounded-3xl md:border"
                     >
                         <SheetTitle className="sr-only">Filter</SheetTitle>
                         <SheetDescription className="sr-only">Anzeigen nach Typ, Preis, Klassenstufe und Fach filtern.</SheetDescription>
-                        <div className="shrink-0 border-b border-gray-100 bg-white px-5 pb-2 pt-3 dark:border-gray-800 dark:bg-gray-900">
+                        <div className="shrink-0 border-b border-border bg-card px-5 pb-2 pt-3">
                             <div className="mb-1 flex justify-center md:hidden">
-                                <div className="h-1.5 w-10 rounded-full bg-gray-200 dark:bg-gray-700" aria-hidden />
+                                <div className="h-1.5 w-10 rounded-full bg-border" aria-hidden />
                             </div>
                             <div className="flex items-center justify-between">
-                                <h2 className="font-display text-lg font-bold uppercase">Filter</h2>
+                                <h2 className="font-display text-lg font-semibold uppercase">Filter</h2>
                                 <SheetClose
                                     aria-label="Filter schließen"
-                                    className="-mr-2 rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:hover:bg-gray-800 dark:hover:text-gray-200"
+                                    className="-mr-2 grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                                 >
-                                    <X size={20} />
+                                    <X size={20} aria-hidden />
                                 </SheetClose>
                             </div>
                         </div>
-                        <div className="min-h-0 flex-1 overflow-y-auto">
-                            <div className="p-4 sm:p-5 space-y-6 min-w-0 overflow-x-clip pb-[calc(1.5rem+env(safe-area-inset-bottom))] md:pb-5">
+                        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+                            <div className="min-w-0 space-y-6 overflow-x-clip p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:p-5 md:pb-5">
 
                             {/* Type & Price */}
-                            <div className="grid md:grid-cols-2 gap-6">
+                            <div className="grid gap-6 md:grid-cols-2">
                                 <div>
-                                    <Label className="text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-white mb-2 block">Typ</Label>
-                                    <div className="flex gap-2">
-                                        <Button variant="unstyled" size="unstyled" type="submit" onClick={() => { triggerHaptic('selection'); setFilterType('all'); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${filterType === 'all' ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>Alle</Button>
-                                        <Button variant="unstyled" size="unstyled" type="submit" onClick={() => { triggerHaptic('selection'); setFilterType('offer'); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${filterType === 'offer' ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>Angebote</Button>
-                                        <Button variant="unstyled" size="unstyled" type="submit" onClick={() => { triggerHaptic('selection'); setFilterType('search'); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${filterType === 'search' ? GESUCHE_PILL_ACTIVE : GESUCHE_PILL_IDLE}`}>Gesuche</Button>
+                                    <Label className="mb-2 block text-xs font-semibold text-foreground">Typ</Label>
+                                    <div className="flex flex-wrap gap-2">
+                                        <Button variant="unstyled" size="unstyled" type="button" onClick={() => { triggerHaptic('selection'); setFilterType('all'); }} className={`min-h-11 rounded-full px-4 text-xs font-semibold transition-colors ${filterType === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'}`}>Alle</Button>
+                                        <Button variant="unstyled" size="unstyled" type="button" onClick={() => { triggerHaptic('selection'); setFilterType('offer'); }} className={`min-h-11 rounded-full px-4 text-xs font-semibold transition-colors ${filterType === 'offer' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'}`}>Angebote</Button>
+                                        <Button variant="unstyled" size="unstyled" type="button" onClick={() => { triggerHaptic('selection'); setFilterType('search'); }} className={`min-h-11 rounded-full px-4 text-xs font-semibold transition-colors ${filterType === 'search' ? GESUCHE_PILL_ACTIVE : GESUCHE_PILL_IDLE}`}>Gesuche</Button>
                                     </div>
                                 </div>
-                                <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 px-3.5 pt-2.5 pb-8">
-                                    <div className="flex items-baseline justify-between mb-1">
-                                        <Label className="text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-white">Preis pro Stunde</Label>
-                                        <span className="text-xs font-bold text-gray-600 dark:text-gray-300">{minPrice}€ – {maxPrice}€</span>
+                                <div className="rounded-2xl border border-border bg-muted/50 px-3.5 pb-8 pt-2.5">
+                                    <div className="mb-1 flex items-baseline justify-between gap-2">
+                                        <Label className="text-xs font-semibold text-foreground">Preis pro Stunde</Label>
+                                        <span className="text-xs font-semibold tabular-nums text-muted-foreground">{minPrice}€ – {maxPrice}€</span>
                                     </div>
                                     <PriceRangeSlider
                                         min={PRICE_SLIDER_MIN}
@@ -570,17 +571,17 @@ export default function Feed() {
 
                             {/* Grade */}
                             <div>
-                                <Label className="text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-white mb-2 block">Klassenstufe</Label>
+                                <Label className="mb-2 block text-xs font-semibold text-foreground">Klassenstufe</Label>
                                 <GradeSelector selectedGrades={filterGrade} onChange={setFilterGrade} className="justify-start" />
                             </div>
 
                             {/* Subjects */}
                             <div>
-                                <Label className="text-xs font-extrabold uppercase tracking-wider text-gray-900 dark:text-white mb-2 block">Fach</Label>
-                                <div className="flex flex-col gap-4 max-h-64 overflow-y-auto pr-2">
+                                <Label className="mb-2 block text-xs font-semibold text-foreground">Fach</Label>
+                                <div className="flex max-h-64 flex-col gap-4 overflow-y-auto pr-2">
                                     {SUBJECT_CATEGORIES.map(category => (
                                         <div key={category.title}>
-                                            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{category.title}</h3>
+                                            <h3 className="mb-2 text-xs font-semibold text-muted-foreground">{category.title}</h3>
                                             <div className="flex flex-wrap gap-2">
                                                 {category.subjects.map((s: Subject) => (
                                                     <SubjectChip
@@ -604,11 +605,11 @@ export default function Feed() {
             </div>
 
             {savedSearch && !loading && !fetchError && (
-                <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 rounded-2xl border border-primary/20 bg-primary/5 dark:bg-primary/10 min-w-0 overflow-x-clip">
-                    <div className="flex items-center gap-2 min-w-0 text-sm">
-                        <Bookmark size={15} className="text-primary-hover dark:text-primary shrink-0 fill-current" />
-                        <span className="font-bold text-gray-700 dark:text-gray-200 shrink-0">Gemerkte Suche:</span>
-                        <span className="text-gray-500 dark:text-gray-400 truncate">
+                <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 overflow-x-clip rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 dark:bg-primary/10">
+                    <div className="flex min-w-0 items-center gap-2 text-sm">
+                        <Bookmark size={15} className="shrink-0 fill-current text-brand-ink dark:text-primary" aria-hidden />
+                        <span className="shrink-0 font-semibold text-foreground">Gemerkte Suche:</span>
+                        <span className="truncate text-muted-foreground">
                             {savedSearch.query ? `„${savedSearch.query}“` : 'Alle Anzeigen'}
                             {savedSearch.subject ? ` · ${savedSearch.subject}` : ''}
                             {savedSearch.grades.length > 0 ? ` · Kl. ${savedSearch.grades.join(', ')}` : ''}
@@ -617,12 +618,12 @@ export default function Feed() {
                                 : ''}
                         </span>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex shrink-0 items-center gap-2">
                         <Button
                             variant="outline"
                             size="sm"
                             onClick={applySavedSearch}
-                            className="h-8 px-3 text-xs font-bold rounded-full border-primary/30"
+                            className="h-11 rounded-full border-primary/30 px-4 text-xs font-semibold"
                         >
                             Suchen
                         </Button>
@@ -631,9 +632,9 @@ export default function Feed() {
                             onClick={discardSavedSearch}
                             aria-label="Gemerkte Suche verwerfen"
                             title="Gemerkte Suche verwerfen"
-                            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-200/60 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                            className="grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                         >
-                            <X size={15} />
+                            <X size={15} aria-hidden />
                         </Button>
                     </div>
                 </div>
@@ -641,26 +642,26 @@ export default function Feed() {
 
             {/* Infos: eine schlanke Zeile mit den drei Zielen, Details erst auf Wunsch */}
             <div className="mb-6">
-            <div className="flex items-center gap-1.5 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 pl-3 pr-1.5 py-1.5 shadow-sm overflow-x-auto">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-gray-400 shrink-0">Infos</span>
+            <div className="flex items-center gap-1.5 overflow-x-auto rounded-2xl border border-border bg-card py-1.5 pl-3 pr-1.5 shadow-soft">
+                <span className="shrink-0 text-xs font-semibold text-muted-foreground">Infos</span>
                 <Button variant="unstyled" size="unstyled"
                     type="button"
                     onClick={() => navigate('/coaching')}
-                    className="shrink-0 inline-flex items-center min-h-[40px] px-3 rounded-full text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    className="inline-flex min-h-11 shrink-0 items-center rounded-full px-3 text-xs font-semibold text-foreground/80 transition-colors hover:bg-muted hover:text-foreground"
                 >
                     Coaching · {posterBlock.time} · {posterBlock.room}
                 </Button>
                 <Button variant="unstyled" size="unstyled"
                     type="button"
                     onClick={() => navigate('/coaching', { state: { section: 'foerderung' } })}
-                    className="shrink-0 inline-flex items-center min-h-[40px] px-3 rounded-full text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    className="inline-flex min-h-11 shrink-0 items-center rounded-full px-3 text-xs font-semibold text-foreground/80 transition-colors hover:bg-muted hover:text-foreground"
                 >
                     Förderunterricht
                 </Button>
                 <Button variant="unstyled" size="unstyled"
                     type="button"
                     onClick={() => navigate('/eltern-leitfaden')}
-                    className="shrink-0 inline-flex items-center min-h-[40px] px-3 rounded-full text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    className="inline-flex min-h-11 shrink-0 items-center rounded-full px-3 text-xs font-semibold text-foreground/80 transition-colors hover:bg-muted hover:text-foreground"
                 >
                     Eltern
                 </Button>
@@ -669,45 +670,42 @@ export default function Feed() {
                     size="sm"
                     aria-expanded={showBanners}
                     className={cn(
-                        "ml-auto h-8 text-xs rounded-full font-bold transition-all shadow-sm flex items-center gap-1 shrink-0",
+                        "ml-auto h-11 shrink-0 rounded-full border-primary text-xs font-semibold",
                         showBanners
-                            ? "bg-primary text-black border-primary hover:bg-primary-hover dark:bg-primary dark:text-black"
-                            : "bg-primary border-primary text-black hover:bg-primary/95"
+                            ? "bg-primary text-primary-foreground hover:bg-primary-hover"
+                            : "bg-primary text-primary-foreground hover:bg-primary-hover"
                     )}
                     onClick={() => { const next = !showBanners; setShowBanners(next); try { localStorage.setItem('feed_show_banners', String(next)); } catch { /* ignore */ } }}
                 >
                     {showBanners ? (
-                        <><span>Details verbergen</span><ChevronUp size={14} /></>
+                        <><span>Details verbergen</span><ChevronUp size={14} aria-hidden /></>
                     ) : (
-                        <><span>Details</span><ChevronDown size={14} /></>
+                        <><span>Details</span><ChevronDown size={14} aria-hidden /></>
                     )}
                 </Button>
             </div>
 
                 {showBanners && (
                     <div className="mt-3 space-y-4 animate-in slide-in-from-top-2">
-                            {/* Info Block für Schüler-Coaching (editierbar im Coach-Panel) */}
+                        {/* Info Block für Schüler-Coaching (editierbar im Coach-Panel) */}
                         {coachInfo.is_visible && (
-                            <Card className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 shadow-sm overflow-hidden relative">
-                                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none" aria-hidden="true">
-                                    <GraduationCap size={96} />
-                                </div>
-                                <CardContent className="p-6 relative z-10 space-y-4">
-                                    <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
-                                        <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-xl">
-                                            <GraduationCap size={20} />
+                            <Card className="relative overflow-hidden border-border bg-card shadow-soft">
+                                <CardContent className="relative z-10 space-y-4 p-5 sm:p-6">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/15 text-brand-ink dark:text-primary">
+                                            <GraduationCap size={20} aria-hidden />
                                         </div>
-                                        <h2 className="text-lg font-bold">{coachInfo.title}</h2>
+                                        <h2 className="min-w-0 text-lg font-semibold text-foreground">{coachInfo.title}</h2>
                                     </div>
-                                    <p className="text-sm text-blue-900 dark:text-blue-200 leading-relaxed whitespace-pre-line">
+                                    <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
                                         {coachInfo.description}
                                     </p>
-                                    <div className="flex flex-wrap items-center gap-3 sm:gap-4 bg-white/60 dark:bg-black/20 p-3 rounded-xl text-sm font-semibold text-blue-800 dark:text-blue-300 min-w-0">
+                                    <div className="flex min-w-0 flex-wrap items-center gap-3 rounded-xl bg-muted/60 p-3 text-sm font-semibold text-foreground/80 sm:gap-4">
                                         {coachInfo.time && (
-                                            <span className="flex items-center gap-1.5"><Clock size={16} /> {coachInfo.time}</span>
+                                            <span className="flex items-center gap-1.5"><Clock size={16} aria-hidden /> {coachInfo.time}</span>
                                         )}
                                         {coachInfo.room && (
-                                            <span className="flex items-center gap-1.5"><MapPin size={16} /> {coachInfo.room}</span>
+                                            <span className="flex items-center gap-1.5"><MapPin size={16} aria-hidden /> {coachInfo.room}</span>
                                         )}
                                     </div>
                                 </CardContent>
@@ -715,33 +713,33 @@ export default function Feed() {
                         )}
 
                         {/* Förderunterricht – Inhalte direkt aus dem Coach-Panel (Tab „Seite“) */}
-                        <Card className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 shadow-sm overflow-hidden relative">
-                            <CardContent className="p-6 relative z-10 space-y-4">
-                                <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400">
-                                    <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl">
-                                        <GraduationCap size={20} />
+                        <Card className="border-border bg-card shadow-soft">
+                            <CardContent className="space-y-4 p-5 sm:p-6">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/15 text-brand-ink dark:text-primary">
+                                        <GraduationCap size={20} aria-hidden />
                                     </div>
-                                    <h2 className="text-lg font-bold">{supportBlock.title}</h2>
+                                    <h2 className="min-w-0 text-lg font-semibold text-foreground">{supportBlock.title}</h2>
                                 </div>
-                                <div className="text-sm text-indigo-900 dark:text-indigo-200 leading-relaxed space-y-2">
+                                <div className="space-y-2 text-sm leading-relaxed text-muted-foreground">
                                     {supportBlock.paragraphs.map((paragraph, index) => (
                                         <p key={index}>{paragraph}</p>
                                     ))}
                                     {supportBlock.registrationEmail && (
                                         <p>
                                             {supportBlock.registrationText || 'Anmeldung verbindlich über:'}{' '}
-                                            <a href={`mailto:${supportBlock.registrationEmail}`} className="underline font-bold">{supportBlock.registrationEmail}</a>
+                                            <a href={`mailto:${supportBlock.registrationEmail}`} className="font-semibold text-brand-ink underline underline-offset-4 dark:text-primary">{supportBlock.registrationEmail}</a>
                                         </p>
                                     )}
                                 </div>
 
                                 {supportBlock.days.length > 0 && supportBlock.rows.length > 0 && (
-                                    <div className="overflow-x-auto rounded-xl border border-indigo-100 dark:border-indigo-900/50 bg-white/70 dark:bg-black/20">
-                                        <Table className="w-full text-xs text-center">
+                                    <div className="overflow-x-auto rounded-xl border border-border bg-card">
+                                        <Table className="w-full min-w-[28rem] text-center text-xs">
                                             <TableHeader>
                                                 <TableRow>
                                                     {supportBlock.days.map(day => (
-                                                        <TableHead key={day.id} className="border p-2 border-indigo-100 dark:border-indigo-900/50 text-indigo-900 dark:text-indigo-200 font-bold">{day.label}</TableHead>
+                                                        <TableHead key={day.id} className="border border-border p-2 font-semibold text-foreground">{day.label}</TableHead>
                                                     ))}
                                                 </TableRow>
                                             </TableHeader>
@@ -760,31 +758,31 @@ export default function Feed() {
                                     <Button variant="unstyled" size="unstyled"
                                         type="button"
                                         onClick={() => navigate('/coaching', { state: { section: 'foerderung' } })}
-                                        className="underline font-bold text-sm text-indigo-900 dark:text-indigo-200"
+                                        className="inline-flex min-h-11 items-center text-sm font-semibold text-brand-ink underline underline-offset-4 dark:text-primary"
                                     >
                                         Zur Coaching-Seite
                                     </Button>
                                 </p>
 
                                 {supportBlock.learnCoachingText && (
-                                    <div className="mt-4 text-xs text-center text-gray-500">
+                                    <div className="mt-4 text-center text-xs text-muted-foreground">
                                         {supportBlock.learnCoachingText}<br />
-                                        <a href={`mailto:${supportBlock.learnCoachingEmail}`} className="underline font-bold">{supportBlock.learnCoachingEmail}</a>
+                                        <a href={`mailto:${supportBlock.learnCoachingEmail}`} className="font-semibold text-brand-ink underline underline-offset-4 dark:text-primary">{supportBlock.learnCoachingEmail}</a>
                                     </div>
                                 )}
                             </CardContent>
                         </Card>
 
                         {/* Eltern-Leitfaden Info Block */}
-                        <Card className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50 shadow-sm overflow-hidden relative">
-                            <CardContent className="p-6 relative z-10 space-y-4">
-                                <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
-                                    <div className="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-xl">
-                                        <ShieldCheck size={20} className="text-emerald-600 dark:text-emerald-400" />
+                        <Card className="border-border bg-card shadow-soft">
+                            <CardContent className="space-y-4 p-5 sm:p-6">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/15 text-brand-ink dark:text-primary">
+                                        <ShieldCheck size={20} aria-hidden />
                                     </div>
-                                    <h2 className="text-lg font-bold">Leitfaden für Eltern & Sicherheit</h2>
+                                    <h2 className="min-w-0 text-lg font-semibold text-foreground">Leitfaden für Eltern & Sicherheit</h2>
                                 </div>
-                                <p className="text-sm text-emerald-900 dark:text-emerald-200 leading-relaxed">
+                                <p className="text-sm leading-relaxed text-muted-foreground">
                                     Nur verifizierte Konten können Anzeigen erstellen, Kontakt aufnehmen oder Anzeigen ansehen. Im Profil ist sichtbar, ob jemand verifiziert ist. Mehr zu Maßnahmen, Verhaltensregeln und Kontakt steht im ausführlichen Leitfaden.
                                 </p>
                                 <div>
@@ -792,7 +790,7 @@ export default function Feed() {
                                         variant="outline"
                                         size="sm"
                                         onClick={() => navigate('/eltern-leitfaden')}
-                                        className="rounded-full border-emerald-200 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 font-semibold"
+                                        className="h-11 rounded-full border-border px-4 font-semibold"
                                     >
                                         Eltern-Leitfaden lesen
                                     </Button>
@@ -803,50 +801,70 @@ export default function Feed() {
                 )}
             </div>
 
-            <div className="grid gap-4 min-w-0">
+            <div className="grid min-w-0 gap-4">
                 {loading ? (
-                    <div className="text-center py-20 text-gray-500 animate-pulse">Lade Anzeigen...</div>
+                    <div className="space-y-4" role="status" aria-label="Anzeigen werden geladen">
+                        {[0, 1, 2].map((i) => (
+                            <Card key={i} className="overflow-hidden border-border bg-card">
+                                <CardHeader className="flex flex-row items-start justify-between gap-3 border-b border-border p-4">
+                                    <div className="min-w-0 flex-1 space-y-2">
+                                        <Skeleton className="h-5 w-40 rounded-full" />
+                                        <Skeleton className="h-3 w-24 rounded-full" />
+                                    </div>
+                                    <Skeleton className="h-5 w-16 rounded-full" />
+                                </CardHeader>
+                                <CardContent className="space-y-3 p-4">
+                                    <div className="flex gap-2">
+                                        <Skeleton className="h-7 w-20 rounded-full" />
+                                        <Skeleton className="h-7 w-24 rounded-full" />
+                                    </div>
+                                    <Skeleton className="h-4 w-full rounded-full" />
+                                    <Skeleton className="h-4 w-3/4 rounded-full" />
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
                 ) : fetchError ? (
-                    <div className="flex flex-col items-center justify-center p-6 sm:p-12 text-center bg-white dark:bg-gray-900 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm mt-8 min-w-0 overflow-hidden">
-                        <div className="w-24 h-24 mb-6 rounded-full bg-red-50 dark:bg-red-950/30 flex items-center justify-center">
-                            <SearchX size={40} className="text-red-400 dark:text-red-500" />
+                    <div className="mt-8 flex min-w-0 flex-col items-center justify-center overflow-hidden rounded-2xl border border-destructive/25 bg-card p-6 text-center shadow-soft sm:p-12" role="alert">
+                        <div className="mb-5 grid size-16 place-items-center rounded-full bg-destructive/10 text-destructive">
+                            <SearchX size={28} aria-hidden />
                         </div>
-                        <h2 className="text-xl font-bold mb-2">Die Anzeigen konnten nicht geladen werden</h2>
-                        <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">{apiErrorMessage(fetchError, 'Prüfe deine Internetverbindung und versuche es erneut.')}</p>
-                        <Button onClick={() => fetchAds()} className="rounded-full shadow-md">Erneut versuchen</Button>
+                        <h2 className="mb-2 text-xl font-semibold text-foreground">Die Anzeigen konnten nicht geladen werden</h2>
+                        <p className="mb-6 max-w-sm text-sm text-muted-foreground">{apiErrorMessage(fetchError, 'Prüfe deine Internetverbindung und versuche es erneut.')}</p>
+                        <Button onClick={() => fetchAds()} className="h-11 rounded-full">Erneut versuchen</Button>
                     </div>
                 ) : sortedAds.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center p-6 sm:p-12 text-center bg-white dark:bg-gray-900 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm mt-8 min-w-0 overflow-hidden">
-                        <div className="w-24 h-24 mb-6 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
-                            <Search size={40} className="text-gray-400 dark:text-gray-500" />
+                    <div className="mt-8 flex min-w-0 flex-col items-center justify-center overflow-hidden rounded-2xl border border-border bg-card p-6 text-center shadow-soft sm:p-12">
+                        <div className="mb-5 grid size-16 place-items-center rounded-full bg-muted text-muted-foreground">
+                            <Search size={28} aria-hidden />
                         </div>
                         {filterType === 'search' ? (
                             <>
-                                <h3 className="text-xl font-bold mb-2">Gesuche sind privat</h3>
-                                <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">
+                                <h3 className="mb-2 text-xl font-semibold text-foreground">Gesuche sind privat</h3>
+                                <p className="mb-6 max-w-sm text-sm text-muted-foreground">
                                     Gesuche erscheinen nicht öffentlich im Feed. Stelle in deinen Profil-Einstellungen ein, welche Fächer du anbietest, um passende Gesuche zu sehen.
                                 </p>
                                 <div className="flex flex-wrap justify-center gap-2">
-                                    <Button onClick={() => navigate('/settings')} className="rounded-full shadow-md">Zu den Einstellungen</Button>
+                                    <Button onClick={() => navigate('/settings')} className="h-11 rounded-full">Zu den Einstellungen</Button>
                                     {hasActiveFilters && (
-                                        <Button variant="outline" onClick={() => { resetAllFilters(); triggerHaptic('light'); }} className="rounded-full shadow-sm">Filter zurücksetzen</Button>
+                                        <Button variant="outline" onClick={() => { resetAllFilters(); triggerHaptic('light'); }} className="h-11 rounded-full">Filter zurücksetzen</Button>
                                     )}
                                 </div>
                             </>
                         ) : hasActiveFilters ? (
                             <>
-                                <h3 className="text-xl font-bold mb-2">Keine Anzeigen für diese Filter</h3>
-                                <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">Keine Anzeige passt zu deiner aktuellen Suche. Setze die Filter zurück oder erstelle selbst eine Anzeige!</p>
+                                <h3 className="mb-2 text-xl font-semibold text-foreground">Keine Anzeigen für diese Filter</h3>
+                                <p className="mb-6 max-w-sm text-sm text-muted-foreground">Keine Anzeige passt zu deiner aktuellen Suche. Setze die Filter zurück oder erstelle selbst eine Anzeige!</p>
                                 <div className="flex flex-wrap justify-center gap-2">
-                                    <Button variant="outline" onClick={() => { resetAllFilters(); triggerHaptic('light'); }} className="rounded-full shadow-sm">Filter zurücksetzen</Button>
-                                    <Button onClick={() => navigate('/create-ad')} className="rounded-full shadow-md">Anzeige erstellen</Button>
+                                    <Button variant="outline" onClick={() => { resetAllFilters(); triggerHaptic('light'); }} className="h-11 rounded-full">Filter zurücksetzen</Button>
+                                    <Button onClick={() => navigate('/create-ad')} className="h-11 rounded-full">Anzeige erstellen</Button>
                                 </div>
                             </>
                         ) : (
                             <>
-                                <h3 className="text-xl font-bold mb-2">Noch keine Anzeigen</h3>
-                                <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">Aktuell gibt es keine aktiven Anzeigen. Erstelle selbst etwas!</p>
-                                <Button onClick={() => navigate('/create-ad')} className="rounded-full shadow-md">Anzeige erstellen</Button>
+                                <h3 className="mb-2 text-xl font-semibold text-foreground">Noch keine Anzeigen</h3>
+                                <p className="mb-6 max-w-sm text-sm text-muted-foreground">Aktuell gibt es keine aktiven Anzeigen. Erstelle selbst etwas!</p>
+                                <Button onClick={() => navigate('/create-ad')} className="h-11 rounded-full">Anzeige erstellen</Button>
                             </>
                         )}
                     </div>
@@ -854,89 +872,93 @@ export default function Feed() {
                     sortedAds.map((ad) => {
                         const matchScore = countMatches(myAvailability, ad.profiles_avail || emptyAvailability());
                         const boosted = istGeboostet(ad);
+                        const openAd = () => navigate(`/ad/${ad.id}`);
                         return (
                         <Card
                             key={ad.id}
+                            role="link"
+                            tabIndex={0}
+                            aria-label={`Anzeige von ${ad.profiles?.display_name || 'Unbekannt'} öffnen`}
                             className={cn(
-                                "overflow-hidden hover:shadow-md transition-all cursor-pointer min-w-0 w-full",
-                                boosted && "ring-1 ring-yellow-400/60 boosted-glow"
+                                "w-full min-w-0 cursor-pointer overflow-hidden border-border bg-card transition-shadow hover:shadow-card focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                                boosted && "ring-1 ring-primary/40"
                             )}
-                            onClick={() => navigate(`/ad/${ad.id}`)}
+                            onClick={openAd}
+                            onKeyDown={(event) => {
+                                if (event.target !== event.currentTarget) return;
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                    event.preventDefault();
+                                    openAd();
+                                }
+                            }}
                         >
                             {boosted && (
-                                <div className="bg-gradient-to-r from-yellow-400/20 via-amber-400/15 to-yellow-400/20 border-b border-yellow-400/30 px-4 py-1.5 flex items-center gap-1.5" title="Diese Anzeige wird hervorgehoben (z. B. Coach-Status oder Aktion). Warum? Siehe Seite „Coaching-AG“.">
-                                    <Sparkles size={12} className="text-yellow-600 dark:text-yellow-400" />
-                                    <span className="text-[11px] font-bold text-yellow-700 dark:text-yellow-400 tracking-wide uppercase">Hervorgehobene Anzeige</span>
+                                <div className="flex items-center gap-1.5 border-b border-primary/20 bg-primary/10 px-4 py-1.5" title="Diese Anzeige wird hervorgehoben (z. B. Coach-Status oder Aktion). Warum? Siehe Seite „Coaching-AG“.">
+                                    <Sparkles size={12} className="text-brand-ink dark:text-primary" aria-hidden />
+                                    <span className="text-xs font-semibold text-brand-ink dark:text-primary">Hervorgehobene Anzeige</span>
                                 </div>
                             )}
                             <CardHeader className={cn(
-                                "p-4 pb-3 border-b flex flex-row justify-between items-start gap-3 min-w-0",
-                                boosted
-                                    ? "bg-yellow-50/70 dark:bg-yellow-950/20 border-yellow-300/50"
-                                    : "bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800"
+                                "flex min-w-0 flex-row items-start justify-between gap-3 border-b p-4 pb-3",
+                                boosted ? "border-primary/20 bg-primary/5" : "border-border bg-card"
                             )}>
                                 <div className="min-w-0 flex-1">
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                        <h3 className="font-bold text-base sm:text-lg truncate text-gray-950 dark:text-white">{ad.profiles?.display_name || 'Unbekannt'}</h3>
-                                        <span className={cn(
-                                            "text-[11px] font-semibold px-2 py-0.5 rounded-full border shrink-0",
-                                            ad.type === 'search'
-                                                ? "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800"
-                                                : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
-                                        )}>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <h3 className="min-w-0 truncate text-base font-semibold text-foreground sm:text-lg">{ad.profiles?.display_name || 'Unbekannt'}</h3>
+                                        <span className="shrink-0 rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
                                             {ad.type === 'search' ? 'Suche' : 'Bietet'}
                                         </span>
                                         {ad.profiles?.is_verified && (
                                             <VerifiedPill />
                                         )}
                                         {ad.profiles?.is_coach && (
-                                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 px-2 py-0.5 rounded-full shrink-0" title="Mitglied der Coaching-AG">
-                                                <Award size={12} className="text-amber-600 dark:text-amber-400" />
+                                            <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-primary/25 bg-primary/15 px-2 py-0.5 text-xs font-semibold text-brand-ink dark:text-primary" title="Mitglied der Coaching-AG">
+                                                <Award size={12} aria-hidden />
                                                 Coach
                                             </span>
                                         )}
                                     </div>
-                                    <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1.5">
-                                        <GraduationCap size={13} /> Klasse {ad.profiles?.grade_level || '?'}
+                                    <div className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
+                                        <GraduationCap size={13} aria-hidden /> Klasse {ad.profiles?.grade_level || '?'}
                                     </div>
                                 </div>
-                                <div className="flex flex-col items-end gap-1 shrink-0">
+                                <div className="flex shrink-0 flex-col items-end gap-1">
                                     <div className="text-right">
-                                        <div className="text-sm sm:text-base font-bold tabular-nums text-gray-950 dark:text-white whitespace-nowrap">
+                                        <div className="whitespace-nowrap text-sm font-semibold tabular-nums text-foreground sm:text-base">
                                             {formatPrice(ad)}
                                         </div>
                                         {priceSecondary(ad) && (
-                                            <div className="text-[11px] tabular-nums text-gray-500 dark:text-gray-400 mt-0.5">
+                                            <div className="mt-0.5 text-xs tabular-nums text-muted-foreground">
                                                 {priceSecondary(ad)}
                                             </div>
                                         )}
                                     </div>
                                     {filterByTime && matchScore > 0 && (
-                                        <div className="flex items-center gap-1 text-xs font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded-full">
-                                            <CalendarDays size={12} /> {matchScore} Übereinstimmung{matchScore !== 1 ? 'en' : ''}
+                                        <div className="flex items-center gap-1 rounded-full bg-primary/15 px-1.5 py-0.5 text-xs font-semibold text-brand-ink dark:text-primary">
+                                            <CalendarDays size={12} aria-hidden /> {matchScore} Übereinstimmung{matchScore !== 1 ? 'en' : ''}
                                         </div>
                                     )}
                                 </div>
                             </CardHeader>
                             <CardContent className="p-4">
-                                <div className="flex flex-wrap gap-2 mb-3">
+                                <div className="mb-3 flex flex-wrap gap-2">
                                     {ad.subjects.map(s => <SubjectChip key={s} subject={s} />)}
                                 </div>
-                                <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
+                                <p className="line-clamp-2 text-sm text-muted-foreground">
                                     {ad.short_description}
                                 </p>
                             </CardContent>
                             <CardFooter className={cn(
-                                "p-3 text-xs text-gray-500 dark:text-gray-400 flex flex-wrap justify-between items-center gap-2 border-t border-gray-100 dark:border-gray-800",
-                                boosted ? "bg-yellow-50/40 dark:bg-yellow-950/10" : "bg-gray-50/80 dark:bg-gray-900/40"
+                                "flex flex-wrap items-center justify-between gap-2 border-t border-border p-3 text-xs text-muted-foreground",
+                                boosted ? "bg-primary/5" : "bg-muted/40"
                             )}>
-                                <div className="flex flex-wrap gap-x-3 gap-y-1 min-w-0">
+                                <div className="flex min-w-0 flex-wrap gap-x-3 gap-y-1">
                                     {ad.locations && ad.locations[0] && (
-                                        <span className="flex items-center gap-1"><MapPin size={12} /> {ad.locations[0]} {ad.locations.length > 1 ? `+${ad.locations.length - 1}` : ''}</span>
+                                        <span className="flex items-center gap-1"><MapPin size={12} aria-hidden /> {ad.locations[0]} {ad.locations.length > 1 ? `+${ad.locations.length - 1}` : ''}</span>
                                     )}
-                                    <span className="flex items-center gap-1"><Clock size={12} /> {Array.isArray(ad.duration_minutes) && ad.duration_minutes.length > 0 ? ad.duration_minutes.map((d: number) => d === 0 ? 'Egal' : `${d} Min.`).join(' • ') : 'Flexibel'}</span>
+                                    <span className="flex items-center gap-1"><Clock size={12} aria-hidden /> {Array.isArray(ad.duration_minutes) && ad.duration_minutes.length > 0 ? ad.duration_minutes.map((d: number) => d === 0 ? 'Egal' : `${d} Min.`).join(' • ') : 'Flexibel'}</span>
                                     {ad.session_format && ad.session_format !== 'any' && (
-                                        <span className="flex items-center gap-1"><Users size={12} /> {ad.session_format === 'single' ? 'Einzeln' : 'Kleingruppe'}</span>
+                                        <span className="flex items-center gap-1"><Users size={12} aria-hidden /> {ad.session_format === 'single' ? 'Einzeln' : 'Kleingruppe'}</span>
                                     )}
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -947,10 +969,11 @@ export default function Feed() {
                                             triggerHaptic('light');
                                             setShareAd({ id: ad.id, title: `${ad.subjects?.[0]?.toUpperCase() || 'Nachhilfe'}: ${ad.profiles?.display_name || ''}` });
                                         }}
-                                        className="p-1.5 rounded-lg hover:bg-gray-200/60 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors min-h-[36px] min-w-[36px]"
+                                        className="grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                                         title="Anzeige teilen"
+                                        aria-label="Anzeige teilen"
                                     >
-                                        <Share2 size={13} />
+                                        <Share2 size={15} aria-hidden />
                                     </Button>
                                 </div>
                             </CardFooter>

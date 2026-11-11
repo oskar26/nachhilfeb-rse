@@ -1,7 +1,7 @@
 /*
 Direction contract — Social „Alles in einem Strom"
 THESIS: Ein Arbeitsstrom statt drei Inseln: Anfragen, Matches und gemerkte Anzeigen laufen in einer einzigen, priorisierten Chronik zusammen — die dringlichste Aktion steht immer oben.
-OWN-WORLD: FWG-Light Feed-Sprache: weiße Kartuschen (rounded-3xl, border-gray-200, shadow-soft) auf Papier #f8f9fa, Gelb #FACC15 nur als Akzent (CTA, Score, aktiver Filter), Inter-Body, Anton nur für den Seitentitel mit h-1 w-10 bg-primary-Strich, font-mono tabular-nums für Zahlen.
+OWN-WORLD: App-Sprache mit Papier-Tokens: Karten (rounded-2xl, border-border, bg-card, shadow-soft), Gelb nur als Akzent (CTA, Score, aktiver Filter), Inter-Body, Anton nur für den Seitentitel mit h-1 w-10 bg-primary-Strich, font-mono tabular-nums für Zahlen.
 STORY: Öffnen → Titel und Typ-Filter als helle Pills, darunter sofort die erste offene Aktion. Scrollen → Chronik nach Dringlichkeit, jede Karte trägt Status und eine Primäraktion. Nichts versteckt sich hinter Wechseln.
 FIRST VIEWPORT: Titel „Social" mit Filter-Pills (Alle/Anfragen/Matches/Merkliste inkl. Zähler), darunter beginnt der Stream mit der wichtigsten offenen Karte. Kein Hero, kein Marketing.
 FORM: Karten als helle Kartuschen mit Typ-Punkt-Chip und Status-Chip (farbiger Punkt), Aktionen als Pill-Buttons ≥44px, eine Motion-Sprache: Karten-Reveal (fade + y-slide, expo ease-out) beim Laden/Filtern; aktive Filter-Pille mit layoutId-Gleiten.
@@ -184,7 +184,7 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
     if (!user) {
         return (
             <div className="mx-auto w-full max-w-4xl p-4 sm:p-6">
-                <div className="rounded-3xl border border-dashed border-gray-300 bg-white/70 p-8 text-center text-sm font-semibold text-gray-500 dark:border-gray-700 dark:bg-gray-900/60 dark:text-gray-400">
+                <div className="rounded-2xl border border-dashed border-border bg-card p-8 text-center text-sm font-semibold text-muted-foreground">
                     Bitte melde dich an, um deine Übersicht zu sehen.
                 </div>
             </div>
@@ -194,14 +194,14 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
     const isEmpty = !stream.loading && tiers.length === 0;
 
     return (
-        <div className="mx-auto w-full min-w-0 max-w-4xl space-y-4 p-4 pb-24 sm:p-6 overflow-x-clip">
+        <div className="mx-auto w-full min-w-0 max-w-4xl space-y-4 overflow-x-clip p-4 pb-24 sm:p-6">
             {/* Seitenkopf: Display-Titel mit gelbem Akzentstrich – mehr braucht der Strom nicht */}
             <header className="min-w-0">
-                <h1 className="font-display text-2xl uppercase leading-none tracking-tight text-gray-900 dark:text-white">
+                <h1 className="font-display text-2xl uppercase leading-none tracking-tight text-foreground">
                     Social
                 </h1>
                 <div className="mt-1.5 h-1 w-10 rounded-full bg-primary" aria-hidden />
-                <p className="mt-3 max-w-[65ch] text-sm text-gray-500 dark:text-gray-400">
+                <p className="mt-3 max-w-[65ch] text-sm text-muted-foreground">
                     Anfragen, Vorschläge und gemerkte Anzeigen auf einer Seite. Das Wichtigste steht oben.
                 </p>
             </header>
@@ -223,10 +223,10 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                         triggerHaptic('light');
                         stream.unhideAllChats();
                     }}
-                    className="flex w-full min-h-[44px] items-center justify-center gap-2 rounded-full border border-dashed border-gray-200 bg-white px-4 text-xs font-bold text-gray-500 transition-colors hover:border-primary hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-100 dark:focus-visible:ring-offset-gray-950"
+                    className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-dashed border-border bg-card px-4 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                     <EyeOff size={14} aria-hidden /> Verborgene Chats einblenden
-                    <span className="rounded-full bg-primary px-2 py-0.5 font-mono text-[10px] font-black tabular-nums text-amber-950">{stream.hiddenIds.length}</span>
+                    <span className="rounded-full bg-primary px-2 py-0.5 font-mono text-xs font-semibold tabular-nums text-primary-foreground">{stream.hiddenIds.length}</span>
                 </Button>
             )}
 
@@ -238,7 +238,7 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                             triggerHaptic('success');
                             stream.resetDismissed();
                         }}
-                        className="flex min-h-[44px] cursor-pointer items-center gap-1.5 rounded-full border border-dashed border-gray-200 bg-white px-4 text-xs font-bold tabular-nums text-gray-500 transition-colors hover:border-primary hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-100 dark:focus-visible:ring-offset-gray-950"
+                        className="flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full border border-dashed border-border bg-card px-4 text-xs font-semibold tabular-nums text-muted-foreground transition-colors hover:border-primary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         title="Ausgeblendete Vorschläge wiederherstellen"
                     >
                         <RotateCcw size={13} aria-hidden />
@@ -264,7 +264,7 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                     title="Die Übersicht konnte nicht geladen werden"
                     text={apiErrorMessage(stream.error, 'Verbindung zum Server fehlgeschlagen. Prüfe deine Internetverbindung und versuch es erneut.')}
                     action={
-                        <Button onClick={stream.reload} className="h-11 rounded-full bg-primary px-6 text-sm font-bold text-black">
+                        <Button onClick={stream.reload} className="h-11 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground">
                             Erneut versuchen
                         </Button>
                     }
@@ -292,18 +292,18 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                     }
                     action={
                         filter === 'merkliste' ? (
-                            <Button onClick={() => navigate('/')} className="h-11 rounded-full bg-primary px-6 text-sm font-bold text-black">
+                            <Button onClick={() => navigate('/')} className="h-11 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground">
                                 Anzeigen stöbern
                             </Button>
                         ) : (
                             <>
-                                <Button onClick={() => navigate('/')} className="h-11 rounded-full bg-primary px-6 text-sm font-bold text-black">
+                                <Button onClick={() => navigate('/')} className="h-11 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground">
                                     Anzeigen stöbern
                                 </Button>
                                 <Button
                                     variant="outline"
                                     onClick={() => navigate('/create-ad')}
-                                    className="h-11 rounded-full border-gray-200 bg-white px-6 text-sm font-bold dark:border-gray-700 dark:bg-gray-900"
+                                    className="h-11 rounded-full border-border bg-card px-6 text-sm font-semibold"
                                 >
                                     Anzeige erstellen
                                 </Button>
@@ -319,11 +319,11 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                     {tiers.map((tier, tierIndex) => (
                         <section key={tier.key} aria-label={tier.label} className="min-w-0 space-y-3">
                             <div className="flex items-center gap-3 px-1">
-                                <h2 className="text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400">
+                                <h2 className="text-xs font-semibold text-muted-foreground">
                                     {tier.label}
                                 </h2>
-                                <span className="h-px flex-1 bg-gray-200 dark:bg-gray-800" aria-hidden />
-                                <span className="font-mono text-xs tabular-nums text-gray-600 dark:text-gray-400">
+                                <span className="h-px flex-1 bg-border" aria-hidden />
+                                <span className="font-mono text-xs tabular-nums text-muted-foreground">
                                     {tier.items.length}
                                     <span className="sr-only"> Einträge</span>
                                 </span>

@@ -119,20 +119,26 @@ export default function AdDetails() {
         setSending(false);
     };
 
-    if (loading) return <div className="p-8 text-center">Anzeige wird geladen</div>;
+    if (loading) return (
+        <div className="mx-auto w-full max-w-3xl space-y-4 p-4 sm:p-6" role="status" aria-label="Anzeige wird geladen">
+            <div className="h-11 w-28 animate-pulse rounded-full bg-muted" />
+            <div className="h-48 animate-pulse rounded-2xl bg-muted" />
+            <div className="h-64 animate-pulse rounded-2xl bg-muted" />
+        </div>
+    );
     if (!ad) {
         const unavailable = adError?.status === 403 || adError?.status === 404;
         return (
-            <div className="p-4 max-w-md mx-auto mt-10">
-                <Card className="rounded-3xl border border-gray-100 dark:border-gray-800 shadow-soft">
-                    <CardContent className="p-8 text-center space-y-3">
-                        <div className="mx-auto w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400">
-                            <Lock size={22} />
+            <div className="mx-auto mt-10 max-w-md p-4">
+                <Card className="border-border bg-card shadow-soft">
+                    <CardContent className="space-y-3 p-8 text-center">
+                        <div className="mx-auto grid size-14 place-items-center rounded-full bg-muted text-muted-foreground">
+                            <Lock size={22} aria-hidden />
                         </div>
-                        <h1 className="text-lg font-bold text-gray-900 dark:text-white">
+                        <h1 className="text-lg font-semibold text-foreground">
                             {unavailable ? 'Anzeige nicht verfügbar' : 'Anzeige nicht gefunden'}
                         </h1>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <p className="text-sm text-muted-foreground">
                             {unavailable
                                 ? 'Diese Anzeige ist privat, nicht mehr aktiv oder für dich nicht freigeschaltet.'
                                 : 'Diese Anzeige existiert nicht oder wurde entfernt.'}
@@ -161,21 +167,21 @@ export default function AdDetails() {
     const canRequest = !isOwn && status === 'none';
 
     return (
-        <div className="p-4 max-w-3xl mx-auto pb-32 space-y-6">
-            <div className="flex justify-between items-center mb-4">
-                <Button variant="ghost" onClick={() => navigate(-1)} className="pl-0 hover:bg-transparent hover:text-primary-hover">
-                    <ChevronLeft className="mr-2" /> Zurück
+        <div className="mx-auto w-full max-w-3xl space-y-6 p-4 pb-32 sm:p-6">
+            <div className="flex items-center justify-between gap-2">
+                <Button variant="ghost" onClick={() => navigate(-1)} className="-ml-2 h-11 gap-1 rounded-full pl-2 text-sm font-semibold">
+                    <ChevronLeft size={20} aria-hidden /> Zurück
                 </Button>
-                <div className="flex gap-2">
-                    <Button variant="ghost" size="sm" onClick={() => navigate('/create-ad', { state: { duplicateAd: ad } })} className="text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-full gap-1 text-xs">
-                        <Copy size={16} /> Duplizieren
+                <div className="flex items-center gap-1">
+                    <Button variant="ghost" onClick={() => navigate('/create-ad', { state: { duplicateAd: ad } })} className="h-11 gap-1 rounded-full px-3 text-xs font-semibold text-muted-foreground">
+                        <Copy size={16} aria-hidden /> <span className="hidden sm:inline">Duplizieren</span><span className="sr-only sm:hidden">Duplizieren</span>
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => setIsShareOpen(true)} className="text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-full">
-                        <Share2 size={20} />
+                    <Button variant="ghost" size="icon" onClick={() => setIsShareOpen(true)} className="size-11 rounded-full text-muted-foreground" aria-label="Anzeige teilen">
+                        <Share2 size={20} aria-hidden />
                     </Button>
                     {!isOwn && (
-                        <Button variant="ghost" size="icon" onClick={toggleFavorite} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-full">
-                            <Heart fill={isFavorite ? "currentColor" : "none"} />
+                        <Button variant="ghost" size="icon" onClick={toggleFavorite} className={`size-11 rounded-full hover:bg-destructive/10 ${isFavorite ? 'text-destructive' : 'text-muted-foreground'}`} aria-label={isFavorite ? 'Aus Merkliste entfernen' : 'Zur Merkliste hinzufügen'} aria-pressed={isFavorite}>
+                            <Heart fill={isFavorite ? 'currentColor' : 'none'} aria-hidden />
                         </Button>
                     )}
                 </div>
@@ -183,55 +189,55 @@ export default function AdDetails() {
 
             <div className="grid gap-6">
                 {/* Header Card */}
-                <Card>
-                    <CardHeader className="bg-gray-50 dark:bg-gray-900/50 border-b">
+                <Card className="border-border bg-card">
+                    <CardHeader className="border-b border-border bg-muted/50">
                         <div className="flex justify-between items-start gap-3">
                             <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2 mb-2">
-                                    <h1 className="text-2xl font-bold">{ad.subjects?.[0]?.toUpperCase() || 'Nachhilfe'} - {profile?.display_name || 'Nutzer'}</h1>
+                                    <h1 className="break-anywhere text-xl font-semibold text-foreground sm:text-2xl">{ad.subjects?.[0]?.toUpperCase() || 'Nachhilfe'} - {profile?.display_name || 'Nutzer'}</h1>
                                     {profile?.is_verified && (
                                         <VerifiedPill className="shrink-0" />
                                     )}
                                 </div>
-                                <p className="text-gray-500 text-lg">{ad.type === 'offer' ? 'Biete Nachhilfe' : 'Suche Nachhilfe'}</p>
+                                <p className="text-muted-foreground text-lg">{ad.type === 'offer' ? 'Biete Nachhilfe' : 'Suche Nachhilfe'}</p>
                                 {ad.type === 'search' && (
-                                    <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                                    <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                                         <Lock size={12} className="shrink-0" /> Privates Gesuch – sichtbar nur für passende Anbieter und das SV-Team.
                                     </p>
                                 )}
                             </div>
                             <div className="text-right shrink-0">
-                                <div className="text-xl font-bold text-primary-hover" aria-label={`Preis: ${price}`}>{price}</div>
+                                <div className="text-xl font-semibold text-brand-ink dark:text-primary" aria-label={`Preis: ${price}`}>{price}</div>
                                 {hourly && hourly !== price && (
-                                    <div className="text-xs text-gray-500 dark:text-gray-400 tabular-nums">≈ {hourly}</div>
+                                    <div className="text-xs text-muted-foreground tabular-nums">≈ {hourly}</div>
                                 )}
                             </div>
                         </div>
                     </CardHeader>
                     <CardContent className="p-6 space-y-6">
                         {/* Meta Tags */}
-                        <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-300">
+                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                             {ad.locations?.map((loc: string) => (
-                                <span key={loc} className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-                                    <MapPin size={14} /> {loc}
+                                <span key={loc} className="flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs">
+                                    <MapPin size={14} aria-hidden /> {loc}
                                 </span>
                             ))}
-                            <span className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded" title={durationMeta}>
+                            <span className="flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs" title={durationMeta}>
                                 <Clock size={14} /> {durationMeta}
                             </span>
                             {ad.session_format && ad.session_format !== 'any' && (
-                                <span className="flex items-center gap-1 bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 px-2 py-1 rounded" title={ad.session_format === 'group' ? 'Kleingruppe (2–4 Schüler)' : 'Einzelunterricht'}>
+                                <span className="flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs" title={ad.session_format === 'group' ? 'Kleingruppe (2–4 Schüler)' : 'Einzelunterricht'}>
                                     {ad.session_format === 'group' ? <Users size={14} /> : <User size={14} />}
                                     {ad.session_format === 'group' ? 'Kleingruppe' : 'Einzelunterricht'}
                                 </span>
                             )}
                             {ad.session_format === 'any' && (
-                                <span className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded" title="Einzel oder Kleingruppe – nach Absprache">
+                                <span className="flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs" title="Einzel oder Kleingruppe – nach Absprache">
                                     <Shuffle size={14} /> Egal
                                 </span>
                             )}
                             {(ad.view_count ?? 0) > 0 && (
-                                <span className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded" title="So oft wurde diese Anzeige aufgerufen">
+                                <span className="flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs" title="So oft wurde diese Anzeige aufgerufen">
                                     <Eye size={14} /> {ad.view_count} {ad.view_count === 1 ? 'Aufruf' : 'Aufrufe'}
                                 </span>
                             )}
@@ -244,7 +250,7 @@ export default function AdDetails() {
 
                         {/* Description */}
                         <div>
-                            <h3 className="font-bold mb-2 text-lg">Beschreibung</h3>
+                            <h3 className="mb-2 text-lg font-semibold text-foreground">Beschreibung</h3>
                             <div
                                 className="prose dark:prose-invert max-w-none"
                                 dangerouslySetInnerHTML={{ __html: sanitizeHtml(ad.long_description || ad.short_description || 'Keine Beschreibung') }}
@@ -255,7 +261,7 @@ export default function AdDetails() {
                         {ad.image_urls && ad.image_urls.length > 0 && (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
                                 {ad.image_urls.map((url: string, i: number) => (
-                                    <img key={i} src={url} alt={`Bild ${i}`} className="rounded-lg w-full h-auto object-cover bg-gray-100 border" />
+                                    <img key={i} src={url} alt={`Bild ${i}`} className="rounded-lg w-full h-auto object-cover bg-muted border" />
                                 ))}
                             </div>
                         )}
@@ -263,23 +269,24 @@ export default function AdDetails() {
                 </Card>
 
                 {/* Interaction / Profile Card */}
-                <Card>
-                    <CardContent className="p-6">
-                        <div 
-                            className="flex items-center gap-4 mb-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 p-2 rounded-xl transition-colors"
+                <Card className="border-border bg-card">
+                    <CardContent className="p-5 sm:p-6">
+                        <Button variant="unstyled" size="unstyled"
+                            type="button"
                             onClick={() => navigate(`/profile/${profile?.id}`)}
+                            className="mb-6 flex w-full items-center gap-4 rounded-xl p-2 text-left transition-colors hover:bg-muted"
                         >
-                            <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary-hover text-2xl overflow-hidden shadow-sm">
-                                {profile?.avatar_url ? <img src={profile.avatar_url} className="w-full h-full object-cover" /> : (profile?.display_name?.charAt(0) || '?')}
+                            <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/20 text-2xl font-semibold text-brand-ink dark:text-primary">
+                                {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" /> : (profile?.display_name?.charAt(0) || '?')}
                             </div>
-                            <div>
-                                <div className="font-bold text-lg">{profile?.display_name || 'Unbekannt'}</div>
-                                <div className="text-sm text-gray-500">Klasse {profile?.grade_level || '?'}</div>
+                            <div className="min-w-0">
+                                <div className="truncate text-lg font-semibold text-foreground">{profile?.display_name || 'Unbekannt'}</div>
+                                <div className="text-sm text-muted-foreground">Klasse {profile?.grade_level || '?'}</div>
                             </div>
-                        </div>
+                        </Button>
 
                         {isOwn ? (
-                            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg text-center text-gray-500 dark:text-gray-400">
+                            <div className="rounded-xl bg-muted p-4 text-center text-sm text-muted-foreground">
                                 Das ist deine eigene Anzeige.
                             </div>
                         ) : (
@@ -289,31 +296,31 @@ export default function AdDetails() {
                                         <Button
                                             onClick={sendRequest}
                                             disabled={sending}
-                                            className="w-full text-lg py-6 bg-primary hover:bg-primary-hover text-black font-bold"
+                                            className="h-14 w-full text-base font-semibold"
                                         >
                                             <Send size={20} className="mr-2" /> Anfrage senden
-                                            <span className="ml-2 font-bold tabular-nums opacity-80">· {price}</span>
+                                            <span className="ml-2 font-semibold tabular-nums opacity-80">· {price}</span>
                                         </Button>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 text-center leading-relaxed">
+                                        <p className="text-xs text-muted-foreground text-center leading-relaxed">
                                             Unverbindlich · Kontakte erst nach Annahme der Anfrage sichtbar
                                         </p>
                                     </div>
                                 )}
                                 {status === 'pending' && (
-                                    <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg text-center text-yellow-800 font-medium">
+                                    <div className="rounded-xl border border-primary/25 bg-primary/10 p-4 text-center font-medium text-foreground/80">
                                         Anfrage gesendet. Warte auf Antwort.
                                     </div>
                                 )}
                                 {(status === 'accepted' || status === 'completed') && (
                                     <div className="space-y-4 animate-in fade-in zoom-in-95">
-                                        <div className="bg-green-50 border border-green-200 p-4 rounded-lg flex items-center gap-3 text-green-800">
+                                        <div className="flex items-center gap-3 rounded-xl border border-primary/25 bg-primary/10 p-4 text-foreground/80">
                                             <CheckCircle size={24} />
                                             <div>
-                                                <p className="font-bold">Anfrage akzeptiert!</p>
+                                                <p className="font-semibold">Anfrage akzeptiert!</p>
                                                 <p className="text-sm">Hier sind die Kontaktdaten:</p>
                                             </div>
                                         </div>
-                                        <div className="flex gap-2.5 p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-xs leading-relaxed text-amber-900 dark:text-amber-200">
+                                        <div className="flex gap-2.5 rounded-xl border border-border bg-muted/50 p-3.5 text-xs leading-relaxed text-muted-foreground">
                                             <ShieldAlert size={16} className="shrink-0 mt-0.5" aria-hidden="true" />
                                             <p>
                                                 <strong>Sicherheit geht vor:</strong> Trefft euch möglichst in der Schule,
@@ -321,19 +328,19 @@ export default function AdDetails() {
                                                 Bei Problemen melde die Anzeige über den Button unten oder sprich das SV-Team an.
                                             </p>
                                         </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                                             {profile?.phone_number && profile?.settings?.phone_visible && (
-                                                <a href={`tel:${profile.phone_number}`} className="flex items-center justify-center gap-2 p-4 bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                                <a href={`tel:${profile.phone_number}`} className="flex items-center justify-center gap-2 p-4 bg-card border border-border rounded-xl hover:bg-muted transition-colors">
                                                     <Phone size={20} /> {profile.phone_number}
                                                 </a>
                                             )}
                                             {profile?.email && profile?.settings?.email_visible && (
-                                                <a href={`mailto:${profile.email}`} className="flex items-center justify-center gap-2 p-4 bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                                <a href={`mailto:${profile.email}`} className="flex items-center justify-center gap-2 p-4 bg-card border border-border rounded-xl hover:bg-muted transition-colors">
                                                     <Mail size={20} /> {profile.email}
                                                 </a>
                                             )}
                                             {(!profile?.settings?.phone_visible && !profile?.settings?.email_visible && publicCustomContacts(profile?.settings?.custom_contacts).length === 0) && (
-                                                <div className="p-4 bg-gray-100/70 dark:bg-gray-800/60 text-gray-500 dark:text-gray-400 rounded-xl border border-gray-200 dark:border-gray-800 col-span-2 text-center text-xs">
+                                                <div className="p-4 bg-muted/60 text-muted-foreground rounded-xl border border-border col-span-2 text-center text-xs">
                                                     Dieser Nutzer hat seine Kontaktdaten auf privat gestellt. Bitte kontaktiere ihn direkt über den Moodle-Namen ({profile?.moodle_name || 'Kein Moodle Name angegeben'}) oder im Chat.
                                                 </div>
                                             )}
@@ -342,7 +349,7 @@ export default function AdDetails() {
                                     </div>
                                 )}
                                 {status === 'rejected' && (
-                                    <div className="bg-red-50 border border-red-200 p-4 rounded-lg text-center text-red-800 font-medium">
+                                    <div className="rounded-xl border border-destructive/25 bg-destructive/5 p-4 text-center font-medium text-destructive">
                                         Anfrage wurde leider abgelehnt.
                                     </div>
                                 )}
@@ -354,27 +361,27 @@ export default function AdDetails() {
 
             {/* Availability Calendar */}
             {(!isOwn && (profile?.privacy_calendar === false || status === 'accepted')) && (
-                <Card>
-                    <CardHeader className="border-b bg-gray-50 dark:bg-gray-900/50 pb-4">
+                <Card className="border-border bg-card">
+                    <CardHeader className="border-b border-border bg-muted/50 pb-4">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <CalendarDays size={18} className="text-primary-hover" />
-                                <h3 className="font-bold text-lg">Verfügbarkeit</h3>
+                                <CalendarDays size={18} className="text-brand-ink dark:text-primary" />
+                                <h3 className="font-semibold text-lg">Verfügbarkeit</h3>
                             </div>
                             {user && (() => {
                                 const score = countMatches(myAvailability, theirAvailability);
                                 return score > 0 ? (
-                                    <span className="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-full inline-flex items-center gap-1">
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-1 text-xs font-semibold text-brand-ink dark:text-primary">
                                         <CheckCircle size={12} /> {score} gemeinsame Zeitslot{score !== 1 ? 's' : ''}
                                     </span>
                                 ) : (
-                                    <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">
+                                    <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
                                         Keine Übereinstimmung
                                     </span>
                                 );
                             })()}
                         </div>
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                             {user ? 'Grün = eure gemeinsamen verfügbaren Zeiten' : 'Melde dich an, um deine Zeiten zu vergleichen.'}
                         </p>
                     </CardHeader>
@@ -394,7 +401,7 @@ export default function AdDetails() {
                     <Button
                         variant="outline"
                         onClick={() => setIsReportOpen(true)}
-                        className="rounded-full border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 font-semibold"
+                        className="h-11 rounded-full border-destructive/25 font-semibold text-destructive hover:bg-destructive/10"
                     >
                         <Flag size={15} /> Anzeige melden
                     </Button>
@@ -418,15 +425,15 @@ export default function AdDetails() {
             {/* Sticky conversion bar (I2): CTA + price stay reachable while scrolling */}
             {canRequest && (
                 <div className="fixed left-0 right-0 bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] z-40 px-4 md:sticky md:inset-auto md:bottom-4 md:px-0 md:z-auto md:w-full md:max-w-3xl md:mx-auto">
-                    <div className="rounded-2xl md:rounded-full border border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-soft px-3 py-2.5 flex items-center gap-3">
+                    <div className="flex items-center gap-3 rounded-2xl border border-border bg-card/95 px-3 py-2.5 shadow-overlay backdrop-blur-md md:rounded-full">
                         <div className="min-w-0 flex-1 pl-1">
-                            <div className="text-sm font-bold text-gray-900 dark:text-white truncate tabular-nums">{price}</div>
-                            <div className="text-[11px] text-gray-500 dark:text-gray-400 truncate">Unverbindlich · Kontakt nach Annahme</div>
+                            <div className="text-sm font-semibold text-foreground truncate tabular-nums">{price}</div>
+                            <div className="text-xs text-muted-foreground truncate">Unverbindlich · Kontakt nach Annahme</div>
                         </div>
                         <Button
                             onClick={sendRequest}
                             disabled={sending}
-                            className="shrink-0 bg-primary hover:bg-primary-hover text-black font-bold h-12 px-5 rounded-full"
+                            className="h-12 shrink-0 rounded-full px-5 font-semibold"
                             aria-describedby="request-safety-line"
                         >
                             <Send size={18} className="mr-2" /> Anfrage senden

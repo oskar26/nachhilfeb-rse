@@ -46,21 +46,21 @@ export default function StaticLayout({ children, title, intro, showHeader = true
     };
     const contentId = `${idPrefix}inhalt`;
     const pageHeader = showHeader ? (
-        <div className="relative overflow-hidden bg-[#faf7ef] text-gray-900 border-b border-black/10">
-            <div className="absolute inset-0 poster-grain-dark" aria-hidden />
-            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-12 pb-14 sm:pt-16 sm:pb-20">
+        <div className="relative overflow-hidden border-b border-border bg-background text-foreground">
+            <div className="absolute inset-0 poster-grain-dark dark:opacity-30" aria-hidden />
+            <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-12 sm:px-6 sm:pb-20 sm:pt-16">
                 <motion.h1
                     {...posterH1}
                     id={`${idPrefix}page-title`}
-                    className="max-w-4xl text-balance font-display uppercase leading-[0.95] tracking-tight text-[clamp(2.5rem,10vw,3.5rem)] sm:text-6xl"
+                    className="max-w-4xl text-balance break-words font-display uppercase leading-[0.95] tracking-tight text-[clamp(2.25rem,9vw,3.5rem)] sm:text-6xl"
                 >
                     {title || <span className="sr-only">Seitentitel</span>}
                 </motion.h1>
-                <motion.span {...posterBar} className="mt-4 block h-1.5 w-16 sm:w-20 origin-left rounded-full bg-primary" aria-hidden />
+                <motion.span {...posterBar} className="mt-4 block h-1.5 w-16 origin-left rounded-full bg-primary sm:w-20" aria-hidden />
                 {intro ? (
                     <motion.p
                         {...posterIntro}
-                        className="mt-5 max-w-2xl text-lg leading-relaxed tabular-nums text-gray-600"
+                        className="mt-5 max-w-2xl text-base leading-relaxed tabular-nums text-muted-foreground sm:text-lg"
                     >
                         {intro}
                     </motion.p>
@@ -73,7 +73,7 @@ export default function StaticLayout({ children, title, intro, showHeader = true
             {children}
         </div>
     );
-    const shellClass = 'bg-gray-50 font-sans text-gray-900 selection:bg-primary selection:text-black dark:bg-gray-950 dark:text-gray-100';
+    const shellClass = 'bg-background font-sans text-foreground selection:bg-primary selection:text-primary-foreground';
 
     if (embedded) {
         return (
@@ -85,36 +85,38 @@ export default function StaticLayout({ children, title, intro, showHeader = true
     }
 
     return (
-        <div className={`${shellClass} min-h-screen`}>
+        <div className={`${shellClass} flex min-h-dvh flex-col`}>
             {/* Skip-Link als Scroll-Button: reines href="#inhalt" wäre unter HashRouter eine 404-Route. */}
-            <Button variant="unstyled" size="unstyled" type="button" onClick={() => { const el = document.getElementById(contentId) as HTMLElement | null; if (!el) return; const reduce = typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches; el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); try { el.focus({ preventScroll: true }); } catch { el.focus(); } }} className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-primary focus:px-5 focus:py-2.5 focus:text-sm focus:font-bold focus:text-black">Zum Inhalt springen</Button>
+            <Button variant="unstyled" size="unstyled" type="button" onClick={() => { const el = document.getElementById(contentId) as HTMLElement | null; if (!el) return; const reduce = typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches; el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); try { el.focus({ preventScroll: true }); } catch { el.focus(); } }} className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-primary focus:px-5 focus:py-2.5 focus:text-sm focus:font-bold focus:text-primary-foreground">Zum Inhalt springen</Button>
 
             <SiteHeader />
 
             {/* Inhalt */}
-            <main id={contentId} tabIndex={-1} className="bg-gray-50 focus:outline-none dark:bg-gray-950">
+            <main id={contentId} tabIndex={-1} className="flex-1 bg-background focus:outline-none">
                 {pageHeader}
                 {pageContent}
             </main>
 
             {/* Footer */}
-            <footer className="bg-[#faf7ef] text-gray-600 border-t border-black/10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-14 pb-8">
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+            <footer className="border-t border-border bg-background text-muted-foreground">
+                <div className="mx-auto max-w-7xl px-4 pb-[calc(2rem+env(safe-area-inset-bottom,0px))] pt-12 sm:px-6 sm:pt-14">
+                    <div className="flex flex-col items-start justify-between gap-8 md:flex-row md:items-center">
                         <div className="flex items-center gap-3">
-                            <span className="grid place-items-center w-11 h-11 rounded-xl bg-primary text-black"><Logo size={26} /></span>
-                            <div>
-                                <p className="font-display uppercase text-2xl text-black leading-none">Nachhilfebörse</p>
+                            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground"><Logo size={24} /></span>
+                            <div className="min-w-0">
+                                <p className="font-display uppercase text-2xl leading-none text-foreground">Nachhilfebörse</p>
                                 <p className="mt-1 text-xs font-semibold">Nachhilfebörse der Schülervertretung am FWG.</p>
                             </div>
                         </div>
-                        <nav className="flex flex-wrap gap-x-6 gap-y-3 text-sm font-semibold" aria-label="Rechtliches und Infos">
+                        <nav className="flex flex-wrap gap-x-5 gap-y-0 text-sm font-semibold" aria-label="Rechtliches und Infos">
                             {FOOTER_LINKS.map(([label, path]) => (
-                                <Link key={path} to={path} className="hover:text-black transition-colors">{label}</Link>
+                                <Link key={path} to={path} className="inline-flex min-h-11 items-center rounded-full transition-colors hover:text-foreground">
+                                    {label}
+                                </Link>
                             ))}
                         </nav>
                     </div>
-                    <div className="mt-10 border-t border-black/10 pt-6 flex flex-col sm:flex-row justify-between gap-3 text-xs">
+                    <div className="mt-8 flex flex-col justify-between gap-3 border-t border-border pt-6 text-xs sm:flex-row">
                         <p>© Schülervertretung Friedrich-Wilhelm-Gymnasium Köln {new Date().getFullYear()}.</p>
                         <p className="font-mono tabular-nums">Hosting in Deutschland · DSGVO-konform</p>
                     </div>

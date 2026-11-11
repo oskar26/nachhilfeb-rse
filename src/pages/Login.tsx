@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardFooter } from '../c
 import { toast } from 'sonner';
 import { useTheme } from '../components/ThemeProvider';
 import { Sun, Moon, CheckCircle, ShieldAlert, Users } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { RefinedGradeSelector } from '../components/RefinedGradeSelector';
 import { Logo } from '../components/ui/Logo';
 
@@ -37,6 +37,7 @@ function formatWaitTime(totalSeconds: number): string {
 export default function Login() {
     const navigate = useNavigate();
     const { theme, setTheme } = useTheme();
+    const reduceMotion = useReducedMotion();
     const [isLoading, setIsLoading] = useState(false);
     const [mode, setMode] = useState<'login' | 'register'>('login');
 
@@ -341,115 +342,116 @@ export default function Login() {
         setIsLoading(false);
     };
 
+    const credentialError = Boolean(error && /E-Mail|Passwort|Zugangsdaten/i.test(error));
+    const cardAnim = reduceMotion ? {} : {
+        initial: { opacity: 0, y: 12 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] as const },
+    };
+
     return (
-        <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950 relative overflow-hidden">
+        <div className="relative flex min-h-dvh flex-col overflow-x-clip bg-background text-foreground lg:flex-row">
             <Button
                 variant="ghost"
                 size="icon"
-                className="absolute top-4 right-4 z-50 text-gray-500 dark:text-gray-400 bg-white/50 dark:bg-black/50 backdrop-blur-md rounded-full"
+                className="absolute right-4 top-[calc(1rem+env(safe-area-inset-top,0px))] z-50 h-11 w-11 rounded-full border border-border bg-card/90 text-muted-foreground backdrop-blur-sm hover:text-foreground"
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                aria-label={theme === 'dark' ? 'Helles Design aktivieren' : 'Dunkles Design aktivieren'}
             >
                 {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
             </Button>
 
             {/* Left Side - Branding (Hidden on Mobile) */}
-            <div className="hidden lg:flex w-1/2 bg-primary flex-col justify-between p-12 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary-hover to-[#d4ff33] opacity-50" />
-
-                {/* Decorative circles */}
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-white/20 blur-3xl" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-black/10 blur-3xl" />
-
+            <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-primary p-12 text-primary-foreground lg:flex">
+                <div className="absolute inset-0 poster-grain-dark" aria-hidden />
                 <div className="relative z-10">
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="flex items-center gap-3.5 text-gray-900 font-black text-3xl tracking-tight"
+                        {...(reduceMotion ? {} : { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } })}
+                        className="flex items-center gap-3.5 text-3xl font-semibold tracking-tight"
                     >
-                        <Logo className="w-12 h-12 text-gray-900 shrink-0" />
+                        <Logo className="h-12 w-12 shrink-0" />
                         Nachhilfebörse
                     </motion.div>
                 </div>
 
                 <div className="relative z-10 max-w-[95ch]">
                     <motion.h1
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="text-5xl font-extrabold text-gray-900 leading-tight mb-6"
+                        {...(reduceMotion ? {} : { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { delay: 0.1 } })}
+                        className="mb-6 text-balance text-5xl font-semibold leading-tight"
                     >
                         Nachhilfe am FWG.
                     </motion.h1>
                     <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="text-lg text-gray-800 font-medium mb-8"
+                        {...(reduceMotion ? {} : { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { delay: 0.2 } })}
+                        className="mb-8 text-lg font-medium text-primary-foreground/80"
                     >
                         Finde Nachhilfe oder biete dein Wissen an. Für Schülerinnen und Schüler des Friedrich-Wilhelm-Gymnasiums. Eltern nutzen das Konto ihres Kindes mit.
                     </motion.p>
 
                     <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.3 }}
+                        {...(reduceMotion ? {} : { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { delay: 0.3 } })}
                         className="space-y-3"
                     >
-                        <div className="flex items-center gap-3 text-gray-800 font-medium">
-                            <CheckCircle size={20} className="text-gray-900" /> Von der SV organisiert
+                        <div className="flex items-center gap-3 font-medium">
+                            <CheckCircle size={20} className="shrink-0" aria-hidden /> Von der SV organisiert
                         </div>
-                        <div className="flex items-center gap-3 text-gray-800 font-medium">
-                            <CheckCircle size={20} className="text-gray-900" /> Verifizierte Konten
+                        <div className="flex items-center gap-3 font-medium">
+                            <CheckCircle size={20} className="shrink-0" aria-hidden /> Verifizierte Konten
                         </div>
-                        <div className="flex items-center gap-3 text-gray-800 font-medium">
-                            <CheckCircle size={20} className="text-gray-900" /> Von Schülern für Schüler
+                        <div className="flex items-center gap-3 font-medium">
+                            <CheckCircle size={20} className="shrink-0" aria-hidden /> Von Schülern für Schüler
                         </div>
                     </motion.div>
                 </div>
 
-                <div className="relative z-10 text-sm font-bold text-gray-800">
+                <div className="relative z-10 text-sm font-bold">
                     FWG Köln © {new Date().getFullYear()}
                 </div>
             </div>
 
             {/* Right Side - Form */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 lg:p-12 relative overflow-y-auto max-h-screen">
-                <div className="lg:hidden absolute inset-0 bg-gradient-to-b from-primary/20 to-transparent pointer-events-none" />
-
+            <div className="relative flex w-full items-center justify-center px-4 pb-[calc(2rem+env(safe-area-inset-bottom,0px))] pt-8 sm:px-8 lg:w-1/2 lg:p-12">
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="w-full max-w-md my-auto relative z-10"
+                    {...cardAnim}
+                    className="relative z-10 my-auto w-full max-w-md"
                 >
-                    <div className="lg:hidden flex flex-col items-center mb-6 text-center">
-                        <Logo className="w-16 h-16 text-black dark:text-white mb-2 shrink-0 drop-shadow-md" />
-                        <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">Nachhilfebörse</h1>
-                        <p className="text-gray-500 mt-1 font-medium text-sm">Friedrich-Wilhelm-Gymnasium Köln</p>
-                        <ul className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-xs font-semibold text-gray-600 dark:text-gray-400" aria-label="Vertrauen auf einen Blick">
-                            <li className="flex items-center gap-1.5"><CheckCircle size={14} className="text-green-600 shrink-0" /> Von der SV organisiert</li>
-                            <li className="flex items-center gap-1.5"><CheckCircle size={14} className="text-green-600 shrink-0" /> Verifizierte Konten</li>
-                            <li className="flex items-center gap-1.5"><CheckCircle size={14} className="text-green-600 shrink-0" /> Nutzung kostenlos</li>
+                    <div className="mb-6 flex flex-col items-center text-center lg:hidden">
+                        <Logo className="mb-3 h-16 w-16 shrink-0 text-foreground" />
+                        <h1 className="text-3xl font-semibold tracking-tight text-foreground">Nachhilfebörse</h1>
+                        <p className="mt-1 text-sm font-medium text-muted-foreground">Friedrich-Wilhelm-Gymnasium Köln</p>
+                        <ul className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-xs font-semibold text-muted-foreground" aria-label="Vertrauen auf einen Blick">
+                            <li className="flex items-center gap-1.5"><CheckCircle size={16} className="shrink-0 text-brand-ink dark:text-primary" aria-hidden /> Von der SV organisiert</li>
+                            <li className="flex items-center gap-1.5"><CheckCircle size={16} className="shrink-0 text-brand-ink dark:text-primary" aria-hidden /> Verifizierte Konten</li>
+                            <li className="flex items-center gap-1.5"><CheckCircle size={16} className="shrink-0 text-brand-ink dark:text-primary" aria-hidden /> Nutzung kostenlos</li>
                         </ul>
                     </div>
 
-                    <Card className="border-0 shadow-2xl shadow-black/5 dark:shadow-black/20 ring-1 ring-gray-200/50 dark:ring-gray-800/50 backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 overflow-hidden">
-                        <div className="flex w-full border-b border-gray-100 dark:border-gray-800">
-                            <Button variant="unstyled" size="unstyled" type="submit"
-                                className={`flex-1 py-4 text-sm font-bold transition-colors ${mode === 'login' ? 'text-primary border-b-2 border-primary bg-primary/5 dark:bg-primary/10' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/50'}`}
+                    <Card className="overflow-hidden rounded-2xl border border-border bg-card shadow-card ring-0">
+                        <div className="grid grid-cols-2 border-b border-border" role="group" aria-label="Anmeldung oder Registrierung">
+                            <Button
+                                variant="unstyled"
+                                size="unstyled"
+                                type="button"
+                                aria-pressed={mode === 'login'}
+                                className={`inline-flex min-h-12 items-center justify-center px-4 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${mode === 'login' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
                                 onClick={() => { setMode('login'); setError(null); }}
                             >
                                 Anmelden
                             </Button>
-                            <Button variant="unstyled" size="unstyled" type="submit"
-                                className={`flex-1 py-4 text-sm font-bold transition-colors ${mode === 'register' ? 'text-primary border-b-2 border-primary bg-primary/5 dark:bg-primary/10' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/50'}`}
+                            <Button
+                                variant="unstyled"
+                                size="unstyled"
+                                type="button"
+                                aria-pressed={mode === 'register'}
+                                className={`inline-flex min-h-12 items-center justify-center border-l border-border px-4 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${mode === 'register' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
                                 onClick={() => { setMode('register'); setError(null); }}
                             >
                                 Registrieren
                             </Button>
                         </div>
 
-                        <CardHeader className="pt-6">
-                            <h2 className="text-2xl font-bold leading-tight tracking-tight text-gray-900 dark:text-gray-100">
+                        <CardHeader className="gap-1 px-5 pb-4 pt-6 sm:px-6">
+                            <h2 className="text-2xl font-semibold leading-tight tracking-tight text-foreground">
                                 {mode === 'login' ? 'Willkommen zurück' : 'Konto erstellen'}
                             </h2>
                             <CardDescription>
@@ -459,10 +461,10 @@ export default function Login() {
                             </CardDescription>
                         </CardHeader>
 
-                        <CardContent className="space-y-4">
+                        <CardContent className="space-y-5 px-5 pb-6 pt-0 sm:px-6">
                             {isBlocked && (
-                                <div role="alert" className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800/50 flex items-start gap-2">
-                                    <ShieldAlert size={16} className="mt-0.5" />
+                                <div role="alert" aria-live="assertive" className="flex items-start gap-2.5 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                                    <ShieldAlert size={16} className="mt-0.5 shrink-0" aria-hidden />
                                     <div>
                                         <p className="font-bold">Anmeldung vorübergehend gesperrt</p>
                                         <p>Bitte warte noch {formatWaitTime(timeLeft)}, bevor du es erneut versuchst.</p>
@@ -471,12 +473,12 @@ export default function Login() {
                             )}
 
                             {error && (
-                                <div role="alert" className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800/50 flex items-start gap-2">
-                                    <ShieldAlert size={16} className="shrink-0 mt-0.5" /> <span>{error}</span>
+                                <div role="alert" aria-live="assertive" className="flex items-start gap-2.5 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                                    <ShieldAlert size={16} className="mt-0.5 shrink-0" aria-hidden /> <span>{error}</span>
                                 </div>
                             )}
 
-                            <form onSubmit={handleAuth} className="space-y-4">
+                            <form onSubmit={handleAuth} className="space-y-4" aria-busy={isLoading}>
                                 {/* Invisible Honeypot Field for Anti-Spam */}
                                 <Input
                                     type="text"
@@ -489,38 +491,42 @@ export default function Login() {
 
                                 {mode === 'register' && (
                                     <div className="space-y-4">
-                                        <div className="flex items-start gap-3 p-3 rounded-xl border border-primary/40 bg-primary/5 dark:border-primary/25 dark:bg-primary/10">
-                                            <Users size={16} className="mt-0.5 shrink-0 text-amber-700 dark:text-primary" aria-hidden />
-                                            <p className="text-[11px] leading-relaxed text-gray-700 dark:text-gray-300">
-                                                <strong className="text-gray-900 dark:text-gray-100">Unsere Empfehlung:</strong> Sprich mit deinen Eltern über die Börse. In den Klassen 5 bis 7 empfehlen wir, das Konto gemeinsam zu betreuen. Ältere Schülerinnen und Schüler nutzen es meist selbstständig. Mehr im{' '}
-                                                <Link to="/eltern-leitfaden" className="font-bold text-amber-700 dark:text-primary hover:underline" target="_blank">Eltern-Leitfaden</Link>.
+                                        <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/60 p-3">
+                                            <Users size={16} className="mt-0.5 shrink-0 text-brand-ink dark:text-primary" aria-hidden />
+                                            <p className="text-xs leading-relaxed text-muted-foreground">
+                                                <strong className="text-foreground">Unsere Empfehlung:</strong> Sprich mit deinen Eltern über die Börse. In den Klassen 5 bis 7 empfehlen wir, das Konto gemeinsam zu betreuen. Ältere Schülerinnen und Schüler nutzen es meist selbstständig. Mehr im{' '}
+                                                <Link to="/eltern-leitfaden" className="font-bold text-brand-ink hover:underline dark:text-primary" target="_blank">Eltern-Leitfaden</Link>.
                                             </p>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="space-y-1">
-                                                <Label className="text-xs font-bold uppercase text-gray-500 ml-1">Vorname *</Label>
+                                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                            <div className="space-y-1.5">
+                                                <Label htmlFor="first-name" className="text-sm font-medium text-foreground">Vorname *</Label>
                                                 <Input
+                                                    id="first-name"
+                                                    name="given-name"
+                                                    autoComplete="given-name"
                                                     placeholder="Max"
                                                     value={firstName}
                                                     onChange={e => setFirstName(e.target.value)}
                                                     required
-                                                    className="h-10 rounded-xl"
                                                 />
                                             </div>
-                                            <div className="space-y-1">
-                                                <Label className="text-xs font-bold uppercase text-gray-500 ml-1">Nachname *</Label>
+                                            <div className="space-y-1.5">
+                                                <Label htmlFor="last-name" className="text-sm font-medium text-foreground">Nachname *</Label>
                                                 <Input
+                                                    id="last-name"
+                                                    name="family-name"
+                                                    autoComplete="family-name"
                                                     placeholder="Mustermann"
                                                     value={lastName}
                                                     onChange={e => setLastName(e.target.value)}
                                                     required
-                                                    className="h-10 rounded-xl"
                                                 />
                                             </div>
                                         </div>
 
-                                        <div className="space-y-1">
-                                            <Label className="text-xs font-bold uppercase text-gray-500 ml-1">Klasse/Stufe</Label>
+                                        <div className="space-y-1.5">
+                                            <Label className="text-sm font-medium text-foreground">Klasse/Stufe</Label>
                                             <RefinedGradeSelector
                                                 grade={grade}
                                                 letter={letter}
@@ -528,113 +534,123 @@ export default function Login() {
                                                 className="mt-1"
                                             />
                                         </div>
-                                        <div className="space-y-1">
-                                            <Label className="text-xs font-bold uppercase text-gray-500 ml-1">Geburtsdatum *</Label>
+                                        <div className="space-y-1.5">
+                                            <Label htmlFor="birth-date" className="text-sm font-medium text-foreground">Geburtsdatum *</Label>
                                             <Input
+                                                id="birth-date"
+                                                name="bday"
+                                                autoComplete="bday"
                                                 type="date"
                                                 value={birthDate}
                                                 onChange={e => setBirthDate(e.target.value)}
                                                 required
-                                                className="h-10 rounded-xl text-gray-700 dark:text-gray-300"
                                             />
                                         </div>
 
                                         {isUnder16 && (
-                                            <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-800/50 space-y-2 animate-in fade-in duration-300">
-                                                <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-bold text-xs">
-                                                    <ShieldAlert size={16} /> Hinweis für Nutzer unter 16 Jahren (Art. 8 DSGVO)
+                                            <div className="space-y-2 rounded-xl border border-warning/40 bg-warning/10 p-3">
+                                                <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+                                                    <ShieldAlert size={16} className="shrink-0 text-brand-ink dark:text-primary" aria-hidden /> Hinweis für Nutzer unter 16 Jahren (Art. 8 DSGVO)
                                                 </div>
-                                                <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed">
-                                                    Da du unter 16 Jahre alt bist, brauchen wir die Zustimmung deiner Erziehungsberechtigten. Sprich die Anmeldung mit ihnen durch und zeig ihnen gern den <Link to="/eltern-leitfaden" className="underline font-bold" target="_blank">Eltern-Leitfaden</Link>.
+                                                <p className="text-xs leading-relaxed text-muted-foreground">
+                                                    Da du unter 16 Jahre alt bist, brauchen wir die Zustimmung deiner Erziehungsberechtigten. Sprich die Anmeldung mit ihnen durch und zeig ihnen gern den <Link to="/eltern-leitfaden" className="font-bold text-brand-ink underline underline-offset-2 dark:text-primary" target="_blank">Eltern-Leitfaden</Link>.
                                                 </p>
-                                                <div className="flex items-start gap-2 pt-1">
+                                                <div className="flex items-start gap-2.5 pt-1">
                                                     <Checkbox
                                                         id="parentalConsent"
                                                         checked={parentalConsent}
                                                         onCheckedChange={(checked) => setParentalConsent(checked === true)}
                                                         className="mt-0.5 cursor-pointer"
                                                     />
-                                                    <Label htmlFor="parentalConsent" className="text-xs font-semibold text-amber-900 dark:text-amber-200 cursor-pointer leading-tight">
+                                                    <Label htmlFor="parentalConsent" className="cursor-pointer text-xs font-medium leading-relaxed text-foreground">
                                                         Meine Erziehungsberechtigten stimmen der Nutzung dieser Plattform zu. *
                                                     </Label>
                                                 </div>
                                             </div>
                                         )}
 
-                                        <div className="space-y-1">
-                                            <Label className="text-xs font-bold uppercase text-gray-500 ml-1 flex justify-between tracking-wider">
-                                                <span>Code (optional)</span>
-                                                <span className="text-xs text-amber-700 dark:text-primary lowercase font-semibold">optional</span>
+                                        <div className="space-y-1.5">
+                                            <Label htmlFor="invite-code" className="text-sm font-medium text-foreground">
+                                                Code <span className="font-normal text-muted-foreground">(optional)</span>
                                             </Label>
                                             <Input
+                                                id="invite-code"
+                                                name="invite-code"
                                                 placeholder="SV-XXXX-XXXX-XXXX"
                                                 value={inviteCode}
                                                 onChange={e => setInviteCode(e.target.value)}
-                                                className="h-11 rounded-xl border-dashed"
+                                                className="border-dashed"
                                                 aria-describedby="sv-code-hint"
                                             />
-                                            <p id="sv-code-hint" className="text-[11px] text-gray-500 dark:text-gray-400 ml-1 leading-snug">
+                                            <p id="sv-code-hint" className="text-xs leading-snug text-muted-foreground">
                                                 Verifizierung im SV-Raum. Das SV-Team prüft, ob du das FWG besuchst.
                                             </p>
                                         </div>
                                     </div>
                                 )}
 
-                                <div className="space-y-1">
-                                    <Label className="text-xs font-bold uppercase text-gray-500 ml-1">E-Mail-Adresse</Label>
+                                <div className="space-y-1.5">
+                                    <Label htmlFor="login-email" className="text-sm font-medium text-foreground">E-Mail-Adresse</Label>
                                     <Input
+                                        id="login-email"
+                                        name="email"
+                                        autoComplete="email"
                                         type="email"
                                         placeholder="E-Mail-Adresse"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         required
-                                        className="h-12 rounded-xl bg-gray-50 dark:bg-gray-950/50 border-gray-200 dark:border-gray-800 focus:bg-white dark:focus:bg-gray-900 transition-colors"
+                                        aria-invalid={credentialError || undefined}
                                     />
                                 </div>
-                                <div className="space-y-1">
-                                    <div className="flex justify-between items-center px-1">
-                                        <Label className="text-xs font-bold uppercase text-gray-500">Passwort</Label>
+                                <div className="space-y-1.5">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <Label htmlFor="login-password" className="text-sm font-medium text-foreground">Passwort</Label>
                                         {mode === 'login' && (
-                                            <Button variant="unstyled" size="unstyled" type="button" onClick={handleResetPassword} className="text-xs text-primary font-bold hover:underline">Passwort vergessen?</Button>
+                                            <Button variant="unstyled" size="unstyled" type="button" onClick={handleResetPassword} className="inline-flex min-h-11 items-center text-sm font-semibold text-brand-ink underline-offset-4 hover:underline dark:text-primary">Passwort vergessen?</Button>
                                         )}
                                     </div>
                                     <Input
+                                        id="login-password"
+                                        name="password"
+                                        autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                                         type="password"
                                         placeholder="••••••••"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         required
-                                        className="h-12 rounded-xl bg-gray-50 dark:bg-gray-950/50 border-gray-200 dark:border-gray-800 focus:bg-white dark:focus:bg-gray-900 transition-colors"
+                                        aria-invalid={credentialError || undefined}
                                     />
                                 </div>
 
                                 {mode === 'register' && (
-                                    <div className="flex items-start gap-3 mt-4 p-3 bg-gray-50 dark:bg-gray-950/50 rounded-xl border border-gray-100 dark:border-gray-800">
+                                    <div className="mt-4 flex items-start gap-3 rounded-xl border border-border bg-muted/60 p-3">
                                         <Checkbox
                                             id="terms"
                                             checked={acceptedTerms}
                                             onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
-                                            className="mt-1 cursor-pointer"
+                                            className="mt-0.5 cursor-pointer"
                                         />
-                                        <Label htmlFor="terms" className="text-xs text-gray-600 dark:text-gray-400 cursor-pointer leading-relaxed">
-                                            Ich stimme den <Link to="/nutzungsbedingungen" className="text-primary font-bold hover:underline" target="_blank">Nutzungsbedingungen</Link> und der <Link to="/datenschutz" className="text-primary font-bold hover:underline" target="_blank">Datenschutzerklärung</Link> zu.
+                                        <Label htmlFor="terms" className="cursor-pointer text-xs leading-relaxed text-muted-foreground">
+                                            Ich stimme den <Link to="/nutzungsbedingungen" className="font-bold text-brand-ink hover:underline dark:text-primary" target="_blank">Nutzungsbedingungen</Link> und der <Link to="/datenschutz" className="font-bold text-brand-ink hover:underline dark:text-primary" target="_blank">Datenschutzerklärung</Link> zu.
                                         </Label>
                                     </div>
                                 )}
 
                                 <Button
                                     type="submit"
-                                    className="w-full h-12 rounded-xl font-bold text-[15px] mt-6 shadow-md shadow-primary/20"
+                                    className="mt-6 h-12 w-full rounded-full text-base font-bold"
                                     disabled={isLoading || isBlocked}
+                                    isLoading={isLoading}
                                 >
                                     {isLoading ? 'Bitte warten...' : (mode === 'login' ? 'Anmelden' : 'Konto erstellen')}
                                 </Button>
                             </form>
                         </CardContent>
                         {mode === 'register' && (
-                            <CardFooter className="bg-amber-50/50 dark:bg-amber-950/20 py-4 px-6 mt-4 border-t border-amber-200/50 dark:border-amber-900/30 flex flex-col space-y-1">
-                                <p className="text-[11px] text-amber-900 dark:text-amber-300 font-semibold text-center w-full leading-relaxed inline-flex items-start justify-center gap-1">
-                                    <ShieldAlert size={13} className="shrink-0 mt-px" /> <span><strong>Hinweis:</strong> Neue Konten werden im SV-Raum verifiziert, bevor Anzeigen erstellt werden können.</span>
+                            <CardFooter className="flex flex-col border-t border-border bg-muted/50 px-5 py-4 sm:px-6">
+                                <p className="inline-flex w-full items-start justify-center gap-1.5 text-center text-xs font-semibold leading-relaxed text-muted-foreground">
+                                    <ShieldAlert size={16} className="mt-px shrink-0" aria-hidden /> <span><strong className="text-foreground">Hinweis:</strong> Neue Konten werden im SV-Raum verifiziert, bevor Anzeigen erstellt werden können.</span>
                                 </p>
                             </CardFooter>
                         )}
