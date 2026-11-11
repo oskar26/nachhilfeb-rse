@@ -148,7 +148,7 @@ Ausschließlich diese Werte verwenden:
 | **A** | Migration der übrigen UI-Komponenten | **Erledigt** (A18 interne Overlays blockiert) | `977ced7` |
 | **B** | Vollständige Seitenüberarbeitung und Mobile UX | Erledigt (BL-1/BL-4) | `db6852d` |
 | **C** | Vollständige UI-Transition verifizieren | Erledigt (interne Prüfung BL-1/BL-4) | `42e6a95` |
-| **D** | Technische Bereinigung | Offen | `—` |
+| **D** | Technische Bereinigung | Erledigt | `c80463f` |
 | **E** | Finale Verifikation | Offen | `—` |
 
 ---
@@ -389,7 +389,7 @@ Suche nach:
 
 ## 10. Phase D – Technische Bereinigung
 
-**Status:** Offen
+**Status:** Erledigt
 **Voraussetzung:** Phase C ist zu 100 % abgeschlossen.
 
 ### 10.1 Aufgaben
@@ -419,33 +419,42 @@ Alles andere muss über semantische Tokens laufen.
 
 | ID | Aufgabe | Status | Evidenz |
 |---|---|---|---|
-| D1 | Ungenutzte Eigenbau-Komponenten löschen | Offen | — |
-| D2 | Veraltete Imports/Referenzen entfernen | Offen | — |
-| D3 | Doppelte Implementierungen entfernen | Offen | — |
-| D4 | Feste Farbwerte außerhalb der Theme-Variablen suchen | Offen | — |
-| D5 | Feste Farben durch Theme-Tokens ersetzen | Offen | — |
-| D6 | Willkürliche Pixel-/Spacing-Werte vereinheitlichen | Offen | — |
-| D7 | Doppelte/redundante Styles entfernen | Offen | — |
-| D8 | Ungenutzte Dependencies entfernen | Offen | — |
-| D9 | Icon-Bibliotheken prüfen: nur `lucide-react` | Offen | — |
-| D10 | Quellcode-Rest-Suche erneut ausführen | Offen | — |
-| D11 | Build und Lint ausführen, Fehler beheben | Offen | — |
-| D12 | Lokal committen: `UI-Bereinigung und Theme-Konsolidierung` | Offen | — |
+| D1 | Ungenutzte Eigenbau-Komponenten löschen | Erledigt | `ui/DialogLegacy.tsx`, `ui/CardLegacy.tsx`, `ui/TabBar.tsx` und ungenutzter `LogoBadge` entfernt |
+| D2 | Veraltete Imports/Referenzen entfernen | Erledigt | 0 Treffer für Legacy-Namen in `src`; Build 0 |
+| D3 | Doppelte Implementierungen entfernen | Erledigt | Lebende Legacy-Dialog-/Card-/Tab-Dateien und toter `LogoBadge` entfernt |
+| D4 | Feste Farbwerte außerhalb der Theme-Variablen suchen | Erledigt | Restwerte sind Datenfarben (Fächer, Avatar, Editor, Confetti), semantische Statusfarben oder Token-Definitionen |
+| D5 | Feste Farben durch Theme-Tokens ersetzen | Erledigt | Landing-Brett, `ScreenshotLightbox`, `VerifySteps`, `CustomContacts`, Notification-Icons und Board-Caption auf `background`/`foreground`/`card`/`border`/`muted`/`brand-ink`/`destructive` umgestellt |
+| D6 | Willkürliche Pixel-/Spacing-Werte vereinheitlichen | Erledigt | `text-[15px]` -> `text-base`; verbleibende Pixelwerte sind begründete Layout-/Safe-Area-/Datenwerte |
+| D7 | Doppelte/redundante Styles entfernen | Erledigt | 180 Zeilen tote CSS-Utilities/Keyframes (Glass, Glow, Poster-Outline, Ticket-Perf, Scroll-Pin, Phone-Mockup) entfernt; 39 Zeilen ungenutzte Tailwind-Farbtokens entfernt |
+| D8 | Ungenutzte Dependencies entfernen | Erledigt | `@fontsource/archivo`, `cn`, `workbox-window` entfernt; Build 0 |
+| D9 | Icon-Bibliotheken prüfen: nur `lucide-react` | Erledigt | Keine andere Icon-Bibliothek und keine handgebauten Inline-SVGs außerhalb von `ui`/Assets |
+| D10 | Quellcode-Rest-Suche erneut ausführen | Erledigt | 0 Legacy-Imports, 0 alte CSS-Utilities, 0 Fremd-Icon-Importe |
+| D11 | Build und Lint ausführen, Fehler beheben | Erledigt | Build Exit 0 (`/tmp/opencode/phaseD-build-final.log`); Lint 0 Fehler/153 Warnungen (`/tmp/opencode/phaseD-lint-final.log`); Tests 23/23 (`/tmp/opencode/phaseD-test-final.log`) |
+| D12 | Lokal committen: `UI-Bereinigung und Theme-Konsolidierung` | Erledigt | Commit `c80463f` (14 Dateien, +41/−724) |
 
-### 10.4 Definition of Done – Phase D
+### 10.4 Evidenz Phase D
 
-- [ ] Keine ungenutzten Eigenbau-Komponenten mehr.
-- [ ] Keine veralteten Imports/Referenzen.
-- [ ] Keine doppelten Implementierungen.
-- [ ] Keine festen Farbwerte außerhalb der dokumentierten Theme-Ausnahmen.
-- [ ] Keine willkürlichen Pixel-/Spacing-Werte ohne Begründung.
-- [ ] Keine doppelten/redundanten Styles.
-- [ ] Keine ungenutzten Dependencies.
-- [ ] Nur `lucide-react` als Icon-Bibliothek.
-- [ ] Rest-Suche ist sauber.
-- [ ] Build und Lint laufen ohne Fehler.
-- [ ] Lokaler Commit `UI-Bereinigung und Theme-Konsolidierung` existiert.
-- [ ] Evidenz und Commit-Hash sind eingetragen.
+- **Entfernte Eigenbau-Dateien:** `src/components/ui/DialogLegacy.tsx`, `src/components/ui/CardLegacy.tsx`, `src/components/ui/TabBar.tsx`; zusätzlich der ungenutzte Export `LogoBadge`.
+- **Entfernte Dependencies:** `@fontsource/archivo` (0 Importe), `cn` (0 Importe; `clsx` + `tailwind-merge` bleiben), `workbox-window` (nur transitive Abhängigkeit von `vite-plugin-pwa`).
+- **CSS:** 180 Zeilen ungenutzte Utilities und Keyframes entfernt (`glass-panel`, `glass-card`, `shadow-glow`, `boost-shimmer`, `boosted-glow`, `dark-glow`, `poster-outline`, `ticket-perf`, `board-scroll`, `board-sticky`, `board-phones--driven`, `phone-*`).
+- **Theme:** `bg-[#faf7ef]`, `text-gray-*`, `text-white` und `bg-gray-950` auf öffentlichen Flächen durch semantische Tokens ersetzt; `tailwind.config.js` um ungenutzte `subject`-/`brand`-/Warning-Unterwerte bereinigt.
+- **Restwerte:** Feste Farben bleiben nur als dokumentierte Datenfarben (25 Fächer, Avatar-Paletten, Rich-Text-Farben, Konfetti, Banner-Presets), als semantische Statusfarben (Rot/Grün/Amber) oder als Token-Definitionen in `src/index.css`/`tailwind.config.js`. Pixelwerte bleiben nur für Layoutbreiten, Safe Areas und optische Einzelkorrekturen.
+- **Browser:** Öffentliche 60/60-Prüfung nach der Bereinigung erneut ausgeführt; 0 Overflow, 0 Console-/Page-Errors (`/tmp/opencode/phaseD-public.log`). Overlay-/Fokus-Recheck 0 Fehler (`/tmp/opencode/phaseD-recheck.log`).
+
+### 10.5 Definition of Done – Phase D
+
+- [x] Keine ungenutzten Eigenbau-Komponenten mehr.
+- [x] Keine veralteten Imports/Referenzen.
+- [x] Keine doppelten Implementierungen.
+- [x] Keine festen Farbwerte außerhalb der dokumentierten Theme-Ausnahmen.
+- [x] Keine willkürlichen Pixel-/Spacing-Werte ohne Begründung.
+- [x] Keine doppelten/redundanten Styles.
+- [x] Keine ungenutzten Dependencies.
+- [x] Nur `lucide-react` als Icon-Bibliothek.
+- [x] Rest-Suche ist sauber.
+- [x] Build und Lint laufen ohne Fehler.
+- [x] Lokaler Commit `UI-Bereinigung und Theme-Konsolidierung` existiert.
+- [x] Evidenz und Commit-Hash sind eingetragen.
 
 ---
 
@@ -868,6 +877,7 @@ Neue Einträge werden **oben** ergänzt. Keine bestehenden Einträge löschen.
 
 | Datum | Phase/Task | Änderung | Evidenz | Commit |
 |---|---|---|---|---|
+| 2026-11-11 | D | Legacy-Dialoge/Card/TabBar + toter LogoBadge gelöscht; tote CSS-Utilities/Keyframes, ungenutzte Farbtokens und Dependencies entfernt; Farben auf Tokens konsolidiert | 0 Legacy-Importe/Altwert-Treffer; Build 0, Lint 0 Fehler/153 Warnungen, Tests 23/23; öffentlich 60/60 + Overlay-Recheck ohne Fehler; `+41/−724` | `c80463f` |
 | 2026-11-11 | C | UI-Transition verifiziert und Letztkorrekturen (44-px-Close, NotificationCenter, Buttons, Social-Chips, AppLoader, Feed/AdDetails-Härtung) | Statisch 0 aktive Eigenbau/Altimporte; öffentlich 60/60, intern 49, Feed/AdDetails 10/10 (375/768/1280, Dark); 0 Overflow/Console-Errors; Build 0, Lint 0 Fehler/153 Warnungen, Tests 23/23; interne Rollenprüfung BL-1/BL-4 | `42e6a95` |
 | 2026-11-11 | B | Alle Seiten + Shell + Mobile UX überarbeitet; öffentliche, App-, Admin-/Coach-Bereiche | 60 öffentliche + 49 App/Admin-Browser-Checks (375/768/1280, Dark), 0 Overflow/Console-Errors; Build 0, Lint 0 Fehler/153 Warnungen, Tests 23/23; echte Login-/Rollenprüfung BL-1/BL-4 | `db6852d` |
 | 2026-11-11 | A | Dialoge/Cards/Overlays/Tabs/Tabellen/Badges/Toasts migriert; A18 öffentlich geprüft | `npm run build` 0, `npm run lint` 0 Fehler/153 Warnungen, `npm test` 23/23; `977ced7` | `977ced7` |
