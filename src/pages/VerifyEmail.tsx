@@ -1,7 +1,7 @@
 import { Label } from '@/components/ui/label';
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Card, CardContent } from '../components/ui/CardLegacy';
+import { Card, CardContent } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '../components/ui/input-otp';
 import { Button } from '../components/ui/button';

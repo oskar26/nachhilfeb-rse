@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
-import { Card, CardHeader, CardContent } from '../components/ui/CardLegacy';
+import { Card, CardHeader, CardContent } from '../components/ui/card';
 import { SubjectChip } from '../components/SubjectChip';
 import { toast } from 'sonner';
 import { ChevronLeft, MapPin, Clock, Heart, Send, CheckCircle, Phone, Mail, CalendarDays, Share2, Copy, Eye, Users, User, Shuffle, Flag, ShieldAlert, Lock } from 'lucide-react';

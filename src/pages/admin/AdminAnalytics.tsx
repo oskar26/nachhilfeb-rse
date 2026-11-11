@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/CardLegacy';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import {
     BarChart3,

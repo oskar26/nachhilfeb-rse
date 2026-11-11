@@ -1,8 +1,9 @@
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { Button } from '../../components/ui/button';
-import { Card, CardContent } from '../../components/ui/CardLegacy';
+import { Card, CardContent } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../../components/ui/alert-dialog';
 import { Trash2, Search, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
@@ -73,6 +74,7 @@ function AdManagement() {
     const [ads, setAds] = useState<any[]>([]);
     const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(false);
+    const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
     useEffect(() => {
         fetchAds();
@@ -95,7 +97,6 @@ function AdManagement() {
     };
 
     const deleteAd = async (id: string) => {
-        if (!confirm('Anzeige endgültig löschen?')) return;
         try {
             const { error } = await api.ads.delete(id);
             if (error) throw error;
@@ -177,7 +178,7 @@ function AdManagement() {
                                         <Button size="sm" variant="outline" className="rounded-xl border-gray-200" onClick={() => toggleHide(ad.id, ad.is_hidden)}>
                                             {ad.is_hidden ? 'Einblenden' : 'Verstecken'}
                                         </Button>
-                                        <Button size="icon" variant="destructive" className="h-9 w-9 rounded-xl" onClick={() => deleteAd(ad.id)}>
+                                        <Button size="icon" variant="destructive" className="h-9 w-9 rounded-xl" onClick={() => setPendingDeleteId(ad.id)}>
                                             <Trash2 size={16} />
                                         </Button>
                                     </div>
@@ -187,6 +188,32 @@ function AdManagement() {
                     </CardContent>
                 </Card>
             )}
+
+            <AlertDialog
+                open={pendingDeleteId !== null}
+                onOpenChange={(open) => { if (!open) setPendingDeleteId(null); }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Anzeige löschen?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Diese Anzeige wird endgültig gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                        <AlertDialogAction
+                            variant="destructive"
+                            onClick={() => {
+                                if (pendingDeleteId) void deleteAd(pendingDeleteId);
+                                setPendingDeleteId(null);
+                            }}
+                        >
+                            Löschen
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

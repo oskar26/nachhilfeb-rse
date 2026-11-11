@@ -1,4 +1,6 @@
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -35,32 +37,36 @@ export function CollapsedNewsWidget() {
     if (!news) return null;
 
     return (
-        <div className="w-full bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-amber-500/10 border border-amber-300/60 dark:border-amber-900/40 rounded-3xl overflow-hidden transition-all duration-300 shadow-sm">
+        <Card className="w-full overflow-hidden rounded-3xl border-primary/30 bg-primary/5 shadow-sm">
             {/* Collapsed Header Bar */}
-            <Button variant="unstyled" size="unstyled" type="submit"
+            <Button
+                variant="unstyled"
+                size="unstyled"
+                type="button"
                 onClick={() => setExpanded(e => !e)}
-                className="w-full p-4 flex items-center justify-between text-left hover:bg-amber-500/5 transition-colors gap-3"
+                className="flex w-full items-center justify-between gap-3 p-4 text-left transition-colors hover:bg-primary/10"
+                aria-expanded={expanded}
             >
-                <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-800 dark:text-amber-300 flex items-center justify-center shrink-0">
+                <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/20 text-amber-800 dark:text-primary">
                         <NewsIcon value={news.icon} size={20} />
                     </div>
                     <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-200/60 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 px-2 py-0.5 rounded-full">
+                            <Badge variant="secondary" className="bg-primary/20 text-[10px] font-bold uppercase tracking-wider text-amber-900 dark:text-primary">
                                 Neuigkeiten
-                            </span>
-                            <span className="text-[10px] text-gray-400 font-semibold">
+                            </Badge>
+                            <span className="text-[10px] font-semibold text-gray-400">
                                 {new Date(news.created_at).toLocaleDateString('de-DE')}
                             </span>
                         </div>
-                        <h4 className="font-bold text-sm text-gray-900 dark:text-white truncate mt-0.5">
+                        <h4 className="mt-0.5 truncate text-sm font-bold text-gray-900 dark:text-white">
                             {news.title}
                         </h4>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-1 text-xs font-bold text-amber-700 dark:text-amber-400 shrink-0">
+                <div className="flex shrink-0 items-center gap-1 text-xs font-bold text-amber-700 dark:text-primary">
                     <span>{expanded ? 'Einklappen' : 'Mehr lesen'}</span>
                     {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 </div>
@@ -68,12 +74,12 @@ export function CollapsedNewsWidget() {
 
             {/* Expandable Content */}
             {expanded && (
-                <div className="px-5 pb-5 pt-1 border-t border-amber-200/50 dark:border-amber-900/30 animate-in slide-in-from-top-2 duration-200">
-                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap font-medium">
+                <CardContent className="border-t border-primary/20 px-5 pb-5 pt-4">
+                    <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap text-gray-700 dark:text-gray-300">
                         {news.body}
                     </p>
-                </div>
+                </CardContent>
             )}
-        </div>
+        </Card>
     );
 }

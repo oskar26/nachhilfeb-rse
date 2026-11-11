@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/table';
 import { Link, useLocation } from 'react-router-dom';
 import { Award, ClipboardCheck, Scale, Megaphone, HeartHandshake, Gavel, Mail, School, Clock, MapPin, type LucideIcon } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -760,16 +761,16 @@ export function CoachingView({ document, preview = false }: { document: Coaching
                     </div>
                     {block.days.length > 0 ? (
                         <div className="mt-4 max-w-full overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800">
-                            <table className="w-full min-w-[440px] border-collapse text-center text-xs md:text-sm">
-                                <thead>
-                                    <tr>{block.days.map(day => <th key={day.id} className="border border-gray-200 p-2 font-mono tabular-nums dark:border-gray-800">{day.label}</th>)}</tr>
-                                </thead>
-                                <tbody className="font-mono tabular-nums">
+                            <Table className="w-full min-w-[440px] border-collapse text-center text-xs md:text-sm">
+                                <TableHeader>
+                                    <TableRow>{block.days.map(day => <TableHead key={day.id} className="border border-gray-200 p-2 font-mono tabular-nums dark:border-gray-800">{day.label}</TableHead>)}</TableRow>
+                                </TableHeader>
+                                <TableBody className="font-mono tabular-nums">
                                     {block.rows.map(row => (
-                                        <tr key={row.id}>{row.cells.map(cell => <td key={cell.id} className={scheduleCellClass(cell.text)}>{cell.text}</td>)}</tr>
+                                        <TableRow key={row.id}>{row.cells.map(cell => <TableCell key={cell.id} className={scheduleCellClass(cell.text)}>{cell.text}</TableCell>)}</TableRow>
                                     ))}
-                                </tbody>
-                            </table>
+                                </TableBody>
+                            </Table>
                         </div>
                     ) : null}
                     {block.learnCoachingText || block.learnCoachingEmail ? (

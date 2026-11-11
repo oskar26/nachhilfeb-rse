@@ -1,7 +1,7 @@
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useState, useRef, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/DialogLegacy';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Button } from './ui/button';
 import { Shapes, Type, PenTool, Upload, RotateCcw, Trash2, Check, Sparkles, X, BookOpen, Pencil, GraduationCap, FlaskConical, Calculator, Lightbulb, Brain, Backpack, NotebookPen, Laptop, Palette, Globe, Smile, Laugh, Rocket, Star, Flame, Zap, Heart, ThumbsUp, Trophy, Music, Gamepad2, Bike, Dumbbell, Guitar, Headphones, Target, Camera, Medal, Flag, Puzzle, Dices, Timer, Tent, type LucideIcon } from 'lucide-react';
 import { compressImage } from '../lib/image';

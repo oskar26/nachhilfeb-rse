@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { useCallback, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { Dialog, DialogContent } from './ui/DialogLegacy';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from './ui/dialog';
 
 export interface ScreenshotLightboxItem {
     src: string;
@@ -60,8 +60,12 @@ export default function ScreenshotLightbox({ items, open, index, onIndexChange, 
     const navButton = 'press inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-black/15 text-gray-700 transition-colors hover:bg-black/5 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-40';
 
     return (
-        <Dialog open={open} onClose={onClose} panelClassName="max-w-5xl" ariaLabel="Screenshot-Galerie">
-            <DialogContent className="border-black/10 bg-[#faf7ef] p-4 text-gray-900 sm:p-6">
+        <Dialog open={open} onClose={onClose}>
+            <DialogContent className="max-w-5xl border-black/10 bg-[#faf7ef] p-4 text-gray-900 sm:p-6" aria-label="Screenshot-Galerie">
+                <DialogTitle className="sr-only">Screenshot-Galerie</DialogTitle>
+                <DialogDescription className="sr-only">
+                    Vergrößerte Ansicht der App-Screenshots mit Pfeiltasten-Navigation.
+                </DialogDescription>
                 <div className="flex items-center justify-between gap-4">
                     <span className="font-mono text-xs font-bold tabular-nums text-gray-500">
                         {String(safeIndex + 1).padStart(2, '0')} / {String(count).padStart(2, '0')}

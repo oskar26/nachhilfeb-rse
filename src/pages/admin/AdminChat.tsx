@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { api, getStoredUser } from '../../lib/api';
 import { Button } from '../../components/ui/button';
-import { Card, CardContent } from '../../components/ui/CardLegacy';
+import { Card, CardContent } from '../../components/ui/card';
 import {
     MessageSquare,
     AlertTriangle,

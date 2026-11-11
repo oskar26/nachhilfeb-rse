@@ -1,5 +1,5 @@
 import { X } from 'lucide-react';
-import { Dialog, DialogContent } from './ui/DialogLegacy';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
 import { SubjectChip, SUBJECT_CATEGORIES, type Subject } from './SubjectChip';
 
@@ -17,8 +17,12 @@ interface SubjectPickerDialogProps {
  */
 export default function SubjectPickerDialog({ open, onClose, selected, onToggle }: SubjectPickerDialogProps) {
     return (
-        <Dialog open={open} onClose={onClose} ariaLabel="Fächer auswählen">
-            <DialogContent className="p-0">
+        <Dialog open={open} onClose={onClose}>
+            <DialogContent className="p-0" aria-label="Fächer auswählen">
+                <DialogTitle className="sr-only">Fächer auswählen</DialogTitle>
+                <DialogDescription className="sr-only">
+                    Wähle die Fächer aus, für die du Nachhilfe suchst oder anbietest.
+                </DialogDescription>
                 <div className="max-h-[75vh] overflow-y-auto overscroll-contain">
                     {/* Poster-Kopf */}
                     <div className="sticky top-0 z-10 border-b border-black/10 bg-[#faf7ef] poster-grain-dark px-5 pb-4 pt-5 text-gray-900 dark:border-gray-800 dark:bg-gray-900 dark:text-white">

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { X, Megaphone, Bell, CheckCircle2 } from 'lucide-react';
 import { Button } from './ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from './ui/dialog';
 import NewsIcon from './NewsIcon';
 
 interface Announcement {
@@ -90,37 +91,41 @@ export function NewsPopupModal() {
         }
     };
 
-    if (!open || !news) return null;
+    if (!news) return null;
 
     return (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden animate-in zoom-in-95 duration-300">
+        <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen) handleDismiss(); }}>
+            <DialogContent showCloseButton={false} className="max-w-md gap-0 overflow-hidden rounded-3xl p-0">
                 {/* Header pattern banner */}
-                <div className="h-20 bg-gradient-to-r from-primary/30 via-amber-400/20 to-primary/30 p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-gray-800 dark:text-gray-200 bg-white/80 dark:bg-gray-900/80 px-3 py-1.5 rounded-full shadow-sm">
+                <div className="flex h-20 items-center justify-between bg-primary/20 p-4">
+                    <div className="flex items-center gap-2 rounded-full bg-white/80 px-3 py-1.5 text-xs font-black uppercase tracking-wider text-gray-800 shadow-sm dark:bg-gray-900/80 dark:text-gray-200">
                         <Megaphone size={14} className="text-primary-hover" />
                         <span>Neue Schul-Mitteilung</span>
                     </div>
-                    <Button variant="unstyled" size="unstyled" type="submit"
+                    <Button
+                        variant="unstyled"
+                        size="unstyled"
+                        hapticStyle={false}
+                        type="button"
                         onClick={handleDismiss}
-                        className="w-8 h-8 rounded-full bg-white/80 dark:bg-gray-800/80 flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
-                        title="Schließen"
+                        className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-gray-500 transition-colors hover:text-gray-900 dark:bg-gray-800/80 dark:hover:text-white"
+                        aria-label="Schließen"
                     >
                         <X size={16} />
                     </Button>
                 </div>
 
                 {/* Content */}
-                <div className="p-6 space-y-4 -mt-6">
-                    <div className="w-14 h-14 rounded-2xl bg-white dark:bg-gray-800 shadow-md border dark:border-gray-700 flex items-center justify-center text-gray-700 dark:text-gray-200">
+                <div className="-mt-6 space-y-4 p-6">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl border bg-white text-gray-700 shadow-md dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
                         <NewsIcon value={news.icon} size={28} />
                     </div>
 
                     <div>
-                        <h3 className="text-lg font-black text-gray-900 dark:text-white leading-snug">
+                        <DialogTitle className="text-lg font-black leading-snug text-gray-900 dark:text-white">
                             {news.title}
-                        </h3>
-                        <p className="text-xs text-gray-400 font-semibold mt-1">
+                        </DialogTitle>
+                        <p className="mt-1 text-xs font-semibold text-gray-400">
                             {new Date(news.created_at).toLocaleDateString('de-DE', {
                                 day: '2-digit',
                                 month: '2-digit',
@@ -131,32 +136,34 @@ export function NewsPopupModal() {
                         </p>
                     </div>
 
-                    <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-2xl border border-gray-100 dark:border-gray-800/80">
-                        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap font-medium">
-                            {news.body}
-                        </p>
-                    </div>
+                    <DialogDescription className="rounded-2xl border border-gray-100 bg-gray-50 p-4 text-sm font-medium leading-relaxed whitespace-pre-wrap text-gray-700 dark:border-gray-800/80 dark:bg-gray-800/50 dark:text-gray-300">
+                        {news.body}
+                    </DialogDescription>
 
                     {/* Actions */}
-                    <div className="pt-2 space-y-2">
+                    <div className="space-y-2 pt-2">
                         <Button
                             onClick={handleDismiss}
-                            className="w-full h-11 bg-primary hover:bg-primary/95 text-black font-extrabold rounded-2xl shadow-md gap-2"
+                            className="h-11 w-full gap-2 rounded-2xl bg-primary font-extrabold text-black shadow-md hover:bg-primary/95"
                         >
                             <CheckCircle2 size={16} /> Verstanden & dauerhaft ausblenden
                         </Button>
 
                         {'Notification' in window && Notification.permission === 'default' && (
-                            <Button variant="unstyled" size="unstyled" type="submit"
+                            <Button
+                                variant="unstyled"
+                                size="unstyled"
+                                hapticStyle={false}
+                                type="button"
                                 onClick={requestNotificationPermission}
-                                className="w-full text-center text-[11px] font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex items-center justify-center gap-1 py-1"
+                                className="flex w-full items-center justify-center gap-1 py-1 text-center text-[11px] font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                             >
                                 <Bell size={12} /> Benachrichtigungen aktivieren
                             </Button>
                         )}
                     </div>
                 </div>
-            </div>
-        </div>
+            </DialogContent>
+        </Dialog>
     );
 }

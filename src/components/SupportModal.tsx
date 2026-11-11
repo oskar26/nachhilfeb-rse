@@ -2,9 +2,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, Bug, Lightbulb, MessageCircle, Send, Loader2,
     CheckCircle, ChevronLeft, Smartphone, Monitor, Globe, Shield, Zap, Flag
@@ -268,26 +267,16 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
 
     if (!isOpen) return null;
 
-    // Als Portal in document.body rendern: So bleibt das Overlay (fixed inset-0)
-    // immer am Viewport ausgerichtet – auch wenn ein Elternelement transformiert
-    // ist (transform bricht sonst die fixed-Positionierung und lässt unten eine
-    // weiße Fläche frei).
-    return createPortal(
-        <AnimatePresence>
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
-                onClick={(e) => e.target === e.currentTarget && onClose()}
+    return (
+        <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+            <DialogContent
+                showCloseButton={false}
+                className="top-auto bottom-0 left-0 right-0 max-h-[90vh] max-w-none translate-x-0 translate-y-0 gap-0 overflow-hidden rounded-b-none rounded-t-3xl p-0 sm:top-1/2 sm:bottom-auto sm:left-1/2 sm:right-auto sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl"
             >
-                <motion.div
-                    initial={{ y: 60, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: 60, opacity: 0 }}
-                    transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                    className="bg-white dark:bg-gray-900 w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl max-h-[90vh] flex flex-col border border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden pb-[env(safe-area-inset-bottom)]"
-                >
+                <DialogDescription className="sr-only">
+                    Support, Fehlermeldungen und Nachrichten an das SV-Team.
+                </DialogDescription>
+                <div className="flex max-h-[90vh] w-full flex-col overflow-hidden bg-white pb-[env(safe-area-inset-bottom)] dark:bg-gray-900">
                     {/* Header */}
                     <div className="flex items-center justify-between px-6 py-4 border-b dark:border-gray-800 shrink-0">
                         <div className="flex items-center gap-2">
@@ -305,12 +294,12 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                     <ChevronLeft size={20} />
                                 </Button>
                             )}
-                            <h2 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-1.5">
+                            <DialogTitle className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-1.5">
                                 {view === 'menu' && 'Hilfe'}
                                 {view === 'form' && (ticketType === 'bug' ? <><Bug size={18} className="inline" /> Fehler melden</> : <><Lightbulb size={18} className="inline" /> Verbesserung vorschlagen</>)}
                                 {view === 'chat' && (activeTicket ? activeTicket.title : <><MessageCircle size={18} className="inline" /> Nachrichten</>)}
                                 {view === 'success' && <><CheckCircle size={18} className="inline text-green-500" /> Eingereicht!</>}
-                            </h2>
+                            </DialogTitle>
                         </div>
                         <Button variant="unstyled" size="unstyled" type="submit"
                             onClick={onClose}
@@ -617,14 +606,9 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                             </div>
                         </div>
                     )}
-                </motion.div>
-            </motion.div>
-            {/* Melde-Dialog bewusst ÜBER dem Support-Overlay (eigener Stacking-Context),
-                sonst liegt der Dialog (z-50) unter dem Modal-Backdrop (z-100). */}
-            <div className="relative z-[200]">
+                </div>
                 <ReportWizard isOpen={showReportWizard} onClose={() => setShowReportWizard(false)} />
-            </div>
-        </AnimatePresence>,
-        document.body
+            </DialogContent>
+        </Dialog>
     );
 }

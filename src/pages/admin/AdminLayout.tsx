@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet';
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -102,72 +103,73 @@ export default function AdminLayout() {
         setSidebarOpen(false);
     };
 
+    const sidebarContent = (
+        <>
+            <div className="h-16 flex items-center gap-3 px-6 border-b dark:border-gray-800 shrink-0">
+                <Logo className="w-7 h-7 text-black dark:text-white shrink-0" />
+                <span className="font-extrabold text-base tracking-tight text-gray-900 dark:text-white">SV Admin Panel</span>
+                <Button variant="unstyled" size="unstyled" type="submit"
+                    className="ml-auto md:hidden text-gray-400 hover:text-gray-600 p-3 -m-3"
+                    onClick={() => setSidebarOpen(false)}
+                    aria-label="Menü schließen"
+                >
+                    <X size={20} />
+                </Button>
+            </div>
+
+            <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+                {NAV_ITEMS.map(({ label, value, icon: Icon }) => {
+                    const isActive = activeTab === value;
+                    return (
+                        <Button variant="unstyled" size="unstyled" type="submit"
+                            key={value}
+                            onClick={() => handleNavClick(value)}
+                            className={cn(
+                                'w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all',
+                                isActive
+                                    ? 'bg-primary/10 text-primary-hover font-bold'
+                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            )}
+                        >
+                            <Icon size={18} className={isActive ? 'text-primary-hover' : 'text-gray-400'} />
+                            <span className="flex-1 text-left">{label}</span>
+                            {value === 'reports' && openReports > 0 && (
+                                <span className="w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-black">
+                                    {openReports > 9 ? '9+' : openReports}
+                                </span>
+                            )}
+                            {value === 'support' && openTickets > 0 && (
+                                <span className="w-5 h-5 bg-blue-500 text-white text-[10px] rounded-full flex items-center justify-center font-black">
+                                    {openTickets > 9 ? '9+' : openTickets}
+                                </span>
+                            )}
+                        </Button>
+                    );
+                })}
+            </nav>
+
+            <div className="p-4 border-t dark:border-gray-800 text-[10px] text-gray-400 text-center">
+                FWG Nachhilfebörse · SV Admin
+            </div>
+        </>
+    );
+
     return (
         <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
-            {/* Mobile sidebar overlay */}
-            {sidebarOpen && (
-                <div
-                    className="fixed inset-0 z-40 bg-black/40 md:hidden"
-                    onClick={() => setSidebarOpen(false)}
-                />
-            )}
+            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+                <SheetContent
+                    side="left"
+                    showCloseButton={false}
+                    className="w-72 max-w-[85vw] gap-0 border-r border-gray-200 bg-white p-0 dark:border-gray-800 dark:bg-gray-900 md:hidden"
+                >
+                    <SheetTitle className="sr-only">Admin-Menü</SheetTitle>
+                    <SheetDescription className="sr-only">Navigation im SV-Admin-Panel</SheetDescription>
+                    {sidebarContent}
+                </SheetContent>
+            </Sheet>
 
-            {/* Sidebar */}
-            <aside
-                className={cn(
-                    'fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-900 border-r dark:border-gray-800 flex flex-col transform transition-transform duration-200 md:translate-x-0 md:static md:z-auto',
-                    sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-                )}
-            >
-                {/* Sidebar header */}
-                <div className="h-16 flex items-center gap-3 px-6 border-b dark:border-gray-800 shrink-0">
-                    <Logo className="w-7 h-7 text-black dark:text-white shrink-0" />
-                    <span className="font-extrabold text-base tracking-tight text-gray-900 dark:text-white">SV Admin Panel</span>
-                    <Button variant="unstyled" size="unstyled" type="submit"
-                        className="ml-auto md:hidden text-gray-400 hover:text-gray-600 p-3 -m-3"
-                        onClick={() => setSidebarOpen(false)}
-                        aria-label="Menü schließen"
-                    >
-                        <X size={20} />
-                    </Button>
-                </div>
-
-                {/* Nav items */}
-                <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-                    {NAV_ITEMS.map(({ label, value, icon: Icon }) => {
-                        const isActive = activeTab === value;
-                        return (
-                            <Button variant="unstyled" size="unstyled" type="submit"
-                                key={value}
-                                onClick={() => handleNavClick(value)}
-                                className={cn(
-                                    'w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all',
-                                    isActive
-                                        ? 'bg-primary/10 text-primary-hover font-bold'
-                                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                                )}
-                            >
-                                <Icon size={18} className={isActive ? 'text-primary-hover' : 'text-gray-400'} />
-                                <span className="flex-1 text-left">{label}</span>
-                                {value === 'reports' && openReports > 0 && (
-                                    <span className="w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-black">
-                                        {openReports > 9 ? '9+' : openReports}
-                                    </span>
-                                )}
-                                {value === 'support' && openTickets > 0 && (
-                                    <span className="w-5 h-5 bg-blue-500 text-white text-[10px] rounded-full flex items-center justify-center font-black">
-                                        {openTickets > 9 ? '9+' : openTickets}
-                                    </span>
-                                )}
-                            </Button>
-                        );
-                    })}
-                </nav>
-
-                {/* Sidebar footer */}
-                <div className="p-4 border-t dark:border-gray-800 text-[10px] text-gray-400 text-center">
-                    FWG Nachhilfebörse · SV Admin
-                </div>
+            <aside className="hidden w-64 shrink-0 flex-col border-r border-gray-200 bg-white md:flex dark:border-gray-800 dark:bg-gray-900">
+                {sidebarContent}
             </aside>
 
             {/* Main content */}

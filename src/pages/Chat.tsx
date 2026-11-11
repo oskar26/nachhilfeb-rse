@@ -15,7 +15,8 @@ import ReportWizard from '../components/ReportWizard';
 import { downloadICSFile } from '../lib/calendar';
 import { blockedReason, checkContent, loadFilterOverrides, type FilterOverrides } from '../lib/profanity';
 import { maybeAutoReport } from '../lib/autoreport';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/DialogLegacy';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../components/ui/alert-dialog';
 
 interface Message {
     id: string;
@@ -70,6 +71,12 @@ export default function Chat() {
 
     // Header menu state
     const [menuOpen, setMenuOpen] = useState(false);
+    const [confirmDialog, setConfirmDialog] = useState<{
+        title: string;
+        description: string;
+        confirmLabel: string;
+        onConfirm: () => void;
+    } | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
 
     // Report/Block state
@@ -185,20 +192,32 @@ export default function Chat() {
     };
 
     const deleteMessage = async (msgId: string) => {
-        if (!window.confirm('Möchtest du diese Nachricht auf diesem Gerät ausblenden?')) return;
-        // Kein Backend-Endpunkt zum Ändern von Nachrichten: Das Löschen bleibt lokal
-        // sichtbar und ist nach dem Neuladen wieder da.
-        setMessages(prev => prev.filter(m => m.id !== msgId));
+        setConfirmDialog({
+            title: 'Nachricht ausblenden?',
+            description: 'Möchtest du diese Nachricht auf diesem Gerät ausblenden?',
+            confirmLabel: 'Ausblenden',
+            onConfirm: () => {
+                // Kein Backend-Endpunkt zum Ändern von Nachrichten: Das Löschen bleibt lokal
+                // sichtbar und ist nach dem Neuladen wieder da.
+                setMessages(prev => prev.filter(m => m.id !== msgId));
+            },
+        });
     };
 
     const handleBlockUser = async () => {
         if (!otherUserId || !user) return;
         setMenuOpen(false);
-        if (!window.confirm(`${otherUser?.display_name || 'Diesen Nutzer'} Chat verbergen? Der Chat wird auf diesem Gerät verborgen. Zum Schutz aller bleibt der Verlauf für die SV-Moderation gespeichert.`)) return;
-        // Kein Backend-Endpunkt für Nutzer-Blocks: Das Blockieren verbirgt den Chat nur auf diesem Gerät.
-        if (requestId) hideChatId(requestId);
-        toast.success('Chat auf diesem Gerät verborgen.');
-        navigate('/requests');
+        setConfirmDialog({
+            title: 'Chat verbergen?',
+            description: `${otherUser?.display_name || 'Diesen Nutzer'} Chat verbergen? Der Chat wird auf diesem Gerät verborgen. Zum Schutz aller bleibt der Verlauf für die SV-Moderation gespeichert.`,
+            confirmLabel: 'Chat verbergen',
+            onConfirm: () => {
+                // Kein Backend-Endpunkt für Nutzer-Blocks: Das Blockieren verbirgt den Chat nur auf diesem Gerät.
+                if (requestId) hideChatId(requestId);
+                toast.success('Chat auf diesem Gerät verborgen.');
+                navigate('/requests');
+            },
+        });
     };
 
     const hideChatAndLeave = () => {
@@ -207,10 +226,16 @@ export default function Chat() {
             navigate('/requests');
             return;
         }
-        if (!window.confirm('Chat auf diesem Gerät verbergen? Deine Anfrage bleibt bestehen, der Verlauf bleibt für die SV-Moderation gespeichert.')) return;
-        hideChatId(requestId);
-        toast.success('Chat auf diesem Gerät verborgen. Über „Verborgene Chats einblenden“ in den Anfragen holst du ihn zurück.');
-        navigate('/requests');
+        setConfirmDialog({
+            title: 'Chat verbergen?',
+            description: 'Chat auf diesem Gerät verbergen? Deine Anfrage bleibt bestehen, der Verlauf bleibt für die SV-Moderation gespeichert.',
+            confirmLabel: 'Chat verbergen',
+            onConfirm: () => {
+                hideChatId(requestId);
+                toast.success('Chat auf diesem Gerät verborgen. Über „Verborgene Chats einblenden“ in den Anfragen holst du ihn zurück.');
+                navigate('/requests');
+            },
+        });
     };
 
     const startEditing = (msg: Message) => {
@@ -545,6 +570,33 @@ export default function Chat() {
                 </form>
             </DialogContent>
         </Dialog>
+
+        <AlertDialog
+            open={!!confirmDialog}
+            onOpenChange={(open) => {
+                if (!open) setConfirmDialog(null);
+            }}
+        >
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>{confirmDialog?.title}</AlertDialogTitle>
+                    <AlertDialogDescription>{confirmDialog?.description}</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                    <AlertDialogAction
+                        variant="destructive"
+                        onClick={() => {
+                            const action = confirmDialog?.onConfirm;
+                            setConfirmDialog(null);
+                            action?.();
+                        }}
+                    >
+                        {confirmDialog?.confirmLabel}
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
 
         {/* Report Wizard Modal */}
         {otherUserId && (

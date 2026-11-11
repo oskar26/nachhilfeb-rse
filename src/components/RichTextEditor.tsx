@@ -1,5 +1,7 @@
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -35,6 +37,9 @@ const COLOR_PRESETS = [
 
 export function RichTextEditor({ value, onChange, placeholder, className }: RichTextEditorProps) {
     const [isExpanded, setIsExpanded] = useState(false);
+    const [imageDialogOpen, setImageDialogOpen] = useState(false);
+    const [imageUrl, setImageUrl] = useState('');
+    const [imageError, setImageError] = useState('');
 
     const editor = useEditor({
         extensions: [
@@ -73,10 +78,21 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
     }, [value, editor]);
 
     const addImage = () => {
-        const url = window.prompt('Bild-URL (z.B. https://...):');
-        if (url && editor) {
-            editor.chain().focus().setImage({ src: url }).run();
+        setImageUrl('');
+        setImageError('');
+        setImageDialogOpen(true);
+    };
+
+    const insertImage = () => {
+        const url = imageUrl.trim();
+        if (!/^https?:\/\//i.test(url)) {
+            setImageError('Bitte gib eine vollständige Bild-URL mit http:// oder https:// ein.');
+            return;
         }
+        editor?.chain().focus().setImage({ src: url }).run();
+        setImageDialogOpen(false);
+        setImageUrl('');
+        setImageError('');
     };
 
     if (!editor) return null;
@@ -217,9 +233,55 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
             {isExpanded && (
                 <div className="bg-primary/5 text-[10px] text-primary/60 px-4 py-1 border-t dark:border-gray-700 flex justify-between">
                     <span>Vollbild Editor Modus</span>
-                    <Button variant="unstyled" size="unstyled" type="submit" onClick={toggleFullscreen} className="hover:underline">Vollbild verlassen</Button>
+                    <Button variant="unstyled" size="unstyled" type="button" onClick={toggleFullscreen} className="hover:underline">Vollbild verlassen</Button>
                 </div>
             )}
+
+            <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Bild einfügen</DialogTitle>
+                        <DialogDescription>
+                            Füge eine Bild-URL ein. Das Bild wird an der aktuellen Cursorposition eingefügt.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-1.5 py-2">
+                        <Label htmlFor="rich-text-image-url">Bild-URL</Label>
+                        <Input
+                            id="rich-text-image-url"
+                            type="url"
+                            value={imageUrl}
+                            onChange={(event) => {
+                                setImageUrl(event.target.value);
+                                if (imageError) setImageError('');
+                            }}
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter') {
+                                    event.preventDefault();
+                                    insertImage();
+                                }
+                            }}
+                            placeholder="https://example.com/bild.jpg"
+                            aria-invalid={Boolean(imageError)}
+                            aria-describedby={imageError ? 'rich-text-image-error' : undefined}
+                            autoFocus
+                        />
+                        {imageError ? (
+                            <p id="rich-text-image-error" className="text-xs text-destructive">
+                                {imageError}
+                            </p>
+                        ) : null}
+                    </div>
+                    <DialogFooter>
+                        <Button type="button" variant="outline" onClick={() => setImageDialogOpen(false)}>
+                            Abbrechen
+                        </Button>
+                        <Button type="button" onClick={insertImage}>
+                            Einfügen
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

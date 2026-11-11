@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/CardLegacy';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { User, Shield, Loader2, Mail, Phone, Settings as SettingsIcon, Pen, Sparkles, CalendarDays, Award, Shuffle, Palette, X, Lock, Eye, Plus, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';

@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
-import { Card, CardContent } from '../../components/ui/CardLegacy';
+import { Card, CardContent } from '../../components/ui/card';
 import { toast } from 'sonner';
 import {
     Users,

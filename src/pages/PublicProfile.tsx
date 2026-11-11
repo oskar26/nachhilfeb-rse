@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { api } from '../lib/api';
 import { Button } from '../components/ui/button';
-import { Card, CardContent } from '../components/ui/CardLegacy';
+import { Card, CardContent } from '../components/ui/card';
 import {
     ChevronLeft, GraduationCap,
     MessageSquare, Star,

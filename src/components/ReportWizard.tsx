@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/DialogLegacy';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
 import { Input } from './ui/input';
 import { toast } from 'sonner';
 import { X, ShieldAlert, AlertTriangle, ChevronRight, ChevronLeft, Camera, FileText, User, MessageCircle, Lock, Flag, type LucideIcon } from 'lucide-react';
@@ -124,13 +124,16 @@ export default function ReportWizard({ isOpen, onClose, reportedUserId, reported
     };
 
     return (
-        <Dialog open={isOpen}>
+        <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader className="relative">
                     <DialogTitle className="flex items-center gap-2 text-red-500">
                         <ShieldAlert size={20} />
                         <span>Meldung einreichen (Schritt {step}/4)</span>
                     </DialogTitle>
+                    <DialogDescription className="sr-only">
+                        Meldung mit Kategorie, Grund, Beschreibung und optionalen Nachweisen einreichen.
+                    </DialogDescription>
                     <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={onClose}
                         className="absolute right-0 top-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-250 transition-colors"

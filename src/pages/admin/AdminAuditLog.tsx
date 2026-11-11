@@ -1,7 +1,7 @@
 import { NativeSelect } from '@/components/ui/native-select';
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../../lib/api';
-import { Card, CardContent } from '../../components/ui/CardLegacy';
+import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import {
     ClipboardList,
@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../../components/ui/DialogLegacy';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../../components/ui/dialog';
 
 interface AuditLog {
     id: string;

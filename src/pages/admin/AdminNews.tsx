@@ -1,10 +1,11 @@
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useState, useEffect } from 'react';
 import { api } from '../../lib/api';
 import { Button } from '../../components/ui/button';
-import { Card, CardContent } from '../../components/ui/CardLegacy';
+import { Card, CardContent } from '../../components/ui/card';
 import { Megaphone, Trash2, Plus, Calendar, AlertCircle } from 'lucide-react';
 import NewsIcon, { NEWS_ICONS } from '../../components/NewsIcon';
 import { toast } from 'sonner';
@@ -22,6 +23,7 @@ export default function AdminNews() {
     const [loading, setLoading] = useState(true);
     const [creating, setCreating] = useState(false);
     const [tableMissing, setTableMissing] = useState(false);
+    const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
     // Form fields
     const [title, setTitle] = useState('');
@@ -86,8 +88,6 @@ export default function AdminNews() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Möchtest du diese Neuigkeit wirklich löschen?')) return;
-
         try {
             const { error } = await api.news.delete(id);
 
@@ -224,7 +224,7 @@ export default function AdminNews() {
                                             <div className="flex items-start justify-between gap-4">
                                                 <h4 className="font-bold text-base text-gray-900 dark:text-white leading-snug">{item.title}</h4>
                                                 <Button variant="unstyled" size="unstyled" type="submit"
-                                                    onClick={() => handleDelete(item.id)}
+                                                    onClick={() => setPendingDeleteId(item.id)}
                                                     className="p-2 rounded-xl text-gray-400 hover:text-red-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all shrink-0 -mt-1"
                                                     title="Löschen"
                                                 >
@@ -252,6 +252,32 @@ export default function AdminNews() {
                     )}
                 </div>
             </div>
+
+            <AlertDialog
+                open={pendingDeleteId !== null}
+                onOpenChange={(open) => { if (!open) setPendingDeleteId(null); }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Neuigkeit löschen?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Diese Mitteilung wird endgültig gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                        <AlertDialogAction
+                            variant="destructive"
+                            onClick={() => {
+                                if (pendingDeleteId) void handleDelete(pendingDeleteId);
+                                setPendingDeleteId(null);
+                            }}
+                        >
+                            Löschen
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

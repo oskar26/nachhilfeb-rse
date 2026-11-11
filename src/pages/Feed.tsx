@@ -1,13 +1,14 @@
 import { Label } from '@/components/ui/label';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/table';
 import { NativeSelect } from '@/components/ui/native-select';
 import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
-import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/CardLegacy';
+import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/card';
 import { SubjectChip, SUBJECT_CATEGORIES, subjectLabelMap, type Subject } from '../components/SubjectChip';
 import { GraduationCap, MapPin, Clock, Filter, Search, CalendarDays, ShieldCheck, ChevronDown, ChevronUp, Share2, Sparkles, Bookmark, X, SearchX, Award, Users, ArrowUpDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle } from '../components/ui/sheet';
 import { GradeSelector } from '../components/GradeSelector';
 import { Input } from '../components/ui/input';
 import { PriceRangeSlider } from '../components/PriceRangeSlider';
@@ -518,48 +519,29 @@ export default function Feed() {
                     </Label>
                 </div>
 
-                <AnimatePresence>
-                    {showFilters && (
-                        <motion.div
-                            key="filters-backdrop"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="md:hidden fixed inset-0 z-[70] bg-black/40"
-                            onClick={() => setShowFilters(false)}
-                            aria-hidden
-                        />
-                    )}
-                    {showFilters && (
-                        <motion.div
-                            key="filters-panel"
-                            initial={{ opacity: 0, y: '100%' }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: '100%' }}
-                            transition={{ duration: 0.25, ease: 'easeOut' }}
-                            role="dialog"
-                            aria-modal="true"
-                            aria-label="Filter"
-                            className="fixed bottom-0 left-0 right-0 z-[80] max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-soft md:absolute md:bottom-auto md:left-0 md:right-0 md:top-full md:mt-2 md:z-30 md:max-h-[70vh] md:rounded-3xl md:border"
-                        >
-                            {/* Kopf nur im mobilen Bottom-Sheet */}
-                            <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 md:hidden">
-                                <div className="flex justify-center pt-3 pb-1">
-                                    <div className="h-1.5 w-10 rounded-full bg-gray-200 dark:bg-gray-700" aria-hidden />
-                                </div>
-                                <div className="flex items-center justify-between px-5 pb-2">
-                                    <h2 className="font-display text-lg font-bold uppercase">Filter</h2>
-                                    <Button variant="unstyled" size="unstyled"
-                                        type="button"
-                                        onClick={() => setShowFilters(false)}
-                                        aria-label="Filter schließen"
-                                        className="-mr-2 rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200 cursor-pointer"
-                                    >
-                                        <X size={20} />
-                                    </Button>
-                                </div>
+                <Sheet open={showFilters} onOpenChange={setShowFilters}>
+                    <SheetContent
+                        side="bottom"
+                        showCloseButton={false}
+                        className="flex max-h-[85dvh] flex-col gap-0 overflow-hidden rounded-t-3xl border-t border-gray-100 bg-white p-0 shadow-soft dark:border-gray-800 dark:bg-gray-900 md:inset-x-auto md:right-4 md:bottom-4 md:left-auto md:top-auto md:max-h-[70vh] md:w-[420px] md:rounded-3xl md:border"
+                    >
+                        <SheetTitle className="sr-only">Filter</SheetTitle>
+                        <SheetDescription className="sr-only">Anzeigen nach Typ, Preis, Klassenstufe und Fach filtern.</SheetDescription>
+                        <div className="shrink-0 border-b border-gray-100 bg-white px-5 pb-2 pt-3 dark:border-gray-800 dark:bg-gray-900">
+                            <div className="mb-1 flex justify-center md:hidden">
+                                <div className="h-1.5 w-10 rounded-full bg-gray-200 dark:bg-gray-700" aria-hidden />
                             </div>
+                            <div className="flex items-center justify-between">
+                                <h2 className="font-display text-lg font-bold uppercase">Filter</h2>
+                                <SheetClose
+                                    aria-label="Filter schließen"
+                                    className="-mr-2 rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:hover:bg-gray-800 dark:hover:text-gray-200"
+                                >
+                                    <X size={20} />
+                                </SheetClose>
+                            </div>
+                        </div>
+                        <div className="min-h-0 flex-1 overflow-y-auto">
                             <div className="p-4 sm:p-5 space-y-6 min-w-0 overflow-x-clip pb-[calc(1.5rem+env(safe-area-inset-bottom))] md:pb-5">
 
                             {/* Type & Price */}
@@ -615,9 +597,10 @@ export default function Feed() {
                                 </div>
                             </div>
                             </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+
+                        </div>
+                    </SheetContent>
+                </Sheet>
             </div>
 
             {savedSearch && !loading && !fetchError && (
@@ -754,22 +737,22 @@ export default function Feed() {
 
                                 {supportBlock.days.length > 0 && supportBlock.rows.length > 0 && (
                                     <div className="overflow-x-auto rounded-xl border border-indigo-100 dark:border-indigo-900/50 bg-white/70 dark:bg-black/20">
-                                        <table className="w-full text-xs text-center">
-                                            <thead>
-                                                <tr>
+                                        <Table className="w-full text-xs text-center">
+                                            <TableHeader>
+                                                <TableRow>
                                                     {supportBlock.days.map(day => (
-                                                        <th key={day.id} className="border p-2 border-indigo-100 dark:border-indigo-900/50 text-indigo-900 dark:text-indigo-200 font-bold">{day.label}</th>
+                                                        <TableHead key={day.id} className="border p-2 border-indigo-100 dark:border-indigo-900/50 text-indigo-900 dark:text-indigo-200 font-bold">{day.label}</TableHead>
                                                     ))}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
                                                 {supportBlock.rows.map(row => (
-                                                    <tr key={row.id}>
-                                                        {row.cells.map(cell => <td key={cell.id} className={scheduleCellClass(cell.text)}>{cell.text}</td>)}
-                                                    </tr>
+                                                    <TableRow key={row.id}>
+                                                        {row.cells.map(cell => <TableCell key={cell.id} className={scheduleCellClass(cell.text)}>{cell.text}</TableCell>)}
+                                                    </TableRow>
                                                 ))}
-                                            </tbody>
-                                        </table>
+                                            </TableBody>
+                                        </Table>
                                     </div>
                                 )}
 
@@ -805,9 +788,9 @@ export default function Feed() {
                                     Nur verifizierte Konten können Anzeigen erstellen, Kontakt aufnehmen oder Anzeigen ansehen. Im Profil ist sichtbar, ob jemand verifiziert ist. Mehr zu Maßnahmen, Verhaltensregeln und Kontakt steht im ausführlichen Leitfaden.
                                 </p>
                                 <div>
-                                    <Button 
-                                        variant="outline" 
-                                        size="sm" 
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
                                         onClick={() => navigate('/eltern-leitfaden')}
                                         className="rounded-full border-emerald-200 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 font-semibold"
                                     >

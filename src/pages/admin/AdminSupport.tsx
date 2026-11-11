@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { api, getStoredUser } from '../../lib/api';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { Card, CardContent } from '../../components/ui/CardLegacy';
+import { Card, CardContent } from '../../components/ui/card';
 import { 
     Search, Bug, Lightbulb, MessageCircle, Send, Loader2, 
     ChevronLeft, Clock, AlertCircle, RefreshCw, Shield, User 

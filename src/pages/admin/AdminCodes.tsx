@@ -1,9 +1,20 @@
 import { Label } from '@/components/ui/label';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/table';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Input } from '@/components/ui/input';
 import { useState, useEffect } from 'react';
 import { Button } from '../../components/ui/button';
-import { Card, CardContent } from '../../components/ui/CardLegacy';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '../../components/ui/alert-dialog';
+import { Card, CardContent } from '../../components/ui/card';
 import {
     Key,
     Plus,
@@ -85,6 +96,12 @@ export default function AdminCodes() {
     // Promo Redemptions (User perks)
     const [redemptions, setRedemptions] = useState<any[]>([]);
     const [loadingRedemptions, setLoadingRedemptions] = useState(false);
+    const [confirmAction, setConfirmAction] = useState<{
+        title: string;
+        description: string;
+        confirmLabel: string;
+        onConfirm: () => void;
+    } | null>(null);
 
     useEffect(() => {
         fetchInviteCodes();
@@ -104,15 +121,21 @@ export default function AdminCodes() {
         }
     };
 
-    const handleRevoke = async (redemptionId: string, userName: string, codeName: string) => {
-        if (!confirm(`Möchtest du ${userName} den Vorteil für Code "${codeName}" wirklich entziehen?`)) return;
-        try {
-            await api.promo_codes.revoke({ redemption_id: redemptionId });
-            toast.success(`Promo-Vorteil für ${userName} wurde entzogen.`);
-            fetchRedemptions();
-        } catch (e: any) {
-            toast.error('Fehler: ' + e.message);
-        }
+    const handleRevoke = (redemptionId: string, userName: string, codeName: string) => {
+        setConfirmAction({
+            title: 'Vorteil entziehen?',
+            description: `Möchtest du ${userName} den Vorteil für Code "${codeName}" wirklich entziehen?`,
+            confirmLabel: 'Entziehen',
+            onConfirm: async () => {
+                try {
+                    await api.promo_codes.revoke({ redemption_id: redemptionId });
+                    toast.success(`Promo-Vorteil für ${userName} wurde entzogen.`);
+                    fetchRedemptions();
+                } catch (e: any) {
+                    toast.error('Fehler: ' + e.message);
+                }
+            },
+        });
     };
 
     const fetchInviteCodes = async () => {
@@ -238,32 +261,44 @@ export default function AdminCodes() {
         }
     };
 
-    const deletePromoCode = async (id: string, codeVal: string) => {
-        if (!confirm(`Promo-Code "${codeVal}" wirklich löschen?`)) return;
-        try {
-            const { error } = await api.promo_codes.delete(id);
+    const deletePromoCode = (id: string, codeVal: string) => {
+        setConfirmAction({
+            title: 'Promo-Code löschen?',
+            description: `Promo-Code "${codeVal}" wird endgültig gelöscht.`,
+            confirmLabel: 'Löschen',
+            onConfirm: async () => {
+                try {
+                    const { error } = await api.promo_codes.delete(id);
 
-            if (error) throw error;
+                    if (error) throw error;
 
-            setPromoCodes(prev => prev.filter(p => p.id !== id));
-            toast.success('Promo-Code gelöscht');
-        } catch (error: any) {
-            toast.error('Löschen fehlgeschlagen: ' + error.message);
-        }
+                    setPromoCodes(prev => prev.filter(p => p.id !== id));
+                    toast.success('Promo-Code gelöscht');
+                } catch (error: any) {
+                    toast.error('Löschen fehlgeschlagen: ' + error.message);
+                }
+            },
+        });
     };
 
-    const deleteInviteCode = async (id: string, codeVal: string) => {
-        if (!confirm(`Einladungscode "${codeVal}" wirklich löschen?`)) return;
-        try {
-            const { error } = await api.codes.deleteInvite(id);
+    const deleteInviteCode = (id: string, codeVal: string) => {
+        setConfirmAction({
+            title: 'Einladungscode löschen?',
+            description: `Einladungscode "${codeVal}" wird endgültig gelöscht.`,
+            confirmLabel: 'Löschen',
+            onConfirm: async () => {
+                try {
+                    const { error } = await api.codes.deleteInvite(id);
 
-            if (error) throw error;
+                    if (error) throw error;
 
-            setInviteCodes(prev => prev.filter(c => c.id !== id));
-            toast.success('Code gelöscht');
-        } catch (error: any) {
-            toast.error('Löschen fehlgeschlagen: ' + error.message);
-        }
+                    setInviteCodes(prev => prev.filter(c => c.id !== id));
+                    toast.success('Code gelöscht');
+                } catch (error: any) {
+                    toast.error('Löschen fehlgeschlagen: ' + error.message);
+                }
+            },
+        });
     };
 
     const handleCopy = (id: string, code: string) => {
@@ -548,29 +583,29 @@ export default function AdminCodes() {
                                 </div>
                             ) : (
                                 <div className="overflow-x-auto">
-                                    <table className="w-full text-left border-collapse text-xs">
-                                        <thead className="bg-gray-50 dark:bg-gray-800/30 border-b dark:border-gray-800 font-bold uppercase text-gray-400">
-                                            <tr>
-                                                <th className="px-6 py-3.5">Code</th>
-                                                <th className="px-6 py-3.5">Effekt & Push</th>
-                                                <th className="px-6 py-3.5">Zielgruppe / Notiz</th>
-                                                <th className="px-6 py-3.5">Nutzungen</th>
-                                                <th className="px-6 py-3.5">Ablaufdatum</th>
-                                                <th className="px-6 py-3.5">Status</th>
-                                                <th className="px-6 py-3.5 text-right">Aktionen</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y dark:divide-gray-800">
+                                    <Table className="w-full text-left border-collapse text-xs">
+                                        <TableHeader className="bg-gray-50 dark:bg-gray-800/30 border-b dark:border-gray-800 font-bold uppercase text-gray-400">
+                                            <TableRow>
+                                                <TableHead className="px-6 py-3.5">Code</TableHead>
+                                                <TableHead className="px-6 py-3.5">Effekt & Push</TableHead>
+                                                <TableHead className="px-6 py-3.5">Zielgruppe / Notiz</TableHead>
+                                                <TableHead className="px-6 py-3.5">Nutzungen</TableHead>
+                                                <TableHead className="px-6 py-3.5">Ablaufdatum</TableHead>
+                                                <TableHead className="px-6 py-3.5">Status</TableHead>
+                                                <TableHead className="px-6 py-3.5 text-right">Aktionen</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody className="divide-y dark:divide-gray-800">
                                             {promoCodes.map(p => {
                                                 const isExpired = p.expires_at ? new Date(p.expires_at) < new Date() : false;
                                                 const isLimitReached = p.max_uses !== null && p.current_uses >= p.max_uses;
 
                                                 return (
-                                                    <tr key={p.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
-                                                        <td className="px-6 py-4 font-mono font-extrabold tracking-wider text-sm text-gray-900 dark:text-white">
+                                                    <TableRow key={p.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
+                                                        <TableCell className="px-6 py-4 font-mono font-extrabold tracking-wider text-sm text-gray-900 dark:text-white">
                                                             {p.code}
-                                                        </td>
-                                                        <td className="px-6 py-4 font-medium space-y-1">
+                                                        </TableCell>
+                                                        <TableCell className="px-6 py-4 font-medium space-y-1">
                                                             <div className="flex items-center gap-1.5 flex-wrap">
                                                                 <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 font-bold text-[10px]">
                                                                     {p.boost_days} Tage Boost
@@ -589,8 +624,8 @@ export default function AdminCodes() {
                                                             <span className="text-[10px] text-gray-400 block font-semibold">
                                                                 {p.effect_type === 'coach_verification' ? 'Schüler-Coaching AG' : p.effect_type}
                                                             </span>
-                                                        </td>
-                                                        <td className="px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">
+                                                        </TableCell>
+                                                        <TableCell className="px-6 py-4 text-gray-600 dark:text-gray-300 font-medium">
                                                             <div className="space-y-0.5">
                                                                 <span className="text-[10px] font-bold uppercase text-gray-400 block">
                                                                     {p.target_group === 'coach' ? 'Schüler-Coaching AG' : p.target_group === 'tutor' ? 'Nur Anbieter' : 'Alle'}
@@ -599,14 +634,14 @@ export default function AdminCodes() {
                                                                     <p className="text-xs text-gray-500 italic line-clamp-1">{p.description}</p>
                                                                 )}
                                                             </div>
-                                                        </td>
-                                                        <td className="px-6 py-4 font-semibold text-gray-600 dark:text-gray-300">
+                                                        </TableCell>
+                                                        <TableCell className="px-6 py-4 font-semibold text-gray-600 dark:text-gray-300">
                                                             {p.current_uses} {p.max_uses !== null ? `/ ${p.max_uses}` : '(Unbegrenzt)'}
-                                                        </td>
-                                                        <td className="px-6 py-4 text-gray-500 font-medium">
+                                                        </TableCell>
+                                                        <TableCell className="px-6 py-4 text-gray-500 font-medium">
                                                             {p.expires_at ? new Date(p.expires_at).toLocaleDateString('de-DE') : 'Dauerhaft'}
-                                                        </td>
-                                                        <td className="px-6 py-4">
+                                                        </TableCell>
+                                                        <TableCell className="px-6 py-4">
                                                             {!p.is_active ? (
                                                                 <span className="px-2 py-0.5 rounded-full bg-gray-200 text-gray-600 text-[10px] font-bold">Inaktiv</span>
                                                             ) : isExpired ? (
@@ -616,8 +651,8 @@ export default function AdminCodes() {
                                                             ) : (
                                                                 <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold">Aktiv</span>
                                                             )}
-                                                        </td>
-                                                        <td className="px-6 py-4 text-right">
+                                                        </TableCell>
+                                                        <TableCell className="px-6 py-4 text-right">
                                                             <div className="flex justify-end gap-1.5">
                                                                 <Button
                                                                     size="icon"
@@ -647,12 +682,12 @@ export default function AdminCodes() {
                                                                     <Trash2 size={14} />
                                                                 </Button>
                                                             </div>
-                                                        </td>
-                                                    </tr>
+                                                        </TableCell>
+                                                    </TableRow>
                                                 );
                                             })}
-                                        </tbody>
-                                    </table>
+                                        </TableBody>
+                                    </Table>
                                 </div>
                             )}
                         </CardContent>
@@ -800,18 +835,18 @@ export default function AdminCodes() {
                                 </div>
                             ) : (
                                 <div className="overflow-x-auto">
-                                    <table className="w-full text-left border-collapse text-xs">
-                                        <thead className="bg-gray-50 dark:bg-gray-800/30 border-b dark:border-gray-800 font-bold uppercase text-gray-400">
-                                            <tr>
-                                                <th className="px-6 py-3.5">Code</th>
-                                                <th className="px-6 py-3.5">Rolle</th>
-                                                <th className="px-6 py-3.5">Nutzungen</th>
-                                                <th className="px-6 py-3.5">Ablaufdatum</th>
-                                                <th className="px-6 py-3.5">Status</th>
-                                                <th className="px-6 py-3.5 text-right">Aktionen</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y dark:divide-gray-800">
+                                    <Table className="w-full text-left border-collapse text-xs">
+                                        <TableHeader className="bg-gray-50 dark:bg-gray-800/30 border-b dark:border-gray-800 font-bold uppercase text-gray-400">
+                                            <TableRow>
+                                                <TableHead className="px-6 py-3.5">Code</TableHead>
+                                                <TableHead className="px-6 py-3.5">Rolle</TableHead>
+                                                <TableHead className="px-6 py-3.5">Nutzungen</TableHead>
+                                                <TableHead className="px-6 py-3.5">Ablaufdatum</TableHead>
+                                                <TableHead className="px-6 py-3.5">Status</TableHead>
+                                                <TableHead className="px-6 py-3.5 text-right">Aktionen</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody className="divide-y dark:divide-gray-800">
                                             {inviteCodes.map(c => {
                                                 const isExpired = c.expires_at ? new Date(c.expires_at) < new Date() : false;
                                                 const uses = c.current_uses ?? (c.is_used ? 1 : 0);
@@ -819,11 +854,11 @@ export default function AdminCodes() {
                                                 const limitReached = c.max_uses === null ? false : uses >= limit;
                                                 const showDelete = !limitReached && !isExpired;
                                                 return (
-                                                    <tr key={c.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
-                                                        <td className="px-6 py-4 font-mono font-bold tracking-wider text-gray-900 dark:text-gray-100">
+                                                    <TableRow key={c.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
+                                                        <TableCell className="px-6 py-4 font-mono font-bold tracking-wider text-gray-900 dark:text-gray-100">
                                                             {c.code}
-                                                        </td>
-                                                        <td className="px-6 py-4">
+                                                        </TableCell>
+                                                        <TableCell className="px-6 py-4">
                                                             <span className={cn(
                                                                 'text-[10px] font-bold px-2 py-0.5 rounded-full uppercase',
                                                                  c.role === 'sv_admin' && 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
@@ -833,14 +868,14 @@ export default function AdminCodes() {
                                                              )}>
                                                                  {c.role === 'sv_admin' ? 'Admin' : c.role === 'coach_admin' ? 'Coaching-Admin' : c.role === 'parent' ? 'Elternteil' : 'Schüler'}
                                                             </span>
-                                                        </td>
-                                                        <td className="px-6 py-4 font-semibold text-gray-600 dark:text-gray-300">
+                                                        </TableCell>
+                                                        <TableCell className="px-6 py-4 font-semibold text-gray-600 dark:text-gray-300">
                                                             {c.max_uses === null ? `${uses} (unbegrenzt)` : `${uses} / ${limit}`}
-                                                        </td>
-                                                        <td className="px-6 py-4 text-gray-500 font-medium">
+                                                        </TableCell>
+                                                        <TableCell className="px-6 py-4 text-gray-500 font-medium">
                                                             {c.expires_at ? new Date(c.expires_at).toLocaleDateString('de-DE') : '--'}
-                                                        </td>
-                                                        <td className="px-6 py-4">
+                                                        </TableCell>
+                                                        <TableCell className="px-6 py-4">
                                                             {limitReached ? (
                                                                 <span className="text-gray-500 font-medium">
                                                                     Aufgebraucht{c.used_by_profile?.display_name ? <> – zuletzt: <span className="font-bold text-gray-800 dark:text-gray-200">{c.used_by_profile.display_name}</span></> : null}
@@ -854,8 +889,8 @@ export default function AdminCodes() {
                                                             ) : (
                                                                 <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase">Aktiv / Frei</span>
                                                             )}
-                                                        </td>
-                                                        <td className="px-6 py-4 text-right">
+                                                        </TableCell>
+                                                        <TableCell className="px-6 py-4 text-right">
                                                             <div className="flex justify-end gap-1.5">
                                                                 <Button
                                                                     size="icon"
@@ -878,18 +913,40 @@ export default function AdminCodes() {
                                                                     </Button>
                                                                 )}
                                                             </div>
-                                                        </td>
-                                                    </tr>
+                                                        </TableCell>
+                                                    </TableRow>
                                                 );
                                             })}
-                                        </tbody>
-                                    </table>
+                                        </TableBody>
+                                    </Table>
                                 </div>
                             )}
                         </CardContent>
                     </Card>
                 </div>
             )}
+
+            <AlertDialog open={!!confirmAction} onOpenChange={(open) => { if (!open) setConfirmAction(null); }}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>{confirmAction?.title}</AlertDialogTitle>
+                        <AlertDialogDescription>{confirmAction?.description}</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                        <AlertDialogAction
+                            variant="destructive"
+                            onClick={() => {
+                                const action = confirmAction?.onConfirm;
+                                setConfirmAction(null);
+                                action?.();
+                            }}
+                        >
+                            {confirmAction?.confirmLabel}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

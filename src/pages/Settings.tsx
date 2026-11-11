@@ -2,9 +2,19 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useTheme } from '../components/ThemeProvider';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/CardLegacy';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Moon, Sun, Monitor, ChevronLeft, Shield, Trash2, Download, AlertTriangle, LifeBuoy, Share2, BookOpen } from 'lucide-react';
 import { Button } from '../components/ui/button';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '../components/ui/alert-dialog';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
@@ -38,6 +48,7 @@ export default function Settings() {
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
     const [isSupportOpen, setIsSupportOpen] = useState(false);
     const [isShareOpen, setIsShareOpen] = useState(false);
+    const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
 
     useEffect(() => {
         if ('Notification' in window) {
@@ -151,9 +162,6 @@ export default function Settings() {
     };
 
     const handleDeleteAccount = async () => {
-        triggerHaptic('warning');
-        if (!confirm("Willst du dein Konto und all deine Anzeigen wirklich zur Löschung vormerken? Diese Aktion schickt eine Anfrage an die Administration.")) return;
-
         try {
             const { error } = await api.support.createTicket({
                 user_id: user?.id,
@@ -382,7 +390,10 @@ export default function Settings() {
                                 <p className="text-[11px] text-red-700 dark:text-red-400">Stellt eine Löschanfrage an das SV-Team (Bestätigung innerhalb von 14 Tagen).</p>
                             </div>
                             <Button
-                                onClick={handleDeleteAccount}
+                                onClick={() => {
+                                    triggerHaptic('warning');
+                                    setDeleteAccountOpen(true);
+                                }}
                                 variant="ghost"
                                 size="sm"
                                 className="rounded-full font-bold gap-1 text-xs text-red-600 hover:bg-red-100 dark:hover:bg-red-900/40 shrink-0"
@@ -525,6 +536,29 @@ export default function Settings() {
                     )}
                 </Card>
             </motion.div>
+
+            <AlertDialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Konto löschen?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Willst du dein Konto und all deine Anzeigen wirklich zur Löschung vormerken? Diese Aktion schickt eine Anfrage an die Administration.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                        <AlertDialogAction
+                            variant="destructive"
+                            onClick={() => {
+                                setDeleteAccountOpen(false);
+                                void handleDeleteAccount();
+                            }}
+                        >
+                            Löschanfrage senden
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             <SupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} />
             <ShareDialog type="app" isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} />

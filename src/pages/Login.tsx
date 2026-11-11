@@ -5,7 +5,7 @@ import { api } from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Checkbox } from '../components/ui/checkbox';
-import { Card, CardContent, CardDescription, CardHeader, CardFooter } from '../components/ui/CardLegacy';
+import { Card, CardContent, CardDescription, CardHeader, CardFooter } from '../components/ui/card';
 import { toast } from 'sonner';
 import { useTheme } from '../components/ThemeProvider';
 import { Sun, Moon, CheckCircle, ShieldAlert, Users } from 'lucide-react';

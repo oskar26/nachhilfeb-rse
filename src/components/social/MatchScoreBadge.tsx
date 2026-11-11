@@ -1,4 +1,5 @@
 import { Zap } from 'lucide-react';
+import { Badge } from '../ui/badge';
 import { cn } from '../../lib/utils';
 
 type MatchTier = 'top' | 'good' | 'ok';
@@ -22,9 +23,10 @@ const TIER_LABEL: Record<MatchTier, string> = {
 export function MatchScoreBadge({ score, className }: { score: number; className?: string }) {
     const tier = matchTier(score);
     return (
-        <div
+        <Badge
+            variant="default"
             className={cn(
-                'inline-flex shrink-0 flex-col items-center rounded-2xl bg-primary px-3.5 py-2 text-amber-950',
+                'inline-flex h-auto shrink-0 flex-col items-center rounded-2xl border-0 bg-primary px-3.5 py-2 text-amber-950',
                 className
             )}
             aria-label={`Übereinstimmung ${score} Prozent: ${TIER_LABEL[tier]}`}
@@ -37,6 +39,6 @@ export function MatchScoreBadge({ score, className }: { score: number; className
             <span className="mt-1 text-[10px] font-bold uppercase tracking-wider text-amber-900">
                 {TIER_LABEL[tier]}
             </span>
-        </div>
+        </Badge>
     );
 }

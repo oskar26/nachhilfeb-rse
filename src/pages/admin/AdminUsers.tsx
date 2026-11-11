@@ -1,11 +1,22 @@
 import { Label } from '@/components/ui/label';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/table';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Textarea } from '@/components/ui/textarea';
 import { useState, useEffect, useCallback } from 'react';import { api } from '../../lib/api';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { Card, CardContent } from '../../components/ui/CardLegacy';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../../components/ui/DialogLegacy';
+import { Card, CardContent } from '../../components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../../components/ui/dialog';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '../../components/ui/alert-dialog';
 import {
     Search,
     Edit,
@@ -77,6 +88,7 @@ export default function AdminUsers() {
         title: string;
         message: string;
     } | null>(null);
+    const [batchVerifyCount, setBatchVerifyCount] = useState<number | null>(null);
 
     // Parent details state
     const [selectedUserRelations, setSelectedUserRelations] = useState<{
@@ -274,14 +286,19 @@ export default function AdminUsers() {
     // Suche/Rolle/Status filtert bereits das Backend – hier liegt die aktuelle Seite
     const filteredUsers = users;
 
-    const handleBatchVerifyPage = async () => {
+    const handleBatchVerifyPage = () => {
         const unverifiedOnPage = filteredUsers.filter(u => !u.is_verified && !u.is_banned);
         if (unverifiedOnPage.length === 0) {
             toast.error('Keine unverifizierten Nutzer auf dieser Seite.');
             return;
         }
 
-        if (!confirm(`${unverifiedOnPage.length} Nutzer auf dieser Seite auf einmal verifizieren?`)) return;
+        setBatchVerifyCount(unverifiedOnPage.length);
+    };
+
+    const executeBatchVerify = async () => {
+        const unverifiedOnPage = filteredUsers.filter(u => !u.is_verified && !u.is_banned);
+        if (unverifiedOnPage.length === 0) return;
 
         try {
             const ids = unverifiedOnPage.map(u => u.id);
@@ -400,20 +417,20 @@ export default function AdminUsers() {
                 <Card className="rounded-3xl border-none shadow-sm overflow-hidden">
                     <CardContent className="p-0">
                         <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                                <thead className="bg-gray-50 dark:bg-gray-800/50 border-b dark:border-gray-800">
-                                    <tr>
-                                        <th className="px-6 py-4 text-xs font-bold uppercase text-gray-400">Nutzer</th>
-                                        <th className="px-6 py-4 text-xs font-bold uppercase text-gray-400">Rolle</th>
-                                        <th className="px-6 py-4 text-xs font-bold uppercase text-gray-400">Stufe</th>
-                                        <th className="px-6 py-4 text-xs font-bold uppercase text-gray-400">Status</th>
-                                        <th className="px-6 py-4 text-xs font-bold uppercase text-gray-400 text-right">Aktionen</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y dark:divide-gray-800">
+                            <Table className="w-full text-left border-collapse">
+                                <TableHeader className="bg-gray-50 dark:bg-gray-800/50 border-b dark:border-gray-800">
+                                    <TableRow>
+                                        <TableHead className="px-6 py-4 text-xs font-bold uppercase text-gray-400">Nutzer</TableHead>
+                                        <TableHead className="px-6 py-4 text-xs font-bold uppercase text-gray-400">Rolle</TableHead>
+                                        <TableHead className="px-6 py-4 text-xs font-bold uppercase text-gray-400">Stufe</TableHead>
+                                        <TableHead className="px-6 py-4 text-xs font-bold uppercase text-gray-400">Status</TableHead>
+                                        <TableHead className="px-6 py-4 text-xs font-bold uppercase text-gray-400 text-right">Aktionen</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody className="divide-y dark:divide-gray-800">
                                     {filteredUsers.map(u => (
-                                        <tr key={u.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
-                                            <td className="px-6 py-4">
+                                        <TableRow key={u.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
+                                            <TableCell className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center font-bold text-primary-hover shrink-0">
                                                         {u.avatar_url ? (
@@ -427,8 +444,8 @@ export default function AdminUsers() {
                                                         <div className="text-xs text-gray-400 truncate">{u.email}</div>
                                                     </div>
                                                 </div>
-                                            </td>
-                                            <td className="px-6 py-4">
+                                            </TableCell>
+                                            <TableCell className="px-6 py-4">
                                                 <span className={cn(
                                                     'text-[10px] font-bold px-2 py-0.5 rounded-full uppercase',
                                                     u.role === 'sv_admin' && 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
@@ -437,11 +454,11 @@ export default function AdminUsers() {
                                                 )}>
                                                     {u.role === 'sv_admin' ? 'Admin' : u.role === 'coach_admin' ? 'Coach' : u.role === 'parent' ? 'Elternteil' : 'Schüler'}
                                                 </span>
-                                            </td>
-                                            <td className="px-6 py-4 font-semibold text-sm">
+                                            </TableCell>
+                                            <TableCell className="px-6 py-4 font-semibold text-sm">
                                                 {u.grade_level ? `${u.grade_level}${u.class_letter || ''}` : '--'}
-                                            </td>
-                                            <td className="px-6 py-4">
+                                            </TableCell>
+                                            <TableCell className="px-6 py-4">
                                                 <div className="flex items-center gap-1.5">
                                                     {u.is_banned ? (
                                                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase border border-red-200">Gesperrt</span>
@@ -451,8 +468,8 @@ export default function AdminUsers() {
                                                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600 text-[10px] font-bold uppercase border border-gray-200">Basis</span>
                                                     )}
                                                 </div>
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
+                                            </TableCell>
+                                            <TableCell className="px-6 py-4 text-right">
                                                 <div className="flex justify-end gap-1.5">
                                                     <Button size="icon" variant="ghost" className="h-9 w-9 rounded-xl" onClick={() => setEditingUser(u)} title="Bearbeiten">
                                                         <Edit size={14} />
@@ -535,11 +552,11 @@ export default function AdminUsers() {
                                                         <Trash2 size={14} />
                                                     </Button>
                                                 </div>
-                                            </td>
-                                        </tr>
+                                            </TableCell>
+                                        </TableRow>
                                     ))}
-                                </tbody>
-                            </table>
+                                </TableBody>
+                            </Table>
                         </div>
                     </CardContent>
                 </Card>
@@ -787,6 +804,28 @@ export default function AdminUsers() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <AlertDialog open={batchVerifyCount !== null} onOpenChange={(open) => { if (!open) setBatchVerifyCount(null); }}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Nutzer verifizieren?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {batchVerifyCount} Nutzer auf dieser Seite werden auf einmal verifiziert.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                setBatchVerifyCount(null);
+                                void executeBatchVerify();
+                            }}
+                        >
+                            Verifizieren
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

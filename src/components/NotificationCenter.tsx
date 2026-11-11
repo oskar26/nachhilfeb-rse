@@ -1,12 +1,11 @@
 import { Button } from '@/components/ui/button';
-import { useEffect, useRef, useState, useCallback } from 'react';
-import type { PointerEvent as ReactPointerEvent, RefObject } from 'react';
-import { createPortal } from 'react-dom';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { useEffect, useState, useCallback } from 'react';
+import type { RefObject } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     motion,
-    AnimatePresence,
-    useDragControls,
     useReducedMotion,
     useScroll,
     useSpring,
@@ -21,6 +20,7 @@ import {
     Star,
     Zap,
     CheckCheck,
+    X,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { startNotificationPoll } from '../lib/polling';
@@ -110,9 +110,6 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
     const [notifications, setNotifications] = useState<AppNotification[]>([]);
     const [loading, setLoading] = useState(false);
     const [unread, setUnread] = useState(0);
-    const panelRef = useRef<HTMLDivElement>(null);
-    const buttonRef = useRef<HTMLButtonElement>(null);
-    const dragControls = useDragControls();
     const reduceMotion = useReducedMotion();
 
     // Sticker schrumpft/fadet dezent beim Scrollen des Inhalts
@@ -156,40 +153,11 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
         return stopPolling;
     }, [user, fetchNotifications]);
 
-    // ── Click outside + Escape ─────────────────────────────────────
-    useEffect(() => {
-        if (!open) return;
-        const clickHandler = (e: MouseEvent) => {
-            if (
-                panelRef.current && !panelRef.current.contains(e.target as Node) &&
-                buttonRef.current && !buttonRef.current.contains(e.target as Node)
-            ) {
-                setOpen(false);
-            }
-        };
-        const keyHandler = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') setOpen(false);
-        };
-        document.addEventListener('mousedown', clickHandler);
-        window.addEventListener('keydown', keyHandler);
-        return () => {
-            document.removeEventListener('mousedown', clickHandler);
-            window.removeEventListener('keydown', keyHandler);
-        };
-    }, [open]);
-
-    const toggleOpen = () => {
-        triggerHaptic('light');
-        const willOpen = !open;
-        setOpen(willOpen);
+    const handleOpenChange = (nextOpen: boolean) => {
+        if (nextOpen) triggerHaptic('light');
+        setOpen(nextOpen);
         // Beim Öffnen still aktualisieren (kein Spinner-Flash)
-        if (willOpen) fetchNotifications(true);
-    };
-
-    const startSheetDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
-        if (reduceMotion) return;
-        if ((e.target as Element).closest('button')) return;
-        dragControls.start(e);
+        if (nextOpen) fetchNotifications(true);
     };
 
     // ── Mark all as read ───────────────────────────────────────────
@@ -312,135 +280,91 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
         </div>
     );
 
+    const desktopTrigger = (
+        <Button
+            variant="unstyled"
+            size="unstyled"
+            hapticStyle={false}
+            type="button"
+            className="relative select-none cursor-pointer rounded-2xl p-2.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+            aria-label={triggerLabel}
+        >
+            <Bell size={20} />
+            {unread > 0 && (
+                <span className="absolute right-1.5 top-1.5 grid place-items-center" aria-hidden>
+                    <span className="absolute inset-0 animate-ping rounded-full bg-primary/70" />
+                    <span className="relative h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-white dark:ring-gray-900" />
+                </span>
+            )}
+        </Button>
+    );
+
+    const mobileTrigger = (
+        <Button
+            variant="unstyled"
+            size="unstyled"
+            hapticStyle={false}
+            type="button"
+            className={cn(
+                'relative grid h-14 w-14 select-none cursor-pointer place-items-center rounded-2xl bg-primary text-black shadow-[0_14px_30px_-10px_rgba(0,0,0,0.35)] ring-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                unread > 0 ? 'ring-primary/60' : 'ring-black/10'
+            )}
+            aria-label={triggerLabel}
+        >
+            <span className="absolute top-2 h-1 w-10 rounded-full bg-black/20" aria-hidden />
+            <Bell size={22} strokeWidth={2.25} className="mt-1.5" />
+            {unread > 0 && (
+                <span className="absolute -right-1.5 -top-1.5 grid place-items-center">
+                    <span className="absolute inset-0 animate-ping rounded-full bg-primary/70" aria-hidden />
+                    <span className="relative grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1 text-[10px] font-black leading-none text-gray-950 ring-2 ring-[#f8f9fa] tabular-nums dark:ring-gray-950">
+                        {badgeCount}
+                    </span>
+                </span>
+            )}
+        </Button>
+    );
+
+    if (variant === 'desktop') {
+        return (
+            <Popover open={open} onOpenChange={handleOpenChange}>
+                <PopoverTrigger render={desktopTrigger} />
+                <PopoverContent
+                    align="end"
+                    sideOffset={8}
+                    aria-label="Meldungen"
+                    className="hidden max-h-[520px] w-[380px] flex-col overflow-hidden rounded-3xl border border-gray-200/80 bg-[#faf7ef] p-0 shadow-2xl dark:border-gray-800 dark:bg-gray-950 md:flex"
+                >
+                    {headerContent}
+                    {listContent}
+                </PopoverContent>
+            </Popover>
+        );
+    }
+
     return (
-        <>
-            {variant === 'desktop' ? (
-                <div className="relative">
-                    {/* Glocke (Sidebar) */}
-                    <Button
-                        ref={buttonRef}
-                        variant="unstyled"
-                        size="unstyled"
-                        hapticStyle={false}
-                        type="button"
-                        onClick={toggleOpen}
-                        className="relative select-none cursor-pointer rounded-2xl p-2.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
-                        aria-label={triggerLabel}
-                        aria-haspopup="dialog"
-                        aria-expanded={open}
-                    >
-                        <Bell size={20} />
-                        {unread > 0 && (
-                            <span className="absolute right-1.5 top-1.5 grid place-items-center" aria-hidden>
-                                <span className="absolute inset-0 animate-ping rounded-full bg-primary/70" />
-                                <span className="relative h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-white dark:ring-gray-900" />
-                            </span>
-                        )}
-                    </Button>
+        <Sheet open={open} onOpenChange={handleOpenChange}>
+            <motion.div style={reduceMotion ? undefined : { scale: stickerScale, opacity: stickerOpacity }}>
+                <SheetTrigger render={mobileTrigger} />
+            </motion.div>
+            <SheetContent
+                side="bottom"
+                showCloseButton={false}
+                className="max-h-[88dvh] gap-0 overflow-hidden rounded-t-3xl border-x border-t border-gray-200/80 bg-[#faf7ef] p-0 dark:border-gray-800 dark:bg-gray-950 md:hidden"
+            >
+                <SheetTitle className="sr-only">Meldungen</SheetTitle>
+                <SheetDescription className="sr-only">Benachrichtigungen und Aktivitäten</SheetDescription>
+                <div className="shrink-0 bg-[#faf7ef] poster-grain-dark pt-3">
+                    <div className="relative flex justify-center pb-1">
+                        <span className="h-1.5 w-12 rounded-full bg-black/15" aria-hidden />
+                        <SheetClose className="absolute right-4 top-0 inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:bg-black/5 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:text-gray-300 dark:hover:bg-white/10">
+                            <X size={18} />
+                            <span className="sr-only">Schließen</span>
+                        </SheetClose>
+                    </div>
+                    {headerContent}
                 </div>
-            ) : (
-                /* Aufgeklebter Sticker — mobil, oben rechts unter der Safe-Area */
-                <div className="fixed right-4 top-[max(1rem,env(safe-area-inset-top))] z-40 md:hidden">
-                    <motion.div style={reduceMotion ? undefined : { scale: stickerScale, opacity: stickerOpacity }}>
-                        <Button
-                            ref={buttonRef}
-                            variant="unstyled"
-                            size="unstyled"
-                            hapticStyle={false}
-                            type="button"
-                            onClick={toggleOpen}
-                            className={cn(
-                                'relative grid h-14 w-14 select-none cursor-pointer place-items-center rounded-2xl bg-primary text-black shadow-[0_14px_30px_-10px_rgba(0,0,0,0.35)] ring-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                                unread > 0 ? 'ring-primary/60' : 'ring-black/10'
-                            )}
-                            aria-label={triggerLabel}
-                            aria-haspopup="dialog"
-                            aria-expanded={open}
-                        >
-                            <span className="absolute top-2 h-1 w-10 rounded-full bg-black/20" aria-hidden />
-                            <Bell size={22} strokeWidth={2.25} className="mt-1.5" />
-                            {unread > 0 && (
-                                <span className="absolute -right-1.5 -top-1.5 grid place-items-center">
-                                    <span className="absolute inset-0 animate-ping rounded-full bg-primary/70" aria-hidden />
-                                    <span className="relative grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1 text-[10px] font-black leading-none text-gray-950 ring-2 ring-[#f8f9fa] tabular-nums dark:ring-gray-950">
-                                        {badgeCount}
-                                    </span>
-                                </span>
-                            )}
-                        </Button>
-                    </motion.div>
-                </div>
-            )}
-
-            {/* Panel (Portal: immun gegen backdrop-blur/overflow der Header) */}
-            {typeof document !== 'undefined' && createPortal(
-            <AnimatePresence>
-                {open && variant === 'desktop' && (
-                    <motion.div
-                        key="desktop-panel"
-                        ref={panelRef}
-                        initial={reduceMotion ? false : { opacity: 0, scale: 0.97, y: 8 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.97, y: 6 }}
-                        transition={{ type: 'tween', duration: 0.16, ease: 'easeOut' }}
-                        className="fixed right-6 top-[4.5rem] z-[9999] hidden max-h-[520px] w-[380px] flex-col overflow-hidden rounded-3xl border border-gray-200/80 bg-[#faf7ef] shadow-2xl dark:border-gray-800 dark:bg-gray-950 md:flex"
-                    >
-                        {headerContent}
-                        {listContent}
-                    </motion.div>
-                )}
-
-                {open && variant === 'sticker' && (
-                    <motion.div
-                        key="mobile-scrim"
-                        initial={reduceMotion ? false : { opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.18 }}
-                        onClick={() => setOpen(false)}
-                        className="fixed inset-0 z-[9998] bg-gray-950/60 backdrop-blur-[2px] md:hidden"
-                        aria-hidden
-                    />
-                )}
-
-                {open && variant === 'sticker' && (
-                    <motion.div
-                        key="mobile-sheet"
-                        ref={panelRef}
-                        role="dialog"
-                        aria-modal="true"
-                        aria-label="Meldungen"
-                        initial={reduceMotion ? false : { y: '100%' }}
-                        animate={{ y: 0 }}
-                        exit={reduceMotion ? { opacity: 0 } : { y: '100%' }}
-                        transition={{ type: 'spring', stiffness: 380, damping: 38, mass: 0.9 }}
-                        drag={reduceMotion ? false : 'y'}
-                        dragControls={dragControls}
-                        dragListener={false}
-                        dragConstraints={{ top: 0, bottom: 0 }}
-                        dragElastic={{ top: 0, bottom: 0.6 }}
-                        dragMomentum={false}
-                        onDragEnd={(_, info) => {
-                            if (info.offset.y > 110 || info.velocity.y > 700) setOpen(false);
-                        }}
-                        className="fixed inset-x-0 bottom-0 z-[9999] flex max-h-[88dvh] flex-col overflow-hidden rounded-t-3xl border-x border-t border-gray-200/80 bg-[#faf7ef] shadow-[0_-24px_60px_-20px_rgba(0,0,0,0.6)] dark:border-gray-800 dark:bg-gray-950 md:hidden"
-                    >
-                        {/* Griff + schwarzer Kopf = Drag-Zone (Buttons ausgenommen) */}
-                        <div
-                            className="shrink-0 cursor-grab select-none touch-none bg-[#faf7ef] poster-grain-dark pt-3"
-                            onPointerDown={startSheetDrag}
-                        >
-                            <div className="flex justify-center">
-                                <span className="h-1.5 w-12 rounded-full bg-black/15" aria-hidden />
-                            </div>
-                            {headerContent}
-                        </div>
-                        {listContent}
-                    </motion.div>
-                )}
-            </AnimatePresence>,
-            document.body
-            )}
-        </>
+                {listContent}
+            </SheetContent>
+        </Sheet>
     );
 }

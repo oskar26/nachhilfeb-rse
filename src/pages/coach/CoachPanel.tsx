@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
 import { Button } from '../../components/ui/button';
-import { Card, CardContent } from '../../components/ui/CardLegacy';
-import { TabBar } from '../../components/ui/TabBar';
+import { Card, CardContent } from '../../components/ui/card';
+import { Tabs, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { Input } from '../../components/ui/input';
 import { Checkbox } from '../../components/ui/checkbox';
 import {
@@ -231,18 +231,34 @@ export default function CoachPanel() {
             </div>
 
             {/* Navigation Tabs */}
-            <TabBar
-                ariaLabel="Coach-Bereich"
-                items={[
-                    { key: 'students', label: 'Schülerliste', icon: Users },
-                    { key: 'codes', label: 'Coaching-Codes', icon: Key },
-                    { key: 'info', label: 'Startseiten-Info', icon: Megaphone },
-                    { key: 'logs', label: 'Mein Protokoll', icon: History },
-                    { key: 'seite', label: 'Seite', icon: LayoutTemplate }
-                ]}
+            <Tabs
                 value={activeTab}
-                onChange={setActiveTab}
-            />
+                onValueChange={(value) => {
+                    triggerHaptic('selection');
+                    setActiveTab(value as typeof activeTab);
+                }}
+            >
+                <TabsList
+                    aria-label="Coach-Bereich"
+                    className="h-auto w-full flex-wrap justify-start gap-2 bg-transparent p-0"
+                >
+                    <TabsTrigger value="students" className="rounded-full border border-gray-200 bg-white px-3.5 py-2 text-xs font-bold text-gray-600 data-active:border-primary data-active:bg-primary data-active:text-primary-foreground dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                        <Users size={16} /> Schülerliste
+                    </TabsTrigger>
+                    <TabsTrigger value="codes" className="rounded-full border border-gray-200 bg-white px-3.5 py-2 text-xs font-bold text-gray-600 data-active:border-primary data-active:bg-primary data-active:text-primary-foreground dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                        <Key size={16} /> Coaching-Codes
+                    </TabsTrigger>
+                    <TabsTrigger value="info" className="rounded-full border border-gray-200 bg-white px-3.5 py-2 text-xs font-bold text-gray-600 data-active:border-primary data-active:bg-primary data-active:text-primary-foreground dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                        <Megaphone size={16} /> Startseiten-Info
+                    </TabsTrigger>
+                    <TabsTrigger value="logs" className="rounded-full border border-gray-200 bg-white px-3.5 py-2 text-xs font-bold text-gray-600 data-active:border-primary data-active:bg-primary data-active:text-primary-foreground dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                        <History size={16} /> Mein Protokoll
+                    </TabsTrigger>
+                    <TabsTrigger value="seite" className="rounded-full border border-gray-200 bg-white px-3.5 py-2 text-xs font-bold text-gray-600 data-active:border-primary data-active:bg-primary data-active:text-primary-foreground dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+                        <LayoutTemplate size={16} /> Seite
+                    </TabsTrigger>
+                </TabsList>
+            </Tabs>
 
             {/* TAB 1: SCHÜLERLISTE */}
             {activeTab === 'students' && (

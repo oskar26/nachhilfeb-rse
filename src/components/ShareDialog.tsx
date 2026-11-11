@@ -1,7 +1,7 @@
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
 import { Button } from './ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/DialogLegacy';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Copy, Check, Share2, Mail, MessageSquare, X, QrCode } from 'lucide-react';
 import { toast } from 'sonner';
 import { triggerHaptic } from '../lib/haptics';

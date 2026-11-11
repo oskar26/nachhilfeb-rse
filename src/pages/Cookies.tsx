@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/table';
 import { Button } from '../components/ui/button';
 import StaticLayout from '../components/StaticLayout';
 
@@ -44,48 +45,48 @@ export default function Cookies() {
                 <section aria-labelledby="cookies-speicher" className="bg-white dark:bg-gray-900 p-6 sm:p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm space-y-3">
                     <h2 id="cookies-speicher" className="font-bold text-lg text-gray-900 dark:text-white">Was wird wo gespeichert?</h2>
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left text-gray-600 dark:text-gray-300">
-                            <thead>
-                                <tr className="border-b border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white">
-                                    <th scope="col" className="py-2 pr-4 font-bold">Speicher</th>
-                                    <th scope="col" className="py-2 pr-4 font-bold">Zweck</th>
-                                    <th scope="col" className="py-2 pr-4 font-bold">Dauer</th>
-                                    <th scope="col" className="py-2 font-bold">Grundlage</th>
-                                </tr>
-                            </thead>
-                            <tbody className="leading-relaxed">
-                                <tr className="border-b border-gray-100 dark:border-gray-800">
-                                    <td className="py-2 pr-4">Browser (Local Storage): Anmeldestatus</td>
-                                    <td className="py-2 pr-4">Angemeldet bleiben</td>
-                                    <td className="py-2 pr-4">Bis zum Logout bzw. Löschen der Browserdaten</td>
-                                    <td className="py-2">§ 25 Abs. 2 TDDDG (technisch erforderlich)</td>
-                                </tr>
-                                <tr className="border-b border-gray-100 dark:border-gray-800">
-                                    <td className="py-2 pr-4">Browser (Local Storage): Design-Einstellung</td>
-                                    <td className="py-2 pr-4">Hell-/Dunkelmodus merken (Komfort)</td>
-                                    <td className="py-2 pr-4">Bis zur Änderung bzw. Löschen der Browserdaten</td>
-                                    <td className="py-2">§ 25 Abs. 2 TDDDG (technisch erforderlich)</td>
-                                </tr>
-                                <tr className="border-b border-gray-100 dark:border-gray-800">
-                                    <td className="py-2 pr-4">Browser (Local Storage): Hinweis-Status</td>
-                                    <td className="py-2 pr-4">Cookie-Hinweis nicht erneut anzeigen</td>
-                                    <td className="py-2 pr-4">Bis zum Löschen der Browserdaten</td>
-                                    <td className="py-2">§ 25 Abs. 2 TDDDG (technisch erforderlich)</td>
-                                </tr>
-                                <tr className="border-b border-gray-100 dark:border-gray-800">
-                                    <td className="py-2 pr-4">Server: Nutzungsstatistik (Seitenaufrufe, ohne IP)</td>
-                                    <td className="py-2 pr-4">App verbessern; Zahl der aktiven Nutzer (bei Anmeldung mit Konto-Kennung, pseudonym); läuft immer mit</td>
-                                    <td className="py-2 pr-4">Detaildaten <strong>90 Tage</strong>, danach automatische Löschung. Widerspruch jederzeit möglich.</td>
-                                    <td className="py-2">Art. 6 Abs. 1 lit. f DSGVO</td>
-                                </tr>
-                                <tr>
-                                    <td className="py-2 pr-4">Server: Fächer-Klicks (ohne IP, ohne Konto)</td>
-                                    <td className="py-2 pr-4">Reihenfolge der „Beliebt“-Fächer ermitteln</td>
-                                    <td className="py-2 pr-4">90 Tage, danach automatische Löschung</td>
-                                    <td className="py-2">Art. 6 Abs. 1 lit. f DSGVO</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <Table className="w-full text-sm text-left text-gray-600 dark:text-gray-300">
+                            <TableHeader>
+                                <TableRow className="border-b border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white">
+                                    <TableHead scope="col" className="py-2 pr-4 font-bold">Speicher</TableHead>
+                                    <TableHead scope="col" className="py-2 pr-4 font-bold">Zweck</TableHead>
+                                    <TableHead scope="col" className="py-2 pr-4 font-bold">Dauer</TableHead>
+                                    <TableHead scope="col" className="py-2 font-bold">Grundlage</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody className="leading-relaxed">
+                                <TableRow className="border-b border-gray-100 dark:border-gray-800">
+                                    <TableCell className="py-2 pr-4">Browser (Local Storage): Anmeldestatus</TableCell>
+                                    <TableCell className="py-2 pr-4">Angemeldet bleiben</TableCell>
+                                    <TableCell className="py-2 pr-4">Bis zum Logout bzw. Löschen der Browserdaten</TableCell>
+                                    <TableCell className="py-2">§ 25 Abs. 2 TDDDG (technisch erforderlich)</TableCell>
+                                </TableRow>
+                                <TableRow className="border-b border-gray-100 dark:border-gray-800">
+                                    <TableCell className="py-2 pr-4">Browser (Local Storage): Design-Einstellung</TableCell>
+                                    <TableCell className="py-2 pr-4">Hell-/Dunkelmodus merken (Komfort)</TableCell>
+                                    <TableCell className="py-2 pr-4">Bis zur Änderung bzw. Löschen der Browserdaten</TableCell>
+                                    <TableCell className="py-2">§ 25 Abs. 2 TDDDG (technisch erforderlich)</TableCell>
+                                </TableRow>
+                                <TableRow className="border-b border-gray-100 dark:border-gray-800">
+                                    <TableCell className="py-2 pr-4">Browser (Local Storage): Hinweis-Status</TableCell>
+                                    <TableCell className="py-2 pr-4">Cookie-Hinweis nicht erneut anzeigen</TableCell>
+                                    <TableCell className="py-2 pr-4">Bis zum Löschen der Browserdaten</TableCell>
+                                    <TableCell className="py-2">§ 25 Abs. 2 TDDDG (technisch erforderlich)</TableCell>
+                                </TableRow>
+                                <TableRow className="border-b border-gray-100 dark:border-gray-800">
+                                    <TableCell className="py-2 pr-4">Server: Nutzungsstatistik (Seitenaufrufe, ohne IP)</TableCell>
+                                    <TableCell className="py-2 pr-4">App verbessern; Zahl der aktiven Nutzer (bei Anmeldung mit Konto-Kennung, pseudonym); läuft immer mit</TableCell>
+                                    <TableCell className="py-2 pr-4">Detaildaten <strong>90 Tage</strong>, danach automatische Löschung. Widerspruch jederzeit möglich.</TableCell>
+                                    <TableCell className="py-2">Art. 6 Abs. 1 lit. f DSGVO</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell className="py-2 pr-4">Server: Fächer-Klicks (ohne IP, ohne Konto)</TableCell>
+                                    <TableCell className="py-2 pr-4">Reihenfolge der „Beliebt“-Fächer ermitteln</TableCell>
+                                    <TableCell className="py-2 pr-4">90 Tage, danach automatische Löschung</TableCell>
+                                    <TableCell className="py-2">Art. 6 Abs. 1 lit. f DSGVO</TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
                     </div>
                     <p className="text-[15px] leading-7 text-gray-600 dark:text-gray-300">
                         Details zur Datenverarbeitung stehen in der{' '}
