@@ -147,7 +147,7 @@ Ausschließlich diese Werte verwenden:
 |---|---|---|---|
 | **A** | Migration der übrigen UI-Komponenten | **Erledigt** (A18 interne Overlays blockiert) | `977ced7` |
 | **B** | Vollständige Seitenüberarbeitung und Mobile UX | Erledigt (BL-1/BL-4) | `db6852d` |
-| **C** | Vollständige UI-Transition verifizieren | Offen | `—` |
+| **C** | Vollständige UI-Transition verifizieren | Erledigt (interne Prüfung BL-1/BL-4) | `42e6a95` |
 | **D** | Technische Bereinigung | Offen | `—` |
 | **E** | Finale Verifikation | Offen | `—` |
 
@@ -326,7 +326,7 @@ Nutze den **Browser-Skill**.
 
 ## 9. Phase C – Vollständige UI-Transition verifizieren
 
-**Status:** Offen
+**Status:** Erledigt (interne Prüfung BL-1/BL-4)
 **Ziel:** Verbindliche Sperre vor der technischen Bereinigung. Die UI-Transition muss zu **100 %** abgeschlossen sein.
 
 **Phase D darf erst beginnen, wenn Phase C vollständig abgeschlossen ist.**
@@ -351,30 +351,39 @@ Suche nach:
 
 | ID | Aufgabe | Status | Evidenz |
 |---|---|---|---|
-| C1 | Aktive Eigenbau-Komponenten suchen und vollständig ersetzen | Offen | — |
-| C2 | Alte Imports/alternative Implementierungen suchen und entfernen | Offen | — |
-| C3 | Alle Routen und Seiten gegen die Seitenliste prüfen | Offen | — |
-| C4 | shadcn/ui-Verwendung auf Varianten, Größen und Muster prüfen | Offen | — |
-| C5 | Hover/Focus/Disabled/Error bei allen interaktiven Elementen prüfen | Offen | — |
-| C6 | Mobile Optimierung aller Seiten erneut prüfen | Offen | — |
-| C7 | Unbenutzte Altdateien inventarisieren, aber noch nicht löschen | Offen | — |
-| C8 | Gefundene Probleme direkt beheben | Offen | — |
-| C9 | Build und Lint ausführen | Offen | — |
-| C10 | Bei tatsächlichen Änderungen lokal committen: `UI-Transition vollständig abgeschlossen` | Offen | — |
-| C11 | Keinen leeren Commit erzeugen, wenn keine Änderungen nötig sind | Offen | — |
-| C12 | Evidenz und Commit-Hash eintragen | Offen | — |
+| C1 | Aktive Eigenbau-Komponenten suchen und vollständig ersetzen | Erledigt | Importgraph: 130/131 Dateien erreichbar; keine aktive Eigenbau-Komponente; Legacy-Dateien ungenutzt |
+| C2 | Alte Imports/alternative Implementierungen suchen und entfernen | Erledigt | 0 aktive Importe von `DialogLegacy`, `CardLegacy`, `TabBar`; 0 `confirm`/`prompt`/`alert`; 0 rohe Tabellen/Form-Tags außerhalb `components/ui`; Toasts nur Sonner |
+| C3 | Alle Routen und Seiten gegen die Seitenliste prüfen | Erledigt | 60/60 öffentliche Checks (10 Routen × 375/768/1280 × Light/Dark), 49 App/Admin-Checks (Fake-Session/Fixture-API), 10 gezielte Feed-/AdDetails-Checks |
+| C4 | shadcn/ui-Verwendung auf Varianten, Größen und Muster prüfen | Erledigt | CoachingPageBuilder-Buttons pill; Social-Chips/StreamCardShell von doppelten Klassen bereinigt; nur `Layout`-Menüzeile `rounded-xl` als vertretbare Ausnahme |
+| C5 | Hover/Focus/Disabled/Error bei allen interaktiven Elementen prüfen | Erledigt | Dialog-/Sheet-Default-Close 44 px; NotificationCenter nach Scrollen 46×46; Fokus/Escape/Fokus-Rückgabe und `aria-modal` im Recheck bestätigt |
+| C6 | Mobile Optimierung aller Seiten erneut prüfen | Erledigt | 375/768/1280 + Dark; 0 horizontale Overflows, 0 echte Touch-Targets unter 44 px; Feed/AdDetails nach Härtung ohne ErrorBoundary |
+| C7 | Unbenutzte Altdateien inventarisieren, aber noch nicht löschen | Erledigt | `ui/CardLegacy.tsx`, `ui/DialogLegacy.tsx`, `ui/TabBar.tsx`; zusätzlich ungenutzte shadcn-Dateien: avatar, pagination, progress, radio-group, scroll-area, select, separator, toggle, toggle-group |
+| C8 | Gefundene Probleme direkt beheben | Erledigt | 9 Dateien geändert: Close-Buttons, NotificationCenter, Buttons, Social-Chips, AppLoader, Feed-/AdDetails-Härtung |
+| C9 | Build und Lint ausführen | Erledigt | `npm run build` Exit 0 (`/tmp/opencode/phaseC-build-final.log`); `npm run lint` Exit 0, 0 Fehler/153 Warnungen (`/tmp/opencode/phaseC-lint-final.log`); `npm test` 23/23 (`/tmp/opencode/phaseC-test-final.log`) |
+| C10 | Bei tatsächlichen Änderungen lokal committen: `UI-Transition vollständig abgeschlossen` | Erledigt | Commit `42e6a95` (9 Dateien, +34/−33) |
+| C11 | Keinen leeren Commit erzeugen, wenn keine Änderungen nötig sind | Erledigt | Änderungen vorhanden; kein Leer-Commit |
+| C12 | Evidenz und Commit-Hash eintragen | Erledigt | Dieser Abschnitt und Fortschrittslog |
 
-### 9.4 Definition of Done – Phase C
+### 9.4 Evidenz Phase C
 
-- [ ] Keine aktive Eigenbau-Komponente mehr in Seiten oder gemeinsam genutzten Komponenten.
-- [ ] Keine alten Imports oder alternativen Implementierungen mehr aktiv.
-- [ ] Alle Seiten sind gegen die Seitenliste geprüft.
-- [ ] Alle Interaktionszustände sind vollständig.
-- [ ] Mobile Optimierung ist vollständig.
-- [ ] Unbenutzte Altdateien sind für Phase D inventarisiert.
-- [ ] Build und Lint laufen ohne Fehler.
-- [ ] Commit `UI-Transition vollständig abgeschlossen` existiert – oder dokumentiert ist, warum kein Commit nötig war.
-- [ ] Phase D ist noch nicht begonnen.
+- **Statisch:** keine aktiven Legacy-Importe, keine Browser-Dialoge (`confirm`/`prompt`/`alert`), keine rohen UI-Tags außer funktionalen `<form>`-Elementen, Toasts ausschließlich Sonner.
+- **Öffentlich:** 10 Routen (`/welcome`, `/login`, `/coaching`, `/eltern-leitfaden`, `/datenschutz`, `/impressum`, `/cookies`, `/nutzungsbedingungen`, `/transparenz`, 404) × 375/768/1280 × Light/Dark = 60/60; 0 Console-/Page-Errors, 0 Overflow.
+- **Intern:** Feed, CreateAd, AdDetails, Profile, PublicProfile, Settings, Chat, Social, Requests, Matching, Favorites, CoachPanel, alle Admin-Tabs, VerifyEmail, UpdatePassword; 0 Overflow, 0 echte kleine Touch-Targets; Fake-Session/Fixture-API wegen BL-1/BL-4.
+- **Gezielter Recheck:** NotificationCenter mobil 48×48 vor und 46×46 nach Scroll; Sheet-Close 44×44; `aria-modal=true`; Fokus bleibt im Overlay; Escape schließt; Fokus kehrt zurück; Desktop-Trigger 44×44; RichTextEditor-Dialog-Close 44×44; Coach-Buttons pill/44 px; SocialFilterPills korrekt; 0 Console-/Page-Errors.
+- **Feed/AdDetails:** Nach defensiver `subjects`-Normalisierung 10/10 Checks ohne ErrorBoundary, 0 Console-/Page-Errors, `scrollWidth` 365/375, 758/768, 1270/1280.
+- **Grenze:** Echte Login-, Rollen- und Schreibflows konnten ohne Testzugang nicht geprüft werden (BL-1/BL-4); die Prüfung erfolgte mit Fake-Session und Fixture-API. Das ist dokumentiert und kein UI-Codefehler.
+
+### 9.5 Definition of Done – Phase C
+
+- [x] Keine aktive Eigenbau-Komponente mehr in Seiten oder gemeinsam genutzten Komponenten.
+- [x] Keine alten Imports oder alternativen Implementierungen mehr aktiv.
+- [x] Alle Seiten sind gegen die Seitenliste geprüft.
+- [x] Alle Interaktionszustände sind vollständig.
+- [x] Mobile Optimierung ist vollständig.
+- [x] Unbenutzte Altdateien sind für Phase D inventarisiert.
+- [x] Build und Lint laufen ohne Fehler.
+- [x] Commit `UI-Transition vollständig abgeschlossen` existiert – oder dokumentiert ist, warum kein Commit nötig war.
+- [x] Phase D ist noch nicht begonnen.
 
 ---
 
@@ -859,6 +868,7 @@ Neue Einträge werden **oben** ergänzt. Keine bestehenden Einträge löschen.
 
 | Datum | Phase/Task | Änderung | Evidenz | Commit |
 |---|---|---|---|---|
+| 2026-11-11 | C | UI-Transition verifiziert und Letztkorrekturen (44-px-Close, NotificationCenter, Buttons, Social-Chips, AppLoader, Feed/AdDetails-Härtung) | Statisch 0 aktive Eigenbau/Altimporte; öffentlich 60/60, intern 49, Feed/AdDetails 10/10 (375/768/1280, Dark); 0 Overflow/Console-Errors; Build 0, Lint 0 Fehler/153 Warnungen, Tests 23/23; interne Rollenprüfung BL-1/BL-4 | `42e6a95` |
 | 2026-11-11 | B | Alle Seiten + Shell + Mobile UX überarbeitet; öffentliche, App-, Admin-/Coach-Bereiche | 60 öffentliche + 49 App/Admin-Browser-Checks (375/768/1280, Dark), 0 Overflow/Console-Errors; Build 0, Lint 0 Fehler/153 Warnungen, Tests 23/23; echte Login-/Rollenprüfung BL-1/BL-4 | `db6852d` |
 | 2026-11-11 | A | Dialoge/Cards/Overlays/Tabs/Tabellen/Badges/Toasts migriert; A18 öffentlich geprüft | `npm run build` 0, `npm run lint` 0 Fehler/153 Warnungen, `npm test` 23/23; `977ced7` | `977ced7` |
 | 2026-11-11 | Vorbereitung | Plan-Dokument erstellt; Baseline geprüft | `npm run build` 0, `npm run lint` 0 Fehler/153 Warnungen, `npm test` 23/23 | Kein Commit (Vorbereitung) |
