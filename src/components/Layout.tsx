@@ -1,7 +1,6 @@
 import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Home, PlusCircle, User, LogOut, Settings, MessageSquare, Inbox, Zap, Heart, Sparkles, Award } from 'lucide-react';
 import AccessGuard from './AccessGuard';
-import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/button';
 import { useRef, useState } from 'react';
@@ -51,9 +50,9 @@ export default function Layout() {
             active = isTabActive(target);
         }
 
-        return `relative flex min-h-11 items-center gap-3 rounded-xl border px-3.5 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 ${
+        return `relative flex min-h-11 items-center gap-3 rounded-lg border px-3.5 py-2.5 text-sm font-medium transition-colors ${
             active
-                ? 'border-primary/30 bg-primary/15 text-foreground dark:border-primary/25 dark:text-primary'
+                ? 'border-border bg-muted text-foreground'
                 : 'border-transparent text-muted-foreground hover:bg-muted hover:text-foreground'
         }`;
     };
@@ -75,20 +74,20 @@ export default function Layout() {
                     handleNavClick();
                     mainContentRef.current?.focus();
                 }}
-                className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-full focus:bg-primary focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-primary-foreground focus:shadow-overlay"
+                className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-primary-foreground "
             >
                 Zum Hauptinhalt springen
             </Link>
 
             {/* Desktop-Sidebar */}
-            <aside className="z-40 m-4 hidden h-[calc(100dvh-2rem)] w-64 shrink-0 flex-col overflow-hidden rounded-3xl xl:w-72 border border-border bg-card/90 shadow-soft backdrop-blur-xl md:flex">
+            <aside className="z-40 m-4 hidden h-[calc(100dvh-2rem)] w-64 shrink-0 flex-col overflow-hidden rounded-xl border border-border bg-card md:flex xl:w-72">
                 <div className="relative z-50 flex items-center justify-between gap-2 p-5 pb-3">
-                    <NavLink to="/welcome" onClick={handleNavClick} className="group flex min-h-11 min-w-0 items-center gap-3 rounded-full">
-                        <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground">
+                    <NavLink to="/welcome" onClick={handleNavClick} className="group flex min-h-11 min-w-0 items-center gap-3 rounded-lg">
+                        <span className="grid size-11 shrink-0 place-items-center rounded-lg bg-muted text-foreground">
                             <Logo size={24} />
                         </span>
                         <div className="min-w-0">
-                            <h1 className="truncate text-sm font-semibold leading-tight tracking-tight text-foreground transition-colors group-hover:text-brand-ink dark:group-hover:text-primary">Nachhilfebörse</h1>
+                            <h1 className="truncate text-sm font-semibold leading-tight tracking-tight text-foreground transition-colors group-hover:text-primary">Nachhilfebörse</h1>
                             <p className="mt-0.5 text-xs font-medium text-muted-foreground">FWG Köln</p>
                         </div>
                     </NavLink>
@@ -131,12 +130,12 @@ export default function Layout() {
                     </NavLink>
 
                     {isCoachAdmin && (
-                        <div className="mt-4 rounded-2xl border border-primary/25 bg-primary/10 p-2.5">
-                            <p className="mb-1 px-2 text-xs font-semibold text-brand-ink dark:text-primary">Coaching-AG</p>
+                        <div className="mt-4">
+                            <p className="mb-1 px-2 text-xs font-medium text-muted-foreground">Coaching-AG</p>
                             <NavLink
                                 to="/coach-panel"
                                 onClick={handleNavClick}
-                                className={({ isActive }) => `flex min-h-11 items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 ${isActive ? 'bg-primary/25 text-foreground' : 'text-brand-ink hover:bg-primary/15 dark:text-primary'}`}
+                                className={({ isActive }) => `flex min-h-11 items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${isActive ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
                             >
                                 <Award size={18} className="shrink-0" aria-hidden />
                                 <span>Coaching Panel</span>
@@ -145,12 +144,12 @@ export default function Layout() {
                     )}
 
                     {isAdmin && (
-                        <div className="mt-4 rounded-2xl border border-destructive/25 bg-destructive/5 p-2.5">
-                            <p className="mb-1 px-2 text-xs font-semibold text-destructive">SV-Bereich</p>
+                        <div className="mt-4">
+                            <p className="mb-1 px-2 text-xs font-medium text-muted-foreground">SV-Bereich</p>
                             <NavLink
                                 to="/sv-panel"
                                 onClick={handleNavClick}
-                                className={({ isActive }) => `flex min-h-11 items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 ${isActive ? 'bg-destructive/15 text-destructive' : 'text-destructive hover:bg-destructive/10'}`}
+                                className={({ isActive }) => `flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${isActive ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
                             >
                                 <span>SV Panel</span>
                             </NavLink>
@@ -159,7 +158,7 @@ export default function Layout() {
                 </nav>
 
                 <div className="border-t border-border bg-muted/40 p-3">
-                    <Button variant="ghost" className="h-11 w-full justify-start gap-3 rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={handleSignOut}>
+                    <Button variant="ghost" className="h-11 w-full justify-start gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={handleSignOut}>
                         <LogOut size={20} aria-hidden /> Abmelden
                     </Button>
                 </div>
@@ -169,11 +168,11 @@ export default function Layout() {
             <main className="relative flex min-h-0 min-w-0 flex-1 flex-col md:p-4">
                 {/* Mobile App-Leiste: Logo + Benachrichtigungen. Auf Desktop übernimmt die Sidebar. */}
                 <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border bg-card px-4 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] md:hidden">
-                    <Link to="/welcome" onClick={handleNavClick} className="flex min-h-11 min-w-0 items-center gap-2.5 rounded-full">
-                        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground">
+                    <Link to="/welcome" onClick={handleNavClick} className="flex min-h-11 min-w-0 items-center gap-2.5 rounded-lg">
+                        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-foreground">
                             <Logo size={20} />
                         </span>
-                        <span className="truncate text-sm font-semibold tracking-tight text-foreground">Nachhilfebörse <span className="text-brand-ink dark:text-primary">FWG</span></span>
+                        <span className="truncate text-sm font-semibold tracking-tight text-foreground">Nachhilfebörse <span className="text-primary">FWG</span></span>
                     </Link>
                     <NotificationCenter
                         variant="sticker"
@@ -186,7 +185,7 @@ export default function Layout() {
                     ref={mainContentRef}
                     tabIndex={-1}
                     aria-label="Hauptinhalt"
-                    className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overflow-x-clip focus:outline-none md:rounded-3xl md:border md:border-border md:bg-card/60 md:shadow-soft md:backdrop-blur-md"
+                    className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overflow-x-clip focus:outline-none md:rounded-xl md:border md:border-border md:bg-card"
                 >
                     <AccessGuard>
                         <Outlet />
@@ -199,7 +198,7 @@ export default function Layout() {
             {/* Mobile Bottom-Navigation */}
             <nav
                 aria-label="Hauptnavigation"
-                className="fixed right-4 bottom-[max(0.75rem,calc(0.75rem+env(safe-area-inset-bottom,0px)))] left-4 z-50 flex h-16 items-center justify-around rounded-full border border-border bg-card/95 px-1.5 shadow-overlay ring-1 ring-foreground/5 backdrop-blur-xl md:hidden"
+                className="fixed right-4 bottom-[max(0.75rem,calc(0.75rem+env(safe-area-inset-bottom,0px)))] left-4 z-50 flex h-16 items-center justify-around rounded-xl border border-border bg-card px-1.5 shadow-overlay md:hidden"
             >
                 {mobileNavItems.map((item) => {
                     const Icon = item.icon;
@@ -212,13 +211,14 @@ export default function Layout() {
                                     handleNavClick();
                                     navigate('/create-ad');
                                 }}
-                                className="relative flex h-full w-16 shrink-0 flex-col items-center justify-center rounded-full"
+                                className="relative flex h-full w-16 shrink-0 flex-col items-center justify-center rounded-lg"
                                 title={item.label}
                                 aria-label="Neue Anzeige erstellen"
                             >
-                                <span className="press -mt-5 grid size-14 place-items-center rounded-full border-4 border-card bg-primary text-primary-foreground shadow-soft ring-1 ring-foreground/10">
-                                    <PlusCircle size={24} strokeWidth={2.25} aria-hidden />
+                                <span className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground">
+                                    <PlusCircle size={20} strokeWidth={2} aria-hidden />
                                 </span>
+                                <span className="max-w-full truncate text-xs font-medium">Erstellen</span>
                             </Button>
                         );
                     }
@@ -230,7 +230,7 @@ export default function Layout() {
                             end={item.end || (item.activateOnChat ? false : undefined)}
                             onClick={handleNavClick}
                             className={({ isActive }) =>
-                                `relative flex h-full min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full px-1 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 ${
+                                `relative flex h-full min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-1 text-xs font-medium transition-colors ${
                                     isActive || (item.activateOnChat && (isSocialRoute || isChatRoute))
                                         ? 'text-foreground'
                                         : 'text-muted-foreground hover:text-foreground'
@@ -243,12 +243,7 @@ export default function Layout() {
                                     <Icon size={20} strokeWidth={isActive || (item.activateOnChat && (isSocialRoute || isChatRoute)) ? 2.25 : 2} aria-hidden />
                                     <span className="max-w-full truncate">{item.label}</span>
                                     {(isActive || (item.activateOnChat && (isSocialRoute || isChatRoute))) && (
-                                        <motion.span
-                                            layoutId="mobileNavActiveDot"
-                                            className="absolute bottom-1 h-1 w-1 rounded-full bg-primary"
-                                            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                                            aria-hidden
-                                        />
+                                        <span className="absolute bottom-1 h-1 w-1 rounded-full bg-foreground" aria-hidden />
                                     )}
                                 </>
                             )}

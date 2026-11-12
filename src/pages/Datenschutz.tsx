@@ -15,7 +15,7 @@ function scrollToId(id: string) {
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
     const headingId = `${id}-heading`;
     return (
-        <section id={id} aria-labelledby={headingId} className="flex scroll-mt-24 flex-col gap-3 rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8">
+        <section id={id} aria-labelledby={headingId} className="flex scroll-mt-24 flex-col gap-3 rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
             <h2 id={headingId} className="font-semibold text-lg text-foreground">{title}</h2>
             <div className="flex flex-col gap-2 text-base leading-7 text-muted-foreground">{children}</div>
         </section>
@@ -42,7 +42,7 @@ export default function Datenschutz() {
             <div className="max-w-3xl mx-auto px-4 sm:px-6 pb-16 min-w-0 flex flex-col gap-10 sm:gap-12">
                 {/* Leseeinheit 1: Zusammenfassung + Inhaltsübersicht gehören zusammen. */}
                 <div className="flex flex-col gap-4 sm:gap-5 min-w-0">
-                <section aria-labelledby="datenschutz-tldr" className="flex flex-col gap-3 rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8">
+                <section aria-labelledby="datenschutz-tldr" className="flex flex-col gap-3 rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
                     <h2 id="datenschutz-tldr" className="font-semibold text-lg text-foreground">TL;DR: kurz gesagt</h2>
                     <div className="flex flex-col gap-2 text-base leading-7 text-muted-foreground">
                         <p>
@@ -62,7 +62,7 @@ export default function Datenschutz() {
                     </div>
                 </section>
 
-                <nav aria-label="Inhaltsübersicht" className="flex flex-col gap-3 rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8">
+                <nav aria-label="Inhaltsübersicht" className="flex flex-col gap-3 rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
                     <h2 className="font-semibold text-lg text-foreground">Inhalt</h2>
                     <ol className="grid gap-1 text-base leading-7 text-muted-foreground sm:grid-cols-2">
                         {toc.map((item) => (
@@ -70,7 +70,7 @@ export default function Datenschutz() {
                                 <Button variant="unstyled" size="unstyled"
                                     type="button"
                                     onClick={() => scrollToId(item.id)}
-                                    className="flex min-h-11 w-full items-center rounded-xl px-3 py-2.5 text-left font-semibold text-brand-ink hover:bg-muted hover:underline dark:text-primary"
+                                    className="flex min-h-11 w-full items-center rounded-xl px-3 py-2.5 text-left font-semibold text-foreground hover:bg-muted hover:underline"
                                 >
                                     {item.label}
                                 </Button>
@@ -86,7 +86,7 @@ export default function Datenschutz() {
                     <p>
                         Schülervertretung (SV) des Friedrich-Wilhelm-Gymnasiums Köln,
                         Severinstraße 241, 50676 Köln ·{' '}
-                        <a href="mailto:info@nachhilfe-sv.de" className="break-anywhere font-bold text-brand-ink hover:underline dark:text-primary">info@nachhilfe-sv.de</a>
+                        <a href="mailto:info@nachhilfe-sv.de" className="break-anywhere font-semibold text-foreground hover:underline">info@nachhilfe-sv.de</a>
                     </p>
                     <p>
                         Die Nachhilfebörse ist ein nicht-kommerzielles Schülerprojekt. Bei Fragen zum
@@ -119,7 +119,7 @@ export default function Datenschutz() {
                         Eltern können das Konto ihres Kindes mitbetreuen und etwa Anzeigen und
                         Anfragen gemeinsam durchgehen. Die Einwilligung kann jederzeit
                         mit Wirkung für die Zukunft widerrufen werden – wende dich dazu an{' '}
-                        <a href="mailto:info@nachhilfe-sv.de" className="break-anywhere font-bold text-brand-ink hover:underline dark:text-primary">info@nachhilfe-sv.de</a>.
+                        <a href="mailto:info@nachhilfe-sv.de" className="break-anywhere font-semibold text-foreground hover:underline">info@nachhilfe-sv.de</a>.
                         Nach dem Widerruf wird das Konto des Kindes deaktiviert.
                     </p>
                 </Section>
@@ -160,13 +160,13 @@ export default function Datenschutz() {
                         Profil und Anzeigen kannst du in der App unter „Profil“ bzw. „Meine Anzeigen“ selbst
                         verwalten. Die <strong>vollständige Löschung deines Kontos</strong> beantragst du
                         über eine Anfrage in der App oder per E-Mail an{' '}
-                        <a href="mailto:info@nachhilfe-sv.de" className="break-anywhere font-bold text-brand-ink hover:underline dark:text-primary">info@nachhilfe-sv.de</a>{' '}
+                        <a href="mailto:info@nachhilfe-sv.de" className="break-anywhere font-semibold text-foreground hover:underline">info@nachhilfe-sv.de</a>{' '}
                         – wir bestätigen die Löschung innerhalb von 14 Tagen.
                     </p>
                     <p>
                         <strong>Widerspruch gegen die Nutzungsstatistik:</strong> Du kannst der Verarbeitung
                         zu Statistikzwecken jederzeit widersprechen (Art. 21 DSGVO) – formlos per E-Mail an{' '}
-                        <a href="mailto:info@nachhilfe-sv.de" className="break-anywhere font-bold text-brand-ink hover:underline dark:text-primary">info@nachhilfe-sv.de</a>{' '}
+                        <a href="mailto:info@nachhilfe-sv.de" className="break-anywhere font-semibold text-foreground hover:underline">info@nachhilfe-sv.de</a>{' '}
                         oder über eine Anfrage. Deine Konto-Kennung wird dann aus den Statistikdaten
                         entfernt; die Nutzung der Börse bleibt vollständig möglich.
                     </p>
@@ -186,11 +186,11 @@ export default function Datenschutz() {
                 </Section>
                 </div>
 
-                <section aria-labelledby="datenschutz-handeln" className="flex flex-col gap-3 rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8">
+                <section aria-labelledby="datenschutz-handeln" className="flex flex-col gap-3 rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
                     <h2 id="datenschutz-handeln" className="font-semibold text-lg text-foreground">Was du jetzt tun kannst</h2>
                     <ul className="list-disc space-y-1 pl-4 text-base leading-7 text-muted-foreground">
                         <li><strong>Anfrage in der App</strong> erstellen, für Auskunft, Korrektur oder Löschung deines Kontos.</li>
-                        <li><strong>E-Mail schreiben</strong> an <a href="mailto:info@nachhilfe-sv.de" className="break-anywhere font-bold text-brand-ink hover:underline dark:text-primary">info@nachhilfe-sv.de</a> – wir antworten und bestätigen Löschungen innerhalb von 14 Tagen.</li>
+                        <li><strong>E-Mail schreiben</strong> an <a href="mailto:info@nachhilfe-sv.de" className="break-anywhere font-semibold text-foreground hover:underline">info@nachhilfe-sv.de</a> – wir antworten und bestätigen Löschungen innerhalb von 14 Tagen.</li>
                         <li><strong>Beschwerde einreichen</strong> bei der LDI NRW (Kavalleriestr. 2–4, 40213 Düsseldorf), wenn du mit unserer Antwort nicht zufrieden bist.</li>
                     </ul>
                 </section>

@@ -22,71 +22,49 @@ export default function NotFound() {
 
   return (
     <div className="flex min-h-dvh flex-col overflow-x-clip bg-background font-sans text-foreground">
-      <Button variant="unstyled" size="unstyled" type="button" onClick={() => document.getElementById('inhalt')?.scrollIntoView()} className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-primary focus:px-5 focus:py-2.5 focus:text-sm focus:font-bold focus:text-primary-foreground">Zum Inhalt springen</Button>
+      <Button variant="unstyled" size="unstyled" type="button" onClick={() => document.getElementById('inhalt')?.scrollIntoView()} className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-primary focus:px-5 focus:py-2.5 focus:text-sm focus:font-medium focus:text-primary-foreground">Zum Inhalt springen</Button>
 
       <SiteHeader />
 
-      {/* Inhalt */}
-      <main id="inhalt" className="relative flex-1 overflow-hidden">
-        <div className="absolute inset-0 poster-grain-dark dark:opacity-30" aria-hidden />
-
-        <div className="relative mx-auto max-w-4xl px-4 pb-16 pt-14 text-center sm:px-6 sm:pb-20 sm:pt-20">
-          {/* 404-Stempel */}
-          <div className="flex justify-center">
-            <span className="stamp-ring inline-flex -rotate-6 items-center gap-2 rounded-xl border-2 border-primary px-4 py-2 font-display text-sm uppercase tracking-[0.22em] text-brand-ink dark:text-primary sm:text-base">
-              404 · Seite nicht gefunden
-            </span>
-          </div>
-
-          {/* Anton-Riesen-H1 */}
-          <h1 className="mt-8 break-words font-display uppercase leading-[0.92] tracking-tight text-[17vw] sm:text-8xl lg:text-9xl">
-            Seite nicht
-            <span className="mt-1 block"><span className="inline-block bg-primary px-2 text-primary-foreground sm:px-3">gefunden.</span></span>
+      <main id="inhalt" className="flex-1 bg-background">
+        <div className="mx-auto max-w-3xl px-4 pb-16 pt-14 sm:px-6 sm:pb-20 sm:pt-20">
+          <p className="text-sm font-medium text-muted-foreground">404 · Seite nicht gefunden</p>
+          <h1 className="mt-4 break-words text-3xl font-semibold leading-tight tracking-tight text-balance sm:text-4xl">
+            Seite nicht gefunden.
           </h1>
-
-          {/* Subline */}
-          <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
+          <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
             Vielleicht wurde die Anzeige gelöscht oder der Link ist veraltet.
           </p>
 
-          {/* Gelbes tape-Detail: abgerissener Zettel */}
-          <div className="mx-auto mt-10 max-w-md">
-            <div className="tape relative rotate-[-2deg] rounded-2xl bg-primary p-6 pt-9 text-left text-primary-foreground shadow-card">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-70">Gesucht · Zuletzt gesehen</p>
-              <p className="mt-2 font-display uppercase text-2xl leading-none">Diese Seite am Brett</p>
-              <p className="mt-2 text-sm font-semibold leading-relaxed">
-                Diese Seite gibt es nicht. Auf der Startseite findest du weitere Anzeigen.
-              </p>
-            </div>
+          <div className="mt-8 max-w-md rounded-xl border border-border bg-card p-6">
+            <p className="text-xs font-medium text-muted-foreground">Gesucht · Zuletzt gesehen</p>
+            <p className="mt-2 text-lg font-semibold leading-snug">Diese Seite am Brett</p>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              Diese Seite gibt es nicht. Auf der Startseite findest du weitere Anzeigen.
+            </p>
           </div>
 
-          {/* EIN primärer CTA-Intent */}
-          <div className="mt-10 flex flex-col items-center gap-4">
-            <Link to={primaryTarget} className={buttonVariants({ size: 'lg', className: 'min-h-12 rounded-full bg-primary font-bold text-primary-foreground hover:bg-primary-hover' })}>
+          <div className="mt-8 flex flex-col items-start gap-3">
+            <Link to={primaryTarget} className={buttonVariants({ size: 'lg', className: 'min-h-12' })}>
               {primaryLabel} <ArrowRight size={20} aria-hidden />
             </Link>
-            {/* Zurück nur als unauffälliger Textlink mit History-Fallback */}
-            <Button variant="unstyled" size="unstyled" type="button"
-              onClick={handleBack}
-              className="inline-flex min-h-11 items-center gap-1.5 text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
-            >
+            <Button variant="ghost" type="button" onClick={handleBack} className="min-h-11 px-0 text-sm text-muted-foreground hover:bg-transparent hover:text-foreground">
               <ArrowLeft size={16} aria-hidden /> Zurück
             </Button>
           </div>
 
-          {/* Tertiäre Textlinks */}
-          <nav aria-label="Weiter stöbern" className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-sm text-muted-foreground">
-            <Link to="/" className="inline-flex min-h-11 items-center underline-offset-4 transition-colors hover:text-foreground hover:underline">Übersicht</Link>
-            <Link to="/welcome" className="inline-flex min-h-11 items-center underline-offset-4 transition-colors hover:text-foreground hover:underline">Startseite</Link>
-            <Link to="/coaching" className="inline-flex min-h-11 items-center underline-offset-4 transition-colors hover:text-foreground hover:underline">Coaching</Link>
-            <Link to="/eltern-leitfaden" className="inline-flex min-h-11 items-center underline-offset-4 transition-colors hover:text-foreground hover:underline">Eltern-Leitfaden</Link>
+          <nav aria-label="Weiter stöbern" className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-border pt-6 text-sm text-muted-foreground">
+            <Link to="/" className="inline-flex min-h-11 items-center transition-colors hover:text-foreground">Übersicht</Link>
+            <Link to="/welcome" className="inline-flex min-h-11 items-center transition-colors hover:text-foreground">Startseite</Link>
+            <Link to="/coaching" className="inline-flex min-h-11 items-center transition-colors hover:text-foreground">Coaching</Link>
+            <Link to="/eltern-leitfaden" className="inline-flex min-h-11 items-center transition-colors hover:text-foreground">Eltern-Leitfaden</Link>
           </nav>
         </div>
       </main>
 
-      <footer className="relative border-t border-border">
+      <footer className="border-t border-border">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] pt-5 text-xs text-muted-foreground sm:px-6">
-          <span className="inline-flex items-center gap-2"><Logo size={16} /> Nachhilfebörse FWG</span>
+          <span className="inline-flex items-center gap-2"><Logo size={16} className="text-primary" /> Nachhilfebörse FWG</span>
           <span>SV-verifiziert · Nur FWG Köln</span>
         </div>
       </footer>

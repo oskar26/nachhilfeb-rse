@@ -57,7 +57,7 @@ export default function Cookies() {
             intro="Speicherhinweise · Stand: Oktober 2026 · Betreiber: SV FWG Köln."
         >
             <div className="mx-auto max-w-3xl space-y-6 px-4 pb-16 sm:px-6">
-                <section aria-labelledby="cookies-kurz" className="space-y-3 rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8">
+                <section aria-labelledby="cookies-kurz" className="space-y-3 rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
                     <h2 id="cookies-kurz" className="text-lg font-semibold text-foreground">Kurz gesagt</h2>
                     <div className="space-y-2 text-base leading-7 text-muted-foreground">
                         <p>
@@ -80,7 +80,7 @@ export default function Cookies() {
                     </div>
                 </section>
 
-                <section aria-labelledby="cookies-speicher" className="space-y-4 rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8">
+                <section aria-labelledby="cookies-speicher" className="space-y-4 rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
                     <h2 id="cookies-speicher" className="text-lg font-semibold text-foreground">Was wird wo gespeichert?</h2>
 
                     {/* Mobil: gestapelte Leseeinheiten statt horizontaler Tabelle. */}
@@ -138,11 +138,11 @@ export default function Cookies() {
                     </div>
                     <p className="text-base leading-7 text-muted-foreground">
                         Details zur Datenverarbeitung stehen in der{' '}
-                        <Link to="/datenschutz" className="font-bold text-brand-ink hover:underline dark:text-primary">Datenschutzerklärung</Link>.
+                        <Link to="/datenschutz" className="font-semibold text-foreground hover:underline">Datenschutzerklärung</Link>.
                     </p>
                 </section>
 
-                <section aria-labelledby="cookies-hinweis" className="space-y-3 rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8">
+                <section aria-labelledby="cookies-hinweis" className="space-y-3 rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
                     <h2 id="cookies-hinweis" className="text-lg font-semibold text-foreground">Hinweis erneut anzeigen</h2>
                     <div className="space-y-2 text-base leading-7 text-muted-foreground">
                         <p>
@@ -150,7 +150,7 @@ export default function Cookies() {
                             keine Einwilligung, die du widerrufen müsstest. Wenn du den Hinweis trotzdem
                             noch einmal sehen möchtest, blendest du ihn hier wieder ein:
                         </p>
-                        <Button onClick={showNoticeAgain} variant="outline" className="mt-2 min-h-11 rounded-full">
+                        <Button onClick={showNoticeAgain} variant="outline" className="mt-2 min-h-11 rounded-lg">
                             Hinweis erneut anzeigen
                         </Button>
                     </div>

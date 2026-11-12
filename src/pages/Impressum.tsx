@@ -8,9 +8,9 @@ export default function Impressum() {
             intro="Stand: Oktober 2026 · Betreiber: SV FWG Köln · Anbieterkennzeichnung nach § 5 Digitale-Dienste-Gesetz (DDG)."
         >
             <div className="mx-auto max-w-3xl space-y-6 px-4 pb-16 sm:px-6">
-                <div className="space-y-6 rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8">
+                <div className="space-y-6 rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
                     <div className="flex gap-4">
-                        <Building2 className="mt-1 shrink-0 text-brand-ink dark:text-primary" size={24} aria-hidden="true" />
+                        <Building2 className="mt-1 shrink-0 text-foreground" size={24} aria-hidden="true" />
                         <div className="min-w-0">
                             <h2 className="mb-2 text-lg font-semibold text-foreground">Diensteanbieter</h2>
                             <p className="text-base leading-7 text-muted-foreground">
@@ -24,13 +24,13 @@ export default function Impressum() {
                     </div>
 
                     <div className="flex gap-4">
-                        <Mail className="mt-1 shrink-0 text-brand-ink dark:text-primary" size={24} aria-hidden="true" />
+                        <Mail className="mt-1 shrink-0 text-foreground" size={24} aria-hidden="true" />
                         <div className="min-w-0">
                             <h2 className="mb-2 text-lg font-semibold text-foreground">Kontakt</h2>
                             <ul className="space-y-1 text-base leading-7 text-muted-foreground">
                                 <li>
                                     E-Mail (SV-Team &amp; Nachhilfebörse):{' '}
-                                    <a href="mailto:info@nachhilfe-sv.de" className="break-anywhere font-bold text-brand-ink hover:underline dark:text-primary">info@nachhilfe-sv.de</a>
+                                    <a href="mailto:info@nachhilfe-sv.de" className="break-anywhere font-semibold text-foreground hover:underline">info@nachhilfe-sv.de</a>
                                 </li>
                                 <li className="flex items-start gap-2">
                                     <Phone size={16} className="mt-1.5 shrink-0" aria-hidden="true" />
@@ -38,12 +38,12 @@ export default function Impressum() {
                                 </li>
                                 <li>
                                     Schüler-Coaching:{' '}
-                                    <a href="mailto:Rosalia.Balistreri@fwg-koeln.nrw.schule" className="break-anywhere font-bold text-brand-ink hover:underline dark:text-primary">Rosalia.Balistreri@fwg-koeln.nrw.schule</a>{' '}
+                                    <a href="mailto:Rosalia.Balistreri@fwg-koeln.nrw.schule" className="break-anywhere font-semibold text-foreground hover:underline">Rosalia.Balistreri@fwg-koeln.nrw.schule</a>{' '}
                                     (Frau Balistreri)
                                 </li>
                                 <li>
                                     Technik &amp; Fehlermeldungen:{' '}
-                                    <a href="mailto:technik@nachhilfe-sv.de" className="break-anywhere font-bold text-brand-ink hover:underline dark:text-primary">technik@nachhilfe-sv.de</a>
+                                    <a href="mailto:technik@nachhilfe-sv.de" className="break-anywhere font-semibold text-foreground hover:underline">technik@nachhilfe-sv.de</a>
                                 </li>
                             </ul>
                             <p className="mt-2 text-base leading-7 text-muted-foreground">
@@ -54,7 +54,7 @@ export default function Impressum() {
                     </div>
 
                     <div className="flex gap-4">
-                        <MapPin className="mt-1 shrink-0 text-brand-ink dark:text-primary" size={24} aria-hidden="true" />
+                        <MapPin className="mt-1 shrink-0 text-foreground" size={24} aria-hidden="true" />
                         <div className="min-w-0">
                             <h2 className="mb-2 text-lg font-semibold text-foreground">Schulträger</h2>
                             <p className="text-base leading-7 text-muted-foreground">
@@ -66,7 +66,7 @@ export default function Impressum() {
                     </div>
 
                     <div className="flex gap-4">
-                        <Newspaper className="mt-1 shrink-0 text-brand-ink dark:text-primary" size={24} aria-hidden="true" />
+                        <Newspaper className="mt-1 shrink-0 text-foreground" size={24} aria-hidden="true" />
                         <div className="min-w-0">
                             <h2 className="mb-2 text-lg font-semibold text-foreground">Verantwortlich für redaktionelle Inhalte (§ 18 Abs. 2 MStV)</h2>
                             <p className="text-base leading-7 text-muted-foreground">
@@ -84,7 +84,7 @@ export default function Impressum() {
                     </div>
                 </div>
 
-                <div className="rounded-3xl border border-border bg-muted/60 p-6 text-sm leading-relaxed text-muted-foreground">
+                <div className="rounded-xl border border-border bg-muted/60 p-6 text-sm leading-relaxed text-muted-foreground">
                     <strong className="text-foreground">Hinweis zum Charakter der Plattform:</strong>{' '}
                     Dies ist eine schulische Vermittlungsplattform von Schülern für Schüler.
                     Nachhilfevereinbarungen (Zeiten, Preise, Inhalte) kommen ausschließlich zwischen den

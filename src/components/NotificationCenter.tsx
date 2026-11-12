@@ -5,13 +5,6 @@ import { useEffect, useState, useCallback } from 'react';
 import type { RefObject } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    motion,
-    useReducedMotion,
-    useScroll,
-    useSpring,
-    useTransform,
-} from 'framer-motion';
-import {
     Bell,
     BellOff,
     MessageSquare,
@@ -60,10 +53,10 @@ interface Props {
 function typeIcon(type: NotificationType) {
     switch (type) {
         case 'message': return <MessageSquare size={16} className="text-muted-foreground" />;
-        case 'like':    return <Heart size={16} className="text-primary" />;
+        case 'like':    return <Heart size={16} className="text-muted-foreground" />;
         case 'alert':   return <AlertTriangle size={16} className="text-destructive" />;
-        case 'review':  return <Star size={16} className="text-primary" />;
-        case 'match':   return <Zap size={16} className="text-primary" />;
+        case 'review':  return <Star size={16} className="text-muted-foreground" />;
+        case 'match':   return <Zap size={16} className="text-muted-foreground" />;
         default:        return <Bell size={16} className="text-muted-foreground" />;
     }
 }
@@ -103,19 +96,17 @@ function groupByDate(notifications: AppNotification[]): Record<string, AppNotifi
 
 // ── Component ────────────────────────────────────────────────────
 
-export default function NotificationCenter({ onCountChange, variant = 'desktop', scrollRef }: Props) {
+export default function NotificationCenter({ unreadCount, onCountChange, variant = 'desktop' }: Props) {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
     const [notifications, setNotifications] = useState<AppNotification[]>([]);
+    const [unread, setUnread] = useState(unreadCount);
     const [loading, setLoading] = useState(false);
-    const [unread, setUnread] = useState(0);
-    const reduceMotion = useReducedMotion();
 
-    // Sticker schrumpft/fadet dezent beim Scrollen des Inhalts
-    const { scrollY } = useScroll({ container: scrollRef });
-    const stickerScale = useSpring(useTransform(scrollY, [0, 64], [1, 0.95]), { stiffness: 320, damping: 30 });
-    const stickerOpacity = useSpring(useTransform(scrollY, [0, 96], [1, 0.8]), { stiffness: 320, damping: 30 });
+    useEffect(() => {
+        setUnread(unreadCount);
+    }, [unreadCount]);
 
     // ── Fetch ──────────────────────────────────────────────────────
     // silent=true: kein Spinner-Flash, Liste bleibt stehen (gegen Flackern)
@@ -191,23 +182,22 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
     const triggerLabel = unread > 0 ? `Benachrichtigungen, ${unread} ungelesen` : 'Benachrichtigungen';
 
     const headerContent = (
-        <div className="flex items-center justify-between gap-3 border-b border-border bg-background poster-grain-dark px-5 pb-4 pt-3.5 text-foreground">
+        <div className="flex items-center justify-between gap-3 border-b border-border bg-background px-5 pb-4 pt-3.5 text-foreground">
             <div className="min-w-0">
                 <div className="flex items-center gap-2.5">
-                    <h2 className="font-display text-base uppercase leading-none tracking-tight">Meldungen</h2>
+                    <h2 className="text-base font-semibold leading-none">Meldungen</h2>
                     {unread > 0 && (
-                        <span className="grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1.5 text-xs font-black leading-none text-primary-foreground tabular-nums">
+                        <span className="grid h-5 min-w-5 place-items-center rounded-md bg-muted px-1.5 text-xs font-medium leading-none text-foreground tabular-nums">
                             {badgeCount}
                         </span>
                     )}
                 </div>
-                <span className="mt-2 block h-1 w-10 rounded-full bg-primary" aria-hidden />
             </div>
             {hasNotifications && unread > 0 && (
                 <Button variant="unstyled" size="unstyled"
                     type="button"
                     onClick={markAllRead}
-                    className="press flex shrink-0 items-center gap-1.5 rounded-full border border-border px-3 py-2 text-xs font-bold text-muted-foreground transition-colors hover:border-ring hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
                     <CheckCheck size={13} />
                     Alle als gelesen
@@ -220,23 +210,23 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
         <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-3 [scrollbar-width:thin]">
             {loading && (
                 <div className="flex items-center justify-center py-12">
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
                 </div>
             )}
 
             {!loading && !hasNotifications && (
                 <div className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center">
-                    <div className="grid h-14 w-14 place-items-center rounded-2xl bg-primary text-primary-foreground ring-1 ring-black/5">
+                    <div className="grid h-14 w-14 place-items-center rounded-xl bg-muted text-muted-foreground">
                         <BellOff size={24} />
                     </div>
-                    <p className="font-display text-lg uppercase leading-none tracking-tight text-foreground">Nichts Neues</p>
+                    <p className="text-lg font-semibold leading-none text-foreground">Nichts Neues</p>
                     <p className="text-xs text-muted-foreground">Du bist auf dem aktuellen Stand.</p>
                 </div>
             )}
 
             {!loading && hasNotifications && Object.entries(groups).map(([label, items]) => (
                 <div key={label} className="mb-1 last:mb-0">
-                    <p className="px-2 pb-1.5 pt-2 font-display text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                    <p className="px-2 pb-1.5 pt-2 text-xs font-medium text-muted-foreground">
                         {label}
                     </p>
                     <div className="flex flex-col gap-2">
@@ -249,13 +239,13 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
                                 type="button"
                                 onClick={() => handleClick(n)}
                                 className={cn(
-                                    'flex w-full select-none cursor-pointer items-start gap-3 rounded-2xl border p-3.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                                    'flex w-full select-none cursor-pointer items-start gap-3 rounded-xl border p-3.5 text-left transition-colors',
                                     n.read
-                                        ? 'border-border bg-card/85 hover:bg-card'
-                                        : 'border-primary/45 bg-primary/[0.07] hover:bg-primary/10 dark:border-primary/30 dark:bg-primary/[0.06] dark:hover:bg-primary/10'
+                                        ? 'border-border bg-card hover:bg-muted/40'
+                                        : 'border-foreground/20 bg-muted/50 hover:bg-muted'
                                 )}
                             >
-                                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary ring-1 ring-black/5">
+                                <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
                                     {typeIcon(n.type)}
                                 </span>
                                 <span className="min-w-0 flex-1">
@@ -270,7 +260,7 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
                                     </span>
                                 </span>
                                 {!n.read && (
-                                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" aria-hidden />
+                                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-foreground" aria-hidden />
                                 )}
                             </Button>
                         ))}
@@ -286,14 +276,13 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
             size="unstyled"
             hapticStyle={false}
             type="button"
-            className="relative grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="relative grid size-11 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             aria-label={triggerLabel}
         >
             <Bell size={20} />
             {unread > 0 && (
                 <span className="absolute right-1.5 top-1.5 grid place-items-center" aria-hidden>
-                    <span className="absolute inset-0 animate-ping rounded-full bg-primary/70" />
-                    <span className="relative h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-card" />
+                    <span className="relative h-2.5 w-2.5 rounded-full bg-foreground ring-2 ring-card" />
                 </span>
             )}
         </Button>
@@ -301,21 +290,17 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
 
     const mobileTrigger = (
         <Button
-            variant="unstyled"
-            size="unstyled"
+            variant="ghost"
+            size="icon"
             hapticStyle={false}
             type="button"
-            className={cn(
-                'relative grid size-12 shrink-0 cursor-pointer place-items-center rounded-full bg-primary text-primary-foreground ring-1 transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
-                unread > 0 ? 'ring-primary/60' : 'ring-foreground/10'
-            )}
+            className="relative size-11 shrink-0 text-muted-foreground hover:text-foreground"
             aria-label={triggerLabel}
         >
             <Bell size={20} strokeWidth={2} aria-hidden />
             {unread > 0 && (
-                <span className="absolute -right-1.5 -top-1.5 grid place-items-center">
-                    <span className="absolute inset-0 animate-ping rounded-full bg-primary/70" aria-hidden />
-                    <span className="relative grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1 text-xs font-black leading-none text-primary-foreground ring-2 ring-card tabular-nums">
+                <span className="absolute -right-1 -top-1 grid place-items-center">
+                    <span className="relative grid h-5 min-w-5 place-items-center rounded-full bg-foreground px-1 text-xs font-medium leading-none text-background ring-2 ring-background tabular-nums">
                         {badgeCount}
                     </span>
                 </span>
@@ -331,7 +316,7 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
                     align="end"
                     sideOffset={8}
                     aria-label="Meldungen"
-                    className="hidden max-h-[520px] w-[380px] flex-col overflow-hidden rounded-t-3xl border border-border bg-background p-0 shadow-overlay md:flex"
+                    className="hidden max-h-[520px] w-[380px] flex-col overflow-hidden rounded-xl border border-border bg-background p-0 shadow-overlay md:flex"
                 >
                     {headerContent}
                     {listContent}
@@ -342,20 +327,18 @@ export default function NotificationCenter({ onCountChange, variant = 'desktop',
 
     return (
         <Sheet open={open} onOpenChange={handleOpenChange}>
-            <motion.div style={reduceMotion ? undefined : { scale: stickerScale, opacity: stickerOpacity }}>
-                <SheetTrigger render={mobileTrigger} />
-            </motion.div>
+            <SheetTrigger render={mobileTrigger} />
             <SheetContent
                 side="bottom"
                 showCloseButton={false}
-                className="max-h-[88dvh] gap-0 overflow-hidden rounded-t-3xl border-x border-t border-border bg-background p-0 md:hidden"
+                className="max-h-[88dvh] gap-0 overflow-hidden rounded-t-xl border-x border-t border-border bg-background p-0 md:hidden"
             >
                 <SheetTitle className="sr-only">Meldungen</SheetTitle>
                 <SheetDescription className="sr-only">Benachrichtigungen und Aktivitäten</SheetDescription>
-                <div className="shrink-0 bg-background poster-grain-dark pt-3">
+                <div className="shrink-0 bg-background pt-3">
                     <div className="relative flex justify-center pb-1">
-                        <span className="h-1.5 w-12 rounded-full bg-black/15" aria-hidden />
-                        <SheetClose className="absolute right-4 top-0 inline-flex size-11 items-center justify-center rounded-full text-muted-foreground hover:bg-black/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:hover:bg-card/10">
+                        <span className="h-1.5 w-12 rounded-full bg-muted-foreground/30" aria-hidden />
+                        <SheetClose className="absolute right-4 top-0 inline-flex size-11 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground">
                             <X size={18} />
                             <span className="sr-only">Schließen</span>
                         </SheetClose>

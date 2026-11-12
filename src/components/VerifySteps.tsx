@@ -55,9 +55,9 @@ export default function VerifySteps({ tone = 'du', variant = 'rows' }: VerifySte
                     {steps.map((s, i) => (
                         <motion.li key={s.title} {...stepAnim(i)} className="relative flex gap-5 pb-8 last:pb-0">
                             {i < 2 && <span className="absolute left-[27px] top-14 bottom-0 w-0.5 bg-foreground/10" aria-hidden />}
-                            <span className="grid place-items-center w-14 h-14 rounded-2xl bg-primary text-black font-display text-xl shrink-0 z-10" aria-hidden>{i + 1}</span>
+                            <span className="grid place-items-center w-14 h-14 rounded-xl bg-muted text-foreground text-xl font-semibold shrink-0 z-10" aria-hidden>{i + 1}</span>
                             <div className="pt-1">
-                                <p className="font-bold text-foreground text-lg inline-flex items-center gap-2"><s.icon size={18} className="text-brand-ink dark:text-primary" aria-hidden />{s.title}</p>
+                                <p className="text-lg font-semibold text-foreground inline-flex items-center gap-2"><s.icon size={18} className="text-muted-foreground" aria-hidden />{s.title}</p>
                                 <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{s.text}</p>
                             </div>
                         </motion.li>
@@ -72,8 +72,8 @@ export default function VerifySteps({ tone = 'du', variant = 'rows' }: VerifySte
             <>
                 <ol className="mt-3 flex flex-wrap gap-2">
                     {steps.map((s, i) => (
-                        <motion.li key={s.title} {...stepAnim(i)} className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-2 text-sm text-muted-foreground">
-                            <span className="font-mono tabular-nums font-bold text-foreground" aria-hidden>{i + 1}</span>
+                        <motion.li key={s.title} {...stepAnim(i)} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-muted-foreground">
+                            <span className="tabular-nums font-semibold text-foreground" aria-hidden>{i + 1}</span>
                             <span><strong className="text-foreground">{s.title}:</strong> {s.text}</span>
                         </motion.li>
                     ))}
@@ -85,15 +85,15 @@ export default function VerifySteps({ tone = 'du', variant = 'rows' }: VerifySte
     if (variant === 'rows-dark') {
         return (
             <>
-                <ol className="mt-3 space-y-0 border-t border-background/10">
+                <ol className="mt-3 space-y-0 border-t border-border">
                     {steps.map((s, i) => (
-                        <motion.li key={s.title} {...stepAnim(i)} className="flex gap-4 py-3 border-b border-background/10">
-                            <span className="grid place-items-center w-8 h-8 rounded-full bg-primary text-black font-bold text-xs font-mono tabular-nums shrink-0" aria-hidden>
+                        <motion.li key={s.title} {...stepAnim(i)} className="flex gap-4 py-3 border-b border-border">
+                            <span className="grid place-items-center w-8 h-8 rounded-lg bg-muted text-foreground font-semibold text-xs tabular-nums shrink-0" aria-hidden>
                                 {i + 1}
                             </span>
                             <div className="min-w-0">
-                                <p className="font-bold text-background text-base">{s.title}</p>
-                                <p className="mt-0.5 text-sm leading-relaxed text-background/70">{s.text}</p>
+                                <p className="font-semibold text-foreground text-base">{s.title}</p>
+                                <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">{s.text}</p>
                             </div>
                         </motion.li>
                     ))}
@@ -107,9 +107,9 @@ export default function VerifySteps({ tone = 'du', variant = 'rows' }: VerifySte
             <ol className="divide-y divide-border border-y border-border">
                 {steps.map((s, i) => (
                     <motion.li key={s.title} {...stepAnim(i)} className="grid grid-cols-[2.5rem_1fr] gap-3 py-3">
-                        <span className="font-mono tabular-nums font-bold text-foreground" aria-hidden>{i + 1}</span>
+                        <span className="tabular-nums font-semibold text-foreground" aria-hidden>{i + 1}</span>
                         <div>
-                            <p className="font-bold text-foreground">{s.title}</p>
+                            <p className="font-semibold text-foreground">{s.title}</p>
                             <p>{s.text}</p>
                         </div>
                     </motion.li>

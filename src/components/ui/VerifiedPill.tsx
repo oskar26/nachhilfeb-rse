@@ -3,27 +3,25 @@ import { Badge } from './badge';
 import { cn } from '../../lib/utils';
 
 interface VerifiedPillProps {
-    /** sm = kompakte Pills in Kartenlisten, md = Kopfbereiche/Profile (A2) */
+    /** sm = kompakte Badges in Kartenlisten, md = Kopfbereiche/Profile */
     size?: 'sm' | 'md';
     className?: string;
 }
 
 /**
- * Einheitliche „Verifiziert“-Pille (A2). Ersetzt die sechs inline gebauten
- * Badges in Feed, Matching, PublicProfile, AdDetails, Landing und Profile;
- * der Stempel-Look (.stamp-ring) bleibt Coaching/NotFound/Demo vorbehalten.
+ * Einheitliches neutrales „Verifiziert“-Badge.
  */
 export function VerifiedPill({ size = 'sm', className }: VerifiedPillProps) {
     return (
         <Badge
             variant="outline"
             className={cn(
-                'h-auto gap-1 whitespace-nowrap border-green-200 bg-green-100 font-bold text-green-800 dark:border-green-800/60 dark:bg-green-950/40 dark:text-green-300',
-                size === 'sm' ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-1 text-xs',
+                'h-auto gap-1 whitespace-nowrap font-medium text-muted-foreground',
+                size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-xs',
                 className
             )}
         >
-            <BadgeCheck size={size === 'sm' ? 12 : 14} className="shrink-0" aria-hidden="true" />
+            <BadgeCheck size={size === 'sm' ? 12 : 14} className="shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
             Verifiziert
         </Badge>
     );

@@ -30,7 +30,7 @@ export const FALLBACK: Record<string, string> = {
 
 const COACH_MAIL = 'Rosalia.Balistreri@fwg-koeln.nrw.schule';
 const COACHING_DOCUMENT_VERSION = 1 as const;
-const LINK_CLS = 'font-bold text-brand-ink dark:text-primary hover:underline';
+const LINK_CLS = 'font-semibold text-foreground hover:underline';
 
 export interface CoachingListItem {
     id: string;
@@ -580,15 +580,15 @@ export function scheduleCellClass(text: string): string {
     const value = text.trim();
     if (!value) return 'border p-2 border-border';
     if (/^E(?:\s|$)/i.test(value)) {
-        return 'border p-2 bg-blue-200/50 dark:bg-blue-900/50 border-border text-blue-800 dark:text-blue-200 font-bold';
+        return 'border p-2 bg-blue-200/50 dark:bg-blue-900/50 border-border text-blue-800 dark:text-blue-200 font-semibold';
     }
     if (/^L(?:\s|$)/i.test(value)) {
-        return 'border p-2 bg-pink-200/50 dark:bg-pink-900/50 border-border text-pink-800 dark:text-pink-200 font-bold';
+        return 'border p-2 bg-pink-200/50 dark:bg-pink-900/50 border-border text-pink-800 dark:text-pink-200 font-semibold';
     }
     if (/^M(?:\s|$)/i.test(value)) {
-        return 'border p-2 bg-green-200/50 dark:bg-green-900/50 border-border text-green-800 dark:text-green-200 font-bold';
+        return 'border p-2 bg-green-200/50 dark:bg-green-900/50 border-border text-green-800 dark:text-green-200 font-semibold';
     }
-    return 'border p-2 bg-yellow-200/50 dark:bg-yellow-900/50 border-border text-yellow-800 dark:text-yellow-200 font-bold';
+    return 'border p-2 bg-yellow-200/50 dark:bg-yellow-900/50 border-border text-yellow-800 dark:text-yellow-200 font-semibold';
 }
 
 export function CoachingView({ document, preview = false }: { document: CoachingDocument; preview?: boolean }) {
@@ -600,41 +600,35 @@ export function CoachingView({ document, preview = false }: { document: Coaching
         viewport: { once: true, margin: '-80px 0px' },
         transition: { duration: 0.55, delay, ease: easeOut },
     };
-    const wipeLine = (delay = 0.2) => reduceMotion ? {} : {
-        initial: { clipPath: 'inset(0 100% 0 0)' },
-        whileInView: { clipPath: 'inset(0 0% 0 0)' },
-        viewport: { once: true, margin: '-80px 0px' },
-        transition: { duration: 0.5, delay, ease: easeOut },
-    };
     const supportAnchorId = document.blocks.find(block => block.type === 'support')?.id;
 
     const renderBlock = (block: CoachingBlock): ReactNode => {
         if (block.type === 'poster') {
             return (
-                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="relative overflow-hidden rounded-3xl bg-primary p-6 text-primary-foreground shadow-soft sm:p-10">
-                    <div className="absolute inset-0 poster-grain-dark" aria-hidden />
+                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="relative overflow-hidden rounded-xl bg-card p-6 text-card-foreground sm:p-10">
+                    <div className="absolute inset-0 " aria-hidden />
                     <div className="relative">
                         {block.stamp ? (
                             <div className="flex flex-wrap items-start justify-end gap-4">
-                                <span className="stamp-ring rotate-6 rounded border-2 border-primary-foreground/60 px-2 py-0.5 text-xs font-black uppercase tracking-[0.2em] text-primary-foreground/70" aria-hidden>{block.stamp}</span>
+                                <span className="rounded border-2 border-border px-2 py-0.5 text-xs font-semibold text-muted-foreground" aria-hidden>{block.stamp}</span>
                             </div>
                         ) : null}
-                        <h2 id={`${idPrefix}${block.id}-title`} className="mt-3 font-display text-3xl uppercase leading-[0.95] tracking-tight sm:text-5xl">{block.title}</h2>
+                        <h2 id={`${idPrefix}${block.id}-title`} className="mt-3 text-3xl leading-[0.95] tracking-tight sm:text-5xl">{block.title}</h2>
                         {(block.time || block.room) ? (
-                            <p className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-base font-bold">
-                                {block.time ? <span className="inline-flex items-center gap-1.5"><Clock size={16} aria-hidden /><span className="font-mono tabular-nums">{block.time}</span></span> : null}
-                                {block.room ? <span className="inline-flex items-center gap-1.5"><MapPin size={16} aria-hidden /><span className="font-mono tabular-nums">{block.room}</span></span> : null}
+                            <p className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-base font-semibold">
+                                {block.time ? <span className="inline-flex items-center gap-1.5"><Clock size={16} aria-hidden /><span className="tabular-nums">{block.time}</span></span> : null}
+                                {block.room ? <span className="inline-flex items-center gap-1.5"><MapPin size={16} aria-hidden /><span className="tabular-nums">{block.room}</span></span> : null}
                             </p>
                         ) : null}
-                        {block.contactText ? <p className="mt-3 max-w-prose text-base font-medium leading-7 text-primary-foreground/80">{block.contactText}</p> : null}
+                        {block.contactText ? <p className="mt-3 max-w-prose text-base font-medium leading-7 text-muted-foreground">{block.contactText}</p> : null}
                         {block.ctaLabel || block.hint ? (
                             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
                                 {block.ctaLabel ? (
-                                    <a href={`mailto:${block.email}?subject=${encodeURIComponent(block.mailSubject)}`} className="press inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-8 py-3 text-sm font-bold text-foreground shadow-md hover:bg-muted sm:w-auto">
+                                    <a href={`mailto:${block.email}?subject=${encodeURIComponent(block.mailSubject)}`} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg border border-border bg-background px-8 py-3 text-sm font-semibold text-foreground shadow-md hover:bg-muted sm:w-auto">
                                         <Mail size={16} aria-hidden /> {block.ctaLabel}
                                     </a>
                                 ) : null}
-                                {block.hint ? <span className="text-center text-sm font-semibold text-primary-foreground/70 sm:text-left">{block.hint}</span> : null}
+                                {block.hint ? <span className="text-center text-sm font-semibold text-muted-foreground sm:text-left">{block.hint}</span> : null}
                             </div>
                         ) : null}
                     </div>
@@ -644,16 +638,15 @@ export function CoachingView({ document, preview = false }: { document: Coaching
 
         if (block.type === 'steps') {
             return (
-                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8">
-                    <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-2xl uppercase tracking-tight sm:text-3xl">{block.title}</h2>
-                    <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
+                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
+                    <h2 id={`${idPrefix}${block.id}-title`} className="text-2xl tracking-tight sm:text-3xl">{block.title}</h2>
                     {block.items.length > 0 ? (
-                        <ol className="mt-6 divide-y-2 divide-dashed divide-border border-y-2 border-dashed border-border">
+                        <ol className="mt-6 divide-y-2 divide-solid divide-border border-y-2 border-border border-border">
                             {block.items.map((item, index) => (
                                 <li key={item.id} className="grid gap-1 py-5 sm:grid-cols-[3.5rem_1fr] sm:items-start sm:gap-4">
-                                    <span className="font-mono text-3xl font-bold tabular-nums text-foreground" aria-hidden>{String(index + 1).padStart(2, '0')}</span>
+                                    <span className="text-3xl font-semibold tabular-nums text-foreground" aria-hidden>{String(index + 1).padStart(2, '0')}</span>
                                     <div className="min-w-0">
-                                        <p className="text-base font-bold text-foreground">{item.title}</p>
+                                        <p className="text-base font-semibold text-foreground">{item.title}</p>
                                         <div className="mt-1 max-w-prose text-base leading-7 text-muted-foreground">{renderBody(item.body)}</div>
                                     </div>
                                 </li>
@@ -667,8 +660,8 @@ export function CoachingView({ document, preview = false }: { document: Coaching
                             {block.verificationItems.length > 0 ? (
                                 <ol className="mt-3 flex flex-wrap gap-2">
                                     {block.verificationItems.map((item, index) => (
-                                        <li key={item.id} className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-2 text-sm text-muted-foreground">
-                                            <span className="font-mono font-bold tabular-nums text-foreground" aria-hidden>{index + 1}</span>
+                                        <li key={item.id} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-muted-foreground">
+                                            <span className="font-semibold tabular-nums text-foreground" aria-hidden>{index + 1}</span>
                                             <span><strong className="text-foreground">{item.title}:</strong> {item.body}</span>
                                         </li>
                                     ))}
@@ -682,15 +675,14 @@ export function CoachingView({ document, preview = false }: { document: Coaching
 
         if (block.type === 'benefits') {
             return (
-                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8">
-                    <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-2xl uppercase tracking-tight sm:text-3xl">{block.title}</h2>
-                    <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
+                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
+                    <h2 id={`${idPrefix}${block.id}-title`} className="text-2xl tracking-tight sm:text-3xl">{block.title}</h2>
                     {block.items.length > 0 ? (
                         <ul className="mt-6 grid gap-4 sm:grid-cols-3">
                             {block.items.map((item, index) => (
-                                <li key={item.id} className="border-t-2 border-dashed border-border pt-4">
-                                    <span className="font-mono text-sm font-bold tabular-nums text-brand-ink dark:text-primary" aria-hidden>{String(index + 1).padStart(2, '0')}</span>
-                                    <p className="mt-2 font-display text-lg uppercase tracking-tight">{item.title}</p>
+                                <li key={item.id} className="border-t-2 border-border border-border pt-4">
+                                    <span className="text-sm font-semibold tabular-nums text-foreground" aria-hidden>{String(index + 1).padStart(2, '0')}</span>
+                                    <p className="mt-2 text-lg tracking-tight">{item.title}</p>
                                     <div className="mt-2 text-sm leading-relaxed text-muted-foreground">{renderBody(item.body)}</div>
                                 </li>
                             ))}
@@ -702,18 +694,17 @@ export function CoachingView({ document, preview = false }: { document: Coaching
 
         if (block.type === 'rules') {
             return (
-                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8">
-                    <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-2xl uppercase tracking-tight sm:text-3xl">{block.title}</h2>
-                    <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
+                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
+                    <h2 id={`${idPrefix}${block.id}-title`} className="text-2xl tracking-tight sm:text-3xl">{block.title}</h2>
                     {block.items.length > 0 ? (
                         <div className="mt-6 border-t-2 border-foreground">
                             {block.items.map((item, index) => {
                                 const Icon = RULE_ICONS[index] ?? Scale;
                                 return (
                                     <article key={item.id} className="grid gap-3 border-b border-border py-6 last:border-b-0 sm:grid-cols-[3rem_1fr] sm:gap-5">
-                                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground" aria-hidden><Icon size={20} /></span>
+                                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-muted text-foreground" aria-hidden><Icon size={20} /></span>
                                         <div className="min-w-0">
-                                            <h3 className="font-display text-xl uppercase tracking-tight text-foreground">{item.title}</h3>
+                                            <h3 className="text-xl tracking-tight text-foreground">{item.title}</h3>
                                             <div className="mt-2 max-w-prose space-y-2 text-base leading-7 text-muted-foreground">{renderBody(item.body)}</div>
                                         </div>
                                     </article>
@@ -727,9 +718,8 @@ export function CoachingView({ document, preview = false }: { document: Coaching
 
         if (block.type === 'contact') {
             return (
-                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8">
-                    <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-xl uppercase tracking-tight text-foreground">{block.title}</h2>
-                    <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
+                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
+                    <h2 id={`${idPrefix}${block.id}-title`} className="text-xl tracking-tight text-foreground">{block.title}</h2>
                     {block.text || block.email ? (
                         <p className="mt-3 max-w-prose text-base leading-7 text-muted-foreground">
                             {block.text}{block.text && block.email ? ' · ' : ''}{block.email ? <>E-Mail: <a href={`mailto:${block.email}`} className={`${LINK_CLS} break-anywhere`}>{block.email}</a></> : null}
@@ -747,9 +737,8 @@ export function CoachingView({ document, preview = false }: { document: Coaching
 
         if (block.type === 'support') {
             return (
-                <motion.section key={block.id} id={block.id === supportAnchorId ? `${idPrefix}foerderung` : undefined} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="scroll-mt-24 rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8">
-                    <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-2xl uppercase tracking-tight sm:text-3xl">{block.title}</h2>
-                    <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
+                <motion.section key={block.id} id={block.id === supportAnchorId ? `${idPrefix}foerderung` : undefined} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="scroll-mt-24 rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
+                    <h2 id={`${idPrefix}${block.id}-title`} className="text-2xl tracking-tight sm:text-3xl">{block.title}</h2>
                     <div className="mt-4 max-w-prose space-y-2 text-base leading-7 text-muted-foreground">
                         {block.paragraphs.filter(paragraph => paragraph.trim()).map((paragraph, index) => <p key={`${block.id}-paragraph-${index}`}>{linkify(paragraph)}</p>)}
                         {block.registrationText || block.registrationEmail ? (
@@ -765,9 +754,9 @@ export function CoachingView({ document, preview = false }: { document: Coaching
                             <div className="max-w-full overflow-x-auto rounded-xl border border-border" tabIndex={0} role="region" aria-label="Stundenplan des Förderunterrichts">
                                 <Table className="w-full min-w-[440px] border-collapse text-center text-xs md:text-sm">
                                     <TableHeader>
-                                        <TableRow>{block.days.map(day => <TableHead key={day.id} className="border border-border p-2 font-mono tabular-nums">{day.label}</TableHead>)}</TableRow>
+                                        <TableRow>{block.days.map(day => <TableHead key={day.id} className="border border-border p-2 tabular-nums">{day.label}</TableHead>)}</TableRow>
                                     </TableHeader>
-                                    <TableBody className="font-mono tabular-nums">
+                                    <TableBody className="tabular-nums">
                                         {block.rows.map(row => (
                                             <TableRow key={row.id}>{row.cells.map(cell => <TableCell key={cell.id} className={scheduleCellClass(cell.text)}>{cell.text}</TableCell>)}</TableRow>
                                         ))}
@@ -787,9 +776,8 @@ export function CoachingView({ document, preview = false }: { document: Coaching
         }
 
         return (
-            <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8">
-                <h2 id={`${idPrefix}${block.id}-title`} className="font-display text-2xl uppercase tracking-tight sm:text-3xl">{block.title}</h2>
-                <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
+            <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
+                <h2 id={`${idPrefix}${block.id}-title`} className="text-2xl tracking-tight sm:text-3xl">{block.title}</h2>
                 {block.body ? <div className="mt-5 max-w-prose space-y-3 text-base leading-7 text-muted-foreground">{renderBody(block.body)}</div> : null}
             </motion.section>
         );

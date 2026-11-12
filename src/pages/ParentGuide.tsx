@@ -13,7 +13,7 @@ function SpecRowDark({ label, children, mono = false }: { label: string; childre
     return (
         <div className="grid gap-1 border-t border-border py-3 first:border-t-0 first:pt-0 last:pb-0 sm:grid-cols-[11rem_1fr] sm:gap-4">
             <dt className="text-sm font-semibold text-muted-foreground">{label}</dt>
-            <dd className={`text-base leading-7 text-foreground ${mono ? 'font-mono tabular-nums' : ''}`}>{children}</dd>
+            <dd className={`text-base leading-7 text-foreground ${mono ? 'tabular-nums' : ''}`}>{children}</dd>
         </div>
     );
 }
@@ -21,7 +21,7 @@ function SpecRowDark({ label, children, mono = false }: { label: string; childre
 function CheckRow({ children }: { children: React.ReactNode }) {
     return (
         <li className="flex gap-3 border-t border-border py-3 first:border-t-0">
-            <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground" aria-hidden>
+            <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-muted text-foreground" aria-hidden>
                 <Check size={16} />
             </span>
             <span className="text-base leading-7 text-muted-foreground">{children}</span>
@@ -39,14 +39,6 @@ export default function ParentGuide() {
         viewport: { once: true, margin: '-80px 0px' },
         transition: { duration: 0.55, delay, ease: easeOut },
     };
-    /* clip-path statt scaleX(0): zero-width-Rects blockieren IntersectionObserver (Chromium). */
-    const wipeLine = (delay = 0.2) => reduceMotion ? {} : {
-        initial: { clipPath: 'inset(0 100% 0 0)' },
-        whileInView: { clipPath: 'inset(0 0% 0 0)' },
-        viewport: { once: true, margin: '-80px 0px' },
-        transition: { duration: 0.5, delay, ease: easeOut },
-    };
-
     return (
         <StaticLayout
             title="Leitfaden für Eltern"
@@ -58,17 +50,16 @@ export default function ParentGuide() {
                 <motion.section
                     aria-labelledby="eltern-sicherheit"
                     {...anim()}
-                    className="rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8"
+                    className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8"
                 >
                     <div className="flex items-start gap-3">
-                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground" aria-hidden>
+                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-muted text-foreground" aria-hidden>
                             <ShieldCheck size={24} />
                         </span>
-                        <h2 id="eltern-sicherheit" className="min-w-0 break-words font-display uppercase text-2xl tracking-tight sm:text-3xl">
+                        <h2 id="eltern-sicherheit" className="min-w-0 break-words text-2xl tracking-tight sm:text-3xl">
                             Sicherheit &amp; Verifizierung
                         </h2>
                     </div>
-                    <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary sm:ml-14" aria-hidden />
                     <dl className="mt-5">
                         <SpecRowDark label="Zugang">Konten legen nur Schülerinnen und Schüler des Friedrich-Wilhelm-Gymnasiums an.</SpecRowDark>
                         <SpecRowDark label="Verifizierung">Ihr Kind meldet sich persönlich im SV-Raum und wird dort freigeschaltet.</SpecRowDark>
@@ -88,24 +79,23 @@ export default function ParentGuide() {
                 <motion.section
                     aria-labelledby="eltern-qualitaet"
                     {...anim()}
-                    className="rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8"
+                    className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8"
                 >
-                    <h2 id="eltern-qualitaet" className="font-display uppercase text-2xl tracking-tight sm:text-3xl">
+                    <h2 id="eltern-qualitaet" className="text-2xl tracking-tight sm:text-3xl">
                         Qualität der Nachhilfe
                     </h2>
-                    <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
                     <div className="mt-5 max-w-prose space-y-3 text-base leading-7 text-muted-foreground">
                         <p>
                             <strong className="text-foreground">Wer hilft:</strong> Engagierte Schülerinnen und Schüler ab Klasse 8, viele aus der Coaching-AG.
                         </p>
                         <p>
                             <strong className="text-foreground">Coaching-AG:</strong> Coaching-AG von Frau Balistreri für die Stufen 5 und 6. Alle Regeln stehen auf der{' '}
-                            <Link to="/coaching" className="font-bold text-brand-ink hover:underline dark:text-primary">Coaching-Seite</Link>.
+                            <Link to="/coaching" className="font-semibold text-foreground hover:underline">Coaching-Seite</Link>.
                         </p>
                     </div>
                     <div className="mt-6 border-y border-border py-4">
                         <p className="text-sm font-semibold text-muted-foreground">Richtwert</p>
-                        <p className="mt-1 font-mono text-2xl font-bold tabular-nums text-brand-ink dark:text-primary sm:text-3xl">
+                        <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground sm:text-3xl">
                             ca. 12 € pro Stunde
                         </p>
                         <p className="mt-2 max-w-prose text-sm leading-relaxed text-muted-foreground">
@@ -118,17 +108,16 @@ export default function ParentGuide() {
                 <motion.section
                     aria-labelledby="eltern-gemeinsam"
                     {...anim()}
-                    className="rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8"
+                    className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8"
                 >
                     <div className="flex items-start gap-3">
-                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground" aria-hidden>
+                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-muted text-foreground" aria-hidden>
                             <Users size={24} />
                         </span>
-                        <h2 id="eltern-gemeinsam" className="min-w-0 break-words font-display uppercase text-2xl tracking-tight sm:text-3xl">
+                        <h2 id="eltern-gemeinsam" className="min-w-0 break-words text-2xl tracking-tight sm:text-3xl">
                             Gemeinsam betreuen
                         </h2>
                     </div>
-                    <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary sm:ml-14" aria-hidden />
                     <p className="mt-5 max-w-prose text-base leading-7 text-muted-foreground">
                         Die Börse läuft über das Konto Ihres Kindes. Wie viel Begleitung Ihr Kind braucht,
                         entscheiden Sie gemeinsam:
@@ -148,7 +137,7 @@ export default function ParentGuide() {
                         </CheckRow>
                         <CheckRow>
                             <strong className="text-foreground">Fragen &amp; Beschwerden:</strong> Wenden Sie sich jederzeit an das SV-Team unter{' '}
-                            <a href="mailto:info@nachhilfe-sv.de" className="break-anywhere font-bold text-brand-ink hover:underline dark:text-primary">info@nachhilfe-sv.de</a>.
+                            <a href="mailto:info@nachhilfe-sv.de" className="break-anywhere font-semibold text-foreground hover:underline">info@nachhilfe-sv.de</a>.
                         </CheckRow>
                     </ul>
                 </motion.section>
@@ -157,17 +146,16 @@ export default function ParentGuide() {
                 <motion.section
                     aria-labelledby="eltern-awareness"
                     {...anim()}
-                    className="rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8"
+                    className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8"
                 >
                     <div className="flex items-start gap-3">
-                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground" aria-hidden>
+                        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-muted text-foreground" aria-hidden>
                             <BadgeCheck size={24} />
                         </span>
-                        <h2 id="eltern-awareness" className="min-w-0 break-words font-display uppercase text-2xl tracking-tight sm:text-3xl">
+                        <h2 id="eltern-awareness" className="min-w-0 break-words text-2xl tracking-tight sm:text-3xl">
                             Awareness &amp; Kontakt
                         </h2>
                     </div>
-                    <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary sm:ml-14" aria-hidden />
                     <ul className="mt-5">
                         <CheckRow>
                             <strong className="text-foreground">Melden:</strong> Jede Anzeige und jedes Profil lässt sich mit Begründung melden.
@@ -183,7 +171,7 @@ export default function ParentGuide() {
                         </CheckRow>
                         <CheckRow>
                             <strong className="text-foreground">Primär-Kontakt:</strong>{' '}
-                            <a href="mailto:info@nachhilfe-sv.de" className="break-anywhere font-bold text-brand-ink hover:underline dark:text-primary">info@nachhilfe-sv.de</a>
+                            <a href="mailto:info@nachhilfe-sv.de" className="break-anywhere font-semibold text-foreground hover:underline">info@nachhilfe-sv.de</a>
                             {'. Fragen und Hilfe rund um die Börse.'}
                         </CheckRow>
                     </ul>
@@ -193,23 +181,22 @@ export default function ParentGuide() {
                 <motion.section
                     aria-labelledby="eltern-kontakt"
                     {...anim()}
-                    className="rounded-3xl bg-primary p-6 text-center text-primary-foreground shadow-soft sm:p-10"
+                    className="rounded-xl bg-card p-6 text-center text-card-foreground sm:p-10"
                 >
-                    <h2 id="eltern-kontakt" className="flex items-center justify-center gap-2 font-display uppercase text-2xl tracking-tight sm:text-3xl">
+                    <h2 id="eltern-kontakt" className="flex items-center justify-center gap-2 text-2xl tracking-tight sm:text-3xl">
                         <Users size={24} aria-hidden /> Gemeinsam mit Ihrem Kind
                     </h2>
-                    <motion.span {...wipeLine()} className="mx-auto mt-2 block h-1 w-10 origin-left rounded-full bg-primary-foreground" aria-hidden />
-                    <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-primary-foreground/80">
+                    <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
                         Ihr Kind nutzt sein Konto, Sie schauen mit und unterstützen, so viel Sie möchten.
                         Bei Fragen, Problemen oder Beschwerden hilft das SV-Team.
                     </p>
-                    <p className="mt-6 flex flex-wrap items-center justify-center gap-2 text-sm text-primary-foreground/80">
+                    <p className="mt-6 flex flex-wrap items-center justify-center gap-2 text-sm text-muted-foreground">
                         <Mail size={16} aria-hidden />
-                        Kontakt: <a href="mailto:info@nachhilfe-sv.de" className="break-anywhere font-bold text-primary-foreground underline">info@nachhilfe-sv.de</a>
+                        Kontakt: <a href="mailto:info@nachhilfe-sv.de" className="break-anywhere font-semibold text-foreground underline">info@nachhilfe-sv.de</a>
                     </p>
                     <a
                         href="mailto:info@nachhilfe-sv.de"
-                        className={buttonVariants({ size: 'lg', className: 'mt-5 min-h-12 rounded-full border border-border bg-background px-8 font-bold text-foreground shadow-soft hover:bg-muted' })}
+                        className={buttonVariants({ size: 'lg', className: 'mt-5 min-h-12 rounded-lg border border-border bg-background px-8 font-semibold text-foreground hover:bg-muted' })}
                     >
                         Fragen? Schreiben Sie uns
                     </a>

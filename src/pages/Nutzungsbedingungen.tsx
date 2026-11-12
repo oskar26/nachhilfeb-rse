@@ -28,7 +28,7 @@ function ParaList({ items, start = 1 }: { items: React.ReactNode[]; start?: numb
         <ol className="mt-2 divide-y divide-border border-y border-border">
             {items.map((item, i) => (
                 <li key={i} className="grid grid-cols-[2.5rem_1fr] gap-3 py-3">
-                    <span className="font-mono font-bold tabular-nums text-foreground" aria-hidden>
+                    <span className="font-semibold tabular-nums text-foreground" aria-hidden>
                         {String(start + i).padStart(2, '0')}
                     </span>
                     <div className="text-base leading-7 text-muted-foreground">{item}</div>
@@ -49,14 +49,14 @@ function Para({ id, nr, title, children, open = false }: {
         <details
             id={id}
             open={open}
-            className="group scroll-mt-24 rounded-3xl border border-border bg-card shadow-soft"
+            className="group scroll-mt-24 rounded-xl border border-border bg-card"
         >
             <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 p-5 sm:p-6 [&::-webkit-details-marker]:hidden">
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary font-mono text-xs font-bold tabular-nums text-primary-foreground" aria-hidden>
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-muted text-xs font-semibold tabular-nums text-foreground" aria-hidden>
                     {nr}
                 </span>
-                <h3 className="flex-1 break-words font-display uppercase tracking-tight text-lg text-foreground">{title}</h3>
-                <ChevronDown size={20} className="shrink-0 text-brand-ink transition-transform duration-200 ease-out group-open:rotate-180 dark:text-primary" aria-hidden />
+                <h3 className="flex-1 break-words tracking-tight text-lg text-foreground">{title}</h3>
+                <ChevronDown size={20} className="shrink-0 text-foreground transition-transform duration-200 ease-out group-open:rotate-180" aria-hidden />
             </summary>
             <div className="accordion-body flex max-w-prose flex-col gap-3 px-5 pb-5 text-base leading-7 text-muted-foreground sm:px-6 sm:pb-6">
                 {children}
@@ -65,7 +65,7 @@ function Para({ id, nr, title, children, open = false }: {
     );
 }
 
-const MAIL_CLS = 'font-bold text-brand-ink dark:text-primary hover:underline break-anywhere';
+const MAIL_CLS = 'font-semibold text-foreground hover:underline break-anywhere';
 const MAIL = 'info@nachhilfe-sv.de';
 
 const toc = [
@@ -85,8 +85,8 @@ const toc = [
 const SANKTIONEN: Array<{ v: string; m: React.ReactNode }> = [
     { v: 'Leichter Verstoß (z. B. veraltete Anzeige, falsche Kategorie)', m: (<span><strong>Verwarnung</strong> mit Hinweis auf die verletzte Regel</span>) },
     { v: 'Rechtswidrige oder beleidigende Inhalte', m: (<span><strong>Entfernung einzelner Inhalte</strong> (Anzeigen, Bilder, Nachrichten)</span>) },
-    { v: 'Schwere oder wiederholte Verstöße', m: (<span><strong>Zeitweise Sperrung</strong> (z. B. <span className="font-mono tabular-nums">7 Tage</span>) oder <strong>dauerhafte Sperrung</strong></span>) },
-    { v: 'Pflichtverletzung als Coach', m: (<span><strong>Entzug des Coach-Status</strong> nach den Regeln der <Link to="/coaching" className="font-bold text-brand-ink hover:underline dark:text-primary">Coaching-Seite</Link></span>) },
+    { v: 'Schwere oder wiederholte Verstöße', m: (<span><strong>Zeitweise Sperrung</strong> (z. B. <span className="tabular-nums">7 Tage</span>) oder <strong>dauerhafte Sperrung</strong></span>) },
+    { v: 'Pflichtverletzung als Coach', m: (<span><strong>Entzug des Coach-Status</strong> nach den Regeln der <Link to="/coaching" className="font-semibold text-foreground hover:underline">Coaching-Seite</Link></span>) },
 ];
 
 export default function Nutzungsbedingungen() {
@@ -97,15 +97,6 @@ export default function Nutzungsbedingungen() {
         viewport: { once: true, margin: '-80px 0px' },
         transition: { duration: 0.7, delay, ease: easeOut },
     };
-    /* Line-Wipe unter der Anton-Headline (dieselbe Geste wie auf der Landing). */
-    /* clip-path statt scaleX(0): zero-width-Rects blockieren IntersectionObserver (Chromium). */
-    const wipeLine = (delay = 0.2) => reduceMotion ? {} : {
-        initial: { clipPath: 'inset(0 100% 0 0)' },
-        whileInView: { clipPath: 'inset(0 0% 0 0)' },
-        viewport: { once: true, margin: '-80px 0px' },
-        transition: { duration: 0.5, delay, ease: easeOut },
-    };
-
     return (
         <StaticLayout
             title="Nutzungsbedingungen"
@@ -119,22 +110,21 @@ export default function Nutzungsbedingungen() {
                 <motion.section
                     aria-labelledby="nutz-kurz"
                     {...anim()}
-                    className="relative overflow-hidden rounded-3xl border border-border bg-primary p-6 text-primary-foreground shadow-soft sm:p-8"
+                    className="relative overflow-hidden rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8"
                 >
-                    <div className="absolute inset-0 poster-grain-dark" aria-hidden />
+                    <div className="absolute inset-0 " aria-hidden />
                     <div className="relative">
-                        <h2 id="nutz-kurz" className="font-display uppercase text-2xl tracking-tight">Kurz gesagt</h2>
-                        <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary-foreground" aria-hidden />
-                        <div className="mt-3 flex max-w-prose flex-col gap-2 text-base font-medium leading-7 text-primary-foreground/80">
+                        <h2 id="nutz-kurz" className="text-2xl tracking-tight">Kurz gesagt</h2>
+                        <div className="mt-3 flex max-w-prose flex-col gap-2 text-base font-medium leading-7 text-muted-foreground">
                             <p>
-                                Die Nachhilfebörse ist ein <strong className="text-primary-foreground">kostenloses Schülerprojekt von Schülern für Schüler</strong>.
+                                Die Nachhilfebörse ist ein <strong className="text-foreground">kostenloses Schülerprojekt von Schülern für Schüler</strong>.
                                 Du bist für deine Inhalte selbst verantwortlich, bleibst fair und freundlich – und klärst
                                 Geld und Treffen vorher mit deinen Eltern.
                             </p>
                             <p>
-                                Bei Problemen meldest du Inhalte über die <strong className="text-primary-foreground">Meldefunktion</strong> in der App oder
+                                Bei Problemen meldest du Inhalte über die <strong className="text-foreground">Meldefunktion</strong> in der App oder
                                 schreibst uns an{' '}
-                                <a href={`mailto:${MAIL}`} className="break-anywhere font-bold text-primary-foreground underline underline-offset-4">{MAIL}</a>.
+                                <a href={`mailto:${MAIL}`} className="break-anywhere font-semibold text-foreground underline underline-offset-4">{MAIL}</a>.
                             </p>
                         </div>
                     </div>
@@ -144,10 +134,9 @@ export default function Nutzungsbedingungen() {
                 <motion.nav
                     aria-label="Inhaltsübersicht"
                     {...anim()}
-                    className="rounded-3xl border border-border bg-card p-6 shadow-soft sm:p-8"
+                    className="rounded-xl border border-border bg-card p-6 sm:p-8"
                 >
-                    <h2 className="font-display uppercase text-2xl tracking-tight text-foreground">Inhalt</h2>
-                    <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
+                    <h2 className="text-2xl tracking-tight text-foreground">Inhalt</h2>
                     <ol className="mt-4 grid gap-1 sm:grid-cols-2">
                         {toc.map((item) => (
                             <li key={item.id}>
@@ -157,7 +146,7 @@ export default function Nutzungsbedingungen() {
                                     hapticStyle={false}
                                     type="button"
                                     onClick={() => scrollToId(item.id)}
-                                    className="press flex min-h-11 w-full items-center rounded-xl px-3 py-2.5 text-left text-base font-semibold text-foreground hover:bg-muted hover:underline active:bg-primary/15"
+                                    className="flex min-h-11 w-full items-center rounded-xl px-3 py-2.5 text-left text-base font-semibold text-foreground hover:bg-muted hover:underline active:bg-muted"
                                 >
                                     {item.label}
                                 </Button>
@@ -170,10 +159,9 @@ export default function Nutzungsbedingungen() {
                 {/* Paragrafen als aufklappbare Details-Gruppen */}
                 <section aria-labelledby="nutz-paragrafen" className="flex flex-col gap-6 sm:gap-8 min-w-0">
                     <div className="flex flex-col gap-2">
-                    <h2 id="nutz-paragrafen" className="font-display uppercase text-2xl tracking-tight text-foreground">
+                    <h2 id="nutz-paragrafen" className="text-2xl tracking-tight text-foreground">
                         Paragrafen im Detail
                     </h2>
-                    <motion.span {...wipeLine()} className="h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
                     </div>
 
                     <div className="flex flex-col gap-3 sm:gap-4 min-w-0">
@@ -217,7 +205,7 @@ export default function Nutzungsbedingungen() {
                     <Para id="p4" nr="04" title="§ 4 Regeln für Anzeigen">
                         <ParaList items={[
                             <span key="a">Anzeigen müssen <strong>wahr, konkret und aktuell</strong> sein (Fächer, Klassenstufen, Preise). Veraltete Anzeigen sind zu deaktivieren oder zu löschen.</span>,
-                            <span key="b"><strong>Richtpreise:</strong> Als Richtwert gelten <span className="font-mono tabular-nums">ca. 12 € pro Stunde</span>. Der Preis ist individuell anpassbar. Wucherpreise oder Lockangebote mit versteckten Kosten sind untersagt.</span>,
+                            <span key="b"><strong>Richtpreise:</strong> Als Richtwert gelten <span className="tabular-nums">ca. 12 € pro Stunde</span>. Der Preis ist individuell anpassbar. Wucherpreise oder Lockangebote mit versteckten Kosten sind untersagt.</span>,
                             <span key="c">Verboten sind: Beleidigungen, Diskriminierung, Werbung für externe kommerzielle Anbieter, Kettenbriefe, politische oder religiöse Agitation sowie Inhalte, die gegen Gesetze verstoßen.</span>,
                             <span key="d">Fotos dürfen nur hochgeladen werden, wenn du die <strong>Rechte daran hast</strong> und abgebildete Personen einverstanden sind.</span>,
                         ]} />
@@ -228,7 +216,7 @@ export default function Nutzungsbedingungen() {
                             Mitglieder der Coaching-AG erhalten nach Schulung ein <strong>Coach-Abzeichen</strong>.
                             Was das Abzeichen bedeutet, wer Coach werden kann und warum manche Anzeigen hervorgehoben
                             werden, steht transparent auf der{' '}
-                            <Link to="/coaching" className="font-bold text-brand-ink hover:underline dark:text-primary">Coaching-Seite</Link>.
+                            <Link to="/coaching" className="font-semibold text-foreground hover:underline">Coaching-Seite</Link>.
                             Das Abzeichen steht für Schulung und Verifizierung, nicht für Erfolgsgarantien.
                         </p>
                     </Para>
@@ -284,19 +272,19 @@ export default function Nutzungsbedingungen() {
                             Du kannst die Nutzung <strong>jederzeit beenden</strong>. Die vollständige Löschung
                             deines Kontos beantragst du über eine <strong>Anfrage in der App</strong> oder
                             per E-Mail an <a href={`mailto:${MAIL}`} className={MAIL_CLS}>{MAIL}</a>.
-                            Wir bestätigen die Löschung innerhalb von <span className="font-mono tabular-nums">14 Tagen</span> (Details zur Speicherung in der{' '}
-                            <Link to="/datenschutz" className="font-bold text-brand-ink hover:underline dark:text-primary">Datenschutzerklärung</Link>).
+                            Wir bestätigen die Löschung innerhalb von <span className="tabular-nums">14 Tagen</span> (Details zur Speicherung in der{' '}
+                            <Link to="/datenschutz" className="font-semibold text-foreground hover:underline">Datenschutzerklärung</Link>).
                         </p>
                         <p>
                             Der Betreiber kann Konten bei schweren Verstößen fristlos sperren (§ 7) und die
-                            Plattform insgesamt mit einer Ankündigungsfrist von <span className="font-mono tabular-nums">30 Tagen</span> einstellen.
+                            Plattform insgesamt mit einer Ankündigungsfrist von <span className="tabular-nums">30 Tagen</span> einstellen.
                         </p>
                     </Para>
 
                     <Para id="p11" nr="11" title="§ 11 Änderungen & Kontakt">
                         <p>
                             Wir können diese Bedingungen anpassen, wenn sich Funktionen oder Rechtslage ändern.
-                            Über wesentliche Änderungen informieren wir <strong>mindestens <span className="font-mono tabular-nums">14 Tage</span> vorher in der App</strong>.
+                            Über wesentliche Änderungen informieren wir <strong>mindestens <span className="tabular-nums">14 Tage</span> vorher in der App</strong>.
                             Wer danach weiter nutzt, stimmt den neuen Bedingungen zu.
                         </p>
                         <p>
@@ -311,18 +299,17 @@ export default function Nutzungsbedingungen() {
                 <motion.section
                     aria-labelledby="nutz-kontakt"
                     {...anim()}
-                    className="rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-soft sm:p-8"
+                    className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8"
                 >
-                    <h2 id="nutz-kontakt" className="font-display uppercase text-2xl tracking-tight">
+                    <h2 id="nutz-kontakt" className="text-2xl tracking-tight">
                         Fragen zu den Regeln?
                     </h2>
-                    <motion.span {...wipeLine()} className="mt-2 block h-1 w-10 origin-left rounded-full bg-primary" aria-hidden />
                     <p className="mt-3 max-w-prose text-base leading-7 text-muted-foreground">
                         Melde Inhalte über die Meldefunktion in der App oder schreib uns direkt.
                     </p>
                     <a
                         href={`mailto:${MAIL}`}
-                        className="press mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-primary px-8 py-3 text-sm font-bold text-primary-foreground hover:bg-primary-hover sm:w-auto"
+                        className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary-hover sm:w-auto"
                     >
                         <Mail size={16} aria-hidden /> {MAIL}
                     </a>

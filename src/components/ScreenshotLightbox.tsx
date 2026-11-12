@@ -18,9 +18,8 @@ interface ScreenshotLightboxProps {
     onClose: () => void;
 }
 
-/* Lightbox für die Desktop-Prints an der Plakatwand: baut auf dem vorhandenen
-   Dialog auf (Portal, ESC, Scroll-Lock, aria-modal) und ergänzt Pfeil-Navigation,
-   Zähler und Bildunterschrift im board-caption-Look. */
+/* Lightbox für Screenshots: baut auf dem Dialog auf und ergänzt
+   Pfeil-Navigation, Zähler und Bildunterschrift. */
 export default function ScreenshotLightbox({ items, open, index, onIndexChange, onClose }: ScreenshotLightboxProps) {
     const count = items.length;
     const safeIndex = count > 0 ? ((index % count) + count) % count : 0;
@@ -57,17 +56,17 @@ export default function ScreenshotLightbox({ items, open, index, onIndexChange, 
 
     if (!item) return null;
 
-    const navButton = 'press inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-foreground/15 text-foreground/80 transition-colors hover:bg-foreground/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-40';
+    const navButton = 'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40';
 
     return (
         <Dialog open={open} onClose={onClose}>
-            <DialogContent className="max-w-5xl border-border bg-background p-4 text-foreground sm:p-6" aria-label="Screenshot-Galerie">
+            <DialogContent className="max-w-5xl border-border bg-background p-4 text-foreground sm:max-w-5xl sm:p-6" aria-label="Screenshot-Galerie">
                 <DialogTitle className="sr-only">Screenshot-Galerie</DialogTitle>
                 <DialogDescription className="sr-only">
                     Vergrößerte Ansicht der App-Screenshots mit Pfeiltasten-Navigation.
                 </DialogDescription>
                 <div className="flex items-center justify-between gap-4">
-                    <span className="font-mono text-xs font-bold tabular-nums text-muted-foreground">
+                    <span className="text-xs font-medium tabular-nums text-muted-foreground">
                         {String(safeIndex + 1).padStart(2, '0')} / {String(count).padStart(2, '0')}
                     </span>
                     <Button variant="unstyled" size="unstyled"
@@ -75,7 +74,7 @@ export default function ScreenshotLightbox({ items, open, index, onIndexChange, 
                         type="button"
                         onClick={onClose}
                         aria-label="Galerie schließen"
-                        className="press inline-flex h-11 w-11 items-center justify-center rounded-full border border-foreground/15 text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     >
                         <X size={18} aria-hidden />
                     </Button>
@@ -84,7 +83,7 @@ export default function ScreenshotLightbox({ items, open, index, onIndexChange, 
                 <img
                     src={item.src}
                     alt={item.alt}
-                    className="mx-auto mt-4 h-auto max-h-[68vh] w-auto max-w-full rounded-2xl"
+                    className="mx-auto mt-4 h-auto max-h-[68vh] w-auto max-w-full rounded-xl border border-border"
                 />
 
                 <div className="mt-4 flex items-center justify-between gap-3 sm:gap-4">
@@ -92,8 +91,8 @@ export default function ScreenshotLightbox({ items, open, index, onIndexChange, 
                         <ChevronLeft size={20} aria-hidden />
                     </Button>
                     <p className="flex min-w-0 flex-1 flex-wrap items-baseline justify-center gap-x-2.5 gap-y-1 text-center">
-                        {item.index && <span className="font-mono text-xs font-bold tabular-nums text-brand-ink dark:text-primary">{item.index}</span>}
-                        <span className="board-caption text-sm font-bold">{item.caption}</span>
+                        {item.index && <span className="text-xs font-medium tabular-nums text-muted-foreground">{item.index}</span>}
+                        <span className="text-sm font-medium text-foreground">{item.caption}</span>
                     </p>
                     <Button variant="unstyled" size="unstyled" type="button" onClick={() => step(1)} aria-label="Nächstes Bild" disabled={count < 2} className={navButton}>
                         <ChevronRight size={20} aria-hidden />

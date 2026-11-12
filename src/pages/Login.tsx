@@ -354,7 +354,7 @@ export default function Login() {
             <Button
                 variant="ghost"
                 size="icon"
-                className="absolute right-4 top-[calc(1rem+env(safe-area-inset-top,0px))] z-50 h-11 w-11 rounded-full border border-border bg-card/90 text-muted-foreground backdrop-blur-sm hover:text-foreground"
+                className="absolute right-4 top-[calc(1rem+env(safe-area-inset-top,0px))] z-50 h-11 w-11 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground"
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                 aria-label={theme === 'dark' ? 'Helles Design aktivieren' : 'Dunkles Design aktivieren'}
             >
@@ -362,14 +362,13 @@ export default function Login() {
             </Button>
 
             {/* Left Side - Branding (Hidden on Mobile) */}
-            <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-primary p-12 text-primary-foreground lg:flex">
-                <div className="absolute inset-0 poster-grain-dark" aria-hidden />
+            <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden border-r border-border bg-muted p-12 text-foreground lg:flex">
                 <div className="relative z-10">
                     <motion.div
                         {...(reduceMotion ? {} : { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } })}
                         className="flex items-center gap-3.5 text-3xl font-semibold tracking-tight"
                     >
-                        <Logo className="h-12 w-12 shrink-0" />
+                        <Logo className="h-12 w-12 shrink-0 text-primary" />
                         Nachhilfebörse
                     </motion.div>
                 </div>
@@ -383,7 +382,7 @@ export default function Login() {
                     </motion.h1>
                     <motion.p
                         {...(reduceMotion ? {} : { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { delay: 0.2 } })}
-                        className="mb-8 text-lg font-medium text-primary-foreground/80"
+                        className="mb-8 text-lg font-normal leading-relaxed text-muted-foreground"
                     >
                         Finde Nachhilfe oder biete dein Wissen an. Für Schülerinnen und Schüler des Friedrich-Wilhelm-Gymnasiums. Eltern nutzen das Konto ihres Kindes mit.
                     </motion.p>
@@ -404,7 +403,7 @@ export default function Login() {
                     </motion.div>
                 </div>
 
-                <div className="relative z-10 text-sm font-bold">
+                <div className="relative z-10 text-sm font-medium text-muted-foreground">
                     FWG Köln © {new Date().getFullYear()}
                 </div>
             </div>
@@ -420,20 +419,20 @@ export default function Login() {
                         <h1 className="text-3xl font-semibold tracking-tight text-foreground">Nachhilfebörse</h1>
                         <p className="mt-1 text-sm font-medium text-muted-foreground">Friedrich-Wilhelm-Gymnasium Köln</p>
                         <ul className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-xs font-semibold text-muted-foreground" aria-label="Vertrauen auf einen Blick">
-                            <li className="flex items-center gap-1.5"><CheckCircle size={16} className="shrink-0 text-brand-ink dark:text-primary" aria-hidden /> Von der SV organisiert</li>
-                            <li className="flex items-center gap-1.5"><CheckCircle size={16} className="shrink-0 text-brand-ink dark:text-primary" aria-hidden /> Verifizierte Konten</li>
-                            <li className="flex items-center gap-1.5"><CheckCircle size={16} className="shrink-0 text-brand-ink dark:text-primary" aria-hidden /> Nutzung kostenlos</li>
+                            <li className="flex items-center gap-1.5"><CheckCircle size={16} className="shrink-0 text-muted-foreground" aria-hidden /> Von der SV organisiert</li>
+                            <li className="flex items-center gap-1.5"><CheckCircle size={16} className="shrink-0 text-muted-foreground" aria-hidden /> Verifizierte Konten</li>
+                            <li className="flex items-center gap-1.5"><CheckCircle size={16} className="shrink-0 text-muted-foreground" aria-hidden /> Nutzung kostenlos</li>
                         </ul>
                     </div>
 
-                    <Card className="overflow-hidden rounded-2xl border border-border bg-card shadow-card ring-0">
+                    <Card className="overflow-hidden">
                         <div className="grid grid-cols-2 border-b border-border" role="group" aria-label="Anmeldung oder Registrierung">
                             <Button
                                 variant="unstyled"
                                 size="unstyled"
                                 type="button"
                                 aria-pressed={mode === 'login'}
-                                className={`inline-flex min-h-12 items-center justify-center px-4 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${mode === 'login' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+                                className={`inline-flex min-h-12 items-center justify-center px-4 text-sm font-medium transition-colors ${mode === 'login' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
                                 onClick={() => { setMode('login'); setError(null); }}
                             >
                                 Anmelden
@@ -443,7 +442,7 @@ export default function Login() {
                                 size="unstyled"
                                 type="button"
                                 aria-pressed={mode === 'register'}
-                                className={`inline-flex min-h-12 items-center justify-center border-l border-border px-4 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${mode === 'register' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+                                className={`inline-flex min-h-12 items-center justify-center border-l border-border px-4 text-sm font-medium transition-colors ${mode === 'register' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
                                 onClick={() => { setMode('register'); setError(null); }}
                             >
                                 Registrieren
@@ -492,10 +491,10 @@ export default function Login() {
                                 {mode === 'register' && (
                                     <div className="space-y-4">
                                         <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/60 p-3">
-                                            <Users size={16} className="mt-0.5 shrink-0 text-brand-ink dark:text-primary" aria-hidden />
+                                            <Users size={16} className="mt-0.5 shrink-0 text-muted-foreground" aria-hidden />
                                             <p className="text-xs leading-relaxed text-muted-foreground">
                                                 <strong className="text-foreground">Unsere Empfehlung:</strong> Sprich mit deinen Eltern über die Börse. In den Klassen 5 bis 7 empfehlen wir, das Konto gemeinsam zu betreuen. Ältere Schülerinnen und Schüler nutzen es meist selbstständig. Mehr im{' '}
-                                                <Link to="/eltern-leitfaden" className="font-bold text-brand-ink hover:underline dark:text-primary" target="_blank">Eltern-Leitfaden</Link>.
+                                                <Link to="/eltern-leitfaden" className="font-medium text-foreground underline underline-offset-2" target="_blank">Eltern-Leitfaden</Link>.
                                             </p>
                                         </div>
                                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -550,10 +549,10 @@ export default function Login() {
                                         {isUnder16 && (
                                             <div className="space-y-2 rounded-xl border border-warning/40 bg-warning/10 p-3">
                                                 <div className="flex items-center gap-2 text-xs font-bold text-foreground">
-                                                    <ShieldAlert size={16} className="shrink-0 text-brand-ink dark:text-primary" aria-hidden /> Hinweis für Nutzer unter 16 Jahren (Art. 8 DSGVO)
+                                                    <ShieldAlert size={16} className="shrink-0 text-muted-foreground" aria-hidden /> Hinweis für Nutzer unter 16 Jahren (Art. 8 DSGVO)
                                                 </div>
                                                 <p className="text-xs leading-relaxed text-muted-foreground">
-                                                    Da du unter 16 Jahre alt bist, brauchen wir die Zustimmung deiner Erziehungsberechtigten. Sprich die Anmeldung mit ihnen durch und zeig ihnen gern den <Link to="/eltern-leitfaden" className="font-bold text-brand-ink underline underline-offset-2 dark:text-primary" target="_blank">Eltern-Leitfaden</Link>.
+                                                    Da du unter 16 Jahre alt bist, brauchen wir die Zustimmung deiner Erziehungsberechtigten. Sprich die Anmeldung mit ihnen durch und zeig ihnen gern den <Link to="/eltern-leitfaden" className="font-medium text-foreground underline underline-offset-2" target="_blank">Eltern-Leitfaden</Link>.
                                                 </p>
                                                 <div className="flex items-start gap-2.5 pt-1">
                                                     <Checkbox
@@ -579,7 +578,6 @@ export default function Login() {
                                                 placeholder="SV-XXXX-XXXX-XXXX"
                                                 value={inviteCode}
                                                 onChange={e => setInviteCode(e.target.value)}
-                                                className="border-dashed"
                                                 aria-describedby="sv-code-hint"
                                             />
                                             <p id="sv-code-hint" className="text-xs leading-snug text-muted-foreground">
@@ -607,7 +605,7 @@ export default function Login() {
                                     <div className="flex items-center justify-between gap-3">
                                         <Label htmlFor="login-password" className="text-sm font-medium text-foreground">Passwort</Label>
                                         {mode === 'login' && (
-                                            <Button variant="unstyled" size="unstyled" type="button" onClick={handleResetPassword} className="inline-flex min-h-11 items-center text-sm font-semibold text-brand-ink underline-offset-4 hover:underline dark:text-primary">Passwort vergessen?</Button>
+                                            <Button variant="unstyled" size="unstyled" type="button" onClick={handleResetPassword} className="inline-flex min-h-11 items-center text-sm font-medium text-foreground underline-offset-4 hover:underline">Passwort vergessen?</Button>
                                         )}
                                     </div>
                                     <Input
@@ -632,14 +630,14 @@ export default function Login() {
                                             className="mt-0.5 cursor-pointer"
                                         />
                                         <Label htmlFor="terms" className="cursor-pointer text-xs leading-relaxed text-muted-foreground">
-                                            Ich stimme den <Link to="/nutzungsbedingungen" className="font-bold text-brand-ink hover:underline dark:text-primary" target="_blank">Nutzungsbedingungen</Link> und der <Link to="/datenschutz" className="font-bold text-brand-ink hover:underline dark:text-primary" target="_blank">Datenschutzerklärung</Link> zu.
+                                            Ich stimme den <Link to="/nutzungsbedingungen" className="font-medium text-foreground underline underline-offset-2" target="_blank">Nutzungsbedingungen</Link> und der <Link to="/datenschutz" className="font-medium text-foreground underline underline-offset-2" target="_blank">Datenschutzerklärung</Link> zu.
                                         </Label>
                                     </div>
                                 )}
 
                                 <Button
                                     type="submit"
-                                    className="mt-6 h-12 w-full rounded-full text-base font-bold"
+                                    className="mt-6 h-12 w-full text-base font-medium"
                                     disabled={isLoading || isBlocked}
                                     isLoading={isLoading}
                                 >

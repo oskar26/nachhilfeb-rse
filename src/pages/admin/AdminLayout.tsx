@@ -106,7 +106,7 @@ export default function AdminLayout() {
     const sidebarContent = (
         <div className="flex h-full min-h-0 flex-col">
             <div className="flex h-16 shrink-0 items-center gap-3 border-b border-border px-4">
-                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground">
+                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-foreground">
                     <Logo className="size-5" />
                 </span>
                 <span className="min-w-0 flex-1 truncate text-sm font-semibold tracking-tight text-foreground">SV Admin Panel</span>
@@ -114,7 +114,7 @@ export default function AdminLayout() {
                     variant="ghost"
                     size="icon"
                     type="button"
-                    className="-mr-2 h-11 w-11 shrink-0 rounded-full xl:hidden"
+                    className="-mr-2 h-11 w-11 shrink-0 xl:hidden"
                     onClick={() => setSidebarOpen(false)}
                     aria-label="Menü schließen"
                 >
@@ -135,25 +135,25 @@ export default function AdminLayout() {
                             onClick={() => handleNavClick(value)}
                             aria-current={isActive ? 'page' : undefined}
                             className={cn(
-                                'flex min-h-11 w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
+                                'flex min-h-11 w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left text-sm font-medium transition-colors',
                                 isActive
-                                    ? 'border-primary/30 bg-primary/15 font-semibold text-foreground dark:border-primary/25'
+                                    ? 'border-border bg-muted font-medium text-foreground'
                                     : 'border-transparent text-muted-foreground hover:bg-muted hover:text-foreground'
                             )}
                         >
                             <Icon
                                 size={20}
                                 aria-hidden
-                                className={cn('shrink-0', isActive ? 'text-brand-ink dark:text-primary' : 'text-muted-foreground')}
+                                className={cn('shrink-0', isActive ? 'text-foreground' : 'text-muted-foreground')}
                             />
                             <span className="min-w-0 flex-1 break-words">{label}</span>
                             {count > 0 && (
                                 <span
                                     className={cn(
-                                        'inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-xs font-semibold tabular-nums',
+                                        'inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-md px-1.5 text-xs font-semibold tabular-nums',
                                         value === 'reports'
                                             ? 'bg-destructive/10 text-destructive'
-                                            : 'bg-primary/20 text-brand-ink dark:text-primary'
+                                            : 'bg-muted text-foreground'
                                     )}
                                 >
                                     {count > 9 ? '9+' : count}
@@ -184,7 +184,7 @@ export default function AdminLayout() {
                 </SheetContent>
             </Sheet>
 
-            <aside className="hidden w-64 shrink-0 flex-col border-border bg-card/60 xl:sticky xl:top-0 xl:flex xl:h-[calc(100dvh-2rem)] xl:self-start xl:border-r">
+            <aside className="hidden w-64 shrink-0 flex-col border-border bg-card xl:sticky xl:top-0 xl:flex xl:h-[calc(100dvh-2rem)] xl:self-start xl:border-r">
                 {sidebarContent}
             </aside>
 
@@ -196,7 +196,7 @@ export default function AdminLayout() {
                         variant="ghost"
                         size="icon"
                         type="button"
-                        className="-ml-2 h-11 w-11 shrink-0 rounded-full xl:hidden"
+                        className="-ml-2 h-11 w-11 shrink-0 xl:hidden"
                         onClick={() => setSidebarOpen(true)}
                         aria-label="Menü öffnen"
                     >
@@ -222,7 +222,7 @@ export default function AdminLayout() {
                         ))}
                     </nav>
 
-                    <span className="ml-auto hidden shrink-0 items-center gap-1.5 rounded-full border border-destructive/20 bg-destructive/5 px-3 py-1.5 text-xs font-medium text-destructive xl:flex">
+                    <span className="ml-auto hidden shrink-0 items-center gap-1.5 rounded-md border border-border bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground xl:flex">
                         <ShieldCheck size={16} aria-hidden />
                         SV Einsicht aktiv
                     </span>

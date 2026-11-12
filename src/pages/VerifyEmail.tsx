@@ -69,10 +69,10 @@ export default function VerifyEmail() {
     return (
         <div className="flex min-h-dvh flex-col items-center justify-center bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] text-foreground">
             <div className="w-full max-w-md">
-                <Card className="border-border bg-card shadow-soft">
+                <Card className="border-border bg-card">
                     <CardContent className="space-y-6 p-5 sm:p-6">
                         <div className="space-y-2 text-center">
-                            <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-primary text-primary-foreground">
+                            <div className="mx-auto grid size-14 place-items-center rounded-xl bg-muted text-foreground">
                                 <MailCheck size={26} aria-hidden />
                             </div>
                             <h1 className="text-xl font-semibold text-foreground">E-Mail bestätigen</h1>
@@ -137,7 +137,7 @@ export default function VerifyEmail() {
                                 type="button"
                                 onClick={handleResend}
                                 disabled={isLoading || cooldown > 0 || !email}
-                                className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-brand-ink underline-offset-4 hover:underline disabled:pointer-events-none disabled:opacity-50 dark:text-primary"
+                                className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-foreground underline-offset-4 hover:underline disabled:pointer-events-none disabled:opacity-50"
                             >
                                 <RefreshCw size={14} aria-hidden />
                                 {cooldown > 0 ? `Neuer Code in ${cooldown}s` : 'Neuen Code senden'}
