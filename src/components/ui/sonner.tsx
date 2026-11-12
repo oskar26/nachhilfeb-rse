@@ -20,7 +20,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
       position={isMobile ? "top-center" : "bottom-right"}
-      offset={isMobile ? 72 : 24}
+      offset={24}
+      mobileOffset={80}
       icons={{
         success: (
           <CircleCheckIcon className="size-4" />

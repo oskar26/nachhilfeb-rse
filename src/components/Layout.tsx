@@ -302,7 +302,7 @@ export default function Layout() {
 
             <nav
                 aria-label="Hauptnavigation"
-                className="fixed right-4 bottom-[max(0.75rem,calc(0.75rem+env(safe-area-inset-bottom,0px)))] left-4 z-50 flex h-16 items-center justify-around rounded-xl border border-border bg-card px-1.5 shadow-overlay md:hidden"
+                className="fixed right-4 bottom-[max(0.75rem,calc(0.75rem+env(safe-area-inset-bottom,0px)))] left-4 z-50 grid h-16 grid-cols-5 items-center rounded-xl border border-border bg-card px-1.5 shadow-overlay md:hidden"
             >
                 {mobileNavItems.map((item) => {
                     const Icon = item.icon;
@@ -315,14 +315,14 @@ export default function Layout() {
                                     handleNavClick();
                                     navigate('/create-ad');
                                 }}
-                                className="relative flex h-full w-16 shrink-0 flex-col items-center justify-center rounded-lg"
+                                className="relative flex h-full w-full min-w-0 flex-col items-center justify-center rounded-lg"
                                 title={item.label}
                                 aria-label="Neue Anzeige erstellen"
                             >
                                 <span className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground">
                                     <PlusCircle size={20} strokeWidth={2} aria-hidden />
                                 </span>
-                                <span className="max-w-full truncate text-xs font-medium">Erstellen</span>
+                                <span className="max-w-full text-[11px] font-medium">Erstellen</span>
                             </Button>
                         );
                     }
@@ -334,7 +334,7 @@ export default function Layout() {
                             end={item.end || (item.activateOnChat ? false : undefined)}
                             onClick={handleNavClick}
                             className={({ isActive }) =>
-                                `relative flex h-full min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-1 text-xs font-medium transition-colors ${
+                                `relative flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-lg text-[11px] font-medium transition-colors ${
                                     isActive || (item.activateOnChat && (isSocialRoute || isChatRoute))
                                         ? 'text-foreground'
                                         : 'text-muted-foreground hover:text-foreground'
@@ -345,7 +345,7 @@ export default function Layout() {
                             {({ isActive }) => (
                                 <>
                                     <Icon size={20} strokeWidth={isActive || (item.activateOnChat && (isSocialRoute || isChatRoute)) ? 2.25 : 2} aria-hidden />
-                                    <span className="max-w-full truncate">{item.label}</span>
+                                    <span className="max-w-full">{item.label}</span>
                                     {(isActive || (item.activateOnChat && (isSocialRoute || isChatRoute))) && (
                                         <span className="absolute bottom-1 h-1 w-1 rounded-full bg-foreground" aria-hidden />
                                     )}

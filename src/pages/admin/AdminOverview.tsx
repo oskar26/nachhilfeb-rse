@@ -237,10 +237,10 @@ export default function AdminOverview() {
                             </div>
                         ) : (
                             <ChartContainer config={trendConfig} className="h-[220px] w-full">
-                                <BarChart data={trendData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+                                <BarChart data={trendData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                                     <CartesianGrid vertical={false} />
                                     <XAxis dataKey="day" tickLine={false} axisLine={false} tickMargin={8} />
-                                    <YAxis tickLine={false} axisLine={false} tickMargin={8} width={36} allowDecimals={false} />
+                                    <YAxis tickLine={false} axisLine={false} tickMargin={8} width={40} allowDecimals={false} />
                                     <ChartTooltip content={<ChartTooltipContent />} />
                                     <Bar dataKey="views" fill="var(--color-views)" radius={[4, 4, 0, 0]} maxBarSize={56} />
                                 </BarChart>
@@ -295,8 +295,8 @@ export default function AdminOverview() {
                         ) : recentReports.length === 0 ? (
                             <p className="p-6 text-center text-sm text-muted-foreground">Keine Meldungen vorhanden.</p>
                         ) : (
-                            recentReports.map((r) => (
-                                <div key={r.id} className="flex items-start justify-between gap-3 p-4">
+                            recentReports.map((r, index) => (
+                                <div key={`${r.id}-${index}`} className="flex items-start justify-between gap-3 p-4">
                                     <div className="min-w-0">
                                         <div className="break-words text-sm font-medium text-foreground">{r.reason || r.category || 'Kein Grund angegeben'}</div>
                                         <div className="mt-0.5 break-words text-xs text-muted-foreground">
@@ -334,8 +334,8 @@ export default function AdminOverview() {
                         ) : recentUsers.length === 0 ? (
                             <p className="p-6 text-center text-sm text-muted-foreground">Keine Nutzer gefunden.</p>
                         ) : (
-                            recentUsers.map((u) => (
-                                <div key={u.id} className="flex items-center gap-3 p-4">
+                            recentUsers.map((u, index) => (
+                                <div key={`${u.id}-${index}`} className="flex items-center gap-3 p-4">
                                     <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-sm font-semibold text-foreground">
                                         {(u.display_name || u.first_name || '?').charAt(0).toUpperCase()}
                                     </div>

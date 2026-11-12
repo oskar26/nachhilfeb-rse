@@ -42,7 +42,6 @@ export default function SubjectPickerDialog({ open, onClose, selected, onToggle 
                                 <X size={18} />
                             </Button>
                         </div>
-                        <div className="mt-3 h-1 w-10 rounded-lg bg-primary" aria-hidden />
                     </div>
 
                     {/* Alle Fächer */}

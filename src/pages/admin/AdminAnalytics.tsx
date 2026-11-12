@@ -604,7 +604,7 @@ export default function AdminAnalytics() {
                         <CardDescription>Aufteilung nach Gerätetypen</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {deviceDistribution.map(d => {
+                        {deviceDistribution.map((d, i) => {
                             const Icon = d.type === 'mobile' ? Smartphone : d.type === 'tablet' ? Tablet : Monitor;
                             const label = d.type === 'mobile' ? 'Smartphone / Mobile' : d.type === 'tablet' ? 'Tablet' : 'Desktop PC';
                             // Nenner = Summe der Gerätewerte: totalPageViews enthält auch (historische) Aufrufe
@@ -612,7 +612,7 @@ export default function AdminAnalytics() {
                             const deviceTotal = deviceDistribution.reduce((sum, x) => sum + x.count, 0);
                             const percentage = deviceTotal > 0 ? Math.round((d.count / deviceTotal) * 100) : 0;
                             return (
-                                <div key={d.type} className="space-y-1">
+                                <div key={`${d.type}-${i}`} className="space-y-1">
                                     <div className="flex items-center justify-between gap-2 text-xs font-medium">
                                         <span className="flex items-center gap-1.5"><Icon size={16} className="text-muted-foreground" aria-hidden /> {label}</span>
                                         <span className="text-muted-foreground tabular-nums">{d.count} ({percentage}%)</span>
@@ -629,8 +629,8 @@ export default function AdminAnalytics() {
                             <span className="mb-2 block text-xs font-medium text-muted-foreground">Beliebteste Seiten</span>
                             {topPages.length === 0 ? (
                                 <p className="text-xs text-muted-foreground">Noch keine Seitenaufrufe erfasst.</p>
-                            ) : topPages.map(p => (
-                                <div key={p.path} className="flex items-center justify-between gap-2 text-xs">
+                            ) : topPages.map((p, i) => (
+                                <div key={`${p.path}-${i}`} className="flex items-center justify-between gap-2 text-xs">
                                     <span className="min-w-0 break-all tabular-nums text-foreground">{p.path}</span>
                                     <span className="shrink-0 text-muted-foreground">{p.count} Aufrufe</span>
                                 </div>
@@ -654,10 +654,10 @@ export default function AdminAnalytics() {
                     <CardContent className="space-y-4">
                         {gradeDistribution.length === 0 ? (
                             <p className="py-8 text-center text-sm text-muted-foreground">Keine Daten vorhanden.</p>
-                        ) : gradeDistribution.map(g => {
+                        ) : gradeDistribution.map((g, i) => {
                             const percentage = (g.count / maxGradeCount) * 100;
                             return (
-                                <div key={g.grade} className="space-y-1">
+                                <div key={`${g.grade}-${i}`} className="space-y-1">
                                     <div className="flex justify-between gap-2 text-xs font-medium">
                                         <span>{['EF', 'Q1', 'Q2'].includes(g.grade) ? `Stufe ${g.grade}` : `Klasse ${g.grade}`}</span>
                                         <span className="text-muted-foreground tabular-nums">{g.count} Schüler</span>
@@ -685,10 +685,10 @@ export default function AdminAnalytics() {
                     <CardContent className="space-y-4">
                         {subjectDistribution.length === 0 ? (
                             <p className="py-8 text-center text-sm text-muted-foreground">Keine Daten vorhanden.</p>
-                        ) : subjectDistribution.map(s => {
+                        ) : subjectDistribution.map((s, i) => {
                             const percentage = (s.count / maxSubjectCount) * 100;
                             return (
-                                <div key={s.subject} className="space-y-1">
+                                <div key={`${s.subject}-${i}`} className="space-y-1">
                                     <div className="flex justify-between gap-2 text-xs font-medium">
                                         <span className="capitalize">{s.subject}</span>
                                         <span className="text-muted-foreground tabular-nums">{s.count} Anzeigen</span>
@@ -716,10 +716,10 @@ export default function AdminAnalytics() {
                     <CardContent className="space-y-4">
                         {priceDistribution.length === 0 ? (
                             <p className="py-8 text-center text-sm text-muted-foreground">Keine Daten vorhanden.</p>
-                        ) : priceDistribution.map(p => {
+                        ) : priceDistribution.map((p, i) => {
                             const percentage = (p.count / maxPriceCount) * 100;
                             return (
-                                <div key={p.range} className="space-y-1">
+                                <div key={`${p.range}-${i}`} className="space-y-1">
                                     <div className="flex justify-between gap-2 text-xs font-medium">
                                         <span>{p.range}</span>
                                         <span className="text-muted-foreground tabular-nums">{p.count} Anzeigen</span>
@@ -785,7 +785,7 @@ export default function AdminAnalytics() {
                             </div>
                         ) : (
                             topAds.map((a, i) => (
-                                <div key={a.id || i} className="flex items-center gap-3 border-b border-border py-2 last:border-0">
+                                <div key={`${a.id || 'ad'}-${i}`} className="flex items-center gap-3 border-b border-border py-2 last:border-0">
                                     <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-muted text-xs font-semibold tabular-nums text-foreground">
                                         {i + 1}
                                     </span>

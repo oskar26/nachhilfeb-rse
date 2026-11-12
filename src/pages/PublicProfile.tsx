@@ -16,7 +16,6 @@ import { triggerHaptic } from '../lib/haptics';
 import { cn, formatAdPrice } from '../lib/utils';
 import { VerifiedPill } from '../components/ui/VerifiedPill';
 import ShareDialog from '../components/ShareDialog';
-import { extractDominantGradient, getDefaultGradient } from '../lib/colorExtractor';
 import { useAuth } from '../context/AuthContext';
 import { AvailabilityCalendar, emptyAvailability, type Availability } from '../components/AvailabilityCalendar';
 
@@ -28,7 +27,6 @@ export default function PublicProfile() {
     const [ads, setAds] = useState<any[]>([]);
     const [reviewCount, setReviewCount] = useState(0);
     const [loading, setLoading] = useState(true);
-    const [bannerGradient, setBannerGradient] = useState<string>(getDefaultGradient());
     const [isShareOpen, setIsShareOpen] = useState(false);
     const [myAvailability, setMyAvailability] = useState<Availability>(emptyAvailability());
 
@@ -46,25 +44,6 @@ export default function PublicProfile() {
         if (isCancelled()) return;
         if (prof) {
             setProfile(prof);
-
-            // Set or extract dynamic banner gradient (leere/weisse/transparente
-            // Werte fallen auf FWG-Gold zurück, sonst bliebe der Banner unsichtbar)
-            const rawBanner = (prof.banner_color || '').trim().toLowerCase();
-            const isBlankBanner =
-                !rawBanner ||
-                rawBanner === 'transparent' ||
-                rawBanner === '#ffffff' ||
-                rawBanner === '#fff' ||
-                rawBanner === 'white' ||
-                rawBanner === 'rgba(255,255,255,1)' ||
-                rawBanner === 'rgb(255,255,255)';
-            if (!isBlankBanner) {
-                setBannerGradient(prof.banner_color);
-            } else if (prof.avatar_url) {
-                extractDominantGradient(prof.avatar_url, prof.id).then(setBannerGradient);
-            } else {
-                setBannerGradient(getDefaultGradient()); // FWG Gold default to match avatar
-            }
 
             const { data: adsData } = await api.ads.list({ user_id: id, all: true });
             if (isCancelled()) return;
@@ -160,7 +139,7 @@ export default function PublicProfile() {
             {/* Profile Header */}
             <motion.div variants={itemVariants} className="relative">
                 <Card className="relative overflow-hidden border-border bg-card p-0">
-                    <div className="h-36 transition-all duration-700 shadow-inner" style={{ background: bannerGradient }}></div>
+                    <div className="h-36 bg-muted"></div>
                     <CardContent className="pt-0 px-6 sm:px-8 pb-8 relative">
                         <div className="flex flex-col md:flex-row items-center md:items-end gap-6">
                             <div className="-mt-16 size-28 shrink-0 overflow-hidden rounded-2xl border-4 border-card bg-card p-1 sm:size-32">

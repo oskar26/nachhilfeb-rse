@@ -124,7 +124,7 @@ export default function AdminLayout() {
                     </span>
                 </div>
 
-                <nav className="no-scrollbar flex items-center gap-1 overflow-x-auto px-3 pb-2 sm:px-5" aria-label="SV-Admin-Navigation">
+                <nav className="flex flex-wrap items-center gap-1 px-3 pb-2 sm:px-5" aria-label="SV-Admin-Navigation">
                     {NAV_ITEMS.map(({ label, value, icon: Icon }) => {
                         const isActive = activeTab === value;
                         const count = value === 'reports' ? openReports : value === 'support' ? openTickets : 0;
@@ -164,6 +164,9 @@ export default function AdminLayout() {
             </header>
 
             <main className="mx-auto w-full max-w-7xl flex-1 p-4 pb-8 sm:p-6">
+                {!['overview', 'analytics', 'auditlog', 'coachlog'].includes(activeTab) && (
+                    <h1 className="sr-only">{TAB_LABELS[activeTab] || 'SV-Panel'}</h1>
+                )}
                 <Outlet />
             </main>
         </div>

@@ -1,5 +1,5 @@
 import { Label } from '@/components/ui/label';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api, getStoredToken, getStoredUser } from '../lib/api';
 import { Button } from '../components/ui/button';
@@ -17,6 +17,7 @@ export default function UpdatePassword() {
     // Token aus URL oder Hash auslesen
     const hashParams = new URLSearchParams(window.location.hash.split('?')[1] || '');
     const resetToken = searchParams.get('token') || hashParams.get('token');
+    const warnedRef = useRef(false);
 
     useEffect(() => {
         // Falls ein Reset-Token übergeben wurde, muss der Nutzer nicht eingeloggt sein
@@ -25,6 +26,8 @@ export default function UpdatePassword() {
         // Früher getSession(): Es genügt der lokal gespeicherte Login
         // (Token + User) – ohne Reset-Token muss er vorhanden sein.
         if (!getStoredToken() || !getStoredUser()) {
+            if (warnedRef.current) return;
+            warnedRef.current = true;
             toast.error("Ungültiger oder abgelaufener Link.");
             navigate('/login');
         }

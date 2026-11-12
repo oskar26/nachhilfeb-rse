@@ -9,7 +9,7 @@ type ChipIcon = ComponentType<{ size?: number | string; className?: string }>;
  */
 export function TypeChip({ label, dotClass, icon: Icon }: { label: string; dotClass: string; icon?: ChipIcon }) {
     return (
-        <span className="inline-flex min-w-0 items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+        <span className="inline-flex min-w-0 items-center gap-1.5 rounded-md bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
             <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full', dotClass)} aria-hidden />
             {Icon && <Icon size={12} className="shrink-0" aria-hidden />}
             <span className="truncate">{label}</span>
@@ -23,7 +23,7 @@ export function TypeChip({ label, dotClass, icon: Icon }: { label: string; dotCl
  */
 export function StatusChip({ label, dotClass }: { label: string; dotClass: string }) {
     return (
-        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
             <span className={cn('h-1.5 w-1.5 rounded-full', dotClass)} aria-hidden />
             {label}
         </span>

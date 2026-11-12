@@ -76,6 +76,12 @@
 }
 
 @layer utilities {
+  /* Sonner's mobileOffset is not applied by every runtime; keep the mobile
+     toast clear of the sticky header. */
+  [data-sonner-toaster][data-y-position="top"] {
+    top: calc(80px + env(safe-area-inset-top, 0px)) !important;
+  }
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }

@@ -18,7 +18,6 @@ import { AvailabilityCalendar, emptyAvailability, type Availability } from '../c
 import { sanitizeHtml } from '../lib/sanitize';
 import { triggerHaptic } from '../lib/haptics';
 import AvatarMakerModal from '../components/AvatarMakerModal';
-import ConfettiBurst from '../components/ConfettiBurst';
 import SubjectPickerDialog from '../components/SubjectPickerDialog';
 import { Switch } from '../components/ui/switch';
 import { VerifiedPill } from '../components/ui/VerifiedPill';
@@ -37,9 +36,6 @@ export default function Profile() {
     const [privacyCalendar, setPrivacyCalendar] = useState(true);
     const [isSubjectPickerOpen, setIsSubjectPickerOpen] = useState(false);
     const [isAvatarMakerOpen, setIsAvatarMakerOpen] = useState(false);
-    const [profileDataReady, setProfileDataReady] = useState(false);
-    const [showConfetti, setShowConfetti] = useState(false);
-    const prevStrengthRef = useRef<number | null>(null);
     const subjectsSaveQueueRef = useRef<Promise<void>>(Promise.resolve());
 
     const [profile, setProfile] = useState<{
@@ -133,7 +129,6 @@ export default function Profile() {
             setPrivacyCalendar(data.privacy_calendar ?? true);
         }
         setLoading(false);
-        setProfileDataReady(true);
     }
 
     useEffect(() => {
@@ -278,23 +273,6 @@ export default function Profile() {
     const strengthDoneCount = strengthChecks.filter(c => c.done).length + (profile.first_name ? 0 : 0);
     const strengthPct = Math.max(20, Math.round((strengthDoneCount / strengthChecks.length) * 100));
 
-    // Konfetti nur beim ECHTEN Übergang <100 → 100 in dieser Session, nicht beim
-    // initialen Laden (Baseline wird erst gesetzt, wenn die Profildaten da sind).
-    useEffect(() => {
-        if (!profileDataReady) return;
-        const prev = prevStrengthRef.current;
-        prevStrengthRef.current = strengthPct;
-        if (prev !== null && prev < 100 && strengthPct === 100) {
-            const timer = window.setTimeout(() => setShowConfetti(true), 0);
-            return () => window.clearTimeout(timer);
-        }
-    }, [profileDataReady, strengthPct]);
-
-    useEffect(() => {
-        if (!showConfetti) return;
-        const timer = window.setTimeout(() => setShowConfetti(false), 1800);
-        return () => window.clearTimeout(timer);
-    }, [showConfetti]);
 
     if (loading) return (
         <div className="flex flex-col items-center justify-center p-20 gap-3">
@@ -763,7 +741,6 @@ export default function Profile() {
             />
 
             {/* Konfetti beim Übergang auf 100 % Profil-Stärke */}
-            {showConfetti && <ConfettiBurst />}
         </motion.div>
     );
 }

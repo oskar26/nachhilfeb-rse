@@ -56,9 +56,14 @@ function AnalyticsTracker() {
 
 function ToastRouteCleanup() {
   const location = useLocation();
+
   useEffect(() => {
-    toast.dismiss();
+    const route = `${location.pathname}${location.search}`;
+    if (route !== '/gibt-es-nicht') return;
+    const timer = window.setTimeout(() => toast.dismiss(), 0);
+    return () => window.clearTimeout(timer);
   }, [location.pathname, location.search]);
+
   return null;
 }
 

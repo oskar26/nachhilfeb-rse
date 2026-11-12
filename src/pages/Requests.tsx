@@ -241,7 +241,6 @@ function AdLink({ ad, navigate }: { ad: { id?: string; short_description?: strin
 function MessageQuote({ message }: { message: string }) {
     return (
         <figure className="mt-3 max-w-[65ch] rounded-xl bg-muted/50 px-4 py-3">
-            <span className="mb-2 block h-1 w-10 rounded-lg bg-primary" aria-hidden />
             <blockquote className="text-sm leading-relaxed text-foreground/80">
                 „{message}“
             </blockquote>

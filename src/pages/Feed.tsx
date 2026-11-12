@@ -390,7 +390,7 @@ export default function Feed() {
                     <div className="min-w-0">
                         <h1 className="min-w-0 text-xl font-semibold leading-tight tracking-tight sm:text-2xl">Aktuelle Anzeigen</h1>
                     </div>
-                    <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                    <div className="grid w-full grid-cols-2 items-center gap-2 min-w-0 sm:flex sm:w-auto sm:flex-wrap sm:gap-1.5">
                         {user && (
                             <Button variant="unstyled" size="unstyled" type="button"
                                 onClick={() => { setFilterByTime(!filterByTime); triggerHaptic('selection'); }}
@@ -452,7 +452,7 @@ export default function Feed() {
                 </div>
 
                 {/* Quick Subject Filter Chips */}
-                <div className="no-scrollbar -mx-4 flex min-w-0 items-center gap-1.5 overflow-x-auto px-4 pb-1 text-xs sm:mx-0 sm:px-0">
+                <div className="flex min-w-0 flex-wrap items-center gap-1.5 pb-1 text-xs">
                     <span className="mr-1 shrink-0 text-xs font-semibold text-muted-foreground">Beliebt:</span>
                     {popularSubjects.map((subj) => (
                         <Button variant="unstyled" size="unstyled" type="button"

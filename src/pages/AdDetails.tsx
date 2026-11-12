@@ -194,7 +194,7 @@ export default function AdDetails() {
                         <div className="flex justify-between items-start gap-3">
                             <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2 mb-2">
-                                    <h1 className="break-anywhere text-xl font-semibold text-foreground sm:text-2xl">{ad.subjects?.[0] || 'Nachhilfe'} - {profile?.display_name || 'Nutzer'}</h1>
+                                    <h1 className="break-anywhere text-xl font-semibold capitalize text-foreground sm:text-2xl">{ad.subjects?.[0] || 'Nachhilfe'} - {profile?.display_name || 'Nutzer'}</h1>
                                     {profile?.is_verified && (
                                         <VerifiedPill className="shrink-0" />
                                     )}

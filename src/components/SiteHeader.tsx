@@ -134,7 +134,7 @@ export default function SiteHeader() {
     const menuTrigger = (
         <button
             type="button"
-            className="inline-flex size-10 items-center justify-center rounded-lg border border-border text-foreground transition-colors hover:bg-muted lg:hidden"
+            className="inline-flex size-11 items-center justify-center rounded-lg border border-border text-foreground transition-colors hover:bg-muted lg:hidden"
             aria-label={menuOpen ? 'Menü schließen' : 'Menü öffnen'}
             aria-expanded={menuOpen}
             aria-controls="mobile-nav"
@@ -214,7 +214,7 @@ export default function SiteHeader() {
                         <SheetClose
                             type="button"
                             aria-label="Menü schließen"
-                            className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-border text-foreground transition-colors hover:bg-muted"
+                            className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-border text-foreground transition-colors hover:bg-muted"
                         >
                             <X size={20} aria-hidden />
                         </SheetClose>
