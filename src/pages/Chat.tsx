@@ -15,6 +15,7 @@ import ReportWizard from '../components/ReportWizard';
 import { downloadICSFile } from '../lib/calendar';
 import { blockedReason, checkContent, loadFilterOverrides, type FilterOverrides } from '../lib/profanity';
 import { maybeAutoReport } from '../lib/autoreport';
+import { avatarTone, initials } from '../lib/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
@@ -270,19 +271,19 @@ export default function Chat() {
 
     return (
         <>
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-card">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
             {/* Header */}
-            <header className="flex shrink-0 items-center gap-0.5 border-b border-border bg-card/95 p-1.5 backdrop-blur md:gap-1 md:p-2">
-                <Button variant="ghost" size="icon" onClick={() => navigate('/requests')} className="size-11 shrink-0 rounded-lg" aria-label="Zurück zu den Anfragen">
+            <header className="flex shrink-0 items-center gap-0.5 border-b border-border/60 bg-card/80 p-1.5 backdrop-blur-xl md:gap-1 md:p-2">
+                <Button variant="ghost" size="icon" onClick={() => navigate('/requests')} className="size-11 shrink-0 rounded-full" aria-label="Zurück zu den Anfragen">
                     <ChevronLeft size={20} aria-hidden />
                 </Button>
                 <div className="flex min-w-0 flex-1 items-center gap-2.5 px-0.5">
-                    <div className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-lg bg-muted text-sm font-semibold text-foreground">
-                        {otherUser?.avatar_url ? <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" /> : (otherUser?.display_name?.charAt(0) || '?')}
+                    <div className={cn('grid size-10 shrink-0 place-items-center overflow-hidden rounded-full text-sm font-bold', otherUser?.avatar_url ? 'bg-muted' : avatarTone(otherUser?.display_name))}>
+                        {otherUser?.avatar_url ? <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" /> : initials(otherUser?.display_name)}
                     </div>
                     <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold leading-tight text-foreground">{otherUser?.display_name || 'Unbekannt'}</p>
-                        <p className="text-xs text-muted-foreground">Chat</p>
+                        <p className="truncate text-[15px] font-bold leading-tight text-foreground">{otherUser?.display_name || 'Unbekannt'}</p>
+                        <p className="text-[13px] text-muted-foreground">Chat</p>
                     </div>
                 </div>
 
@@ -290,7 +291,7 @@ export default function Chat() {
                     variant="ghost"
                     size="icon"
                     onClick={() => setAppointmentModalOpen(true)}
-                    className="size-11 shrink-0 rounded-lg"
+                    className="size-11 shrink-0 rounded-full"
                     title="Termin für Nachhilfestunde vereinbaren"
                     aria-label="Termin vereinbaren"
                 >
@@ -302,7 +303,7 @@ export default function Chat() {
                     onClick={() => setReportOpen(true)}
                     title="Nutzer melden"
                     aria-label="Nutzer melden"
-                    className="size-11 shrink-0 rounded-lg text-destructive hover:bg-destructive/10"
+                    className="size-11 shrink-0 rounded-full text-destructive hover:bg-destructive/10"
                 >
                     <Flag size={19} aria-hidden />
                 </Button>
@@ -310,7 +311,7 @@ export default function Chat() {
                 <DropdownMenu>
                     <DropdownMenuTrigger
                         aria-label="Weitere Optionen"
-                        className="grid size-11 shrink-0 place-items-center rounded-lg text-foreground transition-colors hover:bg-muted"
+                        className="grid size-11 shrink-0 place-items-center rounded-full text-foreground transition-colors hover:bg-muted"
                     >
                         <MoreVertical size={20} aria-hidden />
                     </DropdownMenuTrigger>
@@ -333,9 +334,9 @@ export default function Chat() {
             </header>
 
             {/* Messages Area */}
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-background px-3 py-4 sm:px-4">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-muted/40 px-3 py-4 sm:px-4">
                 {messages.length === 0 ? (
-                    <div className="mx-auto max-w-sm rounded-2xl border border-border bg-card p-4 text-center text-xs leading-relaxed text-muted-foreground">
+                    <div className="mx-auto max-w-sm rounded-card border border-border bg-card p-4 text-center text-[13px] leading-relaxed text-muted-foreground">
                         Hier beginnt euer Chat. Deine Nachrichten werden über eine verschlüsselte Verbindung (HTTPS) übertragen und auf Servern in Deutschland gespeichert. Bitte achte auf unsere <a href="#/nutzungsbedingungen" className="font-semibold text-foreground underline underline-offset-4">Nutzungsbedingungen</a>.
                     </div>
                 ) : (
@@ -352,18 +353,18 @@ export default function Chat() {
                             <div key={msg.id} className="flex flex-col">
                                 {showDate && (
                                     <div className="my-3 text-center">
-                                        <span className="rounded-md border border-border bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground">
+                                        <span className="rounded-full border border-border/60 bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground">
                                             {new Date(msg.created_at).toLocaleDateString([], { weekday: 'long', day: '2-digit', month: 'long' })}
                                         </span>
                                     </div>
                                 )}
-                                <div className={cn("relative flex max-w-[85%]", isMe ? "self-end" : "self-start")}>
+                                <div className={cn("group/message relative flex max-w-[85%]", isMe ? "self-end" : "self-start")}>
                                     <div
                                         className={cn(
-                                            "relative min-w-20 break-words rounded-xl px-3 py-2 text-sm leading-relaxed",
+                                            "relative min-w-20 break-words rounded-chat px-3.5 py-2.5 text-sm leading-relaxed",
                                             isMe
-                                                ? "rounded-br-md bg-foreground text-background"
-                                                : "rounded-bl-md bg-muted text-foreground",
+                                                ? "rounded-br-md bg-primary text-primary-foreground"
+                                                : "rounded-bl-md border border-border bg-card text-foreground",
                                             msg.is_deleted && "italic opacity-70"
                                         )}
                                     >
@@ -380,10 +381,10 @@ export default function Chat() {
                                                     autoFocus
                                                 />
                                                 <div className="flex justify-end gap-1.5">
-                                                    <Button variant="outline" size="sm" type="button" onClick={cancelEditing} className="h-11 rounded-lg bg-card px-4 text-xs text-foreground">
+                                                    <Button variant="outline" size="sm" type="button" onClick={cancelEditing} className="h-10 rounded-full bg-card px-4 text-xs text-foreground">
                                                         Abbrechen
                                                     </Button>
-                                                    <Button size="sm" type="button" onClick={() => saveEdit(msg.id)} className="h-11 rounded-lg px-4 text-xs font-semibold">
+                                                    <Button size="sm" type="button" onClick={() => saveEdit(msg.id)} className="h-10 rounded-full px-4 text-xs font-semibold">
                                                         Speichern
                                                     </Button>
                                                 </div>
@@ -418,20 +419,20 @@ export default function Chat() {
                                         )}
 
                                         {!isEditing && (
-                                            <div className={cn("mt-1 flex items-center justify-end gap-1", isMe ? "text-background/75" : "text-muted-foreground")}>
+                                            <div className={cn("mt-1 flex items-center justify-end gap-1", isMe ? "text-primary-foreground/65" : "text-muted-foreground")}>
                                                 {msg.edited_at && !msg.is_deleted && (
-                                                    <span className="text-xs italic leading-none">(bearbeitet)</span>
+                                                    <span className="text-[11px] italic leading-none">(bearbeitet)</span>
                                                 )}
-                                                <span className="ml-1 text-xs leading-none tabular-nums">{time}</span>
+                                                <span className="ml-1 text-[11px] leading-none tabular-nums">{time}</span>
                                                 {isMe && !msg.is_deleted && (
                                                     <span className="ml-0.5">
-                                                        {msg.read_at ? <CheckCheck size={14} aria-hidden /> : <Check size={14} aria-hidden />}
+                                                        {msg.read_at ? <CheckCheck size={13} aria-hidden /> : <Check size={13} aria-hidden />}
                                                     </span>
                                                 )}
                                                 {isMe && !msg.is_deleted && (
                                                     <DropdownMenu>
-                                                        <DropdownMenuTrigger aria-label="Nachricht bearbeiten oder ausblenden" className="-my-2 -mr-2 ml-0.5 grid size-11 place-items-center rounded-lg transition-colors hover:bg-black/10 dark:hover:bg-white/10">
-                                                            <MoreVertical size={14} aria-hidden />
+                                                        <DropdownMenuTrigger aria-label="Nachricht bearbeiten oder ausblenden" className="-my-2 -mr-2 ml-0.5 grid size-8 place-items-center rounded-full opacity-100 transition-opacity hover:bg-black/10 sm:opacity-0 sm:group-hover/message:opacity-100 sm:focus-visible:opacity-100 dark:hover:bg-white/10">
+                                                            <MoreVertical size={13} aria-hidden />
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end" sideOffset={6} className="min-w-44 p-1">
                                                             <DropdownMenuItem onClick={() => startEditing(msg)} className="min-h-11 gap-2.5 px-3">
@@ -455,20 +456,20 @@ export default function Chat() {
             </div>
 
             {/* Input Area */}
-            <div className="shrink-0 border-t border-border bg-card p-2 px-3 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
+            <div className="shrink-0 border-t border-border/60 bg-card p-2 px-3 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
                 <form onSubmit={sendMessage} className="flex items-end gap-2">
                     <Input
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Nachricht schreiben"
-                        className="h-11 flex-1 rounded-xl text-base"
+                        className="h-12 flex-1 rounded-full bg-muted/60 text-base"
                         autoComplete="off"
                         aria-label="Nachricht schreiben"
                     />
                     <Button
                         type="submit"
                         size="icon"
-                        className="size-11 shrink-0 rounded-lg"
+                        className="size-11 shrink-0 rounded-full"
                         disabled={!newMessage.trim()}
                         aria-label="Nachricht senden"
                     >

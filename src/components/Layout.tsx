@@ -1,5 +1,5 @@
 import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Home, PlusCircle, User, LogOut, Settings, MessageSquare, Inbox, Zap, Heart, Sparkles, Award, ShieldCheck } from 'lucide-react';
+import { Home, PlusCircle, User, LogOut, Settings, MessageSquare, Inbox, Zap, Heart, Sparkles, Award, ShieldCheck, MoreVertical } from 'lucide-react';
 import AccessGuard from './AccessGuard';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/button';
@@ -8,6 +8,16 @@ import NotificationCenter from './NotificationCenter';
 import InstallPrompt from './InstallPrompt';
 import { Logo } from './ui/Logo';
 import { triggerHaptic } from '../lib/haptics';
+import { avatarTone, initials } from '../lib/avatar';
+import { cn } from '../lib/utils';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 import {
     Sidebar,
     SidebarContent,
@@ -28,7 +38,7 @@ import {
    scrollt nicht; nur der Inhaltsbereich scrollt, damit Chat/Composer eine
    stabile Höhe behalten. Safe-Areas werden oben und unten berücksichtigt. */
 export default function Layout() {
-    const { signOut, isAdmin, isCoachAdmin } = useAuth();
+    const { signOut, isAdmin, isCoachAdmin, profile } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [unreadCount, setUnreadCount] = useState(0);
@@ -71,7 +81,7 @@ export default function Layout() {
         <SidebarProvider
             key={isSvPanel ? 'sv-panel' : 'app'}
             defaultOpen={!isSvPanel}
-            className="h-dvh min-h-0 overflow-hidden bg-background font-sans text-foreground"
+            className="h-dvh min-h-0 overflow-hidden bg-muted/40 font-sans text-foreground"
         >
             <Link
                 to={pathname || '/'}
@@ -88,20 +98,20 @@ export default function Layout() {
             <Sidebar
                 variant="inset"
                 collapsible={isSvPanel ? 'icon' : 'offcanvas'}
-                className="[&_[data-sidebar=sidebar]]:bg-card"
+                className="[&_[data-sidebar=sidebar]]:border [&_[data-sidebar=sidebar]]:border-border/70 [&_[data-sidebar=sidebar]]:bg-card [&_[data-sidebar=sidebar]]:shadow-card"
             >
                 <SidebarHeader className="gap-0 p-3">
                     <NavLink
                         to="/welcome"
                         onClick={handleNavClick}
-                        className="flex min-h-11 min-w-0 items-center gap-3 rounded-lg p-1"
+                        className="flex min-h-11 min-w-0 items-center gap-3 rounded-full p-1"
                     >
-                        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-foreground">
-                            <Logo size={22} />
+                        <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+                            <Logo size={23} />
                         </span>
                         <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-                            <p className="truncate text-sm font-semibold leading-tight tracking-tight text-foreground">Nachhilfebörse</p>
-                            <p className="mt-0.5 text-xs font-medium text-muted-foreground">FWG Köln</p>
+                            <p className="truncate text-[15px] font-bold leading-tight tracking-tight text-foreground">Nachhilfebörse</p>
+                            <p className="mt-0.5 text-[13px] font-medium text-muted-foreground">FWG Köln</p>
                         </div>
                     </NavLink>
                 </SidebarHeader>
@@ -254,32 +264,74 @@ export default function Layout() {
                     )}
                 </SidebarContent>
 
-                <SidebarFooter className="gap-1 border-t border-border p-2">
-                    <div className="flex items-center gap-1 group-data-[collapsible=icon]:hidden">
-                        <NotificationCenter unreadCount={unreadCount} onCountChange={setUnreadCount} />
-                    </div>
-                    <SidebarMenu>
-                        <SidebarMenuItem>
-                            <SidebarMenuButton
-                                tooltip="Abmelden"
-                                onClick={handleSignOut}
-                                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                <SidebarFooter className="border-t border-border/70 p-3">
+                    <div className="flex items-center gap-1.5 rounded-card bg-muted/70 p-2 group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-0">
+                        <NavLink
+                            to="/profile"
+                            onClick={handleNavClick}
+                            className="flex min-w-0 flex-1 items-center gap-2.5 rounded-full p-1 transition-colors hover:bg-card/70"
+                            title={profile?.display_name || 'Profil'}
+                        >
+                            {profile?.avatar_url ? (
+                                <img
+                                    src={profile.avatar_url}
+                                    alt=""
+                                    className="size-9 shrink-0 rounded-full object-cover"
+                                />
+                            ) : (
+                                <span className={cn('grid size-9 shrink-0 place-items-center rounded-full text-xs font-bold', avatarTone(profile?.display_name))}>
+                                    {initials(profile?.display_name)}
+                                </span>
+                            )}
+                            <div className="min-w-0 group-data-[collapsible=icon]:hidden">
+                                <p className="truncate text-[13px] font-semibold leading-tight text-foreground">{profile?.display_name || 'Profil'}</p>
+                                <p className="truncate text-xs text-muted-foreground">{profile?.grade_level ? profile.grade_level : 'Profil'}</p>
+                            </div>
+                        </NavLink>
+                        <div className="group-data-[collapsible=icon]:hidden">
+                            <NotificationCenter unreadCount={unreadCount} onCountChange={setUnreadCount} />
+                        </div>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger
+                                render={
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="size-10 shrink-0 rounded-full group-data-[collapsible=icon]:hidden"
+                                        aria-label="Konto-Menü"
+                                    />
+                                }
                             >
-                                <LogOut aria-hidden />
-                                <span>Abmelden</span>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    </SidebarMenu>
+                                <MoreVertical aria-hidden />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" side="top" sideOffset={8} className="w-56">
+                                <DropdownMenuLabel>{profile?.display_name || 'Konto'}</DropdownMenuLabel>
+                                <DropdownMenuItem render={<NavLink to="/profile" onClick={handleNavClick} />}>
+                                    <User aria-hidden />
+                                    Profil
+                                </DropdownMenuItem>
+                                <DropdownMenuItem render={<NavLink to="/settings" onClick={handleNavClick} />}>
+                                    <Settings aria-hidden />
+                                    Einstellungen
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem variant="destructive" onClick={handleSignOut}>
+                                    <LogOut aria-hidden />
+                                    Abmelden
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </SidebarFooter>
             </Sidebar>
 
-            <SidebarInset className="h-dvh min-h-0 overflow-hidden bg-background md:border md:border-border">
-                <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border bg-card px-4 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] md:hidden">
-                    <Link to="/welcome" onClick={handleNavClick} className="flex min-h-11 min-w-0 items-center gap-2.5 rounded-lg">
-                        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-foreground">
+            <SidebarInset className="h-dvh min-h-0 overflow-hidden bg-transparent">
+                <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border/70 bg-background/80 px-4 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-xl md:hidden">
+                    <Link to="/welcome" onClick={handleNavClick} className="flex min-h-11 min-w-0 items-center gap-2.5 rounded-full">
+                        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
                             <Logo size={20} />
                         </span>
-                        <span className="truncate text-sm font-semibold tracking-tight text-foreground">Nachhilfebörse <span className="text-primary">FWG</span></span>
+                        <span className="truncate text-sm font-bold tracking-tight text-foreground">Nachhilfebörse <span className="text-muted-foreground">FWG</span></span>
                     </Link>
                     <NotificationCenter
                         unreadCount={unreadCount}
@@ -302,7 +354,7 @@ export default function Layout() {
 
             <nav
                 aria-label="Hauptnavigation"
-                className="fixed right-4 bottom-[max(0.75rem,calc(0.75rem+env(safe-area-inset-bottom,0px)))] left-4 z-50 grid h-16 grid-cols-5 items-center rounded-xl border border-border bg-card px-1.5 shadow-overlay md:hidden"
+                className="fixed right-4 bottom-[max(0.75rem,calc(0.75rem+env(safe-area-inset-bottom,0px)))] left-4 z-50 grid h-16 grid-cols-5 items-center rounded-full border border-border/70 bg-card/95 px-2 shadow-overlay backdrop-blur-xl md:hidden"
             >
                 {mobileNavItems.map((item) => {
                     const Icon = item.icon;
@@ -315,12 +367,12 @@ export default function Layout() {
                                     handleNavClick();
                                     navigate('/create-ad');
                                 }}
-                                className="relative flex h-full w-full min-w-0 flex-col items-center justify-center rounded-lg"
+                                className="relative flex h-full w-full min-w-0 flex-col items-center justify-center rounded-full"
                                 title={item.label}
                                 aria-label="Neue Anzeige erstellen"
                             >
-                                <span className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground">
-                                    <PlusCircle size={20} strokeWidth={2} aria-hidden />
+                                <span className="grid size-11 place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_6px_16px_-6px_rgba(234,179,8,0.8)]">
+                                    <PlusCircle size={22} strokeWidth={2.25} aria-hidden />
                                 </span>
                                 <span className="max-w-full text-[11px] font-medium">Erstellen</span>
                             </Button>
@@ -334,10 +386,10 @@ export default function Layout() {
                             end={item.end || (item.activateOnChat ? false : undefined)}
                             onClick={handleNavClick}
                             className={({ isActive }) =>
-                                `relative flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-lg text-[11px] font-medium transition-colors ${
+                                `relative flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-full text-[11px] font-medium transition-colors ${
                                     isActive || (item.activateOnChat && (isSocialRoute || isChatRoute))
-                                        ? 'text-foreground'
-                                        : 'text-muted-foreground hover:text-foreground'
+                                        ? 'bg-muted/80 text-foreground'
+                                        : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                                 }`
                             }
                             title={item.label}
@@ -347,7 +399,7 @@ export default function Layout() {
                                     <Icon size={20} strokeWidth={isActive || (item.activateOnChat && (isSocialRoute || isChatRoute)) ? 2.25 : 2} aria-hidden />
                                     <span className="max-w-full">{item.label}</span>
                                     {(isActive || (item.activateOnChat && (isSocialRoute || isChatRoute))) && (
-                                        <span className="absolute bottom-1 h-1 w-1 rounded-full bg-foreground" aria-hidden />
+                                        <span className="absolute bottom-1.5 h-1 w-1 rounded-full bg-primary" aria-hidden />
                                     )}
                                 </>
                             )}

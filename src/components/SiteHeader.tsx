@@ -127,14 +127,14 @@ export default function SiteHeader() {
     };
 
     const navLinkClass = (active: boolean) =>
-        `inline-flex min-h-10 items-center whitespace-nowrap rounded-md px-3 text-sm font-medium transition-colors ${active
-            ? 'bg-muted text-foreground'
-            : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'}`;
+        `inline-flex min-h-11 items-center whitespace-nowrap rounded-full px-4 text-sm font-semibold transition-colors ${active
+            ? 'bg-primary text-primary-foreground shadow-sm'
+            : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`;
 
     const menuTrigger = (
         <button
             type="button"
-            className="inline-flex size-11 items-center justify-center rounded-lg border border-border text-foreground transition-colors hover:bg-muted lg:hidden"
+            className="inline-flex size-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-card lg:hidden"
             aria-label={menuOpen ? 'Menü schließen' : 'Menü öffnen'}
             aria-expanded={menuOpen}
             aria-controls="mobile-nav"
@@ -149,13 +149,13 @@ export default function SiteHeader() {
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
                 <header
                     data-site-header
-                    className="sticky top-0 z-50 border-b border-border bg-background pt-[env(safe-area-inset-top,0px)]"
+                    className="sticky top-0 z-50 bg-background/85 pt-[env(safe-area-inset-top,0px)] shadow-[0_1px_0_rgba(24,24,27,0.04)] backdrop-blur-xl supports-[backdrop-filter]:bg-background/70"
                 >
-                    <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 xl:gap-6">
-                        <Link to="/welcome" className="flex min-h-11 min-w-0 items-center gap-2.5 rounded-md" aria-label="Nachhilfebörse Startseite">
-                            <Logo size={26} className="shrink-0 text-primary" />
-                            <span className="truncate text-base font-semibold tracking-tight text-foreground sm:text-lg">
-                                Nachhilfebörse <span className="text-primary">FWG</span>
+                    <div className="mx-auto flex h-16 max-w-site items-center gap-3 px-4 sm:px-6 xl:gap-6">
+                        <Link to="/welcome" className="flex min-h-11 min-w-0 items-center gap-2.5 rounded-full px-1" aria-label="Nachhilfebörse Startseite">
+                            <Logo size={27} className="shrink-0 text-primary" />
+                            <span className="truncate text-base font-bold tracking-tight text-foreground sm:text-lg">
+                                Nachhilfebörse <span className="text-foreground">FWG</span>
                             </span>
                         </Link>
                         <nav className="hidden min-w-0 flex-1 items-center justify-end gap-1 text-sm text-foreground lg:flex" aria-label="Bereiche">
@@ -208,20 +208,20 @@ export default function SiteHeader() {
                     </SheetDescription>
 
                     <div className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-border px-4 pt-[env(safe-area-inset-top,0px)]">
-                        <span className="min-w-0 truncate text-lg font-semibold tracking-tight text-foreground">
-                            Nachhilfebörse <span className="text-primary">FWG</span>
+                        <span className="min-w-0 truncate text-lg font-bold tracking-tight text-foreground">
+                            Nachhilfebörse <span className="text-foreground">FWG</span>
                         </span>
                         <SheetClose
                             type="button"
                             aria-label="Menü schließen"
-                            className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-border text-foreground transition-colors hover:bg-muted"
+                            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted"
                         >
                             <X size={20} aria-hidden />
                         </SheetClose>
                     </div>
 
                     <nav id="mobile-nav" aria-label="Bereiche mobil" className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-2">
-                        <ul className="divide-y divide-border border-y border-border">
+                        <ul className="space-y-1">
                             {MOBILE_NAV.map((item) => {
                                 const active = isActive(item);
                                 return (
@@ -230,7 +230,7 @@ export default function SiteHeader() {
                                             to={item.to}
                                             onClick={item.section ? goSection(item.section) : closeMenu}
                                             aria-current={active ? (item.section ? 'location' : 'page') : undefined}
-                                            className={`flex min-h-14 items-center gap-4 px-2 py-3 text-base transition-colors ${active ? 'bg-muted font-medium text-foreground' : 'text-foreground hover:bg-muted/60'}`}
+                                            className={`flex min-h-12 items-center gap-4 rounded-full px-4 py-3 text-base font-semibold transition-colors ${active ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-muted'}`}
                                         >
                                             {item.label}
                                         </Link>

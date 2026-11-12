@@ -60,6 +60,34 @@ export const SUBJECT_CATEGORIES = [
     }
 ];
 
+const SUBJECT_TONES: Record<Subject, string> = {
+    deutsch: 'bg-violet-100 text-violet-700 dark:bg-violet-950/60 dark:text-violet-200',
+    englisch: 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-200',
+    franzoesisch: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-200',
+    kunst: 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-950/60 dark:text-fuchsia-200',
+    griechisch: 'bg-sky-100 text-sky-700 dark:bg-sky-950/60 dark:text-sky-200',
+    latein: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-200',
+    musik: 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-200',
+    literatur: 'bg-violet-100 text-violet-700 dark:bg-violet-950/60 dark:text-violet-200',
+    kultur: 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-950/60 dark:text-fuchsia-200',
+    geschichte: 'bg-orange-100 text-orange-800 dark:bg-orange-950/60 dark:text-orange-200',
+    paedagogik: 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-200',
+    erdkunde: 'bg-lime-100 text-lime-800 dark:bg-lime-950/60 dark:text-lime-200',
+    philosophie: 'bg-slate-100 text-slate-700 dark:bg-slate-900 dark:text-slate-200',
+    sowi: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-200',
+    wirtschaft_gesell: 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-200',
+    wirtschaft_politik: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-200',
+    biologie: 'bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-200',
+    chemie: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-200',
+    informatik: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-200',
+    mathematik: 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-200',
+    physik: 'bg-teal-100 text-teal-700 dark:bg-teal-950/60 dark:text-teal-200',
+    blauer_planet: 'bg-sky-100 text-sky-700 dark:bg-sky-950/60 dark:text-sky-200',
+    prakt_philosophie: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200',
+    religion: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200',
+    sport: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200',
+};
+
 interface SubjectChipProps {
     subject: Subject;
     className?: string;
@@ -69,16 +97,18 @@ interface SubjectChipProps {
 
 export function SubjectChip({ subject, className, onClick, selected }: SubjectChipProps) {
     const label = subjectLabelMap[subject] ?? subject;
+    const tone = SUBJECT_TONES[subject] ?? SUBJECT_TONES.sport;
     const baseCls = cn(
-        'inline-flex min-h-7 select-none items-center gap-1 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors',
-        onClick && 'min-h-11 cursor-pointer',
-        selected ? 'border-foreground bg-muted text-foreground' : 'border-border bg-card text-foreground hover:bg-muted',
+        'inline-flex min-h-7 select-none items-center gap-1 rounded-full border border-transparent px-3 py-1 text-xs font-semibold transition-[background-color,border-color,box-shadow,transform] duration-150',
+        onClick && 'min-h-11 cursor-pointer hover:-translate-y-0.5',
+        tone,
+        selected && 'ring-2 ring-current ring-offset-2 ring-offset-background',
         className
     );
 
     if (!onClick) {
         return (
-            <Badge variant="outline" className={cn('cursor-default rounded-md font-medium', baseCls)}>
+            <Badge variant="outline" className={cn('h-auto cursor-default border-transparent font-semibold', baseCls)}>
                 {label}
             </Badge>
         );
