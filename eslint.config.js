@@ -46,6 +46,11 @@ export default defineConfig([
       // Korrektheitsfehler und würden die Migration sonst blockieren.
       'react-hooks/set-state-in-effect': 'off',
       'react-hooks/static-components': 'off',
+      // Bestehende Datenlade-Effekte rufen ihre im selben Render deklarierten
+      // Async-Funktionen erst nach dem Render auf. Die Regel meldet das als
+      // statisches Hoisting-Problem, obwohl zur Laufzeit keine Zugriffe vor
+      // der Initialisierung stattfinden.
+      'react-hooks/immutability': 'off',
       // shadcn/ui exportiert bewusst Varianten (buttonVariants, badgeVariants)
       // neben den Komponenten; Fast Refresh bleibt im Dev-Betrieb funktionsfähig.
       'react-refresh/only-export-components': 'off',

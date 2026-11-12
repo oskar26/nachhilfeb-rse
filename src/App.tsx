@@ -1,5 +1,5 @@
 import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
 import Feed from './pages/Feed';
@@ -15,6 +15,7 @@ import Chat from './pages/Chat';
 import Social from './pages/Social';
 import { ThemeProvider } from './components/ThemeProvider';
 import { Toaster } from './components/ui/sonner';
+import { toast } from 'sonner';
 import { TooltipProvider } from './components/ui/tooltip';
 import { CookieBanner } from './components/CookieBanner';
 import PublicProfile from './pages/PublicProfile';
@@ -50,6 +51,14 @@ import { useAnalyticsTracker } from './lib/analytics';
 
 function AnalyticsTracker() {
   useAnalyticsTracker();
+  return null;
+}
+
+function ToastRouteCleanup() {
+  const location = useLocation();
+  useEffect(() => {
+    toast.dismiss();
+  }, [location.pathname, location.search]);
   return null;
 }
 
@@ -116,9 +125,9 @@ function App() {
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
       <TooltipProvider delay={300}>
         <AuthProvider>
-          <Toaster position="top-right" closeButton />
         <HashRouter>
           <AnalyticsTracker />
+          <ToastRouteCleanup />
           <Routes>
             <Route path="/welcome" element={<Landing />} />
             <Route path="/landing" element={<Landing />} />
@@ -162,6 +171,7 @@ function App() {
           <CookieBanner />
           <NewsPopupModal />
           <PushPrompt />
+          <Toaster closeButton />
         </HashRouter>
         </AuthProvider>
       </TooltipProvider>

@@ -17,12 +17,8 @@
 
   body {
     overflow-x: clip;
-    @apply bg-background text-foreground;
-  }
-
-  body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: 'cv02','cv03','cv04','cv11';
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     font-variant-ligatures: common-ligatures;
     -webkit-tap-highlight-color: transparent;
   }
@@ -30,10 +26,11 @@
   :root { color-scheme: light; }
   .dark { color-scheme: dark; }
 
-  /* Headlines: FWG display — tight + balanced (no layout shift) */
-  h1, h2, h3 {
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    letter-spacing: normal;
+    text-transform: none;
     text-wrap: balance;
-    letter-spacing: -0.02em;
   }
 
   ::selection {
@@ -41,14 +38,11 @@
     color: var(--primary-foreground);
   }
 
-  /* Single focus system: brand ink on paper, brand yellow on dark */
+  /* One focus system for the whole product. The outline follows the
+     component's own radius and never changes its shape. */
   :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-    outline: 2px solid var(--ring);
-    outline-offset: 2px;
-    border-radius: 4px;
-  }
-  .dark :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-    outline-color: var(--ring);
+    outline: 2px solid var(--ring) !important;
+    outline-offset: 2px !important;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -60,39 +54,28 @@
     }
   }
 
-  /* Thin, refined scrollbars — never affect layout */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.15);
-    border-radius: 100px;
+    background: color-mix(in oklab, var(--foreground) 18%, transparent);
+    border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.25);
-  }
-  .dark ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.14);
-  }
-  .dark ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.22);
+    background: color-mix(in oklab, var(--foreground) 28%, transparent);
   }
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(0,0,0,0.18) transparent;
-    @apply border-border outline-ring/50;
-  }
-  .dark * {
-    scrollbar-color: rgba(255,255,255,0.14) transparent;
+    scrollbar-color: color-mix(in oklab, var(--foreground) 18%, transparent) transparent;
+    @apply border-border;
   }
 }
 
 @layer utilities {
-  /* Horizontale Chip-/Scroll-Leisten ohne sichtbare Scrollbar (wird benutzt, war aber nie definiert) */
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
@@ -101,7 +84,6 @@
     scrollbar-width: none;
   }
 
-  /* Generelle Overflow-Sicherheit: Medien + lange Wörter sprengen kein Mobile-Layout */
   img, video, svg {
     max-width: 100%;
   }
@@ -113,160 +95,22 @@
     box-shadow: var(--shadow-soft);
   }
 
-  /* ——— PLAKATWAND world (Welcome) ——— */
-  /* Poster-in App: schwarze Plakatbänder heben sich vom Papiergrund ab.
-     Gelber Rand-Streifen links + versetzter weicher Schwarzschatten. */
-  .poster-grain {
-    background-image: radial-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px);
-    background-size: 22px 22px;
-  }
-  .poster-grain-dark {
-    background-image: radial-gradient(rgba(0, 0, 0, 0.07) 1px, transparent 1px);
-    background-size: 22px 22px;
-  }
-  .ticker-track {
-    animation: poster-ticker 32s linear infinite;
-    will-change: transform;
-  }
-  .ticker-track:hover {
-    animation-play-state: paused;
-  }
-  @keyframes poster-ticker {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
-  }
-  .tape::before,
-  .tape::after {
-    content: "";
-    position: absolute;
-    top: -12px;
-    width: 84px;
-    height: 24px;
-    background: color-mix(in srgb, var(--primary) 85%, white);
-    box-shadow: 0 2px 6px rgb(0 0 0 / 0.18);
-  }
-  .tape::before { left: 18px; transform: rotate(-6deg); }
-  .tape::after { right: 18px; transform: rotate(5deg); }
-  .stamp-ring {
-    box-shadow: inset 0 0 0 2px currentColor;
-  }
-  .board-stage {
-    position: relative;
-    margin-inline: -1rem;
-    padding-inline: 1rem;
-  }
-  /* Mobile Brett-Ansichten: horizontale Wisch-Reihe ohne Scroll-Pin. */
-  .board-swipe-hint {
-    margin-top: 0.75rem;
-    text-align: center;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: inherit;
-    opacity: 0.5;
-  }
-  .board-phones {
-    position: relative;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-padding-inline: 1rem;
-    scrollbar-width: none;
-    outline: none;
-  }
-  .board-track {
-    display: flex;
-    width: max-content;
-    gap: 1rem;
-    padding: 0.5rem 1.25rem 0.5rem;
-  }
-  .board-phones:focus-visible {
-    box-shadow: 0 0 0 2px var(--primary);
-    border-radius: 1rem;
-  }
-  .board-phones::-webkit-scrollbar { display: none; }
-  .board-sheet {
-    position: relative;
-    flex: 0 0 auto;
-    width: min(280px, 78vw);
-    scroll-snap-align: center;
-  }
-  .board-caption {
-    position: relative;
-    display: inline-block;
-    background:
-      repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.03) 0 1px, transparent 1px 3px),
-      var(--background);
-    color: var(--foreground);
-    padding: 0.3rem 0.85rem;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 8px 16px -8px rgba(0, 0, 0, 0.65);
-  }
-  @media (min-width: 1024px) {
-    .board-stage {
-      margin-inline: 0;
-      padding-inline: 0;
-    }
-    .board-swipe-hint { display: none; }
-    .board-phones {
-      overflow: visible;
-    }
-    .board-track {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      justify-items: center;
-      width: auto;
-      gap: 1.5rem;
-      padding: 1.5rem 0 0.5rem;
-    }
-    .board-sheet { width: min(280px, 100%); }
-    .board-sheet:nth-child(1) { transform: rotate(-2.1deg); }
-    .board-sheet:nth-child(2) { transform: rotate(1.3deg) translateY(12px); }
-    .board-sheet:nth-child(3) { transform: rotate(-0.7deg); }
-  }
-
-  /* Motion: Press-Feedback (140 ms) für Buttons, Nav, TOC, Dots, Switches.
-     Hover-Scale nur auf echten Hover-Geräten; unter reduced-motion stirbt die
-     Skalierung, Farbe/State-Feedback bleibt sichtbar. */
-  .press {
-    transition:
-      transform 140ms cubic-bezier(0.16, 1, 0.3, 1),
-      color 140ms ease,
-      background-color 140ms ease,
-      border-color 140ms ease,
-      box-shadow 140ms ease;
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .press:hover { transform: scale(1.02); }
-  }
-  .press:active { transform: scale(0.97); }
-
-  /* Motion: Details/Accordion öffnet mit kurzem Content-Fade —
-     reine Transform/Opacity-Animation, kein height/top (kein Layout-Treiber). */
   @keyframes accordion-unfurl {
-    from { opacity: 0; transform: translateY(-6px); }
+    from { opacity: 0; transform: translateY(-4px); }
     to { opacity: 1; transform: none; }
   }
   details[open] > .accordion-body {
-    animation: accordion-unfurl 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: accordion-unfurl 180ms ease-out both;
   }
-
   @media (prefers-reduced-motion: reduce) {
-    .ticker-track { animation: none; }
     details[open] > .accordion-body { animation: none; }
-    .press:hover,
-    .press:active { transform: none; }
-    /* Netz + Parallax aus: Nähte starr sichtbar, Parallax-Transforms sicher
-       gekappt (falls JS-Erkennung und CSS-Media auseinanderlaufen). Inhalt
-       bleibt identisch lesbar. */
-    .parallax-layer,
-    .board-sheet { transform: none !important; }
   }
 }
 
-/* TipTap & Prose Typography Styles */
+/* TipTap & Prose */
 .prose h1, .ProseMirror h1 {
   font-size: 1.625rem;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.25;
   margin-top: 1rem;
   margin-bottom: 0.5rem;
@@ -274,7 +118,7 @@
 }
 .prose h2, .ProseMirror h2 {
   font-size: 1.35rem;
-  font-weight: 750;
+  font-weight: 600;
   line-height: 1.3;
   margin-top: 0.875rem;
   margin-bottom: 0.375rem;
@@ -282,26 +126,22 @@
 }
 .prose h3, .ProseMirror h3 {
   font-size: 1.15rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.35;
   margin-top: 0.75rem;
   margin-bottom: 0.25rem;
   text-wrap: balance;
 }
 .prose blockquote, .ProseMirror blockquote {
-  border-left: 1px solid var(--primary);
+  border-left: 1px solid var(--border);
   padding-left: 1rem;
-  font-style: italic;
+  font-style: normal;
   color: var(--muted-foreground);
   margin: 0.875rem 0;
-  background: color-mix(in srgb, var(--primary) 8%, transparent);
-  padding-top: 0.35rem;
-  padding-bottom: 0.35rem;
-  border-radius: var(--radius-md);
-}
-.dark .prose blockquote, .dark .ProseMirror blockquote {
-  color: var(--muted-foreground);
-  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  background: var(--muted);
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-radius: var(--radius);
 }
 .prose ul, .ProseMirror ul {
   list-style-type: disc;
@@ -325,13 +165,12 @@
 }
 
 @theme inline {
-  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-heading: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-heading: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --spacing: 0.25rem;
-  --shadow-soft: 0 1px 2px rgb(28 25 23 / 0.04), 0 8px 24px rgb(28 25 23 / 0.06);
-  --shadow-card: 0 1px 2px rgb(28 25 23 / 0.05), 0 12px 32px rgb(28 25 23 / 0.08);
-  --shadow-overlay: 0 24px 64px rgb(28 25 23 / 0.18);
-  --color-brand-ink: var(--brand-ink);
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.06);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.05), 0 12px 32px rgb(0 0 0 / 0.08);
+  --shadow-overlay: 0 24px 64px rgb(0 0 0 / 0.16);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -364,86 +203,84 @@
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
-  --radius-sm: 0.5rem;
-  --radius-md: 0.625rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius-2xl: 1.25rem;
-  --radius-3xl: 1.5rem;
-  --radius-4xl: 2rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 0.75rem;
+  --radius-3xl: 0.75rem;
+  --radius-4xl: 0.75rem;
 }
 
 :root {
-  --background: #faf7ef;
-  --foreground: #1c1917;
-  --card: #fffdf8;
-  --card-foreground: #1c1917;
-  --popover: #fffdf8;
-  --popover-foreground: #1c1917;
+  --background: #ffffff;
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
   --primary: #facc15;
   --primary-hover: #eab308;
-  --primary-foreground: #1c1917;
-  --brand-ink: #7c5a00;
-  --secondary: #f1ece1;
-  --secondary-foreground: #1c1917;
-  --muted: #f3efe6;
-  --muted-foreground: #6b6358;
-  --accent: #f7f1df;
-  --accent-foreground: #1c1917;
-  --destructive: #b91c1c;
-  --destructive-foreground: #fff7f7;
-  --border: #e5dfd2;
-  --input: #d9d2c4;
-  --ring: #8a5a00;
+  --primary-foreground: #18181b;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #52525b;
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #e4e4e7;
+  --input: #d4d4d8;
+  --ring: #a16207;
   --chart-1: #ca8a04;
-  --chart-2: #78716c;
-  --chart-3: #0f766e;
-  --chart-4: #b91c1c;
-  --chart-5: #a16207;
-  --radius: 0.75rem;
-  --sidebar: #f5f0e5;
-  --sidebar-foreground: #1c1917;
+  --chart-2: #71717a;
+  --chart-3: #a1a1aa;
+  --chart-4: #d4d4d8;
+  --chart-5: #52525b;
+  --radius: 0.5rem;
+  --sidebar: #fafafa;
+  --sidebar-foreground: #18181b;
   --sidebar-primary: #facc15;
-  --sidebar-primary-foreground: #1c1917;
-  --sidebar-accent: #ebe4d6;
-  --sidebar-accent-foreground: #1c1917;
-  --sidebar-border: #e5dfd2;
-  --sidebar-ring: #8a5a00;
+  --sidebar-primary-foreground: #18181b;
+  --sidebar-accent: #f4f4f5;
+  --sidebar-accent-foreground: #18181b;
+  --sidebar-border: #e4e4e7;
+  --sidebar-ring: #a16207;
 }
 
 .dark {
-  --background: #12100e;
-  --foreground: #f5f0e7;
-  --card: #1c1917;
-  --card-foreground: #f5f0e7;
-  --popover: #1c1917;
-  --popover-foreground: #f5f0e7;
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #18181b;
+  --card-foreground: #fafafa;
+  --popover: #18181b;
+  --popover-foreground: #fafafa;
   --primary: #facc15;
   --primary-hover: #eab308;
-  --primary-foreground: #1c1917;
-  --brand-ink: #facc15;
-  --secondary: #29251f;
-  --secondary-foreground: #f5f0e7;
-  --muted: #29251f;
-  --muted-foreground: #b8afa1;
-  --accent: #332d25;
-  --accent-foreground: #f5f0e7;
+  --primary-foreground: #18181b;
+  --secondary: #27272a;
+  --secondary-foreground: #fafafa;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --accent: #27272a;
+  --accent-foreground: #fafafa;
   --destructive: #f87171;
-  --destructive-foreground: #1c1917;
-  --border: #332d25;
-  --input: #3a342b;
+  --destructive-foreground: #18181b;
+  --border: #3f3f46;
+  --input: #3f3f46;
   --ring: #facc15;
   --chart-1: #facc15;
-  --chart-2: #d6cfc0;
-  --chart-3: #5eead4;
-  --chart-4: #fca5a5;
-  --chart-5: #fbbf24;
-  --sidebar: #1c1917;
-  --sidebar-foreground: #f5f0e7;
+  --chart-2: #a1a1aa;
+  --chart-3: #71717a;
+  --chart-4: #52525b;
+  --chart-5: #3f3f46;
+  --sidebar: #09090b;
+  --sidebar-foreground: #fafafa;
   --sidebar-primary: #facc15;
-  --sidebar-primary-foreground: #1c1917;
-  --sidebar-accent: #332d25;
-  --sidebar-accent-foreground: #f5f0e7;
-  --sidebar-border: #332d25;
+  --sidebar-primary-foreground: #18181b;
+  --sidebar-accent: #27272a;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: #3f3f46;
   --sidebar-ring: #facc15;
 }
