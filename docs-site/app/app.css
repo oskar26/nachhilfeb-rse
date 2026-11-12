@@ -183,3 +183,25 @@ body {
 .prose img {
   border-radius: 20px;
 }
+
+/* Theme switch as a pill, matching the other controls. */
+div:has(> button[data-theme-toggle]) {
+  align-self: center;
+  width: max-content;
+  min-width: 5rem;
+  justify-content: center;
+  border-radius: 9999px;
+  border-color: var(--color-fd-border);
+  background: var(--color-fd-muted);
+  padding: 0.2rem;
+}
+
+button[data-theme-toggle] {
+  border: 0;
+  border-radius: 9999px;
+  padding: 0;
+}
+
+button[data-theme-toggle] svg {
+  border-radius: 9999px;
+}
