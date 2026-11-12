@@ -33,3 +33,11 @@ db_credentials.php
 
 # Externes Design-Repo (eigenes .git)
 open-design/
+
+# Lokale Arbeitsdateien, nicht ins Repo
+nachhilfeboerse-screenshots-*.zip
+screenshots-app-website/
+.impeccable/
+TEXT-AUDIT.md
+DESIGN.md
+scripts/capture-screenshots.mjs
