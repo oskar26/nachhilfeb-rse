@@ -14,6 +14,7 @@ export default defineConfig([
     'api',
     'public',
     'docs',
+    'docs-site',
     'sql',
     'sql-updates',
   ]),

@@ -1,0 +1,185 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+@theme {
+  --font-sans:
+    'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+    sans-serif;
+  --color-brand: #facc15;
+  --color-brand-ink: #171717;
+  --color-canvas: #f5f6f8;
+  --color-fd-background: #f5f6f8;
+  --color-fd-foreground: #17181c;
+  --color-fd-muted: #eceef2;
+  --color-fd-muted-foreground: #5b616e;
+  --color-fd-popover: #ffffff;
+  --color-fd-popover-foreground: #17181c;
+  --color-fd-card: #ffffff;
+  --color-fd-card-foreground: #17181c;
+  --color-fd-border: #e3e6ec;
+  --color-fd-primary: #17181c;
+  --color-fd-primary-foreground: #ffffff;
+  --color-fd-secondary: #eef0f4;
+  --color-fd-secondary-foreground: #17181c;
+  --color-fd-accent: #fdf3c4;
+  --color-fd-accent-foreground: #17181c;
+  --color-fd-ring: #e5b800;
+}
+
+.dark {
+  --color-fd-background: #101216;
+  --color-fd-foreground: #eceef2;
+  --color-fd-muted: #1a1d23;
+  --color-fd-muted-foreground: #a2a8b4;
+  --color-fd-popover: #171a20;
+  --color-fd-popover-foreground: #eceef2;
+  --color-fd-card: #171a20;
+  --color-fd-card-foreground: #eceef2;
+  --color-fd-border: #2a2f38;
+  --color-fd-primary: #facc15;
+  --color-fd-primary-foreground: #171717;
+  --color-fd-secondary: #1e222a;
+  --color-fd-secondary-foreground: #eceef2;
+  --color-fd-accent: #2a2716;
+  --color-fd-accent-foreground: #f7e58a;
+  --color-fd-ring: #facc15;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0px !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}
+
+body {
+  font-family: var(--font-sans);
+  letter-spacing: -0.011em;
+}
+
+/* The platform link sits at the top right of the navigation row. */
+.platform-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-inline-start: auto;
+  border-radius: 9999px;
+  background: #facc15;
+  color: #171717;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0.5rem 0.85rem;
+  white-space: nowrap;
+  transition:
+    transform 150ms ease,
+    background-color 150ms ease;
+}
+
+.platform-cta:hover {
+  background: #f5c000;
+  transform: translateY(-1px);
+}
+
+.platform-cta:focus-visible {
+  outline: 3px solid #171717;
+  outline-offset: 2px;
+}
+
+.dark .platform-cta:focus-visible {
+  outline-color: #facc15;
+}
+
+/* Readable editorial content on a soft, rounded card. */
+#nd-page {
+  margin-block: 1rem 2rem;
+  border: 1px solid var(--color-fd-border);
+  border-radius: 28px;
+  background: var(--color-fd-card);
+  box-shadow:
+    0 1px 2px rgb(23 24 28 / 0.04),
+    0 18px 40px -24px rgb(23 24 28 / 0.18);
+}
+
+@media (min-width: 768px) {
+  #nd-page {
+    margin-block: 1.75rem 2.5rem;
+    padding-inline: 2.25rem;
+  }
+}
+
+.dark #nd-page {
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.3),
+    0 18px 40px -24px rgb(0 0 0 / 0.7);
+}
+
+/* Sidebar navigation as rounded pills. */
+#nd-sidebar a[data-active='true'] {
+  border-radius: 9999px;
+  background: #facc15;
+  color: #171717;
+  font-weight: 600;
+  padding-inline: 0.75rem;
+}
+
+#nd-sidebar a[data-active='true']:hover {
+  background: #f5c000;
+  color: #171717;
+}
+
+.dark #nd-sidebar a[data-active='true'] {
+  background: #facc15;
+  color: #171717;
+}
+
+/* Search trigger and sidebar surfaces. */
+#nd-sidebar {
+  background: transparent;
+}
+
+#nd-sidebar [data-search-trigger],
+#nd-sidebar button[data-search-full] {
+  border-radius: 9999px;
+}
+
+#nd-toc a {
+  border-radius: 9999px;
+  padding-inline: 0.6rem;
+}
+
+#nd-toc a:hover,
+#nd-toc a[data-active='true'] {
+  background: var(--color-fd-accent);
+  color: var(--color-fd-accent-foreground);
+}
+
+.prose {
+  --tw-prose-links: #8a6a00;
+  --tw-prose-headings: #17181c;
+}
+
+.dark .prose {
+  --tw-prose-links: #facc15;
+  --tw-prose-headings: #f4f5f7;
+}
+
+.prose a {
+  text-underline-offset: 3px;
+}
+
+.prose :where(h2, h3) {
+  letter-spacing: -0.02em;
+}
+
+.prose table {
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.prose img {
+  border-radius: 20px;
+}
