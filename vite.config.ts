@@ -39,6 +39,9 @@ export default defineConfig({
       },
       workbox: {
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        // Die Dokumentation liegt als eigener statischer Ordner unter /docs.
+        // Der App-Fallback darf diese Pfade nicht auf die SPA umleiten.
+        navigateFallbackDenylist: [/^\/docs(?:\/|$)/],
       },
       devOptions: { enabled: true }
     })
