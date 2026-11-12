@@ -415,7 +415,7 @@ export default function Login() {
                     className="relative z-10 my-auto w-full max-w-md"
                 >
                     <div className="mb-6 flex flex-col items-center text-center lg:hidden">
-                        <Logo className="mb-3 h-16 w-16 shrink-0 text-foreground" />
+                        <Logo className="mb-3 h-16 w-16 shrink-0 text-primary" />
                         <h1 className="text-3xl font-semibold tracking-tight text-foreground">Nachhilfebörse</h1>
                         <p className="mt-1 text-sm font-medium text-muted-foreground">Friedrich-Wilhelm-Gymnasium Köln</p>
                         <ul className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-xs font-semibold text-muted-foreground" aria-label="Vertrauen auf einen Blick">

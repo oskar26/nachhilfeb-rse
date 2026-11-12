@@ -10,7 +10,7 @@ import type { LucideIcon } from 'lucide-react';
 const easeOut = [0.16, 1, 0.3, 1] as const;
 
 export type VerifyTone = 'du' | 'sie';
-export type VerifyVariant = 'spotlight' | 'chips' | 'rows' | 'rows-dark';
+export type VerifyVariant = 'spotlight' | 'chips' | 'rows' | 'rows-dark' | 'timeline';
 
 interface VerifyStep {
     icon: LucideIcon;
@@ -64,6 +64,30 @@ export default function VerifySteps({ tone = 'du', variant = 'rows' }: VerifySte
                     ))}
                 </ol>
             </>
+        );
+    }
+
+    if (variant === 'timeline') {
+        const circleTones = [
+            'bg-pastel-blue text-pastel-blue-foreground',
+            'bg-pastel-yellow text-pastel-yellow-foreground',
+            'bg-pastel-mint text-pastel-mint-foreground',
+        ];
+        return (
+            <ol className="grid gap-8 sm:grid-cols-3 sm:gap-6">
+                {steps.map((s, i) => (
+                    <motion.li key={s.title} {...stepAnim(i)} className="relative pl-16 sm:pl-0">
+                        {i < steps.length - 1 && (
+                            <span aria-hidden className="absolute left-[23px] top-12 h-[calc(100%+2rem)] w-0.5 rounded-full bg-pastel-mint-foreground/30 sm:left-14 sm:top-6 sm:h-0.5 sm:w-[calc(100%-2rem)]" />
+                        )}
+                        <span className={`relative z-10 grid size-12 place-items-center rounded-full ${circleTones[i]}`} aria-hidden>
+                            <s.icon size={21} strokeWidth={2} />
+                        </span>
+                        <p className="mt-4 text-base font-bold text-foreground">{s.title}</p>
+                        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{s.text}</p>
+                    </motion.li>
+                ))}
+            </ol>
         );
     }
 

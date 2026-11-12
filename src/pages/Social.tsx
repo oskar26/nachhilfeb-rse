@@ -186,12 +186,12 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
     const isEmpty = !stream.loading && tiers.length === 0;
 
     return (
-        <div className="mx-auto w-full min-w-0 max-w-4xl space-y-4 overflow-x-clip p-4 pb-24 sm:p-6">
+        <div className="mx-auto w-full min-w-0 max-w-app space-y-6 overflow-x-clip p-4 pb-24 sm:p-6">
             <header className="min-w-0">
-                <h1 className="text-2xl font-semibold leading-tight tracking-tight text-foreground">
+                <h1 className="text-[28px] font-extrabold leading-tight tracking-[-0.03em] text-foreground">
                     {initialTab === 'requests' ? 'Anfragen' : 'Social'}
                 </h1>
-                <p className="mt-3 max-w-[65ch] text-sm text-muted-foreground">
+                <p className="mt-2 max-w-[65ch] text-[15px] leading-relaxed text-muted-foreground">
                     Anfragen, Vorschläge und gemerkte Anzeigen auf einer Seite. Das Wichtigste steht oben.
                 </p>
             </header>
@@ -213,7 +213,7 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                         triggerHaptic('light');
                         stream.unhideAllChats();
                     }}
-                    className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-border bg-card px-4 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-card px-4 text-xs font-semibold text-muted-foreground shadow-soft transition-colors hover:bg-muted hover:text-foreground"
                 >
                     <EyeOff size={14} aria-hidden /> Verborgene Chats einblenden
                     <span className="rounded-md bg-muted px-2 py-0.5 font-sans text-xs font-semibold tabular-nums text-muted-foreground">{stream.hiddenIds.length}</span>
@@ -228,7 +228,7 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                             triggerHaptic('success');
                             stream.resetDismissed();
                         }}
-                        className="flex min-h-11 cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-card px-4 text-xs font-semibold tabular-nums text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        className="flex min-h-12 cursor-pointer items-center gap-1.5 rounded-full bg-card px-4 text-xs font-semibold tabular-nums text-muted-foreground shadow-soft transition-colors hover:bg-muted hover:text-foreground"
                         title="Ausgeblendete Vorschläge wiederherstellen"
                     >
                         <RotateCcw size={13} aria-hidden />
@@ -305,18 +305,17 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
 
             {/* Der Strom: Dringlichkeits-Tier mit sichtbaren Trennern, jede Karte mit Primäraktion */}
             {!stream.loading && !isEmpty && !stream.error && (
-                <div id="social-stream" key={filter} className="min-w-0 space-y-4">
+                <div id="social-stream" key={filter} className="min-w-0 space-y-6">
                     {tiers.map((tier, tierIndex) => (
-                        <section key={tier.key} aria-label={tier.label} className="min-w-0 space-y-3">
-                            <div className="flex items-center gap-3 px-1">
-                                <h2 className="text-xs font-semibold text-muted-foreground">
+                        <section key={tier.key} aria-label={tier.label} className="min-w-0 space-y-4">
+                            <div className="flex items-center gap-2 px-1">
+                                <h2 className="inline-flex items-center gap-2 rounded-full bg-pastel-gray px-3.5 py-1.5 text-[13px] font-bold text-pastel-gray-foreground">
                                     {tier.label}
+                                    <span className="rounded-full bg-card px-2 py-0.5 text-xs tabular-nums">
+                                        {tier.items.length}
+                                        <span className="sr-only"> Einträge</span>
+                                    </span>
                                 </h2>
-                                <span className="h-px flex-1 bg-border" aria-hidden />
-                                <span className="font-sans text-xs tabular-nums text-muted-foreground">
-                                    {tier.items.length}
-                                    <span className="sr-only"> Einträge</span>
-                                </span>
                             </div>
                             {tier.items.map((item, index) => (
                                 <StreamReveal key={item.key} index={tierIndex + index}>

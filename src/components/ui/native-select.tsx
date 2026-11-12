@@ -30,7 +30,7 @@ function NativeSelect({
         data-slot="native-select"
         data-size={size}
         className={cn(
-          "h-11 w-full min-w-0 appearance-none rounded-field border border-input bg-card py-2 pl-4 text-sm transition-colors outline-none select-none placeholder:text-muted-foreground hover:border-muted-foreground/40 disabled:pointer-events-none disabled:cursor-not-allowed aria-invalid:border-destructive data-[size=sm]:h-10 data-[size=sm]:rounded-field data-[size=sm]:py-1 data-[size=sm]:text-sm",
+          "h-12 w-full min-w-0 appearance-none rounded-field border border-input bg-card py-2 pl-4 text-sm transition-colors outline-none select-none placeholder:text-muted-foreground hover:border-muted-foreground/40 disabled:pointer-events-none disabled:cursor-not-allowed aria-invalid:border-destructive data-[size=sm]:h-10 data-[size=sm]:rounded-field data-[size=sm]:py-1 data-[size=sm]:text-sm",
           className,
           size === "sm" ? "pr-8" : "pr-9"
         )}

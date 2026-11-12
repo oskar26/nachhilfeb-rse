@@ -146,7 +146,7 @@ export default function BannedScreen({ banReason, banType, bannedUntil }: Banned
                 </div>
 
                 <div className="flex items-center justify-center gap-2 border-t border-border pt-4">
-                    <Logo className="size-5 text-muted-foreground" />
+                    <Logo className="size-5 text-primary" />
                     <p className="text-xs font-medium text-muted-foreground">
                         Nachhilfebörse FWG Köln · SV Administration
                     </p>

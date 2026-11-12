@@ -380,13 +380,13 @@ export default function Feed() {
     const sortedAds = sortiereAnzeigen(filteredAds, { sortKey, filterByTime, myAvailability });
 
     return (
-        <div className="w-full min-w-0 max-w-3xl mx-auto p-4 sm:p-6 space-y-4 sm:space-y-5 pb-24 overflow-x-clip">
+        <div className="mx-auto w-full min-w-0 max-w-app space-y-6 overflow-x-clip p-4 pb-24 sm:p-6">
             {/* Eingeklappte News-Sektion auf der Startseite */}
             <CollapsedNewsWidget />
-            <div className="relative flex flex-col gap-4 mb-6 min-w-0">
+            <div className="relative mb-6 flex min-w-0 flex-col gap-4">
                 <div className="flex flex-wrap items-center justify-between gap-2.5">
                     <div className="min-w-0">
-                        <h1 className="min-w-0 text-xl font-semibold leading-tight tracking-tight sm:text-2xl">Aktuelle Anzeigen</h1>
+                        <h1 className="min-w-0 text-[28px] font-extrabold leading-tight tracking-[-0.03em]">Aktuelle Anzeigen</h1>
                     </div>
                     <div className="no-scrollbar -mx-4 flex w-[calc(100%+2rem)] items-center gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:w-auto sm:flex-wrap sm:px-0">
                         {user && (
@@ -514,7 +514,7 @@ export default function Feed() {
                     <SheetContent
                         side="bottom"
                         showCloseButton={false}
-                        className="flex max-h-[88dvh] flex-col gap-0 overflow-hidden rounded-t-card border-t border-border bg-card p-0 shadow-overlay md:inset-x-auto md:right-4 md:bottom-4 md:left-auto md:top-auto md:max-h-[75dvh] md:w-[420px] md:rounded-card md:border"
+                        className="flex max-h-[88dvh] flex-col gap-0 overflow-hidden rounded-t-dialog border-t border-border bg-card p-0 shadow-overlay md:inset-x-auto md:right-4 md:bottom-4 md:left-auto md:top-auto md:max-h-[75dvh] md:w-[420px] md:rounded-dialog md:border"
                     >
                         <SheetTitle className="sr-only">Filter</SheetTitle>
                         <SheetDescription className="sr-only">Anzeigen nach Typ, Preis, Klassenstufe und Fach filtern.</SheetDescription>
@@ -812,8 +812,8 @@ export default function Feed() {
                         ))}
                     </div>
                 ) : fetchError ? (
-                    <div className="mt-8 flex min-w-0 flex-col items-center justify-center overflow-hidden rounded-xl border border-destructive/25 bg-card p-6 text-center sm:p-12" role="alert">
-                        <div className="mb-5 grid size-16 place-items-center rounded-md bg-destructive/10 text-destructive">
+                    <div className="mt-8 flex min-w-0 flex-col items-center justify-center overflow-hidden rounded-card bg-card p-6 text-center shadow-soft sm:p-12" role="alert">
+                        <div className="mb-5 grid size-16 place-items-center rounded-full bg-pastel-rose text-pastel-rose-foreground">
                             <SearchX size={28} aria-hidden />
                         </div>
                         <h2 className="mb-2 text-xl font-semibold text-foreground">Die Anzeigen konnten nicht geladen werden</h2>
@@ -821,8 +821,8 @@ export default function Feed() {
                         <Button onClick={() => fetchAds()} className="h-11 rounded-md">Erneut versuchen</Button>
                     </div>
                 ) : sortedAds.length === 0 ? (
-                    <div className="mt-8 flex min-w-0 flex-col items-center justify-center overflow-hidden rounded-xl border border-border bg-card p-6 text-center sm:p-12">
-                        <div className="mb-5 grid size-16 place-items-center rounded-md bg-muted text-muted-foreground">
+                    <div className="mt-8 flex min-w-0 flex-col items-center justify-center overflow-hidden rounded-card bg-card p-6 text-center shadow-soft sm:p-12">
+                        <div className="mb-5 grid size-16 place-items-center rounded-full bg-pastel-blue text-pastel-blue-foreground">
                             <Search size={28} aria-hidden />
                         </div>
                         {filterType === 'search' ? (
@@ -867,8 +867,8 @@ export default function Feed() {
                             tabIndex={0}
                             aria-label={`Anzeige von ${ad.profiles?.display_name || 'Unbekannt'} öffnen`}
                             className={cn(
-                                "w-full min-w-0 cursor-pointer overflow-hidden rounded-card border-border bg-card shadow-soft transition-[transform,box-shadow,border-color] duration-150 hover:-translate-y-0.5 hover:shadow-card focus-visible:outline-none",
-                                boosted && "border-primary/60 bg-primary/5"
+                                "w-full min-w-0 cursor-pointer overflow-hidden rounded-card border-border bg-card shadow-soft transition-[transform,box-shadow,border-color] duration-150 hover:-translate-y-1 hover:shadow-card focus-visible:outline-none",
+                                boosted && "border-primary bg-pastel-yellow"
                             )}
                             onClick={openAd}
                             onKeyDown={(event) => {
@@ -879,40 +879,36 @@ export default function Feed() {
                                 }
                             }}
                         >
-                            <CardContent className="p-4 sm:p-5">
-                                <div className="flex items-start gap-3">
-                                    <span className={cn('grid size-11 shrink-0 place-items-center rounded-full text-sm font-bold', avatarTone(ad.profiles?.display_name))} aria-hidden>
+                            <CardContent className="p-4 sm:p-6">
+                                <div className="flex items-start gap-3 sm:gap-4">
+                                    <span className={cn('grid size-12 shrink-0 place-items-center rounded-full text-sm font-bold', avatarTone(ad.profiles?.display_name))} aria-hidden>
                                         {initials(ad.profiles?.display_name)}
                                     </span>
                                     <div className="min-w-0 flex-1">
                                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                                            <h3 className="min-w-0 truncate text-base font-bold text-foreground">{ad.profiles?.display_name || 'Unbekannt'}</h3>
+                                            <h3 className="min-w-0 truncate text-base font-extrabold text-foreground">{ad.profiles?.display_name || 'Unbekannt'}</h3>
                                             {ad.profiles?.is_verified && <VerifiedPill />}
                                             {ad.profiles?.is_coach && (
-                                                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-950/50 dark:text-amber-200" title="Mitglied der Coaching-AG">
+                                                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-pastel-orange px-2.5 py-1 text-xs font-semibold text-pastel-orange-foreground" title="Mitglied der Coaching-AG">
                                                     <Award size={12} aria-hidden />
                                                     Coach
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                                        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
                                             <span className="inline-flex items-center gap-1"><GraduationCap size={13} aria-hidden /> Klasse {ad.profiles?.grade_level || '?'}</span>
-                                            <span aria-hidden>·</span>
-                                            <span>{ad.type === 'search' ? 'Gesuch' : 'Bietet'}</span>
+                                            <span className="rounded-full bg-muted px-2 py-0.5 font-semibold text-foreground">{ad.type === 'search' ? 'Gesuch' : 'Bietet'}</span>
                                             {boosted && (
-                                                <>
-                                                    <span aria-hidden>·</span>
-                                                    <span className="inline-flex items-center gap-1 font-semibold text-foreground"><Sparkles size={12} aria-hidden /> Hervorgehoben</span>
-                                                </>
+                                                <span className="inline-flex items-center gap-1 rounded-full bg-white/70 px-2 py-0.5 font-semibold text-primary-soft-foreground"><Sparkles size={12} aria-hidden /> Hervorgehoben</span>
                                             )}
                                         </div>
                                     </div>
-                                    <div className="shrink-0 text-right">
-                                        <div className="whitespace-nowrap text-base font-bold tabular-nums text-foreground sm:text-lg">
+                                    <div className={cn('shrink-0 rounded-full px-3 py-1.5 text-right', boosted ? 'bg-white/75' : 'bg-primary-soft')}>
+                                        <div className="whitespace-nowrap text-base font-extrabold tabular-nums text-primary-soft-foreground sm:text-lg">
                                             {formatPrice(ad)}
                                         </div>
                                         {priceSecondary(ad) && (
-                                            <div className="mt-0.5 text-xs tabular-nums text-muted-foreground">
+                                            <div className="mt-0.5 text-[11px] tabular-nums text-primary-soft-foreground/75">
                                                 {priceSecondary(ad)}
                                             </div>
                                         )}
@@ -922,21 +918,21 @@ export default function Feed() {
                                 <div className="mt-4 flex flex-wrap gap-2">
                                     {ad.subjects.map(s => <SubjectChip key={s} subject={s} />)}
                                 </div>
-                                <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                                <p className="mt-3 line-clamp-2 text-[15px] leading-relaxed text-muted-foreground">
                                     {ad.short_description}
                                 </p>
 
                                 <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-                                    <div className="flex min-w-0 flex-wrap gap-1.5 text-xs text-muted-foreground">
+                                    <div className="flex min-w-0 flex-wrap gap-1.5 text-xs font-medium">
                                         {ad.locations && ad.locations[0] && (
-                                            <span className="inline-flex items-center gap-1 rounded-full bg-muted/70 px-2.5 py-1"><MapPin size={12} aria-hidden /> {ad.locations[0]} {ad.locations.length > 1 ? `+${ad.locations.length - 1}` : ''}</span>
+                                            <span className="inline-flex items-center gap-1 rounded-full bg-pastel-blue px-3 py-1.5 text-pastel-blue-foreground"><MapPin size={12} aria-hidden /> {ad.locations[0]} {ad.locations.length > 1 ? `+${ad.locations.length - 1}` : ''}</span>
                                         )}
-                                        <span className="inline-flex items-center gap-1 rounded-full bg-muted/70 px-2.5 py-1"><Clock size={12} aria-hidden /> {Array.isArray(ad.duration_minutes) && ad.duration_minutes.length > 0 ? ad.duration_minutes.map((d: number) => d === 0 ? 'Egal' : `${d} Min.`).join(' • ') : 'Flexibel'}</span>
+                                        <span className="inline-flex items-center gap-1 rounded-full bg-pastel-mint px-3 py-1.5 text-pastel-mint-foreground"><Clock size={12} aria-hidden /> {Array.isArray(ad.duration_minutes) && ad.duration_minutes.length > 0 ? ad.duration_minutes.map((d: number) => d === 0 ? 'Egal' : `${d} Min.`).join(' • ') : 'Flexibel'}</span>
                                         {ad.session_format && ad.session_format !== 'any' && (
-                                            <span className="inline-flex items-center gap-1 rounded-full bg-muted/70 px-2.5 py-1"><Users size={12} aria-hidden /> {ad.session_format === 'single' ? 'Einzeln' : 'Kleingruppe'}</span>
+                                            <span className="inline-flex items-center gap-1 rounded-full bg-pastel-violet px-3 py-1.5 text-pastel-violet-foreground"><Users size={12} aria-hidden /> {ad.session_format === 'single' ? 'Einzeln' : 'Kleingruppe'}</span>
                                         )}
                                         {filterByTime && matchScore > 0 && (
-                                            <span className="inline-flex items-center gap-1 rounded-full bg-muted/70 px-2.5 py-1 font-semibold text-foreground"><CalendarDays size={12} aria-hidden /> {matchScore} Übereinstimmung{matchScore !== 1 ? 'en' : ''}</span>
+                                            <span className="inline-flex items-center gap-1 rounded-full bg-pastel-yellow px-3 py-1.5 font-semibold text-pastel-yellow-foreground"><CalendarDays size={12} aria-hidden /> {matchScore} Übereinstimmung{matchScore !== 1 ? 'en' : ''}</span>
                                         )}
                                     </div>
                                     <Button variant="unstyled" size="unstyled"
@@ -946,7 +942,7 @@ export default function Feed() {
                                             triggerHaptic('light');
                                             setShareAd({ id: ad.id, title: `${ad.subjects?.[0]?.toUpperCase() || 'Nachhilfe'}: ${ad.profiles?.display_name || ''}` });
                                         }}
-                                        className="grid size-10 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                                        className="grid size-10 place-items-center rounded-full bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                                         title="Anzeige teilen"
                                         aria-label="Anzeige teilen"
                                     >

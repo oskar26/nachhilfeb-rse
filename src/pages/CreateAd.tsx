@@ -420,107 +420,70 @@ export default function CreateAd() {
     }
 
     return (
-        <div className="mx-auto box-border w-full max-w-3xl min-w-0 space-y-6 overflow-x-hidden p-4 pb-28 sm:p-6">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0">
-                    <h1 className="text-2xl font-semibold leading-none tracking-tight text-foreground">Anzeige erstellen</h1>
+        <div className="mx-auto box-border w-full max-w-app min-w-0 space-y-6 overflow-x-clip p-4 pb-32 sm:p-6 sm:pb-36">
+            <div className="space-y-2">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                    <h1 className="min-w-0 text-[28px] font-extrabold leading-tight tracking-[-0.03em] text-foreground">Anzeige erstellen</h1>
+                    <Button variant="unstyled" size="unstyled"
+                        type="button"
+                        onClick={discardDraft}
+                        className="mt-0.5 min-h-11 shrink-0 text-xs font-semibold text-muted-foreground underline underline-offset-4 hover:text-destructive"
+                    >
+                        Entwurf verwerfen
+                    </Button>
                 </div>
-                <Button variant="unstyled" size="unstyled"
-                    type="button"
-                    onClick={discardDraft}
-                    className="mt-1 min-h-11 shrink-0 text-xs font-semibold text-muted-foreground underline underline-offset-4 hover:text-destructive"
-                >
-                    Entwurf verwerfen
-                </Button>
+                <p className="text-[15px] leading-relaxed text-muted-foreground" aria-live="polite">
+                    Entwurf wird automatisch auf diesem Gerät gespeichert
+                    {draftSavedAt ? ` · Stand ${new Date(draftSavedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr` : ''}
+                    . Er verschwindet nach dem Veröffentlichen.
+                </p>
             </div>
-            <p className="-mt-3 text-xs text-muted-foreground" aria-live="polite">
-                Entwurf wird automatisch auf diesem Gerät gespeichert
-                {draftSavedAt ? ` · Stand ${new Date(draftSavedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr` : ''}
-                . Er verschwindet nach dem Veröffentlichen.
-            </p>
 
             {/* Stepper */}
-            <div className="rounded-2xl border border-border bg-card p-4">
-                {/* Mobile Stepper (< sm) */}
-                <div className="space-y-3 lg:hidden">
-                    <div className="flex items-center justify-between gap-2 text-xs font-semibold">
-                        <span className="text-muted-foreground">Schritt {currentStep + 1} von {STEPS.length}</span>
-                        <span className="ml-2 truncate font-semibold text-foreground">{STEPS[currentStep]}</span>
-                    </div>
-                    {/* Progress bar */}
-                    <div className="h-2 w-full overflow-hidden rounded-lg bg-muted">
-                        <div
-                            className="h-full rounded-lg bg-foreground transition-colors duration-300"
-                            style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
-                        />
-                    </div>
-                    <div className="flex items-center justify-between pt-1">
-                        {STEPS.map((step, index) => {
-                            const isCurrent = index === currentStep;
-                            const isCompleted = index < currentStep;
-                            return (
+            <div className="rounded-card bg-card p-4 shadow-soft sm:p-6">
+                <div className="flex items-start">
+                    {STEPS.map((step, index) => {
+                        const isCurrent = index === currentStep;
+                        const isCompleted = index < currentStep;
+                        return (
+                            <div key={index} className="relative flex min-w-0 flex-1 flex-col items-center">
+                                {index > 0 && (
+                                    <span
+                                        aria-hidden
+                                        className="absolute top-5 right-[calc(50%+1.5rem)] h-0.5 w-[calc(100%-3rem)] rounded-full bg-border sm:right-[calc(50%+1.75rem)] sm:w-[calc(100%-3.5rem)]"
+                                    />
+                                )}
                                 <Button variant="unstyled" size="unstyled"
-                                    key={index}
                                     type="button"
                                     onClick={() => jumpToStep(index)}
                                     disabled={index > currentStep && !isStepValid()}
                                     className={cn(
-                                        "flex size-11 items-center justify-center rounded-lg text-xs font-semibold transition-colors",
+                                        "relative z-10 flex size-10 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-[background-color,color,transform] duration-150 active:scale-[0.98] sm:size-11",
                                         isCurrent
-                                            ? "bg-foreground font-semibold text-background"
+                                            ? "bg-primary text-primary-foreground shadow-soft"
                                             : isCompleted
-                                                ? "bg-muted text-foreground"
-                                                : "cursor-not-allowed bg-muted text-muted-foreground opacity-70"
+                                                ? "bg-pastel-mint text-pastel-mint-foreground"
+                                                : "cursor-not-allowed bg-muted text-muted-foreground"
                                     )}
                                     title={step}
                                     aria-current={isCurrent ? 'step' : undefined}
                                 >
                                     {isCompleted ? <CheckCircle size={16} aria-hidden /> : index + 1}
                                 </Button>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* Desktop Stepper (sm and up) */}
-                <div className="hidden overflow-x-auto lg:block">
-                    <div className="relative flex min-w-[520px] items-center justify-between px-4">
-                        {/* Connecting Line */}
-                        <div className="absolute left-8 right-8 top-5 h-0.5 bg-border" aria-hidden />
-
-                        {STEPS.map((step, index) => {
-                            const isCurrent = index === currentStep;
-                            const isCompleted = index < currentStep;
-                            return (
-                                <div key={index} className="relative z-10 flex flex-col items-center">
-                                    <Button variant="unstyled" size="unstyled"
-                                        type="button"
-                                        onClick={() => jumpToStep(index)}
-                                        disabled={index > currentStep && !isStepValid()}
-                                        className={cn(
-                                            "flex size-11 items-center justify-center rounded-lg text-xs font-semibold transition-colors",
-                                            isCurrent
-                                                ? "bg-foreground text-background"
-                                                : isCompleted
-                                                    ? "bg-muted text-foreground"
-                                                    : "cursor-not-allowed bg-muted text-muted-foreground opacity-70"
-                                        )}
-                                    >
-                                        {isCompleted ? <CheckCircle size={16} aria-hidden /> : index + 1}
-                                    </Button>
-                                    <span className={cn("mt-1.5 whitespace-nowrap text-xs font-medium transition-colors", isCurrent ? "font-semibold text-foreground" : "text-muted-foreground")}>{step}</span>
-                                </div>
-                            );
-                        })}
-                    </div>
+                                <span className={cn("mt-2 max-w-full px-0.5 text-center text-[11px] leading-tight transition-colors sm:text-xs", isCurrent ? "font-bold text-foreground" : "text-muted-foreground")}>
+                                    {step}
+                                </span>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
 
-            <Card className="w-full min-w-0 overflow-hidden border-border bg-card">
-                <CardHeader className="border-b border-border p-4 pb-3 sm:p-6 sm:pb-4">
-                    <CardTitle className="text-lg sm:text-xl">{STEPS[currentStep]}</CardTitle>
+            <Card className="w-full min-w-0 overflow-hidden border-0 bg-card shadow-soft">
+                <CardHeader className="p-4 pb-0 sm:p-6 sm:pb-0">
+                    <CardTitle className="text-lg font-extrabold sm:text-xl">{STEPS[currentStep]}</CardTitle>
                 </CardHeader>
-                <CardContent className="min-h-[280px] space-y-6 p-4 sm:p-6">
+                <CardContent className="min-h-[280px] space-y-6 p-4 pt-4 sm:p-6 sm:pt-4">
 
                     {/* Step 0: Type & Title */}
                     {currentStep === 0 && (
@@ -532,22 +495,24 @@ export default function CreateAd() {
                                             onClick={() => setFormData({ ...formData, type: 'offer' })}
                                             className={cn(
                                                 "flex min-h-14 items-center justify-center gap-2 rounded-xl border-2 px-4 py-3.5 text-center font-semibold transition-colors",
-                                                formData.type === 'offer' ? "border-foreground bg-muted text-foreground" : "border-border text-muted-foreground hover:border-ring/40"
+                                                formData.type === 'offer' ? "border-primary bg-primary-soft text-primary-soft-foreground" : "border-border text-muted-foreground hover:border-primary/40"
                                             )}
                                         >
                                             <GraduationCap size={18} className="shrink-0" />
                                             <span>Ich biete Nachhilfe</span>
+                                            {formData.type === 'offer' && <CheckCircle size={16} className="shrink-0" aria-hidden />}
                                         </Button>
                                         <Button variant="unstyled" size="unstyled"
                                             type="button"
                                             onClick={() => setFormData({ ...formData, type: 'search' })}
                                             className={cn(
                                                 "flex min-h-14 items-center justify-center gap-2 rounded-xl border-2 px-4 py-3.5 text-center font-semibold transition-colors",
-                                                formData.type === 'search' ? "border-foreground bg-muted text-foreground" : "border-border text-muted-foreground hover:border-ring/40"
+                                                formData.type === 'search' ? "border-primary bg-primary-soft text-primary-soft-foreground" : "border-border text-muted-foreground hover:border-primary/40"
                                             )}
                                         >
                                             <Search size={18} className="shrink-0" />
                                             <span>Ich suche Nachhilfe</span>
+                                            {formData.type === 'search' && <CheckCircle size={16} className="shrink-0" aria-hidden />}
                                         </Button>
                                     </div>
 
@@ -576,10 +541,11 @@ export default function CreateAd() {
                                                         onClick={() => setFormData({ ...formData, session_format: f.value })}
                                                         aria-pressed={active}
                                                         className={cn(
-                                                            "flex min-h-20 flex-col items-center justify-center gap-1 rounded-xl border-2 px-2 py-3 text-center font-semibold transition-colors",
-                                                            active ? "border-foreground bg-muted text-foreground" : "border-border text-muted-foreground hover:border-ring/40"
+                                                            "relative flex min-h-20 flex-col items-center justify-center gap-1 rounded-xl border-2 px-2 py-3 text-center font-semibold transition-colors",
+                                                            active ? "border-primary bg-primary-soft text-primary-soft-foreground" : "border-border text-muted-foreground hover:border-primary/40"
                                                         )}
                                                     >
+                                                        {active && <CheckCircle size={14} className="absolute right-2 top-2" aria-hidden />}
                                                         <Icon size={18} className="shrink-0" />
                                                         <span className="text-xs sm:text-sm">{f.title}</span>
                                                         <span className="text-xs font-normal opacity-80">{f.hint}</span>
@@ -599,7 +565,6 @@ export default function CreateAd() {
                                             placeholder="z. B. Mathe-Hilfe für Klasse 6 gesucht!"
                                             value={formData.title}
                                             onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                            autoFocus
                                             className="text-base sm:text-lg"
                                             maxLength={80}
                                         />
@@ -739,7 +704,7 @@ export default function CreateAd() {
                                                                 className={cn(
                                                                     "px-3.5 min-h-[44px] py-2 rounded-lg text-sm border transition-colors font-medium",
                                                                     active
-                                                                        ? "border-foreground bg-foreground text-background"
+                                                                        ? "border-2 border-primary bg-primary-soft text-primary-soft-foreground"
                                                                         : "border-border bg-card text-foreground/80 hover:bg-muted"
                                                                 )}
                                                             >
@@ -788,7 +753,7 @@ export default function CreateAd() {
                                                 className={cn(
                                                     "min-w-16 px-4 h-12 rounded-xl text-sm font-semibold border flex items-center justify-center transition-colors",
                                                     active
-                                                        ? "border-foreground bg-muted text-foreground"
+                                                        ? "border-primary bg-primary-soft text-primary-soft-foreground"
                                                         : "border-border bg-card text-foreground/80 hover:border-ring/40"
                                                 )}
                                             >
@@ -803,7 +768,7 @@ export default function CreateAd() {
                                         className={cn(
                                             "px-4 h-12 rounded-xl text-sm font-semibold border flex items-center justify-center transition-colors",
                                             formData.duration_minutes.includes(DURATION_EGAL)
-                                                ? "border-foreground bg-muted text-foreground"
+                                                ? "border-primary bg-primary-soft text-primary-soft-foreground"
                                                 : "border-border bg-card text-foreground/80 hover:border-ring/40"
                                         )}
                                     >
@@ -843,26 +808,29 @@ export default function CreateAd() {
                                 <Button variant="unstyled" size="unstyled"
                                     type="button"
                                     onClick={() => setFormData({ ...formData, price_mode: 'fixed' })}
-                                    className={cn("p-4 border rounded-xl text-left hover:border-foreground transition-colors", formData.price_mode === 'fixed' && "border-foreground bg-muted")}
+                                    className={cn("relative rounded-xl border-2 p-4 text-left transition-colors", formData.price_mode === 'fixed' ? "border-primary bg-primary-soft text-primary-soft-foreground" : "border-border hover:border-primary/40")}
                                 >
                                     <span className="block font-semibold">Festpreis</span>
-                                    <span className="text-xs text-muted-foreground">Euro pro Einheit</span>
+                                    <span className="text-xs opacity-75">Euro pro Einheit</span>
+                                    {formData.price_mode === 'fixed' && <CheckCircle size={16} className="absolute right-3 top-3" aria-hidden />}
                                 </Button>
                                 <Button variant="unstyled" size="unstyled"
                                     type="button"
                                     onClick={() => setFormData({ ...formData, price_mode: 'vb' })}
-                                    className={cn("p-4 border rounded-xl text-left hover:border-foreground transition-colors", formData.price_mode === 'vb' && "border-foreground bg-muted")}
+                                    className={cn("relative rounded-xl border-2 p-4 text-left transition-colors", formData.price_mode === 'vb' ? "border-primary bg-primary-soft text-primary-soft-foreground" : "border-border hover:border-primary/40")}
                                 >
                                     <span className="block font-semibold">Verhandlungsbasis (VB)</span>
-                                    <span className="text-xs text-muted-foreground">Preis wird besprochen</span>
+                                    <span className="text-xs opacity-75">Preis wird besprochen</span>
+                                    {formData.price_mode === 'vb' && <CheckCircle size={16} className="absolute right-3 top-3" aria-hidden />}
                                 </Button>
                                 <Button variant="unstyled" size="unstyled"
                                     type="button"
                                     onClick={() => setFormData({ ...formData, price_mode: 'free' })}
-                                    className={cn("p-4 border rounded-xl text-left hover:border-foreground transition-colors", formData.price_mode === 'free' && "border-foreground bg-muted")}
+                                    className={cn("relative rounded-xl border-2 p-4 text-left transition-colors", formData.price_mode === 'free' ? "border-primary bg-primary-soft text-primary-soft-foreground" : "border-border hover:border-primary/40")}
                                 >
                                     <span className="block font-semibold">Kostenlos</span>
-                                    <span className="text-xs text-muted-foreground">Ehrenamtlich helfen</span>
+                                    <span className="text-xs opacity-75">Ehrenamtlich helfen</span>
+                                    {formData.price_mode === 'free' && <CheckCircle size={16} className="absolute right-3 top-3" aria-hidden />}
                                 </Button>
                             </div>
 
@@ -901,7 +869,7 @@ export default function CreateAd() {
                                                 className={cn(
                                                     "min-h-11 rounded-lg border px-3 py-1 text-xs font-semibold transition-colors",
                                                     Number(formData.price_value) === p
-                                                        ? "bg-foreground text-background border-foreground"
+                                                        ? "border-primary bg-primary-soft text-primary-soft-foreground"
                                                         : "bg-muted text-foreground/80 border-transparent hover:border-ring/40"
                                                 )}
                                             >
@@ -1090,9 +1058,9 @@ export default function CreateAd() {
                     )}
 
                 </CardContent>
-                <CardFooter className="sticky bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] z-10 flex flex-col gap-2 rounded-b-2xl border-t border-border bg-card/95 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur-md sm:p-6 sm:pb-6 md:bottom-0">
+                <CardFooter className="sticky bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] z-10 flex flex-col gap-2 rounded-b-card bg-card/95 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-[0_-10px_30px_-24px_rgba(16,24,40,0.45)] backdrop-blur-md sm:p-6 sm:pb-6 md:bottom-0">
                     {!isStepValid() && stepHint && currentStep < STEPS.length - 1 && (
-                        <p className="w-full rounded-xl border border-border bg-muted px-3 py-2 text-xs font-medium text-foreground/80" role="status">
+                        <p className="w-full rounded-full bg-pastel-blue px-4 py-2.5 text-xs font-semibold text-pastel-blue-foreground" role="status">
                             Noch offen: {stepHint}
                         </p>
                     )}

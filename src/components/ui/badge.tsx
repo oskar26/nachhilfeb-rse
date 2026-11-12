@@ -16,11 +16,19 @@ const badgeVariants = cva(
         outline:
           "border-border bg-card text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
         success:
-          "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200",
+          "bg-pastel-mint text-pastel-mint-foreground",
         info:
-          "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-200",
+          "bg-pastel-blue text-pastel-blue-foreground",
         warning:
-          "bg-yellow-100 text-yellow-900 dark:bg-yellow-950/50 dark:text-yellow-200",
+          "bg-pastel-yellow text-pastel-yellow-foreground",
+        violet:
+          "bg-pastel-violet text-pastel-violet-foreground",
+        rose:
+          "bg-pastel-rose text-pastel-rose-foreground",
+        orange:
+          "bg-pastel-orange text-pastel-orange-foreground",
+        teal:
+          "bg-pastel-teal text-pastel-teal-foreground",
         ghost:
           "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
         link: "text-foreground underline underline-offset-4 hover:text-muted-foreground",

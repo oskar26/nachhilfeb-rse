@@ -37,7 +37,7 @@ function AppLoader() {
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-5 bg-background text-foreground animate-in fade-in duration-300">
       <div className="relative flex items-center justify-center">
-        <Logo className="h-20 w-20 shrink-0 text-foreground" />
+        <Logo className="h-20 w-20 shrink-0 text-primary" />
       </div>
       <div className="mt-2 flex items-center gap-2.5 text-sm font-semibold tracking-wide text-foreground">
         <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />

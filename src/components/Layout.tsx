@@ -3,7 +3,7 @@ import { Home, PlusCircle, User, LogOut, Settings, MessageSquare, Inbox, Zap, He
 import AccessGuard from './AccessGuard';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/button';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import NotificationCenter from './NotificationCenter';
 import InstallPrompt from './InstallPrompt';
 import { Logo } from './ui/Logo';
@@ -55,6 +55,10 @@ export default function Layout() {
     };
 
     const pathname = location.pathname.replace(/\/+$/, '') || '/';
+
+    useEffect(() => {
+        mainContentRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+    }, [pathname]);
     const isSocialRoute = ['/social', '/requests', '/matches', '/matching', '/favorites', '/watchlist'].includes(pathname);
     const isChatRoute = pathname === '/chat' || pathname.startsWith('/chat/');
     const isSvPanel = pathname.startsWith('/sv-panel');
@@ -81,7 +85,7 @@ export default function Layout() {
         <SidebarProvider
             key={isSvPanel ? 'sv-panel' : 'app'}
             defaultOpen={!isSvPanel}
-            className="h-dvh min-h-0 overflow-hidden bg-muted/40 font-sans text-foreground"
+            className="h-dvh min-h-0 overflow-hidden bg-background font-sans text-foreground"
         >
             <Link
                 to={pathname || '/'}
@@ -265,7 +269,7 @@ export default function Layout() {
                 </SidebarContent>
 
                 <SidebarFooter className="border-t border-border/70 p-3">
-                    <div className="flex items-center gap-1.5 rounded-card bg-muted/70 p-2 group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-0">
+                    <div className="flex items-center gap-1.5 rounded-card bg-accent p-2 group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-0">
                         <NavLink
                             to="/profile"
                             onClick={handleNavClick}
@@ -326,7 +330,7 @@ export default function Layout() {
             </Sidebar>
 
             <SidebarInset className="h-dvh min-h-0 overflow-hidden bg-transparent">
-                <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border/70 bg-background/80 px-4 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-xl md:hidden">
+                <div className="mx-3 mt-2 flex shrink-0 items-center justify-between gap-3 rounded-full border border-border/70 bg-card/95 px-3 py-1.5 shadow-soft backdrop-blur-xl md:hidden">
                     <Link to="/welcome" onClick={handleNavClick} className="flex min-h-11 min-w-0 items-center gap-2.5 rounded-full">
                         <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
                             <Logo size={20} />
@@ -354,7 +358,7 @@ export default function Layout() {
 
             <nav
                 aria-label="Hauptnavigation"
-                className="fixed right-4 bottom-[max(0.75rem,calc(0.75rem+env(safe-area-inset-bottom,0px)))] left-4 z-50 grid h-16 grid-cols-5 items-center rounded-full border border-border/70 bg-card/95 px-2 shadow-overlay backdrop-blur-xl md:hidden"
+                className="fixed right-4 bottom-[max(0.75rem,calc(0.75rem+env(safe-area-inset-bottom,0px)))] left-4 z-50 grid h-[4.5rem] grid-cols-5 items-center rounded-full border border-border/70 bg-card/95 px-2 shadow-overlay backdrop-blur-xl md:hidden"
             >
                 {mobileNavItems.map((item) => {
                     const Icon = item.icon;
@@ -371,10 +375,10 @@ export default function Layout() {
                                 title={item.label}
                                 aria-label="Neue Anzeige erstellen"
                             >
-                                <span className="grid size-11 place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_6px_16px_-6px_rgba(234,179,8,0.8)]">
-                                    <PlusCircle size={22} strokeWidth={2.25} aria-hidden />
+                                <span className="grid size-12 place-items-center rounded-full bg-primary text-primary-foreground shadow-card">
+                                    <PlusCircle size={23} strokeWidth={2.25} aria-hidden />
                                 </span>
-                                <span className="max-w-full text-[11px] font-medium">Erstellen</span>
+                                <span className="max-w-full text-xs font-medium">Erstellen</span>
                             </Button>
                         );
                     }
@@ -386,10 +390,10 @@ export default function Layout() {
                             end={item.end || (item.activateOnChat ? false : undefined)}
                             onClick={handleNavClick}
                             className={({ isActive }) =>
-                                `relative flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-full text-[11px] font-medium transition-colors ${
+                                `relative flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-full text-xs font-medium transition-colors ${
                                     isActive || (item.activateOnChat && (isSocialRoute || isChatRoute))
-                                        ? 'bg-muted/80 text-foreground'
-                                        : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                                        ? 'bg-primary-soft text-primary-soft-foreground'
+                                        : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                                 }`
                             }
                             title={item.label}
@@ -398,9 +402,6 @@ export default function Layout() {
                                 <>
                                     <Icon size={20} strokeWidth={isActive || (item.activateOnChat && (isSocialRoute || isChatRoute)) ? 2.25 : 2} aria-hidden />
                                     <span className="max-w-full">{item.label}</span>
-                                    {(isActive || (item.activateOnChat && (isSocialRoute || isChatRoute))) && (
-                                        <span className="absolute bottom-1.5 h-1 w-1 rounded-full bg-primary" aria-hidden />
-                                    )}
                                 </>
                             )}
                         </NavLink>

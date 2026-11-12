@@ -33,6 +33,10 @@
     text-wrap: balance;
   }
 
+  :where(input, textarea, select) {
+    scroll-margin-block: 7rem;
+  }
+
   ::selection {
     background: var(--primary);
     color: var(--primary-foreground);
@@ -40,9 +44,15 @@
 
   /* One focus system for the whole product. The outline follows the
      component's own radius and never changes its shape. */
-  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-    outline: 2px solid var(--ring) !important;
+  :where(a, button, [tabindex]):focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--primary) 50%, transparent) !important;
     outline-offset: 2px !important;
+  }
+
+  :where(input, textarea, select):focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--primary) 50%, transparent) !important;
+    outline-offset: 1px !important;
+    border-color: var(--foreground) !important;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -99,6 +109,38 @@
   }
   .shadow-soft {
     box-shadow: var(--shadow-soft);
+  }
+
+  .chat-surface {
+    background-color: var(--chat-bg);
+    background-image: url("/chat-pattern-light.svg");
+    background-repeat: repeat;
+    background-size: 160px 160px;
+  }
+  .dark .chat-surface {
+    background-image: url("/chat-pattern-dark.svg");
+  }
+
+  .screenshot-fade {
+    -webkit-mask-image: linear-gradient(to bottom, #000 68%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 68%, transparent 100%);
+  }
+  .screenshot-fade-x {
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 300ms ease-out, transform 300ms ease-out;
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
   }
 
   @keyframes accordion-unfurl {
@@ -175,19 +217,50 @@
   --font-heading: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --spacing: 0.25rem;
   --container-site: 75rem;
+  --container-app: 47.5rem;
   --text-xs: 0.8125rem;
   --text-sm: 0.9375rem;
   --text-base: 1rem;
   --text-lg: 1.125rem;
   --text-xl: 1.25rem;
-  --text-2xl: 1.5rem;
-  --text-3xl: 1.875rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2rem;
   --text-4xl: 2.25rem;
   --text-5xl: 3rem;
-  --text-6xl: 3.75rem;
-  --shadow-soft: 0 1px 2px rgb(16 24 40 / 0.03), 0 8px 24px -10px rgb(16 24 40 / 0.12);
-  --shadow-card: 0 2px 4px rgb(16 24 40 / 0.04), 0 18px 44px -16px rgb(16 24 40 / 0.2);
-  --shadow-overlay: 0 28px 80px -20px rgb(16 24 40 / 0.3);
+  --text-6xl: 3.5rem;
+  --shadow-soft: 0 1px 2px rgb(16 24 40 / 0.04), 0 10px 30px -14px rgb(16 24 40 / 0.14);
+  --shadow-card: 0 2px 6px rgb(16 24 40 / 0.05), 0 24px 60px -28px rgb(16 24 40 / 0.24);
+  --shadow-overlay: 0 32px 90px -24px rgb(16 24 40 / 0.32);
+  --shadow-float: 0 18px 40px -20px rgb(16 24 40 / 0.4);
+  --color-pastel-blue: var(--pastel-blue);
+  --color-pastel-blue-foreground: var(--pastel-blue-foreground);
+  --color-pastel-mint: var(--pastel-mint);
+  --color-pastel-mint-foreground: var(--pastel-mint-foreground);
+  --color-pastel-rose: var(--pastel-rose);
+  --color-pastel-rose-foreground: var(--pastel-rose-foreground);
+  --color-pastel-violet: var(--pastel-violet);
+  --color-pastel-violet-foreground: var(--pastel-violet-foreground);
+  --color-pastel-orange: var(--pastel-orange);
+  --color-pastel-orange-foreground: var(--pastel-orange-foreground);
+  --color-pastel-teal: var(--pastel-teal);
+  --color-pastel-teal-foreground: var(--pastel-teal-foreground);
+  --color-pastel-yellow: var(--pastel-yellow);
+  --color-pastel-yellow-foreground: var(--pastel-yellow-foreground);
+  --color-pastel-gray: var(--pastel-gray);
+  --color-pastel-gray-foreground: var(--pastel-gray-foreground);
+  --color-chat-bg: var(--chat-bg);
+  --color-chat-header: var(--chat-header);
+  --color-chat-own: var(--chat-own);
+  --color-chat-other: var(--chat-other);
+  --color-chat-text: var(--chat-text);
+  --color-chat-meta: var(--chat-meta);
+  --color-chat-meta-own: var(--chat-meta-own);
+  --color-chat-tick-sent: var(--chat-tick-sent);
+  --color-chat-tick-read: var(--chat-tick-read);
+  --color-chat-send: var(--chat-send);
+  --color-chat-chip: var(--chat-chip);
+  --color-chat-border: var(--chat-border);
+  --color-chat-composer: var(--chat-composer);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -213,6 +286,8 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-soft-foreground: var(--primary-soft-foreground);
   --color-primary: var(--primary);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
@@ -223,14 +298,16 @@
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
+  --radius-xl: 1.25rem;
   --radius-2xl: 1.75rem;
   --radius-3xl: 2rem;
-  --radius-4xl: 2rem;
-  --radius-field: 1rem;
-  --radius-card: 1.5rem;
-  --radius-chat: 1.25rem;
-  --radius-panel: 2rem;
+  --radius-4xl: 2.25rem;
+  --radius-field: 1.25rem;
+  --radius-card: 1.75rem;
+  --radius-dialog: 2rem;
+  --radius-chat: 1.125rem;
+  --radius-chat-corner: 0.375rem;
+  --radius-panel: 2.25rem;
 }
 
 :root {
@@ -243,31 +320,62 @@
   --primary: #facc15;
   --primary-hover: #eab308;
   --primary-foreground: #18181b;
-  --secondary: #f1f2f5;
+  --primary-soft: #fef9c3;
+  --primary-soft-foreground: #18181b;
+  --secondary: #f1f3f6;
   --secondary-foreground: #18181b;
-  --muted: #f1f2f5;
-  --muted-foreground: #5f636b;
-  --accent: #f1f2f5;
+  --muted: #f1f3f6;
+  --muted-foreground: #5d646f;
+  --accent: #f7f8fa;
   --accent-foreground: #18181b;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
   --border: #e6e8ec;
-  --input: #dde0e5;
-  --ring: #a16207;
+  --input: #dde1e8;
+  --ring: #facc15;
   --chart-1: #eab308;
   --chart-2: #8b5cf6;
   --chart-3: #0ea5e9;
   --chart-4: #10b981;
   --chart-5: #f43f5e;
   --radius: 1rem;
+  --pastel-blue: #eaf2ff;
+  --pastel-blue-foreground: #1d4ed8;
+  --pastel-mint: #ddf7ec;
+  --pastel-mint-foreground: #047857;
+  --pastel-rose: #ffe4ec;
+  --pastel-rose-foreground: #be185d;
+  --pastel-violet: #f0e9ff;
+  --pastel-violet-foreground: #6d28d9;
+  --pastel-orange: #ffedd5;
+  --pastel-orange-foreground: #c2410c;
+  --pastel-teal: #d9f7f4;
+  --pastel-teal-foreground: #0f766e;
+  --pastel-yellow: #fef9c3;
+  --pastel-yellow-foreground: #18181b;
+  --pastel-gray: #f1f3f6;
+  --pastel-gray-foreground: #4b5563;
   --sidebar: #ffffff;
   --sidebar-foreground: #18181b;
   --sidebar-primary: #facc15;
   --sidebar-primary-foreground: #18181b;
-  --sidebar-accent: #f4f4f5;
+  --sidebar-accent: #fef9c3;
   --sidebar-accent-foreground: #18181b;
   --sidebar-border: #e6e8ec;
-  --sidebar-ring: #a16207;
+  --sidebar-ring: #facc15;
+  --chat-bg: #efeae2;
+  --chat-header: #ffffff;
+  --chat-own: #d9fdd3;
+  --chat-other: #ffffff;
+  --chat-text: #111b21;
+  --chat-meta: #54656f;
+  --chat-meta-own: #54656f;
+  --chat-tick-sent: #667781;
+  --chat-tick-read: #53bdeb;
+  --chat-send: #00a884;
+  --chat-chip: rgb(255 255 255 / 0.92);
+  --chat-border: #e9edef;
+  --chat-composer: #ffffff;
 }
 
 .dark {
@@ -278,8 +386,10 @@
   --popover: #17181d;
   --popover-foreground: #f5f5f7;
   --primary: #facc15;
-  --primary-hover: #eab308;
+  --primary-hover: #fde047;
   --primary-foreground: #18181b;
+  --primary-soft: #3f3a12;
+  --primary-soft-foreground: #fef08a;
   --secondary: #1d1f24;
   --secondary-foreground: #f5f5f7;
   --muted: #1d1f24;
@@ -289,19 +399,48 @@
   --destructive: #f87171;
   --destructive-foreground: #18181b;
   --border: #2a2d34;
-  --input: #343841;
+  --input: #363a44;
   --ring: #facc15;
   --chart-1: #facc15;
   --chart-2: #a78bfa;
   --chart-3: #38bdf8;
   --chart-4: #34d399;
   --chart-5: #fb7185;
+  --pastel-blue: #172554;
+  --pastel-blue-foreground: #bfdbfe;
+  --pastel-mint: #052e2b;
+  --pastel-mint-foreground: #a7f3d0;
+  --pastel-rose: #4c0519;
+  --pastel-rose-foreground: #fecdd3;
+  --pastel-violet: #2e1065;
+  --pastel-violet-foreground: #ddd6fe;
+  --pastel-orange: #431407;
+  --pastel-orange-foreground: #fed7aa;
+  --pastel-teal: #042f2e;
+  --pastel-teal-foreground: #99f6e4;
+  --pastel-yellow: #3f3a12;
+  --pastel-yellow-foreground: #fef08a;
+  --pastel-gray: #27272a;
+  --pastel-gray-foreground: #d4d4d8;
   --sidebar: #111217;
   --sidebar-foreground: #f5f5f7;
   --sidebar-primary: #facc15;
   --sidebar-primary-foreground: #18181b;
-  --sidebar-accent: #1d1f24;
-  --sidebar-accent-foreground: #f5f5f7;
+  --sidebar-accent: #3f3a12;
+  --sidebar-accent-foreground: #fef08a;
   --sidebar-border: #2a2d34;
   --sidebar-ring: #facc15;
+  --chat-bg: #0b141a;
+  --chat-header: #202c33;
+  --chat-own: #005c4b;
+  --chat-other: #202c33;
+  --chat-text: #e9edef;
+  --chat-meta: #8696a0;
+  --chat-meta-own: #b8c6cb;
+  --chat-tick-sent: #8696a0;
+  --chat-tick-read: #53bdeb;
+  --chat-send: #00a884;
+  --chat-chip: rgb(32 44 51 / 0.9);
+  --chat-border: #2a3942;
+  --chat-composer: #202c33;
 }

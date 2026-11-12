@@ -66,7 +66,7 @@ function DialogContent({
         data-slot="dialog-content"
         aria-modal="true"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid max-h-[90vh] w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-card border border-border bg-popover p-5 text-sm text-popover-foreground shadow-overlay duration-100 outline-none sm:max-w-lg sm:p-6 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "fixed top-1/2 left-1/2 z-50 grid max-h-[90vh] w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-dialog border border-border bg-popover p-5 text-sm text-popover-foreground shadow-overlay duration-100 outline-none sm:max-w-lg sm:p-6 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
           className
         )}
         {...props}
@@ -115,7 +115,7 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "-mx-5 -mb-5 flex flex-col-reverse gap-2 rounded-b-card border-t bg-muted/50 p-4 sm:-mx-6 sm:-mb-6 sm:flex-row sm:justify-end sm:p-5",
+        "-mx-5 -mb-5 flex flex-col-reverse gap-2 rounded-b-dialog border-t bg-muted/50 p-4 sm:-mx-6 sm:-mb-6 sm:flex-row sm:justify-end sm:p-5",
         className
       )}
       {...props}

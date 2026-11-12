@@ -116,7 +116,7 @@ export default function InstallPrompt() {
                     </Button>
 
                     <div className="flex items-start gap-4">
-                        <Logo className="size-10 shrink-0 text-foreground" />
+                        <Logo className="size-10 shrink-0 text-primary" />
                         <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-foreground">
                                 Nachhilfebörse als App installieren
@@ -146,7 +146,7 @@ export default function InstallPrompt() {
                 <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" />
 
                 <div className="flex items-center gap-4 mb-4">
-                    <Logo className="size-12 shrink-0 text-foreground" />
+                    <Logo className="size-12 shrink-0 text-primary" />
                     <div>
                         <p className="text-base font-semibold leading-tight text-foreground">
                             Nachhilfebörse als App installieren

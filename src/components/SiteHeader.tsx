@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState, useCallback, type MouseEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { ArrowUpRight, Menu, X } from 'lucide-react';
 import { Logo } from './ui/Logo';
 import { useAuth } from '../context/AuthContext';
-import { buttonVariants } from '@/components/ui/button';
 import {
     Sheet,
     SheetClose,
@@ -128,7 +127,7 @@ export default function SiteHeader() {
 
     const navLinkClass = (active: boolean) =>
         `inline-flex min-h-11 items-center whitespace-nowrap rounded-full px-4 text-sm font-semibold transition-colors ${active
-            ? 'bg-primary text-primary-foreground shadow-sm'
+            ? 'bg-primary-soft text-primary-soft-foreground'
             : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`;
 
     const menuTrigger = (
@@ -149,9 +148,10 @@ export default function SiteHeader() {
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
                 <header
                     data-site-header
-                    className="sticky top-0 z-50 bg-background/85 pt-[env(safe-area-inset-top,0px)] shadow-[0_1px_0_rgba(24,24,27,0.04)] backdrop-blur-xl supports-[backdrop-filter]:bg-background/70"
+                    className="sticky top-0 z-50 pt-[max(0.5rem,env(safe-area-inset-top,0px))]"
                 >
-                    <div className="mx-auto flex h-16 max-w-site items-center gap-3 px-4 sm:px-6 xl:gap-6">
+                    <div className="mx-auto w-full max-w-site px-3 sm:px-6">
+                    <div className="flex h-16 items-center gap-3 rounded-full border border-border/80 bg-card/95 px-4 shadow-soft backdrop-blur-xl supports-[backdrop-filter]:bg-card/90 sm:px-5 xl:gap-6">
                         <Link to="/welcome" className="flex min-h-11 min-w-0 items-center gap-2.5 rounded-full px-1" aria-label="Nachhilfebörse Startseite">
                             <Logo size={27} className="shrink-0 text-primary" />
                             <span className="truncate text-base font-bold tracking-tight text-foreground sm:text-lg">
@@ -184,16 +184,24 @@ export default function SiteHeader() {
                             })}
                         </nav>
                         <div className="ml-auto flex shrink-0 items-center gap-2 lg:ml-2">
+                            <a
+                                href="/docs"
+                                className={navLinkClass(false) + ' max-lg:hidden gap-1.5'}
+                            >
+                                Dokumentation
+                                <ArrowUpRight size={15} aria-hidden />
+                            </a>
                             {!user && (
                                 <Link
                                     to="/login"
-                                    className={buttonVariants({ variant: 'outline', size: 'sm' }) + ' hidden lg:inline-flex'}
+                                    className="inline-flex h-12 items-center justify-center rounded-full bg-foreground px-5 text-sm font-semibold text-background shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-card max-lg:hidden"
                                 >
                                     Anmelden
                                 </Link>
                             )}
                             <SheetTrigger render={menuTrigger} />
                         </div>
+                    </div>
                     </div>
                 </header>
 
@@ -208,7 +216,8 @@ export default function SiteHeader() {
                     </SheetDescription>
 
                     <div className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-border px-4 pt-[env(safe-area-inset-top,0px)]">
-                        <span className="min-w-0 truncate text-lg font-bold tracking-tight text-foreground">
+                        <span className="flex min-w-0 items-center gap-2.5 truncate text-lg font-bold tracking-tight text-foreground">
+                            <Logo size={26} className="shrink-0 text-primary" />
                             Nachhilfebörse <span className="text-foreground">FWG</span>
                         </span>
                         <SheetClose
@@ -230,7 +239,7 @@ export default function SiteHeader() {
                                             to={item.to}
                                             onClick={item.section ? goSection(item.section) : closeMenu}
                                             aria-current={active ? (item.section ? 'location' : 'page') : undefined}
-                                            className={`flex min-h-12 items-center gap-4 rounded-full px-4 py-3 text-base font-semibold transition-colors ${active ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-muted'}`}
+                                            className={`flex min-h-12 items-center gap-4 rounded-full px-4 py-3 text-base font-semibold transition-colors ${active ? 'bg-primary-soft text-primary-soft-foreground' : 'text-foreground hover:bg-muted'}`}
                                         >
                                             {item.label}
                                         </Link>
@@ -242,16 +251,24 @@ export default function SiteHeader() {
                             Ein Produkt der Schülervertretung
                         </p>
                     </nav>
-                    {!user && (
-                        <div className="shrink-0 border-t border-border p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
+                    <div className="shrink-0 space-y-2 border-t border-border p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
+                        <a
+                            href="/docs"
+                            onClick={closeMenu}
+                            className="flex min-h-12 items-center justify-center gap-2 rounded-full border border-border bg-card px-4 text-base font-semibold text-foreground transition-colors hover:bg-muted"
+                        >
+                            Dokumentation
+                            <ArrowUpRight size={17} aria-hidden />
+                        </a>
+                        {!user && (
                             <SheetClose
                                 render={<Link to="/login" />}
-                                className={buttonVariants({ size: 'lg' }) + ' w-full'}
+                                className="inline-flex h-12 w-full items-center justify-center rounded-full bg-foreground px-5 text-sm font-semibold text-background shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-card"
                             >
                                 Anmelden
                             </SheetClose>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </SheetContent>
             </Sheet>
         </>

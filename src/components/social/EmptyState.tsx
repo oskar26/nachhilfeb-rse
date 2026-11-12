@@ -18,25 +18,20 @@ export function EmptyState({ icon: Icon, title, text, action, tone = 'neutral' }
     return (
         <div
             role={tone === 'error' ? 'alert' : undefined}
-            className={cn(
-                'flex flex-col items-center justify-center rounded-xl border bg-card p-8 text-center sm:p-12',
-                tone === 'error'
-                    ? 'border-destructive/25'
-                    : 'border-border'
-            )}
+            className="flex flex-col items-center justify-center rounded-card bg-card p-8 text-center shadow-soft sm:p-12"
         >
             <div
                 className={cn(
                     'mb-5 grid size-16 place-items-center rounded-full',
                     tone === 'error'
-                        ? 'bg-destructive/10 text-destructive'
-                        : 'bg-primary text-primary-foreground'
+                        ? 'bg-pastel-rose text-pastel-rose-foreground'
+                        : 'bg-pastel-blue text-pastel-blue-foreground'
                 )}
                 aria-hidden
             >
                 <Icon size={26} />
             </div>
-            <h3 className="text-xl font-semibold text-foreground">{title}</h3>
+            <h3 className="text-xl font-extrabold text-foreground">{title}</h3>
             <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">{text}</p>
             {action && <div className="mt-6 flex flex-wrap justify-center gap-2">{action}</div>}
         </div>

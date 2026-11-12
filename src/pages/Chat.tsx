@@ -8,6 +8,7 @@ import { startChatPoll } from '../lib/polling';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Skeleton } from '../components/ui/skeleton';
 import { ChevronLeft, Send, Trash2, Check, CheckCheck, Pencil, MoreVertical, Ban, Calendar, CalendarDays, Download, EyeOff, Flag } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../lib/utils';
@@ -65,6 +66,7 @@ export default function Chat() {
     const [newMessage, setNewMessage] = useState('');
     const [otherUser, setOtherUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Edit state
@@ -171,6 +173,7 @@ export default function Chat() {
 
         const msgContent = newMessage;
         setNewMessage(''); // optimistic clear
+        setMenuOpenId(null);
 
         const { error } = await api.messages.send(requestId, msgContent);
 
@@ -263,9 +266,21 @@ export default function Chat() {
     };
 
     if (loading) return (
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8" role="status">
-            <div className="size-8 animate-spin rounded-lg border-2 border-primary border-t-transparent" />
-            <p className="text-sm text-muted-foreground">Lade Chat…</p>
+        <div className="chat-surface flex min-h-0 flex-1 flex-col" role="status" aria-label="Chat wird geladen">
+            <div className="flex items-center gap-3 bg-chat-header p-3 shadow-soft">
+                <Skeleton className="size-10 rounded-full" />
+                <div className="space-y-2">
+                    <Skeleton className="h-3.5 w-32 rounded-full" />
+                    <Skeleton className="h-3 w-16 rounded-full" />
+                </div>
+            </div>
+            <div className="mx-auto w-full max-w-2xl flex-1 space-y-3 p-4">
+                <Skeleton className="mx-auto h-7 w-40 rounded-full bg-chat-chip" />
+                <Skeleton className="h-16 w-3/4 rounded-chat bg-chat-other" />
+                <Skeleton className="ml-auto h-14 w-2/3 rounded-chat bg-chat-own" />
+                <Skeleton className="h-20 w-4/5 rounded-chat bg-chat-other" />
+                <Skeleton className="ml-auto h-12 w-1/2 rounded-chat bg-chat-own" />
+            </div>
         </div>
     );
 
@@ -273,17 +288,17 @@ export default function Chat() {
         <>
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
             {/* Header */}
-            <header className="flex shrink-0 items-center gap-0.5 border-b border-border/60 bg-card/80 p-1.5 backdrop-blur-xl md:gap-1 md:p-2">
-                <Button variant="ghost" size="icon" onClick={() => navigate('/requests')} className="size-11 shrink-0 rounded-full" aria-label="Zurück zu den Anfragen">
-                    <ChevronLeft size={20} aria-hidden />
+            <header className="flex shrink-0 items-center gap-0.5 bg-chat-header p-2 shadow-[0_1px_2px_rgba(0,0,0,0.06)] md:gap-1">
+                <Button variant="ghost" size="icon" onClick={() => navigate('/requests')} className="size-11 shrink-0 rounded-full text-chat-text hover:bg-black/5 dark:hover:bg-white/10" aria-label="Zurück zu den Anfragen">
+                    <ChevronLeft size={21} aria-hidden />
                 </Button>
                 <div className="flex min-w-0 flex-1 items-center gap-2.5 px-0.5">
                     <div className={cn('grid size-10 shrink-0 place-items-center overflow-hidden rounded-full text-sm font-bold', otherUser?.avatar_url ? 'bg-muted' : avatarTone(otherUser?.display_name))}>
                         {otherUser?.avatar_url ? <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" /> : initials(otherUser?.display_name)}
                     </div>
                     <div className="min-w-0">
-                        <p className="truncate text-[15px] font-bold leading-tight text-foreground">{otherUser?.display_name || 'Unbekannt'}</p>
-                        <p className="text-[13px] text-muted-foreground">Chat</p>
+                        <p className="truncate text-[15px] font-bold leading-tight text-chat-text">{otherUser?.display_name || 'Unbekannt'}</p>
+                        <p className="text-[13px] text-chat-meta">Chat</p>
                     </div>
                 </div>
 
@@ -291,27 +306,17 @@ export default function Chat() {
                     variant="ghost"
                     size="icon"
                     onClick={() => setAppointmentModalOpen(true)}
-                    className="size-11 shrink-0 rounded-full"
+                    className="size-11 shrink-0 rounded-full text-chat-text hover:bg-black/5 dark:hover:bg-white/10"
                     title="Termin für Nachhilfestunde vereinbaren"
                     aria-label="Termin vereinbaren"
                 >
                     <Calendar size={19} aria-hidden />
                 </Button>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setReportOpen(true)}
-                    title="Nutzer melden"
-                    aria-label="Nutzer melden"
-                    className="size-11 shrink-0 rounded-full text-destructive hover:bg-destructive/10"
-                >
-                    <Flag size={19} aria-hidden />
-                </Button>
 
                 <DropdownMenu>
                     <DropdownMenuTrigger
                         aria-label="Weitere Optionen"
-                        className="grid size-11 shrink-0 place-items-center rounded-full text-foreground transition-colors hover:bg-muted"
+                        className="grid size-11 shrink-0 place-items-center rounded-full text-chat-text transition-colors hover:bg-black/5 dark:hover:bg-white/10"
                     >
                         <MoreVertical size={20} aria-hidden />
                     </DropdownMenuTrigger>
@@ -334,10 +339,10 @@ export default function Chat() {
             </header>
 
             {/* Messages Area */}
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-muted/40 px-3 py-4 sm:px-4">
+            <div className="chat-surface min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 sm:px-6">
                 {messages.length === 0 ? (
-                    <div className="mx-auto max-w-sm rounded-card border border-border bg-card p-4 text-center text-[13px] leading-relaxed text-muted-foreground">
-                        Hier beginnt euer Chat. Deine Nachrichten werden über eine verschlüsselte Verbindung (HTTPS) übertragen und auf Servern in Deutschland gespeichert. Bitte achte auf unsere <a href="#/nutzungsbedingungen" className="font-semibold text-foreground underline underline-offset-4">Nutzungsbedingungen</a>.
+                    <div className="mx-auto max-w-sm rounded-panel bg-chat-other/95 p-5 text-center text-[13px] leading-relaxed text-chat-meta shadow-soft">
+                        Hier beginnt euer Chat. Deine Nachrichten werden über eine verschlüsselte Verbindung (HTTPS) übertragen und auf Servern in Deutschland gespeichert. Bitte achte auf unsere <a href="#/nutzungsbedingungen" className="font-semibold text-chat-text underline underline-offset-4">Nutzungsbedingungen</a>.
                     </div>
                 ) : (
                     messages.map((msg, idx) => {
@@ -347,41 +352,55 @@ export default function Chat() {
 
                         // Show date divider if day changed
                         const prevMsg = idx > 0 ? messages[idx - 1] : null;
-                        const showDate = !prevMsg || new Date(msg.created_at).toDateString() !== new Date(prevMsg.created_at).toDateString();
+                        const nextMsg = idx < messages.length - 1 ? messages[idx + 1] : null;
+                        const sameDayAsPrev = prevMsg && new Date(msg.created_at).toDateString() === new Date(prevMsg.created_at).toDateString();
+                        const showDate = !sameDayAsPrev;
+                        const firstInGroup = showDate || !prevMsg || prevMsg.sender_id !== msg.sender_id;
+                        const sameDayAsNext = nextMsg && new Date(msg.created_at).toDateString() === new Date(nextMsg.created_at).toDateString();
+                        const lastInGroup = !nextMsg || !sameDayAsNext || nextMsg.sender_id !== msg.sender_id;
 
                         return (
                             <div key={msg.id} className="flex flex-col">
                                 {showDate && (
                                     <div className="my-3 text-center">
-                                        <span className="rounded-full border border-border/60 bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground">
+                                        <span className="rounded-full bg-chat-chip px-3.5 py-1.5 text-xs font-medium text-chat-meta shadow-soft backdrop-blur-sm">
                                             {new Date(msg.created_at).toLocaleDateString([], { weekday: 'long', day: '2-digit', month: 'long' })}
                                         </span>
                                     </div>
                                 )}
-                                <div className={cn("group/message relative flex max-w-[85%]", isMe ? "self-end" : "self-start")}>
+                                <div className={cn("group/message relative flex max-w-[80%] items-start", isMe ? "self-end justify-end" : "self-start", firstInGroup ? "mt-3" : "mt-0.5")}>
                                     <div
+                                        onClick={() => isMe && setMenuOpenId(prev => prev === msg.id ? null : msg.id)}
                                         className={cn(
-                                            "relative min-w-20 break-words rounded-chat px-3.5 py-2.5 text-sm leading-relaxed",
-                                            isMe
-                                                ? "rounded-br-md bg-primary text-primary-foreground"
-                                                : "rounded-bl-md border border-border bg-card text-foreground",
+                                            "relative min-w-[86px] break-words rounded-chat px-3 py-2 text-[15px] leading-[1.35] text-chat-text shadow-[0_1px_1px_rgba(11,20,26,0.06)]",
+                                            isMe ? "bg-chat-own" : "bg-chat-other",
+                                            firstInGroup && (isMe ? "rounded-tr-chat-corner" : "rounded-tl-chat-corner"),
                                             msg.is_deleted && "italic opacity-70"
                                         )}
                                     >
+                                        {firstInGroup && (
+                                            <svg
+                                                aria-hidden
+                                                viewBox="0 0 8 13"
+                                                className={cn('absolute top-0 h-3 w-2', isMe ? '-right-[7px] fill-chat-own' : '-left-[7px] -scale-x-100 fill-chat-other')}
+                                            >
+                                                <path d="M0 0h8L2 13H0z" />
+                                            </svg>
+                                        )}
                                         {msg.is_deleted ? (
-                                            <span className="flex items-center gap-1 text-xs opacity-70"><Ban size={12} aria-hidden /> Nachricht auf diesem Gerät ausgeblendet.</span>
+                                            <span className="flex items-center gap-1 pr-14 text-xs opacity-70"><Ban size={12} aria-hidden /> Nachricht auf diesem Gerät ausgeblendet.</span>
                                         ) : isEditing ? (
                                             <div className="min-w-[200px] space-y-2">
                                                 <Textarea
                                                     value={editContent}
                                                     onChange={(e) => setEditContent(e.target.value)}
                                                     onKeyDown={(e) => handleEditKeyDown(e, msg.id)}
-                                                    className="min-h-20 w-full resize-none bg-card text-sm text-foreground"
+                                                    className="min-h-20 w-full resize-none bg-chat-other text-sm text-chat-text"
                                                     rows={2}
                                                     autoFocus
                                                 />
                                                 <div className="flex justify-end gap-1.5">
-                                                    <Button variant="outline" size="sm" type="button" onClick={cancelEditing} className="h-10 rounded-full bg-card px-4 text-xs text-foreground">
+                                                    <Button variant="outline" size="sm" type="button" onClick={cancelEditing} className="h-10 rounded-full bg-chat-other px-4 text-xs text-chat-text">
                                                         Abbrechen
                                                     </Button>
                                                     <Button size="sm" type="button" onClick={() => saveEdit(msg.id)} className="h-10 rounded-full px-4 text-xs font-semibold">
@@ -391,7 +410,7 @@ export default function Chat() {
                                             </div>
                                         ) : (
                                             <div>
-                                                <div className="whitespace-pre-wrap">{msg.content}</div>
+                                                <div className="whitespace-pre-wrap pr-14">{msg.content}</div>
                                                 {msg.content.includes('TERMIN-VEREINBARUNG') && (
                                                     <Button
                                                         variant="outline"
@@ -410,7 +429,7 @@ export default function Chat() {
                                                                 durationMinutes: 45
                                                             });
                                                         }}
-                                                        className="mt-2 h-11 gap-1.5 rounded-lg bg-card px-3 text-xs font-semibold text-foreground"
+                                                        className="mt-2 h-10 gap-1.5 rounded-full border-chat-border bg-chat-other px-3 text-xs font-semibold text-chat-text"
                                                     >
                                                         <Download size={14} aria-hidden /> In Kalender speichern (.ics)
                                                     </Button>
@@ -419,34 +438,45 @@ export default function Chat() {
                                         )}
 
                                         {!isEditing && (
-                                            <div className={cn("mt-1 flex items-center justify-end gap-1", isMe ? "text-primary-foreground/65" : "text-muted-foreground")}>
+                                            <span className={cn("pointer-events-none absolute bottom-1 right-2 inline-flex items-center gap-1 text-[11px] leading-none", isMe ? "text-chat-meta-own" : "text-chat-meta")}>
                                                 {msg.edited_at && !msg.is_deleted && (
-                                                    <span className="text-[11px] italic leading-none">(bearbeitet)</span>
+                                                    <span className="italic">bearbeitet</span>
                                                 )}
-                                                <span className="ml-1 text-[11px] leading-none tabular-nums">{time}</span>
+                                                <span className="tabular-nums">{time}</span>
                                                 {isMe && !msg.is_deleted && (
                                                     <span className="ml-0.5">
-                                                        {msg.read_at ? <CheckCheck size={13} aria-hidden /> : <Check size={13} aria-hidden />}
+                                                        {msg.read_at
+                                                            ? <CheckCheck size={14} className="text-chat-tick-read" aria-hidden />
+                                                            : <Check size={14} className="text-chat-tick-sent" aria-hidden />}
                                                     </span>
                                                 )}
-                                                {isMe && !msg.is_deleted && (
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger aria-label="Nachricht bearbeiten oder ausblenden" className="-my-2 -mr-2 ml-0.5 grid size-8 place-items-center rounded-full opacity-100 transition-opacity hover:bg-black/10 sm:opacity-0 sm:group-hover/message:opacity-100 sm:focus-visible:opacity-100 dark:hover:bg-white/10">
-                                                            <MoreVertical size={13} aria-hidden />
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end" sideOffset={6} className="min-w-44 p-1">
-                                                            <DropdownMenuItem onClick={() => startEditing(msg)} className="min-h-11 gap-2.5 px-3">
-                                                                <Pencil size={15} aria-hidden /> Bearbeiten
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem variant="destructive" onClick={() => deleteMessage(msg.id)} className="min-h-11 gap-2.5 px-3">
-                                                                <Trash2 size={15} aria-hidden /> Ausblenden
-                                                            </DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                )}
-                                            </div>
+                                            </span>
                                         )}
                                     </div>
+
+                                    {isMe && !msg.is_deleted && !isEditing && (
+                                        <DropdownMenu open={menuOpenId === msg.id} onOpenChange={(open) => setMenuOpenId(open ? msg.id : null)}>
+                                            <DropdownMenuTrigger
+                                                aria-label="Nachricht bearbeiten oder ausblenden"
+                                                onClick={(event) => event.stopPropagation()}
+                                                className={cn(
+                                                    "ml-1 mt-0.5 grid size-8 shrink-0 place-items-center rounded-full text-chat-meta transition-opacity hover:bg-black/5 dark:hover:bg-white/10",
+                                                    menuOpenId === msg.id ? "opacity-100" : "opacity-0 group-hover/message:opacity-100 focus-visible:opacity-100"
+                                                )}
+                                            >
+                                                <MoreVertical size={16} aria-hidden />
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" sideOffset={6} className="min-w-44 p-1">
+                                                <DropdownMenuItem onClick={() => startEditing(msg)} className="min-h-11 gap-2.5 px-3">
+                                                    <Pencil size={15} aria-hidden /> Bearbeiten
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem variant="destructive" onClick={() => deleteMessage(msg.id)} className="min-h-11 gap-2.5 px-3">
+                                                    <Trash2 size={15} aria-hidden /> Ausblenden
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    )}
+                                    {lastInGroup && <span className="sr-only">Ende der Nachrichtengruppe</span>}
                                 </div>
                             </div>
                         );
@@ -456,24 +486,26 @@ export default function Chat() {
             </div>
 
             {/* Input Area */}
-            <div className="shrink-0 border-t border-border/60 bg-card p-2 px-3 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
-                <form onSubmit={sendMessage} className="flex items-end gap-2">
-                    <Input
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder="Nachricht schreiben"
-                        className="h-12 flex-1 rounded-full bg-muted/60 text-base"
-                        autoComplete="off"
-                        aria-label="Nachricht schreiben"
-                    />
+            <div className="shrink-0 bg-chat-bg px-2 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] sm:px-4">
+                <form onSubmit={sendMessage} className="flex items-center gap-2">
+                    <div className="min-w-0 flex-1 rounded-full bg-chat-composer px-4 shadow-soft">
+                        <Input
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
+                            placeholder="Nachricht schreiben"
+                            className="h-12 w-full border-0 bg-transparent px-0 text-base shadow-none focus-visible:outline-none"
+                            autoComplete="off"
+                            aria-label="Nachricht schreiben"
+                        />
+                    </div>
                     <Button
                         type="submit"
                         size="icon"
-                        className="size-11 shrink-0 rounded-full"
+                        className="size-12 shrink-0 rounded-full bg-chat-send text-white shadow-soft hover:-translate-y-0.5 hover:bg-chat-send hover:shadow-card active:scale-[0.98]"
                         disabled={!newMessage.trim()}
                         aria-label="Nachricht senden"
                     >
-                        <Send size={18} className="ml-0.5" aria-hidden />
+                        <Send size={19} className="ml-0.5" aria-hidden />
                     </Button>
                 </form>
             </div>
@@ -481,7 +513,7 @@ export default function Chat() {
 
         {/* Appointment Booking Modal */}
         <Dialog open={appointmentModalOpen} onOpenChange={setAppointmentModalOpen}>
-            <DialogContent showCloseButton={false} className="max-h-[90dvh] overflow-y-auto rounded-xl sm:max-w-md">
+            <DialogContent showCloseButton={false} className="max-h-[90dvh] overflow-y-auto rounded-dialog sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2 text-base font-semibold">
                         <CalendarDays className="text-muted-foreground" size={20} aria-hidden />
@@ -520,7 +552,7 @@ export default function Chat() {
                                 value={appDate}
                                 onChange={e => setAppDate(e.target.value)}
                                 required
-                                className="h-11"
+                                className="h-12"
                             />
                         </div>
                         <div className="space-y-1">
@@ -530,14 +562,14 @@ export default function Chat() {
                                 value={appTime}
                                 onChange={e => setAppTime(e.target.value)}
                                 required
-                                className="h-11"
+                                className="h-12"
                             />
                         </div>
                     </div>
 
                     <DialogFooter className="pt-2">
-                        <Button type="button" variant="ghost" onClick={() => setAppointmentModalOpen(false)} className="h-11 rounded-lg">Abbrechen</Button>
-                        <Button type="submit" className="h-11 rounded-lg font-semibold">Termin vorschlagen</Button>
+                        <Button type="button" variant="ghost" onClick={() => setAppointmentModalOpen(false)} className="h-12 rounded-full">Abbrechen</Button>
+                        <Button type="submit" className="h-12 rounded-full font-semibold">Termin vorschlagen</Button>
                     </DialogFooter>
                 </form>
             </DialogContent>

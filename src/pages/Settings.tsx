@@ -465,7 +465,7 @@ export default function Settings() {
             <motion.div variants={itemVariants}>
                 <Card className="border-border bg-card text-center p-6 space-y-4">
                     <div className="flex justify-center">
-                        <Logo className="size-12 text-foreground" />
+                        <Logo className="size-12 text-primary" />
                     </div>
                     <div>
                         <h3

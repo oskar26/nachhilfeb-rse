@@ -33,7 +33,7 @@ export function GradeSelector({ selectedGrades, onChange, className }: GradeSele
                         onClick={() => toggleGrade(grade)}
                         aria-pressed={isSelected}
                         className={cn(
-                            "flex h-11 min-w-11 select-none items-center justify-center rounded-lg border px-3.5 text-sm font-semibold transition-colors",
+                            "flex h-12 min-w-12 select-none items-center justify-center rounded-full border px-3.5 text-sm font-semibold transition-colors",
                             isSelected
                                 ? "border-primary bg-primary text-primary-foreground"
                                 : "border-border bg-card text-muted-foreground hover:border-ring/40 hover:text-foreground"

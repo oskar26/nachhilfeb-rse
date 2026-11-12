@@ -10,11 +10,11 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-[0_1px_2px_rgba(24,24,27,0.08)] hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-[0_8px_20px_-8px_rgba(250,204,21,0.65)]",
+          "bg-primary text-primary-foreground shadow-soft hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-card",
         primary:
-          "bg-primary text-primary-foreground shadow-[0_1px_2px_rgba(24,24,27,0.08)] hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-[0_8px_20px_-8px_rgba(250,204,21,0.65)]",
+          "bg-primary text-primary-foreground shadow-soft hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-card",
         outline:
-          "border-border bg-card text-foreground shadow-[0_1px_2px_rgba(24,24,27,0.04)] hover:-translate-y-0.5 hover:border-border hover:bg-muted hover:text-foreground hover:shadow-soft aria-expanded:bg-muted aria-expanded:text-foreground dark:border-border dark:bg-card dark:hover:bg-muted",
+          "border-border bg-card text-foreground shadow-soft hover:-translate-y-0.5 hover:border-border hover:bg-muted hover:text-foreground hover:shadow-card aria-expanded:bg-muted aria-expanded:text-foreground dark:border-border dark:bg-card dark:hover:bg-muted",
         secondary:
           "bg-muted text-secondary-foreground hover:-translate-y-0.5 hover:bg-secondary aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
         ghost:
@@ -27,13 +27,13 @@ const buttonVariants = cva(
       },
       size: {
         default:
-          "h-11 gap-2 px-6 has-data-[icon=inline-end]:pr-5 has-data-[icon=inline-start]:pl-5",
+          "h-12 gap-2 px-6 has-data-[icon=inline-end]:pr-5 has-data-[icon=inline-start]:pl-5",
         xs: "h-8 gap-1 rounded-full px-2.5 text-xs in-data-[slot=button-group]:rounded-full has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-11 gap-1.5 rounded-full px-4 text-sm in-data-[slot=button-group]:rounded-full has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3 [&_svg:not([class*='size-'])]:size-4",
-        md: "h-11 gap-2 px-6 has-data-[icon=inline-end]:pr-5 has-data-[icon=inline-start]:pl-5",
+        sm: "h-12 gap-1.5 rounded-full px-4 text-sm in-data-[slot=button-group]:rounded-full has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3 [&_svg:not([class*='size-'])]:size-4",
+        md: "h-12 gap-2 px-6 has-data-[icon=inline-end]:pr-5 has-data-[icon=inline-start]:pl-5",
         lg: "h-14 gap-2.5 px-8 has-data-[icon=inline-end]:pr-7 has-data-[icon=inline-start]:pl-7",
         unstyled: "",
-        icon: "size-11 rounded-full",
+        icon: "size-12 rounded-full",
         "icon-xs": "size-8 rounded-full in-data-[slot=button-group]:rounded-full [&_svg:not([class*='size-'])]:size-3",
         "icon-sm": "size-10 rounded-full in-data-[slot=button-group]:rounded-full",
         "icon-lg": "size-12 rounded-full",

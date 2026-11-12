@@ -30,9 +30,9 @@ export function SocialFilterPills({ options, value, onChange, ariaLabel }: Socia
                             if (!isActive) onChange(option.key);
                         }}
                         className={cn(
-                            'inline-flex min-h-11 items-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium transition-colors',
+                            'inline-flex min-h-11 items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition-colors',
                             isActive
-                                ? 'border-foreground bg-muted text-foreground'
+                                ? 'border-primary bg-primary text-primary-foreground'
                                 : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
                         )}
                     >
@@ -40,8 +40,8 @@ export function SocialFilterPills({ options, value, onChange, ariaLabel }: Socia
                         {typeof option.count === 'number' && (
                             <span
                                 className={cn(
-                                    'inline-flex min-w-5 items-center justify-center rounded-md px-1.5 py-0.5 text-xs font-medium leading-none tabular-nums',
-                                    isActive ? 'bg-background text-foreground' : 'bg-muted text-muted-foreground'
+                                    'inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-xs font-semibold leading-none tabular-nums',
+                                    isActive ? 'bg-white/70 text-primary-foreground' : 'bg-muted text-muted-foreground'
                                 )}
                             >
                                 {option.count}

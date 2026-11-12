@@ -26,19 +26,14 @@ export function MatchScoreBadge({ score, className }: { score: number; className
         <Badge
             variant="default"
             className={cn(
-                'inline-flex h-auto shrink-0 flex-col items-center rounded-xl border-0 bg-primary px-3.5 py-2 text-primary-foreground',
+                'inline-flex h-8 shrink-0 items-center gap-1 rounded-full border-0 px-3 text-xs font-bold',
+                tier === 'top' ? 'bg-pastel-yellow text-pastel-yellow-foreground' : 'bg-pastel-mint text-pastel-mint-foreground',
                 className
             )}
             aria-label={`Übereinstimmung ${score} Prozent: ${TIER_LABEL[tier]}`}
         >
-            <span className="flex items-center gap-1 font-sans text-2xl font-semibold leading-none tabular-nums">
-                <Zap size={16} className="shrink-0" fill="currentColor" aria-hidden />
-                {score}
-                <span className="text-base">%</span>
-            </span>
-            <span className="mt-1 text-xs font-semibold text-primary-foreground/80">
-                {TIER_LABEL[tier]}
-            </span>
+            <Zap size={13} className="shrink-0" fill="currentColor" aria-hidden />
+            <span className="tabular-nums">{score} % passend</span>
         </Badge>
     );
 }
