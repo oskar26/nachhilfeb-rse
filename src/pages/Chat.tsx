@@ -263,7 +263,7 @@ export default function Chat() {
 
     if (loading) return (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8" role="status">
-            <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <div className="size-8 animate-spin rounded-lg border-2 border-primary border-t-transparent" />
             <p className="text-sm text-muted-foreground">Lade Chat…</p>
         </div>
     );
@@ -273,11 +273,11 @@ export default function Chat() {
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-card">
             {/* Header */}
             <header className="flex shrink-0 items-center gap-0.5 border-b border-border bg-card/95 p-1.5 backdrop-blur md:gap-1 md:p-2">
-                <Button variant="ghost" size="icon" onClick={() => navigate('/requests')} className="size-11 shrink-0 rounded-full" aria-label="Zurück zu den Anfragen">
+                <Button variant="ghost" size="icon" onClick={() => navigate('/requests')} className="size-11 shrink-0 rounded-lg" aria-label="Zurück zu den Anfragen">
                     <ChevronLeft size={20} aria-hidden />
                 </Button>
                 <div className="flex min-w-0 flex-1 items-center gap-2.5 px-0.5">
-                    <div className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-full bg-primary/20 text-sm font-semibold text-brand-ink dark:text-primary">
+                    <div className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-lg bg-muted text-sm font-semibold text-foreground">
                         {otherUser?.avatar_url ? <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" /> : (otherUser?.display_name?.charAt(0) || '?')}
                     </div>
                     <div className="min-w-0">
@@ -290,7 +290,7 @@ export default function Chat() {
                     variant="ghost"
                     size="icon"
                     onClick={() => setAppointmentModalOpen(true)}
-                    className="size-11 shrink-0 rounded-full"
+                    className="size-11 shrink-0 rounded-lg"
                     title="Termin für Nachhilfestunde vereinbaren"
                     aria-label="Termin vereinbaren"
                 >
@@ -302,7 +302,7 @@ export default function Chat() {
                     onClick={() => setReportOpen(true)}
                     title="Nutzer melden"
                     aria-label="Nutzer melden"
-                    className="size-11 shrink-0 rounded-full text-destructive hover:bg-destructive/10"
+                    className="size-11 shrink-0 rounded-lg text-destructive hover:bg-destructive/10"
                 >
                     <Flag size={19} aria-hidden />
                 </Button>
@@ -310,7 +310,7 @@ export default function Chat() {
                 <DropdownMenu>
                     <DropdownMenuTrigger
                         aria-label="Weitere Optionen"
-                        className="grid size-11 shrink-0 place-items-center rounded-full text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                        className="grid size-11 shrink-0 place-items-center rounded-lg text-foreground transition-colors hover:bg-muted"
                     >
                         <MoreVertical size={20} aria-hidden />
                     </DropdownMenuTrigger>
@@ -335,8 +335,8 @@ export default function Chat() {
             {/* Messages Area */}
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-background px-3 py-4 sm:px-4">
                 {messages.length === 0 ? (
-                    <div className="mx-auto max-w-sm rounded-2xl border border-border bg-card p-4 text-center text-xs leading-relaxed text-muted-foreground shadow-soft">
-                        Hier beginnt euer Chat. Deine Nachrichten werden über eine verschlüsselte Verbindung (HTTPS) übertragen und auf Servern in Deutschland gespeichert. Bitte achte auf unsere <a href="#/nutzungsbedingungen" className="font-semibold text-brand-ink underline underline-offset-4 dark:text-primary">Nutzungsbedingungen</a>.
+                    <div className="mx-auto max-w-sm rounded-2xl border border-border bg-card p-4 text-center text-xs leading-relaxed text-muted-foreground">
+                        Hier beginnt euer Chat. Deine Nachrichten werden über eine verschlüsselte Verbindung (HTTPS) übertragen und auf Servern in Deutschland gespeichert. Bitte achte auf unsere <a href="#/nutzungsbedingungen" className="font-semibold text-foreground underline underline-offset-4">Nutzungsbedingungen</a>.
                     </div>
                 ) : (
                     messages.map((msg, idx) => {
@@ -352,7 +352,7 @@ export default function Chat() {
                             <div key={msg.id} className="flex flex-col">
                                 {showDate && (
                                     <div className="my-3 text-center">
-                                        <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-soft">
+                                        <span className="rounded-md border border-border bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground">
                                             {new Date(msg.created_at).toLocaleDateString([], { weekday: 'long', day: '2-digit', month: 'long' })}
                                         </span>
                                     </div>
@@ -360,10 +360,10 @@ export default function Chat() {
                                 <div className={cn("relative flex max-w-[85%]", isMe ? "self-end" : "self-start")}>
                                     <div
                                         className={cn(
-                                            "relative min-w-20 break-words rounded-2xl px-3 py-2 text-sm leading-relaxed shadow-soft",
+                                            "relative min-w-20 break-words rounded-xl px-3 py-2 text-sm leading-relaxed",
                                             isMe
-                                                ? "rounded-br-md bg-primary text-primary-foreground"
-                                                : "rounded-bl-md border border-border bg-card text-card-foreground",
+                                                ? "rounded-br-md bg-foreground text-background"
+                                                : "rounded-bl-md bg-muted text-foreground",
                                             msg.is_deleted && "italic opacity-70"
                                         )}
                                     >
@@ -380,10 +380,10 @@ export default function Chat() {
                                                     autoFocus
                                                 />
                                                 <div className="flex justify-end gap-1.5">
-                                                    <Button variant="outline" size="sm" type="button" onClick={cancelEditing} className="h-11 rounded-full bg-card px-4 text-xs text-foreground">
+                                                    <Button variant="outline" size="sm" type="button" onClick={cancelEditing} className="h-11 rounded-lg bg-card px-4 text-xs text-foreground">
                                                         Abbrechen
                                                     </Button>
-                                                    <Button size="sm" type="button" onClick={() => saveEdit(msg.id)} className="h-11 rounded-full px-4 text-xs font-semibold">
+                                                    <Button size="sm" type="button" onClick={() => saveEdit(msg.id)} className="h-11 rounded-lg px-4 text-xs font-semibold">
                                                         Speichern
                                                     </Button>
                                                 </div>
@@ -409,7 +409,7 @@ export default function Chat() {
                                                                 durationMinutes: 45
                                                             });
                                                         }}
-                                                        className="mt-2 h-11 gap-1.5 rounded-full bg-card px-3 text-xs font-semibold text-foreground"
+                                                        className="mt-2 h-11 gap-1.5 rounded-lg bg-card px-3 text-xs font-semibold text-foreground"
                                                     >
                                                         <Download size={14} aria-hidden /> In Kalender speichern (.ics)
                                                     </Button>
@@ -418,7 +418,7 @@ export default function Chat() {
                                         )}
 
                                         {!isEditing && (
-                                            <div className={cn("mt-1 flex items-center justify-end gap-1", isMe ? "text-primary-foreground/75" : "text-muted-foreground")}>
+                                            <div className={cn("mt-1 flex items-center justify-end gap-1", isMe ? "text-background/75" : "text-muted-foreground")}>
                                                 {msg.edited_at && !msg.is_deleted && (
                                                     <span className="text-xs italic leading-none">(bearbeitet)</span>
                                                 )}
@@ -430,7 +430,7 @@ export default function Chat() {
                                                 )}
                                                 {isMe && !msg.is_deleted && (
                                                     <DropdownMenu>
-                                                        <DropdownMenuTrigger aria-label="Nachricht bearbeiten oder ausblenden" className="-my-2 -mr-2 ml-0.5 grid size-11 place-items-center rounded-full transition-colors hover:bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-white/10">
+                                                        <DropdownMenuTrigger aria-label="Nachricht bearbeiten oder ausblenden" className="-my-2 -mr-2 ml-0.5 grid size-11 place-items-center rounded-lg transition-colors hover:bg-black/10 dark:hover:bg-white/10">
                                                             <MoreVertical size={14} aria-hidden />
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end" sideOffset={6} className="min-w-44 p-1">
@@ -468,7 +468,7 @@ export default function Chat() {
                     <Button
                         type="submit"
                         size="icon"
-                        className="size-11 shrink-0 rounded-full"
+                        className="size-11 shrink-0 rounded-lg"
                         disabled={!newMessage.trim()}
                         aria-label="Nachricht senden"
                     >
@@ -480,10 +480,10 @@ export default function Chat() {
 
         {/* Appointment Booking Modal */}
         <Dialog open={appointmentModalOpen} onOpenChange={setAppointmentModalOpen}>
-            <DialogContent showCloseButton={false} className="max-h-[90dvh] overflow-y-auto rounded-3xl sm:max-w-md">
+            <DialogContent showCloseButton={false} className="max-h-[90dvh] overflow-y-auto rounded-xl sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2 text-base font-semibold">
-                        <CalendarDays className="text-brand-ink dark:text-primary" size={20} aria-hidden />
+                        <CalendarDays className="text-muted-foreground" size={20} aria-hidden />
                         Nachhilfetermin vereinbaren
                     </DialogTitle>
                     <DialogDescription>
@@ -535,8 +535,8 @@ export default function Chat() {
                     </div>
 
                     <DialogFooter className="pt-2">
-                        <Button type="button" variant="ghost" onClick={() => setAppointmentModalOpen(false)} className="h-11 rounded-full">Abbrechen</Button>
-                        <Button type="submit" className="h-11 rounded-full font-semibold">Termin vorschlagen</Button>
+                        <Button type="button" variant="ghost" onClick={() => setAppointmentModalOpen(false)} className="h-11 rounded-lg">Abbrechen</Button>
+                        <Button type="submit" className="h-11 rounded-lg font-semibold">Termin vorschlagen</Button>
                     </DialogFooter>
                 </form>
             </DialogContent>

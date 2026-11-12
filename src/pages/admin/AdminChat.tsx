@@ -172,9 +172,9 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
 
     if (!userId1 || !userId2 || !reportId) {
         return (
-            <Card className="overflow-hidden py-16 text-center shadow-soft">
+            <Card className="overflow-hidden py-16 text-center ">
                 <CardContent className="mx-auto max-w-md space-y-4">
-                    <div className="mx-auto grid size-16 place-items-center rounded-full bg-destructive/10 text-destructive">
+                    <div className="mx-auto grid size-16 place-items-center rounded-xl bg-destructive/10 text-destructive">
                         <Lock size={32} aria-hidden />
                     </div>
                     <h2 className="text-xl font-semibold text-foreground">Kein Chat ausgewählt</h2>
@@ -193,7 +193,7 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
     }
 
     return (
-        <Card className="flex h-[calc(100dvh-17rem)] min-h-[380px] flex-col overflow-hidden shadow-soft md:h-[600px]">
+        <Card className="flex h-[calc(100dvh-17rem)] min-h-[380px] flex-col overflow-hidden md:h-[600px]">
             {/* Header */}
             <div className="flex shrink-0 flex-col gap-3 border-b border-border bg-muted/40 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex min-w-0 items-center gap-3">
@@ -213,7 +213,7 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                    <span className="flex items-center gap-1 rounded-full bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive">
+                    <span className="flex items-center gap-1 rounded-md bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive">
                         <Shield size={16} aria-hidden />
                         SV Einsicht
                     </span>
@@ -244,12 +244,12 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
                     </div>
                 ) : granting ? (
                     <div className="m-auto text-center">
-                        <Spinner className="mx-auto size-6 text-brand-ink dark:text-primary" />
+                        <Spinner className="mx-auto size-6 text-foreground" />
                         <p className="mt-2 text-xs font-medium text-muted-foreground">Fordere temporäre RLS-Einsichtsrechte an...</p>
                     </div>
                 ) : loading ? (
                     <div className="m-auto text-center">
-                        <Spinner className="mx-auto size-6 text-brand-ink dark:text-primary" />
+                        <Spinner className="mx-auto size-6 text-foreground" />
                         <p className="mt-2 text-xs text-muted-foreground">Lade Chatnachrichten...</p>
                     </div>
                 ) : !chatFound ? (
@@ -273,10 +273,10 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
                             <div
                                 key={msg.id}
                                 className={cn(
-                                    'flex max-w-[85%] flex-col gap-1 rounded-2xl border p-3 shadow-soft sm:max-w-[75%]',
+                                    'flex max-w-[85%] flex-col gap-1 rounded-2xl border p-3 sm:max-w-[75%]',
                                     isUser1
                                         ? 'self-start border-border bg-card'
-                                        : 'self-end border-primary/20 bg-primary/10',
+                                        : 'self-end border-border bg-muted',
                                     profanity && 'border-destructive/30 bg-destructive/10'
                                 )}
                             >
@@ -297,7 +297,7 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
                                 </p>
 
                                 {profanity && (
-                                    <div className="mt-1.5 flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive">
+                                    <div className="mt-1.5 flex items-center gap-1 rounded-md bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive">
                                         <AlertTriangle size={16} aria-hidden />
                                         Möglicher Regelverstoß (Beleidigung)
                                     </div>

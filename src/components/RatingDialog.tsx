@@ -62,7 +62,7 @@ export function RatingDialog({ open, onOpenChange, targetUser, adId, onSuccess }
                                 aria-checked={rating === star}
                                 aria-label={`${star} von 5 Sternen`}
                                 onClick={() => setRating(star)}
-                                className={`grid size-11 place-items-center rounded-full transition-colors ${rating >= star ? 'text-brand-ink dark:text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                                className={`grid size-11 place-items-center rounded-full transition-colors ${rating >= star ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                             >
                                 <Star fill={rating >= star ? 'currentColor' : 'none'} size={30} strokeWidth={1.75} aria-hidden />
                             </Button>

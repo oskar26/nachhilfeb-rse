@@ -337,7 +337,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
             <DialogContent showCloseButton={false} className="max-h-[92dvh] overflow-y-auto p-0 sm:max-w-lg">
                 <DialogHeader className="relative border-b border-border p-5 pr-16 sm:p-6 sm:pb-3">
                     <div className="flex items-center gap-2">
-                        <Sparkles size={20} className="text-brand-ink dark:text-primary" aria-hidden />
+                        <Sparkles size={20} className="text-foreground" aria-hidden />
                         <DialogTitle className="text-base font-semibold">Profilbild erstellen</DialogTitle>
                     </div>
                     <DialogDescription className="text-xs text-muted-foreground">
@@ -346,7 +346,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                     <Button variant="unstyled" size="unstyled" type="button"
                         onClick={onClose}
                         aria-label="Profilbild-Dialog schließen"
-                        className="absolute right-2 top-2 grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        className="absolute right-2 top-2 grid size-11 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     >
                         <X size={18} aria-hidden />
                     </Button>
@@ -359,7 +359,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                         aria-pressed={mode === 'symbol'}
                         className={cn(
                             "flex min-h-11 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition-colors",
-                            mode === 'symbol' ? "bg-card text-foreground shadow-soft" : "text-muted-foreground hover:bg-card/70 hover:text-foreground"
+                            mode === 'symbol' ? "bg-card text-foreground" : "text-muted-foreground hover:bg-card/70 hover:text-foreground"
                         )}
                     >
                         <Shapes size={15} /> Symbol
@@ -369,7 +369,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                         aria-pressed={mode === 'text'}
                         className={cn(
                             "flex min-h-11 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition-colors",
-                            mode === 'text' ? "bg-card text-foreground shadow-soft" : "text-muted-foreground hover:bg-card/70 hover:text-foreground"
+                            mode === 'text' ? "bg-card text-foreground" : "text-muted-foreground hover:bg-card/70 hover:text-foreground"
                         )}
                     >
                         <Type size={15} /> Text / Initialen
@@ -379,7 +379,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                         aria-pressed={mode === 'draw'}
                         className={cn(
                             "flex min-h-11 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition-colors",
-                            mode === 'draw' ? "bg-card text-foreground shadow-soft" : "text-muted-foreground hover:bg-card/70 hover:text-foreground"
+                            mode === 'draw' ? "bg-card text-foreground" : "text-muted-foreground hover:bg-card/70 hover:text-foreground"
                         )}
                     >
                         <PenTool size={15} /> Zeichnen
@@ -389,7 +389,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                         aria-pressed={mode === 'upload'}
                         className={cn(
                             "flex min-h-11 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition-colors",
-                            mode === 'upload' ? "bg-card text-foreground shadow-soft" : "text-muted-foreground hover:bg-card/70 hover:text-foreground"
+                            mode === 'upload' ? "bg-card text-foreground" : "text-muted-foreground hover:bg-card/70 hover:text-foreground"
                         )}
                     >
                         <Upload size={15} /> Foto
@@ -400,7 +400,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                     {/* Live Preview Bubble */}
                     <div className="flex flex-col items-center justify-center gap-2">
                         <div
-                            className="flex size-32 items-center justify-center overflow-hidden rounded-full border-4 border-card bg-muted shadow-soft"
+                            className="flex size-32 items-center justify-center overflow-hidden rounded-lg border-4 border-card bg-muted"
                             style={{
                                 backgroundColor: mode === 'symbol' ? symbolBg : mode === 'text' ? textBg : undefined
                             }}
@@ -464,11 +464,11 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                                             aria-label={`Hintergrundfarbe ${color}`}
                                             aria-pressed={symbolBg === color}
                                             className={cn(
-                                                "grid size-11 shrink-0 place-items-center rounded-full border-2 transition-colors",
+                                                "grid size-11 shrink-0 place-items-center rounded-lg border-2 transition-colors",
                                                 symbolBg === color ? "border-primary ring-2 ring-primary/30" : "border-transparent hover:border-border"
                                             )}
                                         >
-                                            <span className="block size-7 rounded-full border border-border" style={{ backgroundColor: color }} />
+                                            <span className="block size-7 rounded-lg border border-border" style={{ backgroundColor: color }} />
                                         </Button>
                                     ))}
                                 </div>
@@ -492,7 +492,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                                                     }}
                                                     className={cn(
                                                         "grid size-11 select-none place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-card hover:text-foreground",
-                                                        selectedSymbol === name && "border border-primary/30 bg-card text-foreground shadow-soft"
+                                                        selectedSymbol === name && "border border-border bg-card text-foreground"
                                                     )}
                                                 >
                                                     <Icon size={24} />
@@ -516,7 +516,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                                     value={textInitials}
                                     onChange={(e) => setTextInitials(e.target.value.toUpperCase())}
                                     placeholder="z.B. MK"
-                                    className="w-full text-center text-xl font-semibold uppercase tracking-widest"
+                                    className="w-full text-center text-xl font-semibold"
                                 />
                             </div>
 
@@ -531,7 +531,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                                             className={cn(
                                                 "min-h-11 rounded-lg border px-3 py-2.5 text-xs font-semibold transition-colors",
                                                 textFontIndex === idx
-                                                    ? "border-primary bg-primary/15 font-semibold text-brand-ink dark:text-primary"
+                                                    ? "border-primary bg-muted font-semibold text-foreground"
                                                     : "border-border hover:bg-muted"
                                             )}
                                         >
@@ -551,11 +551,11 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                                             aria-label={`Hintergrundfarbe ${color}`}
                                             aria-pressed={textBg === color}
                                             className={cn(
-                                                "grid size-11 shrink-0 place-items-center rounded-full border-2 transition-colors",
+                                                "grid size-11 shrink-0 place-items-center rounded-lg border-2 transition-colors",
                                                 textBg === color ? "border-primary ring-2 ring-primary/30" : "border-transparent hover:border-border"
                                             )}
                                         >
-                                            <span className="block size-7 rounded-full border border-border" style={{ backgroundColor: color }} />
+                                            <span className="block size-7 rounded-lg border border-border" style={{ backgroundColor: color }} />
                                         </Button>
                                     ))}
                                 </div>
@@ -571,11 +571,11 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                                             aria-label={`Textfarbe ${c}`}
                                             aria-pressed={textColor === c}
                                             className={cn(
-                                                "grid size-11 shrink-0 place-items-center rounded-full border-2 transition-colors",
+                                                "grid size-11 shrink-0 place-items-center rounded-lg border-2 transition-colors",
                                                 textColor === c ? "border-primary ring-2 ring-primary/30" : "border-border"
                                             )}
                                         >
-                                            <span className="block size-7 rounded-full border border-border" style={{ backgroundColor: c }} />
+                                            <span className="block size-7 rounded-lg border border-border" style={{ backgroundColor: c }} />
                                         </Button>
                                     ))}
                                 </div>
@@ -601,12 +601,12 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                                             aria-label={col === '#ffffff' ? 'Radierer / Weiß' : `Farbe ${col}`}
                                             aria-pressed={brushColor === col}
                                             className={cn(
-                                                "grid size-11 shrink-0 place-items-center rounded-full border transition-colors",
+                                                "grid size-11 shrink-0 place-items-center rounded-lg border transition-colors",
                                                 brushColor === col ? "border-primary ring-2 ring-primary/30" : "border-border"
                                             )}
                                             title={col === '#ffffff' ? 'Radierer / Weiß' : col}
                                         >
-                                            <span className="block size-7 rounded-full border border-border" style={{ backgroundColor: col }} />
+                                            <span className="block size-7 rounded-lg border border-border" style={{ backgroundColor: col }} />
                                         </Button>
                                     ))}
                                 </div>
@@ -638,7 +638,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                                         onClick={handleUndo}
                                         disabled={drawHistory.length <= 1}
                                         aria-label="Rückgängig"
-                                        className="grid size-11 place-items-center rounded-full border border-border transition-colors hover:bg-muted disabled:opacity-40"
+                                        className="grid size-11 place-items-center rounded-lg border border-border transition-colors hover:bg-muted disabled:opacity-40"
                                         title="Rückgängig"
                                     >
                                         <RotateCcw size={16} aria-hidden />
@@ -646,7 +646,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                                     <Button variant="unstyled" size="unstyled" type="button"
                                         onClick={handleClearDraw}
                                         aria-label="Leinwand löschen"
-                                        className="grid size-11 place-items-center rounded-full border border-destructive/25 text-destructive transition-colors hover:bg-destructive/10"
+                                        className="grid size-11 place-items-center rounded-lg border border-destructive/25 text-destructive transition-colors hover:bg-destructive/10"
                                         title="Leinwand löschen"
                                     >
                                         <Trash2 size={16} aria-hidden />
@@ -682,9 +682,9 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                                 size="unstyled"
                                 type="button"
                                 onClick={() => fileInputRef.current?.click()}
-                                className="flex min-h-32 w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-border p-6 transition-colors hover:border-primary hover:bg-muted/50"
+                                className="flex min-h-32 w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-border p-6 transition-colors hover:border-foreground hover:bg-muted/50"
                             >
-                                <span className="grid size-14 place-items-center rounded-full bg-primary/15 text-brand-ink dark:text-primary">
+                                <span className="grid size-14 place-items-center rounded-full bg-muted text-foreground">
                                     <Upload size={26} aria-hidden />
                                 </span>
                                 <span>
@@ -701,7 +701,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                     <Button variant="ghost" onClick={onClose} className="h-11 flex-1 rounded-full">
                         Abbrechen
                     </Button>
-                    <Button onClick={handleSave} className="h-11 flex-[1.4] gap-2 rounded-full font-semibold">
+                    <Button onClick={handleSave} className="h-11 flex-[1.4] gap-2 rounded-lg font-semibold">
                         <Check size={16} aria-hidden /> Als Profilbild speichern
                     </Button>
                 </div>

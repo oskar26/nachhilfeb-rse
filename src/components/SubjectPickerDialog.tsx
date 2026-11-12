@@ -28,7 +28,7 @@ export default function SubjectPickerDialog({ open, onClose, selected, onToggle 
                     <div className="sticky top-0 z-10 border-b border-border bg-background px-5 pb-4 pt-5 text-foreground">
                         <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
-                                <h2 className="font-display text-xl uppercase leading-none tracking-tight">Fach hinzufügen</h2>
+                                <h2 className="text-xl font-semibold leading-tight">Fach hinzufügen</h2>
                                 <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
                                     Wähle deine Fächer – bereits gewählte sind ausgegraut.
                                 </p>
@@ -42,7 +42,7 @@ export default function SubjectPickerDialog({ open, onClose, selected, onToggle 
                                 <X size={18} />
                             </Button>
                         </div>
-                        <div className="mt-3 h-1 w-10 rounded-full bg-primary" aria-hidden />
+                        <div className="mt-3 h-1 w-10 rounded-lg bg-primary" aria-hidden />
                     </div>
 
                     {/* Alle Fächer */}
@@ -85,7 +85,7 @@ export default function SubjectPickerDialog({ open, onClose, selected, onToggle 
                         <p className="text-xs font-semibold tabular-nums text-muted-foreground">
                             {selected.length} {selected.length === 1 ? 'Fach' : 'Fächer'} gewählt
                         </p>
-                        <Button size="sm" onClick={onClose} className="h-11 rounded-full px-5 font-semibold">
+                        <Button size="sm" onClick={onClose} className="h-11 rounded-lg px-5 font-semibold">
                             Fertig
                         </Button>
                     </div>

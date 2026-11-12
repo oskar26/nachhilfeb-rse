@@ -6,8 +6,18 @@ import { api } from '../../lib/api';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Card, CardContent } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
 import { Spinner } from '../../components/ui/spinner';
 import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '../../components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../../components/ui/dialog';
 import {
     AlertDialog,
@@ -33,6 +43,8 @@ import {
     UserMinus,
     Check,
     Trash2,
+    MoreHorizontal,
+    Link2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
@@ -69,29 +81,37 @@ const ROLE_LABELS: Record<Profile['role'], string> = {
     student: 'Schüler',
 };
 
-const ROLE_CLASSES: Record<Profile['role'], string> = {
-    sv_admin: 'bg-primary/15 text-brand-ink dark:text-primary',
-    coach_admin: 'bg-amber-500/15 text-amber-700 dark:text-amber-400',
-    parent: 'bg-muted text-foreground',
-    student: 'bg-muted text-muted-foreground',
-};
-
 function RoleBadge({ role }: { role: Profile['role'] }) {
     return (
-        <span className={cn('rounded-full px-2.5 py-1 text-xs font-medium', ROLE_CLASSES[role])}>
+        <Badge variant="outline" className="font-medium">
             {ROLE_LABELS[role]}
-        </span>
+        </Badge>
     );
 }
 
 function StatusBadge({ user }: { user: Profile }) {
     if (user.is_banned) {
-        return <span className="rounded-full bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive">Gesperrt</span>;
+        return (
+            <Badge variant="outline" className="gap-1.5 font-medium text-destructive">
+                <span className="size-1.5 rounded-full bg-destructive" aria-hidden />
+                Gesperrt
+            </Badge>
+        );
     }
     if (user.is_verified) {
-        return <span className="rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">Verifiziert</span>;
+        return (
+            <Badge variant="outline" className="gap-1.5 font-medium">
+                <span className="size-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400" aria-hidden />
+                Verifiziert
+            </Badge>
+        );
     }
-    return <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">Basis</span>;
+    return (
+        <Badge variant="outline" className="gap-1.5 font-medium text-muted-foreground">
+            <span className="size-1.5 rounded-full bg-muted-foreground/50" aria-hidden />
+            Basis
+        </Badge>
+    );
 }
 
 export default function AdminUsers() {
@@ -356,6 +376,93 @@ export default function AdminUsers() {
     const unverifiedCount = users.filter(u => !u.is_verified && !u.is_banned).length;
     const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
+    const renderUserActions = (user: Profile) => (
+        <DropdownMenu>
+            <DropdownMenuTrigger
+                render={
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-10"
+                        aria-label={`Aktionen für ${user.display_name || user.first_name || 'Nutzer'}`}
+                    />
+                }
+            >
+                <MoreHorizontal size={18} aria-hidden />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Aktionen</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setEditingUser(user)}>
+                    <Edit aria-hidden />
+                    Bearbeiten
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    onClick={() => setConfirmAction({
+                        type: 'role',
+                        user,
+                        title: user.role === 'sv_admin' ? 'Admin-Rechte entziehen?' : 'Zum Admin machen?',
+                        message: user.role === 'sv_admin'
+                            ? `Möchtest du ${user.display_name} wirklich die SV-Admin-Berechtigungen entziehen?`
+                            : `Möchtest du ${user.display_name} wirklich zum SV-Admin ernennen? Dieser Nutzer hat danach vollen Zugriff auf das Admin-Panel.`
+                    })}
+                >
+                    <ShieldCheck aria-hidden />
+                    {user.role === 'sv_admin' ? 'Admin-Rechte entziehen' : 'Zum Admin machen'}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    onClick={() => setConfirmAction({
+                        type: 'verify',
+                        user,
+                        title: user.is_verified ? 'Verifizierung aufheben?' : 'Nutzer verifizieren?',
+                        message: user.is_verified
+                            ? `Möchtest du die Verifizierung von ${user.display_name} aufheben?`
+                            : `Möchtest du ${user.display_name} verifizieren? Damit erhält der Nutzer die Erlaubnis, Nachhilfeanzeigen zu erstellen.`
+                    })}
+                >
+                    {user.is_verified ? <CheckCircle aria-hidden /> : <Check aria-hidden />}
+                    {user.is_verified ? 'Verifizierung aufheben' : 'Verifizieren'}
+                </DropdownMenuItem>
+                {user.role === 'parent' && (
+                    <DropdownMenuItem onClick={() => fetchUserRelations(user)}>
+                        <Link2 aria-hidden />
+                        Verknüpfte Kinder
+                    </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                {user.is_banned ? (
+                    <DropdownMenuItem
+                        onClick={() => setConfirmAction({
+                            type: 'unban',
+                            user,
+                            title: 'Nutzer entsperren?',
+                            message: `Möchtest du den Account von ${user.display_name} wieder freigeben?`
+                        })}
+                    >
+                        <UserMinus aria-hidden />
+                        Entsperren
+                    </DropdownMenuItem>
+                ) : (
+                    <DropdownMenuItem onClick={() => setBanUserObj(user)}>
+                        <Ban aria-hidden />
+                        Sperren
+                    </DropdownMenuItem>
+                )}
+                <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => setConfirmAction({
+                        type: 'delete',
+                        user,
+                        title: 'Nutzer endgültig löschen?',
+                        message: `Der Account von ${user.display_name || 'diesem Nutzer'} wird mit ALLEN Anzeigen, Nachrichten und Bewertungen unwiderruflich gelöscht (DSGVO-Löschung). Nur im Audit-Protokoll bleibt eine Spur. Fortfahren?`
+                    })}
+                >
+                    <Trash2 aria-hidden />
+                    Endgültig löschen
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+
     return (
         <div className="space-y-6">
             {/* Header controls */}
@@ -422,7 +529,7 @@ export default function AdminUsers() {
                     </Button>
 
                     {/* View Switcher */}
-                    <div className="flex shrink-0 items-center gap-1 rounded-full border border-border bg-muted p-1">
+                    <div className="flex shrink-0 items-center gap-1 rounded-lg border border-border bg-muted p-1">
                         <Button
                             variant="unstyled"
                             size="unstyled"
@@ -431,8 +538,8 @@ export default function AdminUsers() {
                             aria-pressed={viewMode === 'list'}
                             aria-label="Listenansicht"
                             className={cn(
-                                'grid h-11 w-11 place-items-center rounded-full transition-colors',
-                                viewMode === 'list' ? 'bg-card text-foreground shadow-soft' : 'text-muted-foreground hover:text-foreground'
+                                'grid h-11 w-11 place-items-center rounded-lg transition-colors',
+                                viewMode === 'list' ? 'border border-border bg-card text-foreground' : 'text-muted-foreground hover:text-foreground'
                             )}
                         >
                             <ListIcon size={16} aria-hidden />
@@ -445,8 +552,8 @@ export default function AdminUsers() {
                             aria-pressed={viewMode === 'grid'}
                             aria-label="Kachelansicht"
                             className={cn(
-                                'grid h-11 w-11 place-items-center rounded-full transition-colors',
-                                viewMode === 'grid' ? 'bg-card text-foreground shadow-soft' : 'text-muted-foreground hover:text-foreground'
+                                'grid h-11 w-11 place-items-center rounded-lg transition-colors',
+                                viewMode === 'grid' ? 'border border-border bg-card text-foreground' : 'text-muted-foreground hover:text-foreground'
                             )}
                         >
                             <LayoutGrid size={16} aria-hidden />
@@ -470,7 +577,7 @@ export default function AdminUsers() {
             {/* List/Grid displays */}
             {loadError ? null : loading ? (
                 <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card py-16 text-center">
-                    <Spinner className="size-6 text-brand-ink dark:text-primary" />
+                    <Spinner className="size-6 text-foreground" />
                     <p className="text-sm text-muted-foreground">Lade Benutzerdaten...</p>
                 </div>
             ) : filteredUsers.length === 0 ? (
@@ -480,131 +587,58 @@ export default function AdminUsers() {
                     <p className="mt-1 text-xs text-muted-foreground">Passe deine Suchfilter an oder lade die Liste neu.</p>
                 </div>
             ) : viewMode === 'list' ? (
-                <Card className="shadow-soft">
+                <Card>
                     <CardContent className="p-0">
-                        <ul className="divide-y divide-border">
-                            {filteredUsers.map(u => (
-                                <li key={u.id} className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
-                                    <div className="flex min-w-0 items-center gap-3">
-                                        <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/15 font-semibold text-brand-ink dark:text-primary">
-                                            {u.avatar_url ? (
-                                                <img src={u.avatar_url} alt="" className="size-10 rounded-xl object-cover" />
-                                            ) : (
-                                                (u.display_name || u.first_name || '?').charAt(0).toUpperCase()
-                                            )}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <span className="break-words text-sm font-semibold text-foreground">{u.display_name || `${u.first_name} ${u.last_name}`}</span>
-                                                <RoleBadge role={u.role} />
-                                                <StatusBadge user={u} />
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="pl-4">Nutzer</TableHead>
+                                    <TableHead className="hidden md:table-cell">E-Mail</TableHead>
+                                    <TableHead className="hidden sm:table-cell">Stufe</TableHead>
+                                    <TableHead className="hidden lg:table-cell">Rolle</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead className="pr-4 text-right">Aktionen</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredUsers.map(u => (
+                                    <TableRow key={u.id}>
+                                        <TableCell className="py-3 pl-4">
+                                            <div className="flex min-w-0 items-center gap-3">
+                                                <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-muted font-semibold text-foreground">
+                                                    {u.avatar_url ? (
+                                                        <img src={u.avatar_url} alt="" className="size-10 rounded-lg object-cover" />
+                                                    ) : (
+                                                        (u.display_name || u.first_name || '?').charAt(0).toUpperCase()
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <div className="break-words text-sm font-semibold text-foreground">{u.display_name || `${u.first_name} ${u.last_name}`}</div>
+                                                    <div className="mt-0.5 break-all text-xs text-muted-foreground md:hidden">{u.email}</div>
+                                                </div>
                                             </div>
-                                            <div className="mt-0.5 break-all text-xs text-muted-foreground">{u.email}</div>
-                                            <div className="mt-0.5 text-xs text-muted-foreground">
-                                                Stufe {u.grade_level ? `${u.grade_level}${u.class_letter || ''}` : '--'}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-wrap items-center gap-1.5 lg:justify-end">
-                                        <Button size="icon" variant="ghost" className="h-11 w-11" onClick={() => setEditingUser(u)} title="Bearbeiten" aria-label="Bearbeiten">
-                                            <Edit size={16} aria-hidden />
-                                        </Button>
-                                        <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            className={cn('h-11 w-11', u.role === 'sv_admin' && 'bg-primary/15 text-brand-ink dark:text-primary')}
-                                            onClick={() => setConfirmAction({
-                                                type: 'role',
-                                                user: u,
-                                                title: u.role === 'sv_admin' ? 'Admin-Rechte entziehen?' : 'Zum Admin machen?',
-                                                message: u.role === 'sv_admin'
-                                                    ? `Möchtest du ${u.display_name} wirklich die SV-Admin-Berechtigungen entziehen?`
-                                                    : `Möchtest du ${u.display_name} wirklich zum SV-Admin ernennen? Dieser Nutzer hat danach vollen Zugriff auf das Admin-Panel.`
-                                            })}
-                                            title="Admin Rechte umschalten"
-                                            aria-label="Admin-Rechte umschalten"
-                                        >
-                                            <ShieldCheck size={16} aria-hidden />
-                                        </Button>
-                                        <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            className={cn('h-11 w-11', u.is_verified && 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400')}
-                                            onClick={() => setConfirmAction({
-                                                type: 'verify',
-                                                user: u,
-                                                title: u.is_verified ? 'Verifizierung aufheben?' : 'Nutzer verifizieren?',
-                                                message: u.is_verified
-                                                    ? `Möchtest du die Verifizierung von ${u.display_name} aufheben?`
-                                                    : `Möchtest du ${u.display_name} verifizieren? Damit erhält der Nutzer die Erlaubnis, Nachhilfeanzeigen zu erstellen.`
-                                            })}
-                                            title="Verifizierung schalten"
-                                            aria-label="Verifizierung umschalten"
-                                        >
-                                            {u.is_verified ? <Check size={16} aria-hidden /> : <CheckCircle size={16} aria-hidden />}
-                                        </Button>
-                                        {u.role === 'parent' && (
-                                            <Button size="icon" variant="ghost" className="h-11 w-11 text-emerald-700 dark:text-emerald-400" onClick={() => fetchUserRelations(u)} title="Verknüpfte Kinder ansehen" aria-label="Verknüpfte Kinder ansehen">
-                                                <UsersIcon size={16} aria-hidden />
-                                            </Button>
-                                        )}
-                                        {u.is_banned ? (
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                className="h-11 w-11 text-emerald-700 dark:text-emerald-400"
-                                                onClick={() => setConfirmAction({
-                                                    type: 'unban',
-                                                    user: u,
-                                                    title: 'Nutzer entsperren?',
-                                                    message: `Möchtest du den Account von ${u.display_name} wieder freigeben?`
-                                                })}
-                                                title="Entsperren"
-                                                aria-label="Nutzer entsperren"
-                                            >
-                                                <UserMinus size={16} aria-hidden />
-                                            </Button>
-                                        ) : (
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                className="h-11 w-11 text-destructive"
-                                                onClick={() => setBanUserObj(u)}
-                                                title="Sperren"
-                                                aria-label="Nutzer sperren"
-                                            >
-                                                <Ban size={16} aria-hidden />
-                                            </Button>
-                                        )}
-                                        <Button
-                                            size="icon"
-                                            variant="destructive"
-                                            className="h-11 w-11"
-                                            onClick={() => setConfirmAction({
-                                                type: 'delete',
-                                                user: u,
-                                                title: 'Nutzer endgültig löschen?',
-                                                message: `Der Account von ${u.display_name || 'diesem Nutzer'} wird mit ALLEN Anzeigen, Nachrichten und Bewertungen unwiderruflich gelöscht (DSGVO-Löschung). Nur im Audit-Protokoll bleibt eine Spur. Fortfahren?`
-                                            })}
-                                            title="Nutzer endgültig löschen"
-                                            aria-label="Nutzer endgültig löschen"
-                                        >
-                                            <Trash2 size={16} aria-hidden />
-                                        </Button>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
+                                        </TableCell>
+                                        <TableCell className="hidden max-w-[220px] whitespace-normal break-all text-xs text-muted-foreground md:table-cell">{u.email}</TableCell>
+                                        <TableCell className="hidden text-sm text-muted-foreground sm:table-cell">
+                                            {u.grade_level ? `${u.grade_level}${u.class_letter || ''}` : '—'}
+                                        </TableCell>
+                                        <TableCell className="hidden lg:table-cell"><RoleBadge role={u.role} /></TableCell>
+                                        <TableCell><StatusBadge user={u} /></TableCell>
+                                        <TableCell className="pr-4 text-right">{renderUserActions(u)}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
                     </CardContent>
                 </Card>
             ) : (
                 <div className="grid grid-cols-1 gap-3 xl:grid-cols-2 2xl:grid-cols-3 md:gap-4">
                     {filteredUsers.map(u => (
-                        <Card key={u.id} className="shadow-soft">
+                        <Card key={u.id}>
                             <CardContent className="flex flex-col items-center gap-3 p-5 text-center">
                                 <div className="relative">
-                                    <div className="grid size-16 place-items-center rounded-2xl bg-primary/15 text-xl font-semibold text-brand-ink dark:text-primary">
-                                        {u.avatar_url ? <img src={u.avatar_url} alt="" className="size-16 rounded-2xl object-cover" /> : (u.display_name || '?').charAt(0).toUpperCase()}
+                                    <div className="grid size-16 place-items-center rounded-lg bg-muted text-xl font-semibold text-foreground">
+                                        {u.avatar_url ? <img src={u.avatar_url} alt="" className="size-16 rounded-lg object-cover" /> : (u.display_name || '?').charAt(0).toUpperCase()}
                                     </div>
                                     {u.is_verified && (
                                         <span className="absolute -bottom-1 -right-1 grid size-6 place-items-center rounded-full border-2 border-card bg-emerald-600 text-white" title="Verifiziert">
@@ -616,7 +650,7 @@ export default function AdminUsers() {
                                     <div className="break-words text-base font-semibold text-foreground">{u.display_name || `${u.first_name} ${u.last_name}`}</div>
                                     <div className="mt-0.5 break-all text-xs text-muted-foreground">{u.email}</div>
                                     <div className="mt-2 flex flex-wrap justify-center gap-2">
-                                        <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                                        <span className="rounded-md border border-border bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
                                             Stufe {u.grade_level || '--'}{u.class_letter || ''}
                                         </span>
                                         <RoleBadge role={u.role} />
@@ -635,21 +669,7 @@ export default function AdminUsers() {
                                     ) : (
                                         <Button size="sm" variant="outline" className="h-11 flex-1 text-destructive" onClick={() => setBanUserObj(u)}>Sperren</Button>
                                     )}
-                                    <Button
-                                        size="icon"
-                                        variant="destructive"
-                                        className="h-11 w-11"
-                                        onClick={() => setConfirmAction({
-                                            type: 'delete',
-                                            user: u,
-                                            title: 'Nutzer endgültig löschen?',
-                                            message: `Der Account von ${u.display_name || 'diesem Nutzer'} wird mit ALLEN Anzeigen, Nachrichten und Bewertungen unwiderruflich gelöscht (DSGVO-Löschung). Nur im Audit-Protokoll bleibt eine Spur. Fortfahren?`
-                                        })}
-                                        title="Nutzer endgültig löschen"
-                                        aria-label="Nutzer endgültig löschen"
-                                    >
-                                        <Trash2 size={16} aria-hidden />
-                                    </Button>
+                                    {renderUserActions(u)}
                                 </div>
                             </CardContent>
                         </Card>
@@ -845,12 +865,10 @@ export default function AdminUsers() {
                                         <div className="break-words font-medium">Kind: {rel.child_name}</div>
                                         <div className="break-words text-xs text-muted-foreground">Elternteil: {rel.parent_name}</div>
                                     </div>
-                                    <span className={cn(
-                                        'shrink-0 rounded-full px-2.5 py-1 text-xs font-medium',
-                                        rel.status === 'active' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400' : 'bg-amber-500/15 text-amber-700 dark:text-amber-400'
-                                    )}>
+                                    <Badge variant="outline" className="shrink-0 gap-1.5 font-medium">
+                                        <span className={cn('size-1.5 rounded-full', rel.status === 'active' ? 'bg-emerald-600 dark:bg-emerald-400' : 'bg-muted-foreground')} aria-hidden />
                                         {rel.status}
-                                    </span>
+                                    </Badge>
                                 </div>
                             ))
                         )}

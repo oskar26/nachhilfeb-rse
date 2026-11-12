@@ -76,7 +76,7 @@ export function IncomingRequestCard({ req, onStatus, onComplete }: { req: AdRequ
                         onClick={() => void act('accepted')}
                         disabled={busy}
                         isLoading={busy}
-                        className="h-11 flex-1 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground"
+                        className="h-11 flex-1 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"
                     >
                         <CheckCircle size={16} /> Annehmen
                     </Button>
@@ -84,7 +84,7 @@ export function IncomingRequestCard({ req, onStatus, onComplete }: { req: AdRequ
                         variant="outline"
                         onClick={() => void act('rejected')}
                         disabled={busy}
-                        className="h-11 flex-1 rounded-full border-border bg-card px-4 text-sm font-semibold text-destructive hover:bg-destructive/10"
+                        className="h-11 flex-1 rounded-lg border-border bg-card px-4 text-sm font-semibold text-destructive hover:bg-destructive/10"
                     >
                         <XCircle size={16} /> Ablehnen
                     </Button>
@@ -97,14 +97,14 @@ export function IncomingRequestCard({ req, onStatus, onComplete }: { req: AdRequ
                     <CustomContactsList contacts={req.requester?.settings?.custom_contacts} />
                     <div className="flex flex-col gap-2 sm:flex-row">
                         <Button
-                            className="h-11 flex-1 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground"
+                            className="h-11 flex-1 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"
                             onClick={() => navigate(`/chat/${req.id}`)}
                         >
                             <MessageSquare size={16} /> Chat öffnen
                         </Button>
                         <Button
                             variant="outline"
-                            className="h-11 flex-1 rounded-full border-border bg-card px-4 text-sm font-semibold"
+                            className="h-11 flex-1 rounded-lg border-border bg-card px-4 text-sm font-semibold"
                             onClick={() => onComplete(req)}
                         >
                             <Star size={16} /> Bewerten
@@ -155,21 +155,21 @@ export function OutgoingRequestCard({ req, onComplete }: { req: AdRequestItem } 
             )}
             {req.status === 'accepted' && (
                 <div className="mt-4 space-y-3">
-                    <div className="flex items-center gap-2 rounded-xl border border-primary/25 bg-primary/10 px-4 py-3 text-sm font-semibold text-foreground/80">
+                    <div className="flex items-center gap-2 rounded-xl border border-border bg-muted px-4 py-3 text-sm font-semibold text-foreground/80">
                         <CheckCircle size={16} className="shrink-0" aria-hidden /> Kontakt freigeschaltet.
                     </div>
                     <ContactChips person={req.owner} />
                     <CustomContactsList contacts={req.owner?.settings?.custom_contacts} />
                     <div className="flex flex-col gap-2 sm:flex-row">
                         <Button
-                            className="h-11 flex-1 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground"
+                            className="h-11 flex-1 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"
                             onClick={() => navigate(`/chat/${req.id}`)}
                         >
                             <MessageSquare size={16} /> Chat öffnen
                         </Button>
                         <Button
                             variant="outline"
-                            className="h-11 flex-1 rounded-full border-border bg-card px-4 text-sm font-semibold"
+                            className="h-11 flex-1 rounded-lg border-border bg-card px-4 text-sm font-semibold"
                             onClick={() => onComplete(req)}
                         >
                             <Star size={16} /> Bewerten
@@ -184,7 +184,7 @@ export function OutgoingRequestCard({ req, onComplete }: { req: AdRequestItem } 
 /** Skelett in Karten-Form – verhindert das Aufblitzen des Leerzustands beim Laden. */
 export function RequestSkeleton() {
     return (
-        <div className="animate-pulse rounded-2xl border border-border bg-card p-4 shadow-soft sm:p-5">
+        <div className="animate-pulse rounded-2xl border border-border bg-card p-4 sm:p-5">
             <div className="flex items-start justify-between gap-3">
                 <div className="h-6 w-36 rounded-full bg-muted" />
                 <div className="h-6 w-24 rounded-full bg-muted" />
@@ -228,7 +228,7 @@ function AdLink({ ad, navigate }: { ad: { id?: string; short_description?: strin
             <Button variant="unstyled" size="unstyled"
                 type="button"
                 onClick={() => navigate(`/ad/${ad.id}`)}
-                className="mt-1 flex min-h-11 w-full items-center justify-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-sm font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                className="mt-1 flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-card px-3.5 text-sm font-semibold text-muted-foreground transition-colors hover:border-foreground hover:text-foreground  "
             >
                 <span>Anzeige ansehen</span>
                 <ExternalLink size={13} className="shrink-0" aria-hidden />
@@ -241,7 +241,7 @@ function AdLink({ ad, navigate }: { ad: { id?: string; short_description?: strin
 function MessageQuote({ message }: { message: string }) {
     return (
         <figure className="mt-3 max-w-[65ch] rounded-xl bg-muted/50 px-4 py-3">
-            <span className="mb-2 block h-1 w-10 rounded-full bg-primary" aria-hidden />
+            <span className="mb-2 block h-1 w-10 rounded-lg bg-primary" aria-hidden />
             <blockquote className="text-sm leading-relaxed text-foreground/80">
                 „{message}“
             </blockquote>
@@ -254,15 +254,15 @@ function ContactChips({ person }: { person?: RequestPerson | null }) {
     const chips: ReactNode[] = [];
     if (person?.phone_number && person?.settings?.phone_visible) {
         chips.push(
-            <span key="phone" className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+            <span key="phone" className="inline-flex min-w-0 items-center gap-1.5 rounded-md bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground">
                 <Phone size={13} className="shrink-0 text-muted-foreground" aria-hidden />
-                <span className="truncate font-mono tabular-nums">{person.phone_number}</span>
+                <span className="truncate font-sans tabular-nums">{person.phone_number}</span>
             </span>
         );
     }
     if (person?.email && person?.settings?.email_visible) {
         chips.push(
-            <span key="mail" className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+            <span key="mail" className="inline-flex min-w-0 items-center gap-1.5 rounded-md bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground">
                 <Mail size={13} className="shrink-0 text-muted-foreground" aria-hidden />
                 <span className="truncate">{person.email}</span>
             </span>

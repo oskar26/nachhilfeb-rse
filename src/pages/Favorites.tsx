@@ -43,7 +43,7 @@ export function FavoriteStreamCard({
                 <Button
                     size="icon"
                     variant="ghost"
-                    className="size-11 shrink-0 rounded-full text-muted-foreground hover:text-foreground"
+                    className="size-11 shrink-0 rounded-lg text-muted-foreground hover:text-foreground"
                     onClick={() => onShare({ id: ad.id, title: ad.title })}
                     title="Anzeige teilen"
                     aria-label="Anzeige teilen"
@@ -56,8 +56,8 @@ export function FavoriteStreamCard({
                 <span
                     className={
                         ad.type === 'offer'
-                            ? 'inline-flex shrink-0 items-center gap-1 rounded-full border border-primary/25 bg-primary/15 px-2.5 py-1 text-xs font-semibold text-brand-ink dark:text-primary'
-                            : 'inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground'
+                            ? 'inline-flex shrink-0 items-center gap-1 rounded-lg border border-border bg-muted px-2.5 py-1 text-xs font-semibold text-foreground'
+                            : 'inline-flex shrink-0 items-center gap-1 rounded-lg border border-border bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground'
                     }
                 >
                     {ad.type === 'offer' ? <GraduationCap size={13} aria-hidden /> : <User size={13} aria-hidden />}
@@ -78,7 +78,7 @@ export function FavoriteStreamCard({
             <p className="mt-3 line-clamp-2 max-w-[65ch] text-sm leading-relaxed text-muted-foreground">{ad.short_description}</p>
 
             <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
-                <span className="font-mono text-sm font-semibold tabular-nums text-foreground">
+                <span className="font-sans text-sm font-semibold tabular-nums text-foreground">
                     {formatAdPrice(ad.price_details)}
                 </span>
                 <div className="flex flex-wrap items-center gap-2">
@@ -86,13 +86,13 @@ export function FavoriteStreamCard({
                         variant="outline"
                         disabled={busy}
                         isLoading={busy}
-                        className="h-11 rounded-full border-border bg-card px-4 text-sm font-semibold text-muted-foreground hover:text-destructive"
+                        className="h-11 rounded-lg border-border bg-card px-4 text-sm font-semibold text-muted-foreground hover:text-destructive"
                         onClick={() => void remove()}
                     >
                         Entfernen
                     </Button>
                     <Button
-                        className="h-11 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground"
+                        className="h-11 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"
                         onClick={() => navigate(`/ad/${ad.id}`)}
                     >
                         Ansehen <ExternalLink size={14} />
@@ -106,7 +106,7 @@ export function FavoriteStreamCard({
 /** Helles Karten-Skelett für die Merklisten-Karten. */
 export function FavoriteSkeleton() {
     return (
-        <div className="animate-pulse rounded-2xl border border-border bg-card p-5 shadow-soft">
+        <div className="animate-pulse rounded-2xl border border-border bg-card p-5">
             <div className="flex items-start justify-between gap-3">
                 <div className="h-6 w-20 rounded-full bg-muted" />
                 <div className="h-11 w-11 rounded-full bg-muted" />

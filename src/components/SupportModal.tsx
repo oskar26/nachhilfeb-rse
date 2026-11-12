@@ -271,7 +271,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
         <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
             <DialogContent
                 showCloseButton={false}
-                className="bottom-0 left-0 right-0 top-auto max-h-[92dvh] max-w-none translate-x-0 translate-y-0 gap-0 overflow-hidden rounded-b-none rounded-t-3xl border border-border p-0 shadow-overlay sm:bottom-auto sm:left-1/2 sm:right-auto sm:top-1/2 sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl"
+                className="bottom-0 left-0 right-0 top-auto max-h-[92dvh] max-w-none translate-x-0 translate-y-0 gap-0 overflow-hidden rounded-b-none rounded-t-3xl border border-border p-0 shadow-overlay sm:bottom-auto sm:left-1/2 sm:right-auto sm:top-1/2 sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl"
             >
                 <DialogDescription className="sr-only">
                     Support, Fehlermeldungen und Nachrichten an das SV-Team.
@@ -299,7 +299,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                 {view === 'menu' && 'Hilfe'}
                                 {view === 'form' && (ticketType === 'bug' ? <><Bug size={18} className="inline" /> Fehler melden</> : <><Lightbulb size={18} className="inline" /> Verbesserung vorschlagen</>)}
                                 {view === 'chat' && (activeTicket ? activeTicket.title : <><MessageCircle size={18} className="inline" /> Nachrichten</>)}
-                                {view === 'success' && <><CheckCircle size={18} className="inline text-brand-ink dark:text-primary" /> Eingereicht!</>}
+                                {view === 'success' && <><CheckCircle size={18} className="inline text-foreground" /> Eingereicht!</>}
                             </DialogTitle>
                         </div>
                         <Button variant="unstyled" size="unstyled" type="button"
@@ -323,7 +323,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                     onClick={() => { setTicketType('bug'); setView('form'); triggerHaptic('light'); }}
                                     className="group flex min-h-16 w-full items-center gap-4 rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted"
                                 >
-                                    <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/15 text-brand-ink dark:text-primary">
+                                    <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-muted text-foreground">
                                         <Bug size={22} className="" />
                                     </div>
                                     <div>
@@ -336,7 +336,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                     onClick={() => { setTicketType('feature'); setView('form'); triggerHaptic('light'); }}
                                     className="group flex min-h-16 w-full items-center gap-4 rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted"
                                 >
-                                    <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/15 text-brand-ink dark:text-primary">
+                                    <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-muted text-foreground">
                                         <Lightbulb size={22} className="" />
                                     </div>
                                     <div>
@@ -349,7 +349,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                     onClick={() => { openChatView(); triggerHaptic('light'); }}
                                     className="group flex min-h-16 w-full items-center gap-4 rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted"
                                 >
-                                    <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/15 text-brand-ink dark:text-primary">
+                                    <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-muted text-foreground">
                                         <MessageCircle size={22} className="" />
                                     </div>
                                     <div>
@@ -363,7 +363,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                     disabled={startingDirectChat}
                                     className="w-full flex items-center gap-4 p-4 border border-border bg-card text-left transition-colors hover:bg-muted group cursor-pointer rounded-xl disabled:opacity-60"
                                 >
-                                    <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/15 text-brand-ink dark:text-primary">
+                                    <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-muted text-foreground">
                                         {startingDirectChat ? <Loader2 size={22} className=" animate-spin" /> : <Zap size={22} className="" />}
                                     </div>
                                     <div>
@@ -376,7 +376,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                     onClick={() => { setShowReportWizard(true); triggerHaptic('light'); }}
                                     className="group flex min-h-16 w-full items-center gap-4 rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted"
                                 >
-                                    <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/15 text-brand-ink dark:text-primary">
+                                    <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-muted text-foreground">
                                         <Flag size={22} className="" />
                                     </div>
                                     <div>
@@ -478,7 +478,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                         >
                                             <div className={cn(
                                                 'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-lg',
-                                                'bg-primary/15 text-brand-ink dark:text-primary'
+                                                'bg-muted text-foreground'
                                             )}>
                                                 {ticket.type === 'bug' ? <Bug size={18} /> : ticket.type === 'feature' ? <Lightbulb size={18} /> : <MessageCircle size={18} />}
                                             </div>
@@ -487,7 +487,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                                     <p className="font-semibold text-sm text-foreground truncate">{ticket.title}</p>
                                                     <span className={cn(
                                                         'shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold',
-                                                        ticket.status === 'open' ? 'bg-primary/15 text-brand-ink dark:text-primary'
+                                                        ticket.status === 'open' ? 'bg-muted text-foreground'
                                                             : ticket.status === 'in_progress' ? 'bg-muted text-foreground/80'
                                                             : 'bg-muted text-muted-foreground'
                                                     )}>
@@ -527,7 +527,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                                 'max-w-[85%] rounded-xl px-4 py-2.5 text-sm',
                                                 msg.is_admin_reply
                                                     ? 'mr-auto border border-border bg-muted'
-                                                    : 'ml-auto bg-primary/15'
+                                                    : 'ml-auto bg-muted'
                                             )}
                                         >
                                             <p className="text-xs font-semibold text-muted-foreground mb-0.5">
@@ -547,7 +547,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                         {/* Success View */}
                         {view === 'success' && (
                             <div className="py-8 text-center space-y-4">
-                                <div className="mx-auto grid size-16 place-items-center rounded-full bg-primary/15 text-brand-ink dark:text-primary">
+                                <div className="mx-auto grid size-16 place-items-center rounded-lg bg-muted text-foreground">
                                     <CheckCircle size={32} aria-hidden />
                                 </div>
                                 <h3 className="text-lg font-semibold text-foreground">Anfrage gesendet.</h3>
@@ -558,7 +558,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                 <div className="flex gap-2 justify-center pt-2">
                                     <Button variant="unstyled" size="unstyled" type="button"
                                         onClick={() => { openChatView(); }}
-                                        className="min-h-11 rounded-full bg-muted px-4 text-xs font-semibold text-foreground transition-colors hover:bg-muted/70"
+                                        className="min-h-11 rounded-lg bg-muted px-4 text-xs font-semibold text-foreground transition-colors hover:bg-muted/70"
                                     >
                                         Zu den Nachrichten
                                     </Button>

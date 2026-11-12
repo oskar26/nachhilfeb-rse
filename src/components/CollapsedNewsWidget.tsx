@@ -37,24 +37,24 @@ export function CollapsedNewsWidget() {
     if (!news) return null;
 
     return (
-        <Card className="w-full overflow-hidden rounded-3xl border border-border bg-primary/5 shadow-soft ring-0">
+        <Card className="w-full overflow-hidden rounded-xl border border-border bg-muted ring-0">
             {/* Collapsed Header Bar */}
             <Button
                 variant="unstyled"
                 size="unstyled"
                 type="button"
                 onClick={() => setExpanded(e => !e)}
-                className="flex min-h-16 w-full items-center justify-between gap-3 p-4 text-left transition-colors hover:bg-primary/10"
+                className="flex min-h-16 w-full items-center justify-between gap-3 p-4 text-left transition-colors hover:bg-muted"
                 aria-expanded={expanded}
                 aria-controls="collapsed-news-content"
             >
                 <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/20 text-brand-ink dark:text-primary">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground">
                         <NewsIcon value={news.icon} size={20} />
                     </div>
                     <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                            <Badge variant="secondary" className="bg-primary/20 text-xs font-bold text-foreground">
+                            <Badge variant="secondary" className="bg-muted text-xs font-bold text-foreground">
                                 Neuigkeiten
                             </Badge>
                             <span className="text-xs font-medium text-muted-foreground">
@@ -67,7 +67,7 @@ export function CollapsedNewsWidget() {
                     </div>
                 </div>
 
-                <div className="flex shrink-0 items-center gap-1 text-xs font-bold text-brand-ink dark:text-primary">
+                <div className="flex shrink-0 items-center gap-1 text-xs font-bold text-foreground">
                     <span className="hidden sm:inline">{expanded ? 'Einklappen' : 'Mehr lesen'}</span>
                     {expanded ? <ChevronUp size={16} aria-hidden /> : <ChevronDown size={16} aria-hidden />}
                 </div>

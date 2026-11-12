@@ -234,10 +234,10 @@ export default function CoachPanel() {
     return (
         <div ref={rootRef} className={cn('mx-auto w-full scroll-mt-16 space-y-6 p-4 pb-28 sm:p-6', activeTab === 'seite' ? 'max-w-[1800px]' : 'max-w-4xl')}>
             {/* Header Banner */}
-            <div className="flex flex-col gap-4 rounded-2xl border border-primary/20 bg-primary/10 p-4 lg:flex-row lg:items-center lg:justify-between sm:p-6">
+            <div className="flex flex-col gap-4 rounded-xl border border-border bg-muted p-4 lg:flex-row lg:items-center lg:justify-between sm:p-6">
                 <div className="min-w-0 space-y-1">
                     <div className="flex items-start gap-2">
-                        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/20 text-brand-ink dark:text-primary">
+                        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted text-foreground">
                             <Award size={20} aria-hidden />
                         </span>
                         <h1 className="min-w-0 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">Coaching & Förderunterricht</h1>
@@ -248,7 +248,7 @@ export default function CoachPanel() {
                 </div>
 
                 <div className="flex shrink-0 items-center gap-2 sm:pl-0">
-                    <span className="rounded-full border border-primary/30 bg-primary/15 px-3 py-1.5 text-xs font-medium text-brand-ink dark:text-primary">
+                    <span className="rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground">
                         {students.filter(s => s.is_coach).length} aktive Coaches
                     </span>
                 </div>
@@ -266,19 +266,19 @@ export default function CoachPanel() {
                     aria-label="Coach-Bereich"
                     className="!h-auto w-full flex-wrap justify-start gap-1.5 bg-transparent p-0"
                 >
-                    <TabsTrigger value="students" className="min-h-11 flex-none whitespace-normal rounded-full border border-border bg-card px-3.5 text-xs font-medium text-muted-foreground data-active:border-primary/40 data-active:bg-primary/15 data-active:text-foreground">
+                    <TabsTrigger value="students" className="min-h-11 flex-none whitespace-normal rounded-lg border border-border bg-card px-3.5 text-xs font-medium text-muted-foreground data-active:border-foreground data-active:bg-muted data-active:text-foreground">
                         <Users size={16} aria-hidden /> Schülerliste
                     </TabsTrigger>
-                    <TabsTrigger value="codes" className="min-h-11 flex-none whitespace-normal rounded-full border border-border bg-card px-3.5 text-xs font-medium text-muted-foreground data-active:border-primary/40 data-active:bg-primary/15 data-active:text-foreground">
+                    <TabsTrigger value="codes" className="min-h-11 flex-none whitespace-normal rounded-lg border border-border bg-card px-3.5 text-xs font-medium text-muted-foreground data-active:border-foreground data-active:bg-muted data-active:text-foreground">
                         <Key size={16} aria-hidden /> Coaching-Codes
                     </TabsTrigger>
-                    <TabsTrigger value="info" className="min-h-11 flex-none whitespace-normal rounded-full border border-border bg-card px-3.5 text-xs font-medium text-muted-foreground data-active:border-primary/40 data-active:bg-primary/15 data-active:text-foreground">
+                    <TabsTrigger value="info" className="min-h-11 flex-none whitespace-normal rounded-lg border border-border bg-card px-3.5 text-xs font-medium text-muted-foreground data-active:border-foreground data-active:bg-muted data-active:text-foreground">
                         <Megaphone size={16} aria-hidden /> Startseiten-Info
                     </TabsTrigger>
-                    <TabsTrigger value="logs" className="min-h-11 flex-none whitespace-normal rounded-full border border-border bg-card px-3.5 text-xs font-medium text-muted-foreground data-active:border-primary/40 data-active:bg-primary/15 data-active:text-foreground">
+                    <TabsTrigger value="logs" className="min-h-11 flex-none whitespace-normal rounded-lg border border-border bg-card px-3.5 text-xs font-medium text-muted-foreground data-active:border-foreground data-active:bg-muted data-active:text-foreground">
                         <History size={16} aria-hidden /> Mein Protokoll
                     </TabsTrigger>
-                    <TabsTrigger value="seite" className="min-h-11 flex-none whitespace-normal rounded-full border border-border bg-card px-3.5 text-xs font-medium text-muted-foreground data-active:border-primary/40 data-active:bg-primary/15 data-active:text-foreground">
+                    <TabsTrigger value="seite" className="min-h-11 flex-none whitespace-normal rounded-lg border border-border bg-card px-3.5 text-xs font-medium text-muted-foreground data-active:border-foreground data-active:bg-muted data-active:text-foreground">
                         <LayoutTemplate size={16} aria-hidden /> Seite
                     </TabsTrigger>
                 </TabsList>
@@ -299,25 +299,25 @@ export default function CoachPanel() {
                             />
                         </div>
 
-                        <div className="flex w-full flex-wrap items-center gap-1 rounded-full border border-border bg-muted p-1 sm:w-auto">
+                        <div className="flex w-full flex-wrap items-center gap-1 rounded-lg border border-border bg-muted p-1 sm:w-auto">
                             <Button variant="unstyled" size="unstyled" type="button"
                                 onClick={() => setFilterCoach('all')}
                                 aria-pressed={filterCoach === 'all'}
-                                className={cn('min-h-11 whitespace-normal rounded-full px-3 text-xs font-medium transition-colors', filterCoach === 'all' ? 'bg-card text-foreground shadow-soft' : 'text-muted-foreground hover:text-foreground')}
+                                className={cn('min-h-11 whitespace-normal rounded-lg px-3 text-xs font-medium transition-colors', filterCoach === 'all' ? 'bg-card text-foreground ' : 'text-muted-foreground hover:text-foreground')}
                             >
                                 Alle ({students.length})
                             </Button>
                             <Button variant="unstyled" size="unstyled" type="button"
                                 onClick={() => setFilterCoach('coaches')}
                                 aria-pressed={filterCoach === 'coaches'}
-                                className={cn('min-h-11 whitespace-normal rounded-full px-3 text-xs font-medium transition-colors', filterCoach === 'coaches' ? 'bg-card text-brand-ink shadow-soft dark:text-primary' : 'text-muted-foreground hover:text-foreground')}
+                                className={cn('min-h-11 whitespace-normal rounded-lg px-3 text-xs font-medium transition-colors', filterCoach === 'coaches' ? 'bg-card text-foreground' : 'text-muted-foreground hover:text-foreground')}
                             >
                                 Coaches ({students.filter(s => s.is_coach).length})
                             </Button>
                             <Button variant="unstyled" size="unstyled" type="button"
                                 onClick={() => setFilterCoach('non_coaches')}
                                 aria-pressed={filterCoach === 'non_coaches'}
-                                className={cn('min-h-11 whitespace-normal rounded-full px-3 text-xs font-medium transition-colors', filterCoach === 'non_coaches' ? 'bg-card text-foreground shadow-soft' : 'text-muted-foreground hover:text-foreground')}
+                                className={cn('min-h-11 whitespace-normal rounded-lg px-3 text-xs font-medium transition-colors', filterCoach === 'non_coaches' ? 'bg-card text-foreground ' : 'text-muted-foreground hover:text-foreground')}
                             >
                                 Noch keine Coaches
                             </Button>
@@ -337,21 +337,21 @@ export default function CoachPanel() {
                     )}
 
                     {studentsError ? null : loadingStudents ? (
-                        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card py-16 text-center">
-                            <Spinner className="size-6 text-brand-ink dark:text-primary" />
+                        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-card py-16 text-center">
+                            <Spinner className="size-6 text-muted-foreground" />
                             <p className="text-sm text-muted-foreground">Schülerliste wird geladen...</p>
                         </div>
                     ) : filteredStudents.length === 0 ? (
-                        <Card className="border-dashed p-12 text-center text-sm text-muted-foreground">
+                        <Card className="border-border p-12 text-center text-sm text-muted-foreground">
                             Keine Schüler passend zu deinen Suchkriterien gefunden.
                         </Card>
                     ) : (
                         <div className="grid gap-3 lg:grid-cols-2">
                             {filteredStudents.map(student => (
-                                <Card key={student.id} className="shadow-soft transition-colors hover:border-primary/40">
+                                <Card key={student.id} className=" transition-colors hover:border-foreground/30">
                                     <CardContent className="flex flex-col gap-3 p-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="grid size-11 shrink-0 place-items-center rounded-xl border border-primary/20 bg-primary/15 font-semibold text-brand-ink dark:text-primary">
+                                            <div className="grid size-11 shrink-0 place-items-center rounded-xl border bg-muted font-semibold text-muted-foreground">
                                                 {student.display_name?.charAt(0) || '?'}
                                             </div>
                                             <div className="min-w-0">
@@ -361,7 +361,7 @@ export default function CoachPanel() {
                                                     </span>
                                                     {student.is_coach && (
                                                         <span title="Schüler-Coach">
-                                                            <Award size={16} className="shrink-0 text-brand-ink dark:text-primary" aria-hidden />
+                                                            <Award size={16} className="shrink-0 text-muted-foreground" aria-hidden />
                                                         </span>
                                                     )}
                                                 </div>
@@ -369,7 +369,7 @@ export default function CoachPanel() {
                                                     <GraduationCap size={16} aria-hidden />
                                                     {student.grade_level ? `Klasse ${student.grade_level}${student.class_letter || ''}` : 'Keine Klasse'}
                                                     {student.active_ads_count > 0 && (
-                                                        <span className="ml-1 rounded-full bg-muted px-2 py-1 text-xs font-medium">
+                                                        <span className="ml-1 rounded-lg bg-muted px-2 py-1 text-xs font-medium">
                                                             {student.active_ads_count} {student.active_ads_count === 1 ? 'Anzeige' : 'Anzeigen'}
                                                         </span>
                                                     )}
@@ -399,7 +399,7 @@ export default function CoachPanel() {
             {/* TAB 2: COACHING CODES */}
             {activeTab === 'codes' && (
                 <div className="min-h-[480px] space-y-4">
-                    <Card className="shadow-soft">
+                    <Card className="">
                         <CardContent className="flex flex-col gap-3 p-4 lg:flex-row lg:items-start lg:justify-between sm:p-5">
                             <div className="min-w-0">
                                 <h3 className="text-base font-semibold text-foreground">Neue Schüler-Coaching Codes vergeben</h3>
@@ -420,7 +420,7 @@ export default function CoachPanel() {
                         </CardContent>
                     </Card>
 
-                    <Card className="shadow-soft">
+                    <Card className="">
                         <CardContent className="p-0">
                             <div className="flex items-center justify-between gap-2 border-b border-border p-4">
                                 <span className="text-xs font-medium text-foreground">
@@ -458,7 +458,7 @@ export default function CoachPanel() {
                                     {coachCodes.map(code => (
                                         <div key={code.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
                                             <div className="min-w-0 space-y-0.5">
-                                                <span className="break-all font-mono text-sm font-semibold tracking-wider text-foreground">
+                                                <span className="break-all tabular-nums text-sm font-semibold tracking-wider text-foreground">
                                                     {code.code}
                                                 </span>
                                                 <p className="break-words text-xs text-muted-foreground">
@@ -467,7 +467,7 @@ export default function CoachPanel() {
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <span className={cn(
-                                                    'rounded-full px-2.5 py-1 text-xs font-medium',
+                                                    'rounded-lg px-2.5 py-1 text-xs font-medium',
                                                     code.is_active ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400' : 'bg-muted text-muted-foreground'
                                                 )}>
                                                     {code.is_active ? 'Aktiv' : 'Inaktiv'}
@@ -495,7 +495,7 @@ export default function CoachPanel() {
             {/* TAB 3: STARTSEITEN-INFOS */}
             {activeTab === 'info' && (
                 <div className="min-h-[480px]">
-                    <Card className="shadow-soft">
+                    <Card className="">
                         <CardContent className="space-y-6 p-4 sm:p-6">
                             <div className="space-y-1">
                                 <h3 className="text-lg font-semibold text-foreground">
@@ -609,7 +609,7 @@ export default function CoachPanel() {
             {/* TAB 4: LOGS */}
             {activeTab === 'logs' && (
                 <div className="min-h-[480px]">
-                    <Card className="shadow-soft">
+                    <Card className="">
                         <CardContent className="p-0">
                             <div className="flex items-center justify-between gap-2 border-b border-border p-4">
                                 <span className="text-xs font-medium text-foreground">

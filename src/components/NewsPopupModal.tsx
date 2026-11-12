@@ -109,9 +109,9 @@ export function NewsPopupModal() {
     if (!news) return null;
 
     const header = (
-        <div className="flex h-auto min-h-16 items-center justify-between gap-3 border-b border-border bg-primary/15 px-4 py-3">
-            <span className="inline-flex items-center gap-2 rounded-full bg-background/90 px-3 py-1.5 text-xs font-semibold text-foreground shadow-soft">
-                <Megaphone size={16} className="text-brand-ink dark:text-primary" aria-hidden />
+        <div className="flex h-auto min-h-16 items-center justify-between gap-3 border-b border-border bg-muted px-4 py-3">
+            <span className="inline-flex items-center gap-2 rounded-md bg-background/90 px-3 py-1.5 text-xs font-semibold text-foreground">
+                <Megaphone size={16} className="text-foreground" aria-hidden />
                 <span>Neue Schul-Mitteilung</span>
             </span>
             <Button
@@ -132,7 +132,7 @@ export function NewsPopupModal() {
         <>
             {header}
             <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-5 sm:p-6">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-card text-foreground shadow-soft">
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-border bg-card text-foreground">
                     <NewsIcon value={news.icon} size={24} />
                 </div>
 
@@ -197,7 +197,7 @@ export function NewsPopupModal() {
 
     return (
         <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen) handleDismiss(); }}>
-            <DialogContent showCloseButton={false} className="max-w-md gap-0 overflow-hidden rounded-3xl border border-border bg-card p-0 text-card-foreground">
+            <DialogContent showCloseButton={false} className="max-w-md gap-0 overflow-hidden rounded-xl border border-border bg-card p-0 text-card-foreground">
                 {content(DialogTitle, DialogDescription)}
             </DialogContent>
         </Dialog>

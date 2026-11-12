@@ -69,7 +69,7 @@ interface Ad {
 }
 
 // Aktive Filterpille und Ruhezustand nutzen dieselbe Markenfläche.
-const GESUCHE_PILL_ACTIVE = 'bg-primary text-primary-foreground';
+const GESUCHE_PILL_ACTIVE = 'bg-muted text-foreground';
 const GESUCHE_PILL_IDLE = 'bg-muted text-muted-foreground';
 // „Beliebt:“-Fächer (B2): Standardliste, bis echte Klicks ein Ranking liefern
 const POPULAR_FALLBACK: Subject[] = ['mathematik', 'deutsch', 'englisch', 'physik', 'latein', 'franzoesisch', 'chemie', 'informatik'];
@@ -388,17 +388,16 @@ export default function Feed() {
             <div className="relative flex flex-col gap-4 mb-6 min-w-0">
                 <div className="flex flex-wrap items-center justify-between gap-2.5">
                     <div className="min-w-0">
-                        <h1 className="font-display uppercase text-xl sm:text-2xl leading-none tracking-tight min-w-0">Aktuelle Anzeigen</h1>
-                        <div className="mt-1.5 h-1 w-10 rounded-full bg-primary" aria-hidden />
+                        <h1 className="min-w-0 text-xl font-semibold leading-tight tracking-tight sm:text-2xl">Aktuelle Anzeigen</h1>
                     </div>
                     <div className="flex items-center gap-1.5 flex-wrap min-w-0">
                         {user && (
                             <Button variant="unstyled" size="unstyled" type="button"
                                 onClick={() => { setFilterByTime(!filterByTime); triggerHaptic('selection'); }}
                                 aria-pressed={filterByTime}
-                                className={`flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors ${
+                                className={`flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-md border px-3 text-xs font-semibold transition-colors ${
                                     filterByTime
-                                        ? 'border-primary bg-primary text-primary-foreground'
+                                        ? 'border-border bg-muted text-foreground'
                                         : 'border-border bg-card text-muted-foreground hover:text-foreground'
                                 }`}
                                 title="Passende Zeiten oben anzeigen"
@@ -410,9 +409,9 @@ export default function Feed() {
                         <Button variant="unstyled" size="unstyled" type="button"
                             onClick={() => { setFilterOnlyCoaches(!filterOnlyCoaches); triggerHaptic('selection'); }}
                             aria-pressed={filterOnlyCoaches}
-                            className={`flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors ${
+                            className={`flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-md border px-3 text-xs font-semibold transition-colors ${
                                 filterOnlyCoaches
-                                    ? 'border-primary bg-primary text-primary-foreground'
+                                    ? 'border-border bg-muted text-foreground'
                                     : 'border-border bg-card text-muted-foreground hover:text-foreground'
                             }`}
                             title="Nur Coaches der Coaching-AG anzeigen"
@@ -421,17 +420,17 @@ export default function Feed() {
                             <span className="hidden sm:inline">Schüler-Coaches</span>
                             <span className="sm:hidden">Coaches</span>
                         </Button>
-                        <Button variant="outline" size="sm" className="h-11 gap-1.5 rounded-full border-border px-4 text-sm font-semibold" onClick={() => setShowFilters(!showFilters)} aria-expanded={showFilters} aria-haspopup="dialog">
+                        <Button variant="outline" size="sm" className="h-11 gap-1.5 rounded-md border-border px-4 text-sm font-semibold" onClick={() => setShowFilters(!showFilters)} aria-expanded={showFilters} aria-haspopup="dialog">
                             <Filter size={15} aria-hidden /> Filter
                             {activeFilterCount > 0 && (
-                                <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-xs font-semibold leading-none text-primary-foreground tabular-nums">{activeFilterCount}</span>
+                                <span className="inline-flex min-w-5 items-center justify-center rounded-md bg-primary px-1.5 py-0.5 text-xs font-semibold leading-none text-primary-foreground tabular-nums">{activeFilterCount}</span>
                             )}
                         </Button>
                         <Button
                             variant="ghost"
                             size="sm"
                             onClick={savedSearch ? discardSavedSearch : saveCurrentSearch}
-                            className="h-11 gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-3.5 text-sm font-semibold text-brand-ink hover:bg-primary/20 dark:text-primary"
+                            className="h-11 gap-1.5 rounded-md border border-border bg-muted px-3.5 text-sm font-semibold text-foreground hover:bg-muted text-foreground"
                             title={savedSearch ? 'Gespeicherte Suche entfernen' : 'Aktuelle Filter speichern (ersetzt die bisherige Suche)'}
                             aria-pressed={!!savedSearch}
                         >
@@ -465,9 +464,9 @@ export default function Feed() {
                             }}
                             aria-pressed={filterSubject === subj}
                             className={cn(
-                                "min-h-11 shrink-0 rounded-full border px-3 py-2 font-medium transition-colors",
+                                "min-h-11 shrink-0 rounded-md border px-3 py-2 font-medium transition-colors",
                                 filterSubject === subj
-                                    ? "border-primary bg-primary font-semibold text-primary-foreground"
+                                    ? "border-border bg-muted font-semibold text-foreground"
                                     : "border-border bg-card text-muted-foreground hover:border-ring/40 hover:text-foreground"
                             )}
                         >
@@ -478,7 +477,7 @@ export default function Feed() {
                         <Button variant="unstyled" size="unstyled" type="button"
                             onClick={() => setFilterSubject(null)}
                             aria-label="Fachfilter zurücksetzen"
-                            className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full bg-destructive/10 px-3 text-xs font-semibold text-destructive"
+                            className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md bg-destructive/10 px-3 text-xs font-semibold text-destructive"
                         >
                             <X size={12} aria-hidden /> Zurücksetzen
                         </Button>
@@ -499,7 +498,7 @@ export default function Feed() {
                         aria-hidden={!hasActiveFilters || loading}
                         tabIndex={hasActiveFilters && !loading ? 0 : -1}
                         className={cn(
-                            "flex min-h-11 shrink-0 cursor-pointer items-center gap-1 rounded-full bg-muted px-3 text-xs font-semibold text-muted-foreground transition-opacity duration-200 hover:text-foreground",
+                            "flex min-h-11 shrink-0 cursor-pointer items-center gap-1 rounded-md bg-muted px-3 text-xs font-semibold text-muted-foreground transition-opacity duration-200 hover:text-foreground",
                             hasActiveFilters && !loading ? 'opacity-100' : 'pointer-events-none opacity-0'
                         )}
                     >
@@ -511,7 +510,7 @@ export default function Feed() {
                         <NativeSelect
                             value={sortKey}
                             onChange={e => { if (isValidSortKey(e.target.value)) { setSortKey(e.target.value); triggerHaptic('selection'); } }}
-                            className="max-w-[11rem] cursor-pointer truncate rounded-full border-transparent bg-muted px-3 text-xs font-semibold text-foreground"
+                            className="max-w-[11rem] cursor-pointer truncate rounded-md border-transparent bg-muted px-3 text-xs font-semibold text-foreground"
                             aria-label="Anzeigen sortieren"
                         >
                             {SORT_OPTIONS.map(o => (
@@ -531,13 +530,13 @@ export default function Feed() {
                         <SheetDescription className="sr-only">Anzeigen nach Typ, Preis, Klassenstufe und Fach filtern.</SheetDescription>
                         <div className="shrink-0 border-b border-border bg-card px-5 pb-2 pt-3">
                             <div className="mb-1 flex justify-center md:hidden">
-                                <div className="h-1.5 w-10 rounded-full bg-border" aria-hidden />
+                                <div className="h-1.5 w-10 rounded-md bg-border" aria-hidden />
                             </div>
                             <div className="flex items-center justify-between">
-                                <h2 className="font-display text-lg font-semibold uppercase">Filter</h2>
+                                <h2 className="text-lg font-semibold">Filter</h2>
                                 <SheetClose
                                     aria-label="Filter schließen"
-                                    className="-mr-2 grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                                    className="-mr-2 grid size-11 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none "
                                 >
                                     <X size={20} aria-hidden />
                                 </SheetClose>
@@ -551,12 +550,12 @@ export default function Feed() {
                                 <div>
                                     <Label className="mb-2 block text-xs font-semibold text-foreground">Typ</Label>
                                     <div className="flex flex-wrap gap-2">
-                                        <Button variant="unstyled" size="unstyled" type="button" onClick={() => { triggerHaptic('selection'); setFilterType('all'); }} className={`min-h-11 rounded-full px-4 text-xs font-semibold transition-colors ${filterType === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'}`}>Alle</Button>
-                                        <Button variant="unstyled" size="unstyled" type="button" onClick={() => { triggerHaptic('selection'); setFilterType('offer'); }} className={`min-h-11 rounded-full px-4 text-xs font-semibold transition-colors ${filterType === 'offer' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'}`}>Angebote</Button>
-                                        <Button variant="unstyled" size="unstyled" type="button" onClick={() => { triggerHaptic('selection'); setFilterType('search'); }} className={`min-h-11 rounded-full px-4 text-xs font-semibold transition-colors ${filterType === 'search' ? GESUCHE_PILL_ACTIVE : GESUCHE_PILL_IDLE}`}>Gesuche</Button>
+                                        <Button variant="unstyled" size="unstyled" type="button" onClick={() => { triggerHaptic('selection'); setFilterType('all'); }} className={`min-h-11 rounded-md px-4 text-xs font-semibold transition-colors ${filterType === 'all' ? 'bg-muted text-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'}`}>Alle</Button>
+                                        <Button variant="unstyled" size="unstyled" type="button" onClick={() => { triggerHaptic('selection'); setFilterType('offer'); }} className={`min-h-11 rounded-md px-4 text-xs font-semibold transition-colors ${filterType === 'offer' ? 'bg-muted text-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'}`}>Angebote</Button>
+                                        <Button variant="unstyled" size="unstyled" type="button" onClick={() => { triggerHaptic('selection'); setFilterType('search'); }} className={`min-h-11 rounded-md px-4 text-xs font-semibold transition-colors ${filterType === 'search' ? GESUCHE_PILL_ACTIVE : GESUCHE_PILL_IDLE}`}>Gesuche</Button>
                                     </div>
                                 </div>
-                                <div className="rounded-2xl border border-border bg-muted/50 px-3.5 pb-8 pt-2.5">
+                                <div className="rounded-xl border border-border bg-muted/50 px-3.5 pb-8 pt-2.5">
                                     <div className="mb-1 flex items-baseline justify-between gap-2">
                                         <Label className="text-xs font-semibold text-foreground">Preis pro Stunde</Label>
                                         <span className="text-xs font-semibold tabular-nums text-muted-foreground">{minPrice}€ – {maxPrice}€</span>
@@ -606,9 +605,9 @@ export default function Feed() {
             </div>
 
             {savedSearch && !loading && !fetchError && (
-                <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 overflow-x-clip rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 dark:bg-primary/10">
+                <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 overflow-x-clip rounded-xl border border-border bg-muted px-4 py-3 dark:bg-muted">
                     <div className="flex min-w-0 items-center gap-2 text-sm">
-                        <Bookmark size={15} className="shrink-0 fill-current text-brand-ink dark:text-primary" aria-hidden />
+                        <Bookmark size={15} className="shrink-0 fill-current text-foreground" aria-hidden />
                         <span className="shrink-0 font-semibold text-foreground">Gemerkte Suche:</span>
                         <span className="truncate text-muted-foreground">
                             {savedSearch.query ? `„${savedSearch.query}“` : 'Alle Anzeigen'}
@@ -624,7 +623,7 @@ export default function Feed() {
                             variant="outline"
                             size="sm"
                             onClick={applySavedSearch}
-                            className="h-11 rounded-full border-primary/30 px-4 text-xs font-semibold"
+                            className="h-11 rounded-md border-border px-4 text-xs font-semibold"
                         >
                             Suchen
                         </Button>
@@ -633,7 +632,7 @@ export default function Feed() {
                             onClick={discardSavedSearch}
                             aria-label="Gemerkte Suche verwerfen"
                             title="Gemerkte Suche verwerfen"
-                            className="grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            className="grid size-11 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                         >
                             <X size={15} aria-hidden />
                         </Button>
@@ -641,41 +640,40 @@ export default function Feed() {
                 </div>
             )}
 
-            {/* Infos: eine schlanke Zeile mit den drei Zielen, Details erst auf Wunsch */}
+            {/* Infos: zweizeilig auf Mobile, Details bleiben immer sichtbar */}
             <div className="mb-6">
-            <div className="flex items-center gap-1.5 overflow-x-auto rounded-2xl border border-border bg-card py-1.5 pl-3 pr-1.5 shadow-soft">
-                <span className="shrink-0 text-xs font-semibold text-muted-foreground">Infos</span>
-                <Button variant="unstyled" size="unstyled"
-                    type="button"
-                    onClick={() => navigate('/coaching')}
-                    className="inline-flex min-h-11 shrink-0 items-center rounded-full px-3 text-xs font-semibold text-foreground/80 transition-colors hover:bg-muted hover:text-foreground"
-                >
-                    Coaching · {posterBlock.time} · {posterBlock.room}
-                </Button>
-                <Button variant="unstyled" size="unstyled"
-                    type="button"
-                    onClick={() => navigate('/coaching', { state: { section: 'foerderung' } })}
-                    className="inline-flex min-h-11 shrink-0 items-center rounded-full px-3 text-xs font-semibold text-foreground/80 transition-colors hover:bg-muted hover:text-foreground"
-                >
-                    Förderunterricht
-                </Button>
-                <Button variant="unstyled" size="unstyled"
-                    type="button"
-                    onClick={() => navigate('/eltern-leitfaden')}
-                    className="inline-flex min-h-11 shrink-0 items-center rounded-full px-3 text-xs font-semibold text-foreground/80 transition-colors hover:bg-muted hover:text-foreground"
-                >
-                    Eltern
-                </Button>
+            <div className="grid gap-3 rounded-xl border border-border bg-card p-3 sm:flex sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                    <span className="block text-xs font-semibold text-muted-foreground">Infos</span>
+                    <div className="mt-1 grid grid-cols-1 divide-y divide-border sm:flex sm:flex-wrap sm:items-center sm:divide-x sm:divide-y-0">
+                        <Button variant="ghost" size="sm"
+                            type="button"
+                            onClick={() => navigate('/coaching')}
+                            className="min-h-11 justify-start rounded-md px-2 text-xs font-medium text-foreground sm:justify-center"
+                        >
+                            Coaching · {posterBlock.time} · {posterBlock.room}
+                        </Button>
+                        <Button variant="ghost" size="sm"
+                            type="button"
+                            onClick={() => navigate('/coaching', { state: { section: 'foerderung' } })}
+                            className="min-h-11 justify-start rounded-md px-2 text-xs font-medium text-foreground sm:justify-center"
+                        >
+                            Förderunterricht
+                        </Button>
+                        <Button variant="ghost" size="sm"
+                            type="button"
+                            onClick={() => navigate('/eltern-leitfaden')}
+                            className="min-h-11 justify-start rounded-md px-2 text-xs font-medium text-foreground sm:justify-center"
+                        >
+                            Eltern
+                        </Button>
+                    </div>
+                </div>
                 <Button
                     variant="outline"
                     size="sm"
                     aria-expanded={showBanners}
-                    className={cn(
-                        "ml-auto h-11 shrink-0 rounded-full border-primary text-xs font-semibold",
-                        showBanners
-                            ? "bg-primary text-primary-foreground hover:bg-primary-hover"
-                            : "bg-primary text-primary-foreground hover:bg-primary-hover"
-                    )}
+                    className="h-11 w-full shrink-0 rounded-md text-xs font-semibold sm:w-auto"
                     onClick={() => { const next = !showBanners; setShowBanners(next); try { localStorage.setItem('feed_show_banners', String(next)); } catch { /* ignore */ } }}
                 >
                     {showBanners ? (
@@ -690,10 +688,10 @@ export default function Feed() {
                     <div className="mt-3 space-y-4 animate-in slide-in-from-top-2">
                         {/* Info Block für Schüler-Coaching (editierbar im Coach-Panel) */}
                         {coachInfo.is_visible && (
-                            <Card className="relative overflow-hidden border-border bg-card shadow-soft">
+                            <Card className="relative overflow-hidden border-border bg-card ">
                                 <CardContent className="relative z-10 space-y-4 p-5 sm:p-6">
                                     <div className="flex items-center gap-2.5">
-                                        <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/15 text-brand-ink dark:text-primary">
+                                        <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted text-foreground">
                                             <GraduationCap size={20} aria-hidden />
                                         </div>
                                         <h2 className="min-w-0 text-lg font-semibold text-foreground">{coachInfo.title}</h2>
@@ -714,10 +712,10 @@ export default function Feed() {
                         )}
 
                         {/* Förderunterricht – Inhalte direkt aus dem Coach-Panel (Tab „Seite“) */}
-                        <Card className="border-border bg-card shadow-soft">
+                        <Card className="border-border bg-card ">
                             <CardContent className="space-y-4 p-5 sm:p-6">
                                 <div className="flex items-center gap-2.5">
-                                    <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/15 text-brand-ink dark:text-primary">
+                                    <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted text-foreground">
                                         <GraduationCap size={20} aria-hidden />
                                     </div>
                                     <h2 className="min-w-0 text-lg font-semibold text-foreground">{supportBlock.title}</h2>
@@ -729,7 +727,7 @@ export default function Feed() {
                                     {supportBlock.registrationEmail && (
                                         <p>
                                             {supportBlock.registrationText || 'Anmeldung verbindlich über:'}{' '}
-                                            <a href={`mailto:${supportBlock.registrationEmail}`} className="font-semibold text-brand-ink underline underline-offset-4 dark:text-primary">{supportBlock.registrationEmail}</a>
+                                            <a href={`mailto:${supportBlock.registrationEmail}`} className="font-semibold text-foreground underline underline-offset-4 dark:text-primary">{supportBlock.registrationEmail}</a>
                                         </p>
                                     )}
                                 </div>
@@ -759,7 +757,7 @@ export default function Feed() {
                                     <Button variant="unstyled" size="unstyled"
                                         type="button"
                                         onClick={() => navigate('/coaching', { state: { section: 'foerderung' } })}
-                                        className="inline-flex min-h-11 items-center text-sm font-semibold text-brand-ink underline underline-offset-4 dark:text-primary"
+                                        className="inline-flex min-h-11 items-center text-sm font-semibold text-foreground underline underline-offset-4 dark:text-primary"
                                     >
                                         Zur Coaching-Seite
                                     </Button>
@@ -768,17 +766,17 @@ export default function Feed() {
                                 {supportBlock.learnCoachingText && (
                                     <div className="mt-4 text-center text-xs text-muted-foreground">
                                         {supportBlock.learnCoachingText}<br />
-                                        <a href={`mailto:${supportBlock.learnCoachingEmail}`} className="font-semibold text-brand-ink underline underline-offset-4 dark:text-primary">{supportBlock.learnCoachingEmail}</a>
+                                        <a href={`mailto:${supportBlock.learnCoachingEmail}`} className="font-semibold text-foreground underline underline-offset-4 dark:text-primary">{supportBlock.learnCoachingEmail}</a>
                                     </div>
                                 )}
                             </CardContent>
                         </Card>
 
                         {/* Eltern-Leitfaden Info Block */}
-                        <Card className="border-border bg-card shadow-soft">
+                        <Card className="border-border bg-card ">
                             <CardContent className="space-y-4 p-5 sm:p-6">
                                 <div className="flex items-center gap-2.5">
-                                    <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/15 text-brand-ink dark:text-primary">
+                                    <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted text-foreground">
                                         <ShieldCheck size={20} aria-hidden />
                                     </div>
                                     <h2 className="min-w-0 text-lg font-semibold text-foreground">Leitfaden für Eltern & Sicherheit</h2>
@@ -791,7 +789,7 @@ export default function Feed() {
                                         variant="outline"
                                         size="sm"
                                         onClick={() => navigate('/eltern-leitfaden')}
-                                        className="h-11 rounded-full border-border px-4 font-semibold"
+                                        className="h-11 rounded-md border-border px-4 font-semibold"
                                     >
                                         Eltern-Leitfaden lesen
                                     </Button>
@@ -809,34 +807,34 @@ export default function Feed() {
                             <Card key={i} className="overflow-hidden border-border bg-card">
                                 <CardHeader className="flex flex-row items-start justify-between gap-3 border-b border-border p-4">
                                     <div className="min-w-0 flex-1 space-y-2">
-                                        <Skeleton className="h-5 w-40 rounded-full" />
-                                        <Skeleton className="h-3 w-24 rounded-full" />
+                                        <Skeleton className="h-5 w-40 rounded-md" />
+                                        <Skeleton className="h-3 w-24 rounded-md" />
                                     </div>
-                                    <Skeleton className="h-5 w-16 rounded-full" />
+                                    <Skeleton className="h-5 w-16 rounded-md" />
                                 </CardHeader>
                                 <CardContent className="space-y-3 p-4">
                                     <div className="flex gap-2">
-                                        <Skeleton className="h-7 w-20 rounded-full" />
-                                        <Skeleton className="h-7 w-24 rounded-full" />
+                                        <Skeleton className="h-7 w-20 rounded-md" />
+                                        <Skeleton className="h-7 w-24 rounded-md" />
                                     </div>
-                                    <Skeleton className="h-4 w-full rounded-full" />
-                                    <Skeleton className="h-4 w-3/4 rounded-full" />
+                                    <Skeleton className="h-4 w-full rounded-md" />
+                                    <Skeleton className="h-4 w-3/4 rounded-md" />
                                 </CardContent>
                             </Card>
                         ))}
                     </div>
                 ) : fetchError ? (
-                    <div className="mt-8 flex min-w-0 flex-col items-center justify-center overflow-hidden rounded-2xl border border-destructive/25 bg-card p-6 text-center shadow-soft sm:p-12" role="alert">
-                        <div className="mb-5 grid size-16 place-items-center rounded-full bg-destructive/10 text-destructive">
+                    <div className="mt-8 flex min-w-0 flex-col items-center justify-center overflow-hidden rounded-xl border border-destructive/25 bg-card p-6 text-center sm:p-12" role="alert">
+                        <div className="mb-5 grid size-16 place-items-center rounded-md bg-destructive/10 text-destructive">
                             <SearchX size={28} aria-hidden />
                         </div>
                         <h2 className="mb-2 text-xl font-semibold text-foreground">Die Anzeigen konnten nicht geladen werden</h2>
                         <p className="mb-6 max-w-sm text-sm text-muted-foreground">{apiErrorMessage(fetchError, 'Prüfe deine Internetverbindung und versuche es erneut.')}</p>
-                        <Button onClick={() => fetchAds()} className="h-11 rounded-full">Erneut versuchen</Button>
+                        <Button onClick={() => fetchAds()} className="h-11 rounded-md">Erneut versuchen</Button>
                     </div>
                 ) : sortedAds.length === 0 ? (
-                    <div className="mt-8 flex min-w-0 flex-col items-center justify-center overflow-hidden rounded-2xl border border-border bg-card p-6 text-center shadow-soft sm:p-12">
-                        <div className="mb-5 grid size-16 place-items-center rounded-full bg-muted text-muted-foreground">
+                    <div className="mt-8 flex min-w-0 flex-col items-center justify-center overflow-hidden rounded-xl border border-border bg-card p-6 text-center sm:p-12">
+                        <div className="mb-5 grid size-16 place-items-center rounded-md bg-muted text-muted-foreground">
                             <Search size={28} aria-hidden />
                         </div>
                         {filterType === 'search' ? (
@@ -846,9 +844,9 @@ export default function Feed() {
                                     Gesuche erscheinen nicht öffentlich im Feed. Stelle in deinen Profil-Einstellungen ein, welche Fächer du anbietest, um passende Gesuche zu sehen.
                                 </p>
                                 <div className="flex flex-wrap justify-center gap-2">
-                                    <Button onClick={() => navigate('/settings')} className="h-11 rounded-full">Zu den Einstellungen</Button>
+                                    <Button onClick={() => navigate('/settings')} className="h-11 rounded-md">Zu den Einstellungen</Button>
                                     {hasActiveFilters && (
-                                        <Button variant="outline" onClick={() => { resetAllFilters(); triggerHaptic('light'); }} className="h-11 rounded-full">Filter zurücksetzen</Button>
+                                        <Button variant="outline" onClick={() => { resetAllFilters(); triggerHaptic('light'); }} className="h-11 rounded-md">Filter zurücksetzen</Button>
                                     )}
                                 </div>
                             </>
@@ -857,15 +855,15 @@ export default function Feed() {
                                 <h3 className="mb-2 text-xl font-semibold text-foreground">Keine Anzeigen für diese Filter</h3>
                                 <p className="mb-6 max-w-sm text-sm text-muted-foreground">Keine Anzeige passt zu deiner aktuellen Suche. Setze die Filter zurück oder erstelle selbst eine Anzeige!</p>
                                 <div className="flex flex-wrap justify-center gap-2">
-                                    <Button variant="outline" onClick={() => { resetAllFilters(); triggerHaptic('light'); }} className="h-11 rounded-full">Filter zurücksetzen</Button>
-                                    <Button onClick={() => navigate('/create-ad')} className="h-11 rounded-full">Anzeige erstellen</Button>
+                                    <Button variant="outline" onClick={() => { resetAllFilters(); triggerHaptic('light'); }} className="h-11 rounded-md">Filter zurücksetzen</Button>
+                                    <Button onClick={() => navigate('/create-ad')} className="h-11 rounded-md">Anzeige erstellen</Button>
                                 </div>
                             </>
                         ) : (
                             <>
                                 <h3 className="mb-2 text-xl font-semibold text-foreground">Noch keine Anzeigen</h3>
                                 <p className="mb-6 max-w-sm text-sm text-muted-foreground">Aktuell gibt es keine aktiven Anzeigen. Erstelle selbst etwas!</p>
-                                <Button onClick={() => navigate('/create-ad')} className="h-11 rounded-full">Anzeige erstellen</Button>
+                                <Button onClick={() => navigate('/create-ad')} className="h-11 rounded-md">Anzeige erstellen</Button>
                             </>
                         )}
                     </div>
@@ -881,7 +879,7 @@ export default function Feed() {
                             tabIndex={0}
                             aria-label={`Anzeige von ${ad.profiles?.display_name || 'Unbekannt'} öffnen`}
                             className={cn(
-                                "w-full min-w-0 cursor-pointer overflow-hidden border-border bg-card transition-shadow hover:shadow-card focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                                "w-full min-w-0 cursor-pointer overflow-hidden border-border bg-card transition-shadow hover:shadow-card focus-visible:outline-none ",
                                 boosted && "ring-1 ring-primary/40"
                             )}
                             onClick={openAd}
@@ -894,26 +892,26 @@ export default function Feed() {
                             }}
                         >
                             {boosted && (
-                                <div className="flex items-center gap-1.5 border-b border-primary/20 bg-primary/10 px-4 py-1.5" title="Diese Anzeige wird hervorgehoben (z. B. Coach-Status oder Aktion). Warum? Siehe Seite „Coaching-AG“.">
-                                    <Sparkles size={12} className="text-brand-ink dark:text-primary" aria-hidden />
-                                    <span className="text-xs font-semibold text-brand-ink dark:text-primary">Hervorgehobene Anzeige</span>
+                                <div className="flex items-center gap-1.5 border-b border-border bg-muted px-4 py-1.5" title="Diese Anzeige wird hervorgehoben (z. B. Coach-Status oder Aktion). Warum? Siehe Seite „Coaching-AG“.">
+                                    <Sparkles size={12} className="text-foreground" aria-hidden />
+                                    <span className="text-xs font-semibold text-foreground">Hervorgehobene Anzeige</span>
                                 </div>
                             )}
                             <CardHeader className={cn(
                                 "flex min-w-0 flex-row items-start justify-between gap-3 border-b p-4 pb-3",
-                                boosted ? "border-primary/20 bg-primary/5" : "border-border bg-card"
+                                boosted ? "border-border bg-muted" : "border-border bg-card"
                             )}>
                                 <div className="min-w-0 flex-1">
                                     <div className="flex flex-wrap items-center gap-2">
                                         <h3 className="min-w-0 truncate text-base font-semibold text-foreground sm:text-lg">{ad.profiles?.display_name || 'Unbekannt'}</h3>
-                                        <span className="shrink-0 rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
+                                        <span className="shrink-0 rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
                                             {ad.type === 'search' ? 'Suche' : 'Bietet'}
                                         </span>
                                         {ad.profiles?.is_verified && (
                                             <VerifiedPill />
                                         )}
                                         {ad.profiles?.is_coach && (
-                                            <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-primary/25 bg-primary/15 px-2 py-0.5 text-xs font-semibold text-brand-ink dark:text-primary" title="Mitglied der Coaching-AG">
+                                            <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-semibold text-foreground" title="Mitglied der Coaching-AG">
                                                 <Award size={12} aria-hidden />
                                                 Coach
                                             </span>
@@ -935,7 +933,7 @@ export default function Feed() {
                                         )}
                                     </div>
                                     {filterByTime && matchScore > 0 && (
-                                        <div className="flex items-center gap-1 rounded-full bg-primary/15 px-1.5 py-0.5 text-xs font-semibold text-brand-ink dark:text-primary">
+                                        <div className="flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-xs font-semibold text-foreground">
                                             <CalendarDays size={12} aria-hidden /> {matchScore} Übereinstimmung{matchScore !== 1 ? 'en' : ''}
                                         </div>
                                     )}
@@ -951,7 +949,7 @@ export default function Feed() {
                             </CardContent>
                             <CardFooter className={cn(
                                 "flex flex-wrap items-center justify-between gap-2 border-t border-border p-3 text-xs text-muted-foreground",
-                                boosted ? "bg-primary/5" : "bg-muted/40"
+                                boosted ? "bg-muted" : "bg-muted/40"
                             )}>
                                 <div className="flex min-w-0 flex-wrap gap-x-3 gap-y-1">
                                     {ad.locations && ad.locations[0] && (
@@ -970,7 +968,7 @@ export default function Feed() {
                                             triggerHaptic('light');
                                             setShareAd({ id: ad.id, title: `${ad.subjects?.[0]?.toUpperCase() || 'Nachhilfe'}: ${ad.profiles?.display_name || ''}` });
                                         }}
-                                        className="grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                                        className="grid size-11 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                                         title="Anzeige teilen"
                                         aria-label="Anzeige teilen"
                                     >

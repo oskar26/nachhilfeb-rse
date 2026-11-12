@@ -28,10 +28,10 @@ import { api, getStoredUser } from '../../lib/api';
 const REPORT_ICON_OPEN = 'bg-destructive/10 text-destructive';
 const REPORT_ICON_CLOSED = 'bg-muted text-muted-foreground';
 const PRIO_BADGE_KRITISCH = 'bg-destructive/10 text-destructive';
-const PRIO_BADGE_HOCH = 'bg-amber-500/15 text-amber-700 dark:text-amber-400';
+const PRIO_BADGE_HOCH = 'bg-muted text-foreground';
 const PRIO_BADGE_NORMAL = 'bg-muted text-muted-foreground';
 const PRIO_BAR_KRITISCH = 'bg-destructive text-white';
-const PRIO_BAR_HOCH = 'bg-amber-600 text-white';
+const PRIO_BAR_HOCH = 'bg-foreground text-background';
 const PRIO_BAR_NORMAL = 'bg-muted text-foreground';
 const REPORT_STATUS_LABELS: Record<string, string> = {
     open: 'Offen',
@@ -396,7 +396,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                         <RefreshCw size={16} aria-hidden className={cn(loading && 'animate-spin')} />
                     </Button>
 
-                    <div className="flex shrink-0 items-center gap-1 rounded-full border border-border bg-muted p-1">
+                    <div className="flex shrink-0 items-center gap-1 rounded-lg border border-border bg-muted p-1">
                         <Button
                             variant="unstyled"
                             size="unstyled"
@@ -405,8 +405,8 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                             aria-pressed={viewMode === 'kanban'}
                             aria-label="Board-Ansicht"
                             className={cn(
-                                'grid h-11 w-11 place-items-center rounded-full transition-colors',
-                                viewMode === 'kanban' ? 'bg-card text-foreground shadow-soft' : 'text-muted-foreground hover:text-foreground'
+                                'grid h-11 w-11 place-items-center rounded-lg transition-colors',
+                                viewMode === 'kanban' ? 'bg-card text-foreground ' : 'text-muted-foreground hover:text-foreground'
                             )}
                         >
                             <LayoutGrid size={16} aria-hidden />
@@ -419,8 +419,8 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                             aria-pressed={viewMode === 'list'}
                             aria-label="Listenansicht"
                             className={cn(
-                                'grid h-11 w-11 place-items-center rounded-full transition-colors',
-                                viewMode === 'list' ? 'bg-card text-foreground shadow-soft' : 'text-muted-foreground hover:text-foreground'
+                                'grid h-11 w-11 place-items-center rounded-lg transition-colors',
+                                viewMode === 'list' ? 'bg-card text-foreground ' : 'text-muted-foreground hover:text-foreground'
                             )}
                         >
                             <ListIcon size={16} aria-hidden />
@@ -447,7 +447,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                 <div className={cn('min-w-0 flex-1', selectedReport && 'hidden 2xl:block')}>
                     {loadError ? null : loading ? (
                         <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card py-16 text-center">
-                            <Spinner className="size-6 text-brand-ink dark:text-primary" />
+                            <Spinner className="size-6 text-foreground" />
                             <p className="text-sm text-muted-foreground">Lade Meldungen...</p>
                         </div>
                     ) : filteredReports.length === 0 ? (
@@ -469,7 +469,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                             {/* Investigating column */}
                             <KanbanColumn
                                 title="In Prüfung"
-                                badgeColor="bg-amber-500"
+                                badgeColor="bg-foreground"
                                 reports={columns.investigating}
                                 selectedId={selectedReport?.id}
                                 onSelect={handleSelectReport}
@@ -501,7 +501,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                                     key={r.id}
                                     onClick={() => handleSelectReport(r)}
                                     className={cn(
-                                        'flex w-full items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4 text-left shadow-soft transition-colors hover:border-primary/40',
+                                        'flex w-full items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4 text-left transition-colors hover:border-border',
                                         selectedReport?.id === r.id && 'ring-2 ring-ring'
                                     )}
                                 >
@@ -523,7 +523,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                                     </div>
                                     <div className="flex shrink-0 items-center gap-2">
                                         <span className={cn(
-                                            'rounded-full px-2.5 py-1 text-xs font-medium',
+                                            'rounded-md px-2.5 py-1 text-xs font-medium',
                                             r.priority === 'kritisch' ? PRIO_BADGE_KRITISCH : r.priority === 'hoch' ? PRIO_BADGE_HOCH : PRIO_BADGE_NORMAL
                                         )}>
                                             {r.priority}
@@ -579,16 +579,16 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                             <div className="space-y-1.5">
                                 <span className="block text-xs font-medium text-muted-foreground">Kategorie / Grund</span>
                                 <div className="flex flex-wrap gap-1.5">
-                                    <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium capitalize text-foreground">
+                                    <span className="rounded-md bg-muted px-2.5 py-1 text-xs font-medium capitalize text-foreground">
                                         {selectedReport.category}
                                     </span>
                                     {selectedReport.sub_reason && (
-                                        <span className="rounded-full bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive">
+                                        <span className="rounded-md bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive">
                                             {selectedReport.sub_reason}
                                         </span>
                                     )}
                                     <span className={cn(
-                                        'rounded-full px-2.5 py-1 text-xs font-medium',
+                                        'rounded-md px-2.5 py-1 text-xs font-medium',
                                         selectedReport.priority === 'kritisch' ? PRIO_BAR_KRITISCH : selectedReport.priority === 'hoch' ? PRIO_BAR_HOCH : PRIO_BAR_NORMAL
                                     )}>
                                         Prio: {selectedReport.priority}
@@ -609,14 +609,14 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                                 const auto = getAutoEvidence(selectedReport);
                                 if (!auto) return null;
                                 return (
-                                    <div className="space-y-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
-                                        <span className="block text-xs font-medium text-amber-700 dark:text-amber-400">
+                                    <div className="space-y-2 rounded-xl border border-border bg-muted p-4">
+                                        <span className="block text-xs font-medium text-foreground">
                                             Automatische Filtermeldung • Schwere: {auto.severity ?? '–'}
                                         </span>
                                         {auto.hits && auto.hits.length > 0 && (
                                             <div className="flex flex-wrap gap-1.5">
                                                 {auto.hits.map((h, i) => (
-                                                    <span key={i} className="rounded-full bg-amber-500/15 px-2.5 py-1 font-mono text-xs font-medium text-amber-800 dark:text-amber-300">
+                                                    <span key={i} className="rounded-md bg-muted px-2.5 py-1 tabular-nums text-xs font-medium text-foreground">
                                                         {h}
                                                     </span>
                                                 ))}
@@ -627,7 +627,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                                                 "{auto.excerpt}"
                                             </div>
                                         )}
-                                        <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
+                                        <p className="text-xs font-medium text-foreground">
                                             Wahr oder falsch? Mit „Zutreffend" bestätigst du den Verstoß, mit „Fehlalarm" wird die Meldung abgewiesen und die getroffenen Wörter werden für den Filter freigegeben (Training).
                                         </p>
                                     </div>
@@ -645,7 +645,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                                                 size="unstyled"
                                                 type="button"
                                                 key={i}
-                                                className="group relative aspect-video shrink-0 overflow-hidden rounded-xl border border-border focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                                                className="group relative aspect-video shrink-0 overflow-hidden rounded-xl border border-border  "
                                                 onClick={() => setZoomedImage(imgUrl)}
                                                 aria-label={`Screenshot ${i + 1} vergrößern`}
                                             >
@@ -661,8 +661,8 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
 
                             {/* Chat insight helper */}
                             {selectedReport.category === 'chat' && (selectedReport.reported_user_id && selectedReport.reporter_id) && (
-                                <div className="space-y-2.5 rounded-xl border border-primary/20 bg-primary/10 p-4">
-                                    <div className="flex items-start gap-2 text-xs font-medium text-brand-ink dark:text-primary">
+                                <div className="space-y-2.5 rounded-xl border border-border bg-muted p-4">
+                                    <div className="flex items-start gap-2 text-xs font-medium text-foreground">
                                         <MessageSquare size={16} className="mt-0.5 shrink-0" aria-hidden />
                                         <span>Als Admin kannst du den Chatverlauf dieses Vorfalls zu Moderationszwecken einsehen.</span>
                                     </div>
@@ -739,7 +739,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                                             <Button
                                                 onClick={handleEscalate}
                                                 variant="ghost"
-                                                className="h-11 flex-1 text-xs text-amber-700 hover:bg-amber-500/10 dark:text-amber-400"
+                                                className="h-11 flex-1 text-xs text-foreground hover:bg-muted"
                                             >
                                                 Auf Kritisch eskalieren
                                             </Button>
@@ -827,7 +827,7 @@ function KanbanColumn({ title, badgeColor, reports, selectedId, onSelect }: Kanb
             {/* Header */}
             <div className="mb-3 flex shrink-0 items-center justify-between gap-2 border-b border-border pb-3">
                 <span className="text-sm font-semibold text-foreground">{title}</span>
-                <span className={cn('rounded-full px-2.5 py-1 text-xs font-semibold text-white tabular-nums', badgeColor)}>
+                <span className={cn('rounded-md px-2.5 py-1 text-xs font-semibold text-white tabular-nums', badgeColor)}>
                     {reports.length}
                 </span>
             </div>
@@ -842,17 +842,17 @@ function KanbanColumn({ title, badgeColor, reports, selectedId, onSelect }: Kanb
                         key={r.id}
                         onClick={() => onSelect(r)}
                         className={cn(
-                            'flex w-full flex-col gap-2.5 rounded-xl border border-border bg-card p-3 text-left shadow-soft transition-colors hover:border-primary/40',
+                            'flex w-full flex-col gap-2.5 rounded-xl border border-border bg-card p-3 text-left transition-colors hover:border-border',
                             selectedId === r.id && 'ring-2 ring-ring'
                         )}
                     >
                         <div className="flex items-start justify-between gap-2">
-                            <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium capitalize text-muted-foreground">
+                            <span className="rounded-md bg-muted px-2.5 py-1 text-xs font-medium capitalize text-muted-foreground">
                                 {r.category}
                             </span>
                             <span className={cn(
                                 'mt-1.5 size-2 shrink-0 rounded-full',
-                                r.priority === 'kritisch' ? 'bg-destructive' : r.priority === 'hoch' ? 'bg-amber-500' : 'bg-muted-foreground/40'
+                                r.priority === 'kritisch' ? 'bg-destructive' : r.priority === 'hoch' ? 'bg-foreground' : 'bg-muted-foreground/40'
                             )} title={`Priorität: ${r.priority}`} />
                         </div>
 

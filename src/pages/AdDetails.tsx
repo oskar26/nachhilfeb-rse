@@ -121,7 +121,7 @@ export default function AdDetails() {
 
     if (loading) return (
         <div className="mx-auto w-full max-w-3xl space-y-4 p-4 sm:p-6" role="status" aria-label="Anzeige wird geladen">
-            <div className="h-11 w-28 animate-pulse rounded-full bg-muted" />
+            <div className="h-11 w-28 animate-pulse rounded-lg bg-muted" />
             <div className="h-48 animate-pulse rounded-2xl bg-muted" />
             <div className="h-64 animate-pulse rounded-2xl bg-muted" />
         </div>
@@ -130,9 +130,9 @@ export default function AdDetails() {
         const unavailable = adError?.status === 403 || adError?.status === 404;
         return (
             <div className="mx-auto mt-10 max-w-md p-4">
-                <Card className="border-border bg-card shadow-soft">
+                <Card className="border-border bg-card ">
                     <CardContent className="space-y-3 p-8 text-center">
-                        <div className="mx-auto grid size-14 place-items-center rounded-full bg-muted text-muted-foreground">
+                        <div className="mx-auto grid size-14 place-items-center rounded-lg bg-muted text-muted-foreground">
                             <Lock size={22} aria-hidden />
                         </div>
                         <h1 className="text-lg font-semibold text-foreground">
@@ -143,7 +143,7 @@ export default function AdDetails() {
                                 ? 'Diese Anzeige ist privat, nicht mehr aktiv oder für dich nicht freigeschaltet.'
                                 : 'Diese Anzeige existiert nicht oder wurde entfernt.'}
                         </p>
-                        <Button onClick={() => navigate(-1)} className="rounded-full">Zurück</Button>
+                        <Button onClick={() => navigate(-1)} className="rounded-lg">Zurück</Button>
                     </CardContent>
                 </Card>
             </div>
@@ -169,18 +169,18 @@ export default function AdDetails() {
     return (
         <div className="mx-auto w-full max-w-3xl space-y-6 p-4 pb-32 sm:p-6">
             <div className="flex items-center justify-between gap-2">
-                <Button variant="ghost" onClick={() => navigate(-1)} className="-ml-2 h-11 gap-1 rounded-full pl-2 text-sm font-semibold">
+                <Button variant="ghost" onClick={() => navigate(-1)} className="-ml-2 h-11 gap-1 rounded-lg pl-2 text-sm font-semibold">
                     <ChevronLeft size={20} aria-hidden /> Zurück
                 </Button>
                 <div className="flex items-center gap-1">
-                    <Button variant="ghost" onClick={() => navigate('/create-ad', { state: { duplicateAd: ad } })} className="h-11 gap-1 rounded-full px-3 text-xs font-semibold text-muted-foreground">
+                    <Button variant="ghost" onClick={() => navigate('/create-ad', { state: { duplicateAd: ad } })} className="h-11 gap-1 rounded-lg px-3 text-xs font-semibold text-muted-foreground">
                         <Copy size={16} aria-hidden /> <span className="hidden sm:inline">Duplizieren</span><span className="sr-only sm:hidden">Duplizieren</span>
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => setIsShareOpen(true)} className="size-11 rounded-full text-muted-foreground" aria-label="Anzeige teilen">
+                    <Button variant="ghost" size="icon" onClick={() => setIsShareOpen(true)} className="size-11 rounded-lg text-muted-foreground" aria-label="Anzeige teilen">
                         <Share2 size={20} aria-hidden />
                     </Button>
                     {!isOwn && (
-                        <Button variant="ghost" size="icon" onClick={toggleFavorite} className={`size-11 rounded-full hover:bg-destructive/10 ${isFavorite ? 'text-destructive' : 'text-muted-foreground'}`} aria-label={isFavorite ? 'Aus Merkliste entfernen' : 'Zur Merkliste hinzufügen'} aria-pressed={isFavorite}>
+                        <Button variant="ghost" size="icon" onClick={toggleFavorite} className={`size-11 rounded-lg hover:bg-destructive/10 ${isFavorite ? 'text-destructive' : 'text-muted-foreground'}`} aria-label={isFavorite ? 'Aus Merkliste entfernen' : 'Zur Merkliste hinzufügen'} aria-pressed={isFavorite}>
                             <Heart fill={isFavorite ? 'currentColor' : 'none'} aria-hidden />
                         </Button>
                     )}
@@ -194,7 +194,7 @@ export default function AdDetails() {
                         <div className="flex justify-between items-start gap-3">
                             <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2 mb-2">
-                                    <h1 className="break-anywhere text-xl font-semibold text-foreground sm:text-2xl">{ad.subjects?.[0]?.toUpperCase() || 'Nachhilfe'} - {profile?.display_name || 'Nutzer'}</h1>
+                                    <h1 className="break-anywhere text-xl font-semibold text-foreground sm:text-2xl">{ad.subjects?.[0] || 'Nachhilfe'} - {profile?.display_name || 'Nutzer'}</h1>
                                     {profile?.is_verified && (
                                         <VerifiedPill className="shrink-0" />
                                     )}
@@ -207,7 +207,7 @@ export default function AdDetails() {
                                 )}
                             </div>
                             <div className="text-right shrink-0">
-                                <div className="text-xl font-semibold text-brand-ink dark:text-primary" aria-label={`Preis: ${price}`}>{price}</div>
+                                <div className="text-xl font-semibold text-foreground" aria-label={`Preis: ${price}`}>{price}</div>
                                 {hourly && hourly !== price && (
                                     <div className="text-xs text-muted-foreground tabular-nums">≈ {hourly}</div>
                                 )}
@@ -218,26 +218,26 @@ export default function AdDetails() {
                         {/* Meta Tags */}
                         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                             {ad.locations?.map((loc: string) => (
-                                <span key={loc} className="flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs">
+                                <span key={loc} className="flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1 text-xs">
                                     <MapPin size={14} aria-hidden /> {loc}
                                 </span>
                             ))}
-                            <span className="flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs" title={durationMeta}>
+                            <span className="flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1 text-xs" title={durationMeta}>
                                 <Clock size={14} /> {durationMeta}
                             </span>
                             {ad.session_format && ad.session_format !== 'any' && (
-                                <span className="flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs" title={ad.session_format === 'group' ? 'Kleingruppe (2–4 Schüler)' : 'Einzelunterricht'}>
+                                <span className="flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1 text-xs" title={ad.session_format === 'group' ? 'Kleingruppe (2–4 Schüler)' : 'Einzelunterricht'}>
                                     {ad.session_format === 'group' ? <Users size={14} /> : <User size={14} />}
                                     {ad.session_format === 'group' ? 'Kleingruppe' : 'Einzelunterricht'}
                                 </span>
                             )}
                             {ad.session_format === 'any' && (
-                                <span className="flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs" title="Einzel oder Kleingruppe – nach Absprache">
+                                <span className="flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1 text-xs" title="Einzel oder Kleingruppe – nach Absprache">
                                     <Shuffle size={14} /> Egal
                                 </span>
                             )}
                             {(ad.view_count ?? 0) > 0 && (
-                                <span className="flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs" title="So oft wurde diese Anzeige aufgerufen">
+                                <span className="flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1 text-xs" title="So oft wurde diese Anzeige aufgerufen">
                                     <Eye size={14} /> {ad.view_count} {ad.view_count === 1 ? 'Aufruf' : 'Aufrufe'}
                                 </span>
                             )}
@@ -276,7 +276,7 @@ export default function AdDetails() {
                             onClick={() => navigate(`/profile/${profile?.id}`)}
                             className="mb-6 flex w-full items-center gap-4 rounded-xl p-2 text-left transition-colors hover:bg-muted"
                         >
-                            <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/20 text-2xl font-semibold text-brand-ink dark:text-primary">
+                            <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted text-2xl font-semibold text-foreground">
                                 {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" /> : (profile?.display_name?.charAt(0) || '?')}
                             </div>
                             <div className="min-w-0">
@@ -296,7 +296,7 @@ export default function AdDetails() {
                                         <Button
                                             onClick={sendRequest}
                                             disabled={sending}
-                                            className="h-14 w-full text-base font-semibold"
+                                            className="hidden h-14 w-full text-base font-semibold md:inline-flex"
                                         >
                                             <Send size={20} className="mr-2" /> Anfrage senden
                                             <span className="ml-2 font-semibold tabular-nums opacity-80">· {price}</span>
@@ -307,13 +307,13 @@ export default function AdDetails() {
                                     </div>
                                 )}
                                 {status === 'pending' && (
-                                    <div className="rounded-xl border border-primary/25 bg-primary/10 p-4 text-center font-medium text-foreground/80">
+                                    <div className="rounded-xl border border-border bg-muted p-4 text-center font-medium text-foreground/80">
                                         Anfrage gesendet. Warte auf Antwort.
                                     </div>
                                 )}
                                 {(status === 'accepted' || status === 'completed') && (
                                     <div className="space-y-4 animate-in fade-in zoom-in-95">
-                                        <div className="flex items-center gap-3 rounded-xl border border-primary/25 bg-primary/10 p-4 text-foreground/80">
+                                        <div className="flex items-center gap-3 rounded-xl border border-border bg-muted p-4 text-foreground/80">
                                             <CheckCircle size={24} />
                                             <div>
                                                 <p className="font-semibold">Anfrage akzeptiert!</p>
@@ -365,17 +365,17 @@ export default function AdDetails() {
                     <CardHeader className="border-b border-border bg-muted/50 pb-4">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <CalendarDays size={18} className="text-brand-ink dark:text-primary" />
+                                <CalendarDays size={18} className="text-foreground" />
                                 <h3 className="font-semibold text-lg">Verfügbarkeit</h3>
                             </div>
                             {user && (() => {
                                 const score = countMatches(myAvailability, theirAvailability);
                                 return score > 0 ? (
-                                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-1 text-xs font-semibold text-brand-ink dark:text-primary">
+                                    <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-semibold text-foreground">
                                         <CheckCircle size={12} /> {score} gemeinsame Zeitslot{score !== 1 ? 's' : ''}
                                     </span>
                                 ) : (
-                                    <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+                                    <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-lg">
                                         Keine Übereinstimmung
                                     </span>
                                 );
@@ -401,7 +401,7 @@ export default function AdDetails() {
                     <Button
                         variant="outline"
                         onClick={() => setIsReportOpen(true)}
-                        className="h-11 rounded-full border-destructive/25 font-semibold text-destructive hover:bg-destructive/10"
+                        className="h-11 rounded-lg border-destructive/25 font-semibold text-destructive hover:bg-destructive/10"
                     >
                         <Flag size={15} /> Anzeige melden
                     </Button>
@@ -417,15 +417,15 @@ export default function AdDetails() {
             {/* Share Dialog */}
             <ShareDialog
                 adId={ad.id}
-                adTitle={ad.subjects?.[0]?.toUpperCase()}
+                adTitle={ad.subjects?.[0]}
                 isOpen={isShareOpen}
                 onClose={() => setIsShareOpen(false)}
             />
 
             {/* Sticky conversion bar (I2): CTA + price stay reachable while scrolling */}
             {canRequest && (
-                <div className="fixed left-0 right-0 bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] z-40 px-4 md:sticky md:inset-auto md:bottom-4 md:px-0 md:z-auto md:w-full md:max-w-3xl md:mx-auto">
-                    <div className="flex items-center gap-3 rounded-2xl border border-border bg-card/95 px-3 py-2.5 shadow-overlay backdrop-blur-md md:rounded-full">
+                <div className="fixed left-0 right-0 bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] z-40 px-4 md:hidden">
+                    <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2.5 shadow-overlay">
                         <div className="min-w-0 flex-1 pl-1">
                             <div className="text-sm font-semibold text-foreground truncate tabular-nums">{price}</div>
                             <div className="text-xs text-muted-foreground truncate">Unverbindlich · Kontakt nach Annahme</div>
@@ -433,7 +433,7 @@ export default function AdDetails() {
                         <Button
                             onClick={sendRequest}
                             disabled={sending}
-                            className="h-12 shrink-0 rounded-full px-5 font-semibold"
+                            className="h-12 shrink-0 rounded-lg px-5 font-semibold"
                             aria-describedby="request-safety-line"
                         >
                             <Send size={18} className="mr-2" /> Anfrage senden

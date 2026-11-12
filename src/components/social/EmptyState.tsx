@@ -19,7 +19,7 @@ export function EmptyState({ icon: Icon, title, text, action, tone = 'neutral' }
         <div
             role={tone === 'error' ? 'alert' : undefined}
             className={cn(
-                'flex flex-col items-center justify-center rounded-2xl border bg-card p-8 text-center shadow-soft sm:p-12',
+                'flex flex-col items-center justify-center rounded-xl border bg-card p-8 text-center sm:p-12',
                 tone === 'error'
                     ? 'border-destructive/25'
                     : 'border-border'

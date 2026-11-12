@@ -33,7 +33,7 @@ import {
     type CoachingTextBlock,
 } from '../Coaching';
 
-const textareaCls = 'w-full rounded-xl border border-input bg-transparent p-3 text-sm text-foreground shadow-soft transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30';
+const textareaCls = 'w-full rounded-xl border border-input bg-transparent p-3 text-sm text-foreground  transition-colors placeholder:text-muted-foreground  dark:bg-input/30';
 
 const BUILTIN_BLOCKS: Array<{ type: Exclude<CoachingBlockType, 'text'>; label: string; description: string }> = [
     { type: 'poster', label: 'Plakat', description: 'Termin, Raum, Kontakt und Anmeldung' },
@@ -347,8 +347,8 @@ function BlockFrame({
     children: ReactNode;
 }) {
     return (
-        <details id={`editor-${block.id}`} className="group scroll-mt-28 overflow-hidden rounded-2xl border border-border bg-card shadow-soft open:shadow-card">
-            <summary className="flex min-h-[68px] cursor-pointer list-none items-center gap-4 px-4 py-3 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/50 sm:px-5 [&::-webkit-details-marker]:hidden">
+        <details id={`editor-${block.id}`} className="group scroll-mt-28 overflow-hidden rounded-xl border border-border bg-card  open:">
+            <summary className="flex min-h-[68px] cursor-pointer list-none items-center gap-4 px-4 py-3 sm:px-5 [&::-webkit-details-marker]:hidden">
                 <span className="min-w-0 flex-1">
                     <span className="block text-xs font-medium text-muted-foreground">{BLOCK_LABELS[block.type]}</span>
                     <span className="mt-0.5 block truncate text-sm font-semibold text-foreground">{blockTitle(block) || 'Ohne Titel'}</span>
@@ -368,7 +368,7 @@ function BlockFrame({
 
 function HeaderEditor({ header, onUpdate, onDelete }: { header: CoachingHeaderBlock; onUpdate: (header: CoachingHeaderBlock) => void; onDelete: () => void }) {
     return (
-        <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
+        <section className="overflow-hidden rounded-xl border border-border bg-card ">
             <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
                 <div className="min-w-0">
                     <p className="text-xs font-medium text-muted-foreground">Seitenkopf</p>
@@ -500,7 +500,7 @@ export default function CoachingPageBuilder() {
     if (loading && draft === null) {
         return (
             <div className="py-20 text-center">
-                <Spinner className="mx-auto mb-3 size-6 text-brand-ink dark:text-primary" />
+                <Spinner className="mx-auto mb-3 size-6 text-muted-foreground" />
                 <p className="text-xs font-medium text-muted-foreground">Coaching-Inhalte werden geladen …</p>
             </div>
         );
@@ -508,7 +508,7 @@ export default function CoachingPageBuilder() {
 
     if (loadError) {
         return (
-            <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-center">
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center">
                 <h2 className="text-lg font-semibold text-destructive">Coaching-Inhalte konnten nicht geladen werden</h2>
                 <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-foreground/80">Die gespeicherten Inhalte wurden nicht verändert. Bitte lade sie erneut, bevor du bearbeitest oder speicherst.</p>
                 <p className="mt-2 break-words text-xs text-muted-foreground">{loadError}</p>
@@ -644,12 +644,12 @@ export default function CoachingPageBuilder() {
 
     return (
         <div className="min-w-0">
-            <div className="sticky top-2 z-30 rounded-2xl border border-border bg-card/95 p-3 shadow-card backdrop-blur sm:p-4">
+            <div className="sticky top-2 z-30 rounded-xl border border-border bg-card/95 p-3  backdrop-blur sm:p-4">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                     <div className="min-w-0">
                         <h2 className="text-lg font-semibold text-foreground">Coaching-Inhalte</h2>
-                        <p role="status" className={cn('mt-0.5 flex items-center gap-1.5 text-xs font-medium', dirty ? 'text-amber-700 dark:text-amber-400' : 'text-muted-foreground')}>
-                            {dirty ? <span className="size-2 rounded-full bg-amber-500" aria-hidden /> : <Check size={16} aria-hidden />}
+                        <p role="status" className={cn('mt-0.5 flex items-center gap-1.5 text-xs font-medium', dirty ? 'text-muted-foreground' : 'text-muted-foreground')}>
+                            {dirty ? <span className="size-2 rounded-full bg-foreground" aria-hidden /> : <Check size={16} aria-hidden />}
                             {dirty ? 'Ungespeicherte Änderungen' : 'Alle Änderungen gespeichert'}
                         </p>
                     </div>
@@ -666,7 +666,7 @@ export default function CoachingPageBuilder() {
 
             <div className="mt-5 grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(400px,0.85fr)] 2xl:gap-6">
                 <div className="min-w-0 space-y-4">
-                    <div className="rounded-2xl border border-border bg-card p-4 shadow-soft sm:p-5">
+                    <div className="rounded-xl border border-border bg-card p-4  sm:p-5">
                         <h3 className="text-base font-semibold text-foreground">Texte und Kontaktdaten</h3>
                         <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">Alle Inhalte der Coaching-Seite sind hier bearbeitbar. Blöcke lassen sich hinzufügen, umsortieren oder löschen; das bestehende Design bleibt unverändert.</p>
                     </div>
@@ -681,7 +681,7 @@ export default function CoachingPageBuilder() {
                             }}
                         />
                     ) : (
-                        <div className="rounded-2xl border border-dashed border-border bg-muted/40 p-5 text-center">
+                        <div className="rounded-xl border border-border border-border bg-muted/40 p-5 text-center">
                             <p className="text-sm font-semibold text-foreground">Der Seitenkopf ist gelöscht.</p>
                             <Button type="button" variant="outline" onClick={() => mutate(document => ({ ...document, header: { id: 'header', type: 'header', title: 'Coaching-AG am FWG', intro: '' } }))} className="mt-3 min-h-11 font-semibold">
                                 <Plus size={16} aria-hidden /> Seitenkopf hinzufügen
@@ -690,13 +690,13 @@ export default function CoachingPageBuilder() {
                     )}
 
                     {draft.blocks.length > 0 ? draft.blocks.map(renderBlockEditor) : (
-                        <div className="rounded-2xl border border-dashed border-border bg-muted/40 p-8 text-center">
+                        <div className="rounded-xl border border-border border-border bg-muted/40 p-8 text-center">
                             <h3 className="text-base font-semibold text-foreground">Noch keine Inhaltsblöcke</h3>
                             <p className="mt-1 text-sm text-muted-foreground">Füge unten einen Standardblock oder einen eigenen Textabschnitt hinzu.</p>
                         </div>
                     )}
 
-                    <section className="rounded-2xl border border-border bg-card p-4 shadow-soft sm:p-5">
+                    <section className="rounded-xl border border-border bg-card p-4  sm:p-5">
                         <h3 className="text-base font-semibold text-foreground">Block hinzufügen</h3>
                         <p className="mt-1 text-xs leading-5 text-muted-foreground">Gelöschte Standardblöcke können jederzeit wieder hinzugefügt werden.</p>
                         <div className="mt-4 grid gap-2 sm:grid-cols-2">
@@ -709,7 +709,7 @@ export default function CoachingPageBuilder() {
                                         variant="outline"
                                         disabled={exists}
                                         onClick={() => addBlock(candidate.type)}
-                                        className="min-h-14 justify-start rounded-2xl px-4 text-left"
+                                        className="min-h-14 justify-start rounded-xl px-4 text-left"
                                     >
                                         <span className="min-w-0">
                                             <span className="block text-sm font-semibold">{candidate.label}</span>
@@ -718,7 +718,7 @@ export default function CoachingPageBuilder() {
                                     </Button>
                                 );
                             })}
-                            <Button type="button" variant="outline" onClick={() => addBlock('text')} className="min-h-14 justify-start rounded-2xl px-4 text-left">
+                            <Button type="button" variant="outline" onClick={() => addBlock('text')} className="min-h-14 justify-start rounded-xl px-4 text-left">
                                 <span>
                                     <span className="block text-sm font-semibold">Eigener Textabschnitt</span>
                                     <span className="mt-0.5 block text-xs font-normal text-muted-foreground">Freier Titel und Freitext</span>
@@ -733,7 +733,7 @@ export default function CoachingPageBuilder() {
                         <h3 className="text-sm font-semibold text-foreground">Live-Vorschau</h3>
                         <span className="text-xs text-muted-foreground">Links sind deaktiviert</span>
                     </div>
-                    <div onClickCapture={handlePreviewClickCapture} className="max-h-[calc(100vh-8rem)] overflow-auto rounded-2xl border border-border bg-muted/40 shadow-soft">
+                    <div onClickCapture={handlePreviewClickCapture} className="max-h-[calc(100vh-8rem)] overflow-auto rounded-xl border border-border bg-muted/40 ">
                         <CoachingView document={draft} preview />
                     </div>
                 </aside>

@@ -166,11 +166,11 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
             )}
 
             {/* Logs List */}
-            <Card className="shadow-soft">
+            <Card className="">
                 <CardContent className="p-0">
                     {loadError ? null : loading ? (
                         <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-                            <Spinner className="size-6 text-brand-ink dark:text-primary" />
+                            <Spinner className="size-6 text-foreground" />
                             <p className="text-sm text-muted-foreground">Lade Audit-Trail...</p>
                         </div>
                     ) : logs.length === 0 ? (
@@ -191,11 +191,11 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
                                         <div className="min-w-0 flex-1 space-y-1.5">
                                             <div className="flex flex-wrap items-center gap-2">
                                                 <span className={cn(
-                                                    'rounded-full px-2.5 py-1 text-xs font-medium',
+                                                    'rounded-md px-2.5 py-1 text-xs font-medium',
                                                     log.action.includes('ban') && 'bg-destructive/10 text-destructive',
                                                     log.action.includes('verify') && 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
-                                                    log.action.includes('report') && 'bg-amber-500/15 text-amber-700 dark:text-amber-400',
-                                                    log.action.includes('code') && 'bg-primary/15 text-brand-ink dark:text-primary',
+                                                    log.action.includes('report') && 'bg-muted text-foreground',
+                                                    log.action.includes('code') && 'bg-muted text-foreground',
                                                     !log.action.includes('ban') && !log.action.includes('verify') && !log.action.includes('report') && !log.action.includes('code') && 'bg-muted text-muted-foreground'
                                                 )}>
                                                     {actionText}
@@ -295,12 +295,12 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
 
                             <div className="space-y-1 text-xs">
                                 <span className="block font-medium text-muted-foreground">Ziel-Objekt</span>
-                                <span className="break-all font-mono">{selectedLog.target_type} ({selectedLog.target_id || 'Keine ID'})</span>
+                                <span className="break-all tabular-nums">{selectedLog.target_type} ({selectedLog.target_id || 'Keine ID'})</span>
                             </div>
 
                             <div className="space-y-1">
                                 <span className="block text-xs font-medium text-muted-foreground">Rohdaten / Details (JSON)</span>
-                                <pre className="overflow-x-auto rounded-xl border border-border bg-muted/40 p-4 font-mono text-xs text-foreground">
+                                <pre className="overflow-x-auto rounded-xl border border-border bg-muted/40 p-4 tabular-nums text-xs text-foreground">
                                     {JSON.stringify(selectedLog.details, null, 2)}
                                 </pre>
                             </div>

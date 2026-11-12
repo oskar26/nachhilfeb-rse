@@ -87,20 +87,20 @@ export default function PublicProfile() {
 
     if (loading) return (
         <div className="flex flex-col items-center justify-center gap-3 p-20" role="status">
-            <Loader2 className="animate-spin text-brand-ink dark:text-primary" size={30} aria-hidden />
+            <Loader2 className="animate-spin text-foreground" size={30} aria-hidden />
             <p className="text-xs font-semibold text-muted-foreground">Profil wird geladen…</p>
         </div>
     );
     if (!profile) return (
         <div className="mx-auto mt-10 max-w-md p-4">
-            <Card className="border-border bg-card shadow-soft">
+            <Card className="border-border bg-card">
                 <CardContent className="space-y-3 p-8 text-center">
                     <div className="mx-auto grid size-14 place-items-center rounded-full bg-muted text-muted-foreground">
                         <UserX size={24} aria-hidden />
                     </div>
                     <h1 className="text-lg font-semibold text-foreground">Profil nicht gefunden</h1>
                     <p className="text-sm text-muted-foreground">Dieses Profil existiert nicht oder ist nicht mehr verfügbar.</p>
-                    <Button onClick={() => navigate(-1)} className="rounded-full">Zurück</Button>
+                    <Button onClick={() => navigate(-1)} className="rounded-lg">Zurück</Button>
                 </CardContent>
             </Card>
         </div>
@@ -138,7 +138,7 @@ export default function PublicProfile() {
                         triggerHaptic('light');
                         navigate(-1);
                     }}
-                    className="-ml-2 h-11 gap-1 rounded-full pl-2 font-semibold"
+                    className="-ml-2 h-11 gap-1 rounded-lg pl-2 font-semibold"
                 >
                     <ChevronLeft size={20} aria-hidden /> Zurück
                 </Button>
@@ -150,24 +150,24 @@ export default function PublicProfile() {
                         triggerHaptic('light');
                         setIsShareOpen(true);
                     }}
-                    className="h-11 rounded-full gap-1.5 border-border font-semibold"
+                    className="h-11 rounded-lg gap-1.5 border-border font-semibold"
                 >
-                    <Share2 size={15} className="text-brand-ink dark:text-primary" />
+                    <Share2 size={15} className="text-foreground" />
                     <span>Profil teilen</span>
                 </Button>
             </motion.div>
 
             {/* Profile Header */}
             <motion.div variants={itemVariants} className="relative">
-                <Card className="relative overflow-hidden border-border bg-card p-0 shadow-soft">
+                <Card className="relative overflow-hidden border-border bg-card p-0">
                     <div className="h-36 transition-all duration-700 shadow-inner" style={{ background: bannerGradient }}></div>
                     <CardContent className="pt-0 px-6 sm:px-8 pb-8 relative">
                         <div className="flex flex-col md:flex-row items-center md:items-end gap-6">
-                            <div className="-mt-16 size-28 shrink-0 overflow-hidden rounded-2xl border-4 border-card bg-card p-1 shadow-soft sm:size-32">
+                            <div className="-mt-16 size-28 shrink-0 overflow-hidden rounded-2xl border-4 border-card bg-card p-1 sm:size-32">
                                 {profile.avatar_url ? (
                                     <img src={profile.avatar_url} className="w-full h-full object-cover rounded-2xl" />
                                 ) : (
-                                    <div className="flex h-full w-full items-center justify-center rounded-2xl bg-primary/20 text-4xl font-semibold text-brand-ink dark:text-primary">
+                                    <div className="flex h-full w-full items-center justify-center rounded-2xl bg-muted text-4xl font-semibold text-foreground">
                                         {profile.display_name?.charAt(0) || '?'}
                                     </div>
                                 )}
@@ -184,7 +184,7 @@ export default function PublicProfile() {
                                 </p>
                                 {reviewCount > 0 && (
                                     <p className="mt-1.5 flex items-center justify-center md:justify-start gap-1.5 text-sm font-semibold text-foreground/80">
-                                        <Star size={15} className="fill-primary text-brand-ink dark:text-primary" aria-hidden />
+                                        <Star size={15} className="fill-primary text-foreground" aria-hidden />
                                         <span className="tabular-nums">{Number(profile.average_rating || 0).toFixed(1)}</span>
                                         <span className="text-muted-foreground font-normal">· {reviewCount} {reviewCount === 1 ? 'Bewertung' : 'Bewertungen'}</span>
                                     </p>
@@ -192,14 +192,14 @@ export default function PublicProfile() {
                             </div>
                             <div className="flex flex-wrap gap-2 justify-center md:justify-end">
                                 {profile.is_coach && (
-                                    <span className="flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/15 px-3 py-1.5 text-xs font-semibold text-brand-ink dark:text-primary">
+                                    <span className="flex items-center gap-1.5 rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-semibold text-foreground">
                                         <Award size={14} aria-hidden /> Schüler-Coach (5./6. Klasse)
                                     </span>
                                 )}
                                 {ads.length > 0 && (
                                     <Button
                                         size="sm"
-                                        className="h-11 rounded-full px-4 font-semibold"
+                                        className="h-11 rounded-lg px-4 font-semibold"
                                         onClick={() => navigate(`/ad/${ads[0].id}`)}
                                     >
                                         <MessageSquare size={14} className="mr-1.5" /> Anzeige öffnen
@@ -216,7 +216,7 @@ export default function PublicProfile() {
             <div className="grid items-start gap-6 lg:grid-cols-2">
                 <div className="space-y-6 min-w-0">
                     <motion.div variants={itemVariants}>
-                        <Card className="border-border bg-card p-5 shadow-soft">
+                        <Card className="border-border bg-card p-5">
                                 <div>
                                     <h3 className="mb-2 text-xs font-semibold text-muted-foreground">Über mich</h3>
                                     <div
@@ -229,7 +229,7 @@ export default function PublicProfile() {
 
                     {teachingSubjects.length > 0 && (
                         <motion.div variants={itemVariants}>
-                            <Card className="border-border bg-card p-5 shadow-soft">
+                            <Card className="border-border bg-card p-5">
                                 <h3 className="mb-3 text-xs font-semibold text-muted-foreground">Ich biete Nachhilfe</h3>
                                 <div className="flex flex-wrap gap-2">
                                     {teachingSubjects.map(s => <SubjectChip key={s} subject={s} />)}
@@ -239,22 +239,22 @@ export default function PublicProfile() {
                     )}
 
                     <motion.div variants={itemVariants}>
-                        <Card className="border-border bg-card p-5 shadow-soft">
+                        <Card className="border-border bg-card p-5">
                             <h3 className="mb-2 text-xs font-semibold text-muted-foreground">Statistiken</h3>
                                     <div className="divide-y divide-border">
                                         <div className="flex items-center justify-between gap-3 py-3">
-                                            <span className="flex items-center gap-2 text-xs font-medium text-muted-foreground"><Star size={14} className="text-brand-ink dark:text-primary" aria-hidden /> Bewertung</span>
+                                            <span className="flex items-center gap-2 text-xs font-medium text-muted-foreground"><Star size={14} className="text-foreground" aria-hidden /> Bewertung</span>
                                             <div className="flex items-center gap-1">
                                                 <span className="text-sm font-semibold tabular-nums text-foreground">{reviewCount > 0 ? Number(profile.average_rating || 0).toFixed(1) : '-'}</span>
                                                 <span className="text-xs font-semibold text-muted-foreground">({reviewCount})</span>
                                             </div>
                                         </div>
                                         <div className="flex items-center justify-between gap-3 py-3">
-                                            <span className="flex items-center gap-2 text-xs font-medium text-muted-foreground"><MessageSquare size={14} className="text-brand-ink dark:text-primary" aria-hidden /> Aktive Anzeigen</span>
+                                            <span className="flex items-center gap-2 text-xs font-medium text-muted-foreground"><MessageSquare size={14} className="text-foreground" aria-hidden /> Aktive Anzeigen</span>
                                             <span className="text-sm font-semibold text-foreground">{ads.length}</span>
                                         </div>
                                         <div className="flex items-center justify-between gap-3 py-3">
-                                            <span className="flex items-center gap-2 text-xs font-medium text-muted-foreground"><Calendar size={14} className="text-brand-ink dark:text-primary" aria-hidden /> Dabei seit</span>
+                                            <span className="flex items-center gap-2 text-xs font-medium text-muted-foreground"><Calendar size={14} className="text-foreground" aria-hidden /> Dabei seit</span>
                                             <span className="text-sm font-semibold text-foreground">{(() => {
                                                 const y = new Date(profile.created_at || '').getFullYear();
                                                 return Number.isFinite(y) ? y : '—';
@@ -269,9 +269,9 @@ export default function PublicProfile() {
                 <div className="space-y-6 min-w-0">
                     {profile.availability && (
                         <motion.div variants={itemVariants}>
-                            <Card className="border-border bg-card p-5 shadow-soft">
+                            <Card className="border-border bg-card p-5">
                                 <h3 className="mb-3 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                                    <Calendar size={14} className="text-brand-ink dark:text-primary" aria-hidden /> Wann hat {profile.display_name || 'dieser Nutzer'} Zeit?
+                                    <Calendar size={14} className="text-foreground" aria-hidden /> Wann hat {profile.display_name || 'dieser Nutzer'} Zeit?
                                 </h3>
                                 <AvailabilityCalendar
                                     availability={profile.availability}
@@ -285,7 +285,7 @@ export default function PublicProfile() {
             <motion.div variants={itemVariants} className="space-y-4">
                 <h2 className="px-1 text-xl font-semibold tracking-tight text-foreground">Aktive Anzeigen ({ads.length})</h2>
                 {ads.length === 0 ? (
-                    <Card className="border-2 border-dashed border-border bg-muted/30 py-12 text-center text-sm text-muted-foreground shadow-none">
+                    <Card className="border-2 border-border bg-muted/30 py-12 text-center text-sm text-muted-foreground shadow-none">
                         Dieser Nutzer hat aktuell keine öffentlichen Anzeigen geschaltet.
                     </Card>
                 ) : (
@@ -297,13 +297,13 @@ export default function PublicProfile() {
                                     triggerHaptic('light');
                                     navigate(`/ad/${ad.id}`);
                                 }}
-                                className="flex min-h-11 w-full cursor-pointer select-none flex-col items-start justify-between gap-4 rounded-2xl border border-border bg-card p-4 text-left transition-colors hover:border-primary/40 sm:p-5 md:flex-row md:items-center"
+                                className="flex min-h-11 w-full cursor-pointer select-none flex-col items-start justify-between gap-4 rounded-2xl border border-border bg-card p-4 text-left transition-colors hover:border-foreground/40 sm:p-5 md:flex-row md:items-center"
                             >
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-2">
                                         <span className={cn(
-                                            'rounded-full border px-2.5 py-0.5 text-xs font-semibold',
-                                            ad.type === 'offer' ? 'border-primary/25 bg-primary/15 text-brand-ink dark:text-primary' : 'border-border bg-muted text-muted-foreground'
+                                            'rounded-lg border px-2.5 py-0.5 text-xs font-semibold',
+                                            ad.type === 'offer' ? 'border-border bg-muted text-foreground' : 'border-border bg-muted text-muted-foreground'
                                         )}>
                                             {ad.type === 'offer' ? 'Biete Nachhilfe' : 'Suche Nachhilfe'}
                                         </span>
@@ -316,7 +316,7 @@ export default function PublicProfile() {
                                     </div>
                                 </div>
                                 <div className="text-right shrink-0">
-                                    <span className="rounded-full bg-muted px-4 py-2 text-base font-semibold tabular-nums text-foreground">
+                                    <span className="rounded-md bg-muted px-4 py-2 text-base font-semibold tabular-nums text-foreground">
                                         {formatAdPrice(ad.price_details)}
                                     </span>
                                 </div>

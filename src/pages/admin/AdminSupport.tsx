@@ -200,19 +200,19 @@ export default function AdminSupport() {
 
     const typeIcon = (type: string) => {
         if (type === 'bug') return <Bug size={16} className="text-destructive" aria-hidden />;
-        if (type === 'feature') return <Lightbulb size={16} className="text-amber-600 dark:text-amber-400" aria-hidden />;
+        if (type === 'feature') return <Lightbulb size={16} className="text-muted-foreground" aria-hidden />;
         return <MessageCircle size={16} className="text-muted-foreground" aria-hidden />;
     };
 
     const statusBadge = (status: string) => {
         const map: Record<string, { label: string; cls: string }> = {
             open: { label: 'Offen', cls: 'bg-destructive/10 text-destructive' },
-            in_progress: { label: 'In Bearbeitung', cls: 'bg-amber-500/15 text-amber-700 dark:text-amber-400' },
+            in_progress: { label: 'In Bearbeitung', cls: 'bg-muted text-foreground' },
             resolved: { label: 'Gelöst', cls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400' },
             closed: { label: 'Geschlossen', cls: 'bg-muted text-muted-foreground' },
         };
         const s = map[status] || map.open;
-        return <span className={cn('rounded-full px-2.5 py-1 text-xs font-medium', s.cls)}>{s.label}</span>;
+        return <span className={cn('rounded-md px-2.5 py-1 text-xs font-medium', s.cls)}>{s.label}</span>;
     };
 
     // Detail view for a ticket
@@ -242,7 +242,7 @@ export default function AdminSupport() {
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                     {/* Left: Description & Device Info */}
                     <div className="space-y-3 lg:col-span-1">
-                        <Card className="shadow-soft">
+                        <Card className="">
                             <CardContent className="space-y-3 p-4">
                                 <div>
                                     <p className="mb-1 text-xs font-medium text-muted-foreground">Beschreibung</p>
@@ -285,7 +285,7 @@ export default function AdminSupport() {
 
                     {/* Right: Chat */}
                     <div className="lg:col-span-2">
-                        <Card className="flex h-[min(70dvh,560px)] min-h-[380px] flex-col shadow-soft lg:h-[520px]">
+                        <Card className="flex h-[min(70dvh,560px)] min-h-[380px] flex-col lg:h-[520px]">
                             <div className="flex shrink-0 items-center gap-2 border-b border-border px-4 py-3">
                                 <MessageCircle size={16} className="text-muted-foreground" aria-hidden />
                                 <span className="text-sm font-semibold">Chat-Verlauf</span>
@@ -309,7 +309,7 @@ export default function AdminSupport() {
                                             className={cn(
                                                 'max-w-[85%] rounded-2xl border px-4 py-2.5 text-sm sm:max-w-[80%]',
                                                 msg.is_admin_reply
-                                                    ? 'ml-auto border-primary/20 bg-primary/10'
+                                                    ? 'ml-auto border-border bg-muted'
                                                     : 'mr-auto border-border bg-muted'
                                             )}
                                         >
@@ -359,17 +359,17 @@ export default function AdminSupport() {
             {/* Stats row */}
             <div className="flex flex-wrap gap-2">
                 <div className={cn(
-                    'flex items-center gap-2 rounded-full border px-3 py-2',
+                    'flex items-center gap-2 rounded-md border px-3 py-2',
                     openCount > 0 ? 'border-destructive/20 bg-destructive/5' : 'border-border bg-muted/50'
                 )}>
                     <AlertCircle size={16} className={openCount > 0 ? 'text-destructive' : 'text-muted-foreground'} aria-hidden />
                     <span className={cn('text-sm font-medium', openCount > 0 ? 'text-destructive' : 'text-foreground')}>{openCount} offene Tickets</span>
                 </div>
-                <div className="flex items-center gap-2 rounded-full border border-border bg-muted/50 px-3 py-2">
-                    <Clock size={16} className="text-amber-600 dark:text-amber-400" aria-hidden />
+                <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2">
+                    <Clock size={16} className="text-muted-foreground" aria-hidden />
                     <span className="text-sm font-medium text-foreground">{inProgressCount} in Bearbeitung</span>
                 </div>
-                <div className="flex items-center gap-2 rounded-full border border-border bg-muted/50 px-3 py-2">
+                <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2">
                     <span className="text-sm font-medium text-foreground">{tickets.length} gesamt</span>
                 </div>
             </div>
@@ -433,7 +433,7 @@ export default function AdminSupport() {
             {/* Ticket list */}
             {loadError ? null : loading ? (
                 <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card py-16 text-center">
-                    <Spinner className="size-6 text-brand-ink dark:text-primary" />
+                    <Spinner className="size-6 text-foreground" />
                     <p className="text-sm text-muted-foreground">Lade Tickets...</p>
                 </div>
             ) : filteredTickets.length === 0 ? (
@@ -443,7 +443,7 @@ export default function AdminSupport() {
                     <p className="mt-1 text-xs text-muted-foreground">Passe deine Filter an oder warte auf neue Anfragen.</p>
                 </div>
             ) : (
-                <Card className="shadow-soft">
+                <Card className="">
                     <CardContent className="p-0">
                         <div className="divide-y divide-border">
                             {filteredTickets.map(ticket => (
@@ -453,7 +453,7 @@ export default function AdminSupport() {
                                     type="button"
                                     key={ticket.id}
                                     onClick={() => openTicket(ticket)}
-                                    className="flex w-full items-start gap-3 p-4 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                                    className="flex w-full items-start gap-3 p-4 text-left transition-colors hover:bg-muted/40  "
                                 >
                                     <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted">
                                         {typeIcon(ticket.type)}

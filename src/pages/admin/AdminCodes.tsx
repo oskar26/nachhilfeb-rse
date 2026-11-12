@@ -340,16 +340,16 @@ export default function AdminCodes() {
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 gap-6 2xl:grid-cols-3">
                         {/* Form */}
-                        <Card className="shadow-soft 2xl:col-span-2">
+                        <Card className="2xl:col-span-2">
                             <CardContent className="space-y-4 p-4 sm:p-6">
                                 <h2 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
-                                    <Tag size={20} className="text-brand-ink dark:text-primary" aria-hidden />
+                                    <Tag size={20} className="text-foreground" aria-hidden />
                                     Neuen Promo-Code konfigurieren & erstellen
                                 </h2>
 
                                 {/* Presets / Schnellvorlagen */}
-                                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-primary/20 bg-primary/10 p-3">
-                                    <span className="text-xs font-medium text-brand-ink dark:text-primary">Schnell-Vorlagen:</span>
+                                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-muted p-3">
+                                    <span className="text-xs font-medium text-foreground">Schnell-Vorlagen:</span>
                                     <Button variant="secondary" size="sm"
                                         type="button"
                                         onClick={() => {
@@ -378,7 +378,7 @@ export default function AdminCodes() {
                                             placeholder="z.B. COACHING-AG, FWGSPECIAL, HERBST26"
                                             value={newPromoCode}
                                             onChange={e => setNewPromoCode(e.target.value)}
-                                            className="font-semibold tracking-wider uppercase"
+                                            className="font-semibold tracking-normal"
                                             required
                                         />
                                     </div>
@@ -491,7 +491,7 @@ export default function AdminCodes() {
                         </Card>
 
                         {/* Active Promo Users & Perk Revocation */}
-                        <Card className="flex flex-col shadow-soft">
+                        <Card className="flex flex-col ">
                             <div className="flex items-center justify-between gap-2 border-b border-border p-4">
                                 <div className="flex items-center gap-2">
                                     <Users size={16} className="text-muted-foreground" aria-hidden />
@@ -522,20 +522,20 @@ export default function AdminCodes() {
                                                             {r.user_name || r.user_email || 'Nutzer'}
                                                         </span>
                                                         {r.user_grade && (
-                                                            <span className="rounded-full bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                                                            <span className="rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
                                                                 Kl. {r.user_grade}
                                                             </span>
                                                         )}
                                                     </div>
                                                     <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                                                        <span className="rounded-full bg-primary/15 px-2 py-1 font-mono text-xs font-medium text-brand-ink dark:text-primary">
+                                                        <span className="rounded-md bg-muted px-2 py-1 tabular-nums text-xs font-medium text-foreground">
                                                             {r.code}
                                                         </span>
                                                         <span className="text-xs text-muted-foreground">
                                                             {new Date(r.redeemed_at).toLocaleDateString('de-DE')}
                                                         </span>
                                                         {r.is_revoked && (
-                                                            <span className="rounded-full bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive">
+                                                            <span className="rounded-md bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive">
                                                                 Entzogen
                                                             </span>
                                                         )}
@@ -564,7 +564,7 @@ export default function AdminCodes() {
                     </div>
 
                     {/* Promo-Codes */}
-                    <Card className="shadow-soft">
+                    <Card className="">
                         <CardContent className="p-0">
                             <div className="flex items-center justify-between gap-2 border-b border-border p-4">
                                 <span className="text-sm font-semibold text-foreground">
@@ -607,7 +607,7 @@ export default function AdminCodes() {
                                             <li key={p.id} className="space-y-2.5 p-4">
                                                 <div className="flex flex-wrap items-start justify-between gap-2">
                                                     <div className="min-w-0">
-                                                        <div className="break-all font-mono text-sm font-semibold tracking-wider text-foreground">
+                                                        <div className="break-all tabular-nums text-sm font-semibold tracking-wider text-foreground">
                                                             {p.code}
                                                         </div>
                                                         <div className="mt-0.5 text-xs font-medium text-muted-foreground">
@@ -616,13 +616,13 @@ export default function AdminCodes() {
                                                     </div>
                                                     <div className="flex flex-wrap items-center gap-1.5">
                                                         {!p.is_active ? (
-                                                            <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">Inaktiv</span>
+                                                            <span className="rounded-md bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">Inaktiv</span>
                                                         ) : isExpired ? (
-                                                            <span className="rounded-full bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive">Abgelaufen</span>
+                                                            <span className="rounded-md bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive">Abgelaufen</span>
                                                         ) : isLimitReached ? (
-                                                            <span className="rounded-full bg-amber-500/15 px-2.5 py-1 text-xs font-medium text-amber-700 dark:text-amber-400">Limit erreicht</span>
+                                                            <span className="rounded-md bg-muted px-2.5 py-1 text-xs font-medium text-foreground">Limit erreicht</span>
                                                         ) : (
-                                                            <span className="rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">Aktiv</span>
+                                                            <span className="rounded-md bg-emerald-500/15 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">Aktiv</span>
                                                         )}
                                                         <Button
                                                             size="icon"
@@ -658,20 +658,20 @@ export default function AdminCodes() {
                                                 </div>
 
                                                 <div className="flex flex-wrap items-center gap-1.5">
-                                                    <span className="rounded-full bg-primary/15 px-2.5 py-1 text-xs font-medium text-brand-ink dark:text-primary">
+                                                    <span className="rounded-md bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
                                                         {p.boost_days} Tage Boost
                                                     </span>
                                                     {p.push_level && (
                                                         <span className={cn(
-                                                            'rounded-full px-2.5 py-1 text-xs font-medium capitalize',
-                                                            p.push_level === 'ultra' ? 'bg-primary/15 text-brand-ink dark:text-primary' :
-                                                            p.push_level === 'super' ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400' :
+                                                            'rounded-md px-2.5 py-1 text-xs font-medium capitalize',
+                                                            p.push_level === 'ultra' ? 'bg-muted text-foreground' :
+                                                            p.push_level === 'super' ? 'bg-muted text-foreground' :
                                                             'bg-muted text-muted-foreground'
                                                         )}>
                                                             {p.push_level}
                                                         </span>
                                                     )}
-                                                    <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                                                    <span className="rounded-md bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
                                                         {p.target_group === 'coach' ? 'Schüler-Coaching AG' : p.target_group === 'tutor' ? 'Nur Anbieter' : 'Alle'}
                                                     </span>
                                                 </div>
@@ -698,10 +698,10 @@ export default function AdminCodes() {
             {/* TAB 2: INVITE CODES */}
             {activeTab === 'invite' && (
                 <div className="space-y-6">
-                    <Card className="w-full shadow-soft">
+                    <Card className="w-full ">
                             <CardContent className="space-y-4 p-4 sm:p-6">
                                 <h2 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
-                                    <Key size={20} className="text-brand-ink dark:text-primary" aria-hidden />
+                                    <Key size={20} className="text-foreground" aria-hidden />
                                     Neue Registrierungscodes generieren
                                 </h2>
 
@@ -783,10 +783,10 @@ export default function AdminCodes() {
 
                     {/* Frisch generierte Codes – sofort kopieren & verschicken */}
                     {generatedInviteCodes.length > 0 && (
-                        <Card className="border-primary/30 bg-primary/5 shadow-soft">
+                        <Card className="border-border bg-muted/50 ">
                             <CardContent className="space-y-3 p-4 sm:p-6">
                                 <h2 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
-                                    <Check size={20} className="text-brand-ink dark:text-primary" aria-hidden />
+                                    <Check size={20} className="text-foreground" aria-hidden />
                                     Neue Codes – jetzt per E-Mail/Chat verschicken
                                 </h2>
                                 <p className="text-xs text-muted-foreground">
@@ -799,7 +799,7 @@ export default function AdminCodes() {
                                     {generatedInviteCodes.map(c => (
                                         <div key={c.code} className="flex items-center justify-between gap-2 rounded-xl border border-border bg-card px-4 py-2.5">
                                             <div className="min-w-0">
-                                                <span className="break-all font-mono text-sm font-semibold tracking-wider text-foreground">{c.code}</span>
+                                                <span className="break-all tabular-nums text-sm font-semibold tracking-wider text-foreground">{c.code}</span>
                                                 <span className="mt-0.5 block text-xs font-medium text-muted-foreground sm:ml-2 sm:mt-0 sm:inline">
                                                     {c.role === 'sv_admin' ? 'SV-Admin' : c.role === 'coach_admin' ? 'Coaching-Admin' : c.role === 'parent' ? 'Elternteil' : 'Schüler'}
                                                     {c.expires_at ? ` · gültig bis ${new Date(c.expires_at).toLocaleDateString('de-DE')}` : ''}
@@ -816,7 +816,7 @@ export default function AdminCodes() {
                     )}
 
                     {/* Einladungscodes */}
-                    <Card className="shadow-soft">
+                    <Card className="">
                         <CardContent className="p-0">
                             <div className="flex items-center justify-between gap-2 border-b border-border p-4">
                                 <span className="text-sm font-semibold text-foreground">
@@ -861,14 +861,14 @@ export default function AdminCodes() {
                                             <li key={c.id} className="space-y-2.5 p-4">
                                                 <div className="flex flex-wrap items-start justify-between gap-2">
                                                     <div className="min-w-0">
-                                                        <div className="break-all font-mono text-sm font-semibold tracking-wider text-foreground">
+                                                        <div className="break-all tabular-nums text-sm font-semibold tracking-wider text-foreground">
                                                             {c.code}
                                                         </div>
                                                         <div className="mt-1 flex flex-wrap items-center gap-1.5">
                                                             <span className={cn(
-                                                                'rounded-full px-2.5 py-1 text-xs font-medium',
-                                                                c.role === 'sv_admin' && 'bg-primary/15 text-brand-ink dark:text-primary',
-                                                                c.role === 'coach_admin' && 'bg-amber-500/15 text-amber-700 dark:text-amber-400',
+                                                                'rounded-md px-2.5 py-1 text-xs font-medium',
+                                                                c.role === 'sv_admin' && 'bg-muted text-foreground',
+                                                                c.role === 'coach_admin' && 'bg-muted text-foreground',
                                                                 c.role === 'student' && 'bg-muted text-muted-foreground',
                                                                 c.role === 'parent' && 'bg-muted text-foreground'
                                                             )}>
@@ -884,17 +884,17 @@ export default function AdminCodes() {
                                                     </div>
                                                     <div className="flex flex-wrap items-center gap-1.5">
                                                         {limitReached ? (
-                                                            <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                                                            <span className="rounded-md bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
                                                                 Aufgebraucht
                                                             </span>
                                                         ) : c.is_used ? (
-                                                            <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                                                            <span className="rounded-md bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
                                                                 Genutzt
                                                             </span>
                                                         ) : isExpired ? (
-                                                            <span className="rounded-full bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive">Abgelaufen</span>
+                                                            <span className="rounded-md bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive">Abgelaufen</span>
                                                         ) : (
-                                                            <span className="rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">Aktiv / Frei</span>
+                                                            <span className="rounded-md bg-emerald-500/15 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">Aktiv / Frei</span>
                                                         )}
                                                         <Button
                                                             size="icon"

@@ -1,12 +1,4 @@
-/*
-Direction contract — Social „Alles in einem Strom"
-THESIS: Ein Arbeitsstrom statt drei Inseln: Anfragen, Matches und gemerkte Anzeigen laufen in einer einzigen, priorisierten Chronik zusammen — die dringlichste Aktion steht immer oben.
-OWN-WORLD: App-Sprache mit Papier-Tokens: Karten (rounded-2xl, border-border, bg-card, shadow-soft), Gelb nur als Akzent (CTA, Score, aktiver Filter), Inter-Body, Anton nur für den Seitentitel mit h-1 w-10 bg-primary-Strich, font-mono tabular-nums für Zahlen.
-STORY: Öffnen → Titel und Typ-Filter als helle Pills, darunter sofort die erste offene Aktion. Scrollen → Chronik nach Dringlichkeit, jede Karte trägt Status und eine Primäraktion. Nichts versteckt sich hinter Wechseln.
-FIRST VIEWPORT: Titel „Social" mit Filter-Pills (Alle/Anfragen/Matches/Merkliste inkl. Zähler), darunter beginnt der Stream mit der wichtigsten offenen Karte. Kein Hero, kein Marketing.
-FORM: Karten als helle Kartuschen mit Typ-Punkt-Chip und Status-Chip (farbiger Punkt), Aktionen als Pill-Buttons ≥44px, eine Motion-Sprache: Karten-Reveal (fade + y-slide, expo ease-out) beim Laden/Filtern; aktive Filter-Pille mit layoutId-Gleiten.
-FINISH: unreviewed and undocumented is unfinished; it is ready for review and documentation.
-*/
+
 
 import { useMemo, type ReactNode } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
@@ -184,7 +176,7 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
     if (!user) {
         return (
             <div className="mx-auto w-full max-w-4xl p-4 sm:p-6">
-                <div className="rounded-2xl border border-dashed border-border bg-card p-8 text-center text-sm font-semibold text-muted-foreground">
+                <div className="rounded-xl border border-border bg-card p-8 text-center text-sm font-semibold text-muted-foreground">
                     Bitte melde dich an, um deine Übersicht zu sehen.
                 </div>
             </div>
@@ -195,12 +187,10 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
 
     return (
         <div className="mx-auto w-full min-w-0 max-w-4xl space-y-4 overflow-x-clip p-4 pb-24 sm:p-6">
-            {/* Seitenkopf: Display-Titel mit gelbem Akzentstrich – mehr braucht der Strom nicht */}
             <header className="min-w-0">
-                <h1 className="font-display text-2xl uppercase leading-none tracking-tight text-foreground">
-                    Social
+                <h1 className="text-2xl font-semibold leading-tight tracking-tight text-foreground">
+                    {initialTab === 'requests' ? 'Anfragen' : 'Social'}
                 </h1>
-                <div className="mt-1.5 h-1 w-10 rounded-full bg-primary" aria-hidden />
                 <p className="mt-3 max-w-[65ch] text-sm text-muted-foreground">
                     Anfragen, Vorschläge und gemerkte Anzeigen auf einer Seite. Das Wichtigste steht oben.
                 </p>
@@ -223,10 +213,10 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                         triggerHaptic('light');
                         stream.unhideAllChats();
                     }}
-                    className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-dashed border-border bg-card px-4 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-border bg-card px-4 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
                     <EyeOff size={14} aria-hidden /> Verborgene Chats einblenden
-                    <span className="rounded-full bg-primary px-2 py-0.5 font-mono text-xs font-semibold tabular-nums text-primary-foreground">{stream.hiddenIds.length}</span>
+                    <span className="rounded-md bg-muted px-2 py-0.5 font-sans text-xs font-semibold tabular-nums text-muted-foreground">{stream.hiddenIds.length}</span>
                 </Button>
             )}
 
@@ -238,7 +228,7 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                             triggerHaptic('success');
                             stream.resetDismissed();
                         }}
-                        className="flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full border border-dashed border-border bg-card px-4 text-xs font-semibold tabular-nums text-muted-foreground transition-colors hover:border-primary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        className="flex min-h-11 cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-card px-4 text-xs font-semibold tabular-nums text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                         title="Ausgeblendete Vorschläge wiederherstellen"
                     >
                         <RotateCcw size={13} aria-hidden />
@@ -264,7 +254,7 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                     title="Die Übersicht konnte nicht geladen werden"
                     text={apiErrorMessage(stream.error, 'Verbindung zum Server fehlgeschlagen. Prüfe deine Internetverbindung und versuch es erneut.')}
                     action={
-                        <Button onClick={stream.reload} className="h-11 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground">
+                        <Button onClick={stream.reload} className="h-11 rounded-lg px-6 text-sm font-semibold">
                             Erneut versuchen
                         </Button>
                     }
@@ -292,18 +282,18 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                     }
                     action={
                         filter === 'merkliste' ? (
-                            <Button onClick={() => navigate('/')} className="h-11 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground">
+                            <Button onClick={() => navigate('/')} className="h-11 rounded-lg px-6 text-sm font-semibold">
                                 Anzeigen stöbern
                             </Button>
                         ) : (
                             <>
-                                <Button onClick={() => navigate('/')} className="h-11 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground">
+                                <Button onClick={() => navigate('/')} className="h-11 rounded-lg px-6 text-sm font-semibold">
                                     Anzeigen stöbern
                                 </Button>
                                 <Button
                                     variant="outline"
                                     onClick={() => navigate('/create-ad')}
-                                    className="h-11 rounded-full border-border bg-card px-6 text-sm font-semibold"
+                                    className="h-11 rounded-lg px-6 text-sm font-semibold"
                                 >
                                     Anzeige erstellen
                                 </Button>
@@ -323,7 +313,7 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                                     {tier.label}
                                 </h2>
                                 <span className="h-px flex-1 bg-border" aria-hidden />
-                                <span className="font-mono text-xs tabular-nums text-muted-foreground">
+                                <span className="font-sans text-xs tabular-nums text-muted-foreground">
                                     {tier.items.length}
                                     <span className="sr-only"> Einträge</span>
                                 </span>

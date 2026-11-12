@@ -110,11 +110,11 @@ export default function AdminNews() {
         return (
             <div className="space-y-6 p-1">
                 <div className="flex items-center gap-2">
-                    <Megaphone className="text-brand-ink dark:text-primary" size={24} aria-hidden />
+                    <Megaphone className="text-foreground" size={24} aria-hidden />
                     <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">News & Infos verwalten</h2>
                 </div>
                 <Alert>
-                    <AlertCircle className="text-amber-600 dark:text-amber-400" aria-hidden />
+                    <AlertCircle className="text-muted-foreground" aria-hidden />
                     <AlertTitle>Datenbank-Tabelle fehlt</AlertTitle>
                     <AlertDescription>
                         Die Tabelle <code>announcements</code> ist auf dem Server derzeit nicht verfügbar.
@@ -129,11 +129,11 @@ export default function AdminNews() {
         <div className="space-y-6 sm:space-y-8">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2">
-                    <Megaphone className="text-brand-ink dark:text-primary" size={24} aria-hidden />
+                    <Megaphone className="text-foreground" size={24} aria-hidden />
                     <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">News & Infos verwalten</h2>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                    Gesamt: <span className="inline-flex items-center rounded-full bg-muted px-3 py-1 font-semibold tabular-nums text-foreground">{announcements.length} Einträge</span>
+                    Gesamt: <span className="inline-flex items-center rounded-md bg-muted px-3 py-1 font-semibold tabular-nums text-foreground">{announcements.length} Einträge</span>
                 </p>
             </div>
 
@@ -151,7 +151,7 @@ export default function AdminNews() {
 
             <div className="grid grid-cols-1 gap-6 2xl:grid-cols-3 2xl:gap-8">
                 {/* Creation Form */}
-                <Card className="shadow-soft 2xl:col-span-1">
+                <Card className="2xl:col-span-1">
                     <CardContent className="space-y-4 p-4 sm:p-6">
                         <h3 className="text-lg font-semibold">Neuigkeit hinzufügen</h3>
                         <form onSubmit={handleCreate} className="space-y-4">
@@ -193,8 +193,8 @@ export default function AdminNews() {
                                             onClick={() => setIcon(name)}
                                             className={`grid size-11 place-items-center rounded-xl border transition-colors ${
                                                 icon === name
-                                                    ? 'border-primary/40 bg-primary/15 text-brand-ink dark:text-primary'
-                                                    : 'border-border text-muted-foreground hover:border-primary/30 hover:text-foreground'
+                                                    ? 'border-border bg-muted text-foreground'
+                                                    : 'border-border text-muted-foreground hover:border-border hover:text-foreground'
                                             }`}
                                         >
                                             <Icon size={20} aria-hidden />
@@ -221,17 +221,17 @@ export default function AdminNews() {
 
                     {loadError ? null : loading ? (
                         <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card py-16 text-center">
-                            <Spinner className="size-6 text-brand-ink dark:text-primary" />
+                            <Spinner className="size-6 text-foreground" />
                             <p className="text-sm text-muted-foreground">Lade Einträge...</p>
                         </div>
                     ) : announcements.length === 0 ? (
-                        <div className="rounded-2xl border border-dashed border-border px-4 py-16 text-center text-sm text-muted-foreground">
+                        <div className="rounded-2xl border border-border border-border px-4 py-16 text-center text-sm text-muted-foreground">
                             Noch keine Mitteilungen erstellt.
                         </div>
                     ) : (
                         <div className="space-y-3">
                             {announcements.map((item) => (
-                                <Card key={item.id} className="shadow-soft">
+                                <Card key={item.id} className="">
                                     <CardContent className="flex items-start gap-3 p-4 sm:gap-4 sm:p-5">
                                         <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted text-muted-foreground">
                                             <NewsIcon value={item.icon} size={20} />

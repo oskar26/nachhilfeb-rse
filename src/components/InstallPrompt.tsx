@@ -106,11 +106,11 @@ export default function InstallPrompt() {
     if (ios) {
         return (
             <div className="fixed inset-x-4 bottom-[calc(6.5rem+env(safe-area-inset-bottom,0px))] z-30 animate-in slide-in-from-bottom-4 duration-300 md:hidden">
-                <div className="relative rounded-2xl border border-border bg-card/95 p-5 shadow-overlay backdrop-blur-xl">
+                <div className="relative rounded-xl border border-border bg-card/95 p-5 shadow-overlay backdrop-blur-xl">
                     <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={handleDismiss}
                         aria-label="Installationshinweis schließen"
-                        className="absolute right-3 top-3 grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        className="absolute right-3 top-3 grid size-11 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     >
                         <X size={16} />
                     </Button>
@@ -123,7 +123,7 @@ export default function InstallPrompt() {
                             </p>
                             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                                 Tippe auf den{' '}
-                                <span className="inline-flex items-center gap-1 font-medium text-brand-ink dark:text-primary">
+                                <span className="inline-flex items-center gap-1 font-medium text-foreground">
                                     <Share size={12} /> Teilen-Button
                                 </span>{' '}
                                 und dann <strong>"Zum Home-Bildschirm"</strong>
@@ -141,7 +141,7 @@ export default function InstallPrompt() {
     // ── Mobile bottom sheet (Render-Helper, keine Komponente: stabile Identität) ──
     const renderMobileSheet = () => (
         <div className="fixed inset-x-3 bottom-[calc(6.5rem+env(safe-area-inset-bottom,0px))] z-30 animate-in slide-in-from-bottom-full duration-300 md:hidden">
-            <div className="rounded-3xl border border-border bg-card/95 px-5 pt-4 pb-5 shadow-overlay backdrop-blur-2xl">
+            <div className="rounded-xl border border-border bg-card/95 px-5 pt-4 pb-5 shadow-overlay backdrop-blur-2xl">
                 {/* Drag handle */}
                 <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" />
 
@@ -160,13 +160,13 @@ export default function InstallPrompt() {
                 <div className="flex gap-3 mt-5">
                     <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={handleDismiss}
-                        className="h-11 flex-1 rounded-full border border-border text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
+                        className="h-11 flex-1 rounded-lg border border-border text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
                     >
                         Später
                     </Button>
                     <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={handleInstall}
-                        className="h-11 flex-[2] gap-2 rounded-full text-sm font-semibold"
+                        className="h-11 flex-[2] gap-2 rounded-lg text-sm font-semibold"
                     >
                         <Download size={16} />
                         Installieren
@@ -179,7 +179,7 @@ export default function InstallPrompt() {
     // ── Desktop top banner (Render-Helper, keine Komponente: stabile Identität) ──
     const renderDesktopBanner = () => (
         <div className="fixed left-1/2 top-4 z-30 hidden w-full max-w-lg -translate-x-1/2 px-4 animate-in slide-in-from-top-4 duration-300 md:block">
-            <div className="flex items-center gap-4 rounded-2xl border border-border bg-card/95 p-4 shadow-overlay backdrop-blur-2xl">
+            <div className="flex items-center gap-4 rounded-xl border border-border bg-card/95 p-4 shadow-overlay backdrop-blur-2xl">
                 <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary text-lg font-semibold text-primary-foreground">
                     N
                 </div>
@@ -194,14 +194,14 @@ export default function InstallPrompt() {
                 <div className="flex items-center gap-2 flex-shrink-0">
                     <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={handleInstall}
-                        className="h-11 gap-1.5 rounded-full px-4 text-xs font-semibold"
+                        className="h-11 gap-1.5 rounded-lg px-4 text-xs font-semibold"
                     >
                         <Download size={13} /> Installieren
                     </Button>
                     <Button variant="unstyled" size="unstyled" type="submit"
                         onClick={handleDismiss}
                         aria-label="Installationshinweis schließen"
-                        className="grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        className="grid size-11 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     >
                         <X size={16} />
                     </Button>

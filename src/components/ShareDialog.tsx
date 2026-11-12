@@ -132,7 +132,7 @@ export default function ShareDialog({
                         >
                             {copied ? (
                                 <>
-                                    <Check size={14} className="text-brand-ink dark:text-primary" aria-hidden />
+                                    <Check size={14} className="text-foreground" aria-hidden />
                                     <span>Kopiert</span>
                                 </>
                             ) : (
@@ -151,7 +151,7 @@ export default function ShareDialog({
                             className="flex h-auto min-h-20 flex-col items-center justify-center gap-1.5 rounded-xl p-3 text-xs font-semibold"
                             onClick={handleSystemShare}
                         >
-                            <Share2 size={20} className="text-brand-ink dark:text-primary" aria-hidden />
+                            <Share2 size={20} className="text-foreground" aria-hidden />
                             <span>Teilen</span>
                         </Button>
 
@@ -162,7 +162,7 @@ export default function ShareDialog({
                             onClick={() => triggerHaptic('light')}
                             className="flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-xl border border-border bg-card p-3 text-center text-xs font-semibold transition-colors hover:bg-muted"
                         >
-                            <MessageSquare size={20} className="text-brand-ink dark:text-primary" aria-hidden />
+                            <MessageSquare size={20} className="text-foreground" aria-hidden />
                             <span>WhatsApp</span>
                         </a>
 
@@ -171,7 +171,7 @@ export default function ShareDialog({
                             onClick={() => triggerHaptic('light')}
                             className="flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-xl border border-border bg-card p-3 text-center text-xs font-semibold transition-colors hover:bg-muted"
                         >
-                            <Mail size={20} className="text-brand-ink dark:text-primary" aria-hidden />
+                            <Mail size={20} className="text-foreground" aria-hidden />
                             <span>E-Mail</span>
                         </a>
                     </div>

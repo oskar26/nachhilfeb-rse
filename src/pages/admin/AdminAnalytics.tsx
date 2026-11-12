@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../..
 import { Button } from '../../components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
 import { Spinner } from '../../components/ui/spinner';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '../../components/ui/chart';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import {
     BarChart3,
     TrendingUp,
@@ -399,18 +401,30 @@ export default function AdminAnalytics() {
     if (loading) {
         return (
             <div className="flex min-h-[400px] flex-col items-center justify-center gap-3">
-                <Spinner className="size-6 text-brand-ink dark:text-primary" />
+                <Spinner className="size-6 text-foreground" />
                 <p className="text-sm text-muted-foreground">Lade Analytics...</p>
             </div>
         );
     }
 
+    const rangeLabel = statsDays === 7 ? 'letzte 7 Tage' : statsDays === 90 ? 'letzte 90 Tage' : 'letzte 30 Tage';
     const maxGradeCount = Math.max(...gradeDistribution.map(g => g.count), 1);
     const maxSubjectCount = Math.max(...subjectDistribution.map(s => s.count), 1);
     const maxPriceCount = Math.max(...priceDistribution.map(p => p.count), 1);
-    const maxHourlyCount = Math.max(...hourlyDistribution.map(h => h.count), 1);
-    const maxDailyCount = Math.max(...dailyViews.map(d => d.count), 1);
-    const rangeLabel = statsDays === 7 ? 'letzte 7 Tage' : statsDays === 90 ? 'letzte 90 Tage' : 'letzte 30 Tage';
+    const dailyChartData = dailyViews.map((entry) => ({
+        day: new Date(entry.day + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }),
+        count: entry.count,
+    }));
+    const hourlyChartData = hourlyDistribution.map((entry) => ({
+        hour: `${entry.hour}:00`,
+        count: entry.count,
+    }));
+    const dailyChartConfig = {
+        count: { label: 'Seitenaufrufe', color: 'var(--chart-1)' },
+    } satisfies ChartConfig;
+    const hourlyChartConfig = {
+        count: { label: 'Aufrufe', color: 'var(--chart-1)' },
+    } satisfies ChartConfig;
 
     return (
         <div className="space-y-6 sm:space-y-8">
@@ -418,7 +432,7 @@ export default function AdminAnalytics() {
             <div className="flex flex-col gap-4">
                 <header className="min-w-0">
                     <h1 className="flex items-center gap-2 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
-                        <BarChart3 className="shrink-0 text-brand-ink dark:text-primary" size={24} aria-hidden /> Analytics & Statistik Dashboard
+                        <BarChart3 className="shrink-0 text-foreground" size={24} aria-hidden /> Analytics & Statistik Dashboard
                     </h1>
                     <p className="mt-1 text-sm text-muted-foreground">Ausführliche Live-Analysen, Besuchszeiten, Geräte-Statistiken & CSV-Export.</p>
                 </header>
@@ -450,7 +464,7 @@ export default function AdminAnalytics() {
 
             {/* Top Stat Cards */}
             <div className="grid grid-cols-2 gap-3 2xl:grid-cols-4 2xl:gap-4">
-                <Card className="shadow-soft">
+                <Card className="">
                     <CardContent className="space-y-1 p-4 sm:p-5">
                         <span className="block text-xs font-medium text-muted-foreground">Registrierte Nutzer</span>
                         <div className="text-2xl font-semibold tabular-nums tracking-tight sm:text-3xl">{userStats.total}</div>
@@ -460,7 +474,7 @@ export default function AdminAnalytics() {
                     </CardContent>
                 </Card>
 
-                <Card className="shadow-soft">
+                <Card className="">
                     <CardContent className="space-y-1 p-4 sm:p-5">
                         <span className="block text-xs font-medium text-muted-foreground">Aktive Anzeigen</span>
                         <div className="text-2xl font-semibold tabular-nums tracking-tight sm:text-3xl">{adStats.active}</div>
@@ -470,7 +484,7 @@ export default function AdminAnalytics() {
                     </CardContent>
                 </Card>
 
-                <Card className="shadow-soft">
+                <Card className="">
                     <CardContent className="space-y-1 p-4 sm:p-5">
                         <span className="block text-xs font-medium text-muted-foreground">Erfasste Aufrufe</span>
                         <div className="text-2xl font-semibold tabular-nums tracking-tight sm:text-3xl">{totalPageViews}</div>
@@ -480,11 +494,11 @@ export default function AdminAnalytics() {
                     </CardContent>
                 </Card>
 
-                <Card className="shadow-soft">
+                <Card className="">
                     <CardContent className="space-y-1 p-4 sm:p-5">
                         <span className="block text-xs font-medium text-muted-foreground">Durchschn. Bewertung</span>
                         <div className="flex items-center gap-1.5 text-2xl font-semibold tabular-nums tracking-tight sm:text-3xl">
-                            <Star className="shrink-0 text-brand-ink dark:text-primary" size={20} fill="currentColor" aria-hidden />
+                            <Star className="shrink-0 text-foreground" size={20} fill="currentColor" aria-hidden />
                             {engagementStats.avgRating > 0 ? engagementStats.avgRating.toFixed(1) : '--'}
                         </div>
                         <span className="block text-xs text-muted-foreground">
@@ -495,18 +509,18 @@ export default function AdminAnalytics() {
             </div>
 
             {/* SECTION 0: AUFRUFE-VERLAUF (hoster-artig) */}
-            <Card className="shadow-soft">
+            <Card className="">
                 <CardHeader>
                     <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
                         <div>
                             <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                                <TrendingUp size={20} className="text-brand-ink dark:text-primary" aria-hidden /> Aufrufe-Verlauf
+                                <TrendingUp size={20} className="text-foreground" aria-hidden /> Aufrufe-Verlauf
                             </CardTitle>
                             <CardDescription>
                                 Seitenaufrufe pro Tag ({rangeLabel}) · anonyme Server-Statistik (ohne IP)
                             </CardDescription>
                         </div>
-                        <div className="flex shrink-0 items-center gap-1 rounded-full bg-muted p-1" role="group" aria-label="Zeitraum wählen">
+                        <div className="flex shrink-0 items-center gap-1 rounded-md bg-muted p-1" role="group" aria-label="Zeitraum wählen">
                             {([7, 30, 90] as StatsRange[]).map(d => (
                                 <Button variant="unstyled" size="unstyled"
                                     key={d}
@@ -514,8 +528,8 @@ export default function AdminAnalytics() {
                                     onClick={() => setStatsDays(d)}
                                     aria-pressed={statsDays === d}
                                     className={d === statsDays
-                                        ? "min-h-11 rounded-full bg-card px-3 text-xs font-medium text-foreground shadow-soft"
-                                        : "min-h-11 rounded-full px-3 text-xs font-medium text-muted-foreground hover:text-foreground"}>
+                                        ? "min-h-11 rounded-md bg-card px-3 text-xs font-medium text-foreground"
+                                        : "min-h-11 rounded-md px-3 text-xs font-medium text-muted-foreground hover:text-foreground"}>
                                     {d} Tage
                                 </Button>
                             ))}
@@ -532,29 +546,15 @@ export default function AdminAnalytics() {
                             Noch keine Aufrufdaten im Zeitraum. Sobald Nutzer Seiten aufrufen, erscheint hier der Verlauf.
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <div className="flex h-40 items-end gap-1 border-b border-border px-2" style={{ minWidth: `${Math.max(dailyViews.length * 14, 280)}px` }}>
-                                {dailyViews.map(d => {
-                                    const pct = (d.count / maxDailyCount) * 100;
-                                    const label = new Date(d.day + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
-                                    return (
-                                        <div key={d.day} className="group relative h-full min-w-[10px] flex-1">
-                                            <div
-                                                className="absolute inset-x-0 bottom-0 rounded-t-sm bg-primary/80 transition-colors group-hover:bg-primary"
-                                                style={{ height: `${Math.max(pct, 2)}%` }}
-                                                role="img"
-                                                aria-label={`${d.count} Aufrufe am ${label}`}
-                                                title={`${d.count} Aufrufe (${label})`}
-                                            />
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                            <div className="flex justify-between px-2 pt-2 text-xs text-muted-foreground">
-                                <span>{dailyViews.length > 0 ? new Date(dailyViews[0].day + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}</span>
-                                <span>Heute</span>
-                            </div>
-                        </div>
+                        <ChartContainer config={dailyChartConfig} className="h-[220px] w-full">
+                            <BarChart data={dailyChartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                                <CartesianGrid vertical={false} />
+                                <XAxis dataKey="day" tickLine={false} axisLine={false} tickMargin={8} minTickGap={24} />
+                                <YAxis width={36} tickLine={false} axisLine={false} allowDecimals={false} />
+                                <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+                                <Bar dataKey="count" fill="var(--color-count)" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                        </ChartContainer>
                     )}
                 </CardContent>
             </Card>
@@ -562,10 +562,10 @@ export default function AdminAnalytics() {
             {/* SECTION 1: BESUCHSZEITEN & GERÄTE-VERTEILUNG */}
             <div className="grid grid-cols-1 gap-4 2xl:grid-cols-3 2xl:gap-6">
                 {/* 24-Stunden Besuchszeiten Histogramm */}
-                <Card className="shadow-soft 2xl:col-span-2">
+                <Card className="2xl:col-span-2">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                            <Clock size={20} className="text-brand-ink dark:text-primary" aria-hidden /> Besuchszeiten-Verteilung (Spitzenzeiten 24h)
+                            <Clock size={20} className="text-foreground" aria-hidden /> Besuchszeiten-Verteilung (Spitzenzeiten 24h)
                         </CardTitle>
                         <CardDescription>Uhrzeiten, zu denen die Nachhilfebörse am häufigsten aufgerufen wird</CardDescription>
                     </CardHeader>
@@ -576,29 +576,15 @@ export default function AdminAnalytics() {
                             </div>
                         ) : (
                             <div className="space-y-4">
-                                <div className="flex h-40 items-end gap-1 border-b border-border px-2">
-                                    {hourlyDistribution.map(h => {
-                                        const pct = (h.count / maxHourlyCount) * 100;
-                                        return (
-                                            <div key={h.hour} className="group relative h-full flex-1">
-                                                <div
-                                                    className="absolute inset-x-0 bottom-0 rounded-t-sm bg-primary/80 transition-colors group-hover:bg-primary"
-                                                    style={{ height: `${Math.max(pct, 2)}%` }}
-                                                    role="img"
-                                                    aria-label={`${h.count} Aufrufe um ${h.hour}:00`}
-                                                    title={`${h.count} Aufrufe (${h.hour}:00)`}
-                                                />
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                                <div className="flex justify-between px-2 font-mono text-xs text-muted-foreground">
-                                    <span>0h</span>
-                                    <span>6h</span>
-                                    <span>12h</span>
-                                    <span>18h</span>
-                                    <span>23h</span>
-                                </div>
+                                <ChartContainer config={hourlyChartConfig} className="h-[220px] w-full">
+                                    <BarChart data={hourlyChartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                                        <CartesianGrid vertical={false} />
+                                        <XAxis dataKey="hour" tickLine={false} axisLine={false} tickMargin={8} interval={5} />
+                                        <YAxis width={36} tickLine={false} axisLine={false} allowDecimals={false} />
+                                        <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+                                        <Bar dataKey="count" fill="var(--color-count)" radius={[4, 4, 0, 0]} />
+                                    </BarChart>
+                                </ChartContainer>
                                 <div className="flex flex-col gap-1 px-2 text-xs text-muted-foreground sm:flex-row sm:justify-between">
                                     <span>Nacht (00:00 - 06:00)</span>
                                     <span>Morgen / Schule (06:00 - 14:00)</span>
@@ -610,10 +596,10 @@ export default function AdminAnalytics() {
                 </Card>
 
                 {/* Geräte-Verteilung */}
-                <Card className="shadow-soft">
+                <Card className="">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                            <Monitor size={20} className="text-brand-ink dark:text-primary" aria-hidden /> Verwendete Geräte
+                            <Monitor size={20} className="text-foreground" aria-hidden /> Verwendete Geräte
                         </CardTitle>
                         <CardDescription>Aufteilung nach Gerätetypen</CardDescription>
                     </CardHeader>
@@ -631,8 +617,8 @@ export default function AdminAnalytics() {
                                         <span className="flex items-center gap-1.5"><Icon size={16} className="text-muted-foreground" aria-hidden /> {label}</span>
                                         <span className="text-muted-foreground tabular-nums">{d.count} ({percentage}%)</span>
                                     </div>
-                                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                                        <div className="h-full rounded-full bg-primary" style={{ width: `${percentage}%` }} />
+                                    <div className="h-2 w-full overflow-hidden rounded-md bg-muted">
+                                        <div className="h-full rounded-md bg-primary" style={{ width: `${percentage}%` }} />
                                     </div>
                                 </div>
                             );
@@ -645,8 +631,8 @@ export default function AdminAnalytics() {
                                 <p className="text-xs text-muted-foreground">Noch keine Seitenaufrufe erfasst.</p>
                             ) : topPages.map(p => (
                                 <div key={p.path} className="flex items-center justify-between gap-2 text-xs">
-                                    <span className="min-w-0 break-all font-mono text-foreground">{p.path}</span>
-                                    <span className="shrink-0 rounded-full bg-muted px-2.5 py-1 font-medium tabular-nums text-foreground">{p.count} Aufrufe</span>
+                                    <span className="min-w-0 break-all tabular-nums text-foreground">{p.path}</span>
+                                    <span className="shrink-0 text-muted-foreground">{p.count} Aufrufe</span>
                                 </div>
                             ))}
                         </div>
@@ -658,10 +644,10 @@ export default function AdminAnalytics() {
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
 
                 {/* 1. Stufen-Verteilung */}
-                <Card className="shadow-soft">
+                <Card className="">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                            <Users size={20} className="text-brand-ink dark:text-primary" aria-hidden /> Stufen-Verteilung
+                            <Users size={20} className="text-foreground" aria-hidden /> Stufen-Verteilung
                         </CardTitle>
                         <CardDescription>Anzahl der verifizierten Schüler nach Klassenstufen</CardDescription>
                     </CardHeader>
@@ -676,9 +662,9 @@ export default function AdminAnalytics() {
                                         <span>{['EF', 'Q1', 'Q2'].includes(g.grade) ? `Stufe ${g.grade}` : `Klasse ${g.grade}`}</span>
                                         <span className="text-muted-foreground tabular-nums">{g.count} Schüler</span>
                                     </div>
-                                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                                    <div className="h-2 w-full overflow-hidden rounded-md bg-muted">
                                         <div
-                                            className="h-full rounded-full bg-primary transition-[width] duration-300"
+                                            className="h-full rounded-md bg-primary transition-colors"
                                             style={{ width: `${percentage}%` }}
                                         />
                                     </div>
@@ -689,10 +675,10 @@ export default function AdminAnalytics() {
                 </Card>
 
                 {/* 2. Beliebte Fächer */}
-                <Card className="shadow-soft">
+                <Card className="">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                            <TrendingUp size={20} className="text-brand-ink dark:text-primary" aria-hidden /> Beliebte Schulfächer
+                            <TrendingUp size={20} className="text-foreground" aria-hidden /> Beliebte Schulfächer
                         </CardTitle>
                         <CardDescription>Häufigkeit der Fächer in Angeboten und Gesuchen</CardDescription>
                     </CardHeader>
@@ -707,9 +693,9 @@ export default function AdminAnalytics() {
                                         <span className="capitalize">{s.subject}</span>
                                         <span className="text-muted-foreground tabular-nums">{s.count} Anzeigen</span>
                                     </div>
-                                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                                    <div className="h-2 w-full overflow-hidden rounded-md bg-muted">
                                         <div
-                                            className="h-full rounded-full bg-primary transition-[width] duration-300"
+                                            className="h-full rounded-md bg-primary transition-colors"
                                             style={{ width: `${percentage}%` }}
                                         />
                                     </div>
@@ -720,10 +706,10 @@ export default function AdminAnalytics() {
                 </Card>
 
                 {/* 3. Preis-Verteilung */}
-                <Card className="shadow-soft">
+                <Card className="">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                            <Euro size={20} className="text-brand-ink dark:text-primary" aria-hidden /> Preisstrukturen
+                            <Euro size={20} className="text-foreground" aria-hidden /> Preisstrukturen
                         </CardTitle>
                         <CardDescription>Aufteilung der angegebenen Stundensätze (€ / 45 Min)</CardDescription>
                     </CardHeader>
@@ -738,9 +724,9 @@ export default function AdminAnalytics() {
                                         <span>{p.range}</span>
                                         <span className="text-muted-foreground tabular-nums">{p.count} Anzeigen</span>
                                     </div>
-                                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                                    <div className="h-2 w-full overflow-hidden rounded-md bg-muted">
                                         <div
-                                            className="h-full rounded-full bg-primary transition-[width] duration-300"
+                                            className="h-full rounded-md bg-primary transition-colors"
                                             style={{ width: `${percentage}%` }}
                                         />
                                     </div>
@@ -751,10 +737,10 @@ export default function AdminAnalytics() {
                 </Card>
 
                 {/* 4. Plattform-Status */}
-                <Card className="shadow-soft">
+                <Card className="">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                            <CheckCircle size={20} className="text-brand-ink dark:text-primary" aria-hidden /> Plattform-Status & Verifizierung
+                            <CheckCircle size={20} className="text-foreground" aria-hidden /> Plattform-Status & Verifizierung
                         </CardTitle>
                         <CardDescription>Zustand von Verifizierungen und Raten</CardDescription>
                     </CardHeader>
@@ -785,10 +771,10 @@ export default function AdminAnalytics() {
                 </Card>
 
                 {/* 5. Meistaufgerufene Anzeigen */}
-                <Card className="shadow-soft">
+                <Card className="">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                            <Eye size={20} className="text-brand-ink dark:text-primary" aria-hidden /> Meistaufgerufene Anzeigen
+                            <Eye size={20} className="text-foreground" aria-hidden /> Meistaufgerufene Anzeigen
                         </CardTitle>
                         <CardDescription>Anonyme Aufrufzählung pro Anzeigendetailseite</CardDescription>
                     </CardHeader>
@@ -800,14 +786,14 @@ export default function AdminAnalytics() {
                         ) : (
                             topAds.map((a, i) => (
                                 <div key={a.id || i} className="flex items-center gap-3 border-b border-border py-2 last:border-0">
-                                    <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-primary/15 text-xs font-semibold tabular-nums text-brand-ink dark:text-primary">
+                                    <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-muted text-xs font-semibold tabular-nums text-foreground">
                                         {i + 1}
                                     </span>
                                     <div className="min-w-0 flex-1">
                                         <p className="break-words text-xs font-medium">{a.title}</p>
                                         <p className="text-xs text-muted-foreground">{a.type}</p>
                                     </div>
-                                    <span className="shrink-0 rounded-full bg-muted px-2.5 py-1 text-xs font-medium tabular-nums">
+                                    <span className="shrink-0 text-xs text-muted-foreground">
                                         {a.views} {a.views === 1 ? 'Aufruf' : 'Aufrufe'}
                                     </span>
                                 </div>

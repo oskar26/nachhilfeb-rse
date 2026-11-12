@@ -79,9 +79,9 @@ export default function BannedScreen({ banReason, banType, bannedUntil }: Banned
 
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))]">
-            <div className="w-full max-w-md space-y-5 rounded-2xl border border-destructive/25 bg-card p-5 text-center shadow-overlay sm:p-6">
+            <div className="w-full max-w-md space-y-5 rounded-xl border border-destructive/25 bg-card p-5 text-center shadow-overlay sm:p-6">
                 <div className="flex justify-center">
-                    <div className="grid size-16 place-items-center rounded-2xl bg-destructive/10 text-destructive">
+                    <div className="grid size-16 place-items-center rounded-xl bg-destructive/10 text-destructive">
                         <ShieldAlert size={34} aria-hidden />
                     </div>
                 </div>
@@ -120,7 +120,7 @@ export default function BannedScreen({ banReason, banType, bannedUntil }: Banned
                                             hour: '2-digit', minute: '2-digit'
                                         })} Uhr
                                     </p>
-                                    <p className="font-mono text-sm font-semibold tabular-nums text-foreground">
+                                    <p className="font-sans text-sm font-semibold tabular-nums text-foreground">
                                         {countdown}
                                     </p>
                                 </div>
@@ -134,12 +134,12 @@ export default function BannedScreen({ banReason, banType, bannedUntil }: Banned
                 </div>
 
                 <div className="space-y-2.5">
-                    <Button variant="outline" onClick={handleSupportRequest} className="h-11 w-full gap-2 rounded-full text-sm font-semibold">
+                    <Button variant="outline" onClick={handleSupportRequest} className="h-11 w-full gap-2 rounded-lg text-sm font-semibold">
                         <MessageCircle size={16} aria-hidden />
                         Einspruch einlegen
                     </Button>
 
-                    <Button variant="ghost" onClick={handleLogout} className="h-11 w-full gap-2 rounded-full text-sm font-semibold text-destructive hover:bg-destructive/10">
+                    <Button variant="ghost" onClick={handleLogout} className="h-11 w-full gap-2 rounded-lg text-sm font-semibold text-destructive hover:bg-destructive/10">
                         <LogOut size={16} aria-hidden />
                         Abmelden
                     </Button>

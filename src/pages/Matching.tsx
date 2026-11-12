@@ -36,7 +36,7 @@ function SubjectPill({ label, highlight = false }: { label: string; highlight?: 
     return (
         <span
             className={cn(
-                'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold',
+                'inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold',
                 highlight
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-muted text-muted-foreground'
@@ -82,9 +82,9 @@ export function MatchStreamCard({
                     <StatusChip label={seen ? 'Gesehen' : 'Neu'} dotClass={seen ? 'bg-muted-foreground' : 'bg-primary'} />
                     <span
                         className={cn(
-                            'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold',
+                            'inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold',
                             isOffer
-                                ? 'border border-primary/25 bg-primary/15 text-brand-ink dark:text-primary'
+                                ? 'border border-border bg-muted text-foreground'
                                 : 'border border-border bg-muted text-muted-foreground'
                         )}
                     >
@@ -110,9 +110,9 @@ export function MatchStreamCard({
                         {ad.profiles?.display_name ?? 'Schülerin oder Schüler des FWG'}
                     </p>
                     <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
-                        <span className="font-mono tabular-nums">{formatGradeLabel(ad.profiles?.grade_level || ad.grade_levels?.[0])}</span>
+                        <span className="font-sans tabular-nums">{formatGradeLabel(ad.profiles?.grade_level || ad.grade_levels?.[0])}</span>
                         {gradeCompatibility && (
-                            <span className="font-semibold text-brand-ink dark:text-primary">{gradeCompatibility}</span>
+                            <span className="font-semibold text-foreground">{gradeCompatibility}</span>
                         )}
                     </p>
                 </div>
@@ -120,7 +120,7 @@ export function MatchStreamCard({
 
             {/* Bezug zur eigenen Anzeige */}
             {myAd && (
-                <div className="mt-3 rounded-xl border border-dashed border-border px-3.5 py-2 text-xs text-muted-foreground">
+                <div className="mt-3 rounded-xl border border-border px-3.5 py-2 text-xs text-muted-foreground">
                     Passend zu deiner Anzeige: <span className="font-semibold">„{myAd.title || myAd.subjects.join(', ')}“</span>
                 </div>
             )}
@@ -167,7 +167,7 @@ export function MatchStreamCard({
                 <ul className="mt-2 space-y-1">
                     {matchReasons.slice(0, 3).map((reason, idx) => (
                         <li key={idx} className="flex items-start gap-1.5 text-xs text-foreground/80">
-                            <CheckCircle2 size={13} className="mt-0.5 shrink-0 text-brand-ink dark:text-primary" aria-hidden />
+                            <CheckCircle2 size={13} className="mt-0.5 shrink-0 text-foreground" aria-hidden />
                             <span>{reason}</span>
                         </li>
                     ))}
@@ -176,16 +176,16 @@ export function MatchStreamCard({
 
             {/* Meta-Zeile: Klasse · Preis · Ort · Zeiten */}
             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 font-semibold">
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1 font-semibold">
                     <GraduationCap size={12} aria-hidden />
-                    <span className="font-mono tabular-nums">{formatGradeLabel(ad.grade_levels?.[0])}</span>
+                    <span className="font-sans tabular-nums">{formatGradeLabel(ad.grade_levels?.[0])}</span>
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 font-semibold">
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1 font-semibold">
                     <Euro size={12} aria-hidden />
-                    <span className="font-mono tabular-nums">{formatAdPrice(ad.price_details)}</span>
+                    <span className="font-sans tabular-nums">{formatAdPrice(ad.price_details)}</span>
                 </span>
                 {ad.locations && ad.locations.length > 0 && (
-                    <span className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 font-semibold">
+                    <span className="inline-flex min-w-0 items-center gap-1.5 rounded-md bg-muted px-2.5 py-1 font-semibold">
                         <MapPin size={12} className="shrink-0" aria-hidden />
                         <span className="truncate">{ad.locations.join(', ')}</span>
                     </span>
@@ -195,11 +195,11 @@ export function MatchStreamCard({
                         type="button"
                         onClick={() => setShowCalendar(!showCalendar)}
                         aria-expanded={showCalendar}
-                        className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 font-semibold text-brand-ink transition-colors hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 dark:text-primary"
+                        className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-muted px-3 py-1 font-semibold text-foreground transition-colors hover:bg-muted  "
                         title="Gemeinsame Zeiten ansehen"
                     >
                         <CalendarDays size={12} aria-hidden />
-                        <span className="font-mono tabular-nums">{availabilityMatches}</span>
+                        <span className="font-sans tabular-nums">{availabilityMatches}</span>
                         Zeiten
                         <span className="text-xs underline">{showCalendar ? 'ausblenden' : 'ansehen'}</span>
                     </Button>
@@ -211,9 +211,9 @@ export function MatchStreamCard({
                 <div className="mt-3 rounded-xl border border-border bg-muted/40 p-3">
                     <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                         <span className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
-                            <CalendarDays size={12} className="text-brand-ink dark:text-primary" aria-hidden /> Gemeinsame Zeiten (grün markiert)
+                            <CalendarDays size={12} className="text-foreground" aria-hidden /> Gemeinsame Zeiten (grün markiert)
                         </span>
-                        <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-semibold tabular-nums text-brand-ink dark:text-primary">
+                        <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-semibold tabular-nums text-foreground">
                             {availabilityMatches} Treffer
                         </span>
                     </div>
@@ -230,13 +230,13 @@ export function MatchStreamCard({
                 <Button
                     variant="outline"
                     onClick={onDismiss}
-                    className="h-11 shrink-0 rounded-full border-border bg-card px-4 text-sm font-semibold text-muted-foreground hover:text-foreground"
+                    className="h-11 shrink-0 rounded-lg border-border bg-card px-4 text-sm font-semibold text-muted-foreground hover:text-foreground"
                 >
                     <X size={15} /> Übersehen
                 </Button>
                 <Button
                     onClick={onContact}
-                    className="h-11 flex-1 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground"
+                    className="h-11 flex-1 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"
                 >
                     <MessageSquare size={15} /> Kontakt aufnehmen
                 </Button>
@@ -248,7 +248,7 @@ export function MatchStreamCard({
 /** Helle Karten-Skelette für die Match-Karten. */
 export function MatchSkeleton() {
     return (
-        <div className="animate-pulse rounded-2xl border border-border bg-card p-5 shadow-soft">
+        <div className="animate-pulse rounded-2xl border border-border bg-card p-5">
             <div className="flex items-start justify-between gap-3">
                 <div className="h-7 w-32 rounded-full bg-muted" />
                 <div className="h-14 w-20 rounded-2xl bg-muted" />

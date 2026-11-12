@@ -22,7 +22,7 @@ export default defineConfig({
         short_name: 'Nachhilfe',
         description: 'Nachhilfe-Plattform des Friedrich-Wilhelm-Gymnasiums Köln. Finde und biete Nachhilfe direkt unter Schülern.',
         theme_color: '#facc15',
-        background_color: '#f8f9fa',
+        background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',
         start_url: './',
@@ -36,6 +36,9 @@ export default defineConfig({
           { name: 'Entdecken', url: './#/', icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }] },
           { name: 'Anzeige erstellen', url: './#/create-ad', icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }] }
         ]
+      },
+      workbox: {
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
       },
       devOptions: { enabled: true }
     })

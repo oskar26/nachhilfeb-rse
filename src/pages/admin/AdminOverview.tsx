@@ -3,8 +3,11 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { Card } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
 import { Skeleton } from '../../components/ui/skeleton';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '../../components/ui/chart';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { toast } from 'sonner';
 import {
     Users,
@@ -21,7 +24,7 @@ import { cn } from '../../lib/utils';
 
 const REPORT_STATUS_STYLES: Record<string, { label: string; cls: string }> = {
     open: { label: 'Offen', cls: 'bg-destructive/10 text-destructive' },
-    investigating: { label: 'In Prüfung', cls: 'bg-amber-500/15 text-amber-700 dark:text-amber-400' },
+    investigating: { label: 'In Prüfung', cls: 'bg-muted text-foreground' },
     resolved: { label: 'Gelöst', cls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400' },
     dismissed: { label: 'Abgewiesen', cls: 'bg-muted text-muted-foreground' },
 };
@@ -57,7 +60,7 @@ function StatCard({ icon, label, value, subValue, onClick, emphasis }: StatCardP
             size="unstyled"
             type="button"
             onClick={onClick}
-            className="group flex min-h-[132px] w-full flex-col items-stretch justify-between gap-4 rounded-2xl border border-border bg-card p-4 text-left shadow-soft transition-colors hover:border-primary/40 hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:p-5"
+            className="group flex min-h-[132px] w-full flex-col items-stretch justify-between gap-4 rounded-xl border border-border bg-card p-4 text-left transition-colors hover:border-foreground/20 hover:bg-muted/30 sm:p-5"
         >
             <div className="flex items-start justify-between gap-2">
                 <span className="grid size-10 place-items-center rounded-xl bg-muted text-muted-foreground">
@@ -138,6 +141,22 @@ export default function AdminOverview() {
 
     const navTo = (tab: string) => navigate(`?tab=${tab}`);
 
+    const trendData = pageTrend.map((views, index) => {
+        const date = new Date();
+        date.setDate(date.getDate() - (pageTrend.length - 1 - index));
+        return {
+            day: date.toLocaleDateString('de-DE', { weekday: 'short' }),
+            views,
+        };
+    });
+
+    const trendConfig = {
+        views: {
+            label: 'Seitenaufrufe',
+            color: 'var(--chart-1)',
+        },
+    } satisfies ChartConfig;
+
     return (
         <div className="space-y-6 sm:space-y-8">
             {/* Page title */}
@@ -194,37 +213,41 @@ export default function AdminOverview() {
             )}
 
             {/* Seitenaufrufe-Trend (7 Tage) */}
-            {!loadError && pageTrend.some(v => v > 0) && (
-                <Button
-                    variant="unstyled"
-                    size="unstyled"
-                    type="button"
-                    onClick={() => navTo('analytics')}
-                    className="w-full rounded-2xl border border-border bg-card p-4 text-left shadow-soft transition-colors hover:border-primary/40 sm:p-5"
-                >
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                        <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                            <TrendingUp size={16} className="text-brand-ink dark:text-primary" aria-hidden />
+            {!loadError && (
+                <Card>
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4 sm:p-5">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                            <TrendingUp size={16} className="text-muted-foreground" aria-hidden />
                             Seitenaufrufe · letzte 7 Tage
-                        </span>
-                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                        </div>
+                        <Button variant="ghost" size="sm" type="button" onClick={() => navTo('analytics')} className="h-10 gap-1 px-3 text-xs">
                             Details <ArrowUpRight size={16} aria-hidden />
-                        </span>
+                        </Button>
                     </div>
-                    <div className="flex h-16 items-end gap-1.5" aria-hidden>
-                        {pageTrend.map((v, i) => {
-                            const max = Math.max(...pageTrend, 1);
-                            return (
-                                <div
-                                    key={i}
-                                    className="min-h-[3px] flex-1 rounded-t-sm bg-primary/80"
-                                    style={{ height: `${Math.max((v / max) * 100, 6)}%` }}
-                                    title={`${v} Aufrufe`}
-                                />
-                            );
-                        })}
+                    <div className="p-4 sm:p-5">
+                        {loading ? (
+                            <div className="space-y-3" aria-label="Diagramm wird geladen">
+                                <Skeleton className="h-4 w-28" />
+                                <Skeleton className="h-[180px] w-full" />
+                            </div>
+                        ) : pageTrend.every(v => v === 0) ? (
+                            <div className="flex min-h-[200px] flex-col items-center justify-center gap-1 rounded-lg border border-border border-border bg-muted/20 px-4 text-center">
+                                <p className="text-sm font-medium text-foreground">Keine Seitenaufrufe in den letzten 7 Tagen</p>
+                                <p className="text-xs text-muted-foreground">Sobald Daten vorliegen, erscheint hier der Verlauf.</p>
+                            </div>
+                        ) : (
+                            <ChartContainer config={trendConfig} className="h-[220px] w-full">
+                                <BarChart data={trendData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+                                    <CartesianGrid vertical={false} />
+                                    <XAxis dataKey="day" tickLine={false} axisLine={false} tickMargin={8} />
+                                    <YAxis tickLine={false} axisLine={false} tickMargin={8} width={36} allowDecimals={false} />
+                                    <ChartTooltip content={<ChartTooltipContent />} />
+                                    <Bar dataKey="views" fill="var(--color-views)" radius={[4, 4, 0, 0]} maxBarSize={56} />
+                                </BarChart>
+                            </ChartContainer>
+                        )}
                     </div>
-                </Button>
+                </Card>
             )}
 
             {/* Quick actions */}
@@ -238,7 +261,7 @@ export default function AdminOverview() {
                             type="button"
                             key={tab}
                             onClick={() => navTo(tab)}
-                            className="flex min-h-12 items-center gap-3 rounded-xl border border-border bg-card p-3 text-left text-sm font-medium text-foreground shadow-soft transition-colors hover:border-primary/40 hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                            className="flex min-h-12 items-center gap-3 rounded-xl border border-border bg-card p-3 text-left text-sm font-medium text-foreground transition-colors hover:border-foreground/20 hover:bg-muted/30"
                         >
                             <Icon size={20} className="shrink-0 text-muted-foreground" aria-hidden />
                             <span className="min-w-0 break-words">{label}</span>
@@ -251,10 +274,10 @@ export default function AdminOverview() {
             {!loadError && (
             <div className="grid grid-cols-1 gap-4 xl:grid-cols-2 xl:gap-6">
                 {/* Recent reports */}
-                <Card className="shadow-soft">
+                <Card>
                     <div className="flex items-center justify-between gap-3 border-b border-border p-4">
                         <div className="flex items-center gap-2 text-sm font-semibold">
-                            <AlertTriangle size={16} className="text-amber-600 dark:text-amber-400" aria-hidden />
+                            <AlertTriangle size={16} className="text-muted-foreground" aria-hidden />
                             Letzte Meldungen
                         </div>
                         <Button variant="ghost" size="sm" type="button" onClick={() => navTo('reports')} className="h-11 gap-1 px-3 text-xs">
@@ -280,12 +303,9 @@ export default function AdminOverview() {
                                             {(r as any).reporter_name || 'Anonym'} → {(r as any).reported_user_name || (r as any).reported_ad_title || 'Unbekannt'}
                                         </div>
                                     </div>
-                                    <span className={cn(
-                                        'shrink-0 rounded-full px-2.5 py-1 text-xs font-medium',
-                                        (REPORT_STATUS_STYLES[r.status] || REPORT_STATUS_STYLES.dismissed).cls
-                                    )}>
+                                    <Badge variant="outline" className={cn('shrink-0 font-medium', (REPORT_STATUS_STYLES[r.status] || REPORT_STATUS_STYLES.dismissed).cls)}>
                                         {REPORT_STATUS_STYLES[r.status]?.label || r.status}
-                                    </span>
+                                    </Badge>
                                 </div>
                             ))
                         )}
@@ -293,7 +313,7 @@ export default function AdminOverview() {
                 </Card>
 
                 {/* Recent users */}
-                <Card className="shadow-soft">
+                <Card>
                     <div className="flex items-center justify-between gap-3 border-b border-border p-4">
                         <div className="flex items-center gap-2 text-sm font-semibold">
                             <UserPlus size={16} className="text-muted-foreground" aria-hidden />
@@ -316,7 +336,7 @@ export default function AdminOverview() {
                         ) : (
                             recentUsers.map((u) => (
                                 <div key={u.id} className="flex items-center gap-3 p-4">
-                                    <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary/15 text-sm font-semibold text-brand-ink dark:text-primary">
+                                    <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-sm font-semibold text-foreground">
                                         {(u.display_name || u.first_name || '?').charAt(0).toUpperCase()}
                                     </div>
                                     <div className="min-w-0 flex-1">
@@ -324,9 +344,7 @@ export default function AdminOverview() {
                                         <div className="break-all text-xs text-muted-foreground">{u.email || u.auth_email}</div>
                                     </div>
                                     {u.role === 'sv_admin' && (
-                                        <span className="shrink-0 rounded-full bg-primary/15 px-2.5 py-1 text-xs font-medium text-brand-ink dark:text-primary">
-                                            Admin
-                                        </span>
+                                        <Badge variant="outline" className="shrink-0 font-medium">Admin</Badge>
                                     )}
                                 </div>
                             ))

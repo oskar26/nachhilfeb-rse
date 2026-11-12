@@ -71,9 +71,9 @@ export default function AccessGuard({ children }: { children: React.ReactNode })
         return (
             <div
                 role="alert"
-                className="mx-auto mt-8 flex max-w-xl flex-col items-center justify-center rounded-2xl border border-border bg-card p-6 text-center shadow-soft sm:p-12"
+                className="mx-auto mt-8 flex max-w-xl flex-col items-center justify-center rounded-xl border border-border bg-card p-6 text-center sm:p-12"
             >
-                <div className="mb-6 grid size-20 place-items-center rounded-full bg-primary/15 text-brand-ink dark:text-primary">
+                <div className="mb-6 grid size-20 place-items-center rounded-lg bg-muted text-foreground">
                     <Icon size={36} aria-hidden />
                 </div>
                 <h2 className="mb-2 text-xl font-semibold text-foreground">{content.title}</h2>

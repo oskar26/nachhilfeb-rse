@@ -395,7 +395,7 @@ export default function CreateAd() {
 
     if (loadingProfile) return (
         <div className="flex flex-col items-center justify-center gap-3 p-20" role="status">
-            <Loader2 className="animate-spin text-brand-ink dark:text-primary" size={32} aria-hidden />
+            <Loader2 className="animate-spin text-muted-foreground" size={32} aria-hidden />
             <p className="text-xs font-semibold text-muted-foreground">Profil wird geladen…</p>
         </div>
     );
@@ -403,9 +403,9 @@ export default function CreateAd() {
     if (!isVerified) {
         return (
             <div className="mx-auto mt-10 max-w-lg p-4">
-                <Card className="border-destructive/25 bg-destructive/5 shadow-soft">
+                <Card className="border-destructive/25 bg-destructive/5">
                     <CardContent className="space-y-4 p-6 text-center">
-                        <div className="mx-auto grid size-14 place-items-center rounded-full bg-destructive/10 text-destructive">
+                        <div className="mx-auto grid size-14 place-items-center rounded-lg bg-destructive/10 text-destructive">
                             <Lock size={24} aria-hidden />
                         </div>
                         <h2 className="text-xl font-semibold text-foreground">Verifizierung notwendig</h2>
@@ -423,8 +423,7 @@ export default function CreateAd() {
         <div className="mx-auto box-border w-full max-w-3xl min-w-0 space-y-6 overflow-x-hidden p-4 pb-28 sm:p-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
-                    <h1 className="font-display text-2xl uppercase leading-none tracking-tight text-foreground">Anzeige erstellen</h1>
-                    <div className="mt-1.5 h-1 w-10 rounded-full bg-primary" aria-hidden />
+                    <h1 className="text-2xl font-semibold leading-none tracking-tight text-foreground">Anzeige erstellen</h1>
                 </div>
                 <Button variant="unstyled" size="unstyled"
                     type="button"
@@ -441,17 +440,17 @@ export default function CreateAd() {
             </p>
 
             {/* Stepper */}
-            <div className="rounded-2xl border border-border bg-card p-4 shadow-soft">
+            <div className="rounded-2xl border border-border bg-card p-4">
                 {/* Mobile Stepper (< sm) */}
                 <div className="space-y-3 lg:hidden">
                     <div className="flex items-center justify-between gap-2 text-xs font-semibold">
-                        <span className="text-brand-ink dark:text-primary">Schritt {currentStep + 1} von {STEPS.length}</span>
+                        <span className="text-muted-foreground">Schritt {currentStep + 1} von {STEPS.length}</span>
                         <span className="ml-2 truncate font-semibold text-foreground">{STEPS[currentStep]}</span>
                     </div>
                     {/* Progress bar */}
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                    <div className="h-2 w-full overflow-hidden rounded-lg bg-muted">
                         <div
-                            className="h-full rounded-full bg-primary transition-all duration-300"
+                            className="h-full rounded-lg bg-foreground transition-colors duration-300"
                             style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
                         />
                     </div>
@@ -466,11 +465,11 @@ export default function CreateAd() {
                                     onClick={() => jumpToStep(index)}
                                     disabled={index > currentStep && !isStepValid()}
                                     className={cn(
-                                        "flex size-11 items-center justify-center rounded-full text-xs font-semibold transition-colors",
+                                        "flex size-11 items-center justify-center rounded-lg text-xs font-semibold transition-colors",
                                         isCurrent
-                                            ? "bg-primary font-semibold text-primary-foreground ring-2 ring-primary/30"
+                                            ? "bg-foreground font-semibold text-background"
                                             : isCompleted
-                                                ? "bg-primary/20 text-brand-ink dark:text-primary"
+                                                ? "bg-muted text-foreground"
                                                 : "cursor-not-allowed bg-muted text-muted-foreground opacity-70"
                                     )}
                                     title={step}
@@ -499,11 +498,11 @@ export default function CreateAd() {
                                         onClick={() => jumpToStep(index)}
                                         disabled={index > currentStep && !isStepValid()}
                                         className={cn(
-                                            "flex size-11 items-center justify-center rounded-full text-xs font-semibold ring-4 ring-card transition-colors",
+                                            "flex size-11 items-center justify-center rounded-lg text-xs font-semibold transition-colors",
                                             isCurrent
-                                                ? "bg-primary text-primary-foreground"
+                                                ? "bg-foreground text-background"
                                                 : isCompleted
-                                                    ? "bg-primary/20 text-brand-ink dark:text-primary"
+                                                    ? "bg-muted text-foreground"
                                                     : "cursor-not-allowed bg-muted text-muted-foreground opacity-70"
                                         )}
                                     >
@@ -533,7 +532,7 @@ export default function CreateAd() {
                                             onClick={() => setFormData({ ...formData, type: 'offer' })}
                                             className={cn(
                                                 "flex min-h-14 items-center justify-center gap-2 rounded-xl border-2 px-4 py-3.5 text-center font-semibold transition-colors",
-                                                formData.type === 'offer' ? "border-primary bg-primary/10 text-brand-ink dark:text-primary" : "border-border text-muted-foreground hover:border-ring/40"
+                                                formData.type === 'offer' ? "border-foreground bg-muted text-foreground" : "border-border text-muted-foreground hover:border-ring/40"
                                             )}
                                         >
                                             <GraduationCap size={18} className="shrink-0" />
@@ -544,7 +543,7 @@ export default function CreateAd() {
                                             onClick={() => setFormData({ ...formData, type: 'search' })}
                                             className={cn(
                                                 "flex min-h-14 items-center justify-center gap-2 rounded-xl border-2 px-4 py-3.5 text-center font-semibold transition-colors",
-                                                formData.type === 'search' ? "border-primary bg-primary/10 text-brand-ink dark:text-primary" : "border-border text-muted-foreground hover:border-ring/40"
+                                                formData.type === 'search' ? "border-foreground bg-muted text-foreground" : "border-border text-muted-foreground hover:border-ring/40"
                                             )}
                                         >
                                             <Search size={18} className="shrink-0" />
@@ -553,8 +552,8 @@ export default function CreateAd() {
                                     </div>
 
                                     {formData.type === 'search' && (
-                                        <div className="border border-primary/25 bg-primary/10 rounded-2xl p-4 flex gap-3 text-foreground/80">
-                                            <Lock size={18} className="shrink-0 mt-0.5 text-brand-ink dark:text-primary" />
+                                        <div className="border border-border bg-muted rounded-2xl p-4 flex gap-3 text-foreground/80">
+                                            <Lock size={18} className="shrink-0 mt-0.5 text-muted-foreground" />
                                             <div className="text-xs leading-relaxed space-y-1">
                                                 <p className="font-semibold text-sm">Dein Gesuch ist privat.</p>
                                                 <p>Es erscheint nicht öffentlich in der Übersicht, sondern nur bei passenden Anbietern und bei Nutzern, die diese Fächer laut Profil anbieten. Das SV-Team sieht es zur Moderation.</p>
@@ -578,7 +577,7 @@ export default function CreateAd() {
                                                         aria-pressed={active}
                                                         className={cn(
                                                             "flex min-h-20 flex-col items-center justify-center gap-1 rounded-xl border-2 px-2 py-3 text-center font-semibold transition-colors",
-                                                            active ? "border-primary bg-primary/10 text-brand-ink dark:text-primary" : "border-border text-muted-foreground hover:border-ring/40"
+                                                            active ? "border-foreground bg-muted text-foreground" : "border-border text-muted-foreground hover:border-ring/40"
                                                         )}
                                                     >
                                                         <Icon size={18} className="shrink-0" />
@@ -639,7 +638,7 @@ export default function CreateAd() {
                                         <Button variant="unstyled" size="unstyled"
                                             type="button"
                                             onClick={() => setSubjectQuery('')}
-                                            className="absolute right-1.5 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+                                            className="absolute right-1.5 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
                                             aria-label="Fächersuche löschen"
                                         >
                                             <X size={15} />
@@ -647,7 +646,7 @@ export default function CreateAd() {
                                     )}
                                 </div>
                                 {subjectMatchCount === 0 ? (
-                                    <div className="p-4 rounded-xl border border-dashed border-border text-sm text-muted-foreground text-center space-y-2">
+                                    <div className="p-4 rounded-xl border border-border text-sm text-muted-foreground text-center space-y-2">
                                         <p>Kein Fach gefunden für „{subjectQuery.trim()}“.</p>
                                         <Button variant="unstyled" size="unstyled"
                                             type="button"
@@ -738,9 +737,9 @@ export default function CreateAd() {
                                                                 onClick={() => toggleLocation(loc)}
                                                                 aria-pressed={active}
                                                                 className={cn(
-                                                                    "px-3.5 min-h-[44px] py-2 rounded-full text-sm border transition-colors font-medium",
+                                                                    "px-3.5 min-h-[44px] py-2 rounded-lg text-sm border transition-colors font-medium",
                                                                     active
-                                                                        ? "border-primary bg-primary text-primary-foreground"
+                                                                        ? "border-foreground bg-foreground text-background"
                                                                         : "border-border bg-card text-foreground/80 hover:bg-muted"
                                                                 )}
                                                             >
@@ -787,9 +786,9 @@ export default function CreateAd() {
                                                 onClick={() => toggleDuration(dur)}
                                                 aria-pressed={active}
                                                 className={cn(
-                                                    "min-w-16 px-4 h-12 rounded-xl text-sm font-semibold border flex items-center justify-center transition-all",
+                                                    "min-w-16 px-4 h-12 rounded-xl text-sm font-semibold border flex items-center justify-center transition-colors",
                                                     active
-                                                        ? "border-primary bg-primary/15 text-brand-ink dark:text-primary"
+                                                        ? "border-foreground bg-muted text-foreground"
                                                         : "border-border bg-card text-foreground/80 hover:border-ring/40"
                                                 )}
                                             >
@@ -802,9 +801,9 @@ export default function CreateAd() {
                                         onClick={() => toggleDuration(DURATION_EGAL)}
                                         aria-pressed={formData.duration_minutes.includes(DURATION_EGAL)}
                                         className={cn(
-                                            "px-4 h-12 rounded-xl text-sm font-semibold border flex items-center justify-center transition-all",
+                                            "px-4 h-12 rounded-xl text-sm font-semibold border flex items-center justify-center transition-colors",
                                             formData.duration_minutes.includes(DURATION_EGAL)
-                                                ? "border-primary bg-primary/15 text-brand-ink dark:text-primary"
+                                                ? "border-foreground bg-muted text-foreground"
                                                 : "border-border bg-card text-foreground/80 hover:border-ring/40"
                                         )}
                                     >
@@ -844,7 +843,7 @@ export default function CreateAd() {
                                 <Button variant="unstyled" size="unstyled"
                                     type="button"
                                     onClick={() => setFormData({ ...formData, price_mode: 'fixed' })}
-                                    className={cn("p-4 border rounded-xl text-left hover:border-primary transition-all", formData.price_mode === 'fixed' && "border-primary bg-primary/5 ring-1 ring-primary")}
+                                    className={cn("p-4 border rounded-xl text-left hover:border-foreground transition-colors", formData.price_mode === 'fixed' && "border-foreground bg-muted")}
                                 >
                                     <span className="block font-semibold">Festpreis</span>
                                     <span className="text-xs text-muted-foreground">Euro pro Einheit</span>
@@ -852,7 +851,7 @@ export default function CreateAd() {
                                 <Button variant="unstyled" size="unstyled"
                                     type="button"
                                     onClick={() => setFormData({ ...formData, price_mode: 'vb' })}
-                                    className={cn("p-4 border rounded-xl text-left hover:border-primary transition-all", formData.price_mode === 'vb' && "border-primary bg-primary/5 ring-1 ring-primary")}
+                                    className={cn("p-4 border rounded-xl text-left hover:border-foreground transition-colors", formData.price_mode === 'vb' && "border-foreground bg-muted")}
                                 >
                                     <span className="block font-semibold">Verhandlungsbasis (VB)</span>
                                     <span className="text-xs text-muted-foreground">Preis wird besprochen</span>
@@ -860,7 +859,7 @@ export default function CreateAd() {
                                 <Button variant="unstyled" size="unstyled"
                                     type="button"
                                     onClick={() => setFormData({ ...formData, price_mode: 'free' })}
-                                    className={cn("p-4 border rounded-xl text-left hover:border-primary transition-all", formData.price_mode === 'free' && "border-primary bg-primary/5 ring-1 ring-primary")}
+                                    className={cn("p-4 border rounded-xl text-left hover:border-foreground transition-colors", formData.price_mode === 'free' && "border-foreground bg-muted")}
                                 >
                                     <span className="block font-semibold">Kostenlos</span>
                                     <span className="text-xs text-muted-foreground">Ehrenamtlich helfen</span>
@@ -900,9 +899,9 @@ export default function CreateAd() {
                                                 type="button"
                                                 onClick={() => setFormData(prev => ({ ...prev, price_value: p }))}
                                                 className={cn(
-                                                    "min-h-11 rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
+                                                    "min-h-11 rounded-lg border px-3 py-1 text-xs font-semibold transition-colors",
                                                     Number(formData.price_value) === p
-                                                        ? "bg-primary text-primary-foreground border-primary"
+                                                        ? "bg-foreground text-background border-foreground"
                                                         : "bg-muted text-foreground/80 border-transparent hover:border-ring/40"
                                                 )}
                                             >
@@ -919,14 +918,14 @@ export default function CreateAd() {
                                                     <Calculator size={15} className="text-muted-foreground" />
                                                     <span>Effektiver Stundenlohn (60 Min.):</span>
                                                 </div>
-                                                <span className="font-mono font-semibold text-sm text-foreground">
+                                                <span className="font-semibold tabular-nums text-sm text-foreground">
                                                     {effectiveHourly.formatted} € / 60 Min.
                                                 </span>
                                             </div>
 
                                             {effectiveHourly.hourly >= 9 && effectiveHourly.hourly <= 14 && (
-                                                <div className="flex items-center gap-2 rounded-xl border border-primary/25 bg-primary/10 p-2.5 text-xs font-semibold text-foreground/80">
-                                                    <CheckCircle size={15} className="shrink-0 text-brand-ink dark:text-primary" aria-hidden />
+                                                <div className="flex items-center gap-2 rounded-xl border border-border bg-muted p-2.5 text-xs font-semibold text-foreground/80">
+                                                    <CheckCircle size={15} className="shrink-0 text-muted-foreground" aria-hidden />
                                                     <span>Richtwert am FWG: ca. 12 € pro Stunde. Der Preis ist individuell anpassbar.</span>
                                                 </div>
                                             )}
@@ -940,7 +939,7 @@ export default function CreateAd() {
 
                                             {effectiveHourly.hourly > 14 && effectiveHourly.hourly <= 18 && (
                                                 <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-2.5 text-xs font-semibold text-foreground/80">
-                                                    <Info size={15} className="shrink-0 text-brand-ink dark:text-primary" aria-hidden />
+                                                    <Info size={15} className="shrink-0 text-muted-foreground" aria-hidden />
                                                     <span>Etwas über dem FWG-Richtwert von ca. 12 € pro Stunde.</span>
                                                 </div>
                                             )}
@@ -957,15 +956,15 @@ export default function CreateAd() {
                             )}
 
                             {formData.price_mode === 'free' && (
-                                <div className="flex items-center gap-2.5 rounded-2xl border border-primary/25 bg-primary/10 p-4 text-xs font-medium text-foreground/80 animate-in fade-in">
-                                    <CheckCircle size={16} className="shrink-0 text-brand-ink dark:text-primary" aria-hidden />
+                                <div className="flex items-center gap-2.5 rounded-2xl border border-border bg-muted p-4 text-xs font-medium text-foreground/80 animate-in fade-in">
+                                    <CheckCircle size={16} className="shrink-0 text-muted-foreground" aria-hidden />
                                     <span>Du bietest die Nachhilfe kostenlos an.</span>
                                 </div>
                             )}
 
                             {formData.price_mode === 'vb' && (
-                                <div className="flex items-center gap-2.5 rounded-2xl border border-primary/25 bg-primary/10 p-4 text-xs font-medium text-foreground/80 animate-in fade-in">
-                                    <Info size={16} className="text-brand-ink dark:text-primary shrink-0" />
+                                <div className="flex items-center gap-2.5 rounded-2xl border border-border bg-muted p-4 text-xs font-medium text-foreground/80 animate-in fade-in">
+                                    <Info size={16} className="text-muted-foreground shrink-0" />
                                     <span>Richtwert am FWG: ca. 12 € pro Stunde. Der Preis ist individuell anpassbar.</span>
                                 </div>
                             )}
@@ -1009,7 +1008,7 @@ export default function CreateAd() {
                                         <div key={idx} className="flex items-center gap-2 rounded-xl bg-muted/50 p-2 text-sm">
                                             <img src={url} alt="" className="size-10 shrink-0 rounded-lg bg-border object-cover" />
                                             <span className="flex-1 truncate">{url}</span>
-                                            <Button variant="unstyled" size="unstyled" type="button" onClick={() => setFormData(prev => ({ ...prev, image_urls: prev.image_urls.filter((_, i) => i !== idx) }))} aria-label="Bild entfernen" className="grid size-11 shrink-0 place-items-center rounded-full text-destructive hover:bg-destructive/10">
+                                            <Button variant="unstyled" size="unstyled" type="button" onClick={() => setFormData(prev => ({ ...prev, image_urls: prev.image_urls.filter((_, i) => i !== idx) }))} aria-label="Bild entfernen" className="grid size-11 shrink-0 place-items-center rounded-lg text-destructive hover:bg-destructive/10">
                                                 <X size={16} aria-hidden />
                                             </Button>
                                         </div>
@@ -1035,8 +1034,8 @@ export default function CreateAd() {
                     {/* Step 5: Preview */}
                     {currentStep === 5 && (
                         <div className="space-y-4">
-                            <div className="mb-6 flex gap-3 rounded-2xl border border-primary/25 bg-primary/10 p-4 text-sm text-foreground/80">
-                                <AlertCircle className="shrink-0 text-brand-ink dark:text-primary" aria-hidden />
+                            <div className="mb-6 flex gap-3 rounded-2xl border border-border bg-muted p-4 text-sm text-foreground/80">
+                                <AlertCircle className="shrink-0 text-muted-foreground" aria-hidden />
                                 <div>
                                     <p className="font-semibold">{formData.type === 'search' ? 'Gesuch prüfen' : 'Anzeige prüfen'}</p>
                                     {formData.type === 'search' ? (
@@ -1051,14 +1050,14 @@ export default function CreateAd() {
                                 <div className="border-b border-border bg-muted/50 p-5 sm:p-6">
                                     <h2 className="mb-2 break-anywhere text-2xl font-semibold">{formData.title}</h2>
                                     <div className="flex flex-wrap gap-2 mb-4">
-                                        <span className="px-3 py-1 bg-primary text-primary-foreground rounded-full text-sm font-semibold tabular-nums">
+                                        <span className="px-3 py-1 bg-foreground text-background rounded-lg text-sm font-semibold tabular-nums">
                                             {formatAdPrice({
                                                 mode: formData.price_mode,
                                                 value: Number(formData.price_value) || 0,
                                                 unit: formData.price_unit,
                                             })}
                                         </span>
-                                        <span className="rounded-full bg-muted px-3 py-1 text-sm font-semibold text-foreground/80">
+                                        <span className="rounded-lg bg-muted px-3 py-1 text-sm font-semibold text-foreground/80">
                                             {formData.session_format === 'single' ? 'Einzelunterricht' : formData.session_format === 'group' ? 'Kleingruppe' : 'Format: Egal'}
                                         </span>
                                         {formData.subjects.map(s => <SubjectChip key={s} subject={s} />)}
@@ -1093,7 +1092,7 @@ export default function CreateAd() {
                 </CardContent>
                 <CardFooter className="sticky bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] z-10 flex flex-col gap-2 rounded-b-2xl border-t border-border bg-card/95 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur-md sm:p-6 sm:pb-6 md:bottom-0">
                     {!isStepValid() && stepHint && currentStep < STEPS.length - 1 && (
-                        <p className="w-full rounded-xl border border-primary/25 bg-primary/10 px-3 py-2 text-xs font-medium text-foreground/80" role="status">
+                        <p className="w-full rounded-xl border border-border bg-muted px-3 py-2 text-xs font-medium text-foreground/80" role="status">
                             Noch offen: {stepHint}
                         </p>
                     )}

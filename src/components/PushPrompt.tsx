@@ -45,9 +45,9 @@ export function PushPrompt() {
 
     return (
         <div className="fixed inset-x-0 bottom-[calc(6.5rem+env(safe-area-inset-bottom,0px))] z-30 p-3 sm:bottom-4 sm:p-4">
-            <div className="mx-auto max-w-md rounded-2xl border border-border bg-card p-4 shadow-overlay">
+            <div className="mx-auto max-w-md rounded-xl border border-border bg-card p-4 shadow-overlay">
                 <div className="flex items-start gap-3">
-                    <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/15 text-brand-ink dark:text-primary">
+                    <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-muted text-foreground">
                         {denied ? <BellOff size={20} /> : <Bell size={20} />}
                     </span>
                     <div className="min-w-0 flex-1">

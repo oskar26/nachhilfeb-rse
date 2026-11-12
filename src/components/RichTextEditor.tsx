@@ -191,7 +191,7 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
 
                 {/* Color presets + color picker */}
                 <div className="flex items-center gap-1.5 px-2 py-1 rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200/60 dark:border-gray-700/60">
-                    <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider hidden sm:inline">Farbe:</span>
+                    <span className="text-xs font-semibold text-muted-foreground hidden sm:inline">Farbe:</span>
                     {COLOR_PRESETS.map((preset) => (
                         <Button variant="unstyled" size="unstyled"
                             key={preset.color}
@@ -200,7 +200,7 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
                                 e.preventDefault();
                                 editor.chain().focus().setColor(preset.color).run();
                             }}
-                            className="w-4 h-4 rounded-full border border-black/15 dark:border-white/20 transition-transform hover:scale-125 cursor-pointer shadow-2xs"
+                            className="w-4 h-4 rounded-lg border border-black/15 dark:border-white/20 transition-transform hover:scale-125 cursor-pointer shadow-2xs"
                             style={{ backgroundColor: preset.color }}
                             title={preset.name}
                         />
@@ -231,7 +231,7 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
             </div>
             
             {isExpanded && (
-                <div className="bg-primary/5 text-[10px] text-primary/60 px-4 py-1 border-t dark:border-gray-700 flex justify-between">
+                <div className="bg-muted text-[10px] text-primary/60 px-4 py-1 border-t dark:border-gray-700 flex justify-between">
                     <span>Vollbild Editor Modus</span>
                     <Button variant="unstyled" size="unstyled" type="button" onClick={toggleFullscreen} className="hover:underline">Vollbild verlassen</Button>
                 </div>

@@ -53,7 +53,7 @@ export function AvailabilityCalendar({
     // If read-only and nothing is active, show empty state
     if (!isEditable && activeSlots.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/30 p-6 text-center">
+            <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-muted/30 p-6 text-center">
                 <CalendarDays size={28} className="mb-2 text-muted-foreground" aria-hidden />
                 <p className="text-sm font-medium text-muted-foreground">
                     Keine Verfügbarkeiten eingetragen
@@ -89,7 +89,7 @@ export function AvailabilityCalendar({
                             <div key={slot} className="contents">
                                 <div
                                     className={cn(
-                                        "sticky left-0 z-10 flex select-none items-center justify-end bg-muted/70 pr-2 font-mono text-muted-foreground",
+                                        "sticky left-0 z-10 flex select-none items-center justify-end bg-muted/70 pr-2 font-sans text-muted-foreground",
                                         isEvenHour ? (compact ? "py-1 text-[10px] font-semibold" : "py-1.5 text-xs font-semibold") : (compact ? "py-0.5 text-[8px]" : "py-1 text-[9px] text-muted-foreground/70")
                                     )}
                                 >
@@ -104,7 +104,7 @@ export function AvailabilityCalendar({
 
                                     if (isEditable) {
                                         if (sel) {
-                                            cellClass = "bg-primary text-primary-foreground hover:bg-primary/90";
+                                            cellClass = "bg-foreground text-background hover:bg-foreground/90";
                                         }
                                     } else {
                                         if (sel && match) {
@@ -147,7 +147,7 @@ export function AvailabilityCalendar({
                         <Button variant="unstyled" size="unstyled"
                             type="button"
                             onClick={() => setShowAll(!showAll)}
-                            className="inline-flex min-h-11 items-center gap-1 text-xs font-semibold text-brand-ink hover:underline dark:text-primary"
+                            className="inline-flex min-h-11 items-center gap-1 text-xs font-semibold text-foreground hover:underline"
                         >
                             {showAll ? (
                                 <span className="inline-flex items-center gap-1">Kalender einklappen <ChevronUp size={14} aria-hidden /></span>

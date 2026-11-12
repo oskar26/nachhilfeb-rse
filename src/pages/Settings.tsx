@@ -211,18 +211,17 @@ export default function Settings() {
                             triggerHaptic('light');
                             navigate(-1);
                         }}
-                        className="-ml-2 mb-1 h-11 gap-1 rounded-full pl-2 font-semibold"
+                        className="-ml-2 mb-1 h-11 gap-1 rounded-lg pl-2 font-semibold"
                     >
                         <ChevronLeft size={20} aria-hidden /> Zurück
                     </Button>
-                    <h1 className="font-display text-2xl uppercase leading-none tracking-tight text-foreground">Einstellungen</h1>
-                    <div className="mt-1.5 h-1 w-10 rounded-full bg-primary" aria-hidden />
+                    <h1 className="text-2xl font-semibold leading-tight tracking-tight text-foreground">Einstellungen</h1>
                 </div>
             </motion.div>
 
             {/* Appearance Theme Card */}
             <motion.div variants={itemVariants}>
-                <Card className="overflow-hidden border-border bg-card shadow-soft">
+                <Card className="overflow-hidden border-border bg-card">
                     <CardHeader className="p-6 pb-2">
                         <CardTitle className="text-base font-semibold">Erscheinungsbild</CardTitle>
                         <CardDescription className="text-xs">Wähle deinen bevorzugten Design-Modus</CardDescription>
@@ -247,7 +246,7 @@ export default function Settings() {
                                         className={cn(
                                             "flex min-h-[88px] cursor-pointer select-none flex-col items-center justify-center gap-2 rounded-xl border p-4 transition-colors",
                                             isActive
-                                                ? "border-primary/40 bg-primary/15 font-semibold text-brand-ink dark:text-primary"
+                                                ? "border-foreground bg-muted font-semibold text-foreground"
                                                 : "border-border bg-muted/40 text-muted-foreground hover:text-foreground"
                                         )}
                                     >
@@ -263,7 +262,7 @@ export default function Settings() {
 
             {/* Notifications Card */}
             <motion.div variants={itemVariants}>
-                <Card className="border-border bg-card shadow-soft">
+                <Card className="border-border bg-card">
                     <CardHeader className="p-6 pb-2">
                         <CardTitle className="text-base font-semibold">Benachrichtigungen</CardTitle>
                         <CardDescription className="text-xs">Erhalte Neuigkeiten und Hinweise der Börse direkt im Browser</CardDescription>
@@ -276,7 +275,7 @@ export default function Settings() {
                             variant={notificationsEnabled ? "outline" : "primary"}
                             size="sm"
                             onClick={requestNotifications}
-                            className="h-11 rounded-full px-4 text-xs font-semibold"
+                            className="h-11 rounded-lg px-4 text-xs font-semibold"
                         >
                             {notificationsEnabled ? 'Neu anfragen' : 'Aktivieren'}
                         </Button>
@@ -286,13 +285,13 @@ export default function Settings() {
 
             {/* Privacy & Visibility Settings Card */}
             <motion.div variants={itemVariants}>
-                <Card className="border-border bg-card shadow-soft">
+                <Card className="border-border bg-card">
                     <CardHeader className="p-6 pb-2">
                         <CardTitle className="text-base font-semibold">Datenschutz & Sichtbarkeit</CardTitle>
                         <CardDescription className="text-xs">Steuere, welche Kontaktdaten in deinen Anzeigen öffentlich zu sehen sind</CardDescription>
                     </CardHeader>
-                    <CardContent className="p-6 pt-3 space-y-4">
-                        <div className="flex items-center justify-between p-3 bg-muted/60 rounded-2xl border border-border">
+                    <CardContent className="divide-y divide-border p-0">
+                        <div className="flex items-center justify-between gap-4 p-4 sm:px-6">
                             <div>
                                 <h4 className="font-semibold text-sm text-foreground">E-Mail-Adresse anzeigen</h4>
                                 <p className="mt-0.5 text-xs text-muted-foreground">Zeigt deine E-Mail-Adresse öffentlich im Profil/Anzeigen an</p>
@@ -304,7 +303,7 @@ export default function Settings() {
                             />
                         </div>
 
-                        <div className="flex items-center justify-between p-3 bg-muted/60 rounded-2xl border border-border">
+                        <div className="flex items-center justify-between gap-4 p-4 sm:px-6">
                             <div>
                                 <h4 className="font-semibold text-sm text-foreground">Telefonnummer anzeigen</h4>
                                 <p className="mt-0.5 text-xs text-muted-foreground">Zeigt deine Telefonnummer öffentlich für Anfragen an</p>
@@ -320,10 +319,10 @@ export default function Settings() {
             </motion.div>
 
             <motion.div variants={itemVariants}>
-                <Card className="border-border bg-card shadow-soft">
+                <Card className="border-border bg-card">
                     <CardHeader className="p-6 pb-2">
                         <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground">
-                            <BookOpen size={18} className="text-brand-ink dark:text-primary" aria-hidden /> Ich biete Nachhilfe
+                            <BookOpen size={18} className="text-muted-foreground" aria-hidden /> Ich biete Nachhilfe
                         </CardTitle>
                         <CardDescription className="text-xs">
                             Wähle die Fächer, in denen du Nachhilfe geben kannst. Wer Fächer angibt, sieht im Feed passende Gesuche.
@@ -357,10 +356,10 @@ export default function Settings() {
 
             {/* DSGVO Data Protection & Rights Card */}
             <motion.div variants={itemVariants}>
-                <Card className="border-border bg-card shadow-soft">
+                <Card className="border-border bg-card">
                     <CardHeader className="p-6 pb-2">
                         <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground">
-                            <Shield size={18} className="text-brand-ink dark:text-primary" aria-hidden /> Datenschutz und deine Rechte
+                            <Shield size={18} className="text-muted-foreground" aria-hidden /> Datenschutz und deine Rechte
                         </CardTitle>
                         <CardDescription className="text-xs">
                             Auskunft, Datenübertragbarkeit und Löschung deiner Daten gemäß DSGVO
@@ -376,7 +375,7 @@ export default function Settings() {
                                 onClick={handleExportData}
                                 variant="outline"
                                 size="sm"
-                                className="h-11 shrink-0 gap-1.5 rounded-full px-4 text-xs font-semibold"
+                                className="h-11 shrink-0 gap-1.5 rounded-lg px-4 text-xs font-semibold"
                             >
                                 <Download size={14} /> Daten exportieren
                             </Button>
@@ -396,7 +395,7 @@ export default function Settings() {
                                 }}
                                 variant="ghost"
                                 size="sm"
-                                className="h-11 shrink-0 gap-1 rounded-full px-4 text-xs font-semibold text-destructive hover:bg-destructive/10"
+                                className="h-11 shrink-0 gap-1 rounded-lg px-4 text-xs font-semibold text-destructive hover:bg-destructive/10"
                             >
                                 <Trash2 size={14} /> Konto löschen
                             </Button>
@@ -407,10 +406,10 @@ export default function Settings() {
 
             {/* Support, Feedback & Bug Report Card */}
             <motion.div variants={itemVariants}>
-                <Card className="border-border bg-card shadow-soft">
+                <Card className="border-border bg-card">
                     <CardHeader className="p-6 pb-2">
                         <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground">
-                            <LifeBuoy size={18} className="text-brand-ink dark:text-primary" aria-hidden /> Hilfe, Feedback & Support
+                            <LifeBuoy size={18} className="text-muted-foreground" aria-hidden /> Hilfe, Feedback & Support
                         </CardTitle>
                         <CardDescription className="text-xs">
                             Melde Fehler, schlage Verbesserungen vor oder schreibe direkt an das SV-Team
@@ -425,7 +424,7 @@ export default function Settings() {
                                 triggerHaptic('light');
                                 setIsSupportOpen(true);
                             }}
-                            className="h-11 shrink-0 rounded-full px-4 text-xs font-semibold"
+                            className="h-11 shrink-0 rounded-lg px-4 text-xs font-semibold"
                         >
                             Support-Center öffnen
                         </Button>
@@ -435,10 +434,10 @@ export default function Settings() {
 
             {/* Share App Card */}
             <motion.div variants={itemVariants}>
-                <Card className="border-border bg-card shadow-soft">
+                <Card className="border-border bg-card">
                     <CardHeader className="p-6 pb-2">
                         <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground">
-                            <Share2 size={18} className="text-brand-ink dark:text-primary" aria-hidden /> App weiterempfehlen
+                            <Share2 size={18} className="text-muted-foreground" aria-hidden /> App weiterempfehlen
                         </CardTitle>
                         <CardDescription className="text-xs">
                             Teile die Nachhilfebörse mit Mitschülern & Freunden via WhatsApp, QR-Code oder Direktlink
@@ -454,7 +453,7 @@ export default function Settings() {
                                 triggerHaptic('light');
                                 setIsShareOpen(true);
                             }}
-                            className="rounded-full font-semibold text-xs shrink-0 gap-1.5"
+                            className="rounded-lg font-semibold text-xs shrink-0 gap-1.5"
                         >
                             <Share2 size={14} /> Teilen & QR-Code
                         </Button>
@@ -464,7 +463,7 @@ export default function Settings() {
 
             {/* App Info & Secret Developer Mode Card */}
             <motion.div variants={itemVariants}>
-                <Card className="border-border bg-card shadow-soft text-center p-6 space-y-4">
+                <Card className="border-border bg-card text-center p-6 space-y-4">
                     <div className="flex justify-center">
                         <Logo className="size-12 text-foreground" />
                     </div>
@@ -499,7 +498,7 @@ export default function Settings() {
                                 <Input
                                     type="text"
                                     placeholder="Code..."
-                                    className="flex-1 font-mono uppercase"
+                                    className="flex-1 tabular-nums uppercase"
                                     id="secretCodeInput"
                                     onKeyDown={async (e) => {
                                         if (e.key === 'Enter') {

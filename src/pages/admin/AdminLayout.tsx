@@ -1,11 +1,9 @@
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet';
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
 import { cn } from '../../lib/utils';
-import { Logo } from '../../components/ui/Logo';
 import {
     ShieldCheck,
     LayoutDashboard,
@@ -17,8 +15,6 @@ import {
     BarChart2,
     ClipboardList,
     ChevronRight,
-    Menu,
-    X,
     Megaphone,
     LifeBuoy,
     Award,
@@ -58,9 +54,7 @@ export default function AdminLayout() {
     const location = useLocation();
     const [openReports, setOpenReports] = useState(0);
     const [openTickets, setOpenTickets] = useState(0);
-    const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    // Determine active tab from hash or query param - Defaults to 'overview' as first item
     const hash = location.hash.replace('#', '');
     const params = new URLSearchParams(location.search);
     const activeTab = params.get('tab') || hash || 'overview';
@@ -100,110 +94,12 @@ export default function AdminLayout() {
 
     const handleNavClick = (value: string) => {
         navigate(`?tab=${value}`);
-        setSidebarOpen(false);
     };
 
-    const sidebarContent = (
-        <div className="flex h-full min-h-0 flex-col">
-            <div className="flex h-16 shrink-0 items-center gap-3 border-b border-border px-4">
-                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-foreground">
-                    <Logo className="size-5" />
-                </span>
-                <span className="min-w-0 flex-1 truncate text-sm font-semibold tracking-tight text-foreground">SV Admin Panel</span>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    type="button"
-                    className="-mr-2 h-11 w-11 shrink-0 xl:hidden"
-                    onClick={() => setSidebarOpen(false)}
-                    aria-label="Menü schließen"
-                >
-                    <X size={20} aria-hidden />
-                </Button>
-            </div>
-
-            <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain p-3" aria-label="SV-Admin-Navigation">
-                {NAV_ITEMS.map(({ label, value, icon: Icon }) => {
-                    const isActive = activeTab === value;
-                    const count = value === 'reports' ? openReports : value === 'support' ? openTickets : 0;
-                    return (
-                        <Button
-                            variant="unstyled"
-                            size="unstyled"
-                            type="button"
-                            key={value}
-                            onClick={() => handleNavClick(value)}
-                            aria-current={isActive ? 'page' : undefined}
-                            className={cn(
-                                'flex min-h-11 w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left text-sm font-medium transition-colors',
-                                isActive
-                                    ? 'border-border bg-muted font-medium text-foreground'
-                                    : 'border-transparent text-muted-foreground hover:bg-muted hover:text-foreground'
-                            )}
-                        >
-                            <Icon
-                                size={20}
-                                aria-hidden
-                                className={cn('shrink-0', isActive ? 'text-foreground' : 'text-muted-foreground')}
-                            />
-                            <span className="min-w-0 flex-1 break-words">{label}</span>
-                            {count > 0 && (
-                                <span
-                                    className={cn(
-                                        'inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-md px-1.5 text-xs font-semibold tabular-nums',
-                                        value === 'reports'
-                                            ? 'bg-destructive/10 text-destructive'
-                                            : 'bg-muted text-foreground'
-                                    )}
-                                >
-                                    {count > 9 ? '9+' : count}
-                                </span>
-                            )}
-                        </Button>
-                    );
-                })}
-            </nav>
-
-            <div className="shrink-0 border-t border-border px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] text-center text-xs text-muted-foreground">
-                FWG Nachhilfebörse · SV Admin
-            </div>
-        </div>
-    );
-
     return (
-        <div className="flex min-h-full shrink-0 flex-col bg-background md:flex-row">
-            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-                <SheetContent
-                    side="left"
-                    showCloseButton={false}
-                    className="w-80 max-w-[85vw] gap-0 border-r border-border bg-card p-0"
-                >
-                    <SheetTitle className="sr-only">Admin-Menü</SheetTitle>
-                    <SheetDescription className="sr-only">Navigation im SV-Admin-Panel</SheetDescription>
-                    {sidebarContent}
-                </SheetContent>
-            </Sheet>
-
-            <aside className="hidden w-64 shrink-0 flex-col border-border bg-card xl:sticky xl:top-0 xl:flex xl:h-[calc(100dvh-2rem)] xl:self-start xl:border-r">
-                {sidebarContent}
-            </aside>
-
-            {/* Main content */}
-            <div className="flex min-w-0 flex-1 flex-col">
-                {/* Top bar */}
-                <header className="sticky top-0 z-30 flex min-h-16 items-center gap-2 border-b border-border bg-card/95 px-4 backdrop-blur sm:px-6">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        type="button"
-                        className="-ml-2 h-11 w-11 shrink-0 xl:hidden"
-                        onClick={() => setSidebarOpen(true)}
-                        aria-label="Menü öffnen"
-                    >
-                        <Menu size={22} aria-hidden />
-                    </Button>
-
-                    {/* Breadcrumbs */}
+        <div className="flex min-h-full min-w-0 flex-col bg-background">
+            <header className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur">
+                <div className="flex min-h-16 items-center gap-3 px-4 pt-[env(safe-area-inset-top)] sm:px-6">
                     <nav className="flex min-w-0 items-center gap-1.5 text-sm" aria-label="Breadcrumb">
                         {breadcrumbs.map((crumb, i) => (
                             <span key={crumb} className="flex min-w-0 items-center gap-1.5">
@@ -222,17 +118,54 @@ export default function AdminLayout() {
                         ))}
                     </nav>
 
-                    <span className="ml-auto hidden shrink-0 items-center gap-1.5 rounded-md border border-border bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground xl:flex">
+                    <span className="ml-auto hidden shrink-0 items-center gap-1.5 rounded-md border border-border bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground sm:flex">
                         <ShieldCheck size={16} aria-hidden />
                         SV Einsicht aktiv
                     </span>
-                </header>
+                </div>
 
-                {/* Page content */}
-                <main className="mx-auto w-full max-w-7xl flex-1 p-4 pb-8 sm:p-6">
-                    <Outlet />
-                </main>
-            </div>
+                <nav className="no-scrollbar flex items-center gap-1 overflow-x-auto px-3 pb-2 sm:px-5" aria-label="SV-Admin-Navigation">
+                    {NAV_ITEMS.map(({ label, value, icon: Icon }) => {
+                        const isActive = activeTab === value;
+                        const count = value === 'reports' ? openReports : value === 'support' ? openTickets : 0;
+                        return (
+                            <Button
+                                key={value}
+                                variant="ghost"
+                                size="sm"
+                                type="button"
+                                onClick={() => handleNavClick(value)}
+                                aria-current={isActive ? 'page' : undefined}
+                                className={cn(
+                                    'shrink-0 justify-start gap-2 px-3',
+                                    isActive
+                                        ? 'bg-muted text-foreground'
+                                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                                )}
+                            >
+                                <Icon size={16} aria-hidden />
+                                <span className="whitespace-nowrap">{label}</span>
+                                {count > 0 && (
+                                    <span
+                                        className={cn(
+                                            'ml-0.5 inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-md px-1.5 text-xs font-semibold tabular-nums',
+                                            value === 'reports'
+                                                ? 'bg-destructive/10 text-destructive'
+                                                : 'bg-muted text-foreground'
+                                        )}
+                                    >
+                                        {count > 9 ? '9+' : count}
+                                    </span>
+                                )}
+                            </Button>
+                        );
+                    })}
+                </nav>
+            </header>
+
+            <main className="mx-auto w-full max-w-7xl flex-1 p-4 pb-8 sm:p-6">
+                <Outlet />
+            </main>
         </div>
     );
 }

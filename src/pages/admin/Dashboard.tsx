@@ -153,7 +153,7 @@ function AdManagement() {
                     />
                 </div>
                 <p className="text-sm text-muted-foreground">
-                    Gesamt: <span className="inline-flex items-center rounded-full bg-muted px-3 py-1 font-semibold tabular-nums text-foreground">{ads.length} Anzeigen</span>
+                    Gesamt: <span className="inline-flex items-center rounded-md bg-muted px-3 py-1 font-semibold tabular-nums text-foreground">{ads.length} Anzeigen</span>
                 </p>
             </div>
 
@@ -171,7 +171,7 @@ function AdManagement() {
 
             {loadError ? null : loading ? (
                 <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card py-16 text-center">
-                    <Spinner className="size-6 text-brand-ink dark:text-primary" />
+                    <Spinner className="size-6 text-foreground" />
                     <p className="text-sm text-muted-foreground">Lade Anzeigen...</p>
                 </div>
             ) : filteredAds.length === 0 ? (
@@ -185,7 +185,7 @@ function AdManagement() {
                     </EmptyHeader>
                 </Empty>
             ) : (
-                <Card className="shadow-soft">
+                <Card className="">
                     <CardContent className="p-0">
                         <ul className="divide-y divide-border">
                             {filteredAds.map(ad => (
