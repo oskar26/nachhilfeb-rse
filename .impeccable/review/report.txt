@@ -1,0 +1,28 @@
+[social-390] h1s=["Nachhilfebörse","Social"] | tiers=["Aktion nötig","Kontakt läuft","Neue Matches","Wartet auf Antwort","Gemerkte Anzeigen","Abgeschlossen"] | pills=["Alle 12","Anfragen 5","Matches 3","Merkliste 4"]
+saved /home/oskar/antigravity/nachhilfev2/.impeccable/review/social-390.png
+[social-1280] h1s=["Nachhilfebörse","Social"] | tiers=["Aktion nötig","Kontakt läuft","Neue Matches","Wartet auf Antwort","Gemerkte Anzeigen","Abgeschlossen"] | pills=["Alle 12","Anfragen 5","Matches 3","Merkliste 4"]
+saved /home/oskar/antigravity/nachhilfev2/.impeccable/review/social-1280.png
+[filter-anfragen-390] h1s=["Nachhilfebörse","Social"] | tiers=["Aktion nötig","Kontakt läuft","Wartet auf Antwort","Abgeschlossen"] | pills=["Alle 12","Anfragen 5","Matches 3","Merkliste 4"]
+saved /home/oskar/antigravity/nachhilfev2/.impeccable/review/filter-anfragen-390.png
+[filter-anfragen-1280] h1s=["Nachhilfebörse","Social"] | tiers=["Aktion nötig","Kontakt läuft","Wartet auf Antwort","Abgeschlossen"] | pills=["Alle 12","Anfragen 5","Matches 3","Merkliste 4"]
+saved /home/oskar/antigravity/nachhilfev2/.impeccable/review/filter-anfragen-1280.png
+[filter-matches-1280] h1s=["Nachhilfebörse","Social"] | tiers=["Neue Matches"] | pills=["Alle 12","Anfragen 5","Matches 3","Merkliste 4"]
+[filter-matches] hash=#/social?tab=matches sidebar=["Matches"] search=
+[filter-matches] nach Screenshot sidebar=["Matches"]
+saved /home/oskar/antigravity/nachhilfev2/.impeccable/review/filter-matches-1280.png
+[filter-merkliste-1280] h1s=["Nachhilfebörse","Social"] | tiers=["Gemerkte Anzeigen"] | pills=["Alle 12","Anfragen 5","Matches 3","Merkliste 4"]
+[filter-merkliste] hash=#/social?tab=watchlist sidebar=["Merkliste"] search=
+[filter-merkliste] nach Screenshot sidebar=["Merkliste"]
+saved /home/oskar/antigravity/nachhilfev2/.impeccable/review/filter-merkliste-1280.png
+saved /home/oskar/antigravity/nachhilfev2/.impeccable/review/leer-390.png
+saved /home/oskar/antigravity/nachhilfev2/.impeccable/review/leer-1280.png
+[reveal] samples=[{"op":1,"tr":"none"},{"op":0,"tr":"matrix(1, 0, 0, 1, 0, 11.3528)"},{"op":0.900555,"tr":"matrix(1, 0, 0, 1, 0, 1.18455)"},{"op":0.966509,"tr":"matrix(1, 0, 0, 1, 0, 0.402541)"},{"op":0.986735,"tr":"matrix(1, 0, 0, 1, 0, 0.159867)"},{"op":0.997264,"tr":"matrix(1, 0, 0, 1, 0, 0.0328522)"},{"op":0.999814,"tr":"matrix(1, 0, 0, 1, 0, 0.0021524)"},{"op":1,"tr":"matrix(1, 0, 0, 1, 0, 2.18279e-08)"},{"op":1,"tr":"none"},{"op":1,"tr":"none"}]
+[reveal] y-slide in transform sichtbar: true
+[url-sync] Anfragen -> #/social?tab=requests
+[url-sync] Merkliste -> #/social?tab=watchlist
+[url-sync] Alle -> #/social?tab=alle
+[url-sync] Matches -> #/social?tab=matches
+[360/#/social] scrollWidth=350 clientWidth=360
+[360/#/social?tab=anfragen] scrollWidth=350 clientWidth=360
+[360/#/social?tab=matches] scrollWidth=350 clientWidth=360
+[360/#/social?tab=merkliste] scrollWidth=350 clientWidth=360
