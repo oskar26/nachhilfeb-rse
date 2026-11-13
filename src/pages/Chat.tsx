@@ -372,8 +372,8 @@ export default function Chat() {
                                     <div
                                         onClick={() => isMe && setMenuOpenId(prev => prev === msg.id ? null : msg.id)}
                                         className={cn(
-                                            "relative min-w-[86px] break-words rounded-chat px-3 py-2 text-[15px] leading-[1.35] text-chat-text shadow-[0_1px_1px_rgba(11,20,26,0.06)]",
-                                            isMe ? "bg-chat-own" : "bg-chat-other",
+                                            "relative min-w-[86px] break-words rounded-chat px-3 py-2 text-[15px] leading-[1.35] shadow-[0_1px_1px_rgba(11,20,26,0.06)]",
+                                            isMe ? "bg-chat-own text-primary-foreground" : "bg-chat-other text-foreground",
                                             firstInGroup && (isMe ? "rounded-tr-chat-corner" : "rounded-tl-chat-corner"),
                                             msg.is_deleted && "italic opacity-70"
                                         )}
@@ -501,7 +501,7 @@ export default function Chat() {
                     <Button
                         type="submit"
                         size="icon"
-                        className="size-12 shrink-0 rounded-full bg-chat-send text-white shadow-soft hover:-translate-y-0.5 hover:bg-chat-send hover:shadow-card active:scale-[0.98]"
+                        className="size-12 shrink-0 rounded-full bg-chat-send text-primary-foreground shadow-soft hover:-translate-y-0.5 hover:bg-primary-hover hover:text-primary-foreground hover:shadow-card active:scale-[0.98]"
                         disabled={!newMessage.trim()}
                         aria-label="Nachricht senden"
                     >

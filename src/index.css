@@ -113,12 +113,6 @@
 
   .chat-surface {
     background-color: var(--chat-bg);
-    background-image: url("/chat-pattern-light.svg");
-    background-repeat: repeat;
-    background-size: 160px 160px;
-  }
-  .dark .chat-surface {
-    background-image: url("/chat-pattern-dark.svg");
   }
 
   .screenshot-fade {
@@ -305,7 +299,7 @@
   --radius-field: 1.25rem;
   --radius-card: 1.75rem;
   --radius-dialog: 2rem;
-  --radius-chat: 1.125rem;
+  --radius-chat: 1.25rem;
   --radius-chat-corner: 0.375rem;
   --radius-panel: 2.25rem;
 }
@@ -363,18 +357,18 @@
   --sidebar-accent-foreground: #18181b;
   --sidebar-border: #e6e8ec;
   --sidebar-ring: #facc15;
-  --chat-bg: #efeae2;
+  --chat-bg: #f5f6f8;
   --chat-header: #ffffff;
-  --chat-own: #d9fdd3;
+  --chat-own: #facc15;
   --chat-other: #ffffff;
-  --chat-text: #111b21;
-  --chat-meta: #54656f;
-  --chat-meta-own: #54656f;
-  --chat-tick-sent: #667781;
-  --chat-tick-read: #53bdeb;
-  --chat-send: #00a884;
-  --chat-chip: rgb(255 255 255 / 0.92);
-  --chat-border: #e9edef;
+  --chat-text: #18181b;
+  --chat-meta: #5f636b;
+  --chat-meta-own: #52525b;
+  --chat-tick-sent: #52525b;
+  --chat-tick-read: #166534;
+  --chat-send: #facc15;
+  --chat-chip: rgb(255 255 255 / 0.94);
+  --chat-border: #e6e8ec;
   --chat-composer: #ffffff;
 }
 
@@ -430,17 +424,17 @@
   --sidebar-accent-foreground: #fef08a;
   --sidebar-border: #2a2d34;
   --sidebar-ring: #facc15;
-  --chat-bg: #0b141a;
-  --chat-header: #202c33;
-  --chat-own: #005c4b;
-  --chat-other: #202c33;
-  --chat-text: #e9edef;
-  --chat-meta: #8696a0;
-  --chat-meta-own: #b8c6cb;
-  --chat-tick-sent: #8696a0;
-  --chat-tick-read: #53bdeb;
-  --chat-send: #00a884;
-  --chat-chip: rgb(32 44 51 / 0.9);
-  --chat-border: #2a3942;
-  --chat-composer: #202c33;
+  --chat-bg: #0b0c0f;
+  --chat-header: #141519;
+  --chat-own: #facc15;
+  --chat-other: #1d1f24;
+  --chat-text: #f5f5f7;
+  --chat-meta: #a1a1aa;
+  --chat-meta-own: #3f3f46;
+  --chat-tick-sent: #3f3f46;
+  --chat-tick-read: #14532d;
+  --chat-send: #facc15;
+  --chat-chip: rgb(29 31 36 / 0.94);
+  --chat-border: #2a2d34;
+  --chat-composer: #1d1f24;
 }
