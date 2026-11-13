@@ -2,7 +2,68 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import type { Plugin } from 'vite';
+import fs from 'node:fs';
 import path from 'node:path';
+
+const DOCS_ROOT = path.resolve(__dirname, 'dist/docs');
+const DOCS_TYPES: Record<string, string> = {
+  '.css': 'text/css; charset=utf-8',
+  '.data': 'application/octet-stream',
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.map': 'application/json; charset=utf-8',
+  '.png': 'image/png',
+  '.svg': 'image/svg+xml',
+  '.txt': 'text/plain; charset=utf-8',
+  '.woff2': 'font/woff2',
+};
+
+function docsDevServer(): Plugin {
+  return {
+    name: 'docs-dev-server',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const url = (req.url ?? '').split('?')[0];
+        if (url !== '/docs' && !url.startsWith('/docs/')) return next();
+        if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+
+        let rel = url.slice('/docs'.length);
+        try {
+          rel = decodeURIComponent(rel);
+        } catch {
+          return next();
+        }
+        if (!rel || rel === '/') rel = '/index.html';
+
+        let file = path.resolve(DOCS_ROOT, `.${rel}`);
+        if (!file.startsWith(DOCS_ROOT + path.sep)) return next();
+
+        try {
+          if (fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
+        } catch {
+          const html = path.join(file, 'index.html');
+          if (!fs.existsSync(html)) return next();
+          file = html;
+        }
+        if (!fs.existsSync(file)) return next();
+
+        const ext = path.extname(file).toLowerCase();
+        res.writeHead(200, {
+          'Content-Type': DOCS_TYPES[ext] ?? 'application/octet-stream',
+          'Cache-Control': ext === '.html' ? 'no-cache' : 'public, max-age=3600',
+        });
+        if (req.method === 'HEAD') {
+          res.end();
+          return;
+        }
+        fs.createReadStream(file).pipe(res);
+      });
+    },
+  };
+}
 
 export default defineConfig({
   base: './',
@@ -12,6 +73,7 @@ export default defineConfig({
     },
   },
   plugins: [
+    docsDevServer(),
     react(),
     tailwindcss(),
     VitePWA({
