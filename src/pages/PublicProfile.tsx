@@ -139,7 +139,10 @@ export default function PublicProfile() {
             {/* Profile Header */}
             <motion.div variants={itemVariants} className="relative">
                 <Card className="relative overflow-hidden border-border bg-card p-0">
-                    <div className="h-36 bg-muted"></div>
+                    <div
+                        className="h-36 bg-[linear-gradient(135deg,var(--primary-soft),var(--pastel-blue))]"
+                        aria-hidden
+                    />
                     <CardContent className="pt-0 px-6 sm:px-8 pb-8 relative">
                         <div className="flex flex-col md:flex-row items-center md:items-end gap-6">
                             <div className="-mt-16 size-28 shrink-0 overflow-hidden rounded-2xl border-4 border-card bg-card p-1 sm:size-32">

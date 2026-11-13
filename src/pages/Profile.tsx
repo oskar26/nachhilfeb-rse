@@ -303,7 +303,10 @@ export default function Profile() {
         >
             {/* Header with Dynamic Banner & Avatar */}
             <motion.div variants={itemVariants} className="relative overflow-hidden rounded-xl border border-border bg-card">
-                <div className="h-28 bg-muted" aria-hidden />
+                <div
+                    className="h-28 bg-[linear-gradient(135deg,var(--primary-soft),var(--pastel-blue))]"
+                    aria-hidden
+                />
                 {/* Avatar & User Info */}
                 <div className="flex flex-col items-center text-center px-4 pb-6 -mt-16 sm:px-6">
                     <div className="relative group mb-2">

@@ -1,5 +1,5 @@
 import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Home, PlusCircle, User, LogOut, Settings, MessageSquare, Inbox, Zap, Heart, Sparkles, Award, ShieldCheck, MoreVertical } from 'lucide-react';
+import { Home, PlusCircle, User, LogOut, Settings, MessageSquare, Inbox, Zap, Heart, Sparkles, Award, ShieldCheck, MoreVertical, BookOpen } from 'lucide-react';
 import AccessGuard from './AccessGuard';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/button';
@@ -10,6 +10,7 @@ import { Logo } from './ui/Logo';
 import { triggerHaptic } from '../lib/haptics';
 import { avatarTone, initials } from '../lib/avatar';
 import { cn } from '../lib/utils';
+import { getDesktopSocialTab, type DesktopSocialTab } from '../lib/navigation';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -62,16 +63,13 @@ export default function Layout() {
     const isSocialRoute = ['/social', '/requests', '/matches', '/matching', '/favorites', '/watchlist'].includes(pathname);
     const isChatRoute = pathname === '/chat' || pathname.startsWith('/chat/');
     const isSvPanel = pathname.startsWith('/sv-panel');
-    const pathTab = pathname === '/matches' || pathname === '/matching' ? 'matches'
-        : pathname === '/favorites' || pathname === '/watchlist' ? 'watchlist'
-        : 'requests';
-    const requestedTab = new URLSearchParams(location.search).get('tab');
-    const currentTab = requestedTab === 'requests' || requestedTab === 'matches' || requestedTab === 'watchlist'
-        ? requestedTab
-        : pathTab;
+    const currentTab = getDesktopSocialTab(pathname, location.search);
 
-    const isTabActive = (tab: string) => isSocialRoute && currentTab === tab;
+    const isTabActive = (tab: DesktopSocialTab) => isSocialRoute && currentTab === tab;
     const isPathActive = (path: string) => path === '/' ? pathname === '/' : pathname === path || pathname.startsWith(`${path}/`);
+    // Dark mode uses the neutral active surface; the base button would otherwise
+    // show the olive --primary-soft pill in the SV/sidebar navigation.
+    const activeNavClass = 'dark:bg-muted dark:text-foreground dark:data-active:bg-muted dark:data-active:text-foreground dark:data-active:hover:bg-muted dark:data-active:hover:text-foreground';
 
     const mobileNavItems = [
         { to: '/', label: 'Entdecken', icon: Home, end: true },
@@ -131,40 +129,48 @@ export default function Layout() {
                                     <SidebarMenuButton
                                         isActive={pathname === '/'}
                                         tooltip="Entdecken"
+                                        aria-label="Entdecken"
+                                        className={pathname === '/' ? activeNavClass : undefined}
                                         render={<NavLink to="/" end onClick={handleNavClick} />}
                                     >
                                         <Home aria-hidden />
-                                        <span>Entdecken</span>
+                                        <span className="group-data-[collapsible=icon]:hidden">Entdecken</span>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
                                 <SidebarMenuItem>
                                     <SidebarMenuButton
                                         isActive={isTabActive('requests')}
                                         tooltip="Anfragen"
+                                        aria-label="Anfragen"
+                                        className={isTabActive('requests') ? activeNavClass : undefined}
                                         render={<NavLink to="/requests" onClick={handleNavClick} />}
                                     >
                                         <Inbox aria-hidden />
-                                        <span>Anfragen</span>
+                                        <span className="group-data-[collapsible=icon]:hidden">Anfragen</span>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
                                 <SidebarMenuItem>
                                     <SidebarMenuButton
                                         isActive={isTabActive('matches')}
                                         tooltip="Vorschläge"
+                                        aria-label="Vorschläge"
+                                        className={isTabActive('matches') ? activeNavClass : undefined}
                                         render={<NavLink to="/matches" onClick={handleNavClick} />}
                                     >
                                         <Zap aria-hidden />
-                                        <span>Vorschläge</span>
+                                        <span className="group-data-[collapsible=icon]:hidden">Vorschläge</span>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
                                 <SidebarMenuItem>
                                     <SidebarMenuButton
                                         isActive={isTabActive('watchlist')}
                                         tooltip="Merkliste"
+                                        aria-label="Merkliste"
+                                        className={isTabActive('watchlist') ? activeNavClass : undefined}
                                         render={<NavLink to="/favorites" onClick={handleNavClick} />}
                                     >
                                         <Heart aria-hidden />
-                                        <span>Merkliste</span>
+                                        <span className="group-data-[collapsible=icon]:hidden">Merkliste</span>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
                             </SidebarMenu>
@@ -179,10 +185,12 @@ export default function Layout() {
                                     <SidebarMenuButton
                                         isActive={isPathActive('/create-ad')}
                                         tooltip="Neue Anzeige"
+                                        aria-label="Neue Anzeige"
+                                        className={isPathActive('/create-ad') ? activeNavClass : undefined}
                                         render={<NavLink to="/create-ad" onClick={handleNavClick} />}
                                     >
                                         <PlusCircle aria-hidden />
-                                        <span>Neue Anzeige</span>
+                                        <span className="group-data-[collapsible=icon]:hidden">Neue Anzeige</span>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
                             </SidebarMenu>
@@ -197,30 +205,46 @@ export default function Layout() {
                                     <SidebarMenuButton
                                         isActive={isPathActive('/profile')}
                                         tooltip="Profil"
+                                        aria-label="Profil"
+                                        className={isPathActive('/profile') ? activeNavClass : undefined}
                                         render={<NavLink to="/profile" onClick={handleNavClick} />}
                                     >
                                         <User aria-hidden />
-                                        <span>Profil</span>
+                                        <span className="group-data-[collapsible=icon]:hidden">Profil</span>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
                                 <SidebarMenuItem>
                                     <SidebarMenuButton
                                         isActive={isPathActive('/settings')}
                                         tooltip="Einstellungen"
+                                        aria-label="Einstellungen"
+                                        className={isPathActive('/settings') ? activeNavClass : undefined}
                                         render={<NavLink to="/settings" onClick={handleNavClick} />}
                                     >
                                         <Settings aria-hidden />
-                                        <span>Einstellungen</span>
+                                        <span className="group-data-[collapsible=icon]:hidden">Einstellungen</span>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton
+                                        tooltip="Dokumentation"
+                                        aria-label="Dokumentation"
+                                        render={<a href="/docs" onClick={handleNavClick} />}
+                                    >
+                                        <BookOpen aria-hidden />
+                                        <span className="group-data-[collapsible=icon]:hidden">Dokumentation</span>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
                                 <SidebarMenuItem>
                                     <SidebarMenuButton
                                         isActive={isPathActive('/welcome')}
                                         tooltip="Willkommen"
+                                        aria-label="Willkommen"
+                                        className={isPathActive('/welcome') ? activeNavClass : undefined}
                                         render={<NavLink to="/welcome" onClick={handleNavClick} />}
                                     >
                                         <Sparkles aria-hidden />
-                                        <span>Willkommen</span>
+                                        <span className="group-data-[collapsible=icon]:hidden">Willkommen</span>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
                             </SidebarMenu>
@@ -236,10 +260,12 @@ export default function Layout() {
                                         <SidebarMenuButton
                                             isActive={isPathActive('/coach-panel')}
                                             tooltip="Coaching Panel"
+                                            aria-label="Coaching Panel"
+                                            className={isPathActive('/coach-panel') ? activeNavClass : undefined}
                                             render={<NavLink to="/coach-panel" onClick={handleNavClick} />}
                                         >
                                             <Award aria-hidden />
-                                            <span>Coaching Panel</span>
+                                            <span className="group-data-[collapsible=icon]:hidden">Coaching Panel</span>
                                         </SidebarMenuButton>
                                     </SidebarMenuItem>
                                 </SidebarMenu>
@@ -256,10 +282,12 @@ export default function Layout() {
                                         <SidebarMenuButton
                                             isActive={isSvPanel}
                                             tooltip="SV Panel"
+                                            aria-label="SV Panel"
+                                            className={isSvPanel ? activeNavClass : undefined}
                                             render={<NavLink to="/sv-panel" onClick={handleNavClick} />}
                                         >
                                             <ShieldCheck aria-hidden />
-                                            <span>SV Panel</span>
+                                            <span className="group-data-[collapsible=icon]:hidden">SV Panel</span>
                                         </SidebarMenuButton>
                                     </SidebarMenuItem>
                                 </SidebarMenu>
@@ -392,7 +420,7 @@ export default function Layout() {
                             className={({ isActive }) =>
                                 `relative flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-full text-xs font-medium transition-colors ${
                                     isActive || (item.activateOnChat && (isSocialRoute || isChatRoute))
-                                        ? 'bg-primary-soft text-primary-soft-foreground'
+                                        ? 'bg-primary-soft text-primary-soft-foreground dark:bg-muted dark:text-foreground'
                                         : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                                 }`
                             }

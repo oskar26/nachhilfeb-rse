@@ -89,8 +89,8 @@ export function AvailabilityCalendar({
                             <div key={slot} className="contents">
                                 <div
                                     className={cn(
-                                        "sticky left-0 z-10 flex select-none items-center justify-end bg-muted/70 pr-2 font-sans text-muted-foreground",
-                                        isEvenHour ? (compact ? "py-1 text-[10px] font-semibold" : "py-1.5 text-xs font-semibold") : (compact ? "py-0.5 text-[8px]" : "py-1 text-[9px] text-muted-foreground/70")
+                                        "sticky left-0 z-10 flex select-none items-center justify-end bg-muted/70 pr-2 font-sans text-[13px] text-muted-foreground",
+                                        isEvenHour ? (compact ? "py-1 font-semibold" : "py-1.5 font-semibold") : "py-1"
                                     )}
                                 >
                                     {isEvenHour ? slot : ''}

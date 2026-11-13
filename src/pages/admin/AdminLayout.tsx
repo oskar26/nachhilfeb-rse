@@ -124,7 +124,7 @@ export default function AdminLayout() {
                     </span>
                 </div>
 
-                <nav className="flex flex-wrap items-center gap-1 px-3 pb-2 sm:px-5" aria-label="SV-Admin-Navigation">
+                <nav className="no-scrollbar flex flex-nowrap items-center gap-1 overflow-x-auto px-3 pb-2 sm:px-5" aria-label="SV-Admin-Navigation">
                     {NAV_ITEMS.map(({ label, value, icon: Icon }) => {
                         const isActive = activeTab === value;
                         const count = value === 'reports' ? openReports : value === 'support' ? openTickets : 0;
@@ -137,7 +137,7 @@ export default function AdminLayout() {
                                 onClick={() => handleNavClick(value)}
                                 aria-current={isActive ? 'page' : undefined}
                                 className={cn(
-                                    'shrink-0 justify-start gap-2 px-3',
+                                    'min-h-11 shrink-0 justify-start gap-2 px-3',
                                     isActive
                                         ? 'bg-muted text-foreground'
                                         : 'text-muted-foreground hover:bg-muted hover:text-foreground'

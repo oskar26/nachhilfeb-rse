@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { useTheme } from '../components/ThemeProvider';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Moon, Sun, Monitor, ChevronLeft, Shield, Trash2, Download, AlertTriangle, LifeBuoy, Share2, BookOpen } from 'lucide-react';
+import { Moon, Sun, Monitor, ChevronLeft, Shield, Trash2, Download, AlertTriangle, LifeBuoy, Share2, BookOpen, Check } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import {
     AlertDialog,
@@ -243,13 +243,17 @@ export default function Settings() {
                                         key={item.id}
                                         type="button"
                                         onClick={() => handleThemeChange(item.id as any)}
+                                        aria-pressed={isActive}
                                         className={cn(
-                                            "flex min-h-[88px] cursor-pointer select-none flex-col items-center justify-center gap-2 rounded-xl border p-4 transition-colors",
+                                            "relative flex min-h-[88px] cursor-pointer select-none flex-col items-center justify-center gap-2 rounded-xl border-2 p-4 transition-colors",
                                             isActive
-                                                ? "border-foreground bg-muted font-semibold text-foreground"
+                                                ? "border-primary bg-primary-soft font-semibold text-primary-soft-foreground"
                                                 : "border-border bg-muted/40 text-muted-foreground hover:text-foreground"
                                         )}
                                     >
+                                        {isActive && (
+                                            <Check size={16} className="absolute right-2.5 top-2.5" aria-hidden />
+                                        )}
                                         <Icon size={22} aria-hidden />
                                         <span className="text-xs">{item.label}</span>
                                     </Button>
@@ -428,6 +432,30 @@ export default function Settings() {
                         >
                             Support-Center öffnen
                         </Button>
+                    </CardContent>
+                </Card>
+            </motion.div>
+
+            {/* Documentation Help Card */}
+            <motion.div variants={itemVariants}>
+                <Card className="border-border bg-card">
+                    <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-start gap-3">
+                            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-muted text-muted-foreground">
+                                <BookOpen size={18} aria-hidden />
+                            </span>
+                            <div>
+                                <h3 className="text-sm font-semibold text-foreground">Dokumentation</h3>
+                                <p className="mt-0.5 text-xs text-muted-foreground">Anleitungen zu Social, Vorschlägen und Merkliste.</p>
+                            </div>
+                        </div>
+                        <a
+                            href="/docs"
+                            onClick={() => triggerHaptic('light')}
+                            className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-1.5 rounded-lg border border-border bg-card px-4 text-xs font-semibold text-foreground transition-colors hover:bg-muted sm:w-auto"
+                        >
+                            <BookOpen size={14} aria-hidden /> Dokumentation öffnen
+                        </a>
                     </CardContent>
                 </Card>
             </motion.div>

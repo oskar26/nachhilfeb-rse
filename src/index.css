@@ -33,6 +33,11 @@
     text-wrap: balance;
   }
 
+  p,
+  li {
+    text-wrap: pretty;
+  }
+
   :where(input, textarea, select) {
     scroll-margin-block: 7rem;
   }
