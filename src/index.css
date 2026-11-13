@@ -50,12 +50,14 @@
   /* One focus system for the whole product. The outline follows the
      component's own radius and never changes its shape. */
   :where(a, button, [tabindex]):focus-visible {
-    outline: 3px solid color-mix(in srgb, var(--primary) 50%, transparent) !important;
+    /* Solid foreground: the old 50% yellow ring was ~1.2:1 on light
+       surfaces. This keeps the single-ring system and clears 3:1. */
+    outline: 3px solid var(--foreground) !important;
     outline-offset: 2px !important;
   }
 
   :where(input, textarea, select):focus-visible {
-    outline: 3px solid color-mix(in srgb, var(--primary) 50%, transparent) !important;
+    outline: 3px solid var(--foreground) !important;
     outline-offset: 1px !important;
     border-color: var(--foreground) !important;
   }

@@ -84,6 +84,18 @@ body {
   transform: translateY(-1px);
 }
 
+/* One high-contrast ring, matching the app. The html/body prefix and
+   :is() beat Fumadocs' component-level outline-color declarations. */
+html body :is(a, button, [tabindex]):focus-visible {
+  outline: 3px solid #171717 !important;
+  outline-color: #171717 !important;
+  outline-offset: 2px !important;
+}
+
+html.dark body :is(a, button, [tabindex]):focus-visible {
+  outline-color: #f5f5f7 !important;
+}
+
 .platform-cta:focus-visible {
   outline: 3px solid #171717;
   outline-offset: 2px;
