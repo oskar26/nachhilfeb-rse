@@ -10,7 +10,15 @@ import { docs, source } from '@/lib/source';
 import { baseOptions } from '@/lib/layout.shared';
 import { useFumadocsLoader } from 'fumadocs-core/source/client';
 import { useMDXComponents } from '@/components/mdx';
-import { use } from 'react';
+import { use, type ComponentProps } from 'react';
+
+function Table(props: ComponentProps<'table'>) {
+  return (
+    <div className="docs-table-scroll" tabIndex={0}>
+      <table {...props} />
+    </div>
+  );
+}
 
 export async function loader({ params }: Route.LoaderArgs) {
   const slugs = params['*'].split('/').filter((v) => v.length > 0);
@@ -37,7 +45,7 @@ function Content({ path }: { path: string }) {
       <DocsTitle>{page.title}</DocsTitle>
       <DocsDescription>{page.description}</DocsDescription>
       <DocsBody>
-        <Mdx components={useMDXComponents()} />
+        <Mdx components={{ ...useMDXComponents(), table: Table }} />
         <footer className="not-prose mt-12 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-fd-border pt-4 text-[13px] text-fd-muted-foreground">
           <span>Stand: November 2026</span>
           <span aria-hidden>·</span>

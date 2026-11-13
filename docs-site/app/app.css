@@ -176,19 +176,28 @@ body {
   letter-spacing: -0.02em;
 }
 
-.prose table {
-  border-radius: 20px;
-  overflow: hidden;
-}
-
-/* Keep wide tables and code inside the reading column instead of widening it. */
-.prose :where(table, pre) {
-  max-width: 100%;
-}
-
-.prose :where(table) {
-  display: block;
+/* Wide tables scroll inside their own rounded panel. The table keeps table
+   layout so its rows fill the panel at wide viewports. */
+.docs-table-scroll {
+  margin-block: 2rem;
   overflow-x: auto;
+  border: 1px solid var(--color-fd-border);
+  border-radius: 20px;
+  background: var(--color-fd-card);
+}
+
+.docs-table-scroll > table {
+  width: max-content;
+  min-width: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+}
+
+/* Keep code inside the reading column instead of widening it. */
+.prose pre {
+  max-width: 100%;
 }
 
 .prose img {
