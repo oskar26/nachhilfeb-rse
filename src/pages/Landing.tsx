@@ -3,16 +3,13 @@ import { Link } from 'react-router-dom';
 import {
     ArrowRight,
     BadgeCheck,
-    Bookmark,
-    Filter,
+    ChevronDown,
     GraduationCap,
     Image as ImageIcon,
     Lock,
-    MessageSquare,
     Search,
     Shield,
     ShieldCheck,
-    Smartphone,
     Sparkles,
     Users,
 } from 'lucide-react';
@@ -32,54 +29,18 @@ import phoneFeedShot from '../../docs/screenshots/v2-phone-feed.png';
 import phoneChatShot from '../../docs/screenshots/v2-phone-chat.png';
 import tabletSettingsShot from '../../docs/screenshots/v2-tablet-settings.png';
 import feedShot from '../../docs/screenshots/v2-laptop-feed.png';
-import createAdShot from '../../docs/screenshots/03-anzeige-erstellen.png';
 import svPanelShot from '../../docs/screenshots/07-sv-panel.png';
 
 /* Single Source of Truth für alle Fächer: SUBJECT_CATEGORIES aus SubjectChip.tsx
-   (dieselbe Quelle nutzen CreateAd + Feed). Labels 1:1 aus subjectLabelMap. */
-const SUBJECT_LABELS: Record<Subject, string> = {
-    deutsch: 'Deutsch',
-    englisch: 'Englisch',
-    franzoesisch: 'Französisch',
-    kunst: 'Kunst',
-    griechisch: 'Griechisch',
-    latein: 'Latein',
-    musik: 'Musik',
-    literatur: 'Literatur',
-    kultur: 'Kultur',
-    geschichte: 'Geschichte',
-    paedagogik: 'Pädagogik',
-    erdkunde: 'Erdkunde',
-    philosophie: 'Philosophie',
-    sowi: 'Sozialwiss.',
-    wirtschaft_gesell: 'Wi & Gesell.',
-    wirtschaft_politik: 'Wi & Politik',
-    biologie: 'Biologie',
-    chemie: 'Chemie',
-    informatik: 'Informatik',
-    mathematik: 'Mathematik',
-    physik: 'Physik',
-    blauer_planet: 'Blauer Planet',
-    prakt_philosophie: 'Prakt. Philo',
-    religion: 'Religion',
-    sport: 'Sport',
-};
-
-const FAECHER = SUBJECT_CATEGORIES.flatMap((c) => c.subjects).map((s) => SUBJECT_LABELS[s]);
+   (dieselbe Quelle nutzen CreateAd + Feed). */
+const POPULAR_SUBJECTS: Subject[] = ['mathematik', 'deutsch', 'englisch', 'physik', 'latein', 'franzoesisch', 'chemie', 'informatik'];
+const ALL_SUBJECTS = SUBJECT_CATEGORIES.flatMap((c) => c.subjects);
+const MORE_SUBJECTS = ALL_SUBJECTS.filter((s) => !POPULAR_SUBJECTS.includes(s));
 
 const WAY_TONES = [
     { card: 'bg-pastel-blue text-pastel-blue-foreground', icon: 'text-pastel-blue-foreground', pill: 'bg-white/80 text-pastel-blue-foreground' },
     { card: 'bg-primary text-primary-foreground', icon: 'text-primary-foreground', pill: 'bg-white/70 text-primary-foreground' },
     { card: 'bg-pastel-mint text-pastel-mint-foreground', icon: 'text-pastel-mint-foreground', pill: 'bg-white/80 text-pastel-mint-foreground' },
-];
-
-const FEATURE_TONES = [
-    'bg-pastel-blue text-pastel-blue-foreground',
-    'bg-pastel-mint text-pastel-mint-foreground',
-    'bg-pastel-rose text-pastel-rose-foreground',
-    'bg-pastel-yellow text-pastel-yellow-foreground',
-    'bg-pastel-violet text-pastel-violet-foreground',
-    'bg-pastel-orange text-pastel-orange-foreground',
 ];
 
 function parseCount(value: unknown): number | null {
@@ -89,7 +50,7 @@ function parseCount(value: unknown): number | null {
 }
 
 export default function Landing() {
-    const { user } = useAuth();
+    const { user, isAdmin } = useAuth();
     const [liveStats, setLiveStats] = useState<{ active_ads: number | null; users: number | null } | null>(null);
 
     /* Privatsphäre-Demo */
@@ -114,6 +75,14 @@ export default function Landing() {
     const suchZiel = user ? '/' : '/login';
     const bietZiel = user ? '/create-ad' : '/login';
     const elternZiel = '/eltern-leitfaden';
+    // Das SV-Panel ist nur für bestätigte SV-Admins sichtbar; alle anderen bleiben beim sicheren Ziel.
+    const appTourZiel = (index: number) => {
+        if (!user) return '/login';
+        if (index === 0) return ziel;
+        if (index === 1) return suchZiel;
+        if (index === 2) return '/profile';
+        return isAdmin ? '/sv-panel' : ziel;
+    };
     const stats = liveStats
         ? [
             ...(liveStats.active_ads !== null ? [{ value: liveStats.active_ads, label: 'Aktive Anzeigen', tone: 'bg-pastel-yellow text-pastel-yellow-foreground' }] : []),
@@ -238,60 +207,6 @@ export default function Landing() {
                 </div>
             </section>
 
-            {/* Empfehlung + Fächer + Kennzahlen */}
-            <section aria-label="Empfehlung, Fächer und Kennzahlen" className="bg-card">
-                <div className="mx-auto max-w-site px-4 py-14 sm:px-6 sm:py-20">
-                    <Reveal>
-                        <div className="flex flex-col items-start gap-3 rounded-panel bg-pastel-blue p-4 text-pastel-blue-foreground sm:flex-row sm:items-center sm:gap-4 sm:p-5">
-                            <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white/80 px-3.5 py-2 text-xs font-semibold">
-                                <Users size={15} aria-hidden /> Empfehlung
-                            </span>
-                            <p className="min-w-0 flex-1 text-sm leading-relaxed">
-                                <strong className="font-bold">Ein Konto pro Kind:</strong> In den Klassen 5 und 6 betreuen viele Eltern mit, ältere nutzen die Börse selbstständig.
-                            </p>
-                            <Link to="/eltern-leitfaden" className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold transition-colors hover:bg-white/60">
-                                Eltern-Leitfaden <ArrowRight size={16} aria-hidden />
-                            </Link>
-                        </div>
-                    </Reveal>
-
-                    <Reveal delay={70}>
-                        <div className="mt-8 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                            <div className="min-w-0">
-                                <p className="text-[13px] font-semibold text-muted-foreground">Fächer</p>
-                                <div className="mt-3 flex flex-wrap gap-2" aria-label="Fächerübersicht">
-                                    {FAECHER.map((f) => (
-                                        <span key={f} className="inline-flex items-center rounded-full border border-border/80 bg-background px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-                                            {f}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {stats.length > 0 ? (
-                                <dl
-                                    className={cn('grid shrink-0 gap-3', stats.length > 1 ? 'grid-cols-2' : 'grid-cols-1')}
-                                    aria-label="Aktuelle Kennzahlen der Nachhilfebörse"
-                                >
-                                    {stats.map((s) => (
-                                        <div key={s.label} className={`rounded-card px-5 py-4 ${s.tone}`}>
-                                            <dd className="text-2xl font-extrabold tabular-nums sm:text-3xl">
-                                                {s.value.toLocaleString('de-DE')}
-                                            </dd>
-                                            <dt className="mt-1 text-xs font-semibold">{s.label}</dt>
-                                        </div>
-                                    ))}
-                                </dl>
-                            ) : (
-                                <p className="shrink-0 rounded-card border border-border/80 bg-background px-5 py-4 text-[13px] font-medium leading-relaxed text-muted-foreground">
-                                    Die Zahlen werden gerade nicht geladen.
-                                </p>
-                            )}
-                        </div>
-                    </Reveal>
-                </div>
-            </section>
-
             {/* WEGE */}
             <section id="wege" className="scroll-mt-28 bg-background">
                 <div className="mx-auto max-w-site px-4 py-14 sm:px-6 sm:py-24">
@@ -335,6 +250,69 @@ export default function Landing() {
                             </Reveal>
                         ))}
                     </div>
+                </div>
+            </section>
+
+            {/* Empfehlung + Fächer + Kennzahlen */}
+            <section aria-label="Empfehlung, Fächer und Kennzahlen" className="bg-card">
+                <div className="mx-auto max-w-site px-4 py-14 sm:px-6 sm:py-20">
+                    <Reveal>
+                        <div className="flex flex-col items-start gap-3 rounded-panel bg-pastel-blue p-4 text-pastel-blue-foreground sm:flex-row sm:items-center sm:gap-4 sm:p-5">
+                            <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white/80 px-3.5 py-2 text-xs font-semibold">
+                                <Users size={15} aria-hidden /> Empfehlung
+                            </span>
+                            <p className="min-w-0 flex-1 text-sm leading-relaxed">
+                                <strong className="font-bold">Ein Konto pro Kind:</strong> In den Klassen 5 und 6 betreuen viele Eltern mit, ältere nutzen die Börse selbstständig.
+                            </p>
+                            <Link to="/eltern-leitfaden" className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold transition-colors hover:bg-white/60">
+                                Eltern-Leitfaden <ArrowRight size={16} aria-hidden />
+                            </Link>
+                        </div>
+                    </Reveal>
+
+                    <Reveal delay={70}>
+                        <div className="mt-8 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                            <div className="min-w-0">
+                                <p className="text-[13px] font-semibold text-muted-foreground">Fächer</p>
+                                <div className="mt-3 flex flex-wrap gap-2" aria-label="Fächerübersicht">
+                                    {POPULAR_SUBJECTS.map((s) => (
+                                        <SubjectChip key={s} subject={s} />
+                                    ))}
+                                </div>
+                                <details className="group mt-3">
+                                    <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-1.5 rounded-full border border-border/80 bg-background px-3.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground [&::-webkit-details-marker]:hidden">
+                                        Alle 25 Fächer anzeigen
+                                        <ChevronDown size={15} aria-hidden className="transition-transform duration-150 group-open:rotate-180" />
+                                    </summary>
+                                    <div className="mt-3 flex flex-wrap gap-2" aria-label="Weitere Fächer">
+                                        {MORE_SUBJECTS.map((s) => (
+                                            <SubjectChip key={s} subject={s} />
+                                        ))}
+                                    </div>
+                                </details>
+                            </div>
+
+                            {stats.length > 0 ? (
+                                <dl
+                                    className={cn('grid shrink-0 gap-3', stats.length > 1 ? 'grid-cols-2' : 'grid-cols-1')}
+                                    aria-label="Aktuelle Kennzahlen der Nachhilfebörse"
+                                >
+                                    {stats.map((s) => (
+                                        <div key={s.label} className={`rounded-card px-5 py-4 ${s.tone}`}>
+                                            <dd className="text-2xl font-extrabold tabular-nums sm:text-3xl">
+                                                {s.value.toLocaleString('de-DE')}
+                                            </dd>
+                                            <dt className="mt-1 text-xs font-semibold">{s.label}</dt>
+                                        </div>
+                                    ))}
+                                </dl>
+                            ) : (
+                                <p className="shrink-0 rounded-card border border-border/80 bg-background px-5 py-4 text-[13px] font-medium leading-relaxed text-muted-foreground">
+                                    Die Zahlen werden gerade nicht geladen.
+                                </p>
+                            )}
+                        </div>
+                    </Reveal>
                 </div>
             </section>
 
@@ -400,7 +378,7 @@ export default function Landing() {
                                         <h3 className="mt-4 text-2xl font-extrabold tracking-tight sm:text-3xl">{row.title}</h3>
                                         <p className="mt-3 max-w-md text-base leading-relaxed text-muted-foreground">{row.text}</p>
                                         <Link
-                                            to={!user ? '/login' : i === 0 ? ziel : i === 1 ? suchZiel : i === 2 ? '/profile' : ziel}
+                                            to={appTourZiel(i)}
                                             className="mt-5 inline-flex min-h-11 items-center gap-1.5 rounded-full text-sm font-semibold text-foreground transition-colors hover:text-muted-foreground"
                                         >
                                             {user ? 'In der App ansehen' : 'Kostenlos registrieren'} <ArrowRight size={16} aria-hidden />
@@ -427,48 +405,6 @@ export default function Landing() {
                             </Link>
                         </div>
                     </Reveal>
-                </div>
-            </section>
-
-            {/* FUNKTIONEN — Bento */}
-            <section id="plan" className="scroll-mt-28 bg-background text-foreground">
-                <div className="mx-auto max-w-site px-4 py-14 sm:px-6 sm:py-24">
-                    <Reveal>
-                        <div className="max-w-2xl">
-                            <h2 className="text-[2rem] font-extrabold leading-[1.06] tracking-[-0.035em] sm:text-[2.75rem]">Sechs Funktionen für Suchen, Bieten, Chatten.</h2>
-                        </div>
-                    </Reveal>
-
-                    <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-12">
-                        {[
-                            { icon: Filter, t: 'Entdecken & Filtern', d: 'Filter nach Fach, Klasse und Preis.', crop: feedShot, cropClass: 'right-0 bottom-0 h-[45%] w-[30%]' },
-                            { icon: Bookmark, t: 'Merkliste', d: 'Anzeigen speichern und später wiederfinden.', crop: null, cropClass: '' },
-                            { icon: MessageSquare, t: 'Private Kontaktdaten', d: 'Telefonnummer und Moodle-Name sehen andere erst, wenn du eine Anfrage annimmst.', crop: null, cropClass: '' },
-                            { icon: Shield, t: 'Verifizierte Nutzer', d: 'Verifizierte Konten durch persönliche Prüfung im SV-Raum, dazu Moderation und Meldefunktion.', crop: null, cropClass: '' },
-                            { icon: ImageIcon, t: 'Profil', d: 'Profilbild und ausführliche Beschreibung. Beschreibe deine Fächer und deine Erfahrung.', crop: null, cropClass: '' },
-                            { icon: Smartphone, t: 'Als App installierbar', d: 'Zum Startbildschirm hinzufügen und wie eine App öffnen, auf iOS und Android.', crop: createAdShot, cropClass: 'right-0 bottom-0 h-[60%] w-[44%]' },
-                        ].map((f, i) => {
-                            const span = i === 0 ? 'sm:col-span-2 lg:col-span-7' : i === 1 ? 'lg:col-span-5' : i < 5 ? 'lg:col-span-4' : 'sm:col-span-2 lg:col-span-12';
-                            return (
-                                <Reveal key={f.t} delay={Math.min(i * 50, 200)} className={cn('min-h-[190px]', span)}>
-                                    <article className={cn('relative flex h-full min-h-[190px] flex-col overflow-hidden rounded-card p-6 shadow-soft', FEATURE_TONES[i])}>
-                                        <span className="grid size-12 shrink-0 place-items-center rounded-full bg-white/85">
-                                            <f.icon size={22} aria-hidden />
-                                        </span>
-                                        <div className="relative z-10 mt-5 max-w-[27rem]">
-                                            <h3 className="text-lg font-extrabold tracking-tight">{f.t}</h3>
-                                            <p className="mt-2 text-sm leading-relaxed">{f.d}</p>
-                                        </div>
-                                        {f.crop && (
-                                            <div aria-hidden className={cn('pointer-events-none absolute hidden overflow-hidden rounded-tl-card opacity-80 sm:block', f.cropClass)}>
-                                                <img src={f.crop} alt="" loading="lazy" className="screenshot-fade h-full w-full object-cover object-top" />
-                                            </div>
-                                        )}
-                                    </article>
-                                </Reveal>
-                            );
-                        })}
-                    </div>
                 </div>
             </section>
 
