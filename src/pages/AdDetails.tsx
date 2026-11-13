@@ -4,16 +4,27 @@ import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
 import { Card, CardHeader, CardContent } from '../components/ui/card';
-import { SubjectChip } from '../components/SubjectChip';
+import { SubjectChip, subjectLabelMap, type Subject } from '../components/SubjectChip';
 import { toast } from 'sonner';
-import { ChevronLeft, MapPin, Clock, Heart, Send, CheckCircle, Phone, Mail, CalendarDays, Share2, Copy, Eye, Users, User, Shuffle, Flag, ShieldAlert, Lock } from 'lucide-react';
+import { ChevronLeft, MapPin, Clock, Heart, Send, CheckCircle, Phone, Mail, CalendarDays, Share2, Copy, Eye, Users, User, Shuffle, Flag, ShieldAlert, Lock, Pencil, Pause, Play, Trash2, GraduationCap } from 'lucide-react';
 import ReportWizard from '../components/ReportWizard';
 import ShareDialog from '../components/ShareDialog';
 import { AvailabilityCalendar, emptyAvailability, countMatches, type Availability } from '../components/AvailabilityCalendar';
 import { sanitizeHtml } from '../lib/sanitize';
-import { formatAdPrice, formatHourlyFromDetails } from '../lib/utils';
+import { formatGradeLabel, formatGradeRange } from '../lib/matching';
+import { cn, formatAdPrice, formatHourlyFromDetails } from '../lib/utils';
 import { VerifiedPill } from '../components/ui/VerifiedPill';
 import { CustomContactsList, publicCustomContacts } from '../components/CustomContacts';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '../components/ui/alert-dialog';
 
 export default function AdDetails() {
     const { id } = useParams();
@@ -34,6 +45,9 @@ export default function AdDetails() {
     // Report & Share States
     const [isReportOpen, setIsReportOpen] = useState(false);
     const [isShareOpen, setIsShareOpen] = useState(false);
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+    const [activePending, setActivePending] = useState(false);
     const trackedViewForRef = useRef<string | null>(null);
 
     async function fetchAdAndStatus() {
@@ -166,6 +180,44 @@ export default function AdDetails() {
         : 'none';
     const canRequest = !isOwn && status === 'none';
 
+    const generatedHeading = `${ad.subjects?.[0] || 'Nachhilfe'} - ${profile?.display_name || 'Nutzer'}`;
+    const ownTitle = typeof ad.title === 'string' ? ad.title.trim() : '';
+    const heading = ownTitle || generatedHeading;
+    const gradeRange = formatGradeRange(ad.grade_levels);
+    const subjectNames = (ad.subjects || []).map((subject: Subject) => subjectLabelMap[subject] ?? subject);
+
+    const openEditor = () => navigate('/create-ad', { state: { editAd: ad } });
+
+    const handleToggleActive = async () => {
+        if (!ad) return;
+        const nextActive = !ad.is_active;
+        setActivePending(true);
+        const { error } = await api.ads.update(ad.id, { is_active: nextActive });
+        setActivePending(false);
+        if (error) {
+            toast.error(nextActive ? 'Anzeige konnte nicht aktiviert werden.' : 'Anzeige konnte nicht pausiert werden.');
+            return;
+        }
+        setAd((previous: Record<string, unknown> | null) => (previous ? { ...previous, is_active: nextActive } : previous));
+        toast.success(nextActive ? 'Anzeige aktiviert.' : 'Anzeige pausiert.');
+    };
+
+    const handleDelete = async () => {
+        if (!ad) return;
+        setDeleting(true);
+        const { error } = await api.ads.delete(ad.id);
+        if (error) {
+            setDeleting(false);
+            setDeleteOpen(false);
+            toast.error('Anzeige konnte nicht gelöscht werden. Bitte versuche es erneut.');
+            return;
+        }
+        setDeleting(false);
+        setDeleteOpen(false);
+        toast.success('Anzeige gelöscht.');
+        navigate('/');
+    };
+
     return (
         <div className="mx-auto w-full max-w-3xl space-y-6 p-4 pb-32 sm:p-6">
             <div className="flex items-center justify-between gap-2">
@@ -173,9 +225,11 @@ export default function AdDetails() {
                     <ChevronLeft size={20} aria-hidden /> Zurück
                 </Button>
                 <div className="flex items-center gap-1">
-                    <Button variant="ghost" onClick={() => navigate('/create-ad', { state: { duplicateAd: ad } })} className="h-11 gap-1 rounded-lg px-3 text-xs font-semibold text-muted-foreground">
-                        <Copy size={16} aria-hidden /> <span className="hidden sm:inline">Duplizieren</span><span className="sr-only sm:hidden">Duplizieren</span>
-                    </Button>
+                    {isOwn && (
+                        <Button variant="ghost" onClick={() => navigate('/create-ad', { state: { duplicateAd: ad } })} className="h-11 gap-1 rounded-lg px-3 text-xs font-semibold text-muted-foreground">
+                            <Copy size={16} aria-hidden /> <span className="hidden sm:inline">Duplizieren</span><span className="sr-only sm:hidden">Duplizieren</span>
+                        </Button>
+                    )}
                     <Button variant="ghost" size="icon" onClick={() => setIsShareOpen(true)} className="size-11 rounded-lg text-muted-foreground" aria-label="Anzeige teilen">
                         <Share2 size={20} aria-hidden />
                     </Button>
@@ -187,6 +241,21 @@ export default function AdDetails() {
                 </div>
             </div>
 
+            {isOwn && ad.is_active === false && (
+                <div role="status" className="flex flex-col gap-3 rounded-card border border-border bg-pastel-yellow p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-start gap-2.5">
+                        <Pause size={18} className="mt-0.5 shrink-0 text-pastel-yellow-foreground" aria-hidden />
+                        <div>
+                            <p className="text-[15px] font-semibold text-pastel-yellow-foreground">Deine Anzeige ist pausiert.</p>
+                            <p className="mt-0.5 text-[13px] text-pastel-yellow-foreground">Andere Nutzer sehen sie gerade nicht.</p>
+                        </div>
+                    </div>
+                    <Button variant="outline" onClick={handleToggleActive} isLoading={activePending} className="h-11 shrink-0 rounded-lg px-4 text-[13px] font-semibold">
+                        <Play size={15} aria-hidden /> Aktivieren
+                    </Button>
+                </div>
+            )}
+
             <div className="grid gap-6">
                 {/* Header Card */}
                 <Card className="border-border bg-card">
@@ -194,12 +263,16 @@ export default function AdDetails() {
                         <div className="flex justify-between items-start gap-3">
                             <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2 mb-2">
-                                    <h1 className="break-anywhere text-xl font-semibold capitalize text-foreground sm:text-2xl">{ad.subjects?.[0] || 'Nachhilfe'} - {profile?.display_name || 'Nutzer'}</h1>
+                                    <h1 className={cn('break-anywhere text-xl font-semibold text-foreground sm:text-2xl', !ownTitle && 'capitalize')}>{heading}</h1>
                                     {profile?.is_verified && (
                                         <VerifiedPill className="shrink-0" />
                                     )}
                                 </div>
-                                <p className="text-muted-foreground text-lg">{ad.type === 'offer' ? 'Biete Nachhilfe' : 'Suche Nachhilfe'}</p>
+                                <p className="text-[15px] leading-relaxed text-muted-foreground">
+                                    {ad.type === 'offer' ? 'Biete Nachhilfe' : 'Suche Nachhilfe'}
+                                    {subjectNames.length > 0 && <> · {subjectNames.join(', ')}</>}
+                                    {profile?.display_name && <> · von {profile.display_name}</>}
+                                </p>
                                 {ad.type === 'search' && (
                                     <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                                         <Lock size={12} className="shrink-0" /> Privates Gesuch – sichtbar nur für passende Anbieter und das SV-Team.
@@ -217,27 +290,32 @@ export default function AdDetails() {
                     <CardContent className="p-6 space-y-6">
                         {/* Meta Tags */}
                         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                            {gradeRange && (
+                                <span className="flex items-center gap-1 rounded-lg bg-pastel-mint px-2.5 py-1 text-[13px] font-semibold text-pastel-mint-foreground">
+                                    <GraduationCap size={14} aria-hidden /> für {gradeRange}
+                                </span>
+                            )}
                             {ad.locations?.map((loc: string) => (
-                                <span key={loc} className="flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1 text-xs">
+                                <span key={loc} className="flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1 text-[13px]">
                                     <MapPin size={14} aria-hidden /> {loc}
                                 </span>
                             ))}
-                            <span className="flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1 text-xs" title={durationMeta}>
+                            <span className="flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1 text-[13px]" title={durationMeta}>
                                 <Clock size={14} /> {durationMeta}
                             </span>
                             {ad.session_format && ad.session_format !== 'any' && (
-                                <span className="flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1 text-xs" title={ad.session_format === 'group' ? 'Kleingruppe (2–4 Schüler)' : 'Einzelunterricht'}>
+                                <span className="flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1 text-[13px]" title={ad.session_format === 'group' ? 'Kleingruppe (2–4 Schüler)' : 'Einzelunterricht'}>
                                     {ad.session_format === 'group' ? <Users size={14} /> : <User size={14} />}
                                     {ad.session_format === 'group' ? 'Kleingruppe' : 'Einzelunterricht'}
                                 </span>
                             )}
                             {ad.session_format === 'any' && (
-                                <span className="flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1 text-xs" title="Einzel oder Kleingruppe – nach Absprache">
+                                <span className="flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1 text-[13px]" title="Einzel oder Kleingruppe – nach Absprache">
                                     <Shuffle size={14} /> Egal
                                 </span>
                             )}
                             {(ad.view_count ?? 0) > 0 && (
-                                <span className="flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1 text-xs" title="So oft wurde diese Anzeige aufgerufen">
+                                <span className="flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1 text-[13px]" title="So oft wurde diese Anzeige aufgerufen">
                                     <Eye size={14} /> {ad.view_count} {ad.view_count === 1 ? 'Aufruf' : 'Aufrufe'}
                                 </span>
                             )}
@@ -281,13 +359,28 @@ export default function AdDetails() {
                             </div>
                             <div className="min-w-0">
                                 <div className="truncate text-lg font-semibold text-foreground">{profile?.display_name || 'Unbekannt'}</div>
-                                <div className="text-sm text-muted-foreground">Klasse {profile?.grade_level || '?'}</div>
+                                <div className="text-sm text-muted-foreground">
+                                    Anbieter:in{profile?.grade_level ? ` · ${formatGradeLabel(profile.grade_level)}` : ''}
+                                </div>
                             </div>
                         </Button>
 
                         {isOwn ? (
-                            <div className="rounded-xl bg-muted p-4 text-center text-sm text-muted-foreground">
-                                Das ist deine eigene Anzeige.
+                            <div className="space-y-3">
+                                <div className="rounded-xl bg-muted p-4 text-center text-[13px] text-muted-foreground">
+                                    Das ist deine eigene Anzeige. Du kannst sie jederzeit verwalten.
+                                </div>
+                                <div className="grid gap-2 sm:grid-cols-3">
+                                    <Button variant="outline" onClick={openEditor} className="h-11 gap-1.5 rounded-lg px-4 text-[13px] font-semibold">
+                                        <Pencil size={15} aria-hidden /> Bearbeiten
+                                    </Button>
+                                    <Button variant="outline" onClick={handleToggleActive} isLoading={activePending} className="h-11 gap-1.5 rounded-lg px-4 text-[13px] font-semibold">
+                                        {ad.is_active ? <><Pause size={15} aria-hidden /> Pausieren</> : <><Play size={15} aria-hidden /> Aktivieren</>}
+                                    </Button>
+                                    <Button variant="outline" onClick={() => setDeleteOpen(true)} className="h-11 gap-1.5 rounded-lg border-destructive/25 px-4 text-[13px] font-semibold text-destructive hover:bg-destructive/10">
+                                        <Trash2 size={15} aria-hidden /> Löschen
+                                    </Button>
+                                </div>
                             </div>
                         ) : (
                             <div>
@@ -412,6 +505,25 @@ export default function AdDetails() {
                         reportedUserId={ad.user_id} 
                     />
                 </div>
+            )}
+
+            {isOwn && (
+                <AlertDialog open={deleteOpen} onOpenChange={(open) => { if (!deleting) setDeleteOpen(open); }}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Anzeige wirklich löschen?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Die Anzeige wird dauerhaft entfernt. Diese Aktion kann nicht rückgängig gemacht werden.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                            <AlertDialogAction variant="destructive" isLoading={deleting} onClick={() => { void handleDelete(); }}>
+                                Löschen
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             )}
 
             {/* Share Dialog */}

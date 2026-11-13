@@ -78,6 +78,71 @@ export function formatGradeLabel(g: string | number | null | undefined): string 
     return `Klasse ${str}`;
 }
 
+const UPPER_GRADE_ORDER = ['EF', 'Q1', 'Q2'];
+
+interface RankedGrade {
+    label: string;
+    rank: number;
+}
+
+/** Fasst aufeinanderfolgende Stufen zu „Start–Ende“ zusammen, sonst Komma-Liste. */
+function formatGradeRun(grades: RankedGrade[]): string {
+    const sorted = [...grades].sort((a, b) => a.rank - b.rank);
+    const parts: string[] = [];
+    let start = sorted[0];
+    let previous = sorted[0];
+
+    for (let i = 1; i <= sorted.length; i++) {
+        const current = sorted[i];
+        if (current && current.rank === previous.rank + 1) {
+            previous = current;
+            continue;
+        }
+        parts.push(start.label === previous.label ? start.label : `${start.label}–${previous.label}`);
+        if (current) {
+            start = current;
+            previous = current;
+        }
+    }
+
+    return parts.join(', ');
+}
+
+/**
+ * Formatiert die Ziel-Klassenstufen einer Anzeige kompakt,
+ * z. B. „Klasse 5–7“ oder „Klasse 5–6, Stufe EF–Q1“.
+ */
+export function formatGradeRange(grades: Array<string | number> | null | undefined): string {
+    if (!grades || grades.length === 0) return '';
+
+    const lower: RankedGrade[] = [];
+    const upper: RankedGrade[] = [];
+    const seen = new Set<string>();
+
+    grades.forEach((grade) => {
+        if (grade === null || grade === undefined) return;
+        const value = String(grade).trim().toUpperCase();
+        if (!value || seen.has(value)) return;
+        seen.add(value);
+
+        const upperIndex = UPPER_GRADE_ORDER.indexOf(value);
+        if (upperIndex >= 0) {
+            upper.push({ label: value, rank: upperIndex });
+            return;
+        }
+
+        const numeric = Number.parseInt(value, 10);
+        if (!Number.isNaN(numeric)) {
+            lower.push({ label: String(numeric), rank: numeric });
+        }
+    });
+
+    const groups: string[] = [];
+    if (lower.length > 0) groups.push(`Klasse ${formatGradeRun(lower)}`);
+    if (upper.length > 0) groups.push(`Stufe ${formatGradeRun(upper)}`);
+    return groups.join(', ');
+}
+
 // ── Fach-Normalisierung & Aliase ─────────────────────────────────
 
 const SUBJECT_ALIASES: Record<string, string> = {

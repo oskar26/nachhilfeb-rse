@@ -64,10 +64,65 @@ const INITIAL_FORM = {
     new_image_url: ''
 };
 
+// Gemeinsame Abbildung für „Duplizieren“ und „Bearbeiten“: eine Quelle für die
+// Formularfelder, damit beide Einstiege dieselben Daten sehen.
+interface EditableAd {
+    id?: string;
+    type?: string | null;
+    title?: string | null;
+    short_description?: string | null;
+    session_format?: string | null;
+    subjects?: Subject[];
+    grade_levels?: string[];
+    locations?: string[];
+    custom_location?: string | null;
+    duration_minutes?: number[];
+    price_details?: {
+        mode?: PriceMode;
+        value?: string | number;
+        unit?: string;
+    } | null;
+    long_description?: string | null;
+    image_urls?: string[];
+    is_active?: boolean;
+}
+
+function adToFormData(source: EditableAd | null | undefined): typeof INITIAL_FORM {
+    const rawShort: string = source?.short_description || '';
+    const legacyGroup = rawShort.startsWith('[Kleingruppe] ');
+    const cleanShort = legacyGroup ? rawShort.replace(/^\[Kleingruppe\]\s*/, '') : rawShort;
+    const legacyFormat: SessionFormat = source?.session_format === 'single' || source?.session_format === 'group' || source?.session_format === 'any'
+        ? source.session_format
+        : (legacyGroup ? 'group' : 'any');
+
+    return {
+        type: source?.type === 'search' ? 'search' : 'offer',
+        title: source?.title || source?.short_description || '',
+        session_format: legacyFormat,
+        subjects: Array.isArray(source?.subjects) ? source.subjects : [],
+        grade_levels: Array.isArray(source?.grade_levels) ? source.grade_levels : [],
+        locations: Array.isArray(source?.locations) ? source.locations : [],
+        custom_location: typeof source?.custom_location === 'string' ? source.custom_location : '',
+        duration_minutes: Array.isArray(source?.duration_minutes) && source.duration_minutes.length > 0
+            ? source.duration_minutes
+            : [DURATION_EGAL],
+        custom_duration: '',
+        price_mode: (source?.price_details?.mode || 'fixed') as PriceMode,
+        price_value: source?.price_details?.value ?? '',
+        price_unit: source?.price_details?.unit || '45min',
+        short_description: cleanShort,
+        long_description: source?.long_description || '',
+        image_urls: Array.isArray(source?.image_urls) ? source.image_urls : [],
+        new_image_url: ''
+    };
+}
+
 export default function CreateAd() {
     const navigate = useNavigate();
     const location = useLocation();
     const { user } = useAuth();
+    const editAd = location.state?.editAd ?? null;
+    const editingId: string | null = editAd?.id ?? null;
     const [currentStep, setCurrentStep] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [profile, setProfile] = useState<any>(null);
@@ -97,33 +152,10 @@ export default function CreateAd() {
     const effectiveHourly = getEffectiveHourlyRate();
 
     useEffect(() => {
-        if (location.state?.duplicateAd) {
-            const d = location.state.duplicateAd;
-            // Legacy-Daten säubern: Der alte [Kleingruppe]-Prefix im Titel wird ins Format-Feld überführt.
-            const rawShort: string = d.short_description || '';
-            const legacyGroup = rawShort.startsWith('[Kleingruppe] ');
-            const cleanShort = legacyGroup ? rawShort.replace(/^\[Kleingruppe\]\s*/, '') : rawShort;
-            const legacyFormat = d.session_format === 'single' || d.session_format === 'group' || d.session_format === 'any'
-                ? d.session_format
-                : (legacyGroup ? 'group' : 'any');
-            setFormData({
-                type: d.type || 'offer',
-                title: d.short_description || '',
-                session_format: legacyFormat,
-                subjects: d.subjects || [],
-                grade_levels: d.grade_levels || [],
-                locations: d.locations || [],
-                custom_location: '',
-                duration_minutes: d.duration_minutes?.length ? d.duration_minutes : [DURATION_EGAL],
-                custom_duration: '',
-                price_mode: d.price_details?.mode || 'fixed',
-                price_value: d.price_details?.value ?? '',
-                price_unit: d.price_details?.unit || '45min',
-                short_description: cleanShort,
-                long_description: d.long_description || '',
-                image_urls: d.image_urls || [],
-                new_image_url: ''
-            });
+        const template = location.state?.editAd || location.state?.duplicateAd;
+        if (!template) return;
+        setFormData(adToFormData(template));
+        if (location.state?.duplicateAd && !location.state?.editAd) {
             toast.success("Daten aus Vorlage/Duplikat übernommen!");
         }
     }, [location.state]);
@@ -197,9 +229,9 @@ export default function CreateAd() {
     };
     const stepHint = getStepHint();
 
-    // Entwurf aus localStorage wiederherstellen (einmalig; Duplikat-Vorlage hat Vorrang).
+    // Entwurf aus localStorage wiederherstellen (einmalig; Duplikat-/Bearbeiten-Vorlage hat Vorrang).
     useEffect(() => {
-        if (location.state?.duplicateAd) {
+        if (location.state?.duplicateAd || location.state?.editAd) {
             setDraftRestored(true);
             return;
         }
@@ -224,9 +256,10 @@ export default function CreateAd() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Entwurf automatisch speichern (fwg_draft_ad).
+    // Entwurf automatisch speichern (fwg_draft_ad). Beim Bearbeiten nicht:
+    // sonst überschreibt die Änderung den vorhandenen Neu-Anzeige-Entwurf.
     useEffect(() => {
-        if (!draftRestored) return;
+        if (!draftRestored || editingId) return;
         try {
             const savedAt = new Date().toISOString();
             localStorage.setItem(DRAFT_KEY, JSON.stringify({ formData, currentStep, savedAt }));
@@ -234,7 +267,7 @@ export default function CreateAd() {
         } catch {
             // Voller/blockierter Storage darf den Flow nie stoppen.
         }
-    }, [formData, currentStep, draftRestored]);
+    }, [formData, currentStep, draftRestored, editingId]);
 
     const discardDraft = () => {
         try {
@@ -298,8 +331,7 @@ export default function CreateAd() {
         // session_format-Feld und nicht in den sichtbaren Text.
         const cleanShortDescription = formData.short_description.replace(/^\[Kleingruppe\]\s*/, '');
 
-        const { error } = await api.ads.create({
-            user_id: user.id,
+        const payload = {
             type: formData.type,
             session_format: formData.session_format,
             subjects: formData.subjects,
@@ -310,17 +342,33 @@ export default function CreateAd() {
             short_description: cleanShortDescription,
             long_description: formData.long_description,
             image_urls: formData.image_urls,
-            is_active: true,
-            boosted: false,
-            boosted_until: null,
-            promo_code_used: null
-        });
+        };
+
+        const { error } = editingId
+            ? await api.ads.update(editingId, {
+                ...payload,
+                // Pausierte Anzeigen bleiben beim Bearbeiten pausiert.
+                is_active: editAd?.is_active ?? true,
+            })
+            : await api.ads.create({
+                ...payload,
+                user_id: user.id,
+                is_active: true,
+                boosted: false,
+                boosted_until: null,
+                promo_code_used: null,
+            });
 
         setIsSubmitting(false);
 
         if (error) {
             console.error(error);
-            toast.error("Fehler beim Erstellen der Anzeige: " + error.message);
+            toast.error(editingId
+                ? "Fehler beim Aktualisieren der Anzeige: " + error.message
+                : "Fehler beim Erstellen der Anzeige: " + error.message);
+        } else if (editingId) {
+            toast.success("Anzeige erfolgreich aktualisiert!");
+            navigate(`/ad/${editingId}`);
         } else {
             try {
                 localStorage.removeItem(DRAFT_KEY);
@@ -423,19 +471,29 @@ export default function CreateAd() {
         <div className="mx-auto box-border w-full max-w-app min-w-0 space-y-6 overflow-x-clip p-4 pb-32 sm:p-6 sm:pb-36">
             <div className="space-y-2">
                 <div className="flex flex-wrap items-start justify-between gap-3">
-                    <h1 className="min-w-0 text-[28px] font-extrabold leading-tight tracking-[-0.03em] text-foreground">Anzeige erstellen</h1>
-                    <Button variant="unstyled" size="unstyled"
-                        type="button"
-                        onClick={discardDraft}
-                        className="mt-0.5 min-h-11 shrink-0 text-xs font-semibold text-muted-foreground underline underline-offset-4 hover:text-destructive"
-                    >
-                        Entwurf verwerfen
-                    </Button>
+                    <h1 className="min-w-0 text-[28px] font-extrabold leading-tight tracking-[-0.03em] text-foreground">
+                        {editingId ? 'Anzeige bearbeiten' : 'Anzeige erstellen'}
+                    </h1>
+                    {!editingId && (
+                        <Button variant="unstyled" size="unstyled"
+                            type="button"
+                            onClick={discardDraft}
+                            className="mt-0.5 min-h-11 shrink-0 text-xs font-semibold text-muted-foreground underline underline-offset-4 hover:text-destructive"
+                        >
+                            Entwurf verwerfen
+                        </Button>
+                    )}
                 </div>
                 <p className="text-[15px] leading-relaxed text-muted-foreground" aria-live="polite">
-                    Entwurf wird automatisch auf diesem Gerät gespeichert
-                    {draftSavedAt ? ` · Stand ${new Date(draftSavedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr` : ''}
-                    . Er verschwindet nach dem Veröffentlichen.
+                    {editingId ? (
+                        'Deine Änderungen werden direkt an der Anzeige gespeichert. Ein vorhandener Entwurf für eine neue Anzeige bleibt unberührt.'
+                    ) : (
+                        <>
+                            Entwurf wird automatisch auf diesem Gerät gespeichert
+                            {draftSavedAt ? ` · Stand ${new Date(draftSavedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr` : ''}
+                            . Er verschwindet nach dem Veröffentlichen.
+                        </>
+                    )}
                 </p>
             </div>
 
@@ -1071,7 +1129,10 @@ export default function CreateAd() {
 
                     {currentStep === STEPS.length - 1 ? (
                         <Button onClick={handleSubmit} disabled={isSubmitting} isLoading={isSubmitting} className="px-4 font-semibold sm:px-5">
-                            {isSubmitting ? 'Anzeige wird veröffentlicht' : 'Anzeige veröffentlichen'} <CheckCircle size={16} className="ml-1 shrink-0 sm:ml-2" aria-hidden />
+                            {isSubmitting
+                                ? (editingId ? 'Änderungen werden gespeichert' : 'Anzeige wird veröffentlicht')
+                                : (editingId ? 'Änderungen speichern' : 'Anzeige veröffentlichen')}
+                            <CheckCircle size={16} className="ml-1 shrink-0 sm:ml-2" aria-hidden />
                         </Button>
                     ) : (
                         <Button

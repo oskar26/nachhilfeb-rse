@@ -157,7 +157,7 @@ export default function Datenschutz() {
                         Verarbeitungen auf Grundlage berechtigter Interessen (Art. 21 DSGVO).
                     </p>
                     <p>
-                        Profil und Anzeigen kannst du in der App unter „Profil“ bzw. „Meine Anzeigen“ selbst
+                        Profil und Anzeigen kannst du in der App unter „Profil“ bzw. auf der jeweiligen Anzeigenseite selbst
                         verwalten. Die <strong>vollständige Löschung deines Kontos</strong> beantragst du
                         über eine Anfrage in der App oder per E-Mail an{' '}
                         <a href="mailto:info@nachhilfe-sv.de" className="break-anywhere font-semibold text-foreground hover:underline">info@nachhilfe-sv.de</a>{' '}

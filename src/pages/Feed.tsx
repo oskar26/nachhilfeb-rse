@@ -36,6 +36,8 @@ import {
 import { triggerHaptic } from '../lib/haptics';
 import { avatarTone, initials } from '../lib/avatar';
 import { api, apiErrorMessage } from '../lib/api';
+import { formatGradeLabel, formatGradeRange } from '../lib/matching';
+import { useIsMobile } from '../hooks/use-mobile';
 import { VerifiedPill } from '../components/ui/VerifiedPill';
 import {
     createDefaultCoachingDocument,
@@ -133,6 +135,7 @@ async function loadAds(): Promise<Ad[]> {
 export default function Feed() {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const isMobile = useIsMobile();
     const [ads, setAds] = useState<Ad[]>([]);
     const [loading, setLoading] = useState(true);
     const [fetchError, setFetchError] = useState<unknown>(null);
@@ -169,7 +172,7 @@ export default function Feed() {
             .catch(() => { /* Fallback-Liste bleibt */ });
     }, []);
 
-    // Gemerkte Suche: Server als Quelle der Wahrheit, localStorage als Offline-Fallback (B4)
+    // Gespeicherte Suche: Server als Quelle der Wahrheit, localStorage als Offline-Fallback (B4)
     useEffect(() => {
         let cancelled = false;
         api.savedSearches.list()
@@ -382,7 +385,7 @@ export default function Feed() {
     return (
         <div className="mx-auto w-full min-w-0 max-w-app space-y-6 overflow-x-clip p-4 pb-24 sm:p-6">
             {/* Eingeklappte News-Sektion auf der Startseite */}
-            <CollapsedNewsWidget />
+            <CollapsedNewsWidget compact={isMobile} />
             <div className="relative mb-6 flex min-w-0 flex-col gap-4">
                 <div className="flex flex-wrap items-center justify-between gap-2.5">
                     <div className="min-w-0">
@@ -393,7 +396,7 @@ export default function Feed() {
                             <Button variant="unstyled" size="unstyled" type="button"
                                 onClick={() => { setFilterByTime(!filterByTime); triggerHaptic('selection'); }}
                                 aria-pressed={filterByTime}
-                                className={`flex h-10 min-h-10 shrink-0 items-center justify-center gap-1.5 rounded-full border px-4 text-[13px] font-semibold transition-colors ${
+                                className={`hidden h-11 min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-full border px-4 text-[13px] font-semibold transition-colors md:inline-flex ${
                                     filterByTime
                                         ? 'border-primary bg-primary text-primary-foreground'
                                         : 'border-border/70 bg-card text-muted-foreground hover:text-foreground'
@@ -407,7 +410,7 @@ export default function Feed() {
                         <Button variant="unstyled" size="unstyled" type="button"
                             onClick={() => { setFilterOnlyCoaches(!filterOnlyCoaches); triggerHaptic('selection'); }}
                             aria-pressed={filterOnlyCoaches}
-                            className={`flex h-10 min-h-10 shrink-0 items-center justify-center gap-1.5 rounded-full border px-4 text-[13px] font-semibold transition-colors ${
+                            className={`hidden h-11 min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-full border px-4 text-[13px] font-semibold transition-colors md:inline-flex ${
                                 filterOnlyCoaches
                                     ? 'border-primary bg-primary text-primary-foreground'
                                     : 'border-border/70 bg-card text-muted-foreground hover:text-foreground'
@@ -417,7 +420,7 @@ export default function Feed() {
                             <Award size={14} className="shrink-0" aria-hidden />
                             <span>Schüler-Coaches</span>
                         </Button>
-                        <Button variant="outline" size="sm" className="h-10 shrink-0 gap-1.5 rounded-full border-border/70 bg-card px-4 text-[13px] font-semibold" onClick={() => setShowFilters(!showFilters)} aria-expanded={showFilters} aria-haspopup="dialog">
+                        <Button variant="outline" size="sm" className="h-11 min-h-11 shrink-0 gap-1.5 rounded-full border-border/70 bg-card px-4 text-[13px] font-semibold" onClick={() => setShowFilters(!showFilters)} aria-expanded={showFilters} aria-haspopup="dialog">
                             <Filter size={15} aria-hidden /> Filter
                             {activeFilterCount > 0 && (
                                 <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-xs font-bold leading-none text-primary-foreground tabular-nums">{activeFilterCount}</span>
@@ -427,11 +430,12 @@ export default function Feed() {
                             variant="ghost"
                             size="sm"
                             onClick={savedSearch ? discardSavedSearch : saveCurrentSearch}
-                            className="h-10 shrink-0 gap-1.5 rounded-full border border-border/70 bg-muted px-4 text-[13px] font-semibold text-foreground hover:bg-muted"
+                            className="h-11 min-h-11 shrink-0 gap-1.5 rounded-full border border-border/70 bg-muted px-4 text-[13px] font-semibold text-foreground hover:bg-muted"
                             title={savedSearch ? 'Gespeicherte Suche entfernen' : 'Aktuelle Filter speichern (ersetzt die bisherige Suche)'}
+                            aria-label={savedSearch ? 'Gespeicherte Suche entfernen' : 'Aktuelle Suche speichern'}
                             aria-pressed={!!savedSearch}
                         >
-                            {savedSearch ? <><Bookmark size={15} className="fill-current" aria-hidden /> Gemerkt</> : <><Bookmark size={15} aria-hidden /> Merken</>}
+                            {savedSearch ? <><Bookmark size={15} className="fill-current" aria-hidden /> Suche gespeichert</> : <><Bookmark size={15} aria-hidden /> Suche speichern</>}
                         </Button>
                     </div>
                 </div>
@@ -451,10 +455,11 @@ export default function Feed() {
                 {/* Quick Subject Filter Chips */}
                 <div className="no-scrollbar -mx-4 flex min-w-0 items-center gap-2 overflow-x-auto px-4 pb-1 text-xs sm:mx-0 sm:flex-wrap sm:px-0">
                     <span className="mr-0.5 shrink-0 text-xs font-semibold text-muted-foreground">Beliebt:</span>
-                    {popularSubjects.map((subj) => (
+                    {popularSubjects.map((subj, index) => (
                         <SubjectChip
                             key={subj}
                             subject={subj}
+                            className={index >= 3 ? 'hidden sm:inline-flex' : undefined}
                             selected={filterSubject === subj}
                             onClick={() => {
                                 setFilterSubject(filterSubject === subj ? null : subj);
@@ -463,6 +468,14 @@ export default function Feed() {
                             }}
                         />
                     ))}
+                    {popularSubjects.length > 3 && (
+                        <Button variant="unstyled" size="unstyled" type="button"
+                            onClick={() => setShowFilters(true)}
+                            className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full bg-muted px-3 text-[13px] font-semibold text-foreground sm:hidden"
+                        >
+                            Alle <ChevronDown size={12} aria-hidden />
+                        </Button>
+                    )}
                     {filterSubject && (
                         <Button variant="unstyled" size="unstyled" type="button"
                             onClick={() => setFilterSubject(null)}
@@ -500,7 +513,7 @@ export default function Feed() {
                         <NativeSelect
                             value={sortKey}
                             onChange={e => { if (isValidSortKey(e.target.value)) { setSortKey(e.target.value); triggerHaptic('selection'); } }}
-                            className="h-10 max-w-[12rem] cursor-pointer truncate rounded-full border-transparent bg-muted px-4 text-[13px] font-semibold text-foreground"
+                            className="h-11 max-w-[12rem] cursor-pointer truncate rounded-full border-transparent bg-muted px-4 text-[13px] font-semibold text-foreground"
                             aria-label="Anzeigen sortieren"
                         >
                             {SORT_OPTIONS.map(o => (
@@ -517,7 +530,7 @@ export default function Feed() {
                         className="flex max-h-[88dvh] flex-col gap-0 overflow-hidden rounded-t-dialog border-t border-border bg-card p-0 shadow-overlay md:inset-x-auto md:right-4 md:bottom-4 md:left-auto md:top-auto md:max-h-[75dvh] md:w-[420px] md:rounded-dialog md:border"
                     >
                         <SheetTitle className="sr-only">Filter</SheetTitle>
-                        <SheetDescription className="sr-only">Anzeigen nach Typ, Preis, Klassenstufe und Fach filtern.</SheetDescription>
+                        <SheetDescription className="sr-only">Anzeigen nach Schnellfiltern, Typ, Preis, Klassenstufe und Fach filtern.</SheetDescription>
                         <div className="shrink-0 border-b border-border bg-card px-5 pb-2 pt-3">
                             <div className="mb-1 flex justify-center md:hidden">
                                 <div className="h-1.5 w-10 rounded-md bg-border" aria-hidden />
@@ -534,6 +547,41 @@ export default function Feed() {
                         </div>
                         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
                             <div className="min-w-0 space-y-6 overflow-x-clip p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:p-5 md:pb-5">
+
+                            {/* Schnellfilter: dieselben Schalter wie in der Desktop-Aktionszeile */}
+                            <div>
+                                <Label className="mb-2 block text-[13px] font-semibold text-foreground">Schnellfilter</Label>
+                                <div className="flex flex-wrap gap-2">
+                                    {user && (
+                                        <Button variant="unstyled" size="unstyled" type="button"
+                                            onClick={() => { setFilterByTime(!filterByTime); triggerHaptic('selection'); }}
+                                            aria-pressed={filterByTime}
+                                            className={`inline-flex h-11 min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-full border px-4 text-[13px] font-semibold transition-colors ${
+                                                filterByTime
+                                                    ? 'border-primary bg-primary text-primary-foreground'
+                                                    : 'border-border/70 bg-card text-muted-foreground hover:text-foreground'
+                                            }`}
+                                            title="Passende Zeiten oben anzeigen"
+                                        >
+                                            <CalendarDays size={14} />
+                                            <span>Zeitlich passend</span>
+                                        </Button>
+                                    )}
+                                    <Button variant="unstyled" size="unstyled" type="button"
+                                        onClick={() => { setFilterOnlyCoaches(!filterOnlyCoaches); triggerHaptic('selection'); }}
+                                        aria-pressed={filterOnlyCoaches}
+                                        className={`inline-flex h-11 min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-full border px-4 text-[13px] font-semibold transition-colors ${
+                                            filterOnlyCoaches
+                                                ? 'border-primary bg-primary text-primary-foreground'
+                                                : 'border-border/70 bg-card text-muted-foreground hover:text-foreground'
+                                        }`}
+                                        title="Nur Coaches der Coaching-AG anzeigen"
+                                    >
+                                        <Award size={14} className="shrink-0" aria-hidden />
+                                        <span>Schüler-Coaches</span>
+                                    </Button>
+                                </div>
+                            </div>
 
                             {/* Type & Price */}
                             <div className="grid gap-6 md:grid-cols-2">
@@ -598,7 +646,7 @@ export default function Feed() {
                 <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 overflow-x-clip rounded-card border border-border bg-muted px-4 py-3 dark:bg-muted">
                     <div className="flex min-w-0 items-center gap-2 text-sm">
                         <Bookmark size={15} className="shrink-0 fill-current text-foreground" aria-hidden />
-                        <span className="shrink-0 font-semibold text-foreground">Gemerkte Suche:</span>
+                        <span className="shrink-0 font-semibold text-foreground">Gespeicherte Suche:</span>
                         <span className="truncate text-muted-foreground">
                             {savedSearch.query ? `„${savedSearch.query}“` : 'Alle Anzeigen'}
                             {savedSearch.subject ? ` · ${savedSearch.subject}` : ''}
@@ -620,8 +668,8 @@ export default function Feed() {
                         <Button variant="unstyled" size="unstyled"
                             type="button"
                             onClick={discardSavedSearch}
-                            aria-label="Gemerkte Suche verwerfen"
-                            title="Gemerkte Suche verwerfen"
+                            aria-label="Gespeicherte Suche verwerfen"
+                            title="Gespeicherte Suche verwerfen"
                             className="grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                         >
                             <X size={15} aria-hidden />
@@ -630,8 +678,10 @@ export default function Feed() {
                 </div>
             )}
 
+            {/* Mobile: Anzeigen zuerst, Infos danach. Desktop: Infos bleiben oben. */}
+            <div className="flex flex-col gap-6">
             {/* Infos als kompakte Pill-Reihe; Details bleibt immer erreichbar */}
-            <div className="mb-6">
+            <div className="order-2 md:order-1">
             <div className="flex min-w-0 items-center gap-2">
                 <div className="no-scrollbar flex min-w-0 flex-1 items-center gap-2 overflow-x-auto pb-1">
                     <span className="shrink-0 rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground">Infos</span>
@@ -661,7 +711,7 @@ export default function Feed() {
                     variant="outline"
                     size="sm"
                     aria-expanded={showBanners}
-                    className="h-10 shrink-0 rounded-full bg-card px-4 text-[13px] font-semibold"
+                    className="h-11 shrink-0 rounded-full bg-card px-4 text-[13px] font-semibold"
                     onClick={() => { const next = !showBanners; setShowBanners(next); try { localStorage.setItem('feed_show_banners', String(next)); } catch { /* ignore */ } }}
                 >
                     {showBanners ? (
@@ -788,7 +838,7 @@ export default function Feed() {
                 )}
             </div>
 
-            <div className="grid min-w-0 gap-4">
+            <div className="order-1 grid min-w-0 gap-4 md:order-2">
                 {loading ? (
                     <div className="space-y-4" role="status" aria-label="Anzeigen werden geladen">
                         {[0, 1, 2].map((i) => (
@@ -859,13 +909,22 @@ export default function Feed() {
                     sortedAds.map((ad) => {
                         const matchScore = countMatches(myAvailability, ad.profiles_avail || emptyAvailability());
                         const boosted = istGeboostet(ad);
+                        const gradeRange = formatGradeRange(ad.grade_levels);
+                        const subjectLabels = (ad.subjects || []).map(s => subjectLabelMap[s] ?? s);
+                        const cardFacts = [
+                            subjectLabels.join(', '),
+                            gradeRange,
+                            formatPrice(ad),
+                            ad.profiles?.is_verified ? 'verifiziert' : '',
+                        ].filter(Boolean).join(', ');
+                        const cardLabel = `Anzeige von ${ad.profiles?.display_name || 'Unbekannt'} öffnen${cardFacts ? `: ${cardFacts}` : ''}`;
                         const openAd = () => navigate(`/ad/${ad.id}`);
                         return (
                         <Card
                             key={ad.id}
                             role="link"
                             tabIndex={0}
-                            aria-label={`Anzeige von ${ad.profiles?.display_name || 'Unbekannt'} öffnen`}
+                            aria-label={cardLabel}
                             className={cn(
                                 "w-full min-w-0 cursor-pointer overflow-hidden rounded-card border-border bg-card shadow-soft transition-[transform,box-shadow,border-color] duration-150 hover:-translate-y-1 hover:shadow-card focus-visible:outline-none",
                                 boosted && "border-primary bg-pastel-yellow"
@@ -895,9 +954,15 @@ export default function Feed() {
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                                            <span className="inline-flex items-center gap-1"><GraduationCap size={13} aria-hidden /> Klasse {ad.profiles?.grade_level || '?'}</span>
+                                        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-muted-foreground">
+                                            <span className="inline-flex items-center gap-1">
+                                                <GraduationCap size={13} aria-hidden />
+                                                Anbieter:in{ad.profiles?.grade_level ? ` · ${formatGradeLabel(ad.profiles.grade_level)}` : ''}
+                                            </span>
                                             <span className="rounded-full bg-muted px-2 py-0.5 font-semibold text-foreground">{ad.type === 'search' ? 'Gesuch' : 'Bietet'}</span>
+                                            {gradeRange && (
+                                                <span className="rounded-full bg-muted px-2 py-0.5 font-semibold text-foreground">für {gradeRange}</span>
+                                            )}
                                             {boosted && (
                                                 <span className="inline-flex items-center gap-1 rounded-full bg-white/70 px-2 py-0.5 font-semibold text-primary-soft-foreground"><Sparkles size={12} aria-hidden /> Hervorgehoben</span>
                                             )}
@@ -954,6 +1019,7 @@ export default function Feed() {
                         );
                     })
                 )}
+            </div>
             </div>
 
             {/* Share Dialog */}
