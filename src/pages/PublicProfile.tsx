@@ -19,6 +19,12 @@ import ShareDialog from '../components/ShareDialog';
 import { useAuth } from '../context/AuthContext';
 import { AvailabilityCalendar, emptyAvailability, type Availability } from '../components/AvailabilityCalendar';
 
+// MySQL liefert TINYINT(1) als 0/1; undefined gilt als sichtbar.
+function isVisibleAd(ad: { is_active?: unknown; is_archived?: unknown }) {
+    return ad.is_active !== false && ad.is_active !== 0 && ad.is_active !== '0'
+        && ad.is_archived !== true && ad.is_archived !== 1 && ad.is_archived !== '1';
+}
+
 export default function PublicProfile() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -48,7 +54,7 @@ export default function PublicProfile() {
             const { data: adsData } = await api.ads.list({ user_id: id, all: true });
             if (isCancelled()) return;
             // Nur aktive, nicht archivierte Anzeigen zeigen (all:true liefert sonst auch inaktive).
-            if (adsData) setAds((adsData as any[]).filter((ad) => ad.is_active !== false && ad.is_archived !== true));
+            if (adsData) setAds((adsData as any[]).filter(isVisibleAd));
 
             const { data: reviews } = await api.reviews.list({ target_user_id: id });
             if (isCancelled()) return;

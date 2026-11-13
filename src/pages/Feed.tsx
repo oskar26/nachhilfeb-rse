@@ -471,6 +471,7 @@ export default function Feed() {
                     {popularSubjects.length > 3 && (
                         <Button variant="unstyled" size="unstyled" type="button"
                             onClick={() => setShowFilters(true)}
+                            aria-label="Alle Fächer anzeigen"
                             className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full bg-muted px-3 text-[13px] font-semibold text-foreground sm:hidden"
                         >
                             Alle <ChevronDown size={12} aria-hidden />

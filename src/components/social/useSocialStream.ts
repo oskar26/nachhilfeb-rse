@@ -27,6 +27,11 @@ import {
 
 export type MyProfile = MatchProfile & { id?: string };
 
+// MySQL liefert TINYINT(1) als 0/1; undefined gilt als aktiv.
+function isActiveRecord(value: unknown) {
+    return value !== false && value !== 0 && value !== '0';
+}
+
 interface RatingState {
     open: boolean;
     targetUser: RequestPerson | null;
@@ -103,7 +108,7 @@ export function useSocialStream(userId: string | undefined): SocialStreamApi {
                 const profile = (profRes.data ?? null) as MyProfile | null;
                 const mine = (myAdsRes.data ?? []) as unknown as MatchAd[];
                 const candidates = ((candRes.data ?? []) as unknown as MatchAd[]).filter(
-                    c => c.user_id !== userId && c.is_active !== false
+                    c => c.user_id !== userId && isActiveRecord(c.is_active)
                 );
                 const favRaw = (favRes.data ?? []) as unknown as Array<Record<string, unknown>>;
 

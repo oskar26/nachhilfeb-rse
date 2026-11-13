@@ -5,7 +5,10 @@ export function getDesktopSocialTab(
   search: string,
 ): DesktopSocialTab | null {
   const tab = new URLSearchParams(search).get('tab');
-  if (tab === 'requests' || tab === 'matches' || tab === 'watchlist') return tab;
+  if (tab === 'alle' || tab === 'all') return null;
+  if (tab === 'requests' || tab === 'anfragen') return 'requests';
+  if (tab === 'matches' || tab === 'matching') return 'matches';
+  if (tab === 'watchlist' || tab === 'merkliste' || tab === 'favorites') return 'watchlist';
 
   if (pathname === '/requests') return 'requests';
   if (pathname === '/matches' || pathname === '/matching') return 'matches';

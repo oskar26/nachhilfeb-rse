@@ -14,7 +14,7 @@ import { use, type ComponentProps } from 'react';
 
 function Table(props: ComponentProps<'table'>) {
   return (
-    <div className="docs-table-scroll" tabIndex={0}>
+    <div className="docs-table-scroll" tabIndex={0} role="region" aria-label="Tabelle">
       <table {...props} />
     </div>
   );

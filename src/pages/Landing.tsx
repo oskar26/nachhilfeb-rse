@@ -477,7 +477,7 @@ export default function Landing() {
                                 {[
                                     { icon: GraduationCap, t: 'Pädagogisch begleitet', d: 'Coaches lernen Lernmethoden und Arbeitsorganisation.' },
                                     { icon: Shield, t: 'Offizielles Coach-Abzeichen', d: 'Coaches mit Abzeichen haben die Schulung besucht und sind verifiziert.' },
-                                    { icon: Users, t: 'Gemeinschaft & Fairness', d: 'Kontakt über die App. Richtwert: 12 € pro 45-Minuten-Einheit, individuell anpassbar.' },
+                                    { icon: Users, t: 'Gemeinschaft & Fairness', d: 'Kontakt über die App. Richtwert: 12 € pro Stunde, individuell anpassbar.' },
                                 ].map((c) => (
                                     <div key={c.t} className="rounded-card bg-card p-5 text-foreground shadow-soft">
                                         <span className="grid size-11 place-items-center rounded-full bg-pastel-violet text-pastel-violet-foreground">

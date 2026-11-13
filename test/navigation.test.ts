@@ -16,7 +16,14 @@ describe('getDesktopSocialTab', () => {
 
   it('prefers a valid tab query parameter', () => {
     expect(getDesktopSocialTab('/social', '?tab=matches')).toBe('matches');
+    expect(getDesktopSocialTab('/social', '?tab=merkliste')).toBe('watchlist');
+    expect(getDesktopSocialTab('/requests', '?tab=anfragen')).toBe('requests');
+    expect(getDesktopSocialTab('/requests', '?tab=favorites')).toBe('watchlist');
+  });
+
+  it('leaves all desktop social items inactive for the alle alias', () => {
     expect(getDesktopSocialTab('/social', '?tab=alle')).toBeNull();
-    expect(getDesktopSocialTab('/requests', '?tab=favorites')).toBe('requests');
+    expect(getDesktopSocialTab('/requests', '?tab=alle')).toBeNull();
+    expect(getDesktopSocialTab('/requests', '?tab=all')).toBeNull();
   });
 });

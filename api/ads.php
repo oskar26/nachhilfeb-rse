@@ -604,6 +604,13 @@ if ($method === 'PUT' || $method === 'PATCH') {
         $data['price_details'] = [];
     }
 
+    // JSON false würde von PDO als '' gebunden; TINYINT(1) erwartet 0/1.
+    foreach (['is_active', 'is_archived'] as $booleanField) {
+        if (isset($data[$booleanField])) {
+            $data[$booleanField] = !empty($data[$booleanField]) ? 1 : 0;
+        }
+    }
+
     $updatable = [
         'type', 'session_format', 'custom_location', 'short_description', 'long_description',
         'is_active', 'is_archived'

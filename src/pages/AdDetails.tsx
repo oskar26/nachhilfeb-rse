@@ -180,11 +180,11 @@ export default function AdDetails() {
         : 'none';
     const canRequest = !isOwn && status === 'none';
 
-    const generatedHeading = `${ad.subjects?.[0] || 'Nachhilfe'} - ${profile?.display_name || 'Nutzer'}`;
+    const subjectNames = (ad.subjects || []).map((subject: Subject) => subjectLabelMap[subject] ?? subject);
+    const generatedHeading = `${subjectNames[0] || 'Nachhilfe'} - ${profile?.display_name || 'Nutzer'}`;
     const ownTitle = typeof ad.title === 'string' ? ad.title.trim() : '';
     const heading = ownTitle || generatedHeading;
     const gradeRange = formatGradeRange(ad.grade_levels);
-    const subjectNames = (ad.subjects || []).map((subject: Subject) => subjectLabelMap[subject] ?? subject);
 
     const openEditor = () => navigate('/create-ad', { state: { editAd: ad } });
 
@@ -247,7 +247,7 @@ export default function AdDetails() {
                         <Pause size={18} className="mt-0.5 shrink-0 text-pastel-yellow-foreground" aria-hidden />
                         <div>
                             <p className="text-[15px] font-semibold text-pastel-yellow-foreground">Deine Anzeige ist pausiert.</p>
-                            <p className="mt-0.5 text-[13px] text-pastel-yellow-foreground">Andere Nutzer sehen sie gerade nicht.</p>
+                            <p className="mt-0.5 text-[13px] text-pastel-yellow-foreground">Sie erscheint nicht in Übersicht und Suche. Direkte Links bleiben erreichbar.</p>
                         </div>
                     </div>
                     <Button variant="outline" onClick={handleToggleActive} isLoading={activePending} className="h-11 shrink-0 rounded-lg px-4 text-[13px] font-semibold">
