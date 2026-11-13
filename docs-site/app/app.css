@@ -162,11 +162,11 @@ body {
   --tw-prose-headings: #17181c;
 }
 
-/* ≈80 average characters at 16px with Plus Jakarta Sans. `ch` measures the
-   zero glyph, which is much wider than the average lowercase character.
+/* ≈65–75 characters per line at 16px with Plus Jakarta Sans. `ch` measures
+   the zero glyph, which is much wider than the average lowercase character.
    Tables and code keep the full column width; only running text narrows. */
 .prose :where(p, li, blockquote) {
-  max-width: 52ch;
+  max-width: 45ch;
 }
 
 .dark .prose {
