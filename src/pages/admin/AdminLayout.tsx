@@ -124,7 +124,7 @@ export default function AdminLayout() {
                     </span>
                 </div>
 
-                <nav className="no-scrollbar flex flex-nowrap items-center gap-1 overflow-x-auto px-3 pt-1 pb-2 sm:px-5" aria-label="SV-Admin-Navigation">
+                <nav className="no-scrollbar flex flex-nowrap items-center gap-1 overflow-x-auto px-3 pt-1.5 pb-2 sm:px-5" aria-label="SV-Admin-Navigation">
                     {NAV_ITEMS.map(({ label, value, icon: Icon }) => {
                         const isActive = activeTab === value;
                         const count = value === 'reports' ? openReports : value === 'support' ? openTickets : 0;
