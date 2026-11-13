@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
     ArrowRight,
-    ArrowUpRight,
     BadgeCheck,
     Bookmark,
     Filter,
@@ -83,9 +82,15 @@ const FEATURE_TONES = [
     'bg-pastel-orange text-pastel-orange-foreground',
 ];
 
+function parseCount(value: unknown): number | null {
+    if (value === null || value === undefined || value === '') return null;
+    const n = typeof value === 'number' ? value : Number(value);
+    return Number.isFinite(n) && n >= 0 ? n : null;
+}
+
 export default function Landing() {
     const { user } = useAuth();
-    const [liveStats, setLiveStats] = useState<{ active_ads: number; users: number } | null>(null);
+    const [liveStats, setLiveStats] = useState<{ active_ads: number | null; users: number | null } | null>(null);
 
     /* Privatsphäre-Demo */
     const [showPhone, setShowPhone] = useState(true);
@@ -95,12 +100,13 @@ export default function Landing() {
         // Statistik ist optional (die Landing funktioniert auch ohne Daten);
         // Fehler werden bewusst still ignoriert.
         api.analytics.summary().then(({ data, error }) => {
-            if (!error && data) {
-                setLiveStats({
-                    active_ads: Number((data as any).active_ads) || 0,
-                    users: Number((data as any).users) || 0,
-                });
-            }
+            if (error || !data) return;
+            const summary = data as { active_ads?: unknown; users?: unknown };
+            const active_ads = parseCount(summary.active_ads);
+            const users = parseCount(summary.users);
+            // Ohne verwertbare Zahl keine Statistik rendern (kein 0- oder —-Platzhalter).
+            if (active_ads === null && users === null) return;
+            setLiveStats({ active_ads, users });
         }).catch(() => { /* Statistik ist optional */ });
     }, []);
 
@@ -108,6 +114,12 @@ export default function Landing() {
     const suchZiel = user ? '/' : '/login';
     const bietZiel = user ? '/create-ad' : '/login';
     const elternZiel = '/eltern-leitfaden';
+    const stats = liveStats
+        ? [
+            ...(liveStats.active_ads !== null ? [{ value: liveStats.active_ads, label: 'Aktive Anzeigen', tone: 'bg-pastel-yellow text-pastel-yellow-foreground' }] : []),
+            ...(liveStats.users !== null ? [{ value: liveStats.users, label: 'Nutzer', tone: 'bg-pastel-mint text-pastel-mint-foreground' }] : []),
+        ]
+        : [];
 
     return (
         <main className="min-h-dvh overflow-x-clip bg-background font-sans text-foreground">
@@ -144,12 +156,17 @@ export default function Landing() {
                                 </p>
                                 <div className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row">
                                     <Link to={ziel} className={buttonVariants({ size: 'lg' }) + ' w-full sm:w-auto'}>
-                                        Anzeigen ansehen <ArrowRight aria-hidden />
+                                        {user ? 'Anzeigen ansehen' : 'Kostenlos registrieren'} <ArrowRight aria-hidden />
                                     </Link>
                                     <Link to="/eltern-leitfaden" className={buttonVariants({ variant: 'outline', size: 'lg' }) + ' w-full sm:w-auto'}>
                                         Eltern-Leitfaden
                                     </Link>
                                 </div>
+                                {!user && (
+                                    <p className="mt-3 text-[13px] font-medium leading-relaxed text-muted-foreground">
+                                        Konto erstellen → im SV-Raum verifizieren → loslegen.
+                                    </p>
+                                )}
                                 <ul className="mt-7 flex flex-wrap gap-2" aria-label="Vertrauen auf einen Blick">
                                     {[
                                         { icon: BadgeCheck, label: 'SV-verifiziert', tone: 'bg-pastel-blue text-pastel-blue-foreground' },
@@ -198,7 +215,7 @@ export default function Landing() {
                                     <div className="absolute -left-3 bottom-2 z-30 w-[176px] rounded-card border border-border/80 bg-card p-3.5 shadow-card sm:-left-6 sm:bottom-5 sm:w-[202px]">
                                         <div className="flex items-center justify-between gap-2">
                                             <SubjectChip subject="mathematik" />
-                                            <span className="rounded-full bg-pastel-yellow px-2 py-0.5 text-[10px] font-semibold text-pastel-yellow-foreground">Beispiel</span>
+                                            <span className="rounded-full bg-pastel-yellow px-2 py-0.5 text-xs font-semibold text-pastel-yellow-foreground">Beispiel</span>
                                         </div>
                                         <p className="mt-2.5 text-sm font-bold leading-snug">Analysis-Crash vor der Klausur</p>
                                         <p className="mt-1 text-xs text-muted-foreground">Lena K. · Q1 · SV-Raum</p>
@@ -208,7 +225,7 @@ export default function Landing() {
                                     <div className="absolute -right-2 top-[16%] z-30 w-[160px] rounded-card border border-border/80 bg-card p-3.5 shadow-card sm:-right-5 sm:w-[186px]">
                                         <div className="flex items-center justify-between gap-2">
                                             <SubjectChip subject="physik" />
-                                            <span className="rounded-full bg-pastel-mint px-2 py-0.5 text-[10px] font-semibold text-pastel-mint-foreground">Beispiel</span>
+                                            <span className="rounded-full bg-pastel-mint px-2 py-0.5 text-xs font-semibold text-pastel-mint-foreground">Beispiel</span>
                                         </div>
                                         <p className="mt-2.5 text-sm font-bold leading-snug">Mechanik ohne Panik</p>
                                         <p className="mt-1 text-xs text-muted-foreground">Aylin D. · Q2 · Bibliothek</p>
@@ -233,7 +250,7 @@ export default function Landing() {
                                 <strong className="font-bold">Ein Konto pro Kind:</strong> In den Klassen 5 und 6 betreuen viele Eltern mit, ältere nutzen die Börse selbstständig.
                             </p>
                             <Link to="/eltern-leitfaden" className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold transition-colors hover:bg-white/60">
-                                Eltern-Leitfaden <ArrowUpRight size={16} aria-hidden />
+                                Eltern-Leitfaden <ArrowRight size={16} aria-hidden />
                             </Link>
                         </div>
                     </Reveal>
@@ -251,19 +268,25 @@ export default function Landing() {
                                 </div>
                             </div>
 
-                            <dl className="grid shrink-0 grid-cols-2 gap-3" aria-label="Aktuelle Kennzahlen der Nachhilfebörse">
-                                {[
-                                    { value: liveStats?.active_ads, label: 'Aktive Anzeigen', tone: 'bg-pastel-yellow text-pastel-yellow-foreground' },
-                                    { value: liveStats?.users, label: 'Nutzer', tone: 'bg-pastel-mint text-pastel-mint-foreground' },
-                                ].map((s) => (
-                                    <div key={s.label} className={`rounded-card px-5 py-4 ${s.tone}`}>
-                                        <dd className="text-2xl font-extrabold tabular-nums sm:text-3xl">
-                                            {s.value !== undefined && s.value !== null ? s.value.toLocaleString('de-DE') : '—'}
-                                        </dd>
-                                        <dt className="mt-1 text-xs font-semibold">{s.label}</dt>
-                                    </div>
-                                ))}
-                            </dl>
+                            {stats.length > 0 ? (
+                                <dl
+                                    className={cn('grid shrink-0 gap-3', stats.length > 1 ? 'grid-cols-2' : 'grid-cols-1')}
+                                    aria-label="Aktuelle Kennzahlen der Nachhilfebörse"
+                                >
+                                    {stats.map((s) => (
+                                        <div key={s.label} className={`rounded-card px-5 py-4 ${s.tone}`}>
+                                            <dd className="text-2xl font-extrabold tabular-nums sm:text-3xl">
+                                                {s.value.toLocaleString('de-DE')}
+                                            </dd>
+                                            <dt className="mt-1 text-xs font-semibold">{s.label}</dt>
+                                        </div>
+                                    ))}
+                                </dl>
+                            ) : (
+                                <p className="shrink-0 rounded-card border border-border/80 bg-background px-5 py-4 text-[13px] font-medium leading-relaxed text-muted-foreground">
+                                    Die Zahlen werden gerade nicht geladen.
+                                </p>
+                            )}
                         </div>
                     </Reveal>
                 </div>
@@ -282,7 +305,7 @@ export default function Landing() {
                         {[
                             { icon: Search, title: 'Ich suche Nachhilfe', text: 'Filtere nach Fach, Klasse und Preis. Kontakt über die App, sobald eine Anfrage angenommen ist.', points: ['Filter für Fach und Klasse', 'Kontakt nach Annahme', 'Verifizierte Konten'], cta: 'Anzeigen stöbern', to: suchZiel },
                             { icon: GraduationCap, title: 'Ich biete Nachhilfe', text: 'Lege deinen Preis fest, gib deine Zeiten an und antworte auf Anfragen.', points: ['Eigene Preise und Bedingungen', 'Flexible Termine', 'Bewertungen nach Kontakt'], cta: 'Anzeige erstellen', to: bietZiel },
-                            { icon: Users, title: 'Für Eltern', text: 'Betreuen Sie das Konto gemeinsam mit Ihrem Kind oder lassen Sie es selbstständig nutzen. In den Klassen 5 bis 7 empfehlen wir die gemeinsame Betreuung. So behalten Sie Anzeigen und Anfragen im Blick.', points: ['Ein Konto pro Kind', 'Gemeinsam Anzeigen und Anfragen ansehen', 'Kontakt zur SV bei Fragen'], cta: 'Eltern-Leitfaden', to: '/eltern-leitfaden' },
+                            { icon: Users, title: 'Für Eltern: Begleitung & Einwilligung', text: 'Betreuen Sie das Konto gemeinsam mit Ihrem Kind oder lassen Sie es selbstständig nutzen. In den Klassen 5 bis 7 empfehlen wir die gemeinsame Betreuung. So behalten Sie Anzeigen und Anfragen im Blick.', points: ['Ein Konto pro Kind', 'Gemeinsam Anzeigen und Anfragen ansehen', 'Kontakt zur SV bei Fragen'], cta: 'Eltern-Leitfaden', to: '/eltern-leitfaden' },
                         ].map((w, i) => (
                             <Reveal key={w.title} delay={i * 70} className="h-full">
                                 <article className={cn('flex h-full flex-col rounded-card p-6 shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-1 hover:shadow-card sm:p-7', WAY_TONES[i].card)}>
@@ -291,7 +314,7 @@ export default function Landing() {
                                     </span>
                                     <div className="mt-5 flex min-w-0 flex-1 flex-col">
                                         <h3 className="text-xl font-extrabold tracking-tight">{w.title}</h3>
-                                        <p className="mt-2 text-sm leading-relaxed opacity-90">{w.text}</p>
+                                        <p className="mt-2 text-sm leading-relaxed">{w.text}</p>
                                         <ul id={`wege-punkte-${i}`} className="mt-5 flex flex-wrap gap-2">
                                             {w.points.map((p) => (
                                                 <li key={p} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${WAY_TONES[i].pill}`}>
@@ -306,7 +329,7 @@ export default function Landing() {
                                         aria-label={`${w.cta}: ${w.title}`}
                                         className="mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-foreground shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-card"
                                     >
-                                        {w.cta} <ArrowUpRight size={17} aria-hidden />
+                                        {w.cta} <ArrowRight size={17} aria-hidden />
                                     </Link>
                                 </article>
                             </Reveal>
@@ -329,7 +352,7 @@ export default function Landing() {
                         {[
                             {
                                 title: 'Entdecken & Filtern',
-                                text: 'Filtere nach Fach, Klasse, Ort und Preis. Die Übersicht zeigt dir auf einen Blick, wer zu deiner Klasse passt.',
+                                text: 'Filtere nach Fach, Klasse und Preis. Die Übersicht zeigt dir auf einen Blick, wer zu deiner Klasse passt.',
                                 device: 'laptop' as const,
                                 src: feedShot,
                                 alt: 'Desktop-Übersicht „Aktuelle Anzeigen“ mit Suche und Filtern',
@@ -376,8 +399,11 @@ export default function Landing() {
                                         </span>
                                         <h3 className="mt-4 text-2xl font-extrabold tracking-tight sm:text-3xl">{row.title}</h3>
                                         <p className="mt-3 max-w-md text-base leading-relaxed text-muted-foreground">{row.text}</p>
-                                        <Link to={i === 0 ? ziel : i === 1 ? suchZiel : i === 2 ? '/profile' : ziel} className="mt-5 inline-flex min-h-11 items-center gap-1.5 rounded-full text-sm font-semibold text-foreground transition-colors hover:text-muted-foreground">
-                                            In der App ansehen <ArrowUpRight size={16} aria-hidden />
+                                        <Link
+                                            to={!user ? '/login' : i === 0 ? ziel : i === 1 ? suchZiel : i === 2 ? '/profile' : ziel}
+                                            className="mt-5 inline-flex min-h-11 items-center gap-1.5 rounded-full text-sm font-semibold text-foreground transition-colors hover:text-muted-foreground"
+                                        >
+                                            {user ? 'In der App ansehen' : 'Kostenlos registrieren'} <ArrowRight size={16} aria-hidden />
                                         </Link>
                                     </div>
                                     <div className={cn('rounded-panel p-5 shadow-soft sm:p-8', row.tone)}>
@@ -397,7 +423,7 @@ export default function Landing() {
                                 <p className="text-lg font-extrabold">Börse ansehen</p>
                             </div>
                             <Link to={ziel} className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-7 text-sm font-semibold text-background shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-card">
-                                Börse ansehen <ArrowRight aria-hidden />
+                                {user ? 'Börse ansehen' : 'Kostenlos registrieren'} <ArrowRight aria-hidden />
                             </Link>
                         </div>
                     </Reveal>
@@ -415,7 +441,7 @@ export default function Landing() {
 
                     <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-12">
                         {[
-                            { icon: Filter, t: 'Entdecken & Filtern', d: 'Filter nach Fach, Klasse, Ort und Preis.', crop: feedShot, cropClass: 'right-0 bottom-0 h-[45%] w-[30%]' },
+                            { icon: Filter, t: 'Entdecken & Filtern', d: 'Filter nach Fach, Klasse und Preis.', crop: feedShot, cropClass: 'right-0 bottom-0 h-[45%] w-[30%]' },
                             { icon: Bookmark, t: 'Merkliste', d: 'Anzeigen speichern und später wiederfinden.', crop: null, cropClass: '' },
                             { icon: MessageSquare, t: 'Private Kontaktdaten', d: 'Telefonnummer und Moodle-Name sehen andere erst, wenn du eine Anfrage annimmst.', crop: null, cropClass: '' },
                             { icon: Shield, t: 'Verifizierte Nutzer', d: 'Verifizierte Konten durch persönliche Prüfung im SV-Raum, dazu Moderation und Meldefunktion.', crop: null, cropClass: '' },
@@ -431,7 +457,7 @@ export default function Landing() {
                                         </span>
                                         <div className="relative z-10 mt-5 max-w-[27rem]">
                                             <h3 className="text-lg font-extrabold tracking-tight">{f.t}</h3>
-                                            <p className="mt-2 text-sm leading-relaxed opacity-90">{f.d}</p>
+                                            <p className="mt-2 text-sm leading-relaxed">{f.d}</p>
                                         </div>
                                         {f.crop && (
                                             <div aria-hidden className={cn('pointer-events-none absolute hidden overflow-hidden rounded-tl-card opacity-80 sm:block', f.cropClass)}>
@@ -454,25 +480,35 @@ export default function Landing() {
                             <Shield size={24} className="text-pastel-blue-foreground" aria-hidden />
                             <h2 className="mt-4 text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">Du entscheidest, wer was sieht.</h2>
                             <p className="mt-4 leading-relaxed text-muted-foreground">Du entscheidest, welche Kontaktdaten sichtbar sind. Telefonnummer und Moodle-Name sehen andere erst nach Annahme einer Anfrage. Die E-Mail-Adresse kannst du im Profil öffentlich schalten.</p>
-                            <div className="mt-6 space-y-3">
-                                {[
-                                    { label: 'Handynummer', desc: 'Nur für angenommene Anfragen', on: showPhone, set: setShowPhone },
-                                    { label: 'Moodle-Name', desc: 'Nur für angenommene Anfragen', on: showMoodle, set: setShowMoodle },
-                                ].map((r) => (
-                                    <div key={r.label} className="flex items-center justify-between gap-4 rounded-full bg-card px-4 py-3 shadow-soft">
-                                        <div className="min-w-0">
-                                            <p className="text-sm font-semibold">{r.label}</p>
-                                            <p className="text-xs text-muted-foreground">{r.on ? r.desc : 'Versteckt: niemand sieht das'}</p>
-                                        </div>
-                                        <Switch
-                                            checked={r.on}
-                                            onCheckedChange={() => r.set(v => !v)}
-                                            label={`${r.label} Sichtbarkeit`}
-                                        />
-                                    </div>
-                                ))}
+                            <div className="mt-6 rounded-card border border-border/80 bg-card p-4 shadow-soft sm:p-5">
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <p className="text-[13px] font-semibold text-foreground">So sieht es in der App aus</p>
+                                    <span className="rounded-full bg-pastel-yellow px-2.5 py-1 text-xs font-semibold text-pastel-yellow-foreground">Beispiel</span>
+                                </div>
+                                <div className="mt-4 space-y-3">
+                                    {[
+                                        { label: 'Telefonnummer', desc: 'Nur für angenommene Anfragen', on: showPhone, set: setShowPhone },
+                                        { label: 'Moodle-Name', desc: 'Nur für angenommene Anfragen', on: showMoodle, set: setShowMoodle },
+                                    ].map((r, index) => {
+                                        const descId = `privacy-preview-row-${index}`;
+                                        return (
+                                            <div key={r.label} className="flex items-center justify-between gap-4 rounded-full bg-background px-4 py-3">
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-semibold">{r.label}</p>
+                                                    <p id={descId} className="text-[13px] text-muted-foreground">{r.on ? r.desc : 'Versteckt: niemand sieht das'}</p>
+                                                </div>
+                                                <Switch
+                                                    checked={r.on}
+                                                    onCheckedChange={() => r.set(v => !v)}
+                                                    label={`${r.label} Sichtbarkeit`}
+                                                    aria-describedby={`${descId} privacy-preview-hint`}
+                                                />
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <p id="privacy-preview-hint" className="mt-4 inline-flex items-start gap-2 text-[13px] font-medium leading-relaxed text-muted-foreground"><Lock size={16} className="mt-0.5 shrink-0" aria-hidden /> Diese Vorschau speichert nichts; in der App stellst du die Sichtbarkeit in den Einstellungen ein.</p>
                             </div>
-                            <p className="mt-4 inline-flex items-start gap-2 text-xs font-medium text-muted-foreground"><Lock size={16} className="mt-0.5 shrink-0" aria-hidden /> Telefonnummer und Moodle-Name erscheinen erst nach angenommener Anfrage.</p>
                         </div>
                     </Reveal>
 
@@ -505,7 +541,7 @@ export default function Landing() {
                                 {[
                                     { icon: GraduationCap, t: 'Pädagogisch begleitet', d: 'Coaches lernen Lernmethoden und Arbeitsorganisation.' },
                                     { icon: Shield, t: 'Offizielles Coach-Abzeichen', d: 'Coaches mit Abzeichen haben die Schulung besucht und sind verifiziert.' },
-                                    { icon: Users, t: 'Gemeinschaft & Fairness', d: 'Kontakt über die App. Richtwert: ca. 12 € pro Stunde, individuell anpassbar.' },
+                                    { icon: Users, t: 'Gemeinschaft & Fairness', d: 'Kontakt über die App. Richtwert: 12 € pro 45-Minuten-Einheit, individuell anpassbar.' },
                                 ].map((c) => (
                                     <div key={c.t} className="rounded-card bg-card p-5 text-foreground shadow-soft">
                                         <span className="grid size-11 place-items-center rounded-full bg-pastel-violet text-pastel-violet-foreground">
@@ -551,7 +587,7 @@ export default function Landing() {
                                 <article className={`h-full rounded-card p-6 shadow-soft ${f.tone}`}>
                                     <span className="inline-grid size-12 place-items-center rounded-full bg-white/85"><f.icon size={21} aria-hidden /></span>
                                     <h3 className="mt-4 text-lg font-extrabold">{f.t}</h3>
-                                    <p className="mt-2 text-sm leading-relaxed opacity-90">{f.d}</p>
+                                    <p className="mt-2 text-sm leading-relaxed">{f.d}</p>
                                 </article>
                             </Reveal>
                         ))}

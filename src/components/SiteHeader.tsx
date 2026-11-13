@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback, type MouseEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowUpRight, Menu, X } from 'lucide-react';
+import { BookOpen, Menu, X } from 'lucide-react';
 import { Logo } from './ui/Logo';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -22,7 +22,11 @@ const NAV_ITEMS: NavItem[] = [
     { label: 'Eltern', to: '/eltern-leitfaden' },
 ];
 
-const MOBILE_NAV: NavItem[] = NAV_ITEMS;
+const MOBILE_NAV: NavItem[] = NAV_ITEMS.map((item) => {
+    if (item.to === '/coaching') return { ...item, label: 'Coaching' };
+    if (item.to === '/eltern-leitfaden') return { ...item, label: 'Eltern-Leitfaden' };
+    return item;
+});
 
 function prefersReducedMotion(): boolean {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
@@ -189,7 +193,7 @@ export default function SiteHeader() {
                                 className={navLinkClass(false) + ' max-lg:hidden gap-1.5'}
                             >
                                 Dokumentation
-                                <ArrowUpRight size={15} aria-hidden />
+                                <BookOpen size={15} aria-hidden />
                             </a>
                             {!user && (
                                 <Link
@@ -258,10 +262,11 @@ export default function SiteHeader() {
                             className="flex min-h-12 items-center justify-center gap-2 rounded-full border border-border bg-card px-4 text-base font-semibold text-foreground transition-colors hover:bg-muted"
                         >
                             Dokumentation
-                            <ArrowUpRight size={17} aria-hidden />
+                            <BookOpen size={17} aria-hidden />
                         </a>
                         {!user && (
                             <SheetClose
+                                nativeButton={false}
                                 render={<Link to="/login" />}
                                 className="inline-flex h-12 w-full items-center justify-center rounded-full bg-foreground px-5 text-sm font-semibold text-background shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-card"
                             >

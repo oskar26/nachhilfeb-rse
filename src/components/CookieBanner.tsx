@@ -47,9 +47,9 @@ export function CookieBanner() {
                         <p className="mb-1 flex items-center gap-2 font-bold text-foreground">
                             <ShieldCheck size={16} className="text-foreground" aria-hidden="true" /> Datenschutz und Cookies
                         </p>
-                        <p className="text-xs leading-relaxed text-muted-foreground">
-                            Nur zur Info: Wir speichern <strong className="text-foreground">technisch Notwendiges</strong> in deinem Browser (Anmeldung, Einstellungen wie Dark Mode).
-                            <span className="hidden sm:inline"> Zusätzlich zählen wir ohne IP-Adresse, welche Seiten aufgerufen werden und welche „Beliebt“-Fächer in der Übersicht angetippt werden. Bei angemeldeten Konten wird die Konto-Kennung pseudonym mitgezählt.</span>{' '}
+                        <p className="text-[13px] leading-relaxed text-muted-foreground">
+                            Wir speichern <strong className="text-foreground">ausschließlich technisch Notwendiges</strong> in deinem Browser (Anmeldung, Einstellungen wie Dark Mode). Optionale Kategorien gibt es deshalb nicht – du musst nichts auswählen.
+                            <span className="hidden sm:inline"> Zusätzlich zählen wir anonym ohne IP-Adresse, welche Seiten aufgerufen werden und welche „Beliebt“-Fächer in der Übersicht angetippt werden. Bei angemeldeten Konten wird die Konto-Kennung pseudonym mitgezählt.</span>{' '}
                             <strong className="text-foreground">Externe Anbieter setzen wir nicht ein.</strong> Mehr dazu in unserer{' '}
                             <Link to="/datenschutz" className="font-semibold text-foreground underline underline-offset-2 hover:no-underline">
                                 Datenschutzerklärung
