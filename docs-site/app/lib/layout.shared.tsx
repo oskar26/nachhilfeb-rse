@@ -1,13 +1,19 @@
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-import { appName } from './shared';
 
 export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
-      title: appName,
+      title: (
+        <>
+          <span className="hidden md:inline">Nachhilfebörse Dokumentation</span>
+          <span className="md:hidden">Dokumentation</span>
+        </>
+      ),
+      url: '/docs',
       children: (
         <a href="/" className="platform-cta">
-          Zur Plattform
+          <span className="hidden md:inline">Zur Plattform</span>
+          <span className="md:hidden">Plattform</span>
         </a>
       ),
     },

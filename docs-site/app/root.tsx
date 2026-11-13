@@ -8,22 +8,80 @@ import {
 } from 'react-router';
 import { RootProvider } from 'fumadocs-ui/provider/react-router';
 import type { Route } from './+types/root';
+import '@fontsource-variable/plus-jakarta-sans';
 import './app.css';
 import SearchDialog from '@/components/search';
 import NotFound from './routes/not-found';
 
-export const links: Route.LinksFunction = () => [
-  { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-  {
-    rel: 'preconnect',
-    href: 'https://fonts.gstatic.com',
-    crossOrigin: 'anonymous',
-  },
-  {
-    rel: 'stylesheet',
-    href: 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap',
-  },
-];
+const translations = {
+  'Ask AI(AI chat button)': 'KI fragen',
+  'Back to Home(404 not found page)': 'Zur Startseite',
+  'Choose a language(language switcher)': 'Sprache wählen',
+  'Choose a language(language switcher)(aria-label)': 'Sprache wählen',
+  'Close Banner(banner)(aria-label)': 'Banner schließen',
+  'Close Search(search dialog)(aria-label)': 'Suche schließen',
+  'Close Sidebar(aria-label)': 'Seitenleiste schließen',
+  'Close Sidebar(sidebar)(aria-label)': 'Seitenleiste schließen',
+  'Close(image zoom)(aria-label)': 'Schließen',
+  'Collapse Sidebar(sidebar)(aria-label)': 'Seitenleiste einklappen',
+  'Copied Anchor Link(heading anchor)(aria-label)': 'Ankerlink kopiert',
+  'Copied Link(accordion)(aria-label)': 'Link kopiert',
+  'Copied Markdown(page actions)': 'Markdown kopiert',
+  'Copied Text(code block)(aria-label)': 'Text kopiert',
+  'Copy Anchor Link(heading anchor)(aria-label)': 'Ankerlink kopieren',
+  'Copy Link(accordion)(aria-label)': 'Link kopieren',
+  'Copy Markdown(page actions)': 'Markdown kopieren',
+  'Copy Text(code block)(aria-label)': 'Text kopieren',
+  'Dark(theme switcher)(aria-label)': 'Dunkel',
+  'Default(type table)': 'Standard',
+  'Edit on GitHub(edit page)': 'Auf GitHub bearbeiten',
+  'Hide Sidebar(sidebar)': 'Seitenleiste ausblenden',
+  'Image Viewer(image zoom)(aria-label)': 'Bildansicht',
+  'Language(language switcher)': 'Sprache',
+  'Last updated on(page footer)': 'Zuletzt aktualisiert am',
+  'Layout Tab(layout tab trigger)': 'Layout-Reiter',
+  'Light(theme switcher)(aria-label)': 'Hell',
+  'Next Image(image zoom)(aria-label)': 'Nächstes Bild',
+  'Next Page(pagination)': 'Weiter',
+  'No Headings(table of contents)': 'Keine Überschriften',
+  'No results found(search dialog)': 'Keine Ergebnisse',
+  'On this page(table of contents)': 'Auf dieser Seite',
+  'Open Search(search trigger)(aria-label)': 'Suche öffnen',
+  'Open Sidebar(aria-label)': 'Seitenleiste öffnen',
+  'Open Sidebar(sidebar)(aria-label)': 'Seitenleiste öffnen',
+  'Open in ChatGPT(page actions)': 'In ChatGPT öffnen',
+  'Open in Claude(page actions)': 'In Claude öffnen',
+  'Open in Cursor(page actions)': 'In Cursor öffnen',
+  'Open in GitHub(page actions)': 'Auf GitHub öffnen',
+  'Open in Scira AI(page actions)': 'In Scira AI öffnen',
+  'Open(page actions)': 'Öffnen',
+  'Options(aria-label)': 'Optionen',
+  'Page Not Found(404 not found page)': 'Seite nicht gefunden',
+  'Parameters(type table)': 'Parameter',
+  'Previous Image(image zoom)(aria-label)': 'Vorheriges Bild',
+  'Previous Page(pagination)': 'Zurück',
+  'Prop(type table)': 'Eigenschaft',
+  'Read {url}, I want to ask questions about it.(page actions)':
+    'Lies {url}, ich möchte Fragen dazu stellen.',
+  'Returns(type table)': 'Rückgabe',
+  'Search failed(search dialog)': 'Suche fehlgeschlagen',
+  'Search failed, showing results for {query}(search dialog)':
+    'Suche fehlgeschlagen, zeige Ergebnisse für {query}',
+  'Search(search dialog)': 'Suche',
+  'Search(search trigger)': 'Suche',
+  'Show Sidebar(sidebar)': 'Seitenleiste anzeigen',
+  'Skip to Content(skip link)': 'Zum Inhalt springen',
+  'System(theme switcher)(aria-label)': 'System',
+  'Table of Contents(inline table of contents)': 'Inhaltsverzeichnis',
+  'The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.(404 not found page)':
+    'Die gesuchte Seite wurde möglicherweise entfernt, umbenannt oder ist vorübergehend nicht erreichbar.',
+  'Theme(site menu)': 'Design',
+  'Toggle Menu(home layout header)(aria-label)': 'Menü umschalten',
+  'Toggle Theme(theme switcher)(aria-label)': 'Design wechseln',
+  'Type(type table)': 'Typ',
+  'View as Markdown(page actions)': 'Als Markdown ansehen',
+  displayName: 'Deutsch',
+};
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -36,7 +94,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body className="flex min-h-screen flex-col">
-        <RootProvider search={{ SearchDialog }}>{children}</RootProvider>
+        <RootProvider
+          search={{ SearchDialog }}
+          i18n={{ translations }}
+        >
+          {children}
+        </RootProvider>
         <ScrollRestoration />
         <Scripts />
       </body>

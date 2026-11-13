@@ -38,6 +38,16 @@ function Content({ path }: { path: string }) {
       <DocsDescription>{page.description}</DocsDescription>
       <DocsBody>
         <Mdx components={useMDXComponents()} />
+        <footer className="not-prose mt-12 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-fd-border pt-4 text-[13px] text-fd-muted-foreground">
+          <span>Stand: November 2026</span>
+          <span aria-hidden>·</span>
+          <a
+            href="mailto:info@nachhilfe-sv.de?subject=Feedback%20zur%20Dokumentation"
+            className="underline underline-offset-2 hover:text-fd-foreground"
+          >
+            Feedback zur Dokumentation
+          </a>
+        </footer>
       </DocsBody>
     </DocsPage>
   );

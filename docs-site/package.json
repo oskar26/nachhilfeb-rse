@@ -8,15 +8,16 @@
     "types:check": "react-router typegen && tsc --noEmit"
   },
   "dependencies": {
+    "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
     "cn": "^0.5.2",
     "fumadocs-core": "16.19.0",
     "fumadocs-mdx": "15.6.1",
     "fumadocs-ui": "npm:@fumadocs/base-ui@16.19.0",
+    "isbot": "^5",
     "lucide-react": "^1.71.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "react-router": "^8.5.1",
-    "isbot": "^5"
+    "react-router": "^8.5.1"
   },
   "devDependencies": {
     "@react-router/dev": "^8.5.1",
