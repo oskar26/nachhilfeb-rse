@@ -241,7 +241,7 @@ export default function AdDetails() {
                 </div>
             </div>
 
-            {isOwn && ad.is_active === false && (
+            {isOwn && !ad.is_active && (
                 <div role="status" className="flex flex-col gap-3 rounded-card border border-border bg-pastel-yellow p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-start gap-2.5">
                         <Pause size={18} className="mt-0.5 shrink-0 text-pastel-yellow-foreground" aria-hidden />
