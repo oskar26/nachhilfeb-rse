@@ -99,6 +99,13 @@
     top: calc(80px + env(safe-area-inset-top, 0px)) !important;
   }
 
+  /* Bottom toasts must clear the mobile tab bar (84px) and its safe area. */
+  @media (max-width: 639px) {
+    [data-sonner-toaster][data-y-position="bottom"] {
+      bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+  }
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
@@ -118,8 +125,35 @@
     box-shadow: var(--shadow-soft);
   }
 
+  /* Property-specific transitions. Prefer these over `transition-all` so
+     hover/press feedback never animates layout properties. The timing matches
+     EASE_OUT in src/lib/motion.ts. */
+  .transition-control {
+    transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .transition-surface {
+    transition-property: background-color, border-color, box-shadow;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .transition-lift {
+    transition-property: transform, box-shadow;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
   .chat-surface {
     background-color: var(--chat-bg);
+  }
+
+  /* Subtle paper grain for the messages area only. Bubbles and the composer
+     keep their opaque surfaces; the dot is a token so light/dark stay calm. */
+  .chat-paper {
+    background-color: var(--chat-bg);
+    background-image: radial-gradient(circle at 1px 1px, var(--chat-paper-dot) 1px, transparent 0);
+    background-size: 22px 22px;
   }
 
   .screenshot-fade {
@@ -309,6 +343,13 @@
   --radius-chat: 1.25rem;
   --radius-chat-corner: 0.375rem;
   --radius-panel: 2.25rem;
+  /* Compact scale for filters, admin tables and dense controls. Global
+     consumer cards keep --radius-card; only opted-in surfaces use these. */
+  --radius-pill: 9999px;
+  --radius-pill-compact: 0.75rem;
+  --radius-table: 0.75rem;
+  --radius-control-compact: 0.5rem;
+  --radius-badge-compact: 0.375rem;
 }
 
 :root {
@@ -377,6 +418,7 @@
   --chat-chip: rgb(255 255 255 / 0.94);
   --chat-border: #e6e8ec;
   --chat-composer: #ffffff;
+  --chat-paper-dot: rgb(24 24 27 / 0.055);
 }
 
 .dark {
@@ -444,4 +486,5 @@
   --chat-chip: rgb(29 31 36 / 0.94);
   --chat-border: #2a2d34;
   --chat-composer: #1d1f24;
+  --chat-paper-dot: rgb(245 245 247 / 0.04);
 }

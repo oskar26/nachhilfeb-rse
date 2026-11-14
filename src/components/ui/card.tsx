@@ -62,11 +62,19 @@ function CardAction({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-function CardContent({ className, ...props }: React.ComponentProps<"div">) {
+function CardContent({
+  className,
+  padding = "default",
+  ...props
+}: React.ComponentProps<"div"> & { padding?: "default" | "flush" }) {
   return (
     <div
       data-slot="card-content"
-      className={cn("p-4 pt-0 sm:p-6 sm:pt-0", className)}
+      data-padding={padding}
+      className={cn(
+        padding === "default" ? "p-4 pt-0 sm:p-6 sm:pt-0" : "p-0",
+        className
+      )}
       {...props}
     />
   )

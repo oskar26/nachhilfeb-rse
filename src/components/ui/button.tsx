@@ -22,8 +22,16 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/15 dark:bg-destructive/20 dark:hover:bg-destructive/30",
         link: "text-foreground underline underline-offset-4 hover:text-muted-foreground",
+        // For selectable controls that manage their own aria-pressed state.
+        // Idle, hover and selected are explicit so a hover never erases the
+        // selected surface (the old `hover:bg-transparent` bug).
+        selectable:
+          "rounded-lg border-border bg-card text-foreground shadow-none hover:border-primary/50 hover:bg-muted hover:text-foreground aria-pressed:border-transparent aria-pressed:bg-primary-soft aria-pressed:text-primary-soft-foreground aria-pressed:shadow-[inset_0_0_0_2px_var(--primary)] aria-pressed:hover:bg-primary-soft aria-pressed:hover:text-primary-soft-foreground",
+        // Unstyled is for custom surfaces. It must not force a hover
+        // background: that used to override selected classes passed by the
+        // caller and made the selected state appear only after pointer leave.
         unstyled:
-          "rounded-none border-0 bg-transparent p-0 font-[inherit] font-normal leading-[inherit] text-inherit whitespace-normal shadow-none hover:bg-transparent hover:opacity-90 active:translate-y-0 active:scale-100",
+          "rounded-none border-0 bg-transparent p-0 font-[inherit] font-normal leading-[inherit] text-inherit whitespace-normal shadow-none hover:opacity-90 active:translate-y-0 active:scale-100",
       },
       size: {
         default:

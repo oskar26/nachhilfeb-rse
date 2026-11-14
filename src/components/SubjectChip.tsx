@@ -94,22 +94,34 @@ interface SubjectChipProps {
     className?: string;
     onClick?: () => void;
     selected?: boolean;
+    /** `compact` = 36px für interaktive Filter; `default` = 44px interaktiv / 28px Anzeige. */
+    size?: 'compact' | 'default';
 }
 
-export function SubjectChip({ subject, className, onClick, selected }: SubjectChipProps) {
+export function SubjectChip({ subject, className, onClick, selected, size = 'default' }: SubjectChipProps) {
     const label = subjectLabelMap[subject] ?? subject;
     const tone = SUBJECT_TONES[subject] ?? SUBJECT_TONES.sport;
+    const interactive = Boolean(onClick);
     const baseCls = cn(
-        'inline-flex min-h-7 select-none items-center gap-1 rounded-full border border-transparent px-3 py-1 text-xs font-semibold transition-[background-color,border-color,box-shadow,transform] duration-150',
-        onClick && 'min-h-12 cursor-pointer hover:-translate-y-0.5',
+        'inline-flex select-none items-center gap-1 border border-transparent text-xs font-semibold transition-[background-color,border-color,box-shadow,transform] duration-150',
+        interactive
+            ? cn(
+                'cursor-pointer rounded-lg hover:-translate-y-0.5',
+                size === 'compact'
+                    ? 'min-h-9 px-3 py-1.5'
+                    : 'min-h-11 px-3.5 py-1.5'
+            )
+            : 'min-h-7 cursor-default rounded-full px-3 py-1',
         tone,
-        selected && 'border-2 border-primary bg-primary-soft text-primary-soft-foreground',
+        // Inset ring instead of a 2px border: selecting never moves the chip.
+        selected && 'bg-primary-soft text-primary-soft-foreground shadow-[inset_0_0_0_2px_var(--primary)] hover:bg-primary-soft',
         className
     );
 
     if (!onClick) {
         return (
             <Badge variant="outline" className={cn('h-auto cursor-default border-transparent font-semibold', baseCls)}>
+                {selected && <Check size={13} aria-hidden />}
                 {label}
             </Badge>
         );
@@ -122,7 +134,9 @@ export function SubjectChip({ subject, className, onClick, selected }: SubjectCh
                 triggerHaptic('light');
                 onClick();
             }}
-            aria-pressed={selected}
+            aria-pressed={selected ?? false}
+            data-size={size}
+            data-selected={selected ? 'true' : undefined}
             className={baseCls}
         >
             {selected && <Check size={13} aria-hidden />}
