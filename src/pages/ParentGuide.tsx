@@ -96,10 +96,10 @@ export default function ParentGuide() {
                     <div className="mt-6 border-y border-border py-4">
                         <p className="text-sm font-semibold text-muted-foreground">Richtwert</p>
                         <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground sm:text-3xl">
-                            ca. 12 € pro Stunde
+                            ca. 12 € pro 45 Minuten
                         </p>
                         <p className="mt-2 max-w-prose text-sm leading-relaxed text-muted-foreground">
-                            Richtwert der Nachhilfebörse. Der Preis ist individuell anpassbar. Die Nachhilfe wird privat bezahlt.
+                            Das entspricht ca. 16 € pro Stunde. Der Preis ist individuell anpassbar. Die Nachhilfe wird privat bezahlt.
                         </p>
                     </div>
                 </motion.section>

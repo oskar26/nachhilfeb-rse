@@ -1,6 +1,6 @@
 import { Label } from '@/components/ui/label';
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -40,10 +40,27 @@ function isValidEmail(value: string): boolean {
 
 export default function Login() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { theme, setTheme } = useTheme();
     const reduceMotion = useReducedMotion();
     const [isLoading, setIsLoading] = useState(false);
-    const [mode, setMode] = useState<'login' | 'register'>('login');
+    // Registrierungs-CTAs der Landing verlinken auf /login?mode=register.
+    const [mode, setMode] = useState<'login' | 'register'>(() =>
+        new URLSearchParams(location.search).get('mode') === 'register' ? 'register' : 'login'
+    );
+
+    // Hält den Tab auch bei reinen Hash-Navigationen (z. B. Zurück/Vorwärts
+    // zwischen /login und /login?mode=register) synchron.
+    useEffect(() => {
+        const requested = new URLSearchParams(location.search).get('mode');
+        setMode(requested === 'register' ? 'register' : 'login');
+        setError(null);
+        setParentalPending(false);
+    }, [location.search]);
+
+    useEffect(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }, [location.pathname, location.search]);
 
     // General Form States
     const [email, setEmail] = useState('');
@@ -690,7 +707,7 @@ export default function Login() {
                             </form>
                         </CardContent>
                         {mode === 'register' && (
-                            <CardFooter className="flex flex-col border-t border-border bg-muted/50 px-5 py-4 sm:px-6">
+                            <CardFooter className="mt-6 flex flex-col border-t border-border bg-muted/50 px-5 py-4 sm:px-6">
                                 <p className="inline-flex w-full items-start justify-center gap-1.5 text-center text-xs font-semibold leading-relaxed text-muted-foreground">
                                     <ShieldAlert size={16} className="mt-px shrink-0" aria-hidden /> <span><strong className="text-foreground">Hinweis:</strong> Neue Konten werden im SV-Raum verifiziert, bevor Anzeigen erstellt werden können.</span>
                                 </p>

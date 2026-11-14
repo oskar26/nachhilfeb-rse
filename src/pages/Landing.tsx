@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
     ArrowRight,
     BadgeCheck,
@@ -51,6 +51,7 @@ function parseCount(value: unknown): number | null {
 
 export default function Landing() {
     const { user, isAdmin } = useAuth();
+    const location = useLocation();
     const [liveStats, setLiveStats] = useState<{ active_ads: number | null; users: number | null } | null>(null);
 
     /* Privatsphäre-Demo */
@@ -71,18 +72,46 @@ export default function Landing() {
         }).catch(() => { /* Statistik ist optional */ });
     }, []);
 
-    const ziel = user ? '/' : '/login';
+    // Registrierungs-CTAs öffnen direkt den Registrieren-Tab; „Anmelden“ bleibt /login.
+    const registerZiel = user ? '/' : '/login?mode=register';
+    const loginZiel = user ? '/' : '/login';
     const suchZiel = user ? '/' : '/login';
     const bietZiel = user ? '/create-ad' : '/login';
     const elternZiel = '/eltern-leitfaden';
     // Das SV-Panel ist nur für bestätigte SV-Admins sichtbar; alle anderen bleiben beim sicheren Ziel.
     const appTourZiel = (index: number) => {
-        if (!user) return '/login';
-        if (index === 0) return ziel;
-        if (index === 1) return suchZiel;
+        if (!user) return registerZiel;
+        if (index === 0) return '/';
+        if (index === 1) return '/';
         if (index === 2) return '/profile';
-        return isAdmin ? '/sv-panel' : ziel;
+        return isAdmin ? '/sv-panel' : '/';
     };
+
+    // Routenwechsel startet oben; gezielte Abschnittssprünge (z. B. aus dem
+    // Header) werden über den Router-State übergeben und hier ausgeführt.
+    useEffect(() => {
+        const section = (location.state as { section?: string } | null)?.section;
+        if (!section) {
+            window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+            return;
+        }
+        let tries = 0;
+        let frame = 0;
+        const scrollToTarget = () => {
+            const el = document.getElementById(section);
+            if (el) {
+                const reduce = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+                return;
+            }
+            if (tries < 30) {
+                tries += 1;
+                frame = window.requestAnimationFrame(scrollToTarget);
+            }
+        };
+        frame = window.requestAnimationFrame(scrollToTarget);
+        return () => window.cancelAnimationFrame(frame);
+    }, [location.key, location.pathname, location.state]);
     const stats = liveStats
         ? [
             ...(liveStats.active_ads !== null ? [{ value: liveStats.active_ads, label: 'Aktive Anzeigen', tone: 'bg-pastel-yellow text-pastel-yellow-foreground' }] : []),
@@ -98,7 +127,8 @@ export default function Landing() {
                 onClick={() => {
                     const el = document.getElementById('inhalt') as HTMLElement | null;
                     if (!el) return;
-                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    const reduce = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                    el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
                     try { el.focus({ preventScroll: true }); } catch { el.focus(); }
                 }}
                 className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-primary focus:px-5 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-primary-foreground"
@@ -124,7 +154,7 @@ export default function Landing() {
                                     Nachhilfe in Mathematik, Englisch und weiteren Fächern, direkt unter Mitschülerinnen und Mitschülern. Jede Anzeige stammt von einem verifizierten Konto.
                                 </p>
                                 <div className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row">
-                                    <Link to={ziel} className={buttonVariants({ size: 'lg' }) + ' w-full sm:w-auto'}>
+                                    <Link to={registerZiel} className={buttonVariants({ size: 'lg' }) + ' w-full sm:w-auto'}>
                                         {user ? 'Anzeigen ansehen' : 'Kostenlos registrieren'} <ArrowRight aria-hidden />
                                     </Link>
                                     <Link to="/eltern-leitfaden" className={buttonVariants({ variant: 'outline', size: 'lg' }) + ' w-full sm:w-auto'}>
@@ -188,7 +218,7 @@ export default function Landing() {
                                         </div>
                                         <p className="mt-2.5 text-sm font-bold leading-snug">Analysis-Crash vor der Klausur</p>
                                         <p className="mt-1 text-xs text-muted-foreground">Lena K. · Q1 · SV-Raum</p>
-                                        <p className="mt-2.5 text-[13px] font-bold tabular-nums">12 € / 45 Min</p>
+                                        <p className="mt-2.5 text-[13px] font-bold tabular-nums">12 € / 45 Min <span className="font-medium text-muted-foreground">· ≈ 16 €/h</span></p>
                                     </div>
 
                                     <div className="absolute -right-2 top-[16%] z-30 w-[160px] rounded-card border border-border/80 bg-card p-3.5 shadow-card sm:-right-5 sm:w-[186px]">
@@ -242,7 +272,7 @@ export default function Landing() {
                                         to={w.to}
                                         aria-describedby={`wege-punkte-${i}`}
                                         aria-label={`${w.cta}: ${w.title}`}
-                                        className="mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-foreground shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-card"
+                                        className="mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-foreground shadow-soft"
                                     >
                                         {w.cta} <ArrowRight size={17} aria-hidden />
                                     </Link>
@@ -337,6 +367,7 @@ export default function Landing() {
                                 tone: 'bg-pastel-blue',
                                 deviceClass: 'ml-auto w-full max-w-[560px]',
                                 label: 'Am Laptop',
+                                adminOnly: false,
                             },
                             {
                                 title: 'Chat',
@@ -347,6 +378,7 @@ export default function Landing() {
                                 tone: 'bg-pastel-mint',
                                 deviceClass: 'mx-auto w-full max-w-[260px]',
                                 label: 'Am Handy',
+                                adminOnly: false,
                             },
                             {
                                 title: 'Profil und Einstellungen',
@@ -357,6 +389,7 @@ export default function Landing() {
                                 tone: 'bg-pastel-yellow',
                                 deviceClass: 'mx-auto w-full max-w-[340px]',
                                 label: 'Am Tablet',
+                                adminOnly: false,
                             },
                             {
                                 title: 'SV-Panel',
@@ -367,8 +400,10 @@ export default function Landing() {
                                 tone: 'bg-pastel-violet',
                                 deviceClass: 'ml-auto w-full max-w-[560px]',
                                 label: 'Im SV-Raum',
+                                adminOnly: true,
+                                screenClassName: 'aspect-[1606/1104]',
                             },
-                        ].map((row, i) => (
+                        ].filter((row) => !row.adminOnly || isAdmin).map((row, i) => (
                             <Reveal key={row.title}>
                                 <div className={cn('grid items-center gap-8 lg:grid-cols-2 lg:gap-16', i % 2 === 1 && 'lg:[&>*:first-child]:order-2')}>
                                     <div className="min-w-0">
@@ -385,7 +420,7 @@ export default function Landing() {
                                         </Link>
                                     </div>
                                     <div className={cn('rounded-panel p-5 shadow-soft sm:p-8', row.tone)}>
-                                        <DeviceFrame kind={row.device} src={row.src} alt={row.alt} className={row.deviceClass} />
+                                        <DeviceFrame kind={row.device} src={row.src} alt={row.alt} className={row.deviceClass} screenClassName={row.screenClassName} />
                                     </div>
                                 </div>
                             </Reveal>
@@ -400,7 +435,7 @@ export default function Landing() {
                                 </span>
                                 <p className="text-lg font-extrabold">Börse ansehen</p>
                             </div>
-                            <Link to={ziel} className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-7 text-sm font-semibold text-background shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-card">
+                            <Link to={registerZiel} className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-7 text-sm font-semibold text-background shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-card">
                                 {user ? 'Börse ansehen' : 'Kostenlos registrieren'} <ArrowRight aria-hidden />
                             </Link>
                         </div>
@@ -454,8 +489,8 @@ export default function Landing() {
                             <div className="mt-7">
                                 <VerifySteps tone="du" variant="timeline" />
                             </div>
-                            <Link to={ziel} className="mt-8 inline-flex min-h-12 items-center justify-center gap-2 self-start rounded-full bg-white px-6 text-sm font-semibold text-foreground shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-card">
-                                Zur Anmeldung <ArrowRight aria-hidden />
+                            <Link to={loginZiel} className="mt-8 inline-flex min-h-12 items-center justify-center gap-2 self-start rounded-full bg-white px-6 text-sm font-semibold text-foreground shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-card">
+                                {user ? 'Zur Börse' : 'Zur Anmeldung'} <ArrowRight aria-hidden />
                             </Link>
                         </div>
                     </Reveal>
@@ -477,7 +512,7 @@ export default function Landing() {
                                 {[
                                     { icon: GraduationCap, t: 'Pädagogisch begleitet', d: 'Coaches lernen Lernmethoden und Arbeitsorganisation.' },
                                     { icon: Shield, t: 'Offizielles Coach-Abzeichen', d: 'Coaches mit Abzeichen haben die Schulung besucht und sind verifiziert.' },
-                                    { icon: Users, t: 'Gemeinschaft & Fairness', d: 'Kontakt über die App. Richtwert: 12 € pro Stunde, individuell anpassbar.' },
+                                    { icon: Users, t: 'Gemeinschaft & Fairness', d: 'Kontakt über die App. Richtwert: 12 € pro 45 Minuten (≈ 16 €/h), individuell anpassbar.' },
                                 ].map((c) => (
                                     <div key={c.t} className="rounded-card bg-card p-5 text-foreground shadow-soft">
                                         <span className="grid size-11 place-items-center rounded-full bg-pastel-violet text-pastel-violet-foreground">
@@ -494,7 +529,7 @@ export default function Landing() {
                                     <p className="text-sm font-semibold">Schüler-Coach werden? Ab Klasse 8</p>
                                     <p className="mt-1 max-w-xl text-sm leading-relaxed text-primary-foreground/80">Du möchtest Schülerinnen und Schüler der Klassen 5 und 6 unterstützen? Sprich Frau Balistreri oder die SV an. Alle Regeln findest du transparent auf der <Link to="/coaching" className="font-semibold text-primary-foreground underline underline-offset-4">Coaching-Seite</Link>.</p>
                                 </div>
-                                <Link to={ziel} className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-white px-6 text-sm font-semibold text-foreground shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-card">Jetzt mitmachen</Link>
+                                <Link to="/coaching" className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-white px-6 text-sm font-semibold text-foreground shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-card">Jetzt mitmachen</Link>
                             </div>
                         </div>
                     </Reveal>
