@@ -114,6 +114,32 @@ function StatusBadge({ user }: { user: Profile }) {
     );
 }
 
+function SummaryTile({
+    label,
+    value,
+    hint,
+    emphasis,
+}: {
+    label: string;
+    value: number | null;
+    hint: string;
+    emphasis?: boolean;
+}) {
+    return (
+        <div className="rounded-card border border-border bg-card p-3.5 shadow-soft">
+            <p className="text-[13px] font-medium text-muted-foreground">{label}</p>
+            <p className={cn(
+                'mt-1 text-2xl font-semibold tabular-nums tracking-tight',
+                value === null && 'text-base font-medium text-muted-foreground',
+                emphasis && value !== null && value > 0 && 'text-destructive'
+            )}>
+                {value === null ? 'Nicht verfügbar' : value}
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>
+        </div>
+    );
+}
+
 export default function AdminUsers() {
     const PAGE_SIZE = 25;
     const [users, setUsers] = useState<Profile[]>([]);
@@ -126,6 +152,12 @@ export default function AdminUsers() {
     const [page, setPage] = useState(0);
     const [total, setTotal] = useState(0);
     const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+    // Aggregat-Kennzahlen aus admin.php?action=overview (keine Volltabellen-Exporte).
+    const [accountSummary, setAccountSummary] = useState<{
+        total: number | null;
+        verified: number | null;
+        banned: number | null;
+    }>({ total: null, verified: null, banned: null });
 
     // Dialog States
     const [editingUser, setEditingUser] = useState<Profile | null>(null);
@@ -187,6 +219,32 @@ export default function AdminUsers() {
         fetchUsers();
     }, [fetchUsers]);
 
+    const fetchAccountSummary = useCallback(async () => {
+        try {
+            const { data, error } = await api.admin.overview();
+            if (error) throw error;
+            const stats = (data as any)?.stats ?? {};
+            const num = (value: unknown) => (value === null || value === undefined || value === '' ? null : Number(value));
+            setAccountSummary({
+                total: num(stats.total_users),
+                verified: num(stats.verified_users),
+                banned: num(stats.banned_users),
+            });
+        } catch {
+            // Kennzahlen sind optional; die Liste bleibt nutzbar.
+            setAccountSummary({ total: null, verified: null, banned: null });
+        }
+    }, []);
+
+    useEffect(() => {
+        void fetchAccountSummary();
+    }, [fetchAccountSummary]);
+
+    const refreshAll = () => {
+        void fetchUsers();
+        void fetchAccountSummary();
+    };
+
     const fetchUserRelations = async (user: Profile) => {
         try {
             const { data, error } = await api.admin.parentLinks(user.id);
@@ -227,7 +285,7 @@ export default function AdminUsers() {
 
             toast.success('Nutzerdaten erfolgreich aktualisiert');
             setEditingUser(null);
-            fetchUsers();
+            refreshAll();
         } catch {
             toast.error('Fehler beim Speichern.');
         }
@@ -259,7 +317,7 @@ export default function AdminUsers() {
             toast.success(`Nutzer ${banUserObj.display_name} wurde gesperrt`);
             setBanUserObj(null);
             setBanReason('');
-            fetchUsers();
+            refreshAll();
         } catch {
             toast.error('Sperre fehlgeschlagen.');
         }
@@ -294,7 +352,7 @@ export default function AdminUsers() {
             }
 
             setConfirmAction(null);
-            fetchUsers();
+            refreshAll();
         } catch {
             toast.error('Aktion fehlgeschlagen.');
         }
@@ -367,7 +425,7 @@ export default function AdminUsers() {
                     ? `${unverifiedOnPage.length} Nutzer erfolgreich verifiziert!`
                     : `${unverifiedOnPage.length - failed} verifiziert, ${failed} fehlgeschlagen.`
             );
-            fetchUsers();
+            refreshAll();
         } catch {
             toast.error('Fehler bei der Stapelverifizierung.');
         }
@@ -383,7 +441,7 @@ export default function AdminUsers() {
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="size-10"
+                        className="h-11 w-11"
                         aria-label={`Aktionen für ${user.display_name || user.first_name || 'Nutzer'}`}
                     />
                 }
@@ -392,11 +450,12 @@ export default function AdminUsers() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>Aktionen</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => setEditingUser(user)}>
+                <DropdownMenuItem className="min-h-11" onClick={() => setEditingUser(user)}>
                     <Edit aria-hidden />
                     Bearbeiten
                 </DropdownMenuItem>
                 <DropdownMenuItem
+                    className="min-h-11"
                     onClick={() => setConfirmAction({
                         type: 'role',
                         user,
@@ -410,6 +469,7 @@ export default function AdminUsers() {
                     {user.role === 'sv_admin' ? 'Admin-Rechte entziehen' : 'Zum Admin machen'}
                 </DropdownMenuItem>
                 <DropdownMenuItem
+                    className="min-h-11"
                     onClick={() => setConfirmAction({
                         type: 'verify',
                         user,
@@ -423,7 +483,7 @@ export default function AdminUsers() {
                     {user.is_verified ? 'Verifizierung aufheben' : 'Verifizieren'}
                 </DropdownMenuItem>
                 {user.role === 'parent' && (
-                    <DropdownMenuItem onClick={() => fetchUserRelations(user)}>
+                    <DropdownMenuItem className="min-h-11" onClick={() => fetchUserRelations(user)}>
                         <Link2 aria-hidden />
                         Verknüpfte Kinder
                     </DropdownMenuItem>
@@ -431,6 +491,7 @@ export default function AdminUsers() {
                 <DropdownMenuSeparator />
                 {user.is_banned ? (
                     <DropdownMenuItem
+                        className="min-h-11"
                         onClick={() => setConfirmAction({
                             type: 'unban',
                             user,
@@ -442,13 +503,14 @@ export default function AdminUsers() {
                         Entsperren
                     </DropdownMenuItem>
                 ) : (
-                    <DropdownMenuItem onClick={() => setBanUserObj(user)}>
+                    <DropdownMenuItem className="min-h-11" onClick={() => setBanUserObj(user)}>
                         <Ban aria-hidden />
                         Sperren
                     </DropdownMenuItem>
                 )}
                 <DropdownMenuItem
                     variant="destructive"
+                    className="min-h-11"
                     onClick={() => setConfirmAction({
                         type: 'delete',
                         user,
@@ -464,100 +526,115 @@ export default function AdminUsers() {
     );
 
     return (
-        <div className="space-y-6">
-            {/* Header controls */}
-            <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
-                <div className="relative w-full 2xl:max-w-md">
-                    <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} aria-hidden />
-                    <Input
-                        placeholder="Nutzer suchen nach Name, E-Mail..."
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        className="h-11 pl-11"
-                        aria-label="Nutzer durchsuchen"
-                    />
-                </div>
+        <div className="space-y-5">
+            {/* Aggregat-Kennzahlen */}
+            <div className="grid grid-cols-2 gap-2.5 xl:grid-cols-4">
+                <SummaryTile label="Nutzer gesamt" value={accountSummary.total} hint="Alle registrierten Konten" />
+                <SummaryTile label="Verifiziert" value={accountSummary.verified} hint="Freigeschaltete Konten" />
+                <SummaryTile label="Gesperrt" value={accountSummary.banned} hint="Aktive Sperren" emphasis />
+                <SummaryTile label="Treffer" value={loading || !!loadError ? null : total} hint="Aktuelle Suche und Filter" />
+            </div>
 
-                <div className="flex flex-wrap items-center gap-2">
-                    {/* Role filter */}
-                    <NativeSelect
-                        value={filterRole}
-                        onChange={e => { setFilterRole(e.target.value); setPage(0); }}
-                        wrapperClassName="w-full sm:w-44"
-                        className="w-full"
-                        aria-label="Nach Rolle filtern"
-                    >
-                        <option value="all">Alle Rollen</option>
-                        <option value="student">Schüler</option>
-                        <option value="sv_admin">Admin</option>
-                        <option value="coach_admin">Schüler-Coach</option>
-                        <option value="parent">Elternteil</option>
-                    </NativeSelect>
+            {/* Toolbar: Suche und Aktionen ab lg in einer Zeile */}
+            <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                    <div className="relative w-full min-w-0 lg:max-w-md">
+                        <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} aria-hidden />
+                        <Input
+                            placeholder="Nutzer suchen nach Name, E-Mail..."
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            className="h-11 pl-10 text-[13px]"
+                            aria-label="Nutzer durchsuchen"
+                        />
+                    </div>
 
-                    {/* Status filter */}
-                    <NativeSelect
-                        value={filterStatus}
-                        onChange={e => { setFilterStatus(e.target.value); setPage(0); }}
-                        wrapperClassName="w-full sm:w-44"
-                        className="w-full"
-                        aria-label="Nach Status filtern"
-                    >
-                        <option value="all">Alle Status</option>
-                        <option value="verified">Verifiziert</option>
-                        <option value="unverified">Nicht verifiziert</option>
-                        <option value="banned">Gesperrt</option>
-                    </NativeSelect>
-
-                    {/* Batch verify action */}
-                    {unverifiedCount > 0 && (
-                        <Button
-                            onClick={handleBatchVerifyPage}
-                            className="h-11 gap-1.5"
-                            title="Alle unverifizierten Nutzer auf dieser Seite freischalten"
+                    <div className="flex flex-wrap items-center gap-2 lg:ml-auto lg:flex-nowrap">
+                        <NativeSelect
+                            value={filterRole}
+                            onChange={e => { setFilterRole(e.target.value); setPage(0); }}
+                            wrapperClassName="w-[calc(50%-0.25rem)] sm:w-40 lg:w-40"
+                            className="w-full text-[13px]"
+                            aria-label="Nach Rolle filtern"
                         >
-                            <ShieldCheck size={16} aria-hidden /> Alle verifizieren ({unverifiedCount})
-                        </Button>
-                    )}
+                            <option value="all">Alle Rollen</option>
+                            <option value="student">Schüler</option>
+                            <option value="sv_admin">Admin</option>
+                            <option value="coach_admin">Schüler-Coach</option>
+                            <option value="parent">Elternteil</option>
+                        </NativeSelect>
 
-                    {/* Actions */}
-                    <Button onClick={exportToCSV} variant="outline" className="h-11 gap-2" title="Exportiert die aktuelle Seite als CSV">
-                        <Download size={16} aria-hidden /> CSV Export
-                    </Button>
-
-                    <Button onClick={fetchUsers} variant="ghost" size="icon" className="h-11 w-11" title="Aktualisieren" aria-label="Liste aktualisieren">
-                        <RefreshCw size={16} aria-hidden className={cn(loading && 'animate-spin')} />
-                    </Button>
-
-                    {/* View Switcher */}
-                    <div className="flex shrink-0 items-center gap-1 rounded-lg border border-border bg-muted p-1">
-                        <Button
-                            variant="unstyled"
-                            size="unstyled"
-                            type="button"
-                            onClick={() => setViewMode('list')}
-                            aria-pressed={viewMode === 'list'}
-                            aria-label="Listenansicht"
-                            className={cn(
-                                'grid h-11 w-11 place-items-center rounded-lg transition-colors',
-                                viewMode === 'list' ? 'border border-border bg-card text-foreground' : 'text-muted-foreground hover:text-foreground'
-                            )}
+                        <NativeSelect
+                            value={filterStatus}
+                            onChange={e => { setFilterStatus(e.target.value); setPage(0); }}
+                            wrapperClassName="w-[calc(50%-0.25rem)] sm:w-40 lg:w-40"
+                            className="w-full text-[13px]"
+                            aria-label="Nach Status filtern"
                         >
-                            <ListIcon size={16} aria-hidden />
-                        </Button>
+                            <option value="all">Alle Status</option>
+                            <option value="verified">Verifiziert</option>
+                            <option value="unverified">Nicht verifiziert</option>
+                            <option value="banned">Gesperrt</option>
+                        </NativeSelect>
+
+                        {unverifiedCount > 0 && (
+                            <Button
+                                onClick={handleBatchVerifyPage}
+                                className="h-11 gap-1.5 px-3 text-[13px]"
+                                title="Alle unverifizierten Nutzer auf dieser Seite freischalten"
+                                aria-label={`Alle unverifizierten Nutzer auf dieser Seite verifizieren (${unverifiedCount})`}
+                            >
+                                <ShieldCheck size={16} aria-hidden />
+                                <span className="hidden sm:inline">Alle verifizieren</span>
+                                <span className="tabular-nums">({unverifiedCount})</span>
+                            </Button>
+                        )}
+
                         <Button
-                            variant="unstyled"
-                            size="unstyled"
-                            type="button"
-                            onClick={() => setViewMode('grid')}
-                            aria-pressed={viewMode === 'grid'}
-                            aria-label="Kachelansicht"
-                            className={cn(
-                                'grid h-11 w-11 place-items-center rounded-lg transition-colors',
-                                viewMode === 'grid' ? 'border border-border bg-card text-foreground' : 'text-muted-foreground hover:text-foreground'
-                            )}
+                            onClick={exportToCSV}
+                            variant="outline"
+                            className="h-11 w-11 gap-2 px-0 sm:w-auto sm:px-3.5"
+                            title="Aktuelle Seite als CSV exportieren"
+                            aria-label="Aktuelle Seite als CSV exportieren"
                         >
-                            <LayoutGrid size={16} aria-hidden />
+                            <Download size={16} aria-hidden />
+                            <span className="hidden text-[13px] sm:inline">CSV</span>
                         </Button>
+
+                        <Button onClick={refreshAll} variant="ghost" size="icon" className="h-11 w-11" title="Aktualisieren" aria-label="Liste aktualisieren">
+                            <RefreshCw size={16} aria-hidden className={cn(loading && 'animate-spin')} />
+                        </Button>
+
+                        <div className="flex shrink-0 items-center gap-1 rounded-full border border-border bg-muted p-1">
+                            <Button
+                                variant="unstyled"
+                                size="unstyled"
+                                type="button"
+                                onClick={() => setViewMode('list')}
+                                aria-pressed={viewMode === 'list'}
+                                aria-label="Listenansicht"
+                                className={cn(
+                                    'grid h-11 w-11 place-items-center rounded-full transition-colors',
+                                    viewMode === 'list' ? 'bg-card text-foreground shadow-soft' : 'text-muted-foreground hover:text-foreground'
+                                )}
+                            >
+                                <ListIcon size={16} aria-hidden />
+                            </Button>
+                            <Button
+                                variant="unstyled"
+                                size="unstyled"
+                                type="button"
+                                onClick={() => setViewMode('grid')}
+                                aria-pressed={viewMode === 'grid'}
+                                aria-label="Kachelansicht"
+                                className={cn(
+                                    'grid h-11 w-11 place-items-center rounded-full transition-colors',
+                                    viewMode === 'grid' ? 'bg-card text-foreground shadow-soft' : 'text-muted-foreground hover:text-foreground'
+                                )}
+                            >
+                                <LayoutGrid size={16} aria-hidden />
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -567,7 +644,7 @@ export default function AdminUsers() {
                     <AlertTitle>Nutzerliste nicht verfügbar</AlertTitle>
                     <AlertDescription className="flex flex-col items-start gap-3">
                         <span>{loadError}</span>
-                        <Button type="button" variant="outline" className="h-11" onClick={fetchUsers}>
+                        <Button type="button" variant="outline" className="h-11" onClick={refreshAll}>
                             Erneut laden
                         </Button>
                     </AlertDescription>
@@ -576,110 +653,113 @@ export default function AdminUsers() {
 
             {/* List/Grid displays */}
             {loadError ? null : loading ? (
-                <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card py-16 text-center">
+                <div className="flex flex-col items-center justify-center gap-3 rounded-card border border-border bg-card py-16 text-center">
                     <Spinner className="size-6 text-foreground" />
                     <p className="text-sm text-muted-foreground">Lade Benutzerdaten...</p>
                 </div>
             ) : filteredUsers.length === 0 ? (
-                <div className="rounded-2xl border border-border bg-card px-4 py-16 text-center">
+                <div className="rounded-card border border-border bg-card px-4 py-16 text-center">
                     <UsersIcon size={32} className="mx-auto text-muted-foreground" aria-hidden />
                     <p className="mt-3 text-base font-medium text-foreground">Keine Nutzer gefunden</p>
                     <p className="mt-1 text-xs text-muted-foreground">Passe deine Suchfilter an oder lade die Liste neu.</p>
                 </div>
             ) : viewMode === 'list' ? (
-                <Card>
-                    <CardContent className="p-0">
-                        <Table>
+                <Card className="rounded-card">
+                    <CardContent padding="flush">
+                        <Table className="text-[13px]">
                             <TableHeader>
                                 <TableRow>
                                     <TableHead className="pl-4">Nutzer</TableHead>
                                     <TableHead className="hidden md:table-cell">E-Mail</TableHead>
                                     <TableHead className="hidden sm:table-cell">Stufe</TableHead>
                                     <TableHead className="hidden lg:table-cell">Rolle</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead className="pr-4 text-right">Aktionen</TableHead>
+                                    <TableHead className="hidden sm:table-cell">Status</TableHead>
+                                    <TableHead className="pr-4 text-right">
+                                        <span className="hidden sm:inline">Aktionen</span>
+                                        <span className="sr-only sm:hidden">Aktionen</span>
+                                    </TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {filteredUsers.map(u => (
-                                    <TableRow key={u.id}>
-                                        <TableCell className="py-3 pl-4">
-                                            <div className="flex min-w-0 items-center gap-3">
-                                                <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-muted font-semibold text-foreground">
-                                                    {u.avatar_url ? (
-                                                        <img src={u.avatar_url} alt="" className="size-10 rounded-lg object-cover" />
-                                                    ) : (
-                                                        (u.display_name || u.first_name || '?').charAt(0).toUpperCase()
-                                                    )}
+                                {filteredUsers.map(u => {
+                                    const name = u.display_name || `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'Unbekannt';
+                                    return (
+                                        <TableRow key={u.id}>
+                                            <TableCell className="py-3 pl-4">
+                                                <div className="flex min-w-0 items-center gap-3">
+                                                    <div className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-lg bg-muted font-semibold text-foreground">
+                                                        {u.avatar_url ? (
+                                                            <img src={u.avatar_url} alt="" className="size-10 object-cover object-top" />
+                                                        ) : (
+                                                            name.charAt(0).toUpperCase()
+                                                        )}
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <div className="max-w-[16rem] truncate text-[13px] font-semibold text-foreground" title={name}>{name}</div>
+                                                        <div className="mt-0.5 max-w-[10rem] truncate text-xs text-muted-foreground md:hidden">{u.email}</div>
+                                                        <div className="mt-1 sm:hidden"><StatusBadge user={u} /></div>
+                                                    </div>
                                                 </div>
-                                                <div className="min-w-0">
-                                                    <div className="break-words text-sm font-semibold text-foreground">{u.display_name || `${u.first_name} ${u.last_name}`}</div>
-                                                    <div className="mt-0.5 break-all text-xs text-muted-foreground md:hidden">{u.email}</div>
-                                                </div>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="hidden max-w-[220px] whitespace-normal break-all text-xs text-muted-foreground md:table-cell">{u.email}</TableCell>
-                                        <TableCell className="hidden text-sm text-muted-foreground sm:table-cell">
-                                            {u.grade_level ? `${u.grade_level}${u.class_letter || ''}` : '—'}
-                                        </TableCell>
-                                        <TableCell className="hidden lg:table-cell"><RoleBadge role={u.role} /></TableCell>
-                                        <TableCell><StatusBadge user={u} /></TableCell>
-                                        <TableCell className="pr-4 text-right">{renderUserActions(u)}</TableCell>
-                                    </TableRow>
-                                ))}
+                                            </TableCell>
+                                            <TableCell className="hidden max-w-[220px] md:table-cell">
+                                                <span className="block truncate text-xs text-muted-foreground" title={u.email || ''}>{u.email || '—'}</span>
+                                            </TableCell>
+                                            <TableCell className="hidden text-sm text-muted-foreground sm:table-cell">
+                                                {u.grade_level ? `${u.grade_level}${u.class_letter || ''}` : '—'}
+                                            </TableCell>
+                                            <TableCell className="hidden lg:table-cell"><RoleBadge role={u.role} /></TableCell>
+                                            <TableCell className="hidden sm:table-cell"><StatusBadge user={u} /></TableCell>
+                                            <TableCell className="pr-4 text-right">{renderUserActions(u)}</TableCell>
+                                        </TableRow>
+                                    );
+                                })}
                             </TableBody>
                         </Table>
                     </CardContent>
                 </Card>
             ) : (
-                <div className="grid grid-cols-1 gap-3 xl:grid-cols-2 2xl:grid-cols-3 md:gap-4">
-                    {filteredUsers.map(u => (
-                        <Card key={u.id}>
-                            <CardContent className="flex flex-col items-center gap-3 p-5 text-center">
-                                <div className="relative">
-                                    <div className="grid size-16 place-items-center rounded-lg bg-muted text-xl font-semibold text-foreground">
-                                        {u.avatar_url ? <img src={u.avatar_url} alt="" className="size-16 rounded-lg object-cover" /> : (u.display_name || '?').charAt(0).toUpperCase()}
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-3">
+                    {filteredUsers.map(u => {
+                        const name = u.display_name || `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'Unbekannt';
+                        return (
+                            <Card key={u.id} className="rounded-card">
+                                <CardContent className="flex items-start gap-3 p-4">
+                                    <div className="relative shrink-0">
+                                        <div className="grid size-12 place-items-center overflow-hidden rounded-lg bg-muted text-base font-semibold text-foreground">
+                                            {u.avatar_url ? <img src={u.avatar_url} alt="" className="size-12 object-cover object-top" /> : name.charAt(0).toUpperCase()}
+                                        </div>
+                                        {u.is_verified && (
+                                            <span className="absolute -bottom-1 -right-1 grid size-5 place-items-center rounded-full border-2 border-card bg-emerald-600 text-white" title="Verifiziert">
+                                                <Check size={12} strokeWidth={2.5} aria-hidden />
+                                            </span>
+                                        )}
                                     </div>
-                                    {u.is_verified && (
-                                        <span className="absolute -bottom-1 -right-1 grid size-6 place-items-center rounded-full border-2 border-card bg-emerald-600 text-white" title="Verifiziert">
-                                            <Check size={16} strokeWidth={2.5} aria-hidden />
-                                        </span>
-                                    )}
-                                </div>
-                                <div className="min-w-0 w-full">
-                                    <div className="break-words text-base font-semibold text-foreground">{u.display_name || `${u.first_name} ${u.last_name}`}</div>
-                                    <div className="mt-0.5 break-all text-xs text-muted-foreground">{u.email}</div>
-                                    <div className="mt-2 flex flex-wrap justify-center gap-2">
-                                        <span className="rounded-md border border-border bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
-                                            Stufe {u.grade_level || '--'}{u.class_letter || ''}
-                                        </span>
-                                        <RoleBadge role={u.role} />
-                                        <StatusBadge user={u} />
+                                    <div className="min-w-0 flex-1">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <div className="min-w-0">
+                                                <div className="truncate text-[13px] font-semibold text-foreground" title={name}>{name}</div>
+                                                <div className="mt-0.5 truncate text-xs text-muted-foreground" title={u.email || ''}>{u.email || '—'}</div>
+                                            </div>
+                                            {renderUserActions(u)}
+                                        </div>
+                                        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                                            <span className="rounded-md border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                                                Stufe {u.grade_level || '–'}{u.class_letter || ''}
+                                            </span>
+                                            <RoleBadge role={u.role} />
+                                            <StatusBadge user={u} />
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="mt-2 flex flex-wrap justify-center gap-2">
-                                    <Button size="sm" variant="outline" className="h-11 flex-1" onClick={() => setEditingUser(u)}>Bearbeiten</Button>
-                                    {u.is_banned ? (
-                                        <Button size="sm" variant="outline" className="h-11 flex-1" onClick={() => setConfirmAction({
-                                            type: 'unban',
-                                            user: u,
-                                            title: 'Nutzer entsperren?',
-                                            message: `Möchtest du den Account von ${u.display_name} wieder freigeben?`
-                                        })}>Entsperren</Button>
-                                    ) : (
-                                        <Button size="sm" variant="outline" className="h-11 flex-1 text-destructive" onClick={() => setBanUserObj(u)}>Sperren</Button>
-                                    )}
-                                    {renderUserActions(u)}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+                                </CardContent>
+                            </Card>
+                        );
+                    })}
                 </div>
             )}
 
             {/* Pagination */}
             {!loading && total > PAGE_SIZE && (
-                <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                <div className="flex flex-wrap items-center justify-center gap-3">
                     <Button
                         variant="outline"
                         className="h-11"
@@ -688,7 +768,7 @@ export default function AdminUsers() {
                     >
                         Zurück
                     </Button>
-                    <span className="text-sm font-medium text-muted-foreground">
+                    <span className="text-[13px] font-medium text-muted-foreground" aria-live="polite">
                         Seite {page + 1} von {totalPages} · {total} Nutzer
                     </span>
                     <Button

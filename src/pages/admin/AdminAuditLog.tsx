@@ -1,5 +1,6 @@
 import { NativeSelect } from '@/components/ui/native-select';
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -27,6 +28,7 @@ interface AuditLog {
     target_id: string | null;
     details: any;
     created_at: string;
+    target_name?: string | null;
     admin_profile?: {
         display_name: string | null;
     } | null;
@@ -55,18 +57,41 @@ const ACTION_LABELS: Record<string, string> = {
     coach_info_update: 'Coaching Startseiten-Infos geändert',
 };
 
-export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter?: string }) {
+export default function AdminAuditLog() {
+    const [searchParams, setSearchParams] = useSearchParams();
     const [logs, setLogs] = useState<AuditLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState<string | null>(null);
-    const [searchAction, setSearchAction] = useState(defaultFilter);
     const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
+    // URL-synchron: ?filter=coach ist die Coaching-Gruppe, ein Aktionsname
+    // (z. B. ban_user) filtert genau diese Aktion, fehlend = alle.
+    const filterParam = searchParams.get('filter') || 'all';
+    const searchAction = filterParam === 'coach' || Object.prototype.hasOwnProperty.call(ACTION_LABELS, filterParam)
+        ? filterParam
+        : 'all';
+    const isCoachFilter = searchAction === 'coach';
 
     // Pagination state (Backend ohne Total-Count → Limit+1-Heuristik)
     const [page, setPage] = useState(0);
     const [totalCount, setTotalCount] = useState(0);
     const [hasMore, setHasMore] = useState(false);
     const pageSize = 20;
+
+    const setFilter = (nextFilter: string) => {
+        const next = new URLSearchParams(searchParams);
+        next.set('tab', 'auditlog');
+        if (nextFilter === 'all') {
+            next.delete('filter');
+        } else {
+            next.set('filter', nextFilter);
+        }
+        setPage(0);
+        setSearchParams(next);
+    };
+
+    useEffect(() => {
+        setPage(0);
+    }, [searchAction]);
 
     const fetchLogs = useCallback(async () => {
         setLoading(true);
@@ -119,26 +144,34 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
 
     return (
         <div className="space-y-6">
-            {/* Header & Filters */}
-            <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
-                <header>
-                    <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Audit Log</h1>
-                    <p className="mt-0.5 text-sm text-muted-foreground">Vollständiges Protokoll aller administrativen Eingriffe</p>
+            {/* Header & Filters – eine Seite, der Coaching-Filter lebt in der URL. */}
+            <div className="flex flex-col gap-3">
+                <header className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                        <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">Audit &amp; Coaching</h1>
+                        <p className="mt-0.5 text-[13px] text-muted-foreground">
+                            Protokoll aller administrativen Eingriffe · Coaching-Filter über <code className="rounded bg-muted px-1 py-0.5 text-xs">?filter=coach</code>
+                        </p>
+                    </div>
+                    <Button onClick={fetchLogs} variant="ghost" size="icon" className="h-11 w-11 shrink-0" title="Aktualisieren" aria-label="Audit Log aktualisieren">
+                        <RefreshCw size={16} className={cn(loading && 'animate-spin')} aria-hidden />
+                    </Button>
                 </header>
 
                 <div className="flex flex-wrap items-center gap-2">
                     <Button
-                        onClick={() => { setSearchAction(searchAction === 'coach' ? 'all' : 'coach'); setPage(0); }}
-                        variant={searchAction === 'coach' ? 'primary' : 'outline'}
-                        className="h-11 gap-2 text-sm"
+                        onClick={() => setFilter(isCoachFilter ? 'all' : 'coach')}
+                        variant={isCoachFilter ? 'primary' : 'outline'}
+                        aria-pressed={isCoachFilter}
+                        className="h-11 gap-2 text-[13px]"
                     >
                         <GraduationCap size={16} aria-hidden /> Schüler-Coaching
                     </Button>
                     <NativeSelect
-                        value={searchAction === 'coach' ? 'all' : searchAction}
-                        onChange={e => { setSearchAction(e.target.value); setPage(0); }}
+                        value={isCoachFilter ? 'all' : searchAction}
+                        onChange={e => setFilter(e.target.value)}
                         wrapperClassName="w-full sm:w-52"
-                        className="w-full"
+                        className="w-full text-[13px]"
                         aria-label="Nach Aktion filtern"
                     >
                         <option value="all">Alle Aktionen</option>
@@ -147,11 +180,14 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
                         ))}
                     </NativeSelect>
 
-                    <Button onClick={fetchLogs} variant="ghost" size="icon" className="h-11 w-11" title="Aktualisieren" aria-label="Audit Log aktualisieren">
-                        <RefreshCw size={16} className={cn(loading && 'animate-spin')} aria-hidden />
-                    </Button>
                 </div>
             </div>
+
+            {isCoachFilter && (
+                <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-[13px] text-muted-foreground">
+                    Aktiv: <span className="font-medium text-foreground">Schüler-Coaching</span> · Coach-Zuweisungen, Entzug, Coaching-Codes und Startseiten-Infos
+                </p>
+            )}
 
             {loadError && (
                 <Alert variant="destructive">
@@ -166,8 +202,8 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
             )}
 
             {/* Logs List */}
-            <Card className="">
-                <CardContent className="p-0">
+            <Card className="rounded-card">
+                <CardContent padding="flush">
                     {loadError ? null : loading ? (
                         <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
                             <Spinner className="size-6 text-foreground" />
@@ -176,8 +212,14 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
                     ) : logs.length === 0 ? (
                         <div className="px-4 py-16 text-center">
                             <ClipboardList size={32} className="mx-auto text-muted-foreground" aria-hidden />
-                            <p className="mt-3 text-base font-medium text-foreground">Keine Log-Einträge vorhanden</p>
-                            <p className="mt-1 text-xs text-muted-foreground">Es wurden bisher keine Aktionen protokolliert.</p>
+                            <p className="mt-3 text-base font-medium text-foreground">
+                                {isCoachFilter ? 'Keine Coaching-Einträge vorhanden' : 'Keine Log-Einträge vorhanden'}
+                            </p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                {isCoachFilter
+                                    ? 'Für den Coaching-Filter wurden keine Aktionen protokolliert.'
+                                    : 'Es wurden bisher keine Aktionen protokolliert.'}
+                            </p>
                         </div>
                     ) : (
                         <div className="divide-y divide-border">
@@ -186,7 +228,7 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
                                 return (
                                     <div
                                         key={log.id}
-                                        className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5"
+                                        className="flex flex-col gap-3 p-3.5 sm:flex-row sm:items-center sm:justify-between sm:p-4"
                                     >
                                         <div className="min-w-0 flex-1 space-y-1.5">
                                             <div className="flex flex-wrap items-center gap-2">
@@ -209,7 +251,11 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
                                                 </span>
                                             </div>
                                             <div className="break-words text-xs font-medium text-muted-foreground">
-                                                Ziel: <span className="font-semibold text-foreground">{log.target_type} ({log.target_id || '--'})</span>
+                                                Ziel:{' '}
+                                                <span className="font-semibold text-foreground">
+                                                    {log.target_name || log.target_type || 'Ohne Zielobjekt'}
+                                                    {log.target_id ? ` (${log.target_id})` : ''}
+                                                </span>
                                                 {log.details && log.details.reason && ` • Grund: "${log.details.reason}"`}
                                             </div>
                                         </div>
@@ -295,7 +341,10 @@ export default function AdminAuditLog({ defaultFilter = 'all' }: { defaultFilter
 
                             <div className="space-y-1 text-xs">
                                 <span className="block font-medium text-muted-foreground">Ziel-Objekt</span>
-                                <span className="break-all tabular-nums">{selectedLog.target_type} ({selectedLog.target_id || 'Keine ID'})</span>
+                                <span className="break-all tabular-nums">
+                                    {selectedLog.target_name || selectedLog.target_type || 'Ohne Zielobjekt'}
+                                    {selectedLog.target_id ? ` (${selectedLog.target_id})` : ''}
+                                </span>
                             </div>
 
                             <div className="space-y-1">
