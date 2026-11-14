@@ -85,10 +85,55 @@ Führe die SQL-Dateien in dieser Reihenfolge im SQL Editor aus:
 4. Warte bis „Success. No rows returned" erscheint
 
 ### Supabase Storage konfigurieren (optional)
-Falls du Bildupload direkt hosten möchtest (aktuell werden externe URLs verwendet):
+Falls du Avatare oder Belege direkt in Supabase Storage hosten möchtest (Anzeigenbilder laufen über `api/upload.php` und `uploads/ads/`):
 1. Gehe zu **Storage** → New Bucket
 2. Name: `avatars` (öffentlich), `evidence` (privat)
 3. Passe die Storage-Policies an
+
+### Anzeigenbilder auf ALL-INKL (api/upload.php)
+Anzeigen können Bilder direkt hochladen. Die Dateien liegen nicht in der
+Datenbank, sondern im Webspace unter `uploads/ads/`; die App speichert nur die
+absolute `https://…`-URL in `image_urls`.
+
+1. Ordner `uploads/` und `uploads/ads/` auf dem Webspace anlegen bzw. erhalten.
+   `npm run build` kopiert `uploads/ads/.htaccess` nach
+   `dist/uploads/ads/.htaccess`; beim Deployment die `.htaccess` aus
+   `dist/uploads/ads/` übernehmen. `api/upload.php` legt die Schutzdatei
+   zusätzlich selbst an, falls der Ordner erst zur Laufzeit entsteht.
+   Hochgeladene Bilder gehören nie ins Build-Artefakt und müssen bei
+   Deployments erhalten bleiben (z. B. `uploads/` ausnehmen).
+2. Der PHP-Benutzer muss dort schreiben dürfen. Üblich ist:
+   ```bash
+   chmod 755 uploads uploads/ads
+   # Falls der Upload weiterhin scheitert (anderer PHP-Benutzer):
+   chmod 775 uploads uploads/ads
+   # bzw. Eigentümer auf den PHP/FPM-Benutzer setzen:
+   chown -R www-data:www-data uploads uploads/ads
+   ```
+3. `uploads/ads/.htaccess` muss auf dem Server aktiv sein; der Webspace muss
+   `.htaccess`-Overrides erlauben (bei ALL-INKL Standard). Es verbietet
+   Skriptausführung, Directory-Listing und setzt
+   `X-Content-Type-Options: nosniff`. Prüfe nach dem Deploy:
+   `https://…/uploads/ads/test.php` und `…/test.html` müssen 403 liefern,
+   ein vorhandenes Bild dagegen 200. Ist die Datei leer oder kein reguläres
+   File, bricht `api/upload.php` bewusst mit `upload_unavailable` ab, bis die
+   Schutzdatei korrigiert oder gelöscht wurde.
+4. PHP muss mindestens 5-MB-Uploads annehmen. Prüfe in der `php.ini`
+   (bzw. bei ALL-INKL in den PHP-Einstellungen):
+   ```ini
+   upload_max_filesize = 6M
+   post_max_size = 8M
+   ```
+5. `APP_URL` in `api/config.php` muss auf die öffentliche `https://`-Domain
+   zeigen. `api/upload.php` gibt damit absolute URLs zurück; `api/ads.php`
+   akzeptiert aus Sicherheitsgründen nur `https://`-Bildadressen.
+6. `api/upload.php` akzeptiert ausschließlich JPEG, PNG und WebP bis 5 MB,
+   geprüft über `finfo` und `getimagesize` (kein SVG, keine ausführbaren
+   Dateien). Der Dateiname wird serverseitig zufällig erzeugt.
+7. Kann der Server nicht schreiben, antwortet der Endpunkt mit
+   `Bild-Upload ist auf diesem Server nicht verfügbar. Bitte nutze stattdessen
+   eine Bild-URL.` (HTTP 500, `code: upload_unavailable`). Die URL-Eingabe in
+   CreateAd bleibt in diesem Fall als Fallback nutzbar.
 
 ---
 
@@ -250,7 +295,7 @@ VALUES ('nutzer-uuid', 'admin-uuid', 'Grund der Sperrung', 'permanent');
 
 ## 9. Bekannte Einschränkungen
 
-- **Bildupload**: Die App unterstützt aktuell keine direkten Bild-Uploads. Nutzer müssen externe Bild-URLs (z.B. Imgur) angeben.
+- **Bildupload**: Direkte Uploads laufen über `api/upload.php` und benötigen einen beschreibbaren `uploads/ads/`-Ordner (siehe oben). Ohne Schreibrechte bleibt die externe Bild-URL der Fallback.
 - **Push-Benachrichtigungen**: In-App-Benachrichtigungen sind implementiert. Web-Push erfordert einen VAPID-Key-Setup im Backend.
 - **E-Mails**: Alle E-Mails werden über Supabase's eingebauten E-Mail-Provider versendet. Für Produktion wird ein eigener SMTP-Server empfohlen.
 

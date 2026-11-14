@@ -149,6 +149,162 @@ export async function apiRequest<T = any>(
 }
 
 // ------------------------------------------------------------------------------
+// Bild-Upload
+// ------------------------------------------------------------------------------
+// apiRequest() ist bewusst JSON-only. Für multipart/form-data braucht es einen
+// eigenen Pfad: Content-Type NICHT setzen (der Browser ergänzt die Boundary),
+// aber Authorization wie bei allen anderen geschützten Endpunkten mitsenden.
+const UPLOAD_TIMEOUT_MS = 60000;
+
+export interface UploadAdImageError {
+    message: string;
+    status?: number;
+    code?: string | null;
+    isNetwork?: boolean;
+    url?: string;
+}
+
+interface UploadResponse {
+    url?: unknown;
+    error?: unknown;
+    code?: unknown;
+    details?: { code?: unknown } | null;
+}
+
+function uploadErrorCode(json: UploadResponse | null): string | null {
+    if (typeof json?.code === 'string' && json.code.trim() !== '') return json.code;
+    if (typeof json?.details?.code === 'string' && json.details.code.trim() !== '') return json.details.code;
+    return null;
+}
+
+function resolveApiOrigin(): string {
+    if (/^https?:\/\//i.test(API_BASE)) {
+        return new URL(API_BASE).origin;
+    }
+    if (typeof window !== 'undefined') {
+        return window.location.origin;
+    }
+    return 'https://localhost';
+}
+
+/** Relative Upload-Pfade defensiv auf eine absolute URL heben. */
+function normalizeUploadUrl(raw: unknown): string | null {
+    if (typeof raw !== 'string' || raw.trim() === '') return null;
+    const url = raw.trim();
+    if (/^https:\/\//i.test(url)) return url;
+    if (url.startsWith('/')) {
+        try {
+            return new URL(url, resolveApiOrigin()).toString();
+        } catch {
+            return null;
+        }
+    }
+    return null;
+}
+
+/**
+ * Lädt ein Anzeigenbild als multipart/form-data hoch.
+ * Erwartet die Antwort `{ url: string }` von `api/upload.php`.
+ * Data-URLs werden nie an den Server geschickt; CreateAd komprimiert vorher
+ * zu einer echten Datei (Blob/File).
+ */
+export async function uploadAdImage(file: File): Promise<{ data: { url: string } | null; error: UploadAdImageError | null }> {
+    const token = getStoredToken();
+    if (!token) {
+        return {
+            data: null,
+            error: {
+                message: 'Nicht angemeldet. Bitte melde dich erneut an.',
+                status: 401,
+                code: 'unauthorized',
+            },
+        };
+    }
+
+    const url = `${API_BASE.replace(/\/$/, '')}/upload.php`;
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS);
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+            body: formData,
+            signal: controller.signal,
+        });
+
+        const contentType = response.headers.get('content-type') || '';
+        let json: UploadResponse | null = null;
+        if (contentType.includes('application/json')) {
+            try {
+                json = (await response.json()) as UploadResponse;
+            } catch {
+                json = null;
+            }
+        }
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                try {
+                    localStorage.removeItem(TOKEN_KEY);
+                    localStorage.removeItem(USER_KEY);
+                } catch { /* ignore */ }
+            }
+            const code = uploadErrorCode(json);
+            // Belt-and-Braces wie apiRequest(): nur ein not_verified-Gate
+            // zieht die zentrale AccessGuard-UI nach.
+            if (code === 'not_verified' && typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('fwg:access-denied', { detail: { code } }));
+            }
+            return {
+                data: null,
+                error: {
+                    message: typeof json?.error === 'string' && json.error.trim() !== ''
+                        ? json.error
+                        : defaultHttpMessage(response.status),
+                    status: response.status,
+                    code,
+                    url,
+                },
+            };
+        }
+
+        const uploadedUrl = normalizeUploadUrl(json?.url);
+        if (!uploadedUrl) {
+            return {
+                data: null,
+                error: {
+                    message: 'Der Server hat keine gültige Bild-URL zurückgegeben.',
+                    status: response.status,
+                    url,
+                },
+            };
+        }
+
+        return { data: { url: uploadedUrl }, error: null };
+    } catch (err) {
+        const isTimeout = err instanceof Error && err.name === 'AbortError';
+        return {
+            data: null,
+            error: {
+                message: isTimeout
+                    ? 'Zeitüberschreitung beim Bild-Upload. Bitte erneut versuchen.'
+                    : 'Bild konnte nicht hochgeladen werden. Bitte Internetverbindung prüfen und erneut versuchen.',
+                status: undefined,
+                code: isTimeout ? 'timeout' : 'network',
+                isNetwork: !isTimeout || undefined,
+                url,
+            },
+        };
+    } finally {
+        clearTimeout(timeoutId);
+    }
+}
+
+// ------------------------------------------------------------------------------
 // Typisierte API-Funktionen
 // ------------------------------------------------------------------------------
 export const api = {
