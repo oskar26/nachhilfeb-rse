@@ -426,7 +426,7 @@ export default function AdDetails() {
                                                 >
                                                     <Send size={20} className="mr-2" /> Anfrage senden
                                                 </Button>
-                                                <p className="hidden text-center text-[13px] leading-relaxed text-muted-foreground md:block md:text-left">
+                                                <p className="text-center text-[13px] leading-relaxed text-muted-foreground md:text-left">
                                                     Unverbindlich · Kontakte erst nach Annahme sichtbar
                                                 </p>
                                             </div>

@@ -130,6 +130,21 @@ describe('uploadAdImage', () => {
     expect(event.type).toBe('fwg:access-denied');
     expect(event.detail.code).toBe('not_verified');
   });
+
+  it('dispatcht bei anderen 403-Codes kein Access-Gate-Event', async () => {
+    const dispatchEvent = vi.fn();
+    vi.stubGlobal('window', { dispatchEvent, location: { origin: 'https://app.example' } });
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({
+      error: 'Zugriff verweigert.',
+      details: { code: 'forbidden' },
+    }, 403)));
+
+    const result = await uploadAdImage(makeImageFile());
+
+    expect(result.error?.status).toBe(403);
+    expect(result.error?.code).toBe('forbidden');
+    expect(dispatchEvent).not.toHaveBeenCalled();
+  });
 });
 
 describe('adImageFileProblem', () => {

@@ -254,9 +254,9 @@ export async function uploadAdImage(file: File): Promise<{ data: { url: string }
                 } catch { /* ignore */ }
             }
             const code = uploadErrorCode(json);
-            // Belt-and-Braces wie apiRequest(): ein 403 aus dem Upload-Gate
-            // muss die zentrale AccessGuard-UI sofort nachziehen.
-            if (response.status === 403 && typeof window !== 'undefined') {
+            // Belt-and-Braces wie apiRequest(): nur ein not_verified-Gate
+            // zieht die zentrale AccessGuard-UI nach.
+            if (code === 'not_verified' && typeof window !== 'undefined') {
                 window.dispatchEvent(new CustomEvent('fwg:access-denied', { detail: { code } }));
             }
             return {

@@ -13,6 +13,7 @@ import { cn } from '../lib/utils';
 import { PriceTag } from '../components/ui/price-tag';
 import { PRICE_GUIDELINE, PRICE_MODE_LABELS } from '../lib/pricing';
 import { AD_IMAGE_MAX_BYTES, adImageFileProblem, compressImage } from '../lib/image';
+import { MAX_AD_CUSTOM_LOCATION_LENGTH, MAX_AD_LOCATIONS, splitAdLocations } from '../lib/ad-locations';
 import { useAuth } from '../context/AuthContext';
 import { api, uploadAdImage } from '../lib/api';
 import { toast } from 'sonner';
@@ -54,46 +55,12 @@ const DURATION_EGAL = 0; // 0 = „Egal / nach Absprache“ (wird so im Feed ang
 
 // Sichtbare Obergrenzen – dieselben Limits, die der Server erzwingt.
 const MAX_SUBJECTS = 10;
-const MAX_LOCATIONS = 10;
+const MAX_LOCATIONS = MAX_AD_LOCATIONS;
 const MAX_DURATIONS = 6;
 const MAX_IMAGES = 5;
-const MAX_CUSTOM_LOCATION_LENGTH = 120;
+const MAX_CUSTOM_LOCATION_LENGTH = MAX_AD_CUSTOM_LOCATION_LENGTH;
 
 const PRESET_LOCATIONS = new Set<string>(LOCATION_GROUPS.flatMap(group => group.locations));
-
-/**
- * Teilt alte und neue Ortsdaten in Presets und eigene Orte. Alte Anzeigen
- * können eigene Orte sowohl in `locations` (früher zusammengeführt) als auch
- * im Einzelwert `custom_location` tragen; beides wird hier vereinigt.
- */
-function splitLocations(
-    rawLocations: unknown,
-    rawCustomLocations: unknown = [],
-    legacyCustomLocation: unknown = ''
-): { locations: string[]; custom_locations: string[] } {
-    const locations: string[] = [];
-    const customLocations: string[] = [];
-
-    const add = (value: unknown) => {
-        if (typeof value !== 'string') return;
-        const clean = value.trim().slice(0, MAX_CUSTOM_LOCATION_LENGTH);
-        if (!clean) return;
-        if (locations.length + customLocations.length >= MAX_LOCATIONS) return;
-        if (PRESET_LOCATIONS.has(clean)) {
-            if (!locations.includes(clean)) locations.push(clean);
-            return;
-        }
-        if (!customLocations.includes(clean) && !locations.includes(clean)) {
-            customLocations.push(clean);
-        }
-    };
-
-    if (Array.isArray(rawLocations)) rawLocations.forEach(add);
-    if (Array.isArray(rawCustomLocations)) rawCustomLocations.forEach(add);
-    add(legacyCustomLocation);
-
-    return { locations, custom_locations: customLocations };
-}
 
 /**
  * Verkleinert große Bilder vor dem Upload. compressImage() liefert eine
@@ -185,10 +152,11 @@ function adToFormData(source: EditableAd | null | undefined): typeof INITIAL_FOR
     const legacyFormat: SessionFormat = source?.session_format === 'single' || source?.session_format === 'group' || source?.session_format === 'any'
         ? source.session_format
         : (legacyGroup ? 'group' : 'any');
-    const { locations, custom_locations } = splitLocations(
+    const { locations, custom_locations } = splitAdLocations(
         source?.locations,
         [],
-        source?.custom_location
+        source?.custom_location,
+        PRESET_LOCATIONS
     );
 
     return {
@@ -350,10 +318,11 @@ export default function CreateAd() {
                     const restored = { ...parsed.formData };
                     // Migration alter Entwürfe: früher gab es nur einen
                     // einzelnen custom_location-String.
-                    const restoredLocations = splitLocations(
+                    const restoredLocations = splitAdLocations(
                         restored.locations,
                         restored.custom_locations,
-                        restored.custom_location
+                        restored.custom_location,
+                        PRESET_LOCATIONS
                     );
                     delete restored.custom_location;
                     setFormData(prev => ({
@@ -420,11 +389,13 @@ export default function CreateAd() {
     };
 
     const handleBack = () => {
+        if (uploadingCountRef.current > 0 || uploadingImages.length > 0) return;
         triggerHaptic('selection');
         if (currentStep > 0) setCurrentStep(prev => prev - 1);
     };
 
     const jumpToStep = (index: number) => {
+        if (uploadingCountRef.current > 0 || uploadingImages.length > 0) return;
         if (index < currentStep || isStepValid()) {
             if ('vibrate' in navigator) navigator.vibrate([15]);
             setCurrentStep(index);
@@ -652,6 +623,7 @@ export default function CreateAd() {
     };
 
     const removeImage = (index: number) => {
+        setImageFeedback(null);
         setFormData(prev => ({
             ...prev,
             image_urls: prev.image_urls.filter((_, i) => i !== index)
@@ -830,7 +802,7 @@ export default function CreateAd() {
                                 <Button variant="unstyled" size="unstyled"
                                     type="button"
                                     onClick={() => jumpToStep(index)}
-                                    disabled={index > currentStep && !isStepValid()}
+                                    disabled={uploadingImages.length > 0 || (index > currentStep && !isStepValid())}
                                     className={cn(
                                         "relative z-10 flex size-11 shrink-0 items-center justify-center rounded-full text-[13px] font-bold transition-[background-color,color,transform] duration-150 active:scale-[0.98]",
                                         isCurrent
@@ -1151,7 +1123,7 @@ export default function CreateAd() {
                                 </div>
 
                                 {totalLocations > 0 && (
-                                    <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground" aria-live="polite">
+                                    <p className="mt-2 max-w-full min-w-0 break-words text-[13px] leading-relaxed text-muted-foreground [overflow-wrap:anywhere]" aria-live="polite">
                                         Ausgewählt: {[...formData.locations, ...formData.custom_locations].join(' • ')}
                                     </p>
                                 )}
@@ -1373,6 +1345,16 @@ export default function CreateAd() {
                                     Hochgeladene Bilder werden vor dem Senden verkleinert.
                                 </p>
 
+                                {/* Dauerhaft gemountete Live-Regionen: Screenreader
+                                    hören Erfolg/Fehler auch dann, wenn der sichtbare
+                                    Block erst nachträglich erscheint. */}
+                                <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+                                    {imageFeedback?.tone === 'success' ? imageFeedback.message : ''}
+                                </div>
+                                <div className="sr-only" role="alert" aria-atomic="true">
+                                    {imageFeedback?.tone === 'error' ? imageFeedback.message : ''}
+                                </div>
+
                                 <div className="space-y-3">
                                     <input
                                         ref={fileInputRef}
@@ -1408,12 +1390,12 @@ export default function CreateAd() {
                                     </div>
 
                                     {imageFeedback?.tone === 'success' && (
-                                        <p role="status" className="rounded-xl border border-border bg-pastel-mint px-3 py-2 text-[13px] font-medium text-pastel-mint-foreground">
+                                        <p className="rounded-xl border border-border bg-pastel-mint px-3 py-2 text-[13px] font-medium text-pastel-mint-foreground">
                                             {imageFeedback.message}
                                         </p>
                                     )}
                                     {imageFeedback?.tone === 'error' && (
-                                        <div role="alert" className="flex items-start gap-2 rounded-xl border border-destructive/25 bg-destructive/5 px-3 py-2 text-[13px] font-medium leading-relaxed text-destructive">
+                                        <div className="flex items-start gap-2 rounded-xl border border-destructive/25 bg-destructive/5 px-3 py-2 text-[13px] font-medium leading-relaxed text-destructive">
                                             <AlertCircle size={15} className="mt-0.5 shrink-0" aria-hidden />
                                             <span>{imageFeedback.message}</span>
                                         </div>
@@ -1557,7 +1539,7 @@ export default function CreateAd() {
                         </p>
                     )}
                     <div className="flex w-full flex-col-reverse items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <Button variant="ghost" onClick={handleBack} disabled={currentStep === 0} className="w-full px-3 sm:w-auto sm:px-4">
+                        <Button variant="ghost" onClick={handleBack} disabled={currentStep === 0 || uploadingImages.length > 0} className="w-full px-3 sm:w-auto sm:px-4">
                             <ChevronLeft size={16} className="mr-1 shrink-0 sm:mr-2" /> Zurück
                         </Button>
 

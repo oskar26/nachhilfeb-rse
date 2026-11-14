@@ -166,9 +166,13 @@ if (!is_file($htaccessPath)) {
 HTACCESS;
     if (@file_put_contents($htaccessPath, $protection, LOCK_EX) === false) {
         error_log('Ad upload .htaccess could not be created: ' . $htaccessPath);
-    } else {
-        @chmod($htaccessPath, 0644);
+        json_error(
+            'Bild-Upload ist auf diesem Server nicht verfügbar. Bitte nutze stattdessen eine Bild-URL.',
+            500,
+            ['code' => 'upload_unavailable']
+        );
     }
+    @chmod($htaccessPath, 0644);
 }
 
 $extension = $allowed[$imageType]['ext'];
