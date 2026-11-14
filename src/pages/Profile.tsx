@@ -1,7 +1,7 @@
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Button, buttonVariants } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';

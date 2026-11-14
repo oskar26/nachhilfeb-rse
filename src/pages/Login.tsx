@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardFooter } from '../c
 import { toast } from 'sonner';
 import { useTheme } from '../components/ThemeProvider';
 import { Sun, Moon, CheckCircle, ShieldAlert, Users } from 'lucide-react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'motion/react';
 import { RefinedGradeSelector } from '../components/RefinedGradeSelector';
 import { Logo } from '../components/ui/Logo';
 

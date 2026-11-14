@@ -1,6 +1,6 @@
 import { ShieldCheck, BadgeCheck, Mail, Check, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'motion/react';
 import { buttonVariants } from '../components/ui/button';
 import StaticLayout from '../components/StaticLayout';
 import VerifySteps from '../components/VerifySteps';

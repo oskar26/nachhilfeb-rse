@@ -1,7 +1,7 @@
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useTheme } from '../components/ThemeProvider';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Moon, Sun, Monitor, ChevronLeft, Shield, Trash2, Download, AlertTriangle, LifeBuoy, Share2, BookOpen, Check } from 'lucide-react';
 import { Button } from '../components/ui/button';

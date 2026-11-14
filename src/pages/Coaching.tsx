@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/table';
 import { Link, useLocation } from 'react-router-dom';
 import { Award, ClipboardCheck, Scale, Megaphone, HeartHandshake, Gavel, Mail, School, Clock, MapPin, type LucideIcon } from 'lucide-react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'motion/react';
 import StaticLayout from '../components/StaticLayout';
 import { api } from '../lib/api';
 

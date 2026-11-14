@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'motion/react';
 import { Smartphone, DoorOpen, BadgeCheck } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 

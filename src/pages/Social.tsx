@@ -2,7 +2,7 @@
 
 import { useMemo, type ReactNode } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'motion/react';
 import { EyeOff, Heart, Inbox, RotateCcw, Sparkles } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { EmptyState } from '../components/social/EmptyState';
