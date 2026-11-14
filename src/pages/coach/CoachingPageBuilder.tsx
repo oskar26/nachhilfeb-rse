@@ -258,6 +258,7 @@ function ScheduleEditor({ block, onChange }: { block: CoachingSupportBlock; onCh
     const addRow = () => {
         const row: CoachingScheduleRow = {
             id: editorId('schedule-row'),
+            time: '',
             cells: block.days.map(() => ({ id: editorId('cell'), text: '' })),
         };
         onChange({ ...block, rows: [...block.rows, row] });
@@ -289,8 +290,11 @@ function ScheduleEditor({ block, onChange }: { block: CoachingSupportBlock; onCh
 
             <div className="space-y-3">
                 <div className="flex items-center justify-between gap-3">
-                    <h4 className="text-sm font-semibold text-foreground">Stundenplan</h4>
-                    <Button type="button" variant="outline" size="sm" onClick={addRow} disabled={block.days.length === 0} className="min-h-11 font-semibold">
+                    <div className="min-w-0">
+                        <h4 className="text-sm font-semibold text-foreground">Stundenplan</h4>
+                        <p className="mt-1 text-xs leading-5 text-muted-foreground">Eine Zeile ist ein Zeitfenster mit Fächern pro Tag. Die Zeit ist optional; sobald eine Zeile eine Zeit hat, zeigt die öffentliche Seite eine Spalte „Zeit“.</p>
+                    </div>
+                    <Button type="button" variant="outline" size="sm" onClick={addRow} disabled={block.days.length === 0} className="min-h-11 shrink-0 font-semibold">
                         <Plus size={15} /> Zeile
                     </Button>
                 </div>
@@ -304,6 +308,15 @@ function ScheduleEditor({ block, onChange }: { block: CoachingSupportBlock; onCh
                                 total={block.rows.length}
                                 onMove={direction => onChange({ ...block, rows: moveItem(block.rows, rowIndex, direction) })}
                                 onDelete={() => onChange({ ...block, rows: block.rows.filter(candidate => candidate.id !== row.id) })}
+                            />
+                        </div>
+                        <div className="mb-3">
+                            <EditorField
+                                id={`schedule-time-${row.id}`}
+                                label="Zeit (optional)"
+                                value={row.time ?? ''}
+                                placeholder="z. B. 7. Stunde"
+                                onChange={value => updateRow(row.id, current => ({ ...current, time: value }))}
                             />
                         </div>
                         <div className="grid gap-3 sm:grid-cols-2">
@@ -326,6 +339,9 @@ function ScheduleEditor({ block, onChange }: { block: CoachingSupportBlock; onCh
                         </div>
                     </div>
                 ))}
+                <p className="text-xs leading-5 text-muted-foreground">
+                    Hinweis: Es gibt kein Backend für Unterrichtsstunden oder Anwesenheit. Der Stundenplan wird ausschließlich als redaktioneller Inhalt in <code>content_json</code> gespeichert.
+                </p>
             </div>
         </div>
     );
