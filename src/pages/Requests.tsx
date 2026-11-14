@@ -51,19 +51,20 @@ export function IncomingRequestCard({ req, onStatus, onComplete }: { req: AdRequ
 
     return (
         <StreamCardShell>
-            <div className="flex items-start gap-3">
-                <Avatar person={req.requester} />
-                <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-base font-extrabold text-foreground">
+            <div className="flex items-start justify-between gap-2 sm:gap-3">
+                <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+                    <Avatar person={req.requester} />
+                    <h3 className="min-w-0 break-words text-base font-extrabold leading-tight text-foreground">
+                        <span className="sr-only">Anfrage von </span>
                         {req.requester?.display_name || 'Unbekannt'}
                     </h3>
-                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                        <TypeChip label="Anfrage · Eingehend" dotClass="bg-primary" icon={MessageSquare} />
-                        <StatusChip label={statusMeta.label} dotClass={statusMeta.dotClass} />
-                        <span className="inline-flex items-center gap-1 rounded-full bg-pastel-gray px-2.5 py-1 text-xs font-semibold text-pastel-gray-foreground">
-                            <GraduationCap size={12} aria-hidden /> {gradeLabel(req.requester?.grade_level)}
-                        </span>
-                    </div>
+                </div>
+                <div className="flex shrink-0 flex-col items-end gap-1 lg:flex-row lg:flex-wrap lg:items-center lg:justify-end lg:gap-1.5">
+                    <TypeChip label="Anfrage · Eingehend" dotClass="bg-primary" icon={MessageSquare} />
+                    <StatusChip label={statusMeta.label} dotClass={statusMeta.dotClass} />
+                    <span className="inline-flex items-center gap-1 rounded-full bg-pastel-gray px-2.5 py-1 text-xs font-semibold text-pastel-gray-foreground">
+                        <GraduationCap size={12} aria-hidden /> {gradeLabel(req.requester?.grade_level)}
+                    </span>
                 </div>
             </div>
 
@@ -71,12 +72,12 @@ export function IncomingRequestCard({ req, onStatus, onComplete }: { req: AdRequ
             {req.ads?.id && <AdLink ad={req.ads} navigate={navigate} />}
 
             {req.status === 'pending' && (
-                <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+                <div className="mt-4 grid grid-cols-2 gap-2">
                     <Button
                         onClick={() => void act('accepted')}
                         disabled={busy}
                         isLoading={busy}
-                        className="h-12 flex-1 px-4 text-sm font-semibold"
+                        className="h-11 px-3 text-sm font-semibold"
                     >
                         <CheckCircle size={16} /> Annehmen
                     </Button>
@@ -84,7 +85,7 @@ export function IncomingRequestCard({ req, onStatus, onComplete }: { req: AdRequ
                         variant="outline"
                         onClick={() => void act('rejected')}
                         disabled={busy}
-                        className="h-12 flex-1 px-4 text-sm font-semibold text-destructive hover:bg-destructive/10"
+                        className="h-11 px-3 text-sm font-semibold text-destructive hover:bg-destructive/10"
                     >
                         <XCircle size={16} /> Ablehnen
                     </Button>
@@ -98,16 +99,16 @@ export function IncomingRequestCard({ req, onStatus, onComplete }: { req: AdRequ
                     </p>
                     <ContactChips person={req.requester} />
                     <CustomContactsList contacts={req.requester?.settings?.custom_contacts} />
-                    <div className="flex flex-col gap-2 sm:flex-row">
+                    <div className="grid grid-cols-2 gap-2">
                         <Button
-                            className="h-12 flex-1 px-4 text-sm font-semibold"
+                            className="h-11 px-3 text-sm font-semibold"
                             onClick={() => navigate(`/chat/${req.id}`)}
                         >
                             <MessageSquare size={16} /> Chat öffnen
                         </Button>
                         <Button
                             variant="outline"
-                            className="h-12 flex-1 px-4 text-sm font-semibold"
+                            className="h-11 px-3 text-sm font-semibold"
                             onClick={() => onComplete(req)}
                         >
                             <Star size={16} /> Bewerten
@@ -126,19 +127,20 @@ export function OutgoingRequestCard({ req, onComplete }: { req: AdRequestItem } 
 
     return (
         <StreamCardShell>
-            <div className="flex items-start gap-3">
-                <Avatar person={req.owner} />
-                <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-base font-extrabold text-foreground">
-                        Anfrage an {req.owner?.display_name || 'Unbekannt'}
+            <div className="flex items-start justify-between gap-2 sm:gap-3">
+                <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+                    <Avatar person={req.owner} />
+                    <h3 className="min-w-0 break-words text-base font-extrabold leading-tight text-foreground">
+                        <span className="sr-only">Anfrage an </span>
+                        {req.owner?.display_name || 'Unbekannt'}
                     </h3>
-                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                        <TypeChip label="Anfrage · Ausgehend" dotClass="bg-muted-foreground" icon={MessageSquare} />
-                        <StatusChip label={statusMeta.label} dotClass={statusMeta.dotClass} />
-                        <span className="inline-flex items-center gap-1 rounded-full bg-pastel-gray px-2.5 py-1 text-xs font-semibold text-pastel-gray-foreground">
-                            <GraduationCap size={12} aria-hidden /> {gradeLabel(req.owner?.grade_level)}
-                        </span>
-                    </div>
+                </div>
+                <div className="flex shrink-0 flex-col items-end gap-1 lg:flex-row lg:flex-wrap lg:items-center lg:justify-end lg:gap-1.5">
+                    <TypeChip label="Anfrage · Ausgehend" dotClass="bg-muted-foreground" icon={MessageSquare} />
+                    <StatusChip label={statusMeta.label} dotClass={statusMeta.dotClass} />
+                    <span className="inline-flex items-center gap-1 rounded-full bg-pastel-gray px-2.5 py-1 text-xs font-semibold text-pastel-gray-foreground">
+                        <GraduationCap size={12} aria-hidden /> {gradeLabel(req.owner?.grade_level)}
+                    </span>
                 </div>
             </div>
 
@@ -162,16 +164,16 @@ export function OutgoingRequestCard({ req, onComplete }: { req: AdRequestItem } 
                     </p>
                     <ContactChips person={req.owner} />
                     <CustomContactsList contacts={req.owner?.settings?.custom_contacts} />
-                    <div className="flex flex-col gap-2 sm:flex-row">
+                    <div className="grid grid-cols-2 gap-2">
                         <Button
-                            className="h-12 flex-1 px-4 text-sm font-semibold"
+                            className="h-11 px-3 text-sm font-semibold"
                             onClick={() => navigate(`/chat/${req.id}`)}
                         >
                             <MessageSquare size={16} /> Chat öffnen
                         </Button>
                         <Button
                             variant="outline"
-                            className="h-12 flex-1 px-4 text-sm font-semibold"
+                            className="h-11 px-3 text-sm font-semibold"
                             onClick={() => onComplete(req)}
                         >
                             <Star size={16} /> Bewerten
@@ -213,10 +215,10 @@ function Avatar({ person }: { person?: RequestPerson | null }) {
         <img
             src={person.avatar_url}
             alt=""
-            className="h-11 w-11 shrink-0 rounded-full object-cover"
+            className="size-9 shrink-0 rounded-full object-cover sm:size-11"
         />
     ) : (
-        <div className={`grid size-11 shrink-0 place-items-center rounded-full text-sm font-bold ${avatarTone(person?.display_name)}`} aria-hidden>
+        <div className={`grid size-9 shrink-0 place-items-center rounded-full text-sm font-bold sm:size-11 ${avatarTone(person?.display_name)}`} aria-hidden>
             {initial}
         </div>
     );

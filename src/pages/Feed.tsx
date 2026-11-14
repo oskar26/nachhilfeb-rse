@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle } from '../components/ui/sheet';
 import { Skeleton } from '../components/ui/skeleton';
+import { PriceTag } from '../components/ui/price-tag';
 import { GradeSelector } from '../components/GradeSelector';
 import { Input } from '../components/ui/input';
 import { PriceRangeSlider } from '../components/PriceRangeSlider';
@@ -399,10 +400,13 @@ export default function Feed() {
     const sortedAds = sortiereAnzeigen(filteredAds, { sortKey, filterByTime, myAvailability });
 
     return (
-        <div className="mx-auto w-full min-w-0 max-w-app space-y-6 overflow-x-clip p-4 pb-24 sm:p-6">
-            {/* Eingeklappte News-Sektion auf der Startseite */}
-            <CollapsedNewsWidget compact={isMobile} />
-            <div className="relative mb-6 flex min-w-0 flex-col gap-4">
+        <div className="mx-auto w-full min-w-0 max-w-app space-y-3 overflow-x-clip p-4 pb-24 sm:space-y-6 sm:p-6">
+            {/* Desktop: eingeklappte News-Sektion. Mobile läuft der News-Einstieg
+                über das Schnellmenü der Shell, damit nichts doppelt erscheint. */}
+            <div className="hidden md:block">
+                <CollapsedNewsWidget compact={isMobile} />
+            </div>
+            <div className="relative flex min-w-0 flex-col gap-3 sm:gap-4">
                 <div className="flex flex-wrap items-center justify-between gap-2.5">
                     <div className="min-w-0">
                         <h1 className="min-w-0 text-[28px] font-extrabold leading-tight tracking-[-0.03em]">Aktuelle Anzeigen</h1>
@@ -475,6 +479,7 @@ export default function Feed() {
                         <SubjectChip
                             key={subj}
                             subject={subj}
+                            size="compact"
                             className={index >= 3 ? 'hidden sm:inline-flex' : undefined}
                             selected={filterSubject === subj}
                             onClick={() => {
@@ -488,7 +493,7 @@ export default function Feed() {
                         <Button variant="unstyled" size="unstyled" type="button"
                             onClick={() => setShowFilters(true)}
                             aria-label="Alle Fächer anzeigen"
-                            className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full bg-muted px-3 text-[13px] font-semibold text-foreground sm:hidden"
+                            className="inline-flex h-9 shrink-0 items-center gap-1 rounded-lg bg-muted px-3 text-xs font-semibold text-foreground sm:hidden"
                         >
                             Alle <ChevronDown size={12} aria-hidden />
                         </Button>
@@ -497,7 +502,7 @@ export default function Feed() {
                         <Button variant="unstyled" size="unstyled" type="button"
                             onClick={() => setFilterSubject(null)}
                             aria-label="Fachfilter zurücksetzen"
-                            className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-full bg-destructive/10 px-3 text-xs font-semibold text-destructive"
+                            className="inline-flex h-9 shrink-0 items-center gap-1 rounded-lg bg-destructive/10 px-3 text-xs font-semibold text-destructive"
                         >
                             <X size={12} aria-hidden /> Zurücksetzen
                         </Button>
@@ -518,7 +523,7 @@ export default function Feed() {
                         aria-hidden={!hasActiveFilters || loading}
                         tabIndex={hasActiveFilters && !loading ? 0 : -1}
                         className={cn(
-                            "flex min-h-9 shrink-0 cursor-pointer items-center gap-1 rounded-full bg-muted px-3 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground",
+                            "flex h-9 shrink-0 cursor-pointer items-center gap-1 rounded-lg bg-muted px-3 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground",
                             hasActiveFilters && !loading ? 'inline-flex' : 'hidden'
                         )}
                     >
@@ -530,7 +535,7 @@ export default function Feed() {
                         <NativeSelect
                             value={sortKey}
                             onChange={e => { if (isValidSortKey(e.target.value)) { setSortKey(e.target.value); triggerHaptic('selection'); } }}
-                            className="h-11 max-w-[12rem] cursor-pointer truncate rounded-full border-transparent bg-muted px-4 text-[13px] font-semibold text-foreground"
+                            className="h-9 max-w-[12rem] cursor-pointer truncate rounded-lg border-transparent bg-muted px-3 text-xs font-semibold text-foreground"
                             aria-label="Anzeigen sortieren"
                         >
                             {SORT_OPTIONS.map(o => (
@@ -642,6 +647,7 @@ export default function Feed() {
                                                     <SubjectChip
                                                         key={s}
                                                         subject={s}
+                                                        size="compact"
                                                         selected={filterSubject === s}
                                                         onClick={() => setFilterSubject(filterSubject === s ? null : s)}
                                                         className="cursor-pointer"
@@ -660,10 +666,10 @@ export default function Feed() {
             </div>
 
             {savedSearch && !loading && !fetchError && (
-                <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 overflow-x-clip rounded-card border border-border bg-muted px-4 py-3 dark:bg-muted">
-                    <div className="flex min-w-0 items-center gap-2 text-sm">
+                <div className="flex min-w-0 flex-nowrap items-center justify-between gap-2 overflow-x-clip rounded-card border border-border bg-muted px-3 py-1.5 dark:bg-muted sm:flex-wrap sm:px-4 sm:py-3">
+                    <div className="flex min-w-0 flex-1 items-center gap-2 text-[13px] sm:text-sm">
                         <Bookmark size={15} className="shrink-0 fill-current text-foreground" aria-hidden />
-                        <span className="shrink-0 font-semibold text-foreground">Gespeicherte Suche:</span>
+                        <span className="sr-only font-semibold text-foreground sm:not-sr-only sm:shrink-0">Gespeicherte Suche:</span>
                         <span className="truncate text-muted-foreground">
                             {savedSearch.query ? `„${savedSearch.query}“` : 'Alle Anzeigen'}
                             {savedSearch.subject ? ` · ${savedSearch.subject}` : ''}
@@ -695,10 +701,12 @@ export default function Feed() {
                 </div>
             )}
 
-            {/* Mobile: Anzeigen zuerst, Infos danach. Desktop: Infos bleiben oben. */}
+            {/* Mobile: Anzeigen zuerst, nur die kompakten Info-Pills danach.
+                Desktop: kompakte Pills plus aufklappbare Info-Karten oben. */}
             <div className="flex flex-col gap-6">
-            {/* Infos als kompakte Pill-Reihe; Details bleibt immer erreichbar */}
             <div className="order-2 md:order-1">
+            {/* Kompakte Info-Pills; die ausführlichen Karten gibt es nur ab md,
+                damit mobile Ansicht und erster Anzeigen-Viewport schlank bleiben. */}
             <div className="flex min-w-0 items-center gap-2">
                 <div className="no-scrollbar flex min-w-0 flex-1 items-center gap-2 overflow-x-auto pb-1">
                     <span className="shrink-0 rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground">Infos</span>
@@ -728,7 +736,7 @@ export default function Feed() {
                     variant="outline"
                     size="sm"
                     aria-expanded={showBanners}
-                    className="h-11 shrink-0 rounded-full bg-card px-4 text-[13px] font-semibold"
+                    className="hidden h-11 shrink-0 rounded-full bg-card px-4 text-[13px] font-semibold md:inline-flex"
                     onClick={() => { const next = !showBanners; setShowBanners(next); try { localStorage.setItem('feed_show_banners', String(next)); } catch { /* ignore */ } }}
                 >
                     {showBanners ? (
@@ -740,7 +748,7 @@ export default function Feed() {
             </div>
 
                 {showBanners && (
-                    <div className="mt-3 space-y-4 animate-in slide-in-from-top-2">
+                    <div className="mt-3 hidden space-y-4 animate-in slide-in-from-top-2 md:block">
                         {/* Info Block für Schüler-Coaching (editierbar im Coach-Panel) */}
                         {coachInfo.is_visible && (
                             <Card className="relative overflow-hidden border-border bg-card ">
@@ -943,7 +951,7 @@ export default function Feed() {
                             tabIndex={0}
                             aria-label={cardLabel}
                             className={cn(
-                                "w-full min-w-0 cursor-pointer overflow-hidden rounded-card border-border bg-card shadow-soft transition-[transform,box-shadow,border-color] duration-150 hover:-translate-y-1 hover:shadow-card focus-visible:outline-none",
+                                "w-full min-w-0 cursor-pointer overflow-hidden rounded-card border-border bg-card shadow-soft transition-[transform,box-shadow,border-color] duration-150 ease-out hover:-translate-y-0.5 hover:shadow-card focus-visible:outline-none",
                                 boosted && "border-primary bg-pastel-yellow"
                             )}
                             onClick={openAd}
@@ -985,12 +993,15 @@ export default function Feed() {
                                             )}
                                         </div>
                                     </div>
-                                    <div className={cn('shrink-0 rounded-full px-3 py-1.5 text-right', boosted ? 'bg-white/75' : 'bg-primary-soft')}>
-                                        <div className="whitespace-nowrap text-base font-extrabold tabular-nums text-primary-soft-foreground sm:text-lg">
-                                            {formatPrice(ad)}
-                                        </div>
+                                    <div className={cn('flex shrink-0 flex-col items-end gap-1', boosted ? 'text-primary-soft-foreground' : undefined)}>
+                                        <PriceTag
+                                            price={ad.price_details?.value}
+                                            mode={ad.price_details?.mode}
+                                            duration={ad.price_details?.unit}
+                                            className={boosted ? 'bg-white/75 dark:bg-white/15' : undefined}
+                                        />
                                         {priceSecondary(ad) && (
-                                            <div className="mt-0.5 text-[11px] tabular-nums text-primary-soft-foreground/75">
+                                            <div className="text-[13px] tabular-nums text-primary-soft-foreground/75">
                                                 {priceSecondary(ad)}
                                             </div>
                                         )}
