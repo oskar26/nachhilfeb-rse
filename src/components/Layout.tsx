@@ -1,19 +1,22 @@
 import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Home, PlusCircle, User, LogOut, Settings, MessageSquare, Inbox, Zap, Heart, Sparkles, Award, ShieldCheck, MoreVertical, BookOpen } from 'lucide-react';
+import { Home, Plus, PlusCircle, User, LogOut, Settings, MessageSquare, Inbox, Zap, Heart, Sparkles, Award, ShieldCheck, MoreVertical, BookOpen } from 'lucide-react';
 import AccessGuard from './AccessGuard';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/button';
 import { useEffect, useRef, useState } from 'react';
 import NotificationCenter from './NotificationCenter';
+import MobileQuickMenu from './MobileQuickMenu';
 import InstallPrompt from './InstallPrompt';
 import { Logo } from './ui/Logo';
 import { triggerHaptic } from '../lib/haptics';
 import { avatarTone, initials } from '../lib/avatar';
 import { cn } from '../lib/utils';
 import { getDesktopSocialTab, type DesktopSocialTab } from '../lib/navigation';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
     DropdownMenu,
     DropdownMenuContent,
+    DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
@@ -32,16 +35,29 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarProvider,
+    SidebarRail,
     SidebarSeparator,
+    SidebarTrigger,
+    useSidebar,
 } from './ui/sidebar';
 
 /* App-Shell: Sidebar ab md, Bottom-Navigation darunter. Die Shell selbst
    scrollt nicht; nur der Inhaltsbereich scrollt, damit Chat/Composer eine
    stabile Höhe behalten. Safe-Areas werden oben und unten berücksichtigt. */
 export default function Layout() {
+    return (
+        <SidebarProvider className="h-dvh min-h-0 overflow-hidden bg-background font-sans text-foreground">
+            <AppShell />
+        </SidebarProvider>
+    );
+}
+
+function AppShell() {
     const { signOut, isAdmin, isCoachAdmin, profile } = useAuth();
+    const { setOpenMobile } = useSidebar();
     const navigate = useNavigate();
     const location = useLocation();
+    const isMobile = useIsMobile();
     const [unreadCount, setUnreadCount] = useState(0);
     const mainContentRef = useRef<HTMLDivElement>(null);
 
@@ -53,6 +69,8 @@ export default function Layout() {
 
     const handleNavClick = () => {
         triggerHaptic('selection');
+        // Auf Mobil schließt jede Navigation das Sidebar-Sheet.
+        setOpenMobile(false);
     };
 
     const pathname = location.pathname.replace(/\/+$/, '') || '/';
@@ -74,17 +92,14 @@ export default function Layout() {
     const mobileNavItems = [
         { to: '/', label: 'Entdecken', icon: Home, end: true },
         { to: '/social', label: 'Social', icon: MessageSquare, activateOnChat: true },
-        { to: '/create-ad', label: 'Erstellen', icon: PlusCircle, isAction: true },
+        { to: '/create-ad', label: 'Neue Anzeige', icon: Plus, isAction: true },
         { to: '/settings', label: 'Optionen', icon: Settings },
         { to: '/profile', label: 'Profil', icon: User }
     ];
+    const createAdActive = isPathActive('/create-ad');
 
     return (
-        <SidebarProvider
-            key={isSvPanel ? 'sv-panel' : 'app'}
-            defaultOpen={!isSvPanel}
-            className="h-dvh min-h-0 overflow-hidden bg-background font-sans text-foreground"
-        >
+        <>
             <Link
                 to={pathname || '/'}
                 onClick={event => {
@@ -99,23 +114,29 @@ export default function Layout() {
 
             <Sidebar
                 variant="inset"
-                collapsible={isSvPanel ? 'icon' : 'offcanvas'}
+                collapsible="icon"
                 className="[&_[data-sidebar=sidebar]]:border [&_[data-sidebar=sidebar]]:border-border/70 [&_[data-sidebar=sidebar]]:bg-card [&_[data-sidebar=sidebar]]:shadow-card"
             >
-                <SidebarHeader className="gap-0 p-3">
-                    <NavLink
-                        to="/welcome"
-                        onClick={handleNavClick}
-                        className="flex min-h-11 min-w-0 items-center gap-3 rounded-full p-1"
-                    >
-                        <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
-                            <Logo size={23} />
-                        </span>
-                        <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-                            <p className="truncate text-[15px] font-bold leading-tight tracking-tight text-foreground">Nachhilfebörse</p>
-                            <p className="mt-0.5 text-[13px] font-medium text-muted-foreground">FWG Köln</p>
-                        </div>
-                    </NavLink>
+                <SidebarHeader className="gap-0 p-3 pr-14 md:pr-2">
+                    <div className="flex min-w-0 items-center gap-1">
+                        <NavLink
+                            to="/welcome"
+                            onClick={handleNavClick}
+                            className="flex min-h-11 min-w-0 flex-1 items-center gap-2.5 rounded-full p-1 group-data-[collapsible=icon]:flex-none group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0"
+                        >
+                            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+                                <Logo size={23} />
+                            </span>
+                            <div className="min-w-0 group-data-[collapsible=icon]:hidden">
+                                <p className="truncate text-[15px] font-bold leading-tight tracking-tight text-foreground">Nachhilfebörse</p>
+                                <p className="mt-0.5 text-[13px] font-medium text-muted-foreground">FWG Köln</p>
+                            </div>
+                        </NavLink>
+                        <SidebarTrigger
+                            aria-label="Navigation einklappen"
+                            className="hidden size-11 shrink-0 rounded-full text-muted-foreground hover:text-foreground md:inline-flex group-data-[collapsible=icon]:hidden"
+                        />
+                    </div>
                 </SidebarHeader>
 
                 <SidebarSeparator />
@@ -296,12 +317,12 @@ export default function Layout() {
                     )}
                 </SidebarContent>
 
-                <SidebarFooter className="border-t border-border/70 p-3">
-                    <div className="flex items-center gap-1.5 rounded-card bg-accent p-2 group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-0">
+                <SidebarFooter className="border-t border-border/70 p-3 group-data-[collapsible=icon]:p-2">
+                    <div className="flex items-center gap-1 rounded-card bg-accent p-2 group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-0">
                         <NavLink
                             to="/profile"
                             onClick={handleNavClick}
-                            className="flex min-w-0 flex-1 items-center gap-2.5 rounded-full p-1 transition-colors hover:bg-card/70"
+                            className="flex min-w-0 flex-1 items-center gap-2 rounded-full p-0.5 transition-colors hover:bg-card/70 group-data-[collapsible=icon]:flex-none group-data-[collapsible=icon]:p-0"
                             title={profile?.display_name || 'Profil'}
                         >
                             {profile?.avatar_url ? (
@@ -320,16 +341,18 @@ export default function Layout() {
                                 <p className="truncate text-xs text-muted-foreground">{profile?.grade_level ? profile.grade_level : 'Profil'}</p>
                             </div>
                         </NavLink>
-                        <div className="group-data-[collapsible=icon]:hidden">
-                            <NotificationCenter unreadCount={unreadCount} onCountChange={setUnreadCount} />
-                        </div>
+                        {!isMobile && (
+                            <div className="group-data-[collapsible=icon]:hidden">
+                                <NotificationCenter unreadCount={unreadCount} onCountChange={setUnreadCount} />
+                            </div>
+                        )}
                         <DropdownMenu>
                             <DropdownMenuTrigger
                                 render={
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="size-10 shrink-0 rounded-full group-data-[collapsible=icon]:hidden"
+                                        className="size-11 shrink-0 rounded-full group-data-[collapsible=icon]:hidden"
                                         aria-label="Konto-Menü"
                                     />
                                 }
@@ -337,15 +360,17 @@ export default function Layout() {
                                 <MoreVertical aria-hidden />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" side="top" sideOffset={8} className="w-56">
-                                <DropdownMenuLabel>{profile?.display_name || 'Konto'}</DropdownMenuLabel>
-                                <DropdownMenuItem render={<NavLink to="/profile" onClick={handleNavClick} />}>
-                                    <User aria-hidden />
-                                    Profil
-                                </DropdownMenuItem>
-                                <DropdownMenuItem render={<NavLink to="/settings" onClick={handleNavClick} />}>
-                                    <Settings aria-hidden />
-                                    Einstellungen
-                                </DropdownMenuItem>
+                                <DropdownMenuGroup>
+                                    <DropdownMenuLabel>{profile?.display_name || 'Konto'}</DropdownMenuLabel>
+                                    <DropdownMenuItem render={<NavLink to="/profile" onClick={handleNavClick} />}>
+                                        <User aria-hidden />
+                                        Profil
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem render={<NavLink to="/settings" onClick={handleNavClick} />}>
+                                        <Settings aria-hidden />
+                                        Einstellungen
+                                    </DropdownMenuItem>
+                                </DropdownMenuGroup>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem variant="destructive" onClick={handleSignOut}>
                                     <LogOut aria-hidden />
@@ -355,21 +380,17 @@ export default function Layout() {
                         </DropdownMenu>
                     </div>
                 </SidebarFooter>
+                <SidebarRail />
             </Sidebar>
 
             <SidebarInset className="h-dvh min-h-0 overflow-hidden bg-transparent">
-                <div className="mx-3 mt-2 flex shrink-0 items-center justify-between gap-3 rounded-full border border-border/70 bg-card/95 px-3 py-1.5 shadow-soft backdrop-blur-xl md:hidden">
-                    <Link to="/welcome" onClick={handleNavClick} className="flex min-h-11 min-w-0 items-center gap-2.5 rounded-full">
-                        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
-                            <Logo size={20} />
-                        </span>
-                        <span className="truncate text-sm font-bold tracking-tight text-foreground">Nachhilfebörse <span className="text-muted-foreground">FWG</span></span>
-                    </Link>
-                    <NotificationCenter
-                        unreadCount={unreadCount}
-                        onCountChange={setUnreadCount}
-                        scrollRef={mainContentRef}
-                    />
+                <div className="flex shrink-0 justify-end px-3 pb-1 pt-[max(0.5rem,calc(0.5rem+env(safe-area-inset-top,0px)))] md:hidden">
+                    {isMobile && (
+                        <MobileQuickMenu
+                            unreadCount={unreadCount}
+                            onCountChange={setUnreadCount}
+                        />
+                    )}
                 </div>
                 <div
                     ref={mainContentRef}
@@ -386,27 +407,35 @@ export default function Layout() {
 
             <nav
                 aria-label="Hauptnavigation"
-                className="fixed right-4 bottom-[max(0.75rem,calc(0.75rem+env(safe-area-inset-bottom,0px)))] left-4 z-50 grid h-[4.5rem] grid-cols-5 items-center rounded-full border border-border/70 bg-card/95 px-2 shadow-overlay backdrop-blur-xl md:hidden"
+                className="fixed right-2 bottom-[max(0.75rem,calc(0.75rem+env(safe-area-inset-bottom,0px)))] left-2 z-50 grid h-[4.5rem] grid-cols-5 items-center rounded-full border border-border/70 bg-card/95 px-1 shadow-overlay backdrop-blur-xl md:hidden"
             >
                 {mobileNavItems.map((item) => {
                     const Icon = item.icon;
                     if (item.isAction) {
                         return (
-                            <Button variant="unstyled" size="unstyled"
+                            <Button
                                 key={item.to}
+                                variant="unstyled"
+                                size="unstyled"
+                                hapticStyle={false}
                                 type="button"
                                 onClick={() => {
                                     handleNavClick();
                                     navigate('/create-ad');
                                 }}
-                                className="relative flex h-full w-full min-w-0 flex-col items-center justify-center rounded-full"
-                                title={item.label}
-                                aria-label="Neue Anzeige erstellen"
+                                className="flex h-full w-full items-center justify-center p-[3px]"
+                                title="Neue Anzeige"
+                                aria-label="Neue Anzeige"
+                                aria-current={createAdActive ? 'page' : undefined}
                             >
-                                <span className="grid size-12 place-items-center rounded-full bg-primary text-primary-foreground shadow-card">
-                                    <PlusCircle size={23} strokeWidth={2.25} aria-hidden />
+                                <span
+                                    className={cn(
+                                        'grid size-11 place-items-center rounded-full bg-primary text-primary-foreground shadow-card transition-[background-color,box-shadow,transform] duration-150 ease-out hover:bg-primary-hover',
+                                        createAdActive && 'ring-2 ring-foreground ring-offset-2 ring-offset-card'
+                                    )}
+                                >
+                                    <Plus size={22} strokeWidth={2.4} aria-hidden />
                                 </span>
-                                <span className="max-w-full text-xs font-medium">Erstellen</span>
                             </Button>
                         );
                     }
@@ -417,27 +446,31 @@ export default function Layout() {
                             to={item.to}
                             end={item.end || (item.activateOnChat ? false : undefined)}
                             onClick={handleNavClick}
-                            className={({ isActive }) =>
-                                `relative flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-full text-xs font-medium transition-colors ${
-                                    isActive || (item.activateOnChat && (isSocialRoute || isChatRoute))
-                                        ? 'bg-primary-soft text-primary-soft-foreground dark:bg-muted dark:text-foreground'
-                                        : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-                                }`
-                            }
+                            className="group flex h-full w-full min-w-0 items-center justify-center p-[3px]"
                             title={item.label}
                         >
-                            {({ isActive }) => (
-                                <>
-                                    <Icon size={20} strokeWidth={isActive || (item.activateOnChat && (isSocialRoute || isChatRoute)) ? 2.25 : 2} aria-hidden />
-                                    <span className="max-w-full">{item.label}</span>
-                                </>
-                            )}
+                            {({ isActive }) => {
+                                const active = isActive || (item.activateOnChat && (isSocialRoute || isChatRoute));
+                                return (
+                                    <span
+                                        className={cn(
+                                            'flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-full text-xs font-medium transition-colors',
+                                            active
+                                                ? 'bg-primary-soft text-primary-soft-foreground dark:bg-muted dark:text-foreground'
+                                                : 'text-muted-foreground group-hover:bg-muted/60 group-hover:text-foreground'
+                                        )}
+                                    >
+                                        <Icon size={20} strokeWidth={active ? 2.25 : 2} aria-hidden />
+                                        <span className="max-w-full truncate tracking-[-0.02em]">{item.label}</span>
+                                    </span>
+                                );
+                            }}
                         </NavLink>
                     );
                 })}
             </nav>
 
             <InstallPrompt />
-        </SidebarProvider>
+        </>
     );
 }
