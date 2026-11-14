@@ -1,8 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { useEffect, useState, useCallback } from 'react';
-import type { RefObject } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
@@ -45,8 +44,6 @@ interface Props {
      * 'sticker': schwebender Poster-Sticker oben rechts + Bottom-Sheet (mobil).
      */
     variant?: 'desktop' | 'sticker';
-    /** Scroll-Container des App-Inhalts — steuert Schrumpfen/Fade des Stickers. */
-    scrollRef?: RefObject<HTMLElement | null>;
     /** Optional kontrolliertes Öffnen (z. B. aus dem MobileQuickMenu). */
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
@@ -111,17 +108,27 @@ export default function NotificationCenter({ unreadCount, onCountChange, variant
     const [unread, setUnread] = useState(unreadCount);
     const [loading, setLoading] = useState(false);
     const [loadError, setLoadError] = useState(false);
+    const [staleError, setStaleError] = useState(false);
+    const notificationsRef = useRef<AppNotification[]>([]);
+    const wasOpenRef = useRef(open);
 
     useEffect(() => {
         setUnread(unreadCount);
     }, [unreadCount]);
 
+    useEffect(() => {
+        notificationsRef.current = notifications;
+    }, [notifications]);
+
     // ── Fetch ──────────────────────────────────────────────────────
     // silent=true: kein Spinner-Flash, Liste bleibt stehen (gegen Flackern)
     const fetchNotifications = useCallback(async (silent = false) => {
         if (!user) return;
-        if (!silent) setLoading(true);
-        setLoadError(false);
+        if (!silent) {
+            setLoading(true);
+            setLoadError(false);
+            setStaleError(false);
+        }
         try {
             // 30 Einträge — identisch zum bisherigen Verhalten der Supabase-Attrappe (limit(50) war dort wirkungslos).
             const { data, error } = await api.notifications.list(30);
@@ -129,13 +136,20 @@ export default function NotificationCenter({ unreadCount, onCountChange, variant
             if (error) throw error;
 
             const list = (data ?? []) as AppNotification[];
+            notificationsRef.current = list;
             setNotifications(list);
+            setLoadError(false);
+            setStaleError(false);
             const count = list.filter(n => !n.read).length;
             setUnread(count);
             onCountChange(count);
         } catch (e) {
             console.error('[NotificationCenter] fetch error:', e);
-            setLoadError(true);
+            if (silent && notificationsRef.current.length > 0) {
+                setStaleError(true);
+            } else {
+                setLoadError(true);
+            }
         } finally {
             setLoading(false);
         }
@@ -154,14 +168,19 @@ export default function NotificationCenter({ unreadCount, onCountChange, variant
         return stopPolling;
     }, [user, fetchNotifications]);
 
+    useEffect(() => {
+        if (open && !wasOpenRef.current) {
+            // Beim Öffnen still aktualisieren (kein Spinner-Flash) – auch
+            // wenn der Aufrufer das Sheet kontrolliert öffnet.
+            void fetchNotifications(true);
+        }
+        wasOpenRef.current = open;
+    }, [open, fetchNotifications]);
+
     const handleOpenChange = (nextOpen: boolean) => {
         if (openProp === undefined) setInternalOpen(nextOpen);
         onOpenChange?.(nextOpen);
-        if (nextOpen) {
-            triggerHaptic('light');
-            // Beim Öffnen still aktualisieren (kein Spinner-Flash)
-            fetchNotifications(true);
-        }
+        if (nextOpen) triggerHaptic('light');
     };
 
     // ── Mark all as read ───────────────────────────────────────────
@@ -186,13 +205,14 @@ export default function NotificationCenter({ unreadCount, onCountChange, variant
             const { error } = await api.notifications.markRead(n.id);
             if (error) {
                 toast.error('Meldung konnte nicht als gelesen markiert werden.');
-                return;
+            } else {
+                setNotifications(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x));
+                const newCount = Math.max(0, unread - 1);
+                setUnread(newCount);
+                onCountChange(newCount);
             }
-            setNotifications(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x));
-            const newCount = Math.max(0, unread - 1);
-            setUnread(newCount);
-            onCountChange(newCount);
         }
+        // Ein fehlgeschlagenes Markieren darf die Navigation nicht blockieren.
         handleOpenChange(false);
         if (n.link) navigate(n.link);
     };
@@ -218,7 +238,7 @@ export default function NotificationCenter({ unreadCount, onCountChange, variant
                 <Button variant="unstyled" size="unstyled"
                     type="button"
                     onClick={markAllRead}
-                    className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
                     <CheckCheck size={13} />
                     Alle als gelesen
@@ -228,7 +248,7 @@ export default function NotificationCenter({ unreadCount, onCountChange, variant
     );
 
     const listContent = (
-        <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-3 [scrollbar-width:thin]">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 [scrollbar-width:thin]">
             {loading && (
                 <div className="flex items-center justify-center py-12">
                     <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
@@ -259,6 +279,12 @@ export default function NotificationCenter({ unreadCount, onCountChange, variant
                     </div>
                     <p className="text-lg font-semibold leading-none text-foreground">Nichts Neues</p>
                     <p className="text-xs text-muted-foreground">Du bist auf dem aktuellen Stand.</p>
+                </div>
+            )}
+
+            {!loading && !loadError && staleError && hasNotifications && (
+                <div className="mb-2 rounded-lg border border-border bg-muted/50 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
+                    Aktualisierung fehlgeschlagen. Es werden die zuletzt geladenen Meldungen angezeigt.
                 </div>
             )}
 

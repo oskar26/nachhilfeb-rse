@@ -66,7 +66,7 @@ export default function MobileQuickMenu({ unreadCount, onCountChange }: Props) {
     const [newsLoading, setNewsLoading] = useState(false);
     const [newsError, setNewsError] = useState(false);
     const [expandedNewsId, setExpandedNewsId] = useState<string | null>(null);
-    const [, setNewsRevision] = useState(0);
+    const [readOverrides, setReadOverrides] = useState<Record<string, boolean>>({});
     const [hiddenIds, setHiddenIds] = useState<string[]>(() => getHiddenNewsIds(viewer));
     const newsRef = useRef<NewsItem[]>([]);
 
@@ -95,8 +95,8 @@ export default function MobileQuickMenu({ unreadCount, onCountChange }: Props) {
 
     useEffect(() => {
         const refresh = () => {
+            setReadOverrides({});
             void fetchNews(true);
-            setNewsRevision(value => value + 1);
         };
         const onStorage = (event: StorageEvent) => {
             if (event.key === null || event.key.startsWith('fwg_news')) refresh();
@@ -117,7 +117,8 @@ export default function MobileQuickMenu({ unreadCount, onCountChange }: Props) {
         () => news.filter(item => !hiddenIds.includes(item.id)),
         [hiddenIds, news]
     );
-    const unreadNews = visibleNews.filter(item => !isNewsRead(item.id, viewer)).length;
+    const isNewsItemRead = (id: string) => readOverrides[id] ?? isNewsRead(id, viewer);
+    const unreadNews = visibleNews.filter(item => !isNewsItemRead(item.id)).length;
 
     const totalUnread = unreadCount + unreadNews;
     const triggerLabel = totalUnread > 0
@@ -143,7 +144,7 @@ export default function MobileQuickMenu({ unreadCount, onCountChange }: Props) {
         }
         triggerHaptic('success');
         setExpandedNewsId(null);
-        setNewsRevision(value => value + 1);
+        setReadOverrides(prev => ({ ...prev, [newsItem.id]: true }));
         notifyNewsStateChanged();
     };
 
@@ -157,7 +158,6 @@ export default function MobileQuickMenu({ unreadCount, onCountChange }: Props) {
         triggerHaptic('success');
         setExpandedNewsId(null);
         setHiddenIds(prev => prev.includes(newsItem.id) ? prev : [...prev, newsItem.id]);
-        setNewsRevision(value => value + 1);
         notifyNewsStateChanged();
     };
 
@@ -292,7 +292,7 @@ export default function MobileQuickMenu({ unreadCount, onCountChange }: Props) {
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-3 [scrollbar-width:thin]">
+                    <div className="flex-1 overflow-y-auto overscroll-contain px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 [scrollbar-width:thin]">
                         {newsLoading && (
                             <div className="flex items-center justify-center py-12">
                                 <Loader2 size={20} className="animate-spin text-muted-foreground" aria-hidden />
@@ -324,7 +324,7 @@ export default function MobileQuickMenu({ unreadCount, onCountChange }: Props) {
                         {!newsLoading && !newsError && visibleNews.length > 0 && (
                             <div className="flex flex-col gap-2">
                                 {visibleNews.map(item => {
-                                    const isRead = isNewsRead(item.id, viewer);
+                                    const isRead = isNewsItemRead(item.id);
                                     const expanded = expandedNewsId === item.id;
                                     return (
                                         <div

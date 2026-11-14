@@ -90,13 +90,18 @@ function AppShell() {
     const activeNavClass = 'dark:bg-muted dark:text-foreground dark:data-active:bg-muted dark:data-active:text-foreground dark:data-active:hover:bg-muted dark:data-active:hover:text-foreground';
 
     const mobileNavItems = [
-        { to: '/', label: 'Entdecken', icon: Home, end: true },
+        { to: '/', label: 'Entdecken', icon: Home },
         { to: '/social', label: 'Social', icon: MessageSquare, activateOnChat: true },
         { to: '/create-ad', label: 'Neue Anzeige', icon: Plus, isAction: true },
         { to: '/settings', label: 'Optionen', icon: Settings },
         { to: '/profile', label: 'Profil', icon: User }
     ];
     const createAdActive = isPathActive('/create-ad');
+    const isMobileNavActive = (to: string, activateOnChat = false) => {
+        if (to === '/') return pathname === '/';
+        if (activateOnChat) return isSocialRoute || isChatRoute;
+        return isPathActive(to);
+    };
 
     return (
         <>
@@ -122,10 +127,11 @@ function AppShell() {
                         <NavLink
                             to="/welcome"
                             onClick={handleNavClick}
+                            aria-label="Nachhilfebörse – Startseite"
                             className="flex min-h-11 min-w-0 flex-1 items-center gap-2.5 rounded-full p-1 group-data-[collapsible=icon]:flex-none group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0"
                         >
                             <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
-                                <Logo size={23} />
+                                <Logo size={23} aria-hidden="true" focusable="false" />
                             </span>
                             <div className="min-w-0 group-data-[collapsible=icon]:hidden">
                                 <p className="truncate text-[15px] font-bold leading-tight tracking-tight text-foreground">Nachhilfebörse</p>
@@ -322,7 +328,7 @@ function AppShell() {
                         <NavLink
                             to="/profile"
                             onClick={handleNavClick}
-                            className="flex min-w-0 flex-1 items-center gap-2 rounded-full p-0.5 transition-colors hover:bg-card/70 group-data-[collapsible=icon]:flex-none group-data-[collapsible=icon]:p-0"
+                            className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-full p-0.5 transition-colors hover:bg-card/70 group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:min-h-0 group-data-[collapsible=icon]:flex-none group-data-[collapsible=icon]:p-0"
                             title={profile?.display_name || 'Profil'}
                         >
                             {profile?.avatar_url ? (
@@ -440,32 +446,28 @@ function AppShell() {
                         );
                     }
 
+                    const active = isMobileNavActive(item.to, item.activateOnChat);
                     return (
-                        <NavLink
+                        <Link
                             key={item.to}
                             to={item.to}
-                            end={item.end || (item.activateOnChat ? false : undefined)}
                             onClick={handleNavClick}
                             className="group flex h-full w-full min-w-0 items-center justify-center p-[3px]"
                             title={item.label}
+                            aria-current={active ? 'page' : undefined}
                         >
-                            {({ isActive }) => {
-                                const active = isActive || (item.activateOnChat && (isSocialRoute || isChatRoute));
-                                return (
-                                    <span
-                                        className={cn(
-                                            'flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-full text-xs font-medium transition-colors',
-                                            active
-                                                ? 'bg-primary-soft text-primary-soft-foreground dark:bg-muted dark:text-foreground'
-                                                : 'text-muted-foreground group-hover:bg-muted/60 group-hover:text-foreground'
-                                        )}
-                                    >
-                                        <Icon size={20} strokeWidth={active ? 2.25 : 2} aria-hidden />
-                                        <span className="max-w-full truncate tracking-[-0.02em]">{item.label}</span>
-                                    </span>
-                                );
-                            }}
-                        </NavLink>
+                            <span
+                                className={cn(
+                                    'flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-full text-xs font-medium transition-colors',
+                                    active
+                                        ? 'bg-primary-soft text-primary-soft-foreground dark:bg-muted dark:text-foreground'
+                                        : 'text-muted-foreground group-hover:bg-muted/60 group-hover:text-foreground'
+                                )}
+                            >
+                                <Icon size={20} strokeWidth={active ? 2.25 : 2} aria-hidden />
+                                <span className="max-w-full truncate tracking-[-0.02em]">{item.label}</span>
+                            </span>
+                        </Link>
                     );
                 })}
             </nav>
