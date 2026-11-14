@@ -18,6 +18,88 @@ $method = $_SERVER['REQUEST_METHOD'];
 $pdo = DB::getConnection();
 $id = $_GET['id'] ?? null;
 
+// Auto-Migrationen: Anzeigentitel + Blockierungen (MariaDB, mehrfach ausführbar)
+try {
+    $pdo->exec("ALTER TABLE ads ADD COLUMN IF NOT EXISTS title VARCHAR(120) NULL AFTER user_id");
+} catch (Exception $e) {}
+try {
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS user_blocks (
+            blocker_id VARCHAR(36) NOT NULL,
+            blocked_id VARCHAR(36) NOT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (blocker_id, blocked_id),
+            KEY idx_user_blocks_blocked (blocked_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+} catch (Exception $e) {}
+
+// Falls eine ältere/fehlerhafte user_blocks-Tabelle mit INT-Spalten existiert
+// (die Anwendungs-IDs sind UUIDs), auf VARCHAR(36) umstellen.
+try {
+    $blockColumn = $pdo->query("SHOW COLUMNS FROM user_blocks LIKE 'blocker_id'")->fetch();
+    if ($blockColumn && stripos((string)($blockColumn['Type'] ?? ''), 'char') === false) {
+        $pdo->exec("ALTER TABLE user_blocks MODIFY blocker_id VARCHAR(36) NOT NULL, MODIFY blocked_id VARCHAR(36) NOT NULL");
+    }
+} catch (Exception $e) {}
+
+// Blockierung in beide Richtungen prüfen.
+function fwg_requests_users_blocked(PDO $pdo, string $viewerId, string $ownerId): bool {
+    if ($viewerId === '' || $ownerId === '') return false;
+    try {
+        $stmt = $pdo->prepare('
+            SELECT 1 FROM user_blocks
+            WHERE (blocker_id = ? AND blocked_id = ?) OR (blocker_id = ? AND blocked_id = ?)
+            LIMIT 1
+        ');
+        $stmt->execute([$viewerId, $ownerId, $ownerId, $viewerId]);
+        return (bool)$stmt->fetchColumn();
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
+// Private Gesuche (type='search') dürfen nur passende Anbieter anfragen:
+// eigenes Gesuch, SV-Admin oder mindestens ein Fach-Overlap mit den eigenen
+// Unterrichtsfächern (settings.teaches_subjects bzw. aktive Angebots-Fächer).
+function fwg_requests_can_contact_search_ad(PDO $pdo, array $user, string $ownerId, array $adSubjects): bool {
+    $viewerId = (string)($user['id'] ?? '');
+    if ($ownerId !== '' && $ownerId === $viewerId) return true;
+    if (($user['role'] ?? '') === 'sv_admin') return true;
+    if ($viewerId === '' || empty($adSubjects)) return false;
+
+    $allowedSubjects = [];
+    try {
+        $stmt = $pdo->prepare('SELECT settings FROM profiles WHERE id = ? LIMIT 1');
+        $stmt->execute([$viewerId]);
+        $settings = json_decode((string)$stmt->fetchColumn(), true) ?: [];
+        $allowedSubjects = fwg_sanitize_feed_subjects($settings['teaches_subjects'] ?? []);
+    } catch (Throwable $e) {}
+
+    // Zusätzlich die Fächer eigener aktiver Angebots-Anzeigen berücksichtigen.
+    try {
+        $stmt = $pdo->prepare("
+            SELECT subjects FROM ads
+            WHERE user_id = ? AND type = 'offer' AND is_active = 1 AND is_archived = 0
+        ");
+        $stmt->execute([$viewerId]);
+        foreach ($stmt->fetchAll() as $offer) {
+            foreach (json_decode($offer['subjects'] ?? '[]', true) ?: [] as $s) {
+                if (is_string($s) && $s !== '' && !in_array($s, $allowedSubjects, true)) {
+                    $allowedSubjects[] = $s;
+                }
+            }
+        }
+    } catch (Throwable $e) {}
+
+    foreach ($adSubjects as $subject) {
+        if (is_string($subject) && in_array($subject, $allowedSubjects, true)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // ------------------------------------------------------------------------------
 // 1. GET: ANFRAGEN DES NUTZERS ABRUFEN
 // ------------------------------------------------------------------------------
@@ -27,7 +109,7 @@ if ($method === 'GET') {
     if ($id) {
         $stmt = $pdo->prepare('
             SELECT r.*,
-                   a.short_description as ad_title, a.subjects as ad_subjects, a.type as ad_type,
+                   COALESCE(a.title, a.short_description) as ad_title, a.subjects as ad_subjects, a.type as ad_type,
                    req.display_name as requester_name, req.avatar_url as requester_avatar, req.avatar_type as requester_avatar_type, req.grade_level as requester_grade,
                    own.display_name as owner_name, own.avatar_url as owner_avatar, own.avatar_type as owner_avatar_type, own.grade_level as owner_grade
             FROM ad_requests r
@@ -48,7 +130,7 @@ if ($method === 'GET') {
     // Alle Anfragen des aktuellen Nutzers (bzw. des verknüpften Kindes)
     $stmt = $pdo->prepare('
         SELECT r.*,
-               a.short_description as ad_title, a.subjects as ad_subjects, a.type as ad_type,
+               COALESCE(a.title, a.short_description) as ad_title, a.subjects as ad_subjects, a.type as ad_type,
                req.display_name as requester_name, req.avatar_url as requester_avatar, req.avatar_type as requester_avatar_type, req.grade_level as requester_grade,
                req.phone_number as requester_phone, req.email as requester_email, req.settings as requester_settings,
                own.display_name as owner_name, own.avatar_url as owner_avatar, own.avatar_type as owner_avatar_type, own.grade_level as owner_grade,
@@ -150,7 +232,7 @@ if ($method === 'POST') {
     }
 
     // Anzeige abrufen
-    $adStmt = $pdo->prepare('SELECT id, user_id FROM ads WHERE id = ?');
+    $adStmt = $pdo->prepare('SELECT id, user_id, is_active, is_archived, type, subjects, grade_levels FROM ads WHERE id = ?');
     $adStmt->execute([$adId]);
     $ad = $adStmt->fetch();
 
@@ -159,6 +241,24 @@ if ($method === 'POST') {
     }
     if ($ad['user_id'] === $user['id']) {
         json_error('Du kannst keine Anfrage an deine eigene Anzeige stellen.', 400);
+    }
+
+    // Pausierte bzw. archivierte Anzeigen dürfen keine neuen Anfragen erhalten.
+    if ((int)$ad['is_active'] === 0 || !empty($ad['is_archived'])) {
+        json_error('Diese Anzeige ist nicht mehr aktiv. Eine Anfrage ist nicht möglich.', 403, ['code' => 'ad_inactive']);
+    }
+
+    // Blockierungen gelten in beide Richtungen.
+    if (fwg_requests_users_blocked($pdo, (string)$user['id'], (string)$ad['user_id'])) {
+        json_error('Zwischen dir und dem Anzeigenbesitzer besteht eine Blockierung. Deshalb kann keine Anfrage gesendet werden.', 403, ['code' => 'blocked']);
+    }
+
+    // Private Gesuche nur für berechtigte Anbieter (Fach-Overlap oder Staff).
+    if ($ad['type'] === 'search') {
+        $adSubjects = json_decode($ad['subjects'] ?? '[]', true) ?: [];
+        if (!fwg_requests_can_contact_search_ad($pdo, $user, (string)$ad['user_id'], $adSubjects)) {
+            json_error('Dieses Gesuch ist privat und nur für passende Anbieter sichtbar.', 403, ['code' => 'search_private']);
+        }
     }
 
     // Prüfen, ob bereits eine offene Anfrage existiert
@@ -190,7 +290,7 @@ if ($method === 'POST') {
 
     // E-Mail-Benachrichtigung an den Anzeigen-Eigentümer
     $ownerStmt = $pdo->prepare('
-        SELECT p.first_name, p.display_name, u.email, a.short_description as ad_title
+        SELECT p.first_name, p.display_name, u.email, COALESCE(a.title, a.short_description) as ad_title
         FROM profiles p
         JOIN users u ON u.id = p.id
         JOIN ads a ON a.id = ?
@@ -277,7 +377,7 @@ if ($method === 'PATCH' || $method === 'PUT') {
     // Bei Annahme/Ablehnung: E-Mail an den Anfragenden senden
     if (in_array($status, ['accepted', 'rejected'])) {
         $reqUserStmt = $pdo->prepare('
-            SELECT p.first_name, p.display_name, u.email, a.short_description as ad_title
+            SELECT p.first_name, p.display_name, u.email, COALESCE(a.title, a.short_description) as ad_title
             FROM profiles p
             JOIN users u ON u.id = p.id
             JOIN ads a ON a.id = ?

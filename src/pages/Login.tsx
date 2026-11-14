@@ -34,6 +34,10 @@ function formatWaitTime(totalSeconds: number): string {
     return minutes === 1 ? '1 Minute' : `${minutes} Minuten`;
 }
 
+function isValidEmail(value: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
+
 export default function Login() {
     const navigate = useNavigate();
     const { theme, setTheme } = useTheme();
@@ -46,6 +50,7 @@ export default function Login() {
     const [password, setPassword] = useState('');
     const [acceptedTerms, setAcceptedTerms] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [parentalPending, setParentalPending] = useState(false);
 
     // Registration Specific States
     const [firstName, setFirstName] = useState('');
@@ -54,6 +59,7 @@ export default function Login() {
     const [letter, setLetter] = useState('');
     const [birthDate, setBirthDate] = useState('');
     const [parentalConsent, setParentalConsent] = useState(false);
+    const [parentEmail, setParentEmail] = useState('');
     const [inviteCode, setInviteCode] = useState('');
 
     const calculateAge = (dob: string) => {
@@ -147,6 +153,8 @@ export default function Login() {
             return;
         }
 
+        setParentalPending(false);
+
         if (mode === 'register' && !acceptedTerms) {
             setError("Bitte stimme den Nutzungsbedingungen zu.");
             return;
@@ -157,9 +165,15 @@ export default function Login() {
                 setError("Bitte fülle alle Pflichtfelder (Vorname, Nachname, Geburtsdatum) aus.");
                 return;
             }
-            if (isUnder16 && !parentalConsent) {
-                setError("Für Nutzer unter 16 Jahren ist die Einwilligung der Erziehungsberechtigten erforderlich.");
-                return;
+            if (isUnder16) {
+                if (!parentalConsent) {
+                    setError("Bitte bestätige, dass du mit deinen Erziehungsberechtigten über die Nutzung gesprochen hast.");
+                    return;
+                }
+                if (parentEmail.trim() !== '' && !isValidEmail(parentEmail)) {
+                    setError("Bitte gib eine gültige E-Mail-Adresse eines Erziehungsberechtigten an.");
+                    return;
+                }
             }
         }
 
@@ -176,7 +190,12 @@ export default function Login() {
                 console.error('Login Fehler:', error);
                 const msg = error.message || '';
                 const code = (error as any)?.details?.code || (error as any)?.code || '';
-                if (code === 'email_not_verified' || msg.includes("E-Mail-Adresse ist noch nicht bestätigt")) {
+                if (code === 'parental_consent_pending' || msg.includes('Elternteil') || msg.includes('Erziehungsberechtigte')) {
+                    // Kein Fehlversuch: Die Zugangsdaten sind korrekt, es fehlt
+                    // nur die Bestätigung eines Elternteils. Daher nicht zählen.
+                    setParentalPending(true);
+                    setError(null);
+                } else if (code === 'email_not_verified' || msg.includes("E-Mail-Adresse ist noch nicht bestätigt")) {
                     toast("Deine E-Mail ist noch nicht bestätigt. Bitte gib den Code aus der E-Mail ein.");
                     navigate('/verify-email', { state: { email } });
                 } else if (error.status === 401 || msg.includes("Invalid login credentials") || msg.includes("Ungültige Zugangsdaten")) {
@@ -229,6 +248,7 @@ export default function Login() {
                 letter: letter || null,
                 birthDate,
                 parentalConsent: isUnder16 ? parentalConsent : true,
+                parentEmail: isUnder16 ? parentEmail.trim() : null,
                 inviteCode: inviteCode.trim(),
                 options: {
                     data: {
@@ -288,8 +308,6 @@ export default function Login() {
                     grade_level: grade || null,
                     class_letter: letter || null,
                     birth_date: birthDate,
-                    parental_consent_given: isUnder16 ? parentalConsent : true,
-                    parental_consent_date: isUnder16 ? new Date().toISOString() : null,
                     onboarding_complete: true // Set to true since we fill it here
                 }, newUser.id);
 
@@ -433,7 +451,7 @@ export default function Login() {
                                 type="button"
                                 aria-pressed={mode === 'login'}
                                 className={`inline-flex min-h-12 items-center justify-center px-4 text-sm font-medium transition-colors ${mode === 'login' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
-                                onClick={() => { setMode('login'); setError(null); }}
+                                onClick={() => { setMode('login'); setError(null); setParentalPending(false); }}
                             >
                                 Anmelden
                             </Button>
@@ -443,7 +461,7 @@ export default function Login() {
                                 type="button"
                                 aria-pressed={mode === 'register'}
                                 className={`inline-flex min-h-12 items-center justify-center border-l border-border px-4 text-sm font-medium transition-colors ${mode === 'register' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
-                                onClick={() => { setMode('register'); setError(null); }}
+                                onClick={() => { setMode('register'); setError(null); setParentalPending(false); }}
                             >
                                 Registrieren
                             </Button>
@@ -467,6 +485,16 @@ export default function Login() {
                                     <div>
                                         <p className="font-bold">Anmeldung vorübergehend gesperrt</p>
                                         <p>Bitte warte noch {formatWaitTime(timeLeft)}, bevor du es erneut versuchst.</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {parentalPending && (
+                                <div role="status" aria-live="polite" className="flex items-start gap-2.5 rounded-xl border border-warning/40 bg-warning/10 p-3 text-sm text-foreground">
+                                    <ShieldAlert size={16} className="mt-0.5 shrink-0 text-muted-foreground" aria-hidden />
+                                    <div>
+                                        <p className="font-bold">Elternbestätigung steht noch aus</p>
+                                        <p className="leading-relaxed">Deine E-Mail ist bestätigt. Ein Elternteil muss die Nutzung noch per E-Mail bestätigen. Bitte prüfe das Postfach deiner Eltern (auch Spam).</p>
                                     </div>
                                 </div>
                             )}
@@ -554,6 +582,22 @@ export default function Login() {
                                                 <p className="text-xs leading-relaxed text-muted-foreground">
                                                     Da du unter 16 Jahre alt bist, brauchen wir die Zustimmung deiner Erziehungsberechtigten. Sprich die Anmeldung mit ihnen durch und zeig ihnen gern den <Link to="/eltern-leitfaden" className="font-medium text-foreground underline underline-offset-2" target="_blank">Eltern-Leitfaden</Link>.
                                                 </p>
+                                                <div className="space-y-1.5">
+                                                    <Label htmlFor="parent-email" className="text-sm font-medium text-foreground">E-Mail eines Erziehungsberechtigten <span className="font-normal text-muted-foreground">(optional)</span></Label>
+                                                    <Input
+                                                        id="parent-email"
+                                                        name="parent-email"
+                                                        type="email"
+                                                        autoComplete="email"
+                                                        placeholder="eltern@example.com"
+                                                        value={parentEmail}
+                                                        onChange={e => setParentEmail(e.target.value)}
+                                                        aria-describedby="parent-email-hint"
+                                                    />
+                                                    <p id="parent-email-hint" className="text-xs leading-relaxed text-muted-foreground">
+                                                        Wir schicken einen Bestätigungslink an diese Adresse. Ohne die Bestätigung kann das Konto nicht genutzt werden. Leer lassen, wenn die Konto-E-Mail-Adresse der Eltern genutzt wird.
+                                                    </p>
+                                                </div>
                                                 <div className="flex items-start gap-2.5 pt-1">
                                                     <Checkbox
                                                         id="parentalConsent"
@@ -562,7 +606,7 @@ export default function Login() {
                                                         className="mt-0.5 cursor-pointer"
                                                     />
                                                     <Label htmlFor="parentalConsent" className="cursor-pointer text-xs font-medium leading-relaxed text-foreground">
-                                                        Meine Erziehungsberechtigten stimmen der Nutzung dieser Plattform zu. *
+                                                        Ich habe mit meinen Erziehungsberechtigten über die Nutzung gesprochen. Sie bestätigen die Einwilligung per E-Mail. *
                                                     </Label>
                                                 </div>
                                             </div>

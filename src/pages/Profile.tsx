@@ -26,6 +26,16 @@ import { CONTACT_TYPES, getContactType, newContactId, type CustomContact } from 
 // Kanonische Fächer-Keys aus SubjectChip (Single Source of Truth).
 const CANONICAL_SUBJECTS = new Set<Subject>(SUBJECT_CATEGORIES.flatMap(category => category.subjects));
 
+// Der Avatar-Gestalter erzeugt data:-URLs (PNG/JPEG/WebP) oder SVG-Data-URLs;
+// das Backend erwartet dazu den passenden avatar_type.
+function getAvatarType(url: string): 'svg' | 'upload' | 'url' | undefined {
+    if (!url) return undefined;
+    if (url.startsWith('data:image/svg+xml')) return 'svg';
+    if (url.startsWith('data:')) return 'upload';
+    if (url.startsWith('https://')) return 'url';
+    return undefined;
+}
+
 export default function Profile() {
     const { user, profile: authProfile, refreshProfile } = useAuth();
     const navigate = useNavigate();
@@ -139,11 +149,15 @@ export default function Profile() {
     const handleAvatarSaved = async (newUrl: string) => {
         setProfile(p => ({ ...p, avatar_url: newUrl }));
         if (!user) return false;
-        // Ergebnis prüfen: Der Maker erzeugt data:-URLs, die das Backend nicht
-        // speichern kann (nur https) – dann ehrlich melden statt Erfolg vorzutäuschen.
-        const { error } = await api.profiles.update({ avatar_url: newUrl }, user.id);
+        // Der Maker erzeugt data:-URLs (PNG/JPEG/WebP) oder https-URLs. Das
+        // Backend akzeptiert beides; avatar_type beschreibt die Art der URL.
+        const avatarType = getAvatarType(newUrl);
+        const { error } = await api.profiles.update({
+            avatar_url: newUrl,
+            avatar_type: avatarType
+        }, user.id);
         if (error) {
-            toast.error('Avatar konnte nicht gespeichert werden. Bitte lade ein Foto hoch.');
+            toast.error('Avatar konnte nicht gespeichert werden. Bitte versuche es erneut.');
             return false;
         }
         await refreshProfile();
@@ -156,6 +170,7 @@ export default function Profile() {
         triggerHaptic('medium');
 
         const displayName = `${profile.first_name} ${profile.last_name?.charAt(0) || ''}.`;
+        const avatarUrl = profile.avatar_url?.trim() || '';
 
         const { error } = await api.profiles.update({
             first_name: profile.first_name,
@@ -168,9 +183,9 @@ export default function Profile() {
             phone_number: profile.phone_number,
             contact_other: profile.contact_other,
             settings: profile.settings,
-            // data:-URLs aus dem Avatar-Maker kann das Backend nicht speichern
-            // (nur https) – nicht mitsenden, sonst schlägt das ganze Speichern fehl.
-            avatar_url: profile.avatar_url?.startsWith('https://') ? profile.avatar_url : undefined,
+            // data:-URLs aus dem Avatar-Gestalter müssen erhalten bleiben.
+            avatar_url: avatarUrl || undefined,
+            avatar_type: getAvatarType(avatarUrl),
             availability: availability,
             privacy_calendar: privacyCalendar,
             onboarding_complete: true

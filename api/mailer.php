@@ -489,6 +489,41 @@ function send_email_verification(string $toEmail, string $userName, string $code
 }
 
 /**
+ * 0b. Elternbestätigung für Nutzer unter 16 (Link aus der Registrierung)
+ */
+function send_email_parental_consent(string $toEmail, string $childName, string $consentUrl): bool {
+    $childName = trim($childName) !== '' ? trim($childName) : 'dein Kind';
+    $childHtml = fwg_esc($childName);
+    $consentHtml = fwg_esc($consentUrl);
+
+    $html = render_email_template([
+        'category' => 'ELTERNBESTÄTIGUNG',
+        'category_bg' => '#FEF9C3', // Gelb
+        'category_color' => '#713F12',
+        'title' => 'Nutzung bestätigen',
+        'subtitle' => "Ein Konto für $childName wurde angelegt.",
+        'preheader' => "Bitte bestätige die Nutzung der Nachhilfebörse für $childName.",
+        'greeting' => 'Guten Tag,',
+        'body_html' => "
+            <strong>$childHtml</strong> hat auf der FWG Nachhilfebörse ein Konto angelegt.<br><br>
+            Da dein Kind unter 16 Jahre alt ist, benötigen wir die Einwilligung eines Erziehungsberechtigten, bevor das Konto genutzt werden kann.<br><br>
+            <strong>Ohne deine Bestätigung ist keine Nutzung möglich.</strong> Der Bestätigungslink ist <strong>7 Tage</strong> gültig.<br><br>
+            Wenn du mit der Nutzung einverstanden bist, klicke auf den Button. Falls du das Konto nicht kennst, ignoriere diese E-Mail – das Konto wird dann nicht freigeschaltet.<br><br>
+            <span style='font-size:13px;color:#52525b;'>Falls der Button nicht funktioniert, kopiere diesen Link in deinen Browser:<br>
+            <a href='$consentHtml' style='color:#52525b;word-break:break-all;'>$consentHtml</a></span>
+        ",
+        'quote_box' => [
+            'title' => 'Warum bekomme ich diese E-Mail?',
+            'content' => 'Die FWG Nachhilfebörse ist ein Angebot der Schülervertretung des Friedrich-Wilhelm-Gymnasiums Köln. Bei Nutzerinnen und Nutzern unter 16 Jahren ist nach Art. 8 DSGVO die Einwilligung eines Erziehungsberechtigten erforderlich.'
+        ],
+        'cta_text' => 'Nutzung bestätigen',
+        'cta_url' => $consentUrl
+    ]);
+
+    return send_html_email($toEmail, "Bitte bestätigen: Nachhilfebörse für $childName", $html);
+}
+
+/**
  * 1. Willkommens-Mail nach Registrierung
  */
 function send_email_welcome(string $toEmail, string $userName, string $role): bool {

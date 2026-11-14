@@ -3,7 +3,7 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { Textarea } from '@/components/ui/textarea';
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { api } from '../lib/api';
+import { api, apiErrorMessage } from '../lib/api';
 import { startChatPoll } from '../lib/polling';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
@@ -84,6 +84,8 @@ export default function Chat() {
     // Report/Block state
     const [reportOpen, setReportOpen] = useState(false);
     const [otherUserId, setOtherUserId] = useState<string | null>(null);
+    const [isBlocked, setIsBlocked] = useState(false);
+    const [isBlockLoading, setIsBlockLoading] = useState(false);
 
     // Profanity-2.0-Training: Admin-Overrides einmalig laden
     const [filterOverrides, setFilterOverrides] = useState<FilterOverrides>({ allow: [], block: [] });
@@ -100,6 +102,10 @@ export default function Chat() {
     const handleCreateAppointment = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!appDate || !appTime || !user || !requestId) return;
+        if (isBlocked) {
+            toast.error('Du kannst diesem Nutzer keine Nachrichten senden.');
+            return;
+        }
 
         const formattedContent = `TERMIN-VEREINBARUNG\nFach: ${appSubject}\nDatum: ${appDate}\nUhrzeit: ${appTime} Uhr (45 Min)\nOrt: FWG Bibliothek / Schulgelände`;
 
@@ -135,6 +141,21 @@ export default function Chat() {
         setOtherUser(profile);
         setOtherUserId(otherId);
 
+        // Blockstatus laden (andere Seite kann den Nutzer blockiert haben)
+        if (otherId) {
+            setIsBlockLoading(true);
+            try {
+                const { data: blockStatus } = await api.blocks.status(otherId);
+                setIsBlocked(!!blockStatus?.blocked);
+            } catch (e) {
+                console.error('Blockstatus konnte nicht geladen werden:', e);
+            } finally {
+                setIsBlockLoading(false);
+            }
+        } else {
+            setIsBlocked(false);
+        }
+
         // Fetch messages (der Server markiert empfangene Nachrichten beim GET serverseitig als gelesen)
         const { data: msgs } = await api.messages.list(requestId);
 
@@ -149,8 +170,15 @@ export default function Chat() {
         fetchData();
 
         // Live-Updates: kurzes Polling ersetzt den früheren Supabase-Realtime-Kanal.
-        const stopPolling = startChatPoll(requestId, (newMsg: Message) => {
-            setMessages(prev => prev.some(m => m.id === newMsg.id) ? prev : [...prev, newMsg]);
+        // Der Server liefert die vollständige Liste, damit auch read_at älterer Nachrichten aktualisiert wird.
+        const stopPolling = startChatPoll(requestId, (msgs: any[]) => {
+            setMessages(prev => {
+                const map = new Map<string, Message>(prev.map(m => [m.id, m] as const));
+                for (const m of msgs) {
+                    map.set(m.id, { ...(map.get(m.id) || {}), ...m });
+                }
+                return Array.from(map.values()).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+            });
         });
 
         return stopPolling;
@@ -163,6 +191,10 @@ export default function Chat() {
     const sendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newMessage.trim() || !user || !requestId) return;
+        if (isBlocked) {
+            toast.error('Du kannst diesem Nutzer keine Nachrichten senden.');
+            return;
+        }
 
         const check = checkContent(newMessage, filterOverrides);
         if (check.blocked) {
@@ -178,7 +210,9 @@ export default function Chat() {
         const { error } = await api.messages.send(requestId, msgContent);
 
         if (error) {
-            toast.error('Fehler beim Senden.');
+            toast.error(error.status === 403
+                ? 'Du kannst diesem Nutzer keine Nachrichten senden.'
+                : 'Fehler beim Senden.');
             console.error(error);
         }
     };
@@ -196,17 +230,59 @@ export default function Chat() {
         });
     };
 
-    const handleBlockUser = async () => {
+    const handleHideChat = async () => {
         if (!otherUserId || !user) return;
         setConfirmDialog({
             title: 'Chat verbergen?',
             description: `${otherUser?.display_name || 'Diesen Nutzer'} Chat verbergen? Der Chat wird auf diesem Gerät verborgen. Zum Schutz aller bleibt der Verlauf für die SV-Moderation gespeichert.`,
             confirmLabel: 'Chat verbergen',
             onConfirm: () => {
-                // Kein Backend-Endpunkt für Nutzer-Blocks: Das Blockieren verbirgt den Chat nur auf diesem Gerät.
                 if (requestId) hideChatId(requestId);
                 toast.success('Chat auf diesem Gerät verborgen.');
                 navigate('/requests');
+            },
+        });
+    };
+
+    const blockUser = async () => {
+        if (!otherUserId) return;
+        setIsBlockLoading(true);
+        const { error } = await api.blocks.block(otherUserId);
+        setIsBlockLoading(false);
+        if (error) {
+            toast.error(error.status === 403
+                ? 'Du kannst diesem Nutzer keine Nachrichten senden.'
+                : apiErrorMessage(error, 'Nutzer konnte nicht blockiert werden.'));
+            return;
+        }
+        setIsBlocked(true);
+        toast.success('Nutzer blockiert.');
+    };
+
+    const handleToggleBlock = async () => {
+        if (!otherUserId || !user || isBlockLoading) return;
+
+        if (isBlocked) {
+            setIsBlockLoading(true);
+            const { error } = await api.blocks.unblock(otherUserId);
+            setIsBlockLoading(false);
+            if (error) {
+                toast.error(error.status === 403
+                    ? 'Du kannst diesem Nutzer keine Nachrichten senden.'
+                    : apiErrorMessage(error, 'Blockierung konnte nicht aufgehoben werden.'));
+                return;
+            }
+            setIsBlocked(false);
+            toast.success('Blockierung aufgehoben.');
+            return;
+        }
+
+        setConfirmDialog({
+            title: 'Nutzer blockieren?',
+            description: `${otherUser?.display_name || 'Dieser Nutzer'} kann dir dann keine Anfragen oder Nachrichten mehr senden. Bestehende Chats bleiben für die SV-Moderation gespeichert.`,
+            confirmLabel: 'Blockieren',
+            onConfirm: () => {
+                void blockUser();
             },
         });
     };
@@ -327,8 +403,15 @@ export default function Chat() {
                         <DropdownMenuItem onClick={() => setReportOpen(true)} className="min-h-11 gap-2.5 px-3">
                             <Flag size={16} aria-hidden /> Nutzer melden
                         </DropdownMenuItem>
+                        <DropdownMenuItem
+                            onClick={handleToggleBlock}
+                            disabled={isBlockLoading || !otherUserId}
+                            className="min-h-11 gap-2.5 px-3"
+                        >
+                            <Ban size={16} aria-hidden /> {isBlocked ? 'Blockierung aufheben' : 'Nutzer blockieren'}
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={handleBlockUser} className="min-h-11 gap-2.5 px-3">
+                        <DropdownMenuItem onClick={handleHideChat} className="min-h-11 gap-2.5 px-3">
                             <Ban size={16} aria-hidden /> Chat verbergen
                         </DropdownMenuItem>
                         <DropdownMenuItem variant="destructive" onClick={hideChatAndLeave} className="min-h-11 gap-2.5 px-3">
@@ -487,22 +570,28 @@ export default function Chat() {
 
             {/* Input Area */}
             <div className="shrink-0 bg-chat-bg px-2 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] sm:px-4">
+                {isBlocked && (
+                    <div className="mb-2 rounded-panel border border-border bg-chat-other px-4 py-3 text-[13px] leading-relaxed text-chat-meta shadow-soft" role="status">
+                        Du hast diesen Nutzer blockiert. Du kannst die Blockierung im Menü aufheben.
+                    </div>
+                )}
                 <form onSubmit={sendMessage} className="flex items-center gap-2">
                     <div className="min-w-0 flex-1 rounded-full bg-chat-composer px-4 shadow-soft">
                         <Input
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
-                            placeholder="Nachricht schreiben"
-                            className="h-12 w-full border-0 bg-transparent px-0 text-base shadow-none focus-visible:outline-none"
+                            placeholder={isBlocked ? 'Nachrichten blockiert' : 'Nachricht schreiben'}
+                            className="h-12 w-full border-0 bg-transparent px-0 text-base shadow-none focus-visible:outline-none disabled:opacity-60"
                             autoComplete="off"
                             aria-label="Nachricht schreiben"
+                            disabled={isBlocked}
                         />
                     </div>
                     <Button
                         type="submit"
                         size="icon"
                         className="size-12 shrink-0 rounded-full bg-chat-send text-primary-foreground shadow-soft hover:-translate-y-0.5 hover:bg-primary-hover hover:text-primary-foreground hover:shadow-card active:scale-[0.98]"
-                        disabled={!newMessage.trim()}
+                        disabled={!newMessage.trim() || isBlocked}
                         aria-label="Nachricht senden"
                     >
                         <Send size={19} className="ml-0.5" aria-hidden />
@@ -607,6 +696,7 @@ export default function Chat() {
             <ReportWizard
                 isOpen={reportOpen}
                 reportedUserId={otherUserId}
+                relatedMessageIds={messages.filter(m => m.sender_id === otherUserId).map(m => m.id)}
                 onClose={() => setReportOpen(false)}
             />
         )}

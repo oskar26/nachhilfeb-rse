@@ -1,6 +1,6 @@
 <?php
 // ==============================================================================
-// FWG Nachhilfebörse - Auth API (Register, Login, Me, Update Password)
+// FWG Nachhilfebörse - Auth API (Register, Login, Me, Update Password, Elternbestätigung)
 // ==============================================================================
 
 require_once __DIR__ . '/db.php';
@@ -46,6 +46,299 @@ try {
 }
 
 // ------------------------------------------------------------------------------
+// AUTO-MIGRATION: Elternbestätigung per E-Mail-Link (Nutzer unter 16)
+// user_id ist VARCHAR(36) wie users.id. In token_hash liegt ausschließlich der
+// SHA-256-Hash des Tokens, niemals das Token selbst.
+// ------------------------------------------------------------------------------
+try {
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS parental_consents (
+            user_id VARCHAR(36) NOT NULL,
+            parent_email VARCHAR(255) NOT NULL,
+            token_hash VARCHAR(255) NOT NULL,
+            expires_at DATETIME NOT NULL,
+            confirmed_at DATETIME NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (user_id),
+            KEY idx_parental_consents_token (token_hash),
+            CONSTRAINT fk_parental_consents_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ");
+} catch (Exception $ex) {
+    // Fallback ohne FK, falls der Constraint-Name bereits vergeben ist.
+    try {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS parental_consents (
+                user_id VARCHAR(36) NOT NULL,
+                parent_email VARCHAR(255) NOT NULL,
+                token_hash VARCHAR(255) NOT NULL,
+                expires_at DATETIME NOT NULL,
+                confirmed_at DATETIME NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id),
+                KEY idx_parental_consents_token (token_hash)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        ");
+    } catch (Exception $ex2) {}
+}
+
+// ------------------------------------------------------------------------------
+// HELFER: Alter & Elternbestätigung
+// ------------------------------------------------------------------------------
+
+/**
+ * Prüft anhand des Geburtsdatums (YYYY-MM-DD), ob die Person unter 16 ist.
+ * Ohne/ungültigem Geburtsdatum gilt die Person nicht als minderjährig – die
+ * Registrierung erlaubt das Feld weiterhin optional (Bestandsverhalten).
+ */
+function fwg_is_under_16(?string $birthDate): bool {
+    if ($birthDate === null || $birthDate === '') {
+        return false;
+    }
+    if (!preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $birthDate, $m)) {
+        return false;
+    }
+    $year = (int)$m[1];
+    $month = (int)$m[2];
+    $day = (int)$m[3];
+    if (!checkdate($month, $day, $year)) {
+        return false;
+    }
+    $birth = new DateTimeImmutable(sprintf('%04d-%02d-%02d', $year, $month, $day));
+    $today = new DateTimeImmutable('today');
+    return $birth->diff($today)->y < 16;
+}
+
+/**
+ * Liefert true, wenn für diesen (minderjährigen) Nutzer noch keine bestätigte
+ * Eltern-Einwilligung vorliegt. Für Nutzer ab 16 ist die Prüfung immer false.
+ * Bei Datenbankfehlern wird für Minderjährige fail-closed entschieden.
+ */
+function fwg_parental_consent_pending(PDO $pdo, string $userId, ?string $birthDate, $given): bool {
+    if (!fwg_is_under_16($birthDate)) {
+        return false;
+    }
+    if (empty($given)) {
+        return true;
+    }
+    try {
+        $stmt = $pdo->prepare('SELECT confirmed_at FROM parental_consents WHERE user_id = ? LIMIT 1');
+        $stmt->execute([$userId]);
+        $row = $stmt->fetch();
+        return !$row || empty($row['confirmed_at']);
+    } catch (Exception $e) {
+        error_log('Elternbestätigung: Prüfung fehlgeschlagen: ' . $e->getMessage());
+        return true;
+    }
+}
+
+/**
+ * Einfache, mobile HTML-Seite für den Elternbestätigungs-Link. Der Link wird im
+ * Browser geöffnet, daher bewusst HTML statt JSON und ohne externe Assets.
+ */
+function fwg_render_parental_consent_page(bool $success, string $heading, string $message, int $status = 200): void {
+    http_response_code($status);
+    header('Content-Type: text/html; charset=utf-8');
+    header('Cache-Control: no-store, max-age=0');
+    // Kein Token über den Referer an nachfolgende Seiten weiterreichen.
+    header('Referrer-Policy: no-referrer');
+    header('X-Robots-Tag: noindex, nofollow');
+    header("Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'");
+
+    $headingHtml = htmlspecialchars($heading, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    $messageHtml = htmlspecialchars($message, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    $ctaUrl = htmlspecialchars($success ? APP_URL . '/#/login' : APP_URL, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    $ctaText = $success ? 'Zur Anmeldung' : 'Zur Startseite';
+    $accent = $success ? '#15803d' : '#b91c1c';
+    $accentSoft = $success ? '#dcfce7' : '#fee2e2';
+    $icon = $success ? '✓' : '!';
+
+    echo <<<HTML
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <meta name="robots" content="noindex, nofollow">
+    <title>$headingHtml – FWG Nachhilfebörse</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+            background: #faf7ef;
+            color: #18181b;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        .card {
+            width: 100%;
+            max-width: 460px;
+            background: #ffffff;
+            border: 2px solid #09090b;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 8px 8px 0 #09090b;
+        }
+        .top { height: 8px; background: #facc15; }
+        .inner { padding: 28px 24px 26px; }
+        .icon {
+            display: grid;
+            place-items: center;
+            width: 48px;
+            height: 48px;
+            margin-bottom: 16px;
+            border-radius: 50%;
+            background: $accentSoft;
+            color: $accent;
+            font-size: 26px;
+            font-weight: 900;
+            line-height: 1;
+        }
+        .badge {
+            display: inline-block;
+            margin-bottom: 12px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #52525b;
+        }
+        h1 { margin: 0 0 10px; font-size: 24px; line-height: 1.25; }
+        p { margin: 0 0 20px; font-size: 15px; line-height: 1.65; color: #3f3f46; }
+        .button {
+            display: inline-block;
+            padding: 13px 20px;
+            background: #facc15;
+            color: #09090b;
+            border: 2px solid #09090b;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 800;
+            text-decoration: none;
+        }
+        .foot {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid #e4e4e7;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #71717a;
+        }
+        .foot a { color: #3f3f46; }
+    </style>
+</head>
+<body>
+    <main class="card">
+        <div class="top"></div>
+        <div class="inner">
+            <div class="icon" aria-hidden="true">$icon</div>
+            <div class="badge">FWG Nachhilfebörse</div>
+            <h1>$headingHtml</h1>
+            <p>$messageHtml</p>
+            <a class="button" href="$ctaUrl">$ctaText</a>
+            <div class="foot">
+                Fragen? Schreib uns an <a href="mailto:info@nachhilfe-sv.de">info@nachhilfe-sv.de</a>.
+            </div>
+        </div>
+    </main>
+</body>
+</html>
+HTML;
+    exit;
+}
+
+// ------------------------------------------------------------------------------
+// 0. ELTERNBESTÄTIGUNG (GET-Link aus der E-Mail, kein Login nötig)
+// ------------------------------------------------------------------------------
+if ($action === 'confirm_parental_consent' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
+    $token = isset($_GET['token']) && is_string($_GET['token']) ? trim($_GET['token']) : '';
+
+    // 32 Byte random_bytes() als Hex = exakt 64 Zeichen.
+    if ($token === '' || !preg_match('/^[a-f0-9]{64}$/i', $token)) {
+        fwg_render_parental_consent_page(
+            false,
+            'Link ungültig',
+            'Dieser Bestätigungslink ist ungültig. Bitte öffne den Link direkt aus der E-Mail.',
+            400
+        );
+    }
+
+    $tokenHash = hash('sha256', strtolower($token));
+
+    try {
+        $stmt = $pdo->prepare('SELECT user_id, expires_at, confirmed_at FROM parental_consents WHERE token_hash = ? LIMIT 1');
+        $stmt->execute([$tokenHash]);
+        $consent = $stmt->fetch();
+    } catch (Exception $e) {
+        // Bewusst ohne Token im Log.
+        error_log('Elternbestätigung: Datenbankfehler beim Token-Lookup: ' . $e->getMessage());
+        fwg_render_parental_consent_page(
+            false,
+            'Das hat nicht geklappt',
+            'Die Bestätigung konnte gerade nicht geprüft werden. Bitte versuche es in ein paar Minuten erneut.',
+            500
+        );
+    }
+
+    if (!$consent) {
+        fwg_render_parental_consent_page(
+            false,
+            'Link ungültig',
+            'Zu diesem Link gibt es keine offene Elternbestätigung. Bitte öffne den Link direkt aus der E-Mail.',
+            404
+        );
+    }
+
+    if (!empty($consent['confirmed_at'])) {
+        fwg_render_parental_consent_page(
+            true,
+            'Bereits bestätigt',
+            'Diese Elternbestätigung wurde bereits abgeschlossen. Dein Kind kann sich jetzt in der Nachhilfebörse anmelden.'
+        );
+    }
+
+    if (empty($consent['expires_at']) || strtotime($consent['expires_at']) < time()) {
+        fwg_render_parental_consent_page(
+            false,
+            'Link abgelaufen',
+            'Der Bestätigungslink ist nicht mehr gültig (7 Tage). Bitte wende dich an info@nachhilfe-sv.de, damit ein neuer Link erstellt wird.',
+            410
+        );
+    }
+
+    try {
+        $pdo->beginTransaction();
+        $pdo->prepare('UPDATE parental_consents SET confirmed_at = NOW() WHERE user_id = ? AND confirmed_at IS NULL')
+            ->execute([$consent['user_id']]);
+        $pdo->prepare('UPDATE profiles SET parental_consent_given = 1, parental_consent_date = NOW() WHERE id = ?')
+            ->execute([$consent['user_id']]);
+        $pdo->commit();
+    } catch (Exception $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        error_log('Elternbestätigung: Speichern fehlgeschlagen: ' . $e->getMessage());
+        fwg_render_parental_consent_page(
+            false,
+            'Das hat nicht geklappt',
+            'Die Bestätigung konnte gerade nicht gespeichert werden. Bitte versuche es in ein paar Minuten erneut.',
+            500
+        );
+    }
+
+    fwg_render_parental_consent_page(
+        true,
+        'Elternbestätigung erfolgreich',
+        'Vielen Dank! Die Einwilligung ist gespeichert. Dein Kind kann sich jetzt in der Nachhilfebörse anmelden.'
+    );
+}
+
+// ------------------------------------------------------------------------------
 // 1. REGISTRIERUNG
 // ------------------------------------------------------------------------------
 if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -79,7 +372,13 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $grade = !empty($data['grade']) ? trim($data['grade']) : (!empty($data['options']['data']['grade']) ? trim($data['options']['data']['grade']) : null);
     $letter = !empty($data['letter']) ? trim($data['letter']) : (!empty($data['options']['data']['letter']) ? trim($data['options']['data']['letter']) : null);
     $birthDate = !empty($data['birthDate']) ? $data['birthDate'] : (!empty($data['birth_date']) ? $data['birth_date'] : (!empty($data['options']['data']['birthDate']) ? $data['options']['data']['birthDate'] : null));
-    $parentalConsent = !empty($data['parentalConsent']) || !empty($data['parental_consent']) || !empty($data['options']['data']['parentalConsent']);
+    $parentalConsent = !empty($data['parentalConsent']) || !empty($data['parental_consent']) || !empty($data['options']['data']['parentalConsent']) || !empty($data['options']['data']['parental_consent']);
+    $parentEmailRaw = $data['parentEmail'] ?? $data['parent_email'] ?? $data['options']['data']['parentEmail'] ?? $data['options']['data']['parent_email'] ?? '';
+    if (!is_string($parentEmailRaw)) {
+        $parentEmailRaw = '';
+    }
+    $parentEmailRaw = trim($parentEmailRaw);
+    $parentEmail = $parentEmailRaw !== '' ? filter_var($parentEmailRaw, FILTER_VALIDATE_EMAIL) : null;
     $inviteCode = trim($data['inviteCode'] ?? $data['invite_code'] ?? $data['code'] ?? $data['options']['data']['inviteCode'] ?? '');
 
     if (!$email || strlen($email) > 254) {
@@ -96,9 +395,38 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($lastName)) {
         $lastName = '.';
     }
-    if ($birthDate !== null && !preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$birthDate)) {
-        json_error('Ungültiges Geburtsdatum (erwartet YYYY-MM-DD).');
+    if ($birthDate !== null) {
+        $birthDateStr = (string)$birthDate;
+        if (
+            !preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $birthDateStr, $birthDateParts)
+            || !checkdate((int)$birthDateParts[2], (int)$birthDateParts[3], (int)$birthDateParts[1])
+        ) {
+            json_error('Ungültiges Geburtsdatum (erwartet YYYY-MM-DD).');
+        }
     }
+
+    // Unter 16: echte Elternbestätigung per E-Mail-Link. Die Checkbox des Kindes
+    // bleibt als Bestätigung "Ich habe mit meinen Eltern gesprochen" bestehen,
+    // ersetzt aber nicht mehr die Einwilligung der Erziehungsberechtigten.
+    $requiresParentalConsent = fwg_is_under_16($birthDate !== null ? (string)$birthDate : null);
+    if ($requiresParentalConsent) {
+        if (!$parentalConsent) {
+            json_error('Bitte bestätige, dass du mit deinen Erziehungsberechtigten über die Nutzung gesprochen hast.', 400, [
+                'code' => 'parental_consent_missing'
+            ]);
+        }
+        if ($parentEmailRaw !== '' && (!$parentEmail || strlen($parentEmailRaw) > 254)) {
+            json_error('Bitte gib eine gültige E-Mail-Adresse eines Erziehungsberechtigten an.', 400, [
+                'code' => 'parent_email_invalid'
+            ]);
+        }
+        // Ohne separate Elternadresse wird die Konto-Adresse verwendet. Das ist
+        // besonders für jüngere Kinder wichtig, die noch keine eigene E-Mail haben.
+        if (!$parentEmail) {
+            $parentEmail = $email;
+        }
+    }
+
     $inviteCode = mb_substr($inviteCode, 0, 64);
 
     // Prüfen, ob E-Mail bereits existiert
@@ -158,12 +486,29 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $finalRole,
             $email,
             $birthDate,
-            $parentalConsent ? 1 : 0,
-            $parentalConsent ? $now : null,
+            $requiresParentalConsent ? 0 : 1,
+            $requiresParentalConsent ? null : $now,
             $isVerified,
             json_encode(['email_visible' => false, 'phone_visible' => false]),
             json_encode([])
         ]);
+
+        // 2b. Elternbestätigung: Token nur als SHA-256-Hash speichern.
+        // Ein bestehender Eintrag wird ersetzt (erneute Registrierung/Anforderung).
+        $parentalToken = null;
+        if ($requiresParentalConsent) {
+            $parentalToken = bin2hex(random_bytes(32));
+            $pdo->prepare('
+                INSERT INTO parental_consents (user_id, parent_email, token_hash, expires_at, confirmed_at)
+                VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY), NULL)
+                ON DUPLICATE KEY UPDATE
+                    parent_email = VALUES(parent_email),
+                    token_hash = VALUES(token_hash),
+                    expires_at = VALUES(expires_at),
+                    confirmed_at = NULL,
+                    created_at = NOW()
+            ')->execute([$userId, $parentEmail, hash('sha256', $parentalToken)]);
+        }
 
         // 3. SV-Code atomar einlösen (gleiche Semantik wie codes.php Redeem:
         //    max_uses/current_uses beachten, damit als Mehrfach-Code erzeugte
@@ -204,6 +549,20 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             error_log('Fehler beim Versenden der Bestätigungs-Mail: ' . $e->getMessage());
         }
 
+        // 4b. Elternbestätigung per E-Mail-Link (nur unter 16). Das Token selbst
+        // wird nie geloggt oder an den Client zurückgegeben – nur der Hash liegt
+        // in der Datenbank.
+        $parentalMailSent = false;
+        if ($requiresParentalConsent && $parentalToken !== null) {
+            $consentUrl = APP_URL . '/api/auth.php?action=confirm_parental_consent&token=' . urlencode($parentalToken);
+            try {
+                $parentalMailSent = (bool)send_email_parental_consent($parentEmail, $firstName, $consentUrl);
+            } catch (Exception $e) {
+                $parentalMailSent = false;
+                error_log('Fehler beim Versenden der Elternbestätigungs-Mail: ' . $e->getMessage());
+            }
+        }
+
         // Profil zurückliefern (OHNE Token – erst nach Code-Bestätigung gibt es eine Session)
         $fetchProfile = $pdo->prepare('SELECT * FROM profiles WHERE id = ?');
         $fetchProfile->execute([$userId]);
@@ -215,6 +574,8 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
         json_response([
             'needs_verification' => true,
+            'parental_consent_pending' => $requiresParentalConsent,
+            'parental_mail_sent' => $parentalMailSent,
             'user' => [
                 'id' => $userId,
                 'email' => $email
@@ -288,6 +649,21 @@ if ($action === 'verify_email' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $profileStmt->execute([$found['id']]);
     $profile = $profileStmt->fetch();
     $role = $profile['role'] ?? 'student';
+
+    // E-Mail ist bestätigt, aber die Elternbestätigung (unter 16) fehlt:
+    // KEIN JWT und keine Willkommens-Mail. Der Parent-Link bleibt 7 Tage gültig.
+    if (fwg_parental_consent_pending(
+        $pdo,
+        $found['id'],
+        $profile['birth_date'] ?? null,
+        $profile['parental_consent_given'] ?? 0
+    )) {
+        json_response([
+            'success' => true,
+            'parental_consent_pending' => true,
+            'message' => 'E-Mail bestätigt. Ein Elternteil muss die Nutzung noch bestätigen.'
+        ]);
+    }
 
     // Willkommens-Mail erst JETZT (bestätigte Adresse – kein Spam an Fremde)
     try {
@@ -419,6 +795,19 @@ if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // Unter 16 ohne bestätigte Eltern-Einwilligung: kein Login/JWT.
+    if (fwg_parental_consent_pending(
+        $pdo,
+        $user['id'],
+        $profile['birth_date'] ?? null,
+        $profile['parental_consent_given'] ?? 0
+    )) {
+        json_error('Ein Elternteil muss die Nutzung noch per E-Mail bestätigen. Bitte prüfe das E-Mail-Postfach deiner Eltern.', 403, [
+            'code' => 'parental_consent_pending',
+            'parental_consent_pending' => true
+        ]);
+    }
+
     $token = JWT::sign([
         'sub' => $user['id'],
         'email' => $user['email'],
@@ -448,6 +837,22 @@ if ($action === 'me' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $profileStmt = $pdo->prepare('SELECT * FROM profiles WHERE id = ?');
     $profileStmt->execute([$user['id']]);
     $profile = $profileStmt->fetch();
+
+    // Konsistent zum Login: Ein bereits ausgestelltes Token darf einen
+    // minderjährigen Nutzer ohne bestätigte Eltern-Einwilligung nicht weiter
+    // als eingeloggt behandeln. (get_auth_user() liegt in middleware.php und
+    // wird von require_auth() genutzt; die Prüfung hier deckt den /me-Flow ab.)
+    if ($profile && fwg_parental_consent_pending(
+        $pdo,
+        $user['id'],
+        $profile['birth_date'] ?? null,
+        $profile['parental_consent_given'] ?? 0
+    )) {
+        json_error('Ein Elternteil muss die Nutzung noch per E-Mail bestätigen. Bitte prüfe das E-Mail-Postfach deiner Eltern.', 403, [
+            'code' => 'parental_consent_pending',
+            'parental_consent_pending' => true
+        ]);
+    }
 
     if ($profile) {
         $profile['subjects'] = json_decode($profile['subjects'] ?? '[]', true);
@@ -522,6 +927,31 @@ if ($action === 'update_password' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $user = require_auth();
         $targetUserId = $user['id'];
+
+        // Ohne Reset-Token (eingeloggter Nutzer) muss das aktuelle Passwort
+        // mitgeschickt und geprüft werden. Der Reset-Link bleibt davon unberührt.
+        $currentPassword = $data['currentPassword'] ?? $data['current_password'] ?? '';
+        if (!is_string($currentPassword) || $currentPassword === '') {
+            json_error('Das aktuelle Passwort ist falsch.', 400, [
+                'code' => 'current_password_required'
+            ]);
+        }
+        if (strlen($currentPassword) > 128) {
+            usleep(200000);
+            json_error('Das aktuelle Passwort ist falsch.', 403, [
+                'code' => 'invalid_current_password'
+            ]);
+        }
+
+        $pwStmt = $pdo->prepare('SELECT password_hash FROM users WHERE id = ?');
+        $pwStmt->execute([$targetUserId]);
+        $pwRow = $pwStmt->fetch();
+        if (!$pwRow || !password_verify($currentPassword, $pwRow['password_hash'])) {
+            usleep(200000);
+            json_error('Das aktuelle Passwort ist falsch.', 403, [
+                'code' => 'invalid_current_password'
+            ]);
+        }
     }
 
     $newHash = password_hash($newPassword, PASSWORD_BCRYPT);

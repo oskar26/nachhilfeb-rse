@@ -54,20 +54,23 @@ interface Ad {
     id: string;
     user_id: string;
     type: 'offer' | 'search';
+    title?: string | null;
     subjects: Subject[];
     grade_levels: string[];
     locations: string[];
+    custom_location?: string | null;
     price_details: PriceDetails | null;
     duration_minutes?: number[];
     session_format?: 'single' | 'group' | 'any' | string;
     view_count?: number;
     favorite_count?: number;
     short_description: string;
+    long_description?: string | null;
     is_active: boolean;
     created_at: string;
     boosted?: boolean;
     boosted_until?: string | null;
-    profiles?: { display_name: string; is_verified: boolean; grade_level: string; is_coach?: boolean };
+    profiles?: { display_name: string; is_verified: boolean; grade_level: string; is_coach?: boolean; bio?: string | null };
     profiles_avail?: Availability;
 }
 
@@ -95,20 +98,24 @@ function priceSecondary(ad: Ad): string | null {
     return `≈ ${text} €/h`;
 }
 
+// Der Slider reicht bis 100 €/h, der Feed startet aber bewusst mit 0–30 €/h.
+// So bleibt die erste Ansicht übersichtlich, hohe Preise sind per Slider erreichbar.
+const DEFAULT_MAX_PRICE = 30;
+
 const FILTER_DEFAULTS = {
     query: '',
     type: 'all' as const,
     subject: null,
     grades: [] as string[],
     minPrice: PRICE_SLIDER_MIN,
-    maxPrice: PRICE_SLIDER_MAX,
+    maxPrice: DEFAULT_MAX_PRICE,
     onlyCoaches: false,
     filterByTime: false,
     sortKey: 'newest' as SortKey,
 };
 
 async function loadAds(): Promise<Ad[]> {
-    const { data: adsData, error } = await api.ads.list({ all: true });
+    const { data: adsData, error } = await api.ads.list({ all: true, limit: 1000 });
     if (error) throw error;
     if (!adsData) throw new Error('Missing ads response');
     if (adsData.length === 0) return [];
@@ -217,12 +224,19 @@ export default function Feed() {
     const [filterGrade, setFilterGrade] = useState<string[]>([]);
     const [filterType, setFilterType] = useState<'all' | 'offer' | 'search'>('all');
     const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedQuery, setDebouncedQuery] = useState('');
     const [minPrice, setMinPrice] = useState(PRICE_SLIDER_MIN);
-    const [maxPrice, setMaxPrice] = useState(PRICE_SLIDER_MAX);
+    const [maxPrice, setMaxPrice] = useState(FILTER_DEFAULTS.maxPrice);
     const [filterOnlyCoaches, setFilterOnlyCoaches] = useState(false);
     const [sortKey, setSortKey] = useState<SortKey>('newest');
 
     const [loadAttempt, setLoadAttempt] = useState(0);
+
+    // Sucheingabe entkoppeln: erst nach 250 ms ohne Tippen filtern.
+    useEffect(() => {
+        const timer = window.setTimeout(() => setDebouncedQuery(searchQuery), 250);
+        return () => window.clearTimeout(timer);
+    }, [searchQuery]);
 
     useEffect(() => {
         let cancelled = false;
@@ -283,7 +297,7 @@ export default function Feed() {
         filterGrade.length > 0 ||
         filterType !== 'all' ||
         minPrice !== PRICE_SLIDER_MIN ||
-        maxPrice !== PRICE_SLIDER_MAX ||
+        maxPrice !== DEFAULT_MAX_PRICE ||
         filterOnlyCoaches || filterByTime ||
         sortKey !== 'newest'
     );
@@ -293,13 +307,14 @@ export default function Feed() {
         Boolean(filterSubject),
         filterGrade.length > 0,
         filterType !== 'all',
-        minPrice !== PRICE_SLIDER_MIN || maxPrice !== PRICE_SLIDER_MAX,
+        minPrice !== PRICE_SLIDER_MIN || maxPrice !== DEFAULT_MAX_PRICE,
         filterOnlyCoaches,
         filterByTime,
     ].filter(Boolean).length;
 
     const resetAllFilters = () => {
         setSearchQuery(FILTER_DEFAULTS.query);
+        setDebouncedQuery(FILTER_DEFAULTS.query);
         setFilterType(FILTER_DEFAULTS.type);
         setFilterSubject(FILTER_DEFAULTS.subject);
         setFilterGrade([]);
@@ -313,6 +328,7 @@ export default function Feed() {
     const applySavedSearch = () => {
         if (!savedSearch) return;
         setSearchQuery(savedSearch.query);
+        setDebouncedQuery(savedSearch.query);
         setFilterType(savedSearch.type);
         setFilterSubject(savedSearch.subject);
         setFilterGrade(savedSearch.grades);
@@ -370,7 +386,7 @@ export default function Feed() {
 
     // Filter (Suche, Typ, Fach, Klasse, Preis, Coaches) liegt in lib/anzeigen.ts.
     const filteredAds = filtereAnzeigen(ads, {
-        query: searchQuery,
+        query: debouncedQuery,
         type: filterType,
         subject: filterSubject,
         grades: filterGrade,
@@ -652,7 +668,7 @@ export default function Feed() {
                             {savedSearch.query ? `„${savedSearch.query}“` : 'Alle Anzeigen'}
                             {savedSearch.subject ? ` · ${savedSearch.subject}` : ''}
                             {savedSearch.grades.length > 0 ? ` · Kl. ${savedSearch.grades.join(', ')}` : ''}
-                            {savedSearch.minPrice > PRICE_SLIDER_MIN || savedSearch.maxPrice < PRICE_SLIDER_MAX
+                            {savedSearch.minPrice > PRICE_SLIDER_MIN || savedSearch.maxPrice < DEFAULT_MAX_PRICE
                                 ? ` · ${savedSearch.minPrice}–${savedSearch.maxPrice}€`
                                 : ''}
                         </span>

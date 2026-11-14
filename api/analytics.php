@@ -95,6 +95,24 @@ function fwg_analytics_cleanup(PDO $pdo): void {
         // Aufräumen darf die Statistik nie stören.
         error_log('analytics retention cleanup failed: ' . $e->getMessage());
     }
+
+    // Weitere Aufbewahrungsfristen (bewusst nur abgeschlossene/erlose Daten).
+    // Ein Fehler in einer Tabelle darf die übrigen Löschungen nicht verhindern.
+    $retentionQueries = [
+        "DELETE FROM notifications WHERE is_read = 1 AND created_at < DATE_SUB(NOW(), INTERVAL 6 MONTH)",
+        "DELETE FROM email_verifications WHERE expires_at < DATE_SUB(NOW(), INTERVAL 7 DAY)",
+        "DELETE FROM parental_consents WHERE confirmed_at IS NULL AND expires_at < DATE_SUB(NOW(), INTERVAL 7 DAY)",
+        // Meldungen und Moderationshistorie bleiben bewusst bis zur Kontolöschung
+        // erhalten, damit Wiederholungstäter auch nach längerer Zeit erkennbar sind.
+        "DELETE FROM support_tickets WHERE status IN ('resolved', 'closed') AND updated_at < DATE_SUB(NOW(), INTERVAL 12 MONTH)",
+    ];
+    foreach ($retentionQueries as $sql) {
+        try {
+            $pdo->exec($sql);
+        } catch (Throwable $e) {
+            error_log('retention cleanup failed: ' . $e->getMessage());
+        }
+    }
 }
 
 // Serverseitige Whitelist der Feed-Fächer (B2)

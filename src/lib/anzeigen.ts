@@ -5,12 +5,12 @@
 // unverändert übernommen, inklusive der Sonderfälle („free“ zählt als 0 €/h,
 // „VB“ passiert den Preisfilter immer).
 
-import { SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
+import { SUBJECT_CATEGORIES, subjectLabelMap, type Subject } from '../components/SubjectChip';
 import type { PriceDetails } from './utils';
 import { countMatches, emptyAvailability, type Availability } from './availability';
 
 export const PRICE_SLIDER_MIN = 0;
-export const PRICE_SLIDER_MAX = 30;
+export const PRICE_SLIDER_MAX = 100;
 export const SAVED_SEARCH_KEY = 'fwg_saved_search';
 export const GRADE_VALUES = ['5', '6', '7', '8', '9', '10', 'EF', 'Q1', 'Q2'];
 
@@ -24,10 +24,14 @@ export function isValidSortKey(value: unknown): value is SortKey {
 /** Struktureller Minimal-Typ: Feed-Anzeigen (inkl. eingebettetem Profil) passen hinein. */
 export interface AnzeigeLike {
     type: 'offer' | 'search';
+    title?: string | null;
     subjects: Subject[];
     grade_levels: string[];
     price_details: PriceDetails | null;
     short_description: string;
+    long_description?: string | null;
+    locations?: string[] | null;
+    custom_location?: string | null;
     created_at: string;
     view_count?: number | null;
     favorite_count?: number | null;
@@ -38,6 +42,7 @@ export interface AnzeigeLike {
         is_verified?: boolean;
         grade_level?: string;
         is_coach?: boolean;
+        bio?: string | null;
     } | null;
     profiles_avail?: Availability;
 }
@@ -98,17 +103,49 @@ export function isValidSubject(value: unknown): value is Subject {
     return SUBJECT_CATEGORIES.some(category => category.subjects.includes(value as Subject));
 }
 
-/** Filtert Anzeigen exakt nach der bisherigen Feed-Logik (Suche über Beschreibung/Fächer/Anzeigename). */
+/**
+ * Normalisiert Suchtext: klein, ohne diakritische Zeichen und mit ß → ss.
+ * So findet „Mathe“ auch „Mäthe“ und „Französisch“ auch „Franzoesisch“.
+ */
+function normalisiereSuchtext(value: string): string {
+    return value
+        .toLowerCase()
+        .replace(/ß/g, 'ss')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+}
+
+/** Sammelt alle durchsuchbaren Felder einer Anzeige als normalisierten Text. */
+function suchtextFuerAnzeige(ad: AnzeigeLike): string {
+    const subjectTerms = (ad.subjects || []).flatMap((s: Subject) => [s, subjectLabelMap[s] ?? s]);
+    const fields = [
+        ad.title,
+        ad.short_description,
+        ad.long_description,
+        ad.profiles?.display_name,
+        ad.profiles?.bio,
+        ...(ad.locations || []),
+        ad.custom_location,
+        ...subjectTerms,
+    ];
+    return normalisiereSuchtext(
+        fields.filter((field): field is string => typeof field === 'string' && field.length > 0).join(' ')
+    );
+}
+
+/**
+ * Filtert Anzeigen für den Feed. Die Suche prüft Titel, Kurz- und Langbeschreibung,
+ * Fächer (Labels und Keys), Anzeigename, Bio, Orte und eigenen Ort. Mehrere
+ * Suchwörter müssen alle irgendwo vorkommen (AND).
+ */
 export function filtereAnzeigen<T extends AnzeigeLike>(ads: T[], filter: AnzeigenFilter): T[] {
+    const suchbegriffe = normalisiereSuchtext(filter.query).split(/\s+/).filter(Boolean);
+
     return ads.filter(ad => {
-        // Search
-        const searchLower = filter.query.toLowerCase();
-        if (filter.query &&
-            !(ad.short_description?.toLowerCase() || '').includes(searchLower) &&
-            !(ad.subjects || []).some((s: Subject) => s.toLowerCase().includes(searchLower)) &&
-            !(ad.profiles?.display_name?.toLowerCase() || '').includes(searchLower)
-        ) {
-            return false;
+        // Search (AND über alle Suchwörter, umlauttolerant)
+        if (suchbegriffe.length > 0) {
+            const suchtext = suchtextFuerAnzeige(ad);
+            if (!suchbegriffe.every(begriff => suchtext.includes(begriff))) return false;
         }
         // Type
         if (filter.type !== 'all' && ad.type !== filter.type) return false;

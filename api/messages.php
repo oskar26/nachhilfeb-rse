@@ -17,6 +17,24 @@ $user = require_verified();
 $method = $_SERVER['REQUEST_METHOD'];
 $pdo = DB::getConnection();
 
+// Auto-Migration: echte Lesebestätigung (mehrfach ausführbar, MariaDB)
+try {
+    $pdo->exec("ALTER TABLE messages ADD COLUMN IF NOT EXISTS read_at DATETIME NULL AFTER is_read");
+} catch (Exception $e) {}
+
+// Auto-Migration: Nutzer-Blockierungen (wird auch von blocks.php/requests.php gepflegt).
+try {
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS user_blocks (
+            blocker_id VARCHAR(36) NOT NULL,
+            blocked_id VARCHAR(36) NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (blocker_id, blocked_id),
+            KEY idx_user_blocks_blocked (blocked_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+} catch (Exception $e) {}
+
 // ------------------------------------------------------------------------------
 // 1. GET: NACHRICHTEN EINES CHATS ABRUFEN (inkl. Polling mit 'after')
 // ------------------------------------------------------------------------------
@@ -48,8 +66,20 @@ if ($method === 'GET') {
         json_error('Kein Zugriff auf diesen Chat.', 403, ['code' => 'forbidden']);
     }
 
+    // Zuerst empfangene ungelesene Nachrichten des Chatpartners als gelesen
+    // markieren. Erst danach selektieren, damit der aktuelle read_at-Wert
+    // bereits in der Antwort enthalten ist.
+    if ($isParticipant) {
+        $markRead = $pdo->prepare('
+            UPDATE messages
+            SET is_read = 1, read_at = NOW()
+            WHERE request_id = ? AND sender_id != ? AND is_read = 0
+        ');
+        $markRead->execute([$requestId, $user['id']]);
+    }
+
     $sql = '
-        SELECT m.id, m.request_id, m.sender_id, m.content, m.is_read, m.created_at,
+        SELECT m.id, m.request_id, m.sender_id, m.content, m.is_read, m.read_at, m.created_at,
                p.display_name as sender_name, p.avatar_url as sender_avatar, p.avatar_type as sender_avatar_type
         FROM messages m
         JOIN profiles p ON p.id = m.sender_id
@@ -68,16 +98,6 @@ if ($method === 'GET') {
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $messages = $stmt->fetchAll();
-
-    // Als gelesen markieren für empfangene Nachrichten
-    if (!empty($messages)) {
-        $markRead = $pdo->prepare('
-            UPDATE messages 
-            SET is_read = 1 
-            WHERE request_id = ? AND sender_id != ? AND is_read = 0
-        ');
-        $markRead->execute([$requestId, $user['id']]);
-    }
 
     json_response($messages);
 }
@@ -114,6 +134,22 @@ if ($method === 'POST') {
         json_error('Kein Zugriff auf diesen Chat.', 403, ['code' => 'forbidden']);
     }
 
+    // Blockierungen gelten in beide Richtungen. Das SV-Team darf weiter
+    // moderieren, normale Teilnehmer können sich nicht anschreiben.
+    if (!$isAdmin) {
+        $otherId = ($req['requester_id'] === $user['id']) ? $req['owner_id'] : $req['requester_id'];
+        $blockStmt = $pdo->prepare('
+            SELECT 1 FROM user_blocks
+            WHERE (blocker_id = ? AND blocked_id = ?)
+               OR (blocker_id = ? AND blocked_id = ?)
+            LIMIT 1
+        ');
+        $blockStmt->execute([$user['id'], $otherId, $otherId, $user['id']]);
+        if ($blockStmt->fetchColumn()) {
+            json_error('Du kannst diesem Nutzer keine Nachrichten senden.', 403, ['code' => 'blocked']);
+        }
+    }
+
     $msgId = generate_uuid();
     $insert = $pdo->prepare('
         INSERT INTO messages (id, request_id, sender_id, content, is_read)
@@ -123,7 +159,7 @@ if ($method === 'POST') {
 
     // Nachricht direkt zurückliefern
     $fetchMsg = $pdo->prepare('
-        SELECT m.id, m.request_id, m.sender_id, m.content, m.is_read, m.created_at,
+        SELECT m.id, m.request_id, m.sender_id, m.content, m.is_read, m.read_at, m.created_at,
                p.display_name as sender_name, p.avatar_url as sender_avatar, p.avatar_type as sender_avatar_type
         FROM messages m
         JOIN profiles p ON p.id = m.sender_id

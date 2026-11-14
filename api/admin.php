@@ -295,7 +295,7 @@ if ($action === 'delete_user' && $method === 'POST') {
             $logId,
             $admin['id'],
             $targetId,
-            json_encode(['display_name' => $target['display_name'], 'email' => $target['email'], 'role' => $target['role']])
+            json_encode(['role' => $target['role']])
         ]);
 
         // Löschen aus users kaskadiert: profiles, ads, requests, messages, reviews,

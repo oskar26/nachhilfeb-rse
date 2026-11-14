@@ -44,6 +44,12 @@ const LOCATION_GROUPS: { title: string; locations: LocationPreset[] }[] = [
 const DURATION_PRESETS = [30, 45, 60, 90];
 const DURATION_EGAL = 0; // 0 = „Egal / nach Absprache“ (wird so im Feed angezeigt)
 
+// Sichtbare Obergrenzen – dieselben Limits, die der Server erzwingt.
+const MAX_SUBJECTS = 10;
+const MAX_LOCATIONS = 10;
+const MAX_DURATIONS = 6;
+const MAX_IMAGES = 5;
+
 const DRAFT_KEY = 'fwg_draft_ad';
 const INITIAL_FORM = {
     type: 'offer' as 'offer' | 'search',
@@ -186,7 +192,10 @@ export default function CreateAd() {
     // Validation
     const isStepValid = () => {
         switch (currentStep) {
-            case 0: return formData.title.trim().length > 3;
+            case 0: {
+                const titleLength = formData.title.trim().length;
+                return titleLength >= 4 && titleLength <= 80;
+            }
             case 1: return formData.subjects.length > 0 && formData.grade_levels.length > 0;
             case 2: return (formData.locations.length > 0 || formData.custom_location.trim().length > 0) && (formData.duration_minutes.length > 0 || formData.custom_duration.trim().length > 0);
             case 3:
@@ -201,9 +210,9 @@ export default function CreateAd() {
     const getStepHint = (step: number = currentStep): string | null => {
         switch (step) {
             case 0:
-                return formData.title.trim().length > 3
+                return formData.title.trim().length >= 4 && formData.title.trim().length <= 80
                     ? null
-                    : 'Gib einen Titel mit mindestens 4 Zeichen ein – z. B. „Mathe-Hilfe für Klasse 6“.';
+                    : 'Gib einen Titel mit 4 bis 80 Zeichen ein – z. B. „Mathe-Hilfe für Klasse 6“.';
             case 1:
                 if (formData.subjects.length === 0) return 'Wähle mindestens 1 Fach – nutze die Suche, wenn du es nicht findest.';
                 if (formData.grade_levels.length === 0) return 'Wähle mindestens 1 Klassenstufe, für die die Anzeige gilt.';
@@ -305,6 +314,14 @@ export default function CreateAd() {
 
     const handleSubmit = async () => {
         if (!user || !isVerified) return;
+
+        const trimmedTitle = formData.title.trim();
+        if (trimmedTitle.length < 4 || trimmedTitle.length > 80) {
+            triggerHaptic('error');
+            toast.error('Der Titel muss zwischen 4 und 80 Zeichen lang sein.');
+            return;
+        }
+
         setIsSubmitting(true);
 
         // Prepare Price JSON
@@ -333,6 +350,7 @@ export default function CreateAd() {
 
         const payload = {
             type: formData.type,
+            title: trimmedTitle,
             session_format: formData.session_format,
             subjects: formData.subjects,
             grade_levels: formData.grade_levels,
@@ -381,6 +399,11 @@ export default function CreateAd() {
 
     // Helper Toggles
     const toggleSubject = (s: Subject) => {
+        if (!formData.subjects.includes(s) && formData.subjects.length >= MAX_SUBJECTS) {
+            triggerHaptic('error');
+            toast.error('Du kannst höchstens 10 Fächer auswählen.');
+            return;
+        }
         setFormData(prev => ({
             ...prev,
             subjects: prev.subjects.includes(s)
@@ -390,6 +413,11 @@ export default function CreateAd() {
     };
 
     const toggleLocation = (loc: string) => {
+        if (!formData.locations.includes(loc) && formData.locations.length >= MAX_LOCATIONS) {
+            triggerHaptic('error');
+            toast.error('Du kannst höchstens 10 Orte auswählen.');
+            return;
+        }
         setFormData(prev => ({
             ...prev,
             locations: prev.locations.includes(loc)
@@ -399,30 +427,63 @@ export default function CreateAd() {
     };
 
     const toggleDuration = (min: number) => {
-        setFormData(prev => {
-            // „Egal“ ist exklusiv: steht für „Dauer klären wir im Chat“ statt einer festen Minutenzahl.
-            if (min === DURATION_EGAL) {
+        // „Egal“ ist exklusiv: steht für „Dauer klären wir im Chat“ statt einer festen Minutenzahl.
+        if (min === DURATION_EGAL) {
+            setFormData(prev => {
                 const hasEgal = prev.duration_minutes.includes(DURATION_EGAL);
                 return { ...prev, duration_minutes: hasEgal ? [] : [DURATION_EGAL], custom_duration: '' };
+            });
+            return;
+        }
+        const withoutEgal = formData.duration_minutes.filter(m => m !== DURATION_EGAL);
+        if (!withoutEgal.includes(min)) {
+            // Die eigene Dauer zählt als weitere Angabe mit.
+            const count = withoutEgal.length + (formData.custom_duration.trim() ? 1 : 0);
+            if (count >= MAX_DURATIONS) {
+                triggerHaptic('error');
+                toast.error('Du kannst höchstens 6 Dauerangaben auswählen.');
+                return;
             }
-            const withoutEgal = prev.duration_minutes.filter(m => m !== DURATION_EGAL);
+        }
+        setFormData(prev => {
+            const currentWithoutEgal = prev.duration_minutes.filter(m => m !== DURATION_EGAL);
             return {
                 ...prev,
-                duration_minutes: withoutEgal.includes(min)
-                    ? withoutEgal.filter(m => m !== min)
-                    : [...withoutEgal, min]
+                duration_minutes: currentWithoutEgal.includes(min)
+                    ? currentWithoutEgal.filter(m => m !== min)
+                    : [...currentWithoutEgal, min]
             };
         });
     };
 
-    const addImageUrl = () => {
-        if (formData.new_image_url && formData.new_image_url.startsWith('http')) {
-            setFormData(prev => ({
-                ...prev,
-                image_urls: [...prev.image_urls, prev.new_image_url],
-                new_image_url: ''
-            }));
+    const updateCustomDuration = (value: string) => {
+        const fixedCount = formData.duration_minutes.filter(m => m !== DURATION_EGAL).length;
+        if (value.trim() && !formData.custom_duration.trim() && fixedCount >= MAX_DURATIONS) {
+            triggerHaptic('error');
+            toast.error('Du kannst höchstens 6 Dauerangaben auswählen.');
+            return;
         }
+        setFormData(prev => ({
+            ...prev,
+            custom_duration: value,
+            duration_minutes: value.trim()
+                ? prev.duration_minutes.filter(m => m !== DURATION_EGAL)
+                : prev.duration_minutes
+        }));
+    };
+
+    const addImageUrl = () => {
+        if (!formData.new_image_url || !formData.new_image_url.startsWith('http')) return;
+        if (formData.image_urls.length >= MAX_IMAGES) {
+            triggerHaptic('error');
+            toast.error('Du kannst höchstens 5 Bilder hinzufügen.');
+            return;
+        }
+        setFormData(prev => ({
+            ...prev,
+            image_urls: [...prev.image_urls, prev.new_image_url],
+            new_image_url: ''
+        }));
     };
 
     const filteredSubjectGroups = useMemo(() => {
@@ -616,7 +677,7 @@ export default function CreateAd() {
                                     <div>
                                         <div className="flex items-baseline justify-between gap-3 mb-2">
                                             <Label htmlFor="ad-title" className="text-sm font-medium">Titel der Anzeige</Label>
-                                            <span className="text-xs text-muted-foreground shrink-0">Mind. 4 Zeichen</span>
+                                            <span className="text-xs text-muted-foreground shrink-0">4–80 Zeichen</span>
                                         </div>
                                         <Input
                                             id="ad-title"
@@ -626,7 +687,7 @@ export default function CreateAd() {
                                             className="text-base sm:text-lg"
                                             maxLength={80}
                                         />
-                                        <p className="text-xs text-muted-foreground mt-1.5">So erscheint deine Anzeige in der Übersicht. Fach und Klasse im Titel helfen beim Finden.</p>
+                                        <p className="text-xs text-muted-foreground mt-1.5">Der Titel erscheint auf der Detailseite und in deiner Merkliste. In der Übersicht siehst du zusätzlich Fach und Anzeigename.</p>
                                     </div>
                             </>
                         </div>
@@ -640,7 +701,7 @@ export default function CreateAd() {
                                     <Label htmlFor="subject-search" className="text-sm font-medium">Welche Fächer?</Label>
                                     <span className="text-xs text-muted-foreground shrink-0" aria-live="polite">
                                         {formData.subjects.length > 0
-                                            ? `${formData.subjects.length} gewählt`
+                                            ? `${formData.subjects.length}/${MAX_SUBJECTS} gewählt`
                                             : subjectQuery.trim()
                                                 ? `${subjectMatchCount} von 25 Fächern`
                                                 : '25 Fächer in 4 Gruppen'}
@@ -791,14 +852,14 @@ export default function CreateAd() {
                                 </div>
                                 {(formData.locations.length > 0 || formData.custom_location.trim()) && (
                                     <p className="text-xs text-muted-foreground mt-2" aria-live="polite">
-                                        Ausgewählt ({formData.locations.length + (formData.custom_location.trim() ? 1 : 0)}): {[ ...formData.locations, ...(formData.custom_location.trim() ? [formData.custom_location.trim()] : []) ].join(' • ')}
+                                        Ausgewählt ({formData.locations.length}/{MAX_LOCATIONS}{formData.custom_location.trim() ? ' + eigener Ort' : ''}): {[ ...formData.locations, ...(formData.custom_location.trim() ? [formData.custom_location.trim()] : []) ].join(' • ')}
                                     </p>
                                 )}
                             </div>
 
                             <div>
                                 <Label className="text-sm font-medium mb-1 block">Wie lange dauert eine Einheit?</Label>
-                                <p className="text-xs text-muted-foreground mb-3">Standard ist „Egal / nach Absprache“. Ihr klärt die Dauer dann im Chat. Feste Minuten sind exklusiv dazu.</p>
+                                <p className="text-xs text-muted-foreground mb-3">Standard ist „Egal / nach Absprache“. Ihr klärt die Dauer dann im Chat. Feste Minuten sind exklusiv dazu. Maximal {MAX_DURATIONS} Dauerangaben, die eigene Dauer zählt mit.</p>
                                 <div className="flex flex-wrap gap-2 mb-3">
                                     {DURATION_PRESETS.map(dur => {
                                         const active = formData.duration_minutes.includes(dur);
@@ -843,13 +904,7 @@ export default function CreateAd() {
                                             max={480}
                                             placeholder="z. B. 50"
                                             value={formData.custom_duration}
-                                            onChange={e => setFormData(prev => ({
-                                                ...prev,
-                                                custom_duration: e.target.value,
-                                                duration_minutes: e.target.value.trim()
-                                                    ? prev.duration_minutes.filter(m => m !== DURATION_EGAL)
-                                                    : prev.duration_minutes
-                                            }))}
+                                            onChange={e => updateCustomDuration(e.target.value)}
                                             className="max-w-[170px]"
                                         />
                                         <span className="text-xs text-muted-foreground">Minuten, 5–480</span>
@@ -976,6 +1031,13 @@ export default function CreateAd() {
                                                     <span>Deutlich über dem FWG-Richtwert. Bitte prüfe, ob der Preis so gemeint ist.</span>
                                                 </div>
                                             )}
+
+                                            {effectiveHourly.hourly < 5 && (
+                                                <p className="text-xs text-muted-foreground">Sehr niedriger Preis – achte darauf, dass deine Zeit fair vergütet wird.</p>
+                                            )}
+                                            {effectiveHourly.hourly > 35 && (
+                                                <p className="text-xs text-muted-foreground">Sehr hoher Preis – der Richtwert liegt bei etwa 12 € pro Stunde.</p>
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -1027,7 +1089,7 @@ export default function CreateAd() {
 
                             <div className="pt-4">
                                 <Label className="text-sm font-medium mb-2 block flex items-center gap-2">
-                                    <LinkIcon size={16} /> Bild-Adressen (URLs)
+                                    <LinkIcon size={16} /> Bild-Adressen (URLs, max. {MAX_IMAGES})
                                 </Label>
                                 <div className="space-y-2">
                                     {formData.image_urls.map((url, idx) => (

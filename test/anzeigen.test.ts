@@ -63,7 +63,7 @@ const withPrice = (p: unknown) => makeAd({ price_details: p as AnzeigeLike['pric
 describe('Konstanten', () => {
     it('hält die Preis- und Sortier-Konstanten stabil', () => {
         expect(PRICE_SLIDER_MIN).toBe(0);
-        expect(PRICE_SLIDER_MAX).toBe(30);
+        expect(PRICE_SLIDER_MAX).toBe(100);
         expect(GRADE_VALUES).toEqual(['5', '6', '7', '8', '9', '10', 'EF', 'Q1', 'Q2']);
         expect(SORT_KEYS).toEqual(['newest', 'oldest', 'cheapest', 'priciest', 'popular', 'saved']);
     });
@@ -286,7 +286,7 @@ describe('parseGespeicherteSuche', () => {
         expect(parseGespeicherteSuche({ ...valid, minPrice: 5.5 })).toBeNull();
         expect(parseGespeicherteSuche({ ...valid, minPrice: 20, maxPrice: 5 })).toBeNull();
         expect(parseGespeicherteSuche({ ...valid, minPrice: -1 })).toBeNull();
-        expect(parseGespeicherteSuche({ ...valid, maxPrice: 31 })).toBeNull();
+        expect(parseGespeicherteSuche({ ...valid, maxPrice: 101 })).toBeNull();
         expect(parseGespeicherteSuche({ ...valid, onlyCoaches: 'ja' })).toBeNull();
     });
 });
