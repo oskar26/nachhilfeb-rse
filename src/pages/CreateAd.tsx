@@ -1,6 +1,6 @@
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, type ChangeEvent, type DragEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -8,10 +8,13 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../compone
 import { SubjectChip, SUBJECT_CATEGORIES, subjectLabelMap, type Subject } from '../components/SubjectChip';
 import { GradeSelector } from '../components/GradeSelector';
 import { RichTextEditor } from '../components/RichTextEditor';
-import { ChevronLeft, ChevronRight, CheckCircle, Plus, X, Link as LinkIcon, AlertCircle, Lock, GraduationCap, Search, Users, User, Shuffle, School, Wifi, Home, MapPin, Calculator, Info, Loader2 } from 'lucide-react';
-import { cn, formatAdPrice } from '../lib/utils';
+import { ChevronLeft, ChevronRight, CheckCircle, Plus, X, Link as LinkIcon, AlertCircle, Lock, GraduationCap, Search, Users, User, Shuffle, School, Wifi, Home, MapPin, Calculator, Info, Loader2, ImagePlus } from 'lucide-react';
+import { cn } from '../lib/utils';
+import { PriceTag } from '../components/ui/price-tag';
+import { PRICE_GUIDELINE, PRICE_MODE_LABELS } from '../lib/pricing';
+import { compressImage } from '../lib/image';
 import { useAuth } from '../context/AuthContext';
-import { api } from '../lib/api';
+import { api, uploadAdImage } from '../lib/api';
 import { toast } from 'sonner';
 import { sanitizeHtml } from '../lib/sanitize';
 import { triggerHaptic } from '../lib/haptics';
@@ -24,6 +27,10 @@ const STEPS = [
     'Details & Bilder',
     'Vorschau'
 ];
+
+// Kurze Labels nur für die sechs Stepper-Spalten (die CardTitle bleibt
+// ausführlich). Bei 390 px passen so alle Schritte ohne Umbruch.
+const STEP_SHORT_LABELS = ['Typ', 'Fächer', 'Ort/Zeit', 'Preis', 'Details', 'Vorschau'];
 
 type PriceMode = 'free' | 'fixed' | 'vb';
 type SessionFormat = 'single' | 'group' | 'any';
@@ -49,6 +56,99 @@ const MAX_SUBJECTS = 10;
 const MAX_LOCATIONS = 10;
 const MAX_DURATIONS = 6;
 const MAX_IMAGES = 5;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const ACCEPTED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const MAX_CUSTOM_LOCATION_LENGTH = 120;
+
+const PRESET_LOCATIONS = new Set<string>(LOCATION_GROUPS.flatMap(group => group.locations));
+
+/**
+ * Teilt alte und neue Ortsdaten in Presets und eigene Orte. Alte Anzeigen
+ * können eigene Orte sowohl in `locations` (früher zusammengeführt) als auch
+ * im Einzelwert `custom_location` tragen; beides wird hier vereinigt.
+ */
+function splitLocations(
+    rawLocations: unknown,
+    rawCustomLocations: unknown = [],
+    legacyCustomLocation: unknown = ''
+): { locations: string[]; custom_locations: string[] } {
+    const locations: string[] = [];
+    const customLocations: string[] = [];
+
+    const add = (value: unknown) => {
+        if (typeof value !== 'string') return;
+        const clean = value.trim().slice(0, MAX_CUSTOM_LOCATION_LENGTH);
+        if (!clean) return;
+        if (locations.length + customLocations.length >= MAX_LOCATIONS) return;
+        if (PRESET_LOCATIONS.has(clean)) {
+            if (!locations.includes(clean)) locations.push(clean);
+            return;
+        }
+        if (!customLocations.includes(clean) && !locations.includes(clean)) {
+            customLocations.push(clean);
+        }
+    };
+
+    if (Array.isArray(rawLocations)) rawLocations.forEach(add);
+    if (Array.isArray(rawCustomLocations)) rawCustomLocations.forEach(add);
+    add(legacyCustomLocation);
+
+    return { locations, custom_locations: customLocations };
+}
+
+function imageFileProblem(file: File): string | null {
+    const type = file.type.toLowerCase();
+    const extensionLooksValid = /\.(jpe?g|png|webp)$/i.test(file.name);
+    if (!ACCEPTED_IMAGE_TYPES.has(type) && !(type === '' && extensionLooksValid)) {
+        return 'Nur JPEG, PNG oder WebP sind erlaubt.';
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+        return 'Das Bild ist zu groß (max. 5 MB).';
+    }
+    if (file.size <= 0) {
+        return 'Die Datei ist leer.';
+    }
+    return null;
+}
+
+/**
+ * Verkleinert große Bilder vor dem Upload. compressImage() liefert eine
+ * Data-URL; diese wird hier ohne Netzwerkzugriff in einen echten Blob
+ * umgewandelt, damit niemals eine Data-URL an die API geht.
+ */
+function dataUrlToBlob(dataUrl: string): Blob | null {
+    const comma = dataUrl.indexOf(',');
+    if (comma < 0) return null;
+    const header = dataUrl.slice(0, comma);
+    const base64 = dataUrl.slice(comma + 1);
+    if (!header.toLowerCase().includes(';base64')) return null;
+    const mimeMatch = /^data:([^;]+)/i.exec(header);
+    const mime = mimeMatch?.[1] || 'image/webp';
+    try {
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i += 1) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        return new Blob([bytes], { type: mime });
+    } catch {
+        return null;
+    }
+}
+
+async function prepareImageForUpload(file: File): Promise<File> {
+    try {
+        const dataUrl = await compressImage(file, 1600, 0.82);
+        const blob = dataUrlToBlob(dataUrl);
+        if (!blob || !blob.size || blob.size > MAX_IMAGE_BYTES) return file;
+        const extension = blob.type === 'image/png' ? 'png' : blob.type === 'image/jpeg' ? 'jpg' : 'webp';
+        const baseName = file.name.replace(/\.[^.]+$/, '') || 'anzeige-bild';
+        return new File([blob], `${baseName}.${extension}`, { type: blob.type });
+    } catch {
+        // Original bleibt der Fallback; die Größe wurde vorher geprüft.
+        return file;
+    }
+}
 
 const DRAFT_KEY = 'fwg_draft_ad';
 const INITIAL_FORM = {
@@ -58,7 +158,8 @@ const INITIAL_FORM = {
     subjects: [] as Subject[],
     grade_levels: [] as string[],
     locations: [] as string[],
-    custom_location: '',
+    custom_locations: [] as string[],
+    new_custom_location: '',
     duration_minutes: [DURATION_EGAL] as number[],
     custom_duration: '',
     price_mode: 'fixed' as PriceMode,
@@ -100,6 +201,11 @@ function adToFormData(source: EditableAd | null | undefined): typeof INITIAL_FOR
     const legacyFormat: SessionFormat = source?.session_format === 'single' || source?.session_format === 'group' || source?.session_format === 'any'
         ? source.session_format
         : (legacyGroup ? 'group' : 'any');
+    const { locations, custom_locations } = splitLocations(
+        source?.locations,
+        [],
+        source?.custom_location
+    );
 
     return {
         type: source?.type === 'search' ? 'search' : 'offer',
@@ -107,8 +213,9 @@ function adToFormData(source: EditableAd | null | undefined): typeof INITIAL_FOR
         session_format: legacyFormat,
         subjects: Array.isArray(source?.subjects) ? source.subjects : [],
         grade_levels: Array.isArray(source?.grade_levels) ? source.grade_levels : [],
-        locations: Array.isArray(source?.locations) ? source.locations : [],
-        custom_location: typeof source?.custom_location === 'string' ? source.custom_location : '',
+        locations,
+        custom_locations,
+        new_custom_location: '',
         duration_minutes: Array.isArray(source?.duration_minutes) && source.duration_minutes.length > 0
             ? source.duration_minutes
             : [DURATION_EGAL],
@@ -118,7 +225,7 @@ function adToFormData(source: EditableAd | null | undefined): typeof INITIAL_FOR
         price_unit: source?.price_details?.unit || '45min',
         short_description: cleanShort,
         long_description: source?.long_description || '',
-        image_urls: Array.isArray(source?.image_urls) ? source.image_urls : [],
+        image_urls: Array.isArray(source?.image_urls) ? source.image_urls.slice(0, MAX_IMAGES) : [],
         new_image_url: ''
     };
 }
@@ -140,6 +247,12 @@ export default function CreateAd() {
     const [subjectQuery, setSubjectQuery] = useState('');
     const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
     const [draftRestored, setDraftRestored] = useState(false);
+    const [uploadingImages, setUploadingImages] = useState<{ id: string; name: string }[]>([]);
+    const [isDraggingImage, setIsDraggingImage] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const uploadingCountRef = useRef(0);
+
+    const totalLocations = formData.locations.length + formData.custom_locations.length;
 
     const getEffectiveHourlyRate = () => {
         if (formData.price_mode !== 'fixed' || !formData.price_value) {
@@ -152,7 +265,7 @@ export default function CreateAd() {
         return {
             hourly,
             minutes,
-            formatted: hourly.toFixed(2)
+            formatted: Number.isInteger(hourly) ? String(hourly) : hourly.toFixed(1).replace('.', ',')
         };
     };
     const effectiveHourly = getEffectiveHourlyRate();
@@ -197,7 +310,7 @@ export default function CreateAd() {
                 return titleLength >= 4 && titleLength <= 80;
             }
             case 1: return formData.subjects.length > 0 && formData.grade_levels.length > 0;
-            case 2: return (formData.locations.length > 0 || formData.custom_location.trim().length > 0) && (formData.duration_minutes.length > 0 || formData.custom_duration.trim().length > 0);
+            case 2: return totalLocations > 0 && (formData.duration_minutes.length > 0 || formData.custom_duration.trim().length > 0);
             case 3:
                 if (formData.price_mode === 'free' || formData.price_mode === 'vb') return true;
                 return Number(formData.price_value) > 0; // fixed needs value
@@ -218,7 +331,7 @@ export default function CreateAd() {
                 if (formData.grade_levels.length === 0) return 'Wähle mindestens 1 Klassenstufe, für die die Anzeige gilt.';
                 return null;
             case 2: {
-                const hasPlace = formData.locations.length > 0 || formData.custom_location.trim().length > 0;
+                const hasPlace = totalLocations > 0;
                 const hasDuration = formData.duration_minutes.length > 0 || formData.custom_duration.trim().length > 0;
                 if (!hasPlace) return 'Wähle mindestens 1 Ort oder trage einen eigenen Ort ein.';
                 if (!hasDuration) return 'Wähle eine Dauer oder „Egal / nach Absprache“, wenn ihr das im Chat klärt.';
@@ -249,7 +362,26 @@ export default function CreateAd() {
             if (raw) {
                 const parsed = JSON.parse(raw);
                 if (parsed && typeof parsed === 'object' && parsed.formData) {
-                    setFormData(prev => ({ ...prev, ...parsed.formData, duration_minutes: parsed.formData.duration_minutes?.length ? parsed.formData.duration_minutes : [DURATION_EGAL] }));
+                    const restored = { ...parsed.formData };
+                    // Migration alter Entwürfe: früher gab es nur einen
+                    // einzelnen custom_location-String.
+                    const restoredLocations = splitLocations(
+                        restored.locations,
+                        restored.custom_locations,
+                        restored.custom_location
+                    );
+                    delete restored.custom_location;
+                    setFormData(prev => ({
+                        ...prev,
+                        ...restored,
+                        locations: restoredLocations.locations,
+                        custom_locations: restoredLocations.custom_locations,
+                        new_custom_location: typeof restored.new_custom_location === 'string' ? restored.new_custom_location : '',
+                        image_urls: Array.isArray(restored.image_urls) ? restored.image_urls.slice(0, MAX_IMAGES) : [],
+                        duration_minutes: Array.isArray(restored.duration_minutes) && restored.duration_minutes.length
+                            ? restored.duration_minutes
+                            : [DURATION_EGAL]
+                    }));
                     if (typeof parsed.currentStep === 'number' && parsed.currentStep >= 0 && parsed.currentStep < STEPS.length) {
                         setCurrentStep(parsed.currentStep);
                     }
@@ -338,11 +470,15 @@ export default function CreateAd() {
             if (!isNaN(custom)) finalDurations.push(custom);
         }
 
-        // Combine locations
-        const finalLocations = [...formData.locations];
-        if (formData.custom_location) {
-            finalLocations.push(formData.custom_location);
-        }
+        // Combine locations: Presets und eigene Orte landen gemeinsam im
+        // locations-Array (max. 10). Die alte Einzelspalte custom_location
+        // wird geleert, damit entfernte Orte nicht beim nächsten Bearbeiten
+        // wieder auftauchen.
+        const finalLocations = [...formData.locations, ...formData.custom_locations]
+            .map(location => location.trim())
+            .filter(Boolean)
+            .filter((location, index, all) => all.indexOf(location) === index)
+            .slice(0, MAX_LOCATIONS);
 
         // Legacy-Säuberung: Ein evtl. noch vorhandener [Kleingruppe]-Prefix gehört ins
         // session_format-Feld und nicht in den sichtbaren Text.
@@ -355,6 +491,7 @@ export default function CreateAd() {
             subjects: formData.subjects,
             grade_levels: formData.grade_levels,
             locations: finalLocations,
+            custom_location: '',
             price_details: priceDetails,
             duration_minutes: finalDurations,
             short_description: cleanShortDescription,
@@ -413,9 +550,9 @@ export default function CreateAd() {
     };
 
     const toggleLocation = (loc: string) => {
-        if (!formData.locations.includes(loc) && formData.locations.length >= MAX_LOCATIONS) {
+        if (!formData.locations.includes(loc) && totalLocations >= MAX_LOCATIONS) {
             triggerHaptic('error');
-            toast.error('Du kannst höchstens 10 Orte auswählen.');
+            toast.error('Du kannst höchstens 10 Orte angeben.');
             return;
         }
         setFormData(prev => ({
@@ -424,6 +561,36 @@ export default function CreateAd() {
                 ? prev.locations.filter(l => l !== loc)
                 : [...prev.locations, loc]
         }));
+    };
+
+    const addCustomLocation = () => {
+        const clean = formData.new_custom_location.trim().slice(0, MAX_CUSTOM_LOCATION_LENGTH);
+        if (!clean) return;
+        if (formData.custom_locations.includes(clean) || formData.locations.includes(clean)) {
+            toast.error('Dieser Ort ist schon ausgewählt.');
+            return;
+        }
+        if (totalLocations >= MAX_LOCATIONS) {
+            triggerHaptic('error');
+            toast.error('Du kannst höchstens 10 Orte angeben.');
+            return;
+        }
+        setFormData(prev => ({
+            ...prev,
+            custom_locations: [...prev.custom_locations, clean],
+            new_custom_location: ''
+        }));
+    };
+
+    const removeCustomLocation = (location: string) => {
+        setFormData(prev => ({
+            ...prev,
+            custom_locations: prev.custom_locations.filter(l => l !== location)
+        }));
+    };
+
+    const clearLocations = () => {
+        setFormData(prev => ({ ...prev, locations: [], custom_locations: [], new_custom_location: '' }));
     };
 
     const toggleDuration = (min: number) => {
@@ -473,17 +640,101 @@ export default function CreateAd() {
     };
 
     const addImageUrl = () => {
-        if (!formData.new_image_url || !formData.new_image_url.startsWith('http')) return;
-        if (formData.image_urls.length >= MAX_IMAGES) {
+        const url = formData.new_image_url.trim();
+        if (!url) return;
+        if (!/^https:\/\//i.test(url)) {
+            toast.error('Bitte füge eine Bild-URL ein, die mit https:// beginnt.');
+            return;
+        }
+        if (formData.image_urls.includes(url)) {
+            toast.error('Dieses Bild ist schon in der Anzeige.');
+            return;
+        }
+        if (formData.image_urls.length + uploadingCountRef.current >= MAX_IMAGES) {
             triggerHaptic('error');
             toast.error('Du kannst höchstens 5 Bilder hinzufügen.');
             return;
         }
         setFormData(prev => ({
             ...prev,
-            image_urls: [...prev.image_urls, prev.new_image_url],
+            image_urls: [...prev.image_urls, url],
             new_image_url: ''
         }));
+    };
+
+    const removeImage = (index: number) => {
+        setFormData(prev => ({
+            ...prev,
+            image_urls: prev.image_urls.filter((_, i) => i !== index)
+        }));
+    };
+
+    const handleImageFiles = async (incoming: FileList | File[]) => {
+        const files = Array.from(incoming);
+        if (files.length === 0) return;
+
+        const freeSlots = MAX_IMAGES - formData.image_urls.length - uploadingCountRef.current;
+        if (freeSlots <= 0) {
+            triggerHaptic('error');
+            toast.error('Du kannst höchstens 5 Bilder hinzufügen.');
+            return;
+        }
+        if (files.length > freeSlots) {
+            toast.error(`Es passen nur noch ${freeSlots} ${freeSlots === 1 ? 'Bild' : 'Bilder'} in die Anzeige.`);
+        }
+
+        for (const file of files.slice(0, freeSlots)) {
+            const problem = imageFileProblem(file);
+            if (problem) {
+                toast.error(`${file.name}: ${problem}`);
+                continue;
+            }
+
+            const uploadId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+            uploadingCountRef.current += 1;
+            setUploadingImages(prev => [...prev, { id: uploadId, name: file.name }]);
+            try {
+                const prepared = await prepareImageForUpload(file);
+                const preparedProblem = imageFileProblem(prepared);
+                if (preparedProblem) throw new Error(preparedProblem);
+
+                const { data, error } = await uploadAdImage(prepared);
+                if (error || !data?.url) {
+                    throw new Error(error?.message || 'Bild konnte nicht hochgeladen werden.');
+                }
+                const url = data.url;
+                setFormData(prev => (
+                    prev.image_urls.length >= MAX_IMAGES || prev.image_urls.includes(url)
+                        ? prev
+                        : { ...prev, image_urls: [...prev.image_urls, url] }
+                ));
+                toast.success(`${file.name} hochgeladen.`);
+            } catch (error) {
+                const message = error instanceof Error && error.message
+                    ? error.message
+                    : 'Bild konnte nicht hochgeladen werden.';
+                toast.error(`${file.name}: ${message}`);
+            } finally {
+                uploadingCountRef.current = Math.max(0, uploadingCountRef.current - 1);
+                setUploadingImages(prev => prev.filter(item => item.id !== uploadId));
+            }
+        }
+    };
+
+    const handleImageInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+        if (event.target.files?.length) {
+            void handleImageFiles(event.target.files);
+        }
+        // Gleiche Datei nach einem Fehler erneut wählbar machen.
+        event.target.value = '';
+    };
+
+    const handleImageDrop = (event: DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        setIsDraggingImage(false);
+        if (event.dataTransfer.files?.length) {
+            void handleImageFiles(event.dataTransfer.files);
+        }
     };
 
     const filteredSubjectGroups = useMemo(() => {
@@ -505,7 +756,7 @@ export default function CreateAd() {
     if (loadingProfile) return (
         <div className="flex flex-col items-center justify-center gap-3 p-20" role="status">
             <Loader2 className="animate-spin text-muted-foreground" size={32} aria-hidden />
-            <p className="text-xs font-semibold text-muted-foreground">Profil wird geladen…</p>
+            <p className="text-[13px] font-semibold text-muted-foreground">Profil wird geladen…</p>
         </div>
     );
 
@@ -529,7 +780,7 @@ export default function CreateAd() {
     }
 
     return (
-        <div className="mx-auto box-border w-full max-w-app min-w-0 space-y-6 overflow-x-clip p-4 pb-32 sm:p-6 sm:pb-36">
+        <div className="mx-auto box-border w-full max-w-app min-w-0 space-y-6 overflow-visible p-4 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] sm:p-6 md:pb-10">
             <div className="space-y-2">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <h1 className="min-w-0 text-[28px] font-extrabold leading-tight tracking-[-0.03em] text-foreground">
@@ -539,7 +790,7 @@ export default function CreateAd() {
                         <Button variant="unstyled" size="unstyled"
                             type="button"
                             onClick={discardDraft}
-                            className="mt-0.5 min-h-11 shrink-0 text-xs font-semibold text-muted-foreground underline underline-offset-4 hover:text-destructive"
+                            className="mt-0.5 min-h-11 shrink-0 text-[13px] font-semibold text-muted-foreground underline underline-offset-4 hover:text-destructive"
                         >
                             Entwurf verwerfen
                         </Button>
@@ -569,7 +820,7 @@ export default function CreateAd() {
                                 {index > 0 && (
                                     <span
                                         aria-hidden
-                                        className="absolute top-5 right-[calc(50%+1.5rem)] h-0.5 w-[calc(100%-3rem)] rounded-full bg-border sm:right-[calc(50%+1.75rem)] sm:w-[calc(100%-3.5rem)]"
+                                        className="absolute top-[21px] right-[calc(50%+1.5rem)] h-0.5 w-[calc(100%-3rem)] rounded-full bg-border sm:right-[calc(50%+1.75rem)] sm:w-[calc(100%-3.5rem)]"
                                     />
                                 )}
                                 <Button variant="unstyled" size="unstyled"
@@ -577,7 +828,7 @@ export default function CreateAd() {
                                     onClick={() => jumpToStep(index)}
                                     disabled={index > currentStep && !isStepValid()}
                                     className={cn(
-                                        "relative z-10 flex size-10 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-[background-color,color,transform] duration-150 active:scale-[0.98] sm:size-11",
+                                        "relative z-10 flex size-11 shrink-0 items-center justify-center rounded-full text-[13px] font-bold transition-[background-color,color,transform] duration-150 active:scale-[0.98]",
                                         isCurrent
                                             ? "bg-primary text-primary-foreground shadow-soft"
                                             : isCompleted
@@ -589,8 +840,8 @@ export default function CreateAd() {
                                 >
                                     {isCompleted ? <CheckCircle size={16} aria-hidden /> : index + 1}
                                 </Button>
-                                <span className={cn("mt-2 max-w-full px-0.5 text-center text-[11px] leading-tight transition-colors sm:text-xs", isCurrent ? "font-bold text-foreground" : "text-muted-foreground")}>
-                                    {step}
+                                <span className={cn("mt-2 max-w-full px-0.5 text-center text-[13px] leading-tight transition-colors", isCurrent ? "font-bold text-foreground" : "text-muted-foreground")}>
+                                    {STEP_SHORT_LABELS[index]}
                                 </span>
                             </div>
                         );
@@ -598,7 +849,7 @@ export default function CreateAd() {
                 </div>
             </div>
 
-            <Card className="w-full min-w-0 overflow-hidden border-0 bg-card shadow-soft">
+            <Card className="w-full min-w-0 overflow-visible border-0 bg-card shadow-soft">
                 <CardHeader className="p-4 pb-0 sm:p-6 sm:pb-0">
                     <CardTitle className="text-lg font-extrabold sm:text-xl">{STEPS[currentStep]}</CardTitle>
                 </CardHeader>
@@ -638,7 +889,7 @@ export default function CreateAd() {
                                     {formData.type === 'search' && (
                                         <div className="border border-border bg-muted rounded-2xl p-4 flex gap-3 text-foreground/80">
                                             <Lock size={18} className="shrink-0 mt-0.5 text-muted-foreground" />
-                                            <div className="text-xs leading-relaxed space-y-1">
+                                            <div className="text-[13px] leading-relaxed space-y-1">
                                                 <p className="font-semibold text-sm">Dein Gesuch ist privat.</p>
                                                 <p>Es erscheint nicht öffentlich in der Übersicht, sondern nur bei passenden Anbietern und bei Nutzern, die diese Fächer laut Profil anbieten. Das SV-Team sieht es zur Moderation.</p>
                                             </div>
@@ -648,8 +899,8 @@ export default function CreateAd() {
                                     {/* Unterrichts-Format: Einzel / Kleingruppe / Egal */}
                                     <div>
                                         <span className="text-sm font-medium block">Unterrichts-Format</span>
-                                        <span className="text-xs text-muted-foreground block mb-2">Einzelunterricht, Kleingruppe (2 bis 4 Schüler) oder nach Absprache?</span>
-                                        <div className="grid grid-cols-3 gap-2">
+                                        <span className="text-[13px] text-muted-foreground block mb-2">Einzelunterricht, Kleingruppe (2 bis 4 Schüler) oder nach Absprache?</span>
+                                        <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                                             {SESSION_FORMATS.map(f => {
                                                 const Icon = f.value === 'single' ? User : f.value === 'group' ? Users : Shuffle;
                                                 const active = formData.session_format === f.value;
@@ -660,14 +911,14 @@ export default function CreateAd() {
                                                         onClick={() => setFormData({ ...formData, session_format: f.value })}
                                                         aria-pressed={active}
                                                         className={cn(
-                                                            "relative flex min-h-20 flex-col items-center justify-center gap-1 rounded-xl border-2 px-2 py-3 text-center font-semibold transition-colors",
+                                                            "relative flex min-h-[68px] flex-col items-center justify-center gap-1 rounded-xl border-2 px-1 py-2 text-center font-semibold transition-colors sm:min-h-20 sm:px-2 sm:py-3",
                                                             active ? "border-primary bg-primary-soft text-primary-soft-foreground" : "border-border text-muted-foreground hover:border-primary/40"
                                                         )}
                                                     >
-                                                        {active && <CheckCircle size={14} className="absolute right-2 top-2" aria-hidden />}
-                                                        <Icon size={18} className="shrink-0" />
-                                                        <span className="text-xs sm:text-sm">{f.title}</span>
-                                                        <span className="text-xs font-normal opacity-80">{f.hint}</span>
+                                                        {active && <CheckCircle size={14} className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2" aria-hidden />}
+                                                        <Icon className="size-4 shrink-0 sm:size-[18px]" />
+                                                        <span className="text-[13px] leading-tight sm:text-sm">{f.title}</span>
+                                                        <span className="hidden text-[13px] font-normal opacity-80 sm:block">{f.hint}</span>
                                                     </Button>
                                                 );
                                             })}
@@ -677,7 +928,7 @@ export default function CreateAd() {
                                     <div>
                                         <div className="flex items-baseline justify-between gap-3 mb-2">
                                             <Label htmlFor="ad-title" className="text-sm font-medium">Titel der Anzeige</Label>
-                                            <span className="text-xs text-muted-foreground shrink-0">4–80 Zeichen</span>
+                                            <span className="text-[13px] text-muted-foreground shrink-0">4–80 Zeichen</span>
                                         </div>
                                         <Input
                                             id="ad-title"
@@ -687,7 +938,7 @@ export default function CreateAd() {
                                             className="text-base sm:text-lg"
                                             maxLength={80}
                                         />
-                                        <p className="text-xs text-muted-foreground mt-1.5">Der Titel erscheint auf der Detailseite und in deiner Merkliste. In der Übersicht siehst du zusätzlich Fach und Anzeigename.</p>
+                                        <p className="text-[13px] text-muted-foreground mt-1.5">Der Titel erscheint auf der Detailseite und in deiner Merkliste. In der Übersicht siehst du zusätzlich Fach und Anzeigename.</p>
                                     </div>
                             </>
                         </div>
@@ -699,7 +950,7 @@ export default function CreateAd() {
                             <div>
                                 <div className="flex items-baseline justify-between gap-3 mb-2">
                                     <Label htmlFor="subject-search" className="text-sm font-medium">Welche Fächer?</Label>
-                                    <span className="text-xs text-muted-foreground shrink-0" aria-live="polite">
+                                    <span className="text-[13px] text-muted-foreground shrink-0" aria-live="polite">
                                         {formData.subjects.length > 0
                                             ? `${formData.subjects.length}/${MAX_SUBJECTS} gewählt`
                                             : subjectQuery.trim()
@@ -707,7 +958,7 @@ export default function CreateAd() {
                                                 : '25 Fächer in 4 Gruppen'}
                                     </span>
                                 </div>
-                                <p className="text-xs text-muted-foreground mb-3">Wähle mindestens ein Fach. Tippe zum Filtern, statt lange zu scrollen.</p>
+                                <p className="text-[13px] text-muted-foreground mb-3">Wähle mindestens ein Fach. Tippe zum Filtern, statt lange zu scrollen.</p>
                                 <div className="relative mb-4">
                                     <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                                     <Input
@@ -735,7 +986,7 @@ export default function CreateAd() {
                                         <Button variant="unstyled" size="unstyled"
                                             type="button"
                                             onClick={() => setSubjectQuery('')}
-                                            className="text-xs font-semibold underline underline-offset-4 hover:text-foreground"
+                                            className="text-[13px] font-semibold underline underline-offset-4 hover:text-foreground"
                                         >
                                             Suche zurücksetzen
                                         </Button>
@@ -744,7 +995,7 @@ export default function CreateAd() {
                                 <div className="space-y-4">
                                     {filteredSubjectGroups.map(category => (
                                         <div key={category.title} className="rounded-xl bg-muted/40 p-4">
-                                            <h4 className="mb-3 text-xs font-semibold text-muted-foreground">{category.title}</h4>
+                                            <h4 className="mb-3 text-[13px] font-semibold text-muted-foreground">{category.title}</h4>
                                             <div className="flex flex-wrap gap-2">
                                                 {category.subjects.map(s => (
                                                     <SubjectChip
@@ -761,7 +1012,7 @@ export default function CreateAd() {
                                 </div>
                                 )}
                                 {formData.subjects.length > 0 && (
-                                    <p className="text-xs text-muted-foreground mt-3">
+                                    <p className="text-[13px] text-muted-foreground mt-3">
                                         Ausgewählt: {formData.subjects.map(s => subjectLabelMap[s] ?? s).join(' • ')}
                                     </p>
                                 )}
@@ -786,27 +1037,32 @@ export default function CreateAd() {
                     {currentStep === 2 && (
                         <div className="space-y-6">
                             <div>
-                                <div className="flex items-baseline justify-between gap-3 mb-1">
+                                <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
                                     <Label className="text-sm font-medium">Wo findet die Nachhilfe statt?</Label>
-                                    {(formData.locations.length > 0 || formData.custom_location.trim()) && (
-                                        <Button variant="unstyled" size="unstyled"
-                                            type="button"
-                                            onClick={() => setFormData(prev => ({ ...prev, locations: [], custom_location: '' }))}
-                                            className="min-h-11 shrink-0 text-xs font-semibold text-muted-foreground underline underline-offset-4 hover:text-destructive"
-                                        >
-                                            Auswahl löschen
-                                        </Button>
-                                    )}
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-[13px] tabular-nums text-muted-foreground" aria-live="polite">
+                                            {totalLocations}/{MAX_LOCATIONS} Orte
+                                        </span>
+                                        {totalLocations > 0 && (
+                                            <Button variant="unstyled" size="unstyled"
+                                                type="button"
+                                                onClick={clearLocations}
+                                                className="min-h-11 shrink-0 text-[13px] font-semibold text-muted-foreground underline underline-offset-4 hover:text-destructive"
+                                            >
+                                                Auswahl löschen
+                                            </Button>
+                                        )}
+                                    </div>
                                 </div>
-                                <p className="text-xs text-muted-foreground mb-3">Wähle alle Orte, die für dich passen. Mehrfachauswahl ist möglich.</p>
+                                <p className="mb-3 text-[13px] leading-relaxed text-muted-foreground">Wähle alle Orte, die für dich passen. Mehrfachauswahl ist möglich.</p>
                                 <div className="space-y-4">
                                     {LOCATION_GROUPS.map(group => {
                                         const GroupIcon = group.title === 'In der Schule' ? School : group.title === 'Online' ? Wifi : group.title === 'Außerhalb (öffentlich)' ? MapPin : Home;
                                         const selectedInGroup = group.locations.filter(l => formData.locations.includes(l)).length;
                                         return (
                                             <div key={group.title}>
-                                                <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                                                    <GroupIcon size={13} /> {group.title}
+                                                <p className="mb-2 flex items-center gap-1.5 text-[13px] font-semibold text-muted-foreground">
+                                                    <GroupIcon size={13} aria-hidden /> {group.title}
                                                     <span className="font-medium normal-case tracking-normal opacity-70">
                                                         · {group.locations.length} Orte{selectedInGroup > 0 ? `, ${selectedInGroup} gewählt` : ''}
                                                     </span>
@@ -821,9 +1077,9 @@ export default function CreateAd() {
                                                                 onClick={() => toggleLocation(loc)}
                                                                 aria-pressed={active}
                                                                 className={cn(
-                                                                    "px-3.5 min-h-[44px] py-2 rounded-lg text-sm border transition-colors font-medium",
+                                                                    "min-h-11 rounded-lg border px-3.5 py-2 text-sm font-medium transition-colors",
                                                                     active
-                                                                        ? "border-2 border-primary bg-primary-soft text-primary-soft-foreground"
+                                                                        ? "border-primary bg-primary-soft text-primary-soft-foreground shadow-[inset_0_0_0_1px_var(--primary)]"
                                                                         : "border-border bg-card text-foreground/80 hover:bg-muted"
                                                                 )}
                                                             >
@@ -836,30 +1092,70 @@ export default function CreateAd() {
                                         );
                                     })}
                                 </div>
-                                <div className="mt-4 space-y-1.5">
-                                    <Label htmlFor="custom-location" className="text-xs font-semibold text-muted-foreground">Eigener Ort (optional)</Label>
-                                    <div className="flex gap-2 items-center">
-                                        <MapPin size={15} className="text-muted-foreground shrink-0" aria-hidden="true" />
-                                        <Input
-                                            id="custom-location"
-                                            placeholder="z. B. Stadtbibliothek am Neumarkt …"
-                                            value={formData.custom_location}
-                                            onChange={e => setFormData({ ...formData, custom_location: e.target.value })}
-                                            className="max-w-xs"
-                                            autoComplete="off"
-                                        />
+
+                                <div className="mt-4 space-y-2">
+                                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                                        <Label htmlFor="custom-location" className="text-[13px] font-semibold text-muted-foreground">Eigene Orte (optional)</Label>
+                                        <span className="text-[13px] text-muted-foreground">max. 120 Zeichen</span>
                                     </div>
+                                    <div className="flex flex-col gap-2 min-[420px]:flex-row min-[420px]:items-center">
+                                        <div className="relative min-w-0 flex-1">
+                                            <MapPin size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                                            <Input
+                                                id="custom-location"
+                                                placeholder="z. B. Stadtbibliothek am Neumarkt …"
+                                                value={formData.new_custom_location}
+                                                onChange={e => setFormData(prev => ({ ...prev, new_custom_location: e.target.value }))}
+                                                onKeyDown={e => {
+                                                    if (e.key === 'Enter') {
+                                                        e.preventDefault();
+                                                        addCustomLocation();
+                                                    }
+                                                }}
+                                                className="min-w-0 pl-9"
+                                                maxLength={MAX_CUSTOM_LOCATION_LENGTH}
+                                                autoComplete="off"
+                                            />
+                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            onClick={addCustomLocation}
+                                            disabled={!formData.new_custom_location.trim() || totalLocations >= MAX_LOCATIONS}
+                                            className="h-11 w-full shrink-0 gap-1.5 rounded-lg px-4 text-[13px] font-semibold min-[420px]:w-auto"
+                                        >
+                                            <Plus size={16} aria-hidden /> Hinzufügen
+                                        </Button>
+                                    </div>
+                                    {formData.custom_locations.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 pt-1">
+                                            {formData.custom_locations.map(location => (
+                                                <span key={location} className="inline-flex min-h-11 max-w-full items-center gap-1 rounded-lg border border-primary/30 bg-primary-soft pl-3 pr-1 text-[13px] font-medium text-primary-soft-foreground">
+                                                    <span className="max-w-[16rem] truncate">{location}</span>
+                                                    <Button variant="unstyled" size="unstyled"
+                                                        type="button"
+                                                        onClick={() => removeCustomLocation(location)}
+                                                        className="grid size-11 shrink-0 place-items-center rounded-lg text-primary-soft-foreground hover:bg-destructive/10 hover:text-destructive"
+                                                        aria-label={`Eigenen Ort ${location} entfernen`}
+                                                    >
+                                                        <X size={15} aria-hidden />
+                                                    </Button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                    <p className="text-[13px] leading-relaxed text-muted-foreground">Eigene Orte zählen zu den maximal 10 Orten.</p>
                                 </div>
-                                {(formData.locations.length > 0 || formData.custom_location.trim()) && (
-                                    <p className="text-xs text-muted-foreground mt-2" aria-live="polite">
-                                        Ausgewählt ({formData.locations.length}/{MAX_LOCATIONS}{formData.custom_location.trim() ? ' + eigener Ort' : ''}): {[ ...formData.locations, ...(formData.custom_location.trim() ? [formData.custom_location.trim()] : []) ].join(' • ')}
+
+                                {totalLocations > 0 && (
+                                    <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground" aria-live="polite">
+                                        Ausgewählt: {[...formData.locations, ...formData.custom_locations].join(' • ')}
                                     </p>
                                 )}
                             </div>
 
                             <div>
                                 <Label className="text-sm font-medium mb-1 block">Wie lange dauert eine Einheit?</Label>
-                                <p className="text-xs text-muted-foreground mb-3">Standard ist „Egal / nach Absprache“. Ihr klärt die Dauer dann im Chat. Feste Minuten sind exklusiv dazu. Maximal {MAX_DURATIONS} Dauerangaben, die eigene Dauer zählt mit.</p>
+                                <p className="text-[13px] text-muted-foreground mb-3">Standard ist „Egal / nach Absprache“. Ihr klärt die Dauer dann im Chat. Feste Minuten sind exklusiv dazu. Maximal {MAX_DURATIONS} Dauerangaben, die eigene Dauer zählt mit.</p>
                                 <div className="flex flex-wrap gap-2 mb-3">
                                     {DURATION_PRESETS.map(dur => {
                                         const active = formData.duration_minutes.includes(dur);
@@ -895,7 +1191,7 @@ export default function CreateAd() {
                                     </Button>
                                 </div>
                                 <div className="space-y-1.5">
-                                    <Label htmlFor="custom-duration" className="text-xs font-semibold text-muted-foreground">Andere Dauer in Minuten (optional, ersetzt „Egal“)</Label>
+                                    <Label htmlFor="custom-duration" className="text-[13px] font-semibold text-muted-foreground">Andere Dauer in Minuten (optional, ersetzt „Egal“)</Label>
                                     <div className="flex gap-2 items-center">
                                         <Input
                                             id="custom-duration"
@@ -907,7 +1203,7 @@ export default function CreateAd() {
                                             onChange={e => updateCustomDuration(e.target.value)}
                                             className="max-w-[170px]"
                                         />
-                                        <span className="text-xs text-muted-foreground">Minuten, 5–480</span>
+                                        <span className="text-[13px] text-muted-foreground">Minuten, 5–480</span>
                                     </div>
                                 </div>
                             </div>
@@ -917,52 +1213,63 @@ export default function CreateAd() {
                     {/* Step 3: Pricing */}
                     {currentStep === 3 && (
                         <div className="space-y-6">
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <Button variant="unstyled" size="unstyled"
-                                    type="button"
-                                    onClick={() => setFormData({ ...formData, price_mode: 'fixed' })}
-                                    className={cn("relative rounded-xl border-2 p-4 text-left transition-colors", formData.price_mode === 'fixed' ? "border-primary bg-primary-soft text-primary-soft-foreground" : "border-border hover:border-primary/40")}
-                                >
-                                    <span className="block font-semibold">Festpreis</span>
-                                    <span className="text-xs opacity-75">Euro pro Einheit</span>
-                                    {formData.price_mode === 'fixed' && <CheckCircle size={16} className="absolute right-3 top-3" aria-hidden />}
-                                </Button>
-                                <Button variant="unstyled" size="unstyled"
-                                    type="button"
-                                    onClick={() => setFormData({ ...formData, price_mode: 'vb' })}
-                                    className={cn("relative rounded-xl border-2 p-4 text-left transition-colors", formData.price_mode === 'vb' ? "border-primary bg-primary-soft text-primary-soft-foreground" : "border-border hover:border-primary/40")}
-                                >
-                                    <span className="block font-semibold">Verhandlungsbasis (VB)</span>
-                                    <span className="text-xs opacity-75">Preis wird besprochen</span>
-                                    {formData.price_mode === 'vb' && <CheckCircle size={16} className="absolute right-3 top-3" aria-hidden />}
-                                </Button>
-                                <Button variant="unstyled" size="unstyled"
-                                    type="button"
-                                    onClick={() => setFormData({ ...formData, price_mode: 'free' })}
-                                    className={cn("relative rounded-xl border-2 p-4 text-left transition-colors", formData.price_mode === 'free' ? "border-primary bg-primary-soft text-primary-soft-foreground" : "border-border hover:border-primary/40")}
-                                >
-                                    <span className="block font-semibold">Kostenlos</span>
-                                    <span className="text-xs opacity-75">Ehrenamtlich helfen</span>
-                                    {formData.price_mode === 'free' && <CheckCircle size={16} className="absolute right-3 top-3" aria-hidden />}
-                                </Button>
+                            <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
+                                {([
+                                    { value: 'fixed', hint: 'Fester Preis pro Einheit' },
+                                    { value: 'vb', hint: 'Preis wird besprochen' },
+                                    { value: 'free', hint: 'Ehrenamtlich helfen' },
+                                ] as const).map(option => {
+                                    const active = formData.price_mode === option.value;
+                                    return (
+                                        <Button variant="unstyled" size="unstyled"
+                                            key={option.value}
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, price_mode: option.value })}
+                                            aria-pressed={active}
+                                            className={cn(
+                                                "relative min-h-16 rounded-xl border p-4 text-left transition-colors",
+                                                active
+                                                    ? "border-primary bg-primary-soft text-primary-soft-foreground shadow-[inset_0_0_0_1px_var(--primary)]"
+                                                    : "border-border hover:border-primary/40"
+                                            )}
+                                        >
+                                            <span className="block font-semibold">{PRICE_MODE_LABELS[option.value]}</span>
+                                            <span className="text-[13px] opacity-75">{option.hint}</span>
+                                            {active && <CheckCircle size={16} className="absolute right-3 top-3" aria-hidden />}
+                                        </Button>
+                                    );
+                                })}
+                            </div>
+
+                            <div className="flex items-start gap-2.5 rounded-2xl border border-border bg-muted/50 p-4">
+                                <Info size={16} className="mt-0.5 shrink-0 text-muted-foreground" aria-hidden />
+                                <div>
+                                    <p className="text-[13px] font-semibold text-foreground">Preis-Richtwert</p>
+                                    <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">{PRICE_GUIDELINE.copy}</p>
+                                </div>
                             </div>
 
                             {formData.price_mode === 'fixed' && (
                                 <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-                                    <div className="flex gap-4 items-center">
-                                        <div className="relative w-32">
+                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                                        <div className="relative w-full min-w-0 sm:w-40">
                                             <Input
                                                 type="number"
+                                                inputMode="decimal"
+                                                min={0}
+                                                step="0.5"
+                                                aria-label="Preis in Euro"
                                                 placeholder="0.00"
                                                 value={formData.price_value}
                                                 onChange={e => setFormData({ ...formData, price_value: e.target.value })}
-                                                className="pl-8"
+                                                className="min-w-0 pl-8"
                                             />
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
+                                            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                                         </div>
-                                        <span className="text-muted-foreground">pro</span>
+                                        <span className="text-[13px] text-muted-foreground">pro</span>
                                         <NativeSelect
-                                            className="w-full sm:w-auto"
+                                            className="w-full min-w-0 sm:w-auto"
+                                            aria-label="Preiseinheit"
                                             value={formData.price_unit}
                                             onChange={e => setFormData({ ...formData, price_unit: e.target.value })}
                                         >
@@ -972,88 +1279,48 @@ export default function CreateAd() {
                                         </NativeSelect>
                                     </div>
                                     {/* Quick Select */}
-                                    <div className="flex gap-2 items-center flex-wrap">
-                                        <span className="text-xs text-muted-foreground font-medium">Schnellwahl:</span>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <span className="text-[13px] font-medium text-muted-foreground">Schnellwahl:</span>
                                         {[6, 8, 10, 12, 15].map(p => (
                                             <Button variant="unstyled" size="unstyled"
                                                 key={p}
                                                 type="button"
                                                 onClick={() => setFormData(prev => ({ ...prev, price_value: p }))}
+                                                aria-pressed={Number(formData.price_value) === p}
                                                 className={cn(
-                                                    "min-h-11 rounded-lg border px-3 py-1 text-xs font-semibold transition-colors",
+                                                    "min-h-11 rounded-lg border px-3 py-1 text-[13px] font-semibold transition-colors",
                                                     Number(formData.price_value) === p
-                                                        ? "border-primary bg-primary-soft text-primary-soft-foreground"
-                                                        : "bg-muted text-foreground/80 border-transparent hover:border-ring/40"
+                                                        ? "border-primary bg-primary-soft text-primary-soft-foreground shadow-[inset_0_0_0_1px_var(--primary)]"
+                                                        : "border-transparent bg-muted text-foreground/80 hover:border-ring/40"
                                                 )}
                                             >
-                                                {p}€
+                                                {p} €
                                             </Button>
                                         ))}
                                     </div>
 
-                                    {/* Effective Hourly Rate & FWG Benchmark Advice */}
                                     {effectiveHourly && (
-                                        <div className="p-4 rounded-2xl bg-muted/50 border border-border space-y-3 mt-4">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-                                                    <Calculator size={15} className="text-muted-foreground" />
-                                                    <span>Effektiver Stundenlohn (60 Min.):</span>
-                                                </div>
-                                                <span className="font-semibold tabular-nums text-sm text-foreground">
-                                                    {effectiveHourly.formatted} € / 60 Min.
-                                                </span>
-                                            </div>
-
-                                            {effectiveHourly.hourly >= 9 && effectiveHourly.hourly <= 14 && (
-                                                <div className="flex items-center gap-2 rounded-xl border border-border bg-muted p-2.5 text-xs font-semibold text-foreground/80">
-                                                    <CheckCircle size={15} className="shrink-0 text-muted-foreground" aria-hidden />
-                                                    <span>Richtwert am FWG: ca. 12 € pro Stunde. Der Preis ist individuell anpassbar.</span>
-                                                </div>
-                                            )}
-
-                                            {effectiveHourly.hourly < 9 && (
-                                                <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-2.5 text-xs font-semibold text-muted-foreground">
-                                                    <Info size={15} className="shrink-0 text-muted-foreground" aria-hidden />
-                                                    <span>Unter dem Richtwert von ca. 12 € pro Stunde.</span>
-                                                </div>
-                                            )}
-
-                                            {effectiveHourly.hourly > 14 && effectiveHourly.hourly <= 18 && (
-                                                <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-2.5 text-xs font-semibold text-foreground/80">
-                                                    <Info size={15} className="shrink-0 text-muted-foreground" aria-hidden />
-                                                    <span>Etwas über dem FWG-Richtwert von ca. 12 € pro Stunde.</span>
-                                                </div>
-                                            )}
-
-                                            {effectiveHourly.hourly > 18 && (
-                                                <div className="flex items-center gap-2 rounded-xl border border-destructive/25 bg-destructive/5 p-2.5 text-xs font-semibold text-destructive">
-                                                    <AlertCircle size={15} className="shrink-0" aria-hidden />
-                                                    <span>Deutlich über dem FWG-Richtwert. Bitte prüfe, ob der Preis so gemeint ist.</span>
-                                                </div>
-                                            )}
-
-                                            {effectiveHourly.hourly < 5 && (
-                                                <p className="text-xs text-muted-foreground">Sehr niedriger Preis – achte darauf, dass deine Zeit fair vergütet wird.</p>
-                                            )}
-                                            {effectiveHourly.hourly > 35 && (
-                                                <p className="text-xs text-muted-foreground">Sehr hoher Preis – der Richtwert liegt bei etwa 12 € pro Stunde.</p>
-                                            )}
+                                        <div className="flex flex-col gap-1 rounded-xl border border-border bg-muted/50 p-3 text-[13px] sm:flex-row sm:items-center sm:justify-between">
+                                            <span className="flex items-center gap-2 font-medium text-muted-foreground">
+                                                <Calculator size={15} aria-hidden /> Entspricht
+                                            </span>
+                                            <span className="font-semibold tabular-nums text-foreground">{effectiveHourly.formatted} € pro Stunde</span>
                                         </div>
                                     )}
                                 </div>
                             )}
 
                             {formData.price_mode === 'free' && (
-                                <div className="flex items-center gap-2.5 rounded-2xl border border-border bg-muted p-4 text-xs font-medium text-foreground/80 animate-in fade-in">
+                                <div className="flex items-center gap-2.5 rounded-2xl border border-border bg-muted p-4 text-[13px] font-medium text-foreground/80 animate-in fade-in">
                                     <CheckCircle size={16} className="shrink-0 text-muted-foreground" aria-hidden />
                                     <span>Du bietest die Nachhilfe kostenlos an.</span>
                                 </div>
                             )}
 
                             {formData.price_mode === 'vb' && (
-                                <div className="flex items-center gap-2.5 rounded-2xl border border-border bg-muted p-4 text-xs font-medium text-foreground/80 animate-in fade-in">
-                                    <Info size={16} className="text-muted-foreground shrink-0" />
-                                    <span>Richtwert am FWG: ca. 12 € pro Stunde. Der Preis ist individuell anpassbar.</span>
+                                <div className="flex items-center gap-2.5 rounded-2xl border border-border bg-muted p-4 text-[13px] font-medium text-foreground/80 animate-in fade-in">
+                                    <Info size={16} className="shrink-0 text-muted-foreground" aria-hidden />
+                                    <span>Du möchtest verhandeln – den Preis klärt ihr im Chat.</span>
                                 </div>
                             )}
                         </div>
@@ -1065,7 +1332,7 @@ export default function CreateAd() {
                             <div>
                                 <div className="flex items-baseline justify-between gap-3 mb-2">
                                     <Label htmlFor="short-description" className="text-sm font-medium">Kurzbeschreibung (für die Übersicht)</Label>
-                                    <span className="text-xs text-muted-foreground shrink-0">11–100 Zeichen</span>
+                                    <span className="text-[13px] text-muted-foreground shrink-0">11–100 Zeichen</span>
                                 </div>
                                 <Input
                                     id="short-description"
@@ -1074,7 +1341,7 @@ export default function CreateAd() {
                                     value={formData.short_description}
                                     onChange={e => setFormData({ ...formData, short_description: e.target.value })}
                                 />
-                                <span className="text-xs text-muted-foreground float-right mt-1">{formData.short_description.trim().length}/100 · mind. 11</span>
+                                <span className="text-[13px] text-muted-foreground float-right mt-1">{formData.short_description.trim().length}/100 · mind. 11</span>
                             </div>
 
                             <div className="clear-both pt-4">
@@ -1088,32 +1355,116 @@ export default function CreateAd() {
                             </div>
 
                             <div className="pt-4">
-                                <Label className="text-sm font-medium mb-2 block flex items-center gap-2">
-                                    <LinkIcon size={16} /> Bild-Adressen (URLs, max. {MAX_IMAGES})
-                                </Label>
-                                <div className="space-y-2">
-                                    {formData.image_urls.map((url, idx) => (
-                                        <div key={idx} className="flex items-center gap-2 rounded-xl bg-muted/50 p-2 text-sm">
-                                            <img src={url} alt="" className="size-10 shrink-0 rounded-lg bg-border object-cover" />
-                                            <span className="flex-1 truncate">{url}</span>
-                                            <Button variant="unstyled" size="unstyled" type="button" onClick={() => setFormData(prev => ({ ...prev, image_urls: prev.image_urls.filter((_, i) => i !== idx) }))} aria-label="Bild entfernen" className="grid size-11 shrink-0 place-items-center rounded-lg text-destructive hover:bg-destructive/10">
-                                                <X size={16} aria-hidden />
+                                <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+                                    <Label className="flex items-center gap-2 text-sm font-medium">
+                                        <ImagePlus size={16} aria-hidden /> Bilder
+                                    </Label>
+                                    <span className="text-[13px] tabular-nums text-muted-foreground" aria-live="polite">
+                                        {formData.image_urls.length}/{MAX_IMAGES} Bilder
+                                        {uploadingImages.length > 0 ? ` · ${uploadingImages.length} im Upload` : ''}
+                                    </span>
+                                </div>
+                                <p className="mb-3 text-[13px] leading-relaxed text-muted-foreground">
+                                    Lade bis zu 5 Bilder hoch (JPEG, PNG oder WebP, je max. 5 MB) oder füge eine https-Bild-URL ein.
+                                    Hochgeladene Bilder werden vor dem Senden verkleinert.
+                                </p>
+
+                                <div className="space-y-3">
+                                    <input
+                                        ref={fileInputRef}
+                                        id="ad-image-input"
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+                                        multiple
+                                        className="sr-only"
+                                        onChange={handleImageInputChange}
+                                    />
+                                    <div
+                                        onDragOver={event => { event.preventDefault(); setIsDraggingImage(true); }}
+                                        onDragLeave={() => setIsDraggingImage(false)}
+                                        onDrop={handleImageDrop}
+                                        className={cn(
+                                            "flex flex-col items-center gap-2 rounded-2xl border-2 border-dashed p-4 text-center transition-colors sm:p-5",
+                                            isDraggingImage
+                                                ? "border-primary bg-primary-soft/50"
+                                                : "border-border bg-muted/30"
+                                        )}
+                                    >
+                                        <ImagePlus size={20} className="text-muted-foreground" aria-hidden />
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => fileInputRef.current?.click()}
+                                            disabled={formData.image_urls.length + uploadingImages.length >= MAX_IMAGES}
+                                            className="h-11 rounded-lg px-4 text-[13px] font-semibold"
+                                        >
+                                            Bilder auswählen
+                                        </Button>
+                                        <p className="text-[13px] text-muted-foreground">oder Dateien hierher ziehen</p>
+                                    </div>
+
+                                    {(formData.image_urls.length > 0 || uploadingImages.length > 0) && (
+                                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                                            {formData.image_urls.map((url, idx) => (
+                                                <div key={`${url}-${idx}`} className="relative overflow-hidden rounded-xl border border-border bg-muted">
+                                                    <img
+                                                        src={url}
+                                                        alt={`Bild ${idx + 1} der Anzeige`}
+                                                        loading="lazy"
+                                                        className="aspect-[4/3] w-full object-cover"
+                                                    />
+                                                    <Button variant="unstyled" size="unstyled"
+                                                        type="button"
+                                                        onClick={() => removeImage(idx)}
+                                                        aria-label={`Bild ${idx + 1} entfernen`}
+                                                        className="absolute right-1.5 top-1.5 grid size-11 place-items-center rounded-lg bg-card/95 text-destructive shadow-soft hover:bg-card"
+                                                    >
+                                                        <X size={16} aria-hidden />
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                            {uploadingImages.map(item => (
+                                                <div key={item.id} className="flex aspect-[4/3] flex-col items-center justify-center gap-2 rounded-xl border border-border bg-muted/50 p-3 text-center" role="status">
+                                                    <Loader2 size={20} className="animate-spin text-muted-foreground" aria-hidden />
+                                                    <span className="w-full truncate text-[13px] font-medium text-muted-foreground">{item.name}</span>
+                                                    <span className="h-1.5 w-full overflow-hidden rounded-full bg-border" role="progressbar" aria-label={`${item.name} wird hochgeladen`}>
+                                                        <span className="block h-full w-1/2 animate-pulse rounded-full bg-primary" />
+                                                    </span>
+                                                    <span className="sr-only">Wird hochgeladen …</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <div className="space-y-2">
+                                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                            <Input
+                                                aria-label="Bild-URL"
+                                                placeholder="https://example.com/bild.jpg"
+                                                value={formData.new_image_url}
+                                                onChange={e => setFormData({ ...formData, new_image_url: e.target.value })}
+                                                onKeyDown={e => {
+                                                    if (e.key === 'Enter') {
+                                                        e.preventDefault();
+                                                        addImageUrl();
+                                                    }
+                                                }}
+                                                className="min-w-0 flex-1"
+                                                autoComplete="off"
+                                            />
+                                            <Button
+                                                variant="outline"
+                                                onClick={addImageUrl}
+                                                disabled={!formData.new_image_url.trim()}
+                                                className="h-11 w-full shrink-0 gap-1.5 rounded-lg px-4 text-[13px] font-semibold sm:w-auto"
+                                            >
+                                                <Plus size={16} aria-hidden /> URL hinzufügen
                                             </Button>
                                         </div>
-                                    ))}
-                                    <div className="flex gap-2">
-                                        <Input
-                                            placeholder="https://example.com/image.jpg"
-                                            value={formData.new_image_url}
-                                            onChange={e => setFormData({ ...formData, new_image_url: e.target.value })}
-                                        />
-                                        <Button variant="outline" onClick={addImageUrl} disabled={!formData.new_image_url}>
-                                            <Plus size={16} />
-                                        </Button>
+                                        <p className="flex items-start gap-1.5 text-[13px] leading-relaxed text-muted-foreground">
+                                            <LinkIcon size={14} className="mt-0.5 shrink-0" aria-hidden />
+                                            URL-Fallback: Nutze eine direkte https-Bildadresse, wenn der Upload auf dem Server nicht verfügbar ist.
+                                        </p>
                                     </div>
-                                    <p className="text-xs text-muted-foreground">
-                                        Empfehlung: Nutze kostenlose Image-Hoster (z.B. Imgur, Unsplash), da wir keine direkten Uploads hosten.
-                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -1138,20 +1489,19 @@ export default function CreateAd() {
                                 <div className="border-b border-border bg-muted/50 p-5 sm:p-6">
                                     <h2 className="mb-2 break-anywhere text-2xl font-semibold">{formData.title}</h2>
                                     <div className="flex flex-wrap gap-2 mb-4">
-                                        <span className="px-3 py-1 bg-foreground text-background rounded-lg text-sm font-semibold tabular-nums">
-                                            {formatAdPrice({
-                                                mode: formData.price_mode,
-                                                value: Number(formData.price_value) || 0,
-                                                unit: formData.price_unit,
-                                            })}
-                                        </span>
+                                        <PriceTag
+                                            layout="inline"
+                                            price={Number(formData.price_value) || 0}
+                                            mode={formData.price_mode}
+                                            duration={formData.price_unit}
+                                        />
                                         <span className="rounded-lg bg-muted px-3 py-1 text-sm font-semibold text-foreground/80">
                                             {formData.session_format === 'single' ? 'Einzelunterricht' : formData.session_format === 'group' ? 'Kleingruppe' : 'Format: Egal'}
                                         </span>
                                         {formData.subjects.map(s => <SubjectChip key={s} subject={s} />)}
                                     </div>
                                     <p className="text-sm text-muted-foreground">
-                                        {[ ...formData.locations, ...(formData.custom_location ? [formData.custom_location] : []) ].join(' • ') || 'Kein Ort gewählt'}
+                                        {[ ...formData.locations, ...formData.custom_locations ].join(' • ') || 'Kein Ort gewählt'}
                                         {'  ·  '}
                                         {(() => {
                                             const all = [...formData.duration_minutes, ...(formData.custom_duration ? [Number(formData.custom_duration)] : [])].filter(n => !isNaN(n));
@@ -1178,34 +1528,34 @@ export default function CreateAd() {
                     )}
 
                 </CardContent>
-                <CardFooter className="sticky bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] z-10 flex flex-col gap-2 rounded-b-card bg-card/95 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-[0_-10px_30px_-24px_rgba(16,24,40,0.45)] backdrop-blur-md sm:p-6 sm:pb-6 md:bottom-0">
+                <CardFooter className="flex flex-col gap-3 rounded-b-card border-t border-border bg-card p-4 sm:p-6 md:sticky md:bottom-0 md:z-10 md:bg-card/95 md:pb-6 md:shadow-[0_-10px_30px_-24px_rgba(16,24,40,0.45)] md:backdrop-blur-md">
                     {!isStepValid() && stepHint && currentStep < STEPS.length - 1 && (
-                        <p className="w-full rounded-full bg-pastel-blue px-4 py-2.5 text-xs font-semibold text-pastel-blue-foreground" role="status">
+                        <p className="w-full rounded-xl bg-pastel-blue px-4 py-2.5 text-[13px] font-semibold leading-relaxed text-pastel-blue-foreground" role="status">
                             Noch offen: {stepHint}
                         </p>
                     )}
-                    <div className="flex flex-row justify-between items-center w-full gap-2">
-                    <Button variant="ghost" onClick={handleBack} disabled={currentStep === 0} className="px-3 sm:px-4">
-                        <ChevronLeft size={16} className="mr-1 sm:mr-2 shrink-0" /> Zurück
-                    </Button>
+                    <div className="flex w-full flex-col-reverse items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <Button variant="ghost" onClick={handleBack} disabled={currentStep === 0} className="w-full px-3 sm:w-auto sm:px-4">
+                            <ChevronLeft size={16} className="mr-1 shrink-0 sm:mr-2" /> Zurück
+                        </Button>
 
-                    {currentStep === STEPS.length - 1 ? (
-                        <Button onClick={handleSubmit} disabled={isSubmitting} isLoading={isSubmitting} className="px-4 font-semibold sm:px-5">
-                            {isSubmitting
-                                ? (editingId ? 'Änderungen werden gespeichert' : 'Anzeige wird veröffentlicht')
-                                : (editingId ? 'Änderungen speichern' : 'Anzeige veröffentlichen')}
-                            <CheckCircle size={16} className="ml-1 shrink-0 sm:ml-2" aria-hidden />
-                        </Button>
-                    ) : (
-                        <Button
-                            onClick={handleNext}
-                            disabled={!isStepValid()}
-                            title={!isStepValid() && stepHint ? stepHint : 'Weiter zum nächsten Schritt'}
-                            className="px-4 sm:px-5"
-                        >
-                            Weiter <ChevronRight size={16} className="ml-1 sm:ml-2 shrink-0" />
-                        </Button>
-                    )}
+                        {currentStep === STEPS.length - 1 ? (
+                            <Button onClick={handleSubmit} disabled={isSubmitting} isLoading={isSubmitting} className="w-full px-4 font-semibold sm:w-auto sm:px-5">
+                                {isSubmitting
+                                    ? (editingId ? 'Änderungen werden gespeichert' : 'Anzeige wird veröffentlicht')
+                                    : (editingId ? 'Änderungen speichern' : 'Anzeige veröffentlichen')}
+                                <CheckCircle size={16} className="ml-1 shrink-0 sm:ml-2" aria-hidden />
+                            </Button>
+                        ) : (
+                            <Button
+                                onClick={handleNext}
+                                disabled={!isStepValid()}
+                                title={!isStepValid() && stepHint ? stepHint : 'Weiter zum nächsten Schritt'}
+                                className="w-full px-4 sm:w-auto sm:px-5"
+                            >
+                                Weiter <ChevronRight size={16} className="ml-1 shrink-0 sm:ml-2" />
+                            </Button>
+                        )}
                     </div>
                 </CardFooter>
             </Card>

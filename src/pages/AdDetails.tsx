@@ -13,6 +13,7 @@ import { AvailabilityCalendar, emptyAvailability, countMatches, type Availabilit
 import { sanitizeHtml } from '../lib/sanitize';
 import { formatGradeLabel, formatGradeRange } from '../lib/matching';
 import { cn, formatAdPrice, formatHourlyFromDetails } from '../lib/utils';
+import { PriceTag } from '../components/ui/price-tag';
 import { VerifiedPill } from '../components/ui/VerifiedPill';
 import { CustomContactsList, publicCustomContacts } from '../components/CustomContacts';
 import {
@@ -232,7 +233,7 @@ export default function AdDetails() {
                 </Button>
                 <div className="flex items-center gap-1">
                     {isOwn && (
-                        <Button variant="ghost" onClick={() => navigate('/create-ad', { state: { duplicateAd: ad } })} className="h-11 gap-1 rounded-lg px-3 text-xs font-semibold text-muted-foreground">
+                        <Button variant="ghost" onClick={() => navigate('/create-ad', { state: { duplicateAd: ad } })} className="h-11 gap-1 rounded-lg px-3 text-[13px] font-semibold text-muted-foreground">
                             <Copy size={16} aria-hidden /> <span className="hidden sm:inline">Duplizieren</span><span className="sr-only sm:hidden">Duplizieren</span>
                         </Button>
                     )}
@@ -273,12 +274,13 @@ export default function AdDetails() {
             )}
 
             <div className="grid gap-6">
-                {/* Header Card */}
+                {/* Header Card: Titel, Preis und Ort/Raum/Zeit liegen auf einer
+                    durchgehenden Fläche – kein grauer Streifen dazwischen. */}
                 <Card className="border-border bg-card">
-                    <CardHeader className="border-b border-border bg-muted/50">
-                        <div className="flex justify-between items-start gap-3">
+                    <CardHeader className="space-y-4 p-4 sm:p-6">
+                        <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
-                                <div className="flex flex-wrap items-center gap-2 mb-2">
+                                <div className="mb-2 flex flex-wrap items-center gap-2">
                                     <h1 className={cn('break-anywhere text-xl font-semibold text-foreground sm:text-2xl', !ownTitle && 'capitalize')}>{heading}</h1>
                                     {profile?.is_verified && (
                                         <VerifiedPill className="shrink-0" />
@@ -290,22 +292,27 @@ export default function AdDetails() {
                                     {profile?.display_name && <> · von {profile.display_name}</>}
                                 </p>
                                 {ad.type === 'search' && (
-                                    <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                                    <p className="mt-1 flex items-center gap-1.5 text-[13px] text-muted-foreground">
                                         <Lock size={12} className="shrink-0" /> Privates Gesuch – sichtbar nur für passende Anbieter und das SV-Team.
                                     </p>
                                 )}
                             </div>
-                            <div className="text-right shrink-0">
-                                <div className="text-xl font-semibold text-foreground" aria-label={`Preis: ${price}`}>{price}</div>
+                            <div className="flex shrink-0 flex-col items-end gap-1">
+                                <PriceTag
+                                    layout="stacked"
+                                    price={ad.price_details?.value}
+                                    mode={ad.price_details?.mode}
+                                    duration={ad.price_details?.unit}
+                                />
                                 {hourly && hourly !== price && (
-                                    <div className="text-xs text-muted-foreground tabular-nums">≈ {hourly}</div>
+                                    <span className="text-[13px] tabular-nums text-muted-foreground">≈ {hourly}</span>
                                 )}
                             </div>
                         </div>
-                    </CardHeader>
-                    <CardContent className="p-6 space-y-6">
-                        {/* Meta Tags */}
-                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+
+                        {/* Meta Tags: Ort, Dauer, Format und Aufrufe gehören zur
+                            Kopffläche und werden nicht durch eine Trennlinie geteilt. */}
+                        <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
                             {gradeRange && (
                                 <span className="flex items-center gap-1 rounded-lg bg-pastel-mint px-2.5 py-1 text-[13px] font-semibold text-pastel-mint-foreground">
                                     <GraduationCap size={14} aria-hidden /> für {gradeRange}
@@ -317,26 +324,27 @@ export default function AdDetails() {
                                 </span>
                             ))}
                             <span className="flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1 text-[13px]" title={durationMeta}>
-                                <Clock size={14} /> {durationMeta}
+                                <Clock size={14} aria-hidden /> {durationMeta}
                             </span>
                             {ad.session_format && ad.session_format !== 'any' && (
                                 <span className="flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1 text-[13px]" title={ad.session_format === 'group' ? 'Kleingruppe (2–4 Schüler)' : 'Einzelunterricht'}>
-                                    {ad.session_format === 'group' ? <Users size={14} /> : <User size={14} />}
+                                    {ad.session_format === 'group' ? <Users size={14} aria-hidden /> : <User size={14} aria-hidden />}
                                     {ad.session_format === 'group' ? 'Kleingruppe' : 'Einzelunterricht'}
                                 </span>
                             )}
                             {ad.session_format === 'any' && (
                                 <span className="flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1 text-[13px]" title="Einzel oder Kleingruppe – nach Absprache">
-                                    <Shuffle size={14} /> Egal
+                                    <Shuffle size={14} aria-hidden /> Egal
                                 </span>
                             )}
                             {(ad.view_count ?? 0) > 0 && (
                                 <span className="flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1 text-[13px]" title="So oft wurde diese Anzeige aufgerufen">
-                                    <Eye size={14} /> {ad.view_count} {ad.view_count === 1 ? 'Aufruf' : 'Aufrufe'}
+                                    <Eye size={14} aria-hidden /> {ad.view_count} {ad.view_count === 1 ? 'Aufruf' : 'Aufrufe'}
                                 </span>
                             )}
                         </div>
-
+                    </CardHeader>
+                    <CardContent className="space-y-6 p-4 pt-0 sm:p-6 sm:pt-0">
                         {/* Subjects */}
                         <div className="flex flex-wrap gap-2">
                             {ad.subjects?.map((s: any) => <SubjectChip key={s} subject={s} />)}
@@ -362,108 +370,118 @@ export default function AdDetails() {
                     </CardContent>
                 </Card>
 
-                {/* Interaction / Profile Card */}
+                {/* Interaction / Profile Card: Desktop teilt Profil links und
+                    Anfrage/Verwaltung rechts; mobil bleibt beides gestapelt. */}
                 <Card className="border-border bg-card">
-                    <CardContent className="p-5 sm:p-6">
-                        <Button variant="unstyled" size="unstyled"
-                            type="button"
-                            onClick={() => navigate(`/profile/${profile?.id}`)}
-                            className="mb-6 flex w-full items-center gap-4 rounded-xl p-2 text-left transition-colors hover:bg-muted"
-                        >
-                            <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted text-2xl font-semibold text-foreground">
-                                {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" /> : (profile?.display_name?.charAt(0) || '?')}
-                            </div>
-                            <div className="min-w-0">
-                                <div className="truncate text-lg font-semibold text-foreground">{profile?.display_name || 'Unbekannt'}</div>
-                                <div className="text-sm text-muted-foreground">
-                                    Anbieter:in{profile?.grade_level ? ` · ${formatGradeLabel(profile.grade_level)}` : ''}
+                    <CardContent className="p-4 sm:p-6">
+                        <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between md:gap-6">
+                            <Button variant="unstyled" size="unstyled"
+                                type="button"
+                                onClick={() => navigate(`/profile/${profile?.id}`)}
+                                className="flex min-w-0 items-center gap-4 rounded-xl p-2 text-left transition-colors hover:bg-muted md:flex-1"
+                            >
+                                <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted text-2xl font-semibold text-foreground">
+                                    {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" /> : (profile?.display_name?.charAt(0) || '?')}
                                 </div>
-                            </div>
-                        </Button>
+                                <div className="min-w-0">
+                                    <div className="truncate text-lg font-semibold text-foreground">{profile?.display_name || 'Unbekannt'}</div>
+                                    <div className="text-sm text-muted-foreground">
+                                        Anbieter:in{profile?.grade_level ? ` · ${formatGradeLabel(profile.grade_level)}` : ''}
+                                    </div>
+                                    <div className="text-[13px] text-muted-foreground">Profil ansehen</div>
+                                </div>
+                            </Button>
 
-                        {isOwn ? (
-                            <div className="space-y-3">
-                                <div className="rounded-xl bg-muted p-4 text-center text-[13px] text-muted-foreground">
-                                    Das ist deine eigene Anzeige. Du kannst sie jederzeit verwalten.
-                                </div>
-                                <div className="grid gap-2 sm:grid-cols-3">
-                                    <Button variant="outline" onClick={openEditor} className="h-11 gap-1.5 rounded-lg px-4 text-[13px] font-semibold">
-                                        <Pencil size={15} aria-hidden /> Bearbeiten
-                                    </Button>
-                                    <Button variant="outline" onClick={handleToggleActive} isLoading={activePending} className="h-11 gap-1.5 rounded-lg px-4 text-[13px] font-semibold">
-                                        {ad.is_active ? <><Pause size={15} aria-hidden /> Pausieren</> : <><Play size={15} aria-hidden /> Aktivieren</>}
-                                    </Button>
-                                    <Button variant="outline" onClick={() => setDeleteOpen(true)} className="h-11 gap-1.5 rounded-lg border-destructive/25 px-4 text-[13px] font-semibold text-destructive hover:bg-destructive/10">
-                                        <Trash2 size={15} aria-hidden /> Löschen
-                                    </Button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div>
-                                {canRequest && (
-                                    <div className="space-y-2">
-                                        <Button
-                                            onClick={sendRequest}
-                                            disabled={sending}
-                                            className="hidden h-14 w-full text-base font-semibold md:inline-flex"
-                                        >
-                                            <Send size={20} className="mr-2" /> Anfrage senden
-                                            <span className="ml-2 font-semibold tabular-nums opacity-80">· {price}</span>
-                                        </Button>
-                                        <p className="text-xs text-muted-foreground text-center leading-relaxed">
-                                            Unverbindlich · Kontakte erst nach Annahme der Anfrage sichtbar
-                                        </p>
+                            <div className={cn(
+                                'min-w-0',
+                                isOwn
+                                    ? 'md:w-[25rem] md:shrink-0 md:border-l md:border-border md:pl-6'
+                                    : 'md:w-[20rem] md:shrink-0 md:border-l md:border-border md:pl-6'
+                            )}>
+                                {isOwn ? (
+                                    <div className="space-y-3">
+                                        <div className="rounded-xl bg-muted p-3 text-[13px] text-muted-foreground sm:text-center">
+                                            Das ist deine eigene Anzeige. Du kannst sie jederzeit verwalten.
+                                        </div>
+                                        <div className="grid gap-2 sm:grid-cols-3">
+                                            <Button variant="outline" onClick={openEditor} className="h-11 gap-1.5 rounded-lg px-3 text-[13px] font-semibold">
+                                                <Pencil size={15} aria-hidden /> Bearbeiten
+                                            </Button>
+                                            <Button variant="outline" onClick={handleToggleActive} isLoading={activePending} className="h-11 gap-1.5 rounded-lg px-3 text-[13px] font-semibold">
+                                                {ad.is_active ? <><Pause size={15} aria-hidden /> Pausieren</> : <><Play size={15} aria-hidden /> Aktivieren</>}
+                                            </Button>
+                                            <Button variant="outline" onClick={() => setDeleteOpen(true)} className="h-11 gap-1.5 rounded-lg border-destructive/25 px-3 text-[13px] font-semibold text-destructive hover:bg-destructive/10">
+                                                <Trash2 size={15} aria-hidden /> Löschen
+                                            </Button>
+                                        </div>
                                     </div>
-                                )}
-                                {status === 'pending' && (
-                                    <div className="rounded-xl border border-border bg-muted p-4 text-center font-medium text-foreground/80">
-                                        Anfrage gesendet. Warte auf Antwort.
-                                    </div>
-                                )}
-                                {(status === 'accepted' || status === 'completed') && (
-                                    <div className="space-y-4 animate-in fade-in zoom-in-95">
-                                        <div className="flex items-center gap-3 rounded-xl border border-border bg-muted p-4 text-foreground/80">
-                                            <CheckCircle size={24} />
-                                            <div>
-                                                <p className="font-semibold">Anfrage akzeptiert!</p>
-                                                <p className="text-sm">Hier sind die Kontaktdaten:</p>
+                                ) : (
+                                    <div>
+                                        {canRequest && (
+                                            <div className="space-y-2">
+                                                <Button
+                                                    onClick={sendRequest}
+                                                    disabled={sending}
+                                                    className="inline-flex h-14 w-full text-base font-semibold"
+                                                >
+                                                    <Send size={20} className="mr-2" /> Anfrage senden
+                                                </Button>
+                                                <p className="text-center text-[13px] leading-relaxed text-muted-foreground md:text-left">
+                                                    Unverbindlich · Kontakte erst nach Annahme sichtbar
+                                                </p>
                                             </div>
-                                        </div>
-                                        <div className="flex gap-2.5 rounded-xl border border-border bg-muted/50 p-3.5 text-xs leading-relaxed text-muted-foreground">
-                                            <ShieldAlert size={16} className="shrink-0 mt-0.5" aria-hidden="true" />
-                                            <p>
-                                                <strong>Sicherheit geht vor:</strong> Trefft euch möglichst in der Schule,
-                                                informiert eure Eltern und teilt nur Kontakte, die ihr freigegeben habt.
-                                                Bei Problemen melde die Anzeige über den Button unten oder sprich das SV-Team an.
-                                            </p>
-                                        </div>
-                                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                                            {profile?.phone_number && profile?.settings?.phone_visible && (
-                                                <a href={`tel:${profile.phone_number}`} className="flex items-center justify-center gap-2 p-4 bg-card border border-border rounded-xl hover:bg-muted transition-colors">
-                                                    <Phone size={20} /> {profile.phone_number}
-                                                </a>
-                                            )}
-                                            {profile?.email && profile?.settings?.email_visible && (
-                                                <a href={`mailto:${profile.email}`} className="flex items-center justify-center gap-2 p-4 bg-card border border-border rounded-xl hover:bg-muted transition-colors">
-                                                    <Mail size={20} /> {profile.email}
-                                                </a>
-                                            )}
-                                            {(!profile?.settings?.phone_visible && !profile?.settings?.email_visible && publicCustomContacts(profile?.settings?.custom_contacts).length === 0) && (
-                                                <div className="p-4 bg-muted/60 text-muted-foreground rounded-xl border border-border col-span-2 text-center text-xs">
-                                                    Dieser Nutzer hat seine Kontaktdaten auf privat gestellt. Schreibe ihm direkt im Chat.
+                                        )}
+                                        {status === 'pending' && (
+                                            <div className="rounded-xl border border-border bg-muted p-4 text-center font-medium text-foreground/80">
+                                                Anfrage gesendet. Warte auf Antwort.
+                                            </div>
+                                        )}
+                                        {(status === 'accepted' || status === 'completed') && (
+                                            <div className="space-y-4 animate-in fade-in zoom-in-95">
+                                                <div className="flex items-center gap-3 rounded-xl border border-border bg-muted p-4 text-foreground/80">
+                                                    <CheckCircle size={24} />
+                                                    <div>
+                                                        <p className="font-semibold">Anfrage akzeptiert!</p>
+                                                        <p className="text-sm">Hier sind die Kontaktdaten:</p>
+                                                    </div>
                                                 </div>
-                                            )}
-                                        </div>
-                                        <CustomContactsList contacts={profile?.settings?.custom_contacts} />
-                                    </div>
-                                )}
-                                {status === 'rejected' && (
-                                    <div className="rounded-xl border border-destructive/25 bg-destructive/5 p-4 text-center font-medium text-destructive">
-                                        Anfrage wurde leider abgelehnt.
+                                                <div className="flex gap-2.5 rounded-xl border border-border bg-muted/50 p-3.5 text-[13px] leading-relaxed text-muted-foreground">
+                                                    <ShieldAlert size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+                                                    <p>
+                                                        <strong>Sicherheit geht vor:</strong> Trefft euch möglichst in der Schule,
+                                                        informiert eure Eltern und teilt nur Kontakte, die ihr freigegeben habt.
+                                                        Bei Problemen melde die Anzeige über den Button unten oder sprich das SV-Team an.
+                                                    </p>
+                                                </div>
+                                                <div className="grid grid-cols-1 gap-3">
+                                                    {profile?.phone_number && profile?.settings?.phone_visible && (
+                                                        <a href={`tel:${profile.phone_number}`} className="flex items-center justify-center gap-2 rounded-xl border border-border bg-card p-4 text-[13px] transition-colors hover:bg-muted">
+                                                            <Phone size={20} /> {profile.phone_number}
+                                                        </a>
+                                                    )}
+                                                    {profile?.email && profile?.settings?.email_visible && (
+                                                        <a href={`mailto:${profile.email}`} className="flex items-center justify-center gap-2 rounded-xl border border-border bg-card p-4 text-[13px] transition-colors hover:bg-muted">
+                                                            <Mail size={20} /> {profile.email}
+                                                        </a>
+                                                    )}
+                                                    {(!profile?.settings?.phone_visible && !profile?.settings?.email_visible && publicCustomContacts(profile?.settings?.custom_contacts).length === 0) && (
+                                                        <div className="rounded-xl border border-border bg-muted/60 p-4 text-center text-[13px] text-muted-foreground">
+                                                            Dieser Nutzer hat seine Kontaktdaten auf privat gestellt. Schreibe ihm direkt im Chat.
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <CustomContactsList contacts={profile?.settings?.custom_contacts} />
+                                            </div>
+                                        )}
+                                        {status === 'rejected' && (
+                                            <div className="rounded-xl border border-destructive/25 bg-destructive/5 p-4 text-center font-medium text-destructive">
+                                                Anfrage wurde leider abgelehnt.
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
-                        )}
+                        </div>
                     </CardContent>
                 </Card>
             </div>
@@ -480,17 +498,17 @@ export default function AdDetails() {
                             {user && (() => {
                                 const score = countMatches(myAvailability, theirAvailability);
                                 return score > 0 ? (
-                                    <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-semibold text-foreground">
+                                    <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[13px] font-semibold text-foreground">
                                         <CheckCircle size={12} /> {score} gemeinsame Zeitslot{score !== 1 ? 's' : ''}
                                     </span>
                                 ) : (
-                                    <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-lg">
+                                    <span className="rounded-lg bg-muted px-2 py-1 text-[13px] text-muted-foreground">
                                         Keine Übereinstimmung
                                     </span>
                                 );
                             })()}
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="mt-1 text-[13px] text-muted-foreground">
                             {user ? 'Grün = eure gemeinsamen verfügbaren Zeiten' : 'Melde dich an, um deine Zeiten zu vergleichen.'}
                         </p>
                     </CardHeader>
@@ -555,8 +573,13 @@ export default function AdDetails() {
                 <div className="fixed left-0 right-0 bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] z-40 px-4 md:hidden">
                     <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2.5 shadow-overlay">
                         <div className="min-w-0 flex-1 pl-1">
-                            <div className="text-sm font-semibold text-foreground truncate tabular-nums">{price}</div>
-                            <div className="text-xs text-muted-foreground truncate">Unverbindlich · Kontakt nach Annahme</div>
+                            <PriceTag
+                                layout="inline"
+                                price={ad.price_details?.value}
+                                mode={ad.price_details?.mode}
+                                duration={ad.price_details?.unit}
+                            />
+                            <div className="mt-1 text-[13px] text-muted-foreground truncate">Unverbindlich</div>
                         </div>
                         <Button
                             onClick={sendRequest}
