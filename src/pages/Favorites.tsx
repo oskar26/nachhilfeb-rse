@@ -41,7 +41,7 @@ export function FavoriteStreamCard({
                     {initials(ad.profiles?.display_name)}
                 </span>
                 <div className="min-w-0 flex-1">
-                    <h3 className="min-w-0 truncate text-base font-extrabold text-foreground">{ad.title}</h3>
+                    <h3 className="min-w-0 truncate text-base font-extrabold text-foreground">{ad.title || ad.short_description || 'Anzeige'}</h3>
                     <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                         <TypeChip label="Merkliste" dotClass="bg-muted-foreground" icon={Heart} />
                         <StatusChip label="Gemerkt" dotClass="bg-muted-foreground" />
@@ -59,7 +59,7 @@ export function FavoriteStreamCard({
                     size="icon"
                     variant="ghost"
                     className="size-11 shrink-0 rounded-full text-muted-foreground hover:text-foreground"
-                    onClick={() => onShare({ id: ad.id, title: ad.title })}
+                    onClick={() => onShare({ id: ad.id, title: ad.title || ad.short_description || 'Anzeige' })}
                     title="Anzeige teilen"
                     aria-label="Anzeige teilen"
                 >

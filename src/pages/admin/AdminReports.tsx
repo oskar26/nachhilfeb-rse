@@ -116,6 +116,8 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
     const [adminNotes, setAdminNotes] = useState('');
     const [showResolveDialog, setShowResolveDialog] = useState(false);
     const [resolutionType, setResolutionType] = useState<'warn' | 'ban' | 'delete' | 'dismiss'>('dismiss');
+    const [banType, setBanType] = useState<'temporary' | 'permanent'>('temporary');
+    const [banDays, setBanDays] = useState(7);
     
     // Zoomed image modal state
     const [zoomedImage, setZoomedImage] = useState<string | null>(null);
@@ -174,17 +176,41 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
         try {
             const adminId = getStoredUser()?.id;
             
-            const { error } = await api.reports.resolve(selectedReport.id, {
+            const payload: Record<string, unknown> = {
                 status: 'resolved',
                 resolution_type: resolutionType,
                 resolved_by: adminId,
                 resolved_at: new Date().toISOString(),
                 admin_notes: adminNotes,
-            });
+            };
+            if (resolutionType === 'ban') {
+                payload.ban_type = banType;
+                if (banType === 'temporary') payload.ban_days = banDays;
+            }
+
+            const { data, error } = await api.reports.resolve(selectedReport.id, payload);
 
             if (error) throw error;
 
-            toast.success(`Meldung als gelöst markiert (${RESOLUTION_LABELS[resolutionType] || resolutionType})`);
+            if (resolutionType === 'warn') {
+                const mailSent = Boolean((data as any)?.warning_email_sent);
+                toast.success(mailSent
+                    ? 'Verwarnung ausgesprochen und per E-Mail zugestellt.'
+                    : 'Verwarnung gespeichert. Die E-Mail konnte nicht zugestellt werden.');
+            } else if (resolutionType === 'ban') {
+                toast.success(banType === 'permanent'
+                    ? 'Nutzer dauerhaft gesperrt.'
+                    : `Nutzer für ${banDays} Tage gesperrt.`);
+            } else if (resolutionType === 'delete') {
+                const action = (data as any)?.action;
+                const deletedAd = action?.deleted_ad ? 'Anzeige gelöscht.' : '';
+                const deletedMessages = Number(action?.deleted_messages || 0);
+                toast.success(deletedMessages > 0
+                    ? `${deletedAd} ${deletedMessages} Nachricht(en) gelöscht.`.trim()
+                    : (deletedAd || 'Meldung als gelöst markiert.'));
+            } else {
+                toast.success('Meldung ohne weitere Aktion geschlossen.');
+            }
             setShowResolveDialog(false);
             fetchReports();
             setSelectedReport(null);
@@ -793,13 +819,45 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                                 className="w-full"
                             >
                                 <option value="dismiss">Keine weitere Aktion (Nur schließen)</option>
-                                <option value="warn">Nutzer verwarnt (Verwarnungsnachricht gesendet)</option>
-                                <option value="ban">Nutzer gebannt (Temporär oder permanent)</option>
-                                <option value="delete">Inhalt gelöscht (Anzeige/Nachrichten gelöscht)</option>
+                                <option value="warn">Nutzer verwarnt (Mitteilung und E-Mail)</option>
+                                <option value="ban">Nutzer sperren (temporär oder dauerhaft)</option>
+                                <option value="delete">Gemeldeten Inhalt löschen</option>
                             </NativeSelect>
                         </div>
+                        {resolutionType === 'ban' && (
+                            <div className="grid gap-3 sm:grid-cols-2">
+                                <div className="space-y-1.5">
+                                    <Label htmlFor="ban-type" className="text-sm font-medium">Sperre</Label>
+                                    <NativeSelect
+                                        id="ban-type"
+                                        value={banType}
+                                        onChange={e => setBanType(e.target.value as 'temporary' | 'permanent')}
+                                        className="w-full"
+                                    >
+                                        <option value="temporary">Vorübergehend</option>
+                                        <option value="permanent">Dauerhaft</option>
+                                    </NativeSelect>
+                                </div>
+                                {banType === 'temporary' && (
+                                    <div className="space-y-1.5">
+                                        <Label htmlFor="ban-days" className="text-sm font-medium">Dauer in Tagen</Label>
+                                        <Input
+                                            id="ban-days"
+                                            type="number"
+                                            min={1}
+                                            max={3650}
+                                            value={banDays}
+                                            onChange={e => setBanDays(Math.max(1, Math.min(3650, Number(e.target.value) || 1)))}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        )}
                         <p className="text-xs text-muted-foreground">
-                            Hinweis: Für Bannen oder Löschen von Anzeigen navigiere bitte direkt in die jeweiligen Reiter 'Nutzer' bzw. 'Anzeigen' für eine detaillierte Ausführung.
+                            {resolutionType === 'warn' && 'Der Nutzer erhält eine In-App-Mitteilung und, falls eine E-Mail-Adresse hinterlegt ist, eine E-Mail mit dem Grund.'}
+                            {resolutionType === 'ban' && 'Die Sperre wird sofort aktiv. Der Nutzer sieht beim nächsten Login Grund und Dauer.'}
+                            {resolutionType === 'delete' && 'Die gemeldete Anzeige und die in der Meldung verknüpften Nachrichten werden dauerhaft gelöscht.'}
+                            {resolutionType === 'dismiss' && 'Die Meldung wird ohne weitere Konsequenz geschlossen.'}
                         </p>
                     </div>
                     <DialogFooter>

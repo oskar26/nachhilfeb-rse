@@ -178,11 +178,17 @@ export default function AdDetails() {
     const status: typeof requestStatus = requestStatus === 'pending' || requestStatus === 'accepted' || requestStatus === 'rejected' || requestStatus === 'completed'
         ? requestStatus
         : 'none';
-    const canRequest = !isOwn && status === 'none';
+    const canRequest = !isOwn
+        && status === 'none'
+        && ad.is_active !== false
+        && ad.is_archived !== true;
+    const isPaused = !isOwn && !ad.is_active;
 
     const subjectNames = (ad.subjects || []).map((subject: Subject) => subjectLabelMap[subject] ?? subject);
     const generatedHeading = `${subjectNames[0] || 'Nachhilfe'} - ${profile?.display_name || 'Nutzer'}`;
-    const ownTitle = typeof ad.title === 'string' ? ad.title.trim() : '';
+    const ownTitle = (typeof ad.title === 'string' && ad.title.trim())
+        || (typeof ad.short_description === 'string' && ad.short_description.trim())
+        || '';
     const heading = ownTitle || generatedHeading;
     const gradeRange = formatGradeRange(ad.grade_levels);
 
@@ -253,6 +259,16 @@ export default function AdDetails() {
                     <Button variant="outline" onClick={handleToggleActive} isLoading={activePending} className="h-11 shrink-0 rounded-lg px-4 text-[13px] font-semibold">
                         <Play size={15} aria-hidden /> Aktivieren
                     </Button>
+                </div>
+            )}
+
+            {isPaused && (
+                <div role="status" className="flex items-start gap-2.5 rounded-card border border-border bg-pastel-yellow p-4">
+                    <Pause size={18} className="mt-0.5 shrink-0 text-pastel-yellow-foreground" aria-hidden />
+                    <div>
+                        <p className="text-[15px] font-semibold text-pastel-yellow-foreground">Diese Anzeige ist pausiert.</p>
+                        <p className="mt-0.5 text-[13px] text-pastel-yellow-foreground">Der Anbieter hat die Anzeige vorübergehend deaktiviert. Eine Anfrage ist derzeit nicht möglich.</p>
+                    </div>
                 </div>
             )}
 
@@ -384,7 +400,7 @@ export default function AdDetails() {
                             </div>
                         ) : (
                             <div>
-                                {status === 'none' && (
+                                {canRequest && (
                                     <div className="space-y-2">
                                         <Button
                                             onClick={sendRequest}
@@ -434,7 +450,7 @@ export default function AdDetails() {
                                             )}
                                             {(!profile?.settings?.phone_visible && !profile?.settings?.email_visible && publicCustomContacts(profile?.settings?.custom_contacts).length === 0) && (
                                                 <div className="p-4 bg-muted/60 text-muted-foreground rounded-xl border border-border col-span-2 text-center text-xs">
-                                                    Dieser Nutzer hat seine Kontaktdaten auf privat gestellt. Bitte kontaktiere ihn direkt über den Moodle-Namen ({profile?.moodle_name || 'Kein Moodle Name angegeben'}) oder im Chat.
+                                                    Dieser Nutzer hat seine Kontaktdaten auf privat gestellt. Schreibe ihm direkt im Chat.
                                                 </div>
                                             )}
                                         </div>

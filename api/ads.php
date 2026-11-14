@@ -22,6 +22,9 @@ try {
 try {
     $pdo->exec("ALTER TABLE ads ADD COLUMN IF NOT EXISTS view_count INT NOT NULL DEFAULT 0");
 } catch (Exception $e) {}
+try {
+    $pdo->exec("ALTER TABLE ads ADD COLUMN IF NOT EXISTS title VARCHAR(120) NULL AFTER user_id");
+} catch (Exception $e) {}
 
 // ------------------------------------------------------------------------------
 // B4: Matching-Helfer für gespeicherte Suchen (Benachrichtigung nach Publish)
@@ -155,6 +158,52 @@ function fwg_can_view_search_ad(array $ctx, string $ownerId, array $adSubjects):
 }
 
 // ------------------------------------------------------------------------------
+// Datenschutz-Helfer: Kontaktdaten nur bei angenommener/abgeschlossener Anfrage
+// ------------------------------------------------------------------------------
+function fwg_has_accepted_relationship(PDO $pdo, string $viewerId, string $ownerId): bool {
+    if ($viewerId === '' || $ownerId === '') return false;
+    if ($viewerId === $ownerId) return true;
+    try {
+        $stmt = $pdo->prepare("
+            SELECT 1 FROM ad_requests
+            WHERE ((requester_id = ? AND owner_id = ?) OR (requester_id = ? AND owner_id = ?))
+              AND status IN ('accepted', 'completed')
+            LIMIT 1
+        ");
+        $stmt->execute([$viewerId, $ownerId, $ownerId, $viewerId]);
+        return (bool)$stmt->fetchColumn();
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
+function fwg_accepted_relationship_ids(PDO $pdo, string $viewerId): array {
+    if ($viewerId === '') return [];
+    try {
+        $stmt = $pdo->prepare("
+            SELECT CASE WHEN requester_id = ? THEN owner_id ELSE requester_id END AS other_id
+            FROM ad_requests
+            WHERE (requester_id = ? OR owner_id = ?)
+              AND status IN ('accepted', 'completed')
+        ");
+        $stmt->execute([$viewerId, $viewerId, $viewerId]);
+        $ids = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $otherId) {
+            $ids[(string)$otherId] = true;
+        }
+        return $ids;
+    } catch (Throwable $e) {
+        return [];
+    }
+}
+
+function fwg_last_name_initial(?string $lastName): ?string {
+    $lastName = trim((string)$lastName);
+    if ($lastName === '') return null;
+    return mb_strtoupper(mb_substr($lastName, 0, 1, 'UTF-8'), 'UTF-8') . '.';
+}
+
+// ------------------------------------------------------------------------------
 // 1. GET: ANZEIGEN ABRUFEN (Liste oder Einzelanzeige)
 // Zugriffsstufe (D5): erst nach Verifizierung / bei Eltern mit verknüpftem Kind.
 // Ausnahme: eigene Anzeigen (user_id = eigener Account), damit Profile/Settings
@@ -165,7 +214,7 @@ if ($method === 'GET') {
     if ($id) {
         // Einzelne Anzeige mit Profil-Daten
         $stmt = $pdo->prepare('
-            SELECT a.*, 
+            SELECT a.*, a.title,
                    p.display_name, p.first_name, p.last_name, p.avatar_url, p.avatar_type,
                    p.banner_color, p.average_rating, p.is_verified, p.is_coach as user_is_coach,
                    p.grade_level as user_grade, p.class_letter as user_class, p.email as user_email, 
@@ -229,22 +278,40 @@ if ($method === 'GET') {
         ];
 
         // Datenschutz (A4): private Zusatzkontakte bei Fremd-Sicht nullen
-        if ($ad['user_id'] !== $viewer['id'] && !empty($ad['profiles']['settings']['custom_contacts']) && is_array($ad['profiles']['settings']['custom_contacts'])) {
+        $isOwner = ((string)$ad['user_id'] === (string)$viewer['id']);
+        $isStaff = in_array((string)($viewer['role'] ?? ''), ['sv_admin', 'coach_admin'], true);
+        $hasRelationship = !$isOwner && !$isStaff
+            && fwg_has_accepted_relationship($pdo, (string)$viewer['id'], (string)$ad['user_id']);
+
+        if (!$isOwner && !empty($ad['profiles']['settings']['custom_contacts']) && is_array($ad['profiles']['settings']['custom_contacts'])) {
             foreach ($ad['profiles']['settings']['custom_contacts'] as $i => $contact) {
                 if (empty($contact['is_public'])) {
                     $ad['profiles']['settings']['custom_contacts'][$i]['value'] = null;
                 }
             }
         }
+        // Die oberste user_settings-Kopie darf keine privaten Kontaktdaten enthalten.
+        if (!$isOwner) {
+            $ad['user_settings'] = $ad['profiles']['settings'];
+        }
 
-        // Datenschutz: E-Mail/Telefon für Fremde nur ausliefern, wenn im Profil sichtbar gestellt
-        if ($ad['user_id'] !== $viewer['id'] && !in_array($viewer['role'] ?? '', ['sv_admin', 'coach_admin'], true)) {
+        // Datenschutz: E-Mail/Telefon nur für Owner, Staff oder bei angenommener/
+        // abgeschlossener Anfrage – zusätzlich müssen die Profil-Flags aktiv sein.
+        $canSeeContact = $isOwner || $isStaff || $hasRelationship;
+        if (!$canSeeContact) {
+            $ad['profiles']['email'] = null;
+            $ad['profiles']['phone_number'] = null;
+            $ad['user_email'] = null;
+            $ad['user_phone'] = null;
+        } elseif (!$isOwner && !$isStaff) {
             if (empty($userSettings['email_visible'])) {
                 $ad['profiles']['email'] = null;
             }
             if (empty($userSettings['phone_visible'])) {
                 $ad['profiles']['phone_number'] = null;
             }
+            $ad['user_email'] = $ad['profiles']['email'];
+            $ad['user_phone'] = $ad['profiles']['phone_number'];
         }
 
         json_response($ad);
@@ -256,6 +323,11 @@ if ($method === 'GET') {
     $grade = $_GET['grade'] ?? null;
     $userId = $_GET['user_id'] ?? null;
     $search = mb_substr(trim($_GET['search'] ?? ''), 0, 100);
+    $limit = filter_var($_GET['limit'] ?? 500, FILTER_VALIDATE_INT);
+    if ($limit === false || $limit < 1) {
+        $limit = 500;
+    }
+    $limit = min($limit, 1000);
     $allParam = isset($_GET['all']) && is_string($_GET['all']) && $_GET['all'] === '1';
     $onlyActive = !$allParam;
     $matchContext = isset($_GET['match_context']) && is_string($_GET['match_context']) && $_GET['match_context'] === '1';
@@ -297,8 +369,11 @@ if ($method === 'GET') {
     }
 
     if ($search) {
-        $where[] = '(a.short_description LIKE ? OR a.long_description LIKE ? OR p.display_name LIKE ?)';
+        $where[] = '(a.title LIKE ? OR a.short_description LIKE ? OR a.long_description LIKE ? OR a.custom_location LIKE ? OR a.locations LIKE ? OR p.display_name LIKE ?)';
         $searchWild = '%' . $search . '%';
+        $params[] = $searchWild;
+        $params[] = $searchWild;
+        $params[] = $searchWild;
         $params[] = $searchWild;
         $params[] = $searchWild;
         $params[] = $searchWild;
@@ -308,7 +383,7 @@ if ($method === 'GET') {
 
     // Sortierung: Aktive Boosts zuerst, danach neueste
     $sql = "
-        SELECT a.*,
+        SELECT a.*, a.title,
                 (SELECT COUNT(*) FROM favorites f WHERE f.ad_id = a.id) as favorite_count,
                p.display_name, p.first_name, p.last_name, p.avatar_url, p.avatar_type,
                p.banner_color, p.average_rating, p.is_verified, p.is_coach as user_is_coach,
@@ -320,7 +395,7 @@ if ($method === 'GET') {
         ORDER BY
             (CASE WHEN a.boosted = 1 AND a.boosted_until > NOW() THEN 1 ELSE 0 END) DESC,
             a.created_at DESC
-        LIMIT 200
+        LIMIT $limit
     ";
 
     try {
@@ -333,6 +408,8 @@ if ($method === 'GET') {
     }
 
     $results = [];
+    $viewerIsStaff = in_array((string)($viewer['role'] ?? ''), ['sv_admin', 'coach_admin'], true);
+    $relatedUserIds = fwg_accepted_relationship_ids($pdo, (string)$viewer['id']);
     foreach ($rows as $row) {
         $subjects = json_decode($row['subjects'] ?? '[]', true) ?: [];
         $gradeLevels = json_decode($row['grade_levels'] ?? '[]', true) ?: [];
@@ -359,13 +436,30 @@ if ($method === 'GET') {
         $row['is_boosted'] = !empty($row['boosted']) && !empty($row['boosted_until']) && strtotime($row['boosted_until']) > time();
         $row['favorite_count'] = isset($row['favorite_count']) ? (int)$row['favorite_count'] : 0;
         $userSettings = json_decode($row['user_settings'] ?? '{}', true) ?: [];
+        $isOwnAd = ((string)$row['user_id'] === (string)$viewer['id']);
+        $hasRelationship = isset($relatedUserIds[(string)$row['user_id']]);
+
+        // Datenschutz: in der Liste keine Kontaktdaten fremder Profile ausliefern.
+        // Settings bleiben als reine Flags erhalten; custom_contacts gibt es nur
+        // im Detail (dort nach is_public gefiltert).
+        if (!$isOwnAd) {
+            unset($userSettings['custom_contacts'], $userSettings['email'], $userSettings['phone'], $userSettings['phone_number']);
+        }
         $row['user_settings'] = $userSettings;
+
+        // Nachnamen fremder Profile nur als Initial ausgeben (außer bei
+        // angenommener/abgeschlossener Anfrage oder für das Staff-Team).
+        $lastName = $row['last_name'];
+        if (!$isOwnAd && !$viewerIsStaff && !$hasRelationship) {
+            $lastName = fwg_last_name_initial($row['last_name']);
+        }
+        $row['last_name'] = $lastName;
 
         $row['profiles'] = [
             'id' => $row['user_id'],
             'display_name' => $row['display_name'],
             'first_name' => $row['first_name'],
-            'last_name' => $row['last_name'],
+            'last_name' => $lastName,
             'avatar_url' => $row['avatar_url'],
             'avatar_type' => $row['avatar_type'],
             'banner_color' => $row['banner_color'],
@@ -434,6 +528,20 @@ if ($method === 'POST') {
     $priceDetails = is_array($data['price_details'] ?? null) ? $data['price_details'] : [];
     $durationMinutes = is_array($data['duration_minutes'] ?? null) ? array_slice($data['duration_minutes'], 0, 6) : [45];
     $shortDesc = mb_substr(trim($data['short_description'] ?? ''), 0, 140);
+    $titleRaw = $data['title'] ?? '';
+    if (!is_string($titleRaw)) {
+        json_error('Ungültiger Titel.');
+    }
+    $title = trim($titleRaw);
+    if ($title !== '') {
+        $titleLength = mb_strlen($title, 'UTF-8');
+        if ($titleLength < 4 || $titleLength > 80) {
+            json_error('Der Titel muss zwischen 4 und 80 Zeichen lang sein.');
+        }
+    } else {
+        // Fallback für ältere Clients ohne Titel: erste 80 Zeichen der Kurzbeschreibung.
+        $title = mb_substr($shortDesc, 0, 80);
+    }
     $longDesc = mb_substr(trim($data['long_description'] ?? ''), 0, 8000);
     $imageUrls = is_array($data['image_urls'] ?? null) ? array_slice($data['image_urls'], 0, 5) : [];
     foreach ($imageUrls as $u) {
@@ -462,15 +570,16 @@ if ($method === 'POST') {
     $adId = generate_uuid();
     $stmt = $pdo->prepare('
         INSERT INTO ads (
-            id, user_id, type, session_format, subjects, grade_levels, locations, custom_location,
+            id, user_id, title, type, session_format, subjects, grade_levels, locations, custom_location,
             price_details, duration_minutes, short_description, long_description,
             image_urls, is_active, is_archived, boosted, boosted_until, promo_code_used
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, ?, ?, ?)
     ');
 
     $stmt->execute([
         $adId,
         $ownerId,
+        $title,
         $type,
         $sessionFormat,
         json_encode($subjects),
@@ -568,6 +677,16 @@ if ($method === 'PUT' || $method === 'PATCH') {
             json_error('Bitte gib eine kurze Beschreibung an.');
         }
     }
+    if (isset($data['title'])) {
+        if (!is_string($data['title'])) {
+            json_error('Ungültiger Titel.');
+        }
+        $data['title'] = trim($data['title']);
+        $titleLength = mb_strlen($data['title'], 'UTF-8');
+        if ($titleLength < 4 || $titleLength > 80) {
+            json_error('Der Titel muss zwischen 4 und 80 Zeichen lang sein.');
+        }
+    }
     if (isset($data['long_description'])) {
         $data['long_description'] = mb_substr(trim((string)$data['long_description']), 0, 8000);
     }
@@ -612,7 +731,7 @@ if ($method === 'PUT' || $method === 'PATCH') {
     }
 
     $updatable = [
-        'type', 'session_format', 'custom_location', 'short_description', 'long_description',
+        'type', 'title', 'session_format', 'custom_location', 'short_description', 'long_description',
         'is_active', 'is_archived'
     ];
     foreach ($updatable as $f) {

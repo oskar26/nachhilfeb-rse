@@ -182,10 +182,10 @@ export const api = {
             return apiRequest('/auth.php?action=me');
         },
 
-        async updatePassword(newPassword: string, token?: string) {
+        async updatePassword(newPassword: string, token?: string, currentPassword?: string) {
             return apiRequest('/auth.php?action=update_password', {
                 method: 'POST',
-                body: JSON.stringify({ password: newPassword, token })
+                body: JSON.stringify({ password: newPassword, token, currentPassword })
             });
         },
 
@@ -250,8 +250,9 @@ export const api = {
 
     // Anzeigen
     ads: {
-        async list(filters: { type?: string; subject?: string; grade?: string; search?: string; user_id?: string; all?: boolean; match_context?: boolean; match_for?: string } = {}) {
+        async list(filters: { type?: string; subject?: string; grade?: string; search?: string; user_id?: string; all?: boolean; match_context?: boolean; match_for?: string; limit?: number } = {}) {
             const params = new URLSearchParams();
+            if (filters.limit) params.append('limit', String(filters.limit));
             if (filters.type) params.append('type', filters.type);
             if (filters.subject) params.append('subject', filters.subject);
             if (filters.grade) params.append('grade', filters.grade);
@@ -391,6 +392,34 @@ export const api = {
             return apiRequest('/favorites.php', {
                 method: 'POST',
                 body: JSON.stringify({ ad_id: adId })
+            });
+        }
+    },
+
+    // Blockierte Nutzer
+    blocks: {
+        async list() {
+            return apiRequest('/blocks.php');
+        },
+
+        async block(userId: string) {
+            return apiRequest('/blocks.php', {
+                method: 'POST',
+                body: JSON.stringify({ action: 'block', user_id: userId })
+            });
+        },
+
+        async unblock(userId: string) {
+            return apiRequest('/blocks.php', {
+                method: 'POST',
+                body: JSON.stringify({ action: 'unblock', user_id: userId })
+            });
+        },
+
+        async status(userId: string) {
+            return apiRequest('/blocks.php', {
+                method: 'POST',
+                body: JSON.stringify({ action: 'status', user_id: userId })
             });
         }
     },
@@ -581,8 +610,9 @@ export const api = {
             });
         },
 
-        async list() {
-            return apiRequest('/reports.php');
+        async list(reportedUserId?: string) {
+            const params = reportedUserId ? `?reported_user_id=${encodeURIComponent(reportedUserId)}` : '';
+            return apiRequest(`/reports.php${params}`);
         },
 
         async resolve(id: string, resolution: any) {

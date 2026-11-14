@@ -222,11 +222,11 @@ function Avatar({ person }: { person?: RequestPerson | null }) {
     );
 }
 
-function AdLink({ ad, navigate }: { ad: { id?: string; short_description?: string | null }; navigate: (to: string) => void }) {
+function AdLink({ ad, navigate }: { ad: { id?: string; title?: string | null; short_description?: string | null }; navigate: (to: string) => void }) {
     if (!ad.id) return null;
     return (
         <div className="mt-3">
-            <p className="truncate text-xs text-muted-foreground">für „{ad.short_description || 'Anzeige'}“</p>
+            <p className="truncate text-xs text-muted-foreground">für „{ad.title || ad.short_description || 'Anzeige'}“</p>
             <Button variant="unstyled" size="unstyled"
                 type="button"
                 onClick={() => navigate(`/ad/${ad.id}`)}

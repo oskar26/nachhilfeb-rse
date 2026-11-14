@@ -1,7 +1,7 @@
 import { Label } from '@/components/ui/label';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { api, getStoredToken, getStoredUser } from '../lib/api';
+import { api } from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -17,18 +17,13 @@ export default function UpdatePassword() {
     // Token aus URL oder Hash auslesen
     const hashParams = new URLSearchParams(window.location.hash.split('?')[1] || '');
     const resetToken = searchParams.get('token') || hashParams.get('token');
-    const warnedRef = useRef(false);
 
     useEffect(() => {
-        // Falls ein Reset-Token übergeben wurde, muss der Nutzer nicht eingeloggt sein
-        if (resetToken) return;
-
-        // Früher getSession(): Es genügt der lokal gespeicherte Login
-        // (Token + User) – ohne Reset-Token muss er vorhanden sein.
-        if (!getStoredToken() || !getStoredUser()) {
-            if (warnedRef.current) return;
-            warnedRef.current = true;
-            toast.error("Ungültiger oder abgelaufener Link.");
+        // Diese Seite ist ausschließlich der Link aus der „Passwort vergessen?“-Mail.
+        // Ohne Token gibt es hier nichts zu ändern; das Passwort im eingeloggten
+        // Zustand wird in den Einstellungen geändert.
+        if (!resetToken) {
+            toast.error('Ungültiger oder abgelaufener Link.');
             navigate('/login');
         }
     }, [navigate, resetToken]);
@@ -46,17 +41,16 @@ export default function UpdatePassword() {
             return;
         }
 
+        if (!resetToken) {
+            toast.error('Ungültiger oder abgelaufener Link.');
+            navigate('/login');
+            return;
+        }
+
         setIsLoading(true);
 
         try {
-            let error = null;
-            if (resetToken) {
-                const res = await api.auth.updatePassword(password, resetToken);
-                error = res.error;
-            } else {
-                const res = await api.auth.updatePassword(password);
-                error = res.error;
-            }
+            const { error } = await api.auth.updatePassword(password, resetToken);
 
             if (error) {
                 toast.error('Das Passwort konnte nicht geändert werden. Bitte versuche es erneut.');

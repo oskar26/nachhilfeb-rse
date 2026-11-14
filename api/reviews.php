@@ -14,42 +14,135 @@ $method = $_SERVER['REQUEST_METHOD'];
 $pdo = DB::getConnection();
 
 // ------------------------------------------------------------------------------
-// 1. GET: BEWERTUNGEN ABRUFEN
+// 1. GET: BEWERTUNGEN ABRUFEN (öffentlich, aber datensparsam)
 // ------------------------------------------------------------------------------
+// Antwortformat:
+// {
+//   "average": 4.67,          // immer vorhanden
+//   "count": 12,              // immer vorhanden
+//   "target_user_id": "…" | null,
+//   "ad_id": "…" | null,
+//   "details": true | false,
+//   "length": 12,             // Anzahl wie im data-Array (ältere UI las nur .length)
+//   "data": [ … ]
+// }
+// `data` enthält bei berechtigten Betrachtern vollständige Bewertungen
+// (rating, comment, author_name, author_avatar, created_at, …).
+// Angemeldete fremde Betrachter erhalten pro Bewertung ausschließlich `rating`
+// (ohne Kommentar, Autor, Avatar oder Datum); Gäste erhalten nur das Aggregat
+// und ein leeres `data`-Array. So bleiben die Aggregate (z. B. für
+// PublicProfile) öffentlich, personenbezogene Details aber privat.
 if ($method === 'GET') {
-    $targetUserId = $_GET['target_user_id'] ?? null;
-    $adId = $_GET['ad_id'] ?? null;
+    $targetUserId = isset($_GET['target_user_id']) && is_string($_GET['target_user_id'])
+        ? trim($_GET['target_user_id'])
+        : '';
+    $adId = isset($_GET['ad_id']) && is_string($_GET['ad_id'])
+        ? trim($_GET['ad_id'])
+        : '';
 
-    if (!$targetUserId && !$adId) {
-        json_error('target_user_id oder ad_id ist erforderlich.');
+    $viewer = get_auth_user();
+
+    if ($targetUserId === '' && $adId === '') {
+        if (!$viewer) {
+            json_error('Bitte melde dich an oder gib target_user_id bzw. ad_id an.');
+        }
+        // Settings-Export ruft reviews.list({}) ohne Filter auf: eigene
+        // Bewertungen (über die eigene Nutzer-ID) zurückgeben.
+        $targetUserId = (string)$viewer['id'];
     }
 
     $where = [];
     $params = [];
 
-    if ($targetUserId) {
+    if ($targetUserId !== '') {
         $where[] = 'r.target_user_id = ?';
         $params[] = $targetUserId;
     }
-    if ($adId) {
+    if ($adId !== '') {
         $where[] = 'r.ad_id = ?';
         $params[] = $adId;
     }
 
-    $sql = '
-        SELECT r.*,
-               p.display_name as author_name, p.avatar_url as author_avatar, p.avatar_type as author_avatar_type
+    $whereSql = implode(' AND ', $where);
+
+    // Aggregat immer berechnen – unabhängig von der Detail-Berechtigung.
+    $aggStmt = $pdo->prepare('
+        SELECT COUNT(*) AS review_count, COALESCE(AVG(rating), 0) AS average_rating
         FROM reviews r
-        JOIN profiles p ON p.id = r.author_id
-        WHERE ' . implode(' AND ', $where) . '
-        ORDER BY r.created_at DESC
-    ';
+        WHERE ' . $whereSql . '
+    ');
+    $aggStmt->execute($params);
+    $aggregate = $aggStmt->fetch() ?: ['review_count' => 0, 'average_rating' => 0];
 
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $reviews = $stmt->fetchAll();
+    $isSvAdmin = $viewer && (($viewer['role'] ?? '') === 'sv_admin');
+    $canSeeDetails = (bool)$isSvAdmin;
 
-    json_response($reviews);
+    // Zielnutzer sieht die Details der eigenen Bewertungen.
+    if (!$canSeeDetails && $viewer && $targetUserId !== '' && (string)$viewer['id'] === $targetUserId) {
+        $canSeeDetails = true;
+    }
+
+    // Beim Anzeigen-Filter dürfen der Anzeigen-Autor (Eigentümer) und das
+    // Bewertungsziel die Details sehen; Gäste/Fremde nur das Aggregat.
+    if (!$canSeeDetails && $viewer && $adId !== '') {
+        try {
+            $adStmt = $pdo->prepare('SELECT user_id FROM ads WHERE id = ? LIMIT 1');
+            $adStmt->execute([$adId]);
+            $adOwnerId = $adStmt->fetchColumn();
+            if ($adOwnerId !== false && (string)$viewer['id'] === (string)$adOwnerId) {
+                $canSeeDetails = true;
+            }
+        } catch (Exception $e) {
+            error_log('Review ad owner lookup failed: ' . $e->getMessage());
+        }
+    }
+
+    if ($canSeeDetails) {
+        $sql = '
+            SELECT r.*,
+                   p.display_name as author_name, p.avatar_url as author_avatar, p.avatar_type as author_avatar_type
+            FROM reviews r
+            JOIN profiles p ON p.id = r.author_id
+            WHERE ' . $whereSql . '
+            ORDER BY r.created_at DESC
+        ';
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $reviews = $stmt->fetchAll();
+
+        foreach ($reviews as &$review) {
+            $review['rating'] = (float)$review['rating'];
+        }
+        unset($review);
+    } else if (!$viewer) {
+        // Ohne Login ausschließlich das Aggregat – keine Einzelbewertungen,
+        // auch nicht als reine Rating-Liste.
+        $reviews = [];
+    } else {
+        // Datensparsam: nur Sterne, keine Personenbezüge.
+        $stmt = $pdo->prepare('
+            SELECT r.rating
+            FROM reviews r
+            WHERE ' . $whereSql . '
+            ORDER BY r.created_at DESC
+        ');
+        $stmt->execute($params);
+
+        $reviews = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $reviews[] = ['rating' => (float)$row['rating']];
+        }
+    }
+
+    json_response([
+        'average' => round((float)($aggregate['average_rating'] ?? 0), 2),
+        'count' => (int)($aggregate['review_count'] ?? 0),
+        'target_user_id' => $targetUserId !== '' ? $targetUserId : null,
+        'ad_id' => $adId !== '' ? $adId : null,
+        'details' => $canSeeDetails,
+        'length' => count($reviews),
+        'data' => $reviews,
+    ]);
 }
 
 // ------------------------------------------------------------------------------

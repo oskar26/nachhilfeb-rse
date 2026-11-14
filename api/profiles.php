@@ -39,6 +39,50 @@ try {
     ");
 } catch (Exception $ex) {}
 
+// Auto-Migration: avatar_url als MEDIUMTEXT, damit data:-URLs bis 500.000
+// Zeichen gespeichert werden können (nur ändern, wenn noch nicht geschehen).
+try {
+    $avatarColumn = $pdo->query("SHOW COLUMNS FROM profiles LIKE 'avatar_url'")->fetch();
+    if ($avatarColumn && stripos((string)($avatarColumn['Type'] ?? ''), 'mediumtext') === false) {
+        $pdo->exec("ALTER TABLE profiles MODIFY avatar_url MEDIUMTEXT NULL");
+    }
+} catch (Exception $ex) {}
+
+// Auto-Migration: Statistik-Widerspruch
+try {
+    $pdo->exec("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS analytics_opt_out TINYINT(1) NOT NULL DEFAULT 0 AFTER settings");
+} catch (Exception $ex) {}
+
+// Datenschutz-Helfer: Kontaktdaten nur bei angenommener/abgeschlossener Anfrage
+function fwg_profiles_has_accepted_relationship(PDO $pdo, string $viewerId, string $profileId): bool {
+    if ($viewerId === '' || $profileId === '') return false;
+    if ($viewerId === $profileId) return true;
+    try {
+        $stmt = $pdo->prepare("
+            SELECT 1 FROM ad_requests
+            WHERE ((requester_id = ? AND owner_id = ?) OR (requester_id = ? AND owner_id = ?))
+              AND status IN ('accepted', 'completed')
+            LIMIT 1
+        ");
+        $stmt->execute([$viewerId, $profileId, $profileId, $viewerId]);
+        return (bool)$stmt->fetchColumn();
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
+function fwg_profiles_last_name_initial(?string $lastName): ?string {
+    $lastName = trim((string)$lastName);
+    if ($lastName === '') return null;
+    return mb_strtoupper(mb_substr($lastName, 0, 1, 'UTF-8'), 'UTF-8') . '.';
+}
+
+function fwg_avatar_type_from_url(string $url): string {
+    if (preg_match('#^data:image/svg\+xml;#i', $url)) return 'svg';
+    if (stripos($url, 'data:image/') === 0) return 'upload';
+    return 'url';
+}
+
 // Auto-Migration: parent_link_code Spalte (Eltern-Verknüpfungscode)
 try {
     $pdo->query("SELECT parent_link_code FROM profiles LIMIT 0");
@@ -239,17 +283,18 @@ if ($method === 'GET') {
         $profile['availability'] = null;
     }
 
-    // Datenschutz: Kontaktdaten nur anzeigen, wenn sichtbar gestellt oder eigener Account / Admin
+    // Datenschutz: Kontaktdaten nur anzeigen für Owner, SV-Admin oder wenn eine
+    // angenommene/abgeschlossene Anfrage zwischen Betrachter und Profil besteht.
+    // Zusätzlich müssen die Sichtbarkeits-Flags im Profil aktiv sein.
     $currentUser = get_auth_user();
-    $isOwnerOrAdmin = $currentUser && ($currentUser['id'] === $id || $currentUser['role'] === 'sv_admin' || $currentUser['role'] === 'coach_admin');
+    $viewerId = (string)($currentUser['id'] ?? '');
+    $isOwner = $currentUser && ((string)$currentUser['id'] === (string)$id);
+    $isStaff = $currentUser && in_array((string)$currentUser['role'], ['sv_admin', 'coach_admin'], true);
+    $isSvAdmin = $currentUser && ((string)$currentUser['role'] === 'sv_admin');
+    $hasRelationship = $currentUser && !$isOwner
+        && fwg_profiles_has_accepted_relationship($pdo, $viewerId, (string)$id);
 
-    if (!$isOwnerOrAdmin) {
-        if (empty($profile['settings']['email_visible'])) {
-            $profile['email'] = null;
-        }
-        if (empty($profile['settings']['phone_visible'])) {
-            $profile['phone_number'] = null;
-        }
+    if (!$isOwner) {
         // A4: private Zusatzkontakte auch serverseitig nullen
         if (!empty($profile['settings']['custom_contacts']) && is_array($profile['settings']['custom_contacts'])) {
             foreach ($profile['settings']['custom_contacts'] as $i => $contact) {
@@ -258,6 +303,25 @@ if ($method === 'GET') {
                 }
             }
         }
+    }
+
+    $canSeeContact = $isOwner || $isSvAdmin || $hasRelationship;
+    if (!$canSeeContact) {
+        $profile['email'] = null;
+        $profile['phone_number'] = null;
+    } elseif (!$isOwner && !$isSvAdmin) {
+        if (empty($profile['settings']['email_visible'])) {
+            $profile['email'] = null;
+        }
+        if (empty($profile['settings']['phone_visible'])) {
+            $profile['phone_number'] = null;
+        }
+    }
+
+    // Nachnamen fremder Profile nur als Initial ausgeben (Owner und Staff sehen
+    // den vollständigen Namen; angenommene Anfragen schalten ihn ebenfalls frei).
+    if (!$isOwner && !$isStaff && !$hasRelationship) {
+        $profile['last_name'] = fwg_profiles_last_name_initial($profile['last_name'] ?? null);
     }
 
     // Datenschutz: interne/sensible Felder nur für den Eigentümer oder das SV-Admin-Team ausliefern
@@ -447,7 +511,7 @@ if ($method === 'PUT' || $method === 'PATCH') {
     $textFields = [
         'first_name', 'last_name', 'display_name', 'grade_level', 'class_letter',
         'bio', 'moodle_name', 'phone_number', 'contact_other', 'avatar_url',
-        'avatar_type', 'banner_color', 'birth_date'
+        'banner_color', 'birth_date'
     ];
 
     $textLimits = [
@@ -465,9 +529,26 @@ if ($method === 'PUT' || $method === 'PATCH') {
                     json_error('Ungültiger Wert für ' . $tf . '.', 400);
                 }
                 if (is_string($val)) {
-                    $val = mb_substr(trim($val), 0, $textLimits[$tf] ?? 500);
-                    if ($tf === 'avatar_url' && $val !== '' && !preg_match('#^https://#i', $val)) {
-                        json_error('Avatar-URL muss mit https:// beginnen.', 400);
+                    if ($tf === 'avatar_url') {
+                        $val = trim($val);
+                        if ($val !== '' && strncasecmp($val, 'data:image/', 11) === 0) {
+                            // Sichere, Base64-kodierte Bild-Daten-URLs (max. 500.000 Zeichen).
+                            if (strlen($val) > 500000) {
+                                json_error('Avatar-Daten-URL darf maximal 500.000 Zeichen lang sein.', 400);
+                            }
+                            if (!preg_match('#^data:image/(png|jpeg|webp|svg\+xml);base64,[A-Za-z0-9+/]+={0,2}$#i', $val)) {
+                                json_error('Ungültige Avatar-Daten-URL. Erlaubt sind PNG, JPEG, WebP und SVG (Base64).', 400);
+                            }
+                        } elseif ($val !== '') {
+                            if (!preg_match('#^https://#i', $val)) {
+                                json_error('Avatar-URL muss mit https:// oder einem sicheren data:image-Format beginnen.', 400);
+                            }
+                            if (mb_strlen($val, 'UTF-8') > 2000) {
+                                json_error('Avatar-URL darf maximal 2000 Zeichen lang sein.', 400);
+                            }
+                        }
+                    } else {
+                        $val = mb_substr(trim($val), 0, $textLimits[$tf] ?? 500);
                     }
                     if ($tf === 'birth_date' && $val !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $val)) {
                         json_error('Ungültiges Geburtsdatum.', 400);
@@ -475,6 +556,23 @@ if ($method === 'PUT' || $method === 'PATCH') {
                 }
                 $fields[] = "`$tf` = ?";
                 $params[] = $val;
+            }
+        }
+
+        // Avatar-Typ passend zur URL setzen (data:image/svg+xml -> svg,
+        // andere data:-Bilder -> upload, https -> url). Explizit gesendete
+        // Werte werden nur akzeptiert, wenn keine neue URL mitkommt.
+        if (array_key_exists('avatar_url', $data) && is_string($data['avatar_url']) && trim($data['avatar_url']) !== '') {
+            $fields[] = '`avatar_type` = ?';
+            $params[] = fwg_avatar_type_from_url(trim($data['avatar_url']));
+        } elseif (array_key_exists('avatar_type', $data)) {
+            $avatarType = $data['avatar_type'];
+            if ($avatarType !== null && (!is_string($avatarType) || !in_array($avatarType, ['image', 'upload', 'svg', 'url'], true))) {
+                json_error('Ungültiger Avatar-Typ.', 400);
+            }
+            if (is_string($avatarType)) {
+                $fields[] = '`avatar_type` = ?';
+                $params[] = $avatarType;
             }
         }
     }

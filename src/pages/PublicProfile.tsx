@@ -31,7 +31,6 @@ export default function PublicProfile() {
     const { user } = useAuth();
     const [profile, setProfile] = useState<any>(null);
     const [ads, setAds] = useState<any[]>([]);
-    const [reviewCount, setReviewCount] = useState(0);
     const [loading, setLoading] = useState(true);
     const [isShareOpen, setIsShareOpen] = useState(false);
     const [myAvailability, setMyAvailability] = useState<Availability>(emptyAvailability());
@@ -55,10 +54,6 @@ export default function PublicProfile() {
             if (isCancelled()) return;
             // Nur aktive, nicht archivierte Anzeigen zeigen (all:true liefert sonst auch inaktive).
             if (adsData) setAds((adsData as any[]).filter(isVisibleAd));
-
-            const { data: reviews } = await api.reviews.list({ target_user_id: id });
-            if (isCancelled()) return;
-            setReviewCount(reviews?.length ?? 0);
         }
         if (!isCancelled()) setLoading(false);
     }
@@ -95,6 +90,10 @@ export default function PublicProfile() {
         ...(Array.isArray(profile.teaches_subjects) ? profile.teaches_subjects : []),
         ...ads.filter(ad => ad.type === 'offer').flatMap(ad => (ad.subjects || []) as string[])
     ])).filter((s): s is Subject => s in subjectLabelMap);
+
+    // Aggregatwerte kommen direkt aus dem Profil (Fallback 0).
+    const reviewCount = Number(profile.reviews_count ?? 0) || 0;
+    const averageRating = Number(profile.average_rating ?? 0) || 0;
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -173,7 +172,7 @@ export default function PublicProfile() {
                                 {reviewCount > 0 && (
                                     <p className="mt-1.5 flex items-center justify-center md:justify-start gap-1.5 text-sm font-semibold text-foreground/80">
                                         <Star size={15} className="fill-primary text-foreground" aria-hidden />
-                                        <span className="tabular-nums">{Number(profile.average_rating || 0).toFixed(1)}</span>
+                                        <span className="tabular-nums">{averageRating.toFixed(1)}</span>
                                         <span className="text-muted-foreground font-normal">· {reviewCount} {reviewCount === 1 ? 'Bewertung' : 'Bewertungen'}</span>
                                     </p>
                                 )}
@@ -233,7 +232,7 @@ export default function PublicProfile() {
                                         <div className="flex items-center justify-between gap-3 py-3">
                                             <span className="flex items-center gap-2 text-xs font-medium text-muted-foreground"><Star size={14} className="text-foreground" aria-hidden /> Bewertung</span>
                                             <div className="flex items-center gap-1">
-                                                <span className="text-sm font-semibold tabular-nums text-foreground">{reviewCount > 0 ? Number(profile.average_rating || 0).toFixed(1) : '-'}</span>
+                                                <span className="text-sm font-semibold tabular-nums text-foreground">{reviewCount > 0 ? averageRating.toFixed(1) : '-'}</span>
                                                 <span className="text-xs font-semibold text-muted-foreground">({reviewCount})</span>
                                             </div>
                                         </div>
@@ -296,7 +295,7 @@ export default function PublicProfile() {
                                             {ad.type === 'offer' ? 'Biete Nachhilfe' : 'Suche Nachhilfe'}
                                         </span>
                                     </div>
-                                    <p className="line-clamp-1 text-base font-semibold text-foreground">{ad.short_description}</p>
+                                    <p className="line-clamp-1 text-base font-semibold text-foreground">{ad.title || ad.short_description}</p>
                                     <div className="flex flex-wrap gap-1.5">
                                         {ad.subjects?.map((s: Subject) => (
                                              <SubjectChip key={s} subject={s} />

@@ -45,7 +45,8 @@ function get_auth_user(): ?array {
         SELECT u.id, u.email, u.email_verified,
                p.first_name, p.last_name, p.display_name, p.role, p.grade_level, p.class_letter,
                p.is_verified, p.is_coach, p.is_banned, p.ban_type, p.ban_reason, p.banned_until,
-               p.avatar_url, p.avatar_type, p.banner_color, p.onboarding_complete
+               p.avatar_url, p.avatar_type, p.banner_color, p.onboarding_complete,
+               p.birth_date, p.parental_consent_given
         FROM users u
         LEFT JOIN profiles p ON p.id = u.id
         WHERE u.id = ?
@@ -76,6 +77,37 @@ function get_auth_user(): ?array {
             json_error('Dein Konto wurde dauerhaft gesperrt.', 403, [
                 'is_banned' => true,
                 'ban_reason' => $user['ban_reason']
+            ]);
+        }
+    }
+
+    // Unter 16: Ohne bestätigte Eltern-Einwilligung keine API-Nutzung.
+    // Das schützt auch alte JWTs, die vor der U16-Umstellung ausgestellt wurden.
+    $isUnder16 = false;
+    if (!empty($user['birth_date'])) {
+        try {
+            $birth = new DateTimeImmutable((string)$user['birth_date']);
+            $isUnder16 = $birth->diff(new DateTimeImmutable('today'))->y < 16;
+        } catch (Exception $e) {
+            error_log('U16-Prüfung: ungültiges Geburtsdatum: ' . $e->getMessage());
+            $isUnder16 = true;
+        }
+    }
+    if ($isUnder16) {
+        $parentalConfirmed = false;
+        try {
+            $consentStmt = $pdo->prepare('SELECT confirmed_at FROM parental_consents WHERE user_id = ? LIMIT 1');
+            $consentStmt->execute([$user['id']]);
+            $consentRow = $consentStmt->fetch();
+            $parentalConfirmed = $consentRow && !empty($consentRow['confirmed_at']);
+        } catch (Exception $e) {
+            error_log('U16-Prüfung: Elternbestätigung nicht lesbar: ' . $e->getMessage());
+            $parentalConfirmed = false;
+        }
+        if (empty($user['parental_consent_given']) || !$parentalConfirmed) {
+            json_error('Ein Elternteil muss die Nutzung noch per E-Mail bestätigen. Bitte prüfe das E-Mail-Postfach deiner Eltern.', 403, [
+                'code' => 'parental_consent_pending',
+                'parental_consent_pending' => true
             ]);
         }
     }

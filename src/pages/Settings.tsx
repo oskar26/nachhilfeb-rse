@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { useTheme } from '../components/ThemeProvider';
 import { motion } from 'motion/react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Moon, Sun, Monitor, ChevronLeft, Shield, Trash2, Download, AlertTriangle, LifeBuoy, Share2, BookOpen, Check } from 'lucide-react';
+import { Moon, Sun, Monitor, ChevronLeft, Shield, Trash2, Download, AlertTriangle, LifeBuoy, Share2, BookOpen, Check, KeyRound, Mail, UserX } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import {
     AlertDialog,
@@ -29,6 +29,47 @@ import { requestPushPermission } from '../lib/push';
 import { Switch } from '../components/ui/switch';
 import { SubjectChip, SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
 import { NewsPreferences } from '../components/news/NewsPreferences';
+import { avatarTone, initials } from '../lib/avatar';
+
+interface BlockedUser {
+    id: string;
+    display_name: string | null;
+    avatar_url: string | null;
+}
+
+function extractBlockedRows(payload: any): any[] {
+    if (Array.isArray(payload)) return payload;
+    for (const key of ['blocks', 'blocked', 'blocked_users', 'data']) {
+        if (Array.isArray(payload?.[key])) return payload[key];
+    }
+    return [];
+}
+
+function normalizeBlockedUsers(payload: any): BlockedUser[] {
+    return extractBlockedRows(payload)
+        .map((row: any): BlockedUser => {
+            const nested = [row?.blocked_profile, row?.blocked_user, row?.profile, row?.blocked, row?.user]
+                .find((candidate) => candidate && typeof candidate === 'object');
+            const source = nested ?? row;
+            const rawId = source?.id ?? row?.blocked_id ?? row?.user_id;
+            const displayName = typeof source?.display_name === 'string'
+                ? source.display_name
+                : typeof row?.display_name === 'string'
+                    ? row.display_name
+                    : null;
+            const avatarUrl = typeof source?.avatar_url === 'string'
+                ? source.avatar_url
+                : typeof row?.avatar_url === 'string'
+                    ? row.avatar_url
+                    : null;
+            return {
+                id: rawId !== undefined && rawId !== null ? String(rawId) : '',
+                display_name: displayName,
+                avatar_url: avatarUrl,
+            };
+        })
+        .filter((entry) => entry.id !== '');
+}
 
 export default function Settings() {
     const { theme, setTheme } = useTheme();
@@ -51,12 +92,32 @@ export default function Settings() {
     const [isShareOpen, setIsShareOpen] = useState(false);
     const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
 
+    // Konto & Anmeldung
+    const [newEmail, setNewEmail] = useState('');
+    const [emailCode, setEmailCode] = useState('');
+    const [emailChangePending, setEmailChangePending] = useState(false);
+    const [emailChangeLoading, setEmailChangeLoading] = useState(false);
+    const [emailConfirmLoading, setEmailConfirmLoading] = useState(false);
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [passwordChangeLoading, setPasswordChangeLoading] = useState(false);
+
+    // Blockierte Nutzer
+    const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
+    const [blocksLoading, setBlocksLoading] = useState(false);
+    const [unblockingId, setUnblockingId] = useState<string | null>(null);
+
     useEffect(() => {
         if ('Notification' in window) {
             setNotificationsEnabled(Notification.permission === 'granted');
         }
         if (user) {
             fetchSettings();
+            fetchBlockedUsers();
+        } else {
+            setBlockedUsers([]);
+            setBlocksLoading(false);
         }
     }, [user]);
 
@@ -91,6 +152,25 @@ export default function Settings() {
                     ? teaches.filter((s): s is Subject => typeof s === 'string')
                     : []
             });
+        }
+    };
+
+    const fetchBlockedUsers = async () => {
+        if (!user) {
+            setBlockedUsers([]);
+            setBlocksLoading(false);
+            return;
+        }
+        setBlocksLoading(true);
+        try {
+            const { data, error } = await api.blocks.list();
+            if (error) throw error;
+            setBlockedUsers(normalizeBlockedUsers(data));
+        } catch {
+            // Blockliste ist eine Komfortfunktion und darf die Seite nicht blockieren.
+            setBlockedUsers([]);
+        } finally {
+            setBlocksLoading(false);
         }
     };
 
@@ -131,19 +211,66 @@ export default function Settings() {
         triggerHaptic('medium');
         toast.loading("Exportiere deine Daten...", { id: "exportData" });
         try {
-            const { data: profile } = await api.profiles.get(user.id);
-            const { data: ads } = await api.ads.list({ user_id: user.id, all: true });
-            const { data: reviews } = await api.reviews.list({});
-            const { data: favorites } = await api.favorites.list();
-            const { data: requests } = await api.requests.list();
+            let profile: any = null;
+            try {
+                const { data } = await api.profiles.get(user.id);
+                profile = data;
+            } catch {
+                profile = null;
+            }
+
+            let ads: any[] = [];
+            try {
+                const { data } = await api.ads.list({ user_id: user.id, all: true });
+                ads = Array.isArray(data) ? data : [];
+            } catch {
+                ads = [];
+            }
+
+            let reviews: any[] = [];
+            try {
+                const { data } = await api.reviews.list({ target_user_id: user.id });
+                if (Array.isArray(data)) {
+                    reviews = data;
+                } else if (Array.isArray((data as any)?.data)) {
+                    reviews = (data as any).data;
+                }
+            } catch {
+                reviews = [];
+            }
+
+            let favorites: any[] = [];
+            try {
+                const { data } = await api.favorites.list();
+                favorites = Array.isArray(data) ? data : [];
+            } catch {
+                favorites = [];
+            }
+
+            let requests: any[] = [];
+            try {
+                const { data } = await api.requests.list();
+                requests = Array.isArray(data) ? data : [];
+            } catch {
+                requests = [];
+            }
+
+            let blockedUsersExport: any[] = [];
+            try {
+                const { data } = await api.blocks.list();
+                blockedUsersExport = extractBlockedRows(data);
+            } catch {
+                blockedUsersExport = [];
+            }
 
             const exportObj = {
                 export_datum: new Date().toISOString(),
                 profil: profile,
-                meine_anzeigen: ads || [],
-                meine_bewertungen: reviews || [],
-                favoriten: favorites || [],
-                anfragen: requests || []
+                meine_anzeigen: ads,
+                meine_bewertungen: reviews,
+                favoriten: favorites,
+                anfragen: requests,
+                blockierte_nutzer: blockedUsersExport
             };
 
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj, null, 2));
@@ -163,12 +290,17 @@ export default function Settings() {
     };
 
     const handleDeleteAccount = async () => {
+        if (!user) {
+            toast.error('Bitte melde dich erneut an.');
+            return;
+        }
         try {
             const { error } = await api.support.createTicket({
-                user_id: user?.id,
-                subject: 'Konto-Löschung angefordert (Art. 17 DSGVO)',
-                message: `Nutzer ${user?.email} fordert die vollständige Löschung seines Kontos an.`
-            } as any);
+                title: 'Konto-Löschung angefordert (Art. 17 DSGVO)',
+                description: `Nutzer ${user.email ?? 'unbekannt'} (ID ${user.id}) fordert die vollständige Löschung des Kontos an.`,
+                type: 'support',
+                priority: 'high'
+            });
 
             if (error) throw error;
             triggerHaptic('success');
@@ -176,6 +308,147 @@ export default function Settings() {
         } catch (err: any) {
             triggerHaptic('error');
             toast.error("Fehler: " + err.message);
+        }
+    };
+
+    const handleRequestEmailChange = async () => {
+        if (!user) {
+            toast.error('Bitte melde dich erneut an.');
+            return;
+        }
+        const email = newEmail.trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            triggerHaptic('error');
+            toast.error('Bitte gib eine gültige E-Mail-Adresse ein.');
+            return;
+        }
+        if (user.email && email.toLowerCase() === user.email.toLowerCase()) {
+            triggerHaptic('error');
+            toast.error('Das ist bereits deine aktuelle E-Mail-Adresse.');
+            return;
+        }
+
+        setEmailChangeLoading(true);
+        try {
+            const { error } = await api.auth.requestEmailChange(email);
+            if (error) {
+                triggerHaptic('error');
+                toast.error(error.message || 'E-Mail-Adresse konnte nicht geändert werden.');
+                return;
+            }
+            triggerHaptic('success');
+            setEmailCode('');
+            setEmailChangePending(true);
+            toast.success('Bestätigungscode an die neue Adresse geschickt.');
+        } catch (err: any) {
+            triggerHaptic('error');
+            toast.error(err?.message || 'E-Mail-Adresse konnte nicht geändert werden.');
+        } finally {
+            setEmailChangeLoading(false);
+        }
+    };
+
+    const handleConfirmEmailChange = async () => {
+        if (!user) {
+            toast.error('Bitte melde dich erneut an.');
+            return;
+        }
+        const code = emailCode.replace(/\D/g, '');
+        if (code.length !== 6) {
+            triggerHaptic('error');
+            toast.error('Bitte gib den 6-stelligen Code aus der E-Mail ein.');
+            return;
+        }
+
+        setEmailConfirmLoading(true);
+        try {
+            const { error } = await api.auth.confirmEmailChange(code);
+            if (error) {
+                triggerHaptic('error');
+                const message = typeof error.message === 'string' ? error.message : '';
+                if (/falsch|abgelaufen|ungültig|fehlversuch/i.test(message)) {
+                    toast.error('Der Code stimmt nicht oder ist abgelaufen.');
+                } else {
+                    toast.error(message || 'Der Code stimmt nicht oder ist abgelaufen.');
+                }
+                return;
+            }
+            triggerHaptic('success');
+            toast.success('E-Mail-Adresse geändert.');
+            setEmailChangePending(false);
+            setNewEmail('');
+            setEmailCode('');
+            window.setTimeout(() => window.location.reload(), 1200);
+        } catch (err: any) {
+            triggerHaptic('error');
+            toast.error(err?.message || 'Der Code stimmt nicht oder ist abgelaufen.');
+        } finally {
+            setEmailConfirmLoading(false);
+        }
+    };
+
+    const handleChangePassword = async () => {
+        if (!user) {
+            toast.error('Bitte melde dich erneut an.');
+            return;
+        }
+        if (!currentPassword) {
+            triggerHaptic('error');
+            toast.error('Bitte gib dein aktuelles Passwort ein.');
+            return;
+        }
+        if (newPassword.length < 8) {
+            triggerHaptic('error');
+            toast.error('Das neue Passwort muss mindestens 8 Zeichen lang sein.');
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            triggerHaptic('error');
+            toast.error('Die neuen Passwörter stimmen nicht überein.');
+            return;
+        }
+
+        setPasswordChangeLoading(true);
+        try {
+            const { error } = await api.auth.updatePassword(newPassword, undefined, currentPassword);
+            if (error) {
+                triggerHaptic('error');
+                const message = typeof error.message === 'string' ? error.message : '';
+                if (error.status === 401 || error.status === 403 || /aktuelles passwort|current password/i.test(message)) {
+                    toast.error('Das aktuelle Passwort ist falsch.');
+                } else {
+                    toast.error(message || 'Passwort konnte nicht geändert werden.');
+                }
+                return;
+            }
+            triggerHaptic('success');
+            toast.success('Passwort geändert.');
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+        } catch (err: any) {
+            triggerHaptic('error');
+            toast.error(err?.message || 'Passwort konnte nicht geändert werden.');
+        } finally {
+            setPasswordChangeLoading(false);
+        }
+    };
+
+    const handleUnblock = async (userId: string) => {
+        if (unblockingId) return;
+        triggerHaptic('medium');
+        setUnblockingId(userId);
+        try {
+            const { error } = await api.blocks.unblock(userId);
+            if (error) throw error;
+            setBlockedUsers((prev) => prev.filter((entry) => entry.id !== userId));
+            triggerHaptic('success');
+            toast.success('Blockierung aufgehoben.');
+        } catch (err: any) {
+            triggerHaptic('error');
+            toast.error(err?.message || 'Blockierung konnte nicht aufgehoben werden.');
+        } finally {
+            setUnblockingId(null);
         }
     };
 
@@ -324,6 +597,226 @@ export default function Settings() {
                                 label="Telefonnummer anzeigen"
                             />
                         </div>
+                    </CardContent>
+                </Card>
+            </motion.div>
+
+            {/* Account & Login Card */}
+            <motion.div variants={itemVariants}>
+                <Card className="border-border bg-card">
+                    <CardHeader className="p-6 pb-2">
+                        <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground">
+                            <KeyRound size={18} className="text-muted-foreground" aria-hidden /> Konto & Anmeldung
+                        </CardTitle>
+                        <CardDescription className="text-xs">
+                            E-Mail-Adresse und Passwort deines Kontos verwalten
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-6 pt-3">
+                        <div className="space-y-3">
+                            <div>
+                                <h4 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+                                    <Mail size={14} className="text-muted-foreground" aria-hidden /> E-Mail-Adresse ändern
+                                </h4>
+                                <p className="mt-0.5 text-xs text-muted-foreground">
+                                    Aktuell: <span className="font-medium text-foreground">{user?.email || 'Unbekannt'}</span>
+                                </p>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <Label htmlFor="new-email" className="text-xs font-semibold text-foreground/80">Neue E-Mail-Adresse</Label>
+                                <div className="flex flex-col gap-2 sm:flex-row">
+                                    <Input
+                                        id="new-email"
+                                        type="email"
+                                        autoComplete="email"
+                                        placeholder="name@beispiel.de"
+                                        value={newEmail}
+                                        onChange={(e) => setNewEmail(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                void handleRequestEmailChange();
+                                            }
+                                        }}
+                                        disabled={emailChangeLoading}
+                                        className="flex-1"
+                                    />
+                                    <Button
+                                        type="button"
+                                        onClick={() => void handleRequestEmailChange()}
+                                        isLoading={emailChangeLoading}
+                                        disabled={!user}
+                                        className="h-12 shrink-0 gap-1.5 rounded-lg px-4 text-xs font-semibold"
+                                    >
+                                        <Mail size={14} aria-hidden /> E-Mail ändern
+                                    </Button>
+                                </div>
+                            </div>
+
+                            {emailChangePending && (
+                                <div className="space-y-2 rounded-xl border border-border bg-muted/50 p-4">
+                                    <p className="text-xs leading-relaxed text-muted-foreground">
+                                        Wir haben einen Code an die neue Adresse geschickt. Der Wechsel wird erst nach der Bestätigung wirksam.
+                                    </p>
+                                    <Label htmlFor="email-change-code" className="text-xs font-semibold text-foreground/80">Bestätigungscode</Label>
+                                    <div className="flex flex-col gap-2 sm:flex-row">
+                                        <Input
+                                            id="email-change-code"
+                                            type="text"
+                                            inputMode="numeric"
+                                            autoComplete="one-time-code"
+                                            placeholder="6-stelliger Code"
+                                            maxLength={6}
+                                            value={emailCode}
+                                            onChange={(e) => setEmailCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    void handleConfirmEmailChange();
+                                                }
+                                            }}
+                                            disabled={emailConfirmLoading}
+                                            className="flex-1 text-center text-base font-semibold tabular-nums tracking-[0.3em]"
+                                        />
+                                        <Button
+                                            type="button"
+                                            onClick={() => void handleConfirmEmailChange()}
+                                            isLoading={emailConfirmLoading}
+                                            disabled={!user}
+                                            className="h-12 shrink-0 gap-1.5 rounded-lg px-4 text-xs font-semibold"
+                                        >
+                                            E-Mail bestätigen
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mt-6 space-y-3 border-t border-border pt-6">
+                            <div>
+                                <h4 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+                                    <KeyRound size={14} className="text-muted-foreground" aria-hidden /> Passwort ändern
+                                </h4>
+                                <p className="mt-0.5 text-xs text-muted-foreground">Verwende mindestens 8 Zeichen.</p>
+                            </div>
+
+                            <div className="grid gap-3 sm:grid-cols-2">
+                                <div className="space-y-1.5 sm:col-span-2">
+                                    <Label htmlFor="current-password" className="text-xs font-semibold text-foreground/80">Aktuelles Passwort</Label>
+                                    <Input
+                                        id="current-password"
+                                        type="password"
+                                        autoComplete="current-password"
+                                        value={currentPassword}
+                                        onChange={(e) => setCurrentPassword(e.target.value)}
+                                        disabled={passwordChangeLoading}
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <Label htmlFor="new-password" className="text-xs font-semibold text-foreground/80">Neues Passwort</Label>
+                                    <Input
+                                        id="new-password"
+                                        type="password"
+                                        autoComplete="new-password"
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        disabled={passwordChangeLoading}
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <Label htmlFor="confirm-password" className="text-xs font-semibold text-foreground/80">Neues Passwort wiederholen</Label>
+                                    <Input
+                                        id="confirm-password"
+                                        type="password"
+                                        autoComplete="new-password"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                void handleChangePassword();
+                                            }
+                                        }}
+                                        disabled={passwordChangeLoading}
+                                    />
+                                </div>
+                            </div>
+
+                            <Button
+                                type="button"
+                                onClick={() => void handleChangePassword()}
+                                isLoading={passwordChangeLoading}
+                                disabled={!user}
+                                className="h-12 gap-1.5 rounded-lg px-4 text-xs font-semibold"
+                            >
+                                <KeyRound size={14} aria-hidden /> Passwort ändern
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </motion.div>
+
+            {/* Blocked Users Card */}
+            <motion.div variants={itemVariants}>
+                <Card className="border-border bg-card">
+                    <CardHeader className="p-6 pb-2">
+                        <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground">
+                            <UserX size={18} className="text-muted-foreground" aria-hidden /> Blockierte Nutzer
+                        </CardTitle>
+                        <CardDescription className="text-xs">
+                            Verwalte Personen, die dich nicht mehr kontaktieren können
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-6 pt-3">
+                        {blocksLoading ? (
+                            <p className="text-xs text-muted-foreground">Wird geladen …</p>
+                        ) : blockedUsers.length === 0 ? (
+                            <div className="rounded-xl border border-border bg-muted/50 p-4">
+                                <p className="text-sm font-semibold text-foreground">Du hast noch niemanden blockiert.</p>
+                                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                                    Blockierte Nutzer können dir keine Anfragen oder Nachrichten mehr senden.
+                                </p>
+                            </div>
+                        ) : (
+                            <ul className="divide-y divide-border">
+                                {blockedUsers.map((blockedUser) => (
+                                    <li
+                                        key={blockedUser.id}
+                                        className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
+                                    >
+                                        <div className="flex min-w-0 items-center gap-3">
+                                            <span
+                                                className={cn(
+                                                    'grid size-10 shrink-0 place-items-center overflow-hidden rounded-full text-xs font-bold',
+                                                    blockedUser.avatar_url ? 'bg-muted' : avatarTone(blockedUser.display_name)
+                                                )}
+                                                aria-hidden
+                                            >
+                                                {blockedUser.avatar_url ? (
+                                                    <img src={blockedUser.avatar_url} alt="" className="h-full w-full object-cover" />
+                                                ) : (
+                                                    initials(blockedUser.display_name)
+                                                )}
+                                            </span>
+                                            <p className="truncate text-sm font-semibold text-foreground">
+                                                {blockedUser.display_name || 'Unbekannter Nutzer'}
+                                            </p>
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => void handleUnblock(blockedUser.id)}
+                                            isLoading={unblockingId === blockedUser.id}
+                                            disabled={unblockingId !== null && unblockingId !== blockedUser.id}
+                                            className="h-11 w-full shrink-0 gap-1.5 rounded-lg px-3 text-xs font-semibold sm:w-auto"
+                                        >
+                                            <UserX size={14} aria-hidden /> Blockierung aufheben
+                                        </Button>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </CardContent>
                 </Card>
             </motion.div>
@@ -575,7 +1068,12 @@ export default function Settings() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Konto löschen?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Willst du dein Konto und all deine Anzeigen wirklich zur Löschung vormerken? Diese Aktion schickt eine Anfrage an die Administration.
+                            <span className="block">
+                                Willst du dein Konto und all deine Anzeigen wirklich zur Löschung vormerken? Diese Aktion schickt eine Anfrage an die Administration.
+                            </span>
+                            <span className="mt-2 block">
+                                Die Löschung wird innerhalb von 14 Tagen bestätigt. Dein Konto bleibt bis zur manuellen Löschung aktiv.
+                            </span>
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

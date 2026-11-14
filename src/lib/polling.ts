@@ -8,22 +8,17 @@ import { api } from './api';
 const CHAT_INTERVAL_MS = 2000;
 const NOTIFICATION_INTERVAL_MS = 12000;
 
-// Chat: pollt neue Nachrichten einer Anfrage (nach `after`-Timestamp).
-// Ruft onMessage für jede tatsächlich neue Nachricht auf.
+// Chat: pollt bei jedem Tick die vollständige Nachrichtenliste einer Anfrage.
+// So kommen auch Lesebestätigungen (read_at) für ältere Nachrichten an.
 export function startChatPoll(
     requestId: string,
-    onMessage: (msg: any) => void
+    onMessages: (msgs: any[]) => void
 ): () => void {
-    let lastTimestamp: string | undefined = undefined;
-
     const intervalId = setInterval(async () => {
         try {
-            const res = await api.messages.list(requestId, lastTimestamp);
-            if (res.data && Array.isArray(res.data) && res.data.length > 0) {
-                for (const msg of res.data) {
-                    lastTimestamp = msg.created_at;
-                    onMessage(msg);
-                }
+            const res = await api.messages.list(requestId);
+            if (res.data && Array.isArray(res.data)) {
+                onMessages(res.data);
             }
         } catch (e) {
             console.error('Chat polling error:', e);
