@@ -201,6 +201,7 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                 options={pills}
                 value={filter}
                 onChange={selectFilter}
+                className="md:hidden"
             />
             <p className="sr-only" aria-live="polite">
                 {counts[filter]} {counts[filter] === 1 ? 'Eintrag' : 'Einträge'} in der Übersicht
@@ -281,24 +282,29 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                                     : 'Anfragen, Vorschläge und gemerkte Anzeigen findest du hier. Erstelle eine Anzeige.'
                     }
                     action={
-                        filter === 'merkliste' ? (
-                            <Button onClick={() => navigate('/')} className="h-11 rounded-lg px-6 text-sm font-semibold">
+                        <>
+                            {filter !== 'alle' && (
+                                <Button onClick={() => selectFilter('alle')} className="h-11 rounded-lg px-5 text-sm font-semibold">
+                                    Alle Einträge anzeigen
+                                </Button>
+                            )}
+                            <Button
+                                variant={filter === 'alle' ? 'default' : 'outline'}
+                                onClick={() => navigate('/')}
+                                className="h-11 rounded-lg px-5 text-sm font-semibold"
+                            >
                                 Anzeigen stöbern
                             </Button>
-                        ) : (
-                            <>
-                                <Button onClick={() => navigate('/')} className="h-11 rounded-lg px-6 text-sm font-semibold">
-                                    Anzeigen stöbern
-                                </Button>
+                            {filter !== 'merkliste' && (
                                 <Button
                                     variant="outline"
                                     onClick={() => navigate('/create-ad')}
-                                    className="h-11 rounded-lg px-6 text-sm font-semibold"
+                                    className="h-11 rounded-lg px-5 text-sm font-semibold"
                                 >
                                     Anzeige erstellen
                                 </Button>
-                            </>
-                        )
+                            )}
+                        </>
                     }
                 />
             )}

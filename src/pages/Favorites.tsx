@@ -4,10 +4,10 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, ExternalLink, Share2, GraduationCap, User } from 'lucide-react';
+import { Heart, ExternalLink, Share2, GraduationCap, User, Trash2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
+import { PriceTag } from '../components/ui/price-tag';
 import { SubjectChip, type Subject } from '../components/SubjectChip';
-import { formatAdPrice } from '../lib/utils';
 import { avatarTone, initials } from '../lib/avatar';
 import { gradeLabel, type FavoriteAd } from '../components/social/stream';
 import { StreamCardShell, StatusChip, TypeChip } from '../components/social/StreamChips';
@@ -73,26 +73,29 @@ export function FavoriteStreamCard({
             <p className="mt-3 line-clamp-2 max-w-[65ch] text-sm leading-relaxed text-muted-foreground">{ad.short_description}</p>
 
             <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-                <span className="rounded-full bg-primary-soft px-3 py-1.5 font-sans text-sm font-extrabold tabular-nums text-primary-soft-foreground">
-                    {formatAdPrice(ad.price_details)}
-                </span>
+                <PriceTag
+                    price={ad.price_details?.value}
+                    mode={ad.price_details?.mode}
+                    duration={ad.price_details?.unit}
+                />
                 <div className="flex flex-wrap items-center gap-2">
                     <Button
                         variant="outline"
+                        size="icon"
                         disabled={busy}
                         isLoading={busy}
-                        className="h-12 px-4 text-sm font-semibold text-muted-foreground hover:text-destructive"
+                        className="size-11 rounded-lg text-muted-foreground hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
                         onClick={() => void remove()}
+                        title="Aus Merkliste entfernen"
+                        aria-label="Aus Merkliste entfernen"
                     >
-                        Entfernen
+                        <Trash2 size={16} />
                     </Button>
                     <Button
-                        variant="unstyled"
-                        size="unstyled"
-                        className="inline-flex min-h-12 items-center gap-1.5 px-2 text-sm font-semibold text-foreground transition-colors hover:text-muted-foreground"
+                        className="h-11 rounded-lg px-4 text-sm font-semibold"
                         onClick={() => navigate(`/ad/${ad.id}`)}
                     >
-                        Anzeige ansehen <ExternalLink size={14} />
+                        Anzeige ansehen <ExternalLink size={14} aria-hidden />
                     </Button>
                 </div>
             </div>

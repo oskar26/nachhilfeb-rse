@@ -12,11 +12,12 @@ interface SocialFilterPillsProps {
     value: string;
     onChange: (key: string) => void;
     ariaLabel: string;
+    className?: string;
 }
 
-export function SocialFilterPills({ options, value, onChange, ariaLabel }: SocialFilterPillsProps) {
+export function SocialFilterPills({ options, value, onChange, ariaLabel, className }: SocialFilterPillsProps) {
     return (
-        <div role="group" aria-label={ariaLabel} className="flex flex-wrap items-center gap-2">
+        <div role="group" aria-label={ariaLabel} className={cn('flex flex-wrap items-center gap-2', className)}>
             {options.map(option => {
                 const isActive = option.key === value;
                 return (
