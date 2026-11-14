@@ -89,13 +89,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <base href="/docs/" />
         <Meta />
         <Links />
       </head>
       <body className="flex min-h-screen flex-col">
         <RootProvider
           search={{ SearchDialog }}
+          theme={{ hotKey: false }}
           i18n={{ translations }}
         >
           {children}

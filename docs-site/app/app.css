@@ -60,18 +60,19 @@ body {
   letter-spacing: -0.011em;
 }
 
-/* The platform link sits at the top right of the navigation row. */
+/* The platform link sits in the mobile navigation row and in the sidebar
+   footer on desktop, never next to the long documentation title. */
 .platform-cta {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-inline-start: 0.75rem;
   border-radius: 9999px;
   background: #facc15;
   color: #171717;
   font-size: 0.8125rem;
   font-weight: 700;
   line-height: 1;
+  min-height: 2.25rem;
   padding: 0.5rem 0.85rem;
   white-space: nowrap;
   transition:
@@ -82,6 +83,40 @@ body {
 .platform-cta:hover {
   background: #f5c000;
   transform: translateY(-1px);
+}
+
+/* The desktop sidebar header holds the title and the collapse trigger only. */
+#nd-sidebar > div:first-child .platform-cta {
+  display: none;
+}
+
+/* Bottom-right utility position, above the sidebar footer padding. */
+.platform-cta-footer {
+  display: none;
+  align-self: flex-end;
+  margin-top: 0.75rem;
+}
+
+/* On mobile the platform link stays in the top bar, compact and right-aligned. */
+#nd-subnav > .flex-1 {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-inline-end: 0.25rem;
+}
+
+@media (max-width: 767px) {
+  .platform-cta {
+    font-size: 0.8125rem;
+    min-height: 2.75rem;
+    padding: 0.4rem 0.7rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .platform-cta-footer {
+    display: inline-flex;
+  }
 }
 
 /* One high-contrast ring, matching the app. The html/body prefix and
@@ -105,12 +140,14 @@ html.dark body :is(a, button, [tabindex]):focus-visible {
   outline-color: #facc15;
 }
 
-/* Readable editorial content on a soft, rounded card. */
+/* Readable editorial content on a soft, rounded card. The article keeps one
+   top padding layer so the first heading does not sit below an empty band. */
 #nd-page {
   margin-block: 1rem 2rem;
   border: 1px solid var(--color-fd-border);
   border-radius: 28px;
   background: var(--color-fd-card);
+  padding-top: 1.25rem;
   box-shadow:
     0 1px 2px rgb(23 24 28 / 0.04),
     0 18px 40px -24px rgb(23 24 28 / 0.18);
@@ -119,6 +156,7 @@ html.dark body :is(a, button, [tabindex]):focus-visible {
 @media (min-width: 768px) {
   #nd-page {
     margin-block: 1.75rem 2.5rem;
+    padding-top: 1.75rem;
     padding-inline: 2.25rem;
   }
 }
@@ -129,28 +167,70 @@ html.dark body :is(a, button, [tabindex]):focus-visible {
     0 18px 40px -24px rgb(0 0 0 / 0.7);
 }
 
-/* Sidebar navigation as rounded pills. */
-#nd-sidebar a[data-active='true'] {
+/* Sidebar navigation: comfortable 44px rows and soft, state-aware tokens. */
+:is(#nd-sidebar, #nd-sidebar-mobile) a,
+:is(#nd-sidebar, #nd-sidebar-mobile) button {
+  min-height: 2.75rem;
+}
+
+#nd-sidebar > div:first-child > div:first-child {
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#nd-sidebar > div:first-child a {
+  min-width: 0;
+}
+
+#nd-sidebar button[aria-controls='nd-sidebar'] {
+  flex: 0 0 auto;
+  min-width: 2.75rem;
+  margin-block: 0;
+}
+
+:is(#nd-sidebar, #nd-sidebar-mobile) a[data-active='true'] {
   border-radius: 9999px;
-  background: #facc15;
-  color: #171717;
+  background: #fdf3c4;
+  box-shadow: inset 0 0 0 1px rgb(23 24 28 / 0.06);
+  color: #17181c;
   font-weight: 600;
-  padding-inline: 0.75rem;
+  padding-inline: 0.75rem !important;
 }
 
-#nd-sidebar a[data-active='true']:hover {
-  background: #f5c000;
-  color: #171717;
+:is(#nd-sidebar, #nd-sidebar-mobile) a[data-active='true']:hover {
+  background: #fbeaa2;
+  color: #17181c;
 }
 
-.dark #nd-sidebar a[data-active='true'] {
-  background: #facc15;
-  color: #171717;
+.dark :is(#nd-sidebar, #nd-sidebar-mobile) a[data-active='true'] {
+  background: #2a2f38;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.07);
+  color: #f4f5f7;
+}
+
+.dark :is(#nd-sidebar, #nd-sidebar-mobile) a[data-active='true']:hover {
+  background: #343b46;
+  color: #ffffff;
 }
 
 /* Search trigger and sidebar surfaces. */
 #nd-sidebar {
   background: transparent;
+}
+
+/* A collapsed panel slides over the page; it needs an opaque surface so the
+   article does not show through it. */
+#nd-sidebar[data-collapsed='true'] {
+  background: var(--color-fd-card);
+  box-shadow:
+    0 1px 2px rgb(23 24 28 / 0.06),
+    0 24px 48px -24px rgb(23 24 28 / 0.28);
+}
+
+.dark #nd-sidebar[data-collapsed='true'] {
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.4),
+    0 24px 48px -24px rgb(0 0 0 / 0.8);
 }
 
 #nd-sidebar [data-search-trigger],
@@ -224,22 +304,47 @@ html.dark body :is(a, button, [tabindex]):focus-visible {
 
 /* Theme switch as a pill, matching the other controls. */
 div:has(> button[data-theme-toggle]) {
-  align-self: center;
+  align-self: flex-end;
   width: max-content;
-  min-width: 5rem;
+  min-width: 0;
   justify-content: center;
   border-radius: 9999px;
   border-color: var(--color-fd-border);
   background: var(--color-fd-muted);
-  padding: 0.2rem;
+  padding: 0.125rem;
 }
 
 button[data-theme-toggle] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
   border: 0;
   border-radius: 9999px;
-  padding: 0;
+  background: transparent;
+  color: var(--color-fd-foreground);
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+button[data-theme-toggle]:hover {
+  background: var(--color-fd-accent);
+  color: var(--color-fd-accent-foreground);
 }
 
 button[data-theme-toggle] svg {
-  border-radius: 9999px;
+  flex: 0 0 auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .platform-cta,
+  button[data-theme-toggle] {
+    transition: none;
+  }
+
+  .platform-cta:hover {
+    transform: none;
+  }
 }

@@ -1,11 +1,17 @@
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
+import { DocsThemeSwitch } from '@/components/theme-switch';
 
 export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
       title: (
         <>
-          <span className="hidden md:inline">Nachhilfebörse Dokumentation</span>
+          <span className="hidden items-center gap-2 md:inline-flex">
+            Nachhilfebörse
+            <span className="rounded-full border border-fd-border px-1.5 py-0.5 text-[0.8125rem] leading-none font-medium tracking-wide text-fd-muted-foreground">
+              Doku
+            </span>
+          </span>
           <span className="md:hidden">Dokumentation</span>
         </>
       ),
@@ -16,6 +22,9 @@ export function baseOptions(): BaseLayoutProps {
           <span className="md:hidden">Plattform</span>
         </a>
       ),
+    },
+    slots: {
+      themeSwitch: DocsThemeSwitch,
     },
   };
 }

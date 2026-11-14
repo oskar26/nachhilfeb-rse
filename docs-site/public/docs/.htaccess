@@ -1,0 +1,3 @@
+# Nur innerhalb der Dokumentation: unbekannte Docs-Pfade bekommen die
+# Docs-404, andere 404s der Anwendung bleiben unberührt.
+ErrorDocument 404 /docs/404.html
