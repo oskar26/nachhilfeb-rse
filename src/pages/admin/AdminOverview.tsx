@@ -33,7 +33,7 @@ const QUICK_ACTIONS = [
     { label: 'Codes & Verifikation', icon: ShieldCheck, tab: 'codes' },
     { label: 'Nutzerverwaltung', icon: Users, tab: 'users' },
     { label: 'Meldungen prüfen', icon: AlertTriangle, tab: 'reports' },
-    { label: 'Audit Log', icon: Clock, tab: 'auditlog' },
+    { label: 'Audit & Coaching', icon: Clock, tab: 'auditlog' },
 ];
 
 interface Stats {
@@ -51,26 +51,35 @@ interface StatCardProps {
     subValue: string;
     onClick: () => void;
     emphasis?: boolean;
+    loading: boolean;
 }
 
-function StatCard({ icon, label, value, subValue, onClick, emphasis }: StatCardProps) {
+function StatCard({ icon, label, value, subValue, onClick, emphasis, loading }: StatCardProps) {
     return (
         <Button
             variant="unstyled"
             size="unstyled"
             type="button"
             onClick={onClick}
-            className="group flex min-h-[132px] w-full flex-col items-stretch justify-between gap-4 rounded-xl border border-border bg-card p-4 text-left transition-colors hover:border-foreground/20 hover:bg-muted/30 sm:p-5"
+            className="group flex min-h-[116px] w-full flex-col items-stretch justify-between gap-3 rounded-2xl border border-border bg-card p-4 text-left shadow-soft transition-colors hover:border-foreground/20 hover:bg-muted/20"
         >
             <div className="flex items-start justify-between gap-2">
-                <span className="grid size-10 place-items-center rounded-xl bg-muted text-muted-foreground">
+                <span className="grid size-9 place-items-center rounded-xl bg-muted text-muted-foreground">
                     {icon}
                 </span>
                 <ArrowUpRight size={16} className="text-muted-foreground transition-colors group-hover:text-foreground" aria-hidden />
             </div>
-            <div className="space-y-1">
-                <div className={cn('text-2xl font-semibold tracking-tight tabular-nums sm:text-3xl', emphasis && value > 0 && 'text-destructive')}>{value}</div>
-                <div className="text-sm font-medium text-foreground">{label}</div>
+            <div className="min-w-0 space-y-0.5">
+                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                    {loading ? (
+                        <Skeleton className="h-7 w-10" />
+                    ) : (
+                        <span className={cn('text-2xl font-semibold tracking-tight tabular-nums', emphasis && value > 0 && 'text-destructive')}>
+                            {value}
+                        </span>
+                    )}
+                    <span className="text-sm font-medium text-foreground">{label}</span>
+                </div>
                 <div className="text-xs text-muted-foreground">{subValue}</div>
             </div>
         </Button>
@@ -158,11 +167,10 @@ export default function AdminOverview() {
     } satisfies ChartConfig;
 
     return (
-        <div className="space-y-6 sm:space-y-8">
-            {/* Page title */}
+        <div className="space-y-5 sm:space-y-6">
             <header>
                 <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">Übersicht</h1>
-                <p className="mt-1 text-sm text-muted-foreground">Zusammenfassung des aktuellen Systemstatus</p>
+                <p className="mt-0.5 text-sm text-muted-foreground">Zusammenfassung des aktuellen Systemstatus</p>
             </header>
 
             {loadError && (
@@ -179,81 +187,47 @@ export default function AdminOverview() {
 
             {/* Stat cards */}
             {!loadError && (
-            <div className="grid grid-cols-2 gap-3 2xl:grid-cols-4 2xl:gap-4">
-                <StatCard
-                    icon={<Users size={20} aria-hidden />}
-                    label="Nutzer"
-                    value={stats.users}
-                    subValue={`${stats.verified} verifiziert`}
-                    onClick={() => navTo('users')}
-                />
-                <StatCard
-                    icon={<FileText size={20} aria-hidden />}
-                    label="Anzeigen"
-                    value={stats.ads}
-                    subValue="Aktive Angebote"
-                    onClick={() => navTo('ads')}
-                />
-                <StatCard
-                    icon={<AlertTriangle size={20} aria-hidden />}
-                    label="Offene Meldungen"
-                    value={stats.reports}
-                    subValue="Handlungsbedarf"
-                    emphasis
-                    onClick={() => navTo('reports')}
-                />
-                <StatCard
-                    icon={<Ban size={20} aria-hidden />}
-                    label="Gesperrt"
-                    value={stats.banned}
-                    subValue="Inaktive Accounts"
-                    onClick={() => navTo('users')}
-                />
-            </div>
-            )}
-
-            {/* Seitenaufrufe-Trend (7 Tage) */}
-            {!loadError && (
-                <Card>
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4 sm:p-5">
-                        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                            <TrendingUp size={16} className="text-muted-foreground" aria-hidden />
-                            Seitenaufrufe · letzte 7 Tage
-                        </div>
-                        <Button variant="ghost" size="sm" type="button" onClick={() => navTo('analytics')} className="h-10 gap-1 px-3 text-xs">
-                            Details <ArrowUpRight size={16} aria-hidden />
-                        </Button>
-                    </div>
-                    <div className="p-4 sm:p-5">
-                        {loading ? (
-                            <div className="space-y-3" aria-label="Diagramm wird geladen">
-                                <Skeleton className="h-4 w-28" />
-                                <Skeleton className="h-[180px] w-full" />
-                            </div>
-                        ) : pageTrend.every(v => v === 0) ? (
-                            <div className="flex min-h-[200px] flex-col items-center justify-center gap-1 rounded-lg border border-border border-border bg-muted/20 px-4 text-center">
-                                <p className="text-sm font-medium text-foreground">Keine Seitenaufrufe in den letzten 7 Tagen</p>
-                                <p className="text-xs text-muted-foreground">Sobald Daten vorliegen, erscheint hier der Verlauf.</p>
-                            </div>
-                        ) : (
-                            <ChartContainer config={trendConfig} className="h-[220px] w-full">
-                                <BarChart data={trendData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                                    <CartesianGrid vertical={false} />
-                                    <XAxis dataKey="day" tickLine={false} axisLine={false} tickMargin={8} />
-                                    <YAxis tickLine={false} axisLine={false} tickMargin={8} width={40} allowDecimals={false} />
-                                    <ChartTooltip content={<ChartTooltipContent />} />
-                                    <Bar dataKey="views" fill="var(--color-views)" radius={[4, 4, 0, 0]} maxBarSize={56} />
-                                </BarChart>
-                            </ChartContainer>
-                        )}
-                    </div>
-                </Card>
+                <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+                    <StatCard
+                        icon={<Users size={18} aria-hidden />}
+                        label="Nutzer"
+                        value={stats.users}
+                        subValue={`${stats.verified} verifiziert`}
+                        onClick={() => navTo('users')}
+                        loading={loading}
+                    />
+                    <StatCard
+                        icon={<FileText size={18} aria-hidden />}
+                        label="Anzeigen"
+                        value={stats.ads}
+                        subValue="Aktive Angebote"
+                        onClick={() => navTo('ads')}
+                        loading={loading}
+                    />
+                    <StatCard
+                        icon={<AlertTriangle size={18} aria-hidden />}
+                        label="Offene Meldungen"
+                        value={stats.reports}
+                        subValue="Handlungsbedarf"
+                        emphasis
+                        onClick={() => navTo('reports')}
+                        loading={loading}
+                    />
+                    <StatCard
+                        icon={<Ban size={18} aria-hidden />}
+                        label="Gesperrt"
+                        value={stats.banned}
+                        subValue="Inaktive Accounts"
+                        onClick={() => navTo('users')}
+                        loading={loading}
+                    />
+                </div>
             )}
 
             {/* Quick actions */}
-            <section>
-                <h2 className="mb-3 text-sm font-medium text-muted-foreground">Schnellzugriff</h2>
-                <div className="grid grid-cols-2 gap-2 2xl:grid-cols-4 2xl:gap-3">
+            <section aria-labelledby="admin-quick-access">
+                <h2 id="admin-quick-access" className="mb-2 text-sm font-medium text-muted-foreground">Schnellzugriff</h2>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {QUICK_ACTIONS.map(({ label, icon: Icon, tab }) => (
                         <Button
                             variant="unstyled"
@@ -261,97 +235,134 @@ export default function AdminOverview() {
                             type="button"
                             key={tab}
                             onClick={() => navTo(tab)}
-                            className="flex min-h-12 items-center gap-3 rounded-xl border border-border bg-card p-3 text-left text-sm font-medium text-foreground transition-colors hover:border-foreground/20 hover:bg-muted/30"
+                            className="flex min-h-11 items-center justify-start gap-2.5 rounded-xl border border-border bg-card px-3 py-2 text-left text-[13px] font-medium leading-tight text-foreground transition-colors hover:border-foreground/20 hover:bg-muted/20 sm:text-sm"
                         >
-                            <Icon size={20} className="shrink-0 text-muted-foreground" aria-hidden />
-                            <span className="min-w-0 break-words">{label}</span>
+                            <Icon size={18} className="shrink-0 text-muted-foreground" aria-hidden />
+                            <span className="min-w-0">{label}</span>
                         </Button>
                     ))}
                 </div>
             </section>
 
-            {/* Recent activity */}
             {!loadError && (
-            <div className="grid grid-cols-1 gap-4 xl:grid-cols-2 xl:gap-6">
-                {/* Recent reports */}
-                <Card>
-                    <div className="flex items-center justify-between gap-3 border-b border-border p-4">
-                        <div className="flex items-center gap-2 text-sm font-semibold">
-                            <AlertTriangle size={16} className="text-muted-foreground" aria-hidden />
-                            Letzte Meldungen
-                        </div>
-                        <Button variant="ghost" size="sm" type="button" onClick={() => navTo('reports')} className="h-11 gap-1 px-3 text-xs">
-                            Alle <ArrowUpRight size={16} aria-hidden />
-                        </Button>
-                    </div>
-                    <div className="divide-y divide-border">
-                        {loading ? (
-                            <div className="space-y-3 p-4">
-                                <Skeleton className="h-4 w-3/4" />
-                                <Skeleton className="h-3 w-1/2" />
-                                <Skeleton className="h-4 w-2/3" />
-                                <Skeleton className="h-3 w-1/2" />
+                <div className="space-y-4">
+                    {/* Seitenaufrufe-Trend (7 Tage) */}
+                    <Card>
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border p-4">
+                            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                                <TrendingUp size={16} className="text-muted-foreground" aria-hidden />
+                                Seitenaufrufe · letzte 7 Tage
                             </div>
-                        ) : recentReports.length === 0 ? (
-                            <p className="p-6 text-center text-sm text-muted-foreground">Keine Meldungen vorhanden.</p>
-                        ) : (
-                            recentReports.map((r, index) => (
-                                <div key={`${r.id}-${index}`} className="flex items-start justify-between gap-3 p-4">
-                                    <div className="min-w-0">
-                                        <div className="break-words text-sm font-medium text-foreground">{r.reason || r.category || 'Kein Grund angegeben'}</div>
-                                        <div className="mt-0.5 break-words text-xs text-muted-foreground">
-                                            {(r as any).reporter_name || 'Anonym'} → {(r as any).reported_user_name || (r as any).reported_ad_title || 'Unbekannt'}
-                                        </div>
-                                    </div>
-                                    <Badge variant="outline" className={cn('shrink-0 font-medium', (REPORT_STATUS_STYLES[r.status] || REPORT_STATUS_STYLES.dismissed).cls)}>
-                                        {REPORT_STATUS_STYLES[r.status]?.label || r.status}
-                                    </Badge>
+                            <Button variant="ghost" size="sm" type="button" onClick={() => navTo('analytics')} className="h-11 gap-1 px-2.5 text-xs">
+                                Details <ArrowUpRight size={16} aria-hidden />
+                            </Button>
+                        </div>
+                        <div className="p-4">
+                            {loading ? (
+                                <div className="space-y-3" aria-label="Diagramm wird geladen">
+                                    <Skeleton className="h-4 w-28" />
+                                    <Skeleton className="h-[200px] w-full" />
                                 </div>
-                            ))
-                        )}
-                    </div>
-                </Card>
+                            ) : pageTrend.every(v => v === 0) ? (
+                                <div className="flex min-h-[200px] flex-col items-center justify-center gap-1 rounded-xl border border-border bg-muted/20 px-4 text-center">
+                                    <p className="text-sm font-medium text-foreground">Keine Seitenaufrufe in den letzten 7 Tagen</p>
+                                    <p className="text-xs text-muted-foreground">Sobald Daten vorliegen, erscheint hier der Verlauf.</p>
+                                </div>
+                            ) : (
+                                <ChartContainer config={trendConfig} className="h-[220px] w-full">
+                                    <BarChart data={trendData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                                        <CartesianGrid vertical={false} />
+                                        <XAxis dataKey="day" tickLine={false} axisLine={false} tickMargin={8} />
+                                        <YAxis tickLine={false} axisLine={false} tickMargin={8} width={40} allowDecimals={false} />
+                                        <ChartTooltip content={<ChartTooltipContent />} />
+                                        <Bar dataKey="views" fill="var(--color-views)" radius={[4, 4, 0, 0]} maxBarSize={56} />
+                                    </BarChart>
+                                </ChartContainer>
+                            )}
+                        </div>
+                    </Card>
 
-                {/* Recent users */}
-                <Card>
-                    <div className="flex items-center justify-between gap-3 border-b border-border p-4">
-                        <div className="flex items-center gap-2 text-sm font-semibold">
-                            <UserPlus size={16} className="text-muted-foreground" aria-hidden />
-                            Neue Nutzer
-                        </div>
-                        <Button variant="ghost" size="sm" type="button" onClick={() => navTo('users')} className="h-11 gap-1 px-3 text-xs">
-                            Alle <ArrowUpRight size={16} aria-hidden />
-                        </Button>
-                    </div>
-                    <div className="divide-y divide-border">
-                        {loading ? (
-                            <div className="space-y-3 p-4">
-                                <Skeleton className="h-4 w-3/4" />
-                                <Skeleton className="h-3 w-1/2" />
-                                <Skeleton className="h-4 w-2/3" />
-                                <Skeleton className="h-3 w-1/2" />
-                            </div>
-                        ) : recentUsers.length === 0 ? (
-                            <p className="p-6 text-center text-sm text-muted-foreground">Keine Nutzer gefunden.</p>
-                        ) : (
-                            recentUsers.map((u, index) => (
-                                <div key={`${u.id}-${index}`} className="flex items-center gap-3 p-4">
-                                    <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-sm font-semibold text-foreground">
-                                        {(u.display_name || u.first_name || '?').charAt(0).toUpperCase()}
-                                    </div>
-                                    <div className="min-w-0 flex-1">
-                                        <div className="break-words text-sm font-medium text-foreground">{u.display_name || `${u.first_name} ${u.last_name}`}</div>
-                                        <div className="break-all text-xs text-muted-foreground">{u.email || u.auth_email}</div>
-                                    </div>
-                                    {u.role === 'sv_admin' && (
-                                        <Badge variant="outline" className="shrink-0 font-medium">Admin</Badge>
-                                    )}
+                    <div className="grid items-start gap-4 lg:grid-cols-2">
+                        {/* Recent reports */}
+                        <Card className="overflow-hidden">
+                            <div className="flex items-center justify-between gap-2 border-b border-border p-3.5">
+                                <div className="flex min-w-0 items-center gap-2 text-sm font-semibold">
+                                    <AlertTriangle size={16} className="shrink-0 text-muted-foreground" aria-hidden />
+                                    <span className="truncate">Letzte Meldungen</span>
                                 </div>
-                            ))
-                        )}
+                                <Button variant="ghost" size="sm" type="button" onClick={() => navTo('reports')} className="h-11 shrink-0 gap-1 px-2.5 text-xs">
+                                    Alle <ArrowUpRight size={16} aria-hidden />
+                                </Button>
+                            </div>
+                            <div className="divide-y divide-border">
+                                {loading ? (
+                                    <div className="space-y-3 p-4">
+                                        <Skeleton className="h-4 w-3/4" />
+                                        <Skeleton className="h-3 w-1/2" />
+                                        <Skeleton className="h-4 w-2/3" />
+                                        <Skeleton className="h-3 w-1/2" />
+                                    </div>
+                                ) : recentReports.length === 0 ? (
+                                    <p className="px-4 py-8 text-center text-sm text-muted-foreground">Keine Meldungen vorhanden.</p>
+                                ) : (
+                                    recentReports.map((r, index) => (
+                                        <div key={`${r.id}-${index}`} className="flex items-start justify-between gap-2 p-3.5">
+                                            <div className="min-w-0">
+                                                <div className="break-words text-sm font-medium text-foreground">{r.reason || r.category || 'Kein Grund angegeben'}</div>
+                                                <div className="mt-0.5 break-words text-xs text-muted-foreground">
+                                                    {(r as any).reporter_name || 'Anonym'} → {(r as any).reported_user_name || (r as any).reported_ad_title || 'Unbekannt'}
+                                                </div>
+                                            </div>
+                                            <Badge variant="outline" className={cn('shrink-0 font-medium', (REPORT_STATUS_STYLES[r.status] || REPORT_STATUS_STYLES.dismissed).cls)}>
+                                                {REPORT_STATUS_STYLES[r.status]?.label || r.status}
+                                            </Badge>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </Card>
+
+                        {/* Recent users */}
+                        <Card className="overflow-hidden">
+                            <div className="flex items-center justify-between gap-2 border-b border-border p-3.5">
+                                <div className="flex min-w-0 items-center gap-2 text-sm font-semibold">
+                                    <UserPlus size={16} className="shrink-0 text-muted-foreground" aria-hidden />
+                                    <span className="truncate">Neue Nutzer</span>
+                                </div>
+                                <Button variant="ghost" size="sm" type="button" onClick={() => navTo('users')} className="h-11 shrink-0 gap-1 px-2.5 text-xs">
+                                    Alle <ArrowUpRight size={16} aria-hidden />
+                                </Button>
+                            </div>
+                            <div className="divide-y divide-border">
+                                {loading ? (
+                                    <div className="space-y-3 p-4">
+                                        <Skeleton className="h-4 w-3/4" />
+                                        <Skeleton className="h-3 w-1/2" />
+                                        <Skeleton className="h-4 w-2/3" />
+                                        <Skeleton className="h-3 w-1/2" />
+                                    </div>
+                                ) : recentUsers.length === 0 ? (
+                                    <p className="px-4 py-8 text-center text-sm text-muted-foreground">Keine Nutzer gefunden.</p>
+                                ) : (
+                                    recentUsers.map((u, index) => (
+                                        <div key={`${u.id}-${index}`} className="flex items-center gap-2.5 p-3.5">
+                                            <div className="grid size-8 shrink-0 place-items-center rounded-lg bg-muted text-xs font-semibold text-foreground">
+                                                {(u.display_name || u.first_name || '?').charAt(0).toUpperCase()}
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <div className="break-words text-sm font-medium text-foreground">{u.display_name || `${u.first_name} ${u.last_name}`}</div>
+                                                <div className="break-all text-xs text-muted-foreground">{u.email || u.auth_email}</div>
+                                            </div>
+                                            {u.role === 'sv_admin' && (
+                                                <Badge variant="outline" className="shrink-0 font-medium">Admin</Badge>
+                                            )}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </Card>
                     </div>
-                </Card>
-            </div>
+                </div>
             )}
         </div>
     );
