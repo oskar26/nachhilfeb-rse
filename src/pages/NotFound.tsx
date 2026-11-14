@@ -1,4 +1,5 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { Button, buttonVariants } from '../components/ui/button';
 import { Logo } from '../components/ui/Logo';
@@ -7,7 +8,12 @@ import { useAuth } from '../context/AuthContext';
 
 export default function NotFound() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [location.pathname]);
 
   const primaryTarget = user ? '/' : '/welcome';
   const primaryLabel = user ? 'Zur Übersicht' : 'Zur Startseite';
@@ -40,7 +46,9 @@ export default function NotFound() {
             <p className="text-xs font-medium text-muted-foreground">Gesucht · Zuletzt gesehen</p>
             <p className="mt-2 text-lg font-semibold leading-snug">Diese Seite am Brett</p>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              Diese Seite gibt es nicht. Auf der Startseite findest du weitere Anzeigen.
+              {user
+                ? 'Diese Seite gibt es nicht. Auf der Startseite findest du weitere Anzeigen.'
+                : 'Diese Seite gibt es nicht. Auf der Startseite erfährst du, wie die Börse funktioniert.'}
             </p>
           </div>
 
@@ -54,7 +62,9 @@ export default function NotFound() {
           </div>
 
           <nav aria-label="Weiter stöbern" className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-border pt-6 text-sm text-muted-foreground">
-            <Link to="/" className="inline-flex min-h-11 items-center transition-colors hover:text-foreground">Übersicht</Link>
+            {user ? (
+              <Link to="/" className="inline-flex min-h-11 items-center transition-colors hover:text-foreground">Übersicht</Link>
+            ) : null}
             <Link to="/welcome" className="inline-flex min-h-11 items-center transition-colors hover:text-foreground">Startseite</Link>
             <Link to="/coaching" className="inline-flex min-h-11 items-center transition-colors hover:text-foreground">Coaching</Link>
             <Link to="/eltern-leitfaden" className="inline-flex min-h-11 items-center transition-colors hover:text-foreground">Eltern-Leitfaden</Link>

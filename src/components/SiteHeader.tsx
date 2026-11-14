@@ -37,10 +37,9 @@ function scrollToSection(id: string): void {
     const scrollNow = () => {
         const el = document.getElementById(id);
         if (!el) return false;
-        const header = document.querySelector<HTMLElement>('[data-site-header]');
-        const offset = (header?.getBoundingClientRect().height ?? 64) + 16;
-        const top = el.getBoundingClientRect().top + window.scrollY - offset;
-        window.scrollTo({ top: Math.max(0, top), behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+        // Die Abschnitte tragen scroll-mt-28; scrollIntoView übernimmt damit
+        // denselben Abstand wie die CSS-Sprungmarken unter dem Sticky-Header.
+        el.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
         return true;
     };
     if (scrollNow()) return;
@@ -74,15 +73,17 @@ export default function SiteHeader() {
 
     useEffect(() => {
         if (!onWelcomePage) return;
-        const ids = ['wege', 'brett', 'eltern'];
+        const ids = ['wege', 'brett', 'sicher', 'coaching', 'eltern'];
         const sections = ids
             .map((id) => document.getElementById(id))
             .filter((el): el is HTMLElement => Boolean(el));
         if (sections.length === 0 || typeof IntersectionObserver === 'undefined') return;
         const io = new IntersectionObserver((entries) => {
+            // Bei zwei gleichzeitig sichtbaren Abschnitten gewinnt der untere
+            // (zuletzt erreichte) Abschnitt, nicht der flächenmäßig größere.
             const visible = entries
                 .filter((entry) => entry.isIntersecting)
-                .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+                .sort((a, b) => b.boundingClientRect.top - a.boundingClientRect.top)[0];
             if (visible) setActiveSection(visible.target.id);
         }, { rootMargin: '-32% 0px -58% 0px', threshold: [0, 0.1, 0.5] });
         sections.forEach((section) => io.observe(section));
@@ -111,21 +112,39 @@ export default function SiteHeader() {
         return () => mq.removeEventListener('change', onChange);
     }, [menuOpen]);
 
+    const isPlainClick = (e: MouseEvent<HTMLAnchorElement>) =>
+        e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
+
     const goSection = (id: string) => (e: MouseEvent<HTMLAnchorElement>) => {
+        // Modifier- und Mittelklicks nicht abfangen: Der Browser öffnet dann
+        // wie gewohnt einen neuen Tab.
+        if (!isPlainClick(e)) return;
         e.preventDefault();
         closeMenu();
         setActiveSection(id);
         if (onWelcomePage) {
             scrollToSection(id);
         } else {
-            navigate('/welcome');
-            window.setTimeout(() => scrollToSection(id), 150);
+            navigate('/welcome', { state: { section: id } });
         }
+    };
+
+    const goStart = (e: MouseEvent<HTMLAnchorElement>) => {
+        if (!isPlainClick(e)) return;
+        closeMenu();
+        if (!onWelcomePage) return;
+        e.preventDefault();
+        setActiveSection(null);
+        window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
     };
 
     const isActive = (item: NavItem): boolean => {
         if (item.section) return onWelcomePage && activeSection === item.section;
         if (item.to === '/welcome') return onWelcomePage && activeSection === null;
+        // Die Welcome-Abschnitte „coaching“/„eltern“ markieren die passenden
+        // Navigationspunkte, auch wenn diese auf die Unterseite verlinken.
+        if (onWelcomePage && activeSection === 'coaching' && item.to === '/coaching') return true;
+        if (onWelcomePage && activeSection === 'eltern' && item.to === '/eltern-leitfaden') return true;
         return location.pathname === item.to;
     };
 
@@ -156,7 +175,7 @@ export default function SiteHeader() {
                 >
                     <div className="mx-auto w-full max-w-site px-3 sm:px-6">
                     <div className="flex h-16 items-center gap-3 rounded-full border border-border/80 bg-card/95 px-4 shadow-soft backdrop-blur-xl supports-[backdrop-filter]:bg-card/90 sm:px-5 xl:gap-6">
-                        <Link to="/welcome" className="flex min-h-11 min-w-0 items-center gap-2.5 rounded-full px-1" aria-label="Nachhilfebörse Startseite">
+                        <Link to="/welcome" onClick={goStart} className="flex min-h-11 min-w-0 items-center gap-2.5 rounded-full px-1" aria-label="Nachhilfebörse Startseite">
                             <Logo size={27} className="shrink-0 text-primary" />
                             <span className="truncate text-base font-bold tracking-tight text-foreground sm:text-lg">
                                 Nachhilfebörse <span className="text-foreground">FWG</span>
@@ -179,6 +198,7 @@ export default function SiteHeader() {
                                     <Link
                                         key={item.label}
                                         to={item.to}
+                                        onClick={item.to === '/welcome' ? goStart : undefined}
                                         aria-current={active ? 'page' : undefined}
                                         className={navLinkClass(active)}
                                     >
@@ -241,7 +261,7 @@ export default function SiteHeader() {
                                     <li key={item.label}>
                                         <Link
                                             to={item.to}
-                                            onClick={item.section ? goSection(item.section) : closeMenu}
+                                            onClick={item.section ? goSection(item.section) : item.to === '/welcome' ? goStart : closeMenu}
                                             aria-current={active ? (item.section ? 'location' : 'page') : undefined}
                                             className={`flex min-h-12 items-center gap-4 rounded-full px-4 py-3 text-base font-semibold transition-colors ${active ? 'bg-primary-soft text-primary-soft-foreground' : 'text-foreground hover:bg-muted'}`}
                                         >

@@ -1,6 +1,7 @@
+import { useEffect } from 'react';
 import type * as React from 'react';
 import type { JSX } from 'react/jsx-runtime';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Logo } from './ui/Logo';
 import SiteHeader from './SiteHeader';
 import { Button } from '@/components/ui/button';
@@ -30,7 +31,19 @@ export default function StaticLayout({
     embedded?: boolean;
     idPrefix?: string;
 }): JSX.Element {
+    const location = useLocation();
     const contentId = `${idPrefix}inhalt`;
+
+    // Öffentliche Unterseiten starten nach einem Routenwechsel oben. Ausnahmen:
+    // eingebettete Vorschauen und gezielte Sprünge zu Abschnitten (z. B.
+    // aus der App), die die Zielseite selbst scrollt.
+    useEffect(() => {
+        if (embedded) return;
+        const section = (location.state as { section?: string } | null)?.section;
+        if (section) return;
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }, [embedded, location.pathname, location.state]);
+
     const pageHeader = showHeader ? (
         <div className="border-b border-border bg-muted/40 text-foreground">
             <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14">
@@ -46,7 +59,7 @@ export default function StaticLayout({
         </div>
     ) : null;
     const pageContent = (
-        <div className={showHeader ? 'relative z-10' : 'relative z-10 pt-8 sm:pt-10'}>
+        <div className={`relative z-10${embedded ? '' : ' pt-8 sm:pt-10'}`}>
             {children}
         </div>
     );
