@@ -577,7 +577,7 @@ export default function Settings() {
                         <div className="flex items-center justify-between gap-4 p-4 sm:px-6">
                             <div>
                                 <h4 className="font-semibold text-sm text-foreground">E-Mail-Adresse anzeigen</h4>
-                                <p className="mt-0.5 text-xs text-muted-foreground">Zeigt deine E-Mail-Adresse öffentlich im Profil/Anzeigen an</p>
+                                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Zeigt deine E-Mail-Adresse öffentlich im Profil/Anzeigen an</p>
                             </div>
                             <Switch
                                 checked={settings.email_visible}
@@ -589,7 +589,7 @@ export default function Settings() {
                         <div className="flex items-center justify-between gap-4 p-4 sm:px-6">
                             <div>
                                 <h4 className="font-semibold text-sm text-foreground">Telefonnummer anzeigen</h4>
-                                <p className="mt-0.5 text-xs text-muted-foreground">Zeigt deine Telefonnummer öffentlich für Anfragen an</p>
+                                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Zeigt deine Telefonnummer öffentlich für Anfragen an</p>
                             </div>
                             <Switch
                                 checked={settings.phone_visible}
@@ -618,7 +618,7 @@ export default function Settings() {
                                 <h4 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
                                     <Mail size={14} className="text-muted-foreground" aria-hidden /> E-Mail-Adresse ändern
                                 </h4>
-                                <p className="mt-0.5 text-xs text-muted-foreground">
+                                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
                                     Aktuell: <span className="font-medium text-foreground">{user?.email || 'Unbekannt'}</span>
                                 </p>
                             </div>
@@ -698,7 +698,7 @@ export default function Settings() {
                                 <h4 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
                                     <KeyRound size={14} className="text-muted-foreground" aria-hidden /> Passwort ändern
                                 </h4>
-                                <p className="mt-0.5 text-xs text-muted-foreground">Verwende mindestens 8 Zeichen.</p>
+                                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Verwende mindestens 8 Zeichen.</p>
                             </div>
 
                             <div className="grid gap-3 sm:grid-cols-2">
@@ -845,6 +845,7 @@ export default function Settings() {
                                             <SubjectChip
                                                 key={s}
                                                 subject={s}
+                                                size="compact"
                                                 selected={settings.teaches_subjects.includes(s)}
                                                 onClick={() => toggleTeachesSubject(s)}
                                             />
@@ -870,26 +871,26 @@ export default function Settings() {
                     </CardHeader>
                     <CardContent className="p-6 pt-3 space-y-4">
                         <div className="flex flex-col items-start justify-between gap-3 rounded-xl border border-border bg-muted/50 p-4 sm:flex-row sm:items-center">
-                            <div>
+                            <div className="min-w-0">
                                 <h4 className="font-semibold text-sm text-foreground">Datenübertragbarkeit (Art. 20 DSGVO)</h4>
-                                <p className="mt-0.5 text-xs text-muted-foreground">Lade eine Kopie all deiner gespeicherten Daten als JSON herunter.</p>
+                                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Lade eine Kopie all deiner gespeicherten Daten als JSON herunter.</p>
                             </div>
                             <Button
                                 onClick={handleExportData}
                                 variant="outline"
                                 size="sm"
-                                className="h-11 shrink-0 gap-1.5 rounded-lg px-4 text-xs font-semibold"
+                                className="h-11 w-full shrink-0 gap-1.5 rounded-lg px-4 text-xs font-semibold sm:w-auto"
                             >
                                 <Download size={14} /> Daten exportieren
                             </Button>
                         </div>
 
                         <div className="flex flex-col items-start justify-between gap-3 rounded-xl border border-destructive/25 bg-destructive/5 p-4 sm:flex-row sm:items-center">
-                            <div>
+                            <div className="min-w-0">
                                 <h4 className="flex items-center gap-1.5 text-sm font-semibold text-destructive">
                                     <AlertTriangle size={14} /> Recht auf Löschung (Art. 17 DSGVO)
                                 </h4>
-                                <p className="mt-0.5 text-xs text-muted-foreground">Stellt eine Löschanfrage an das SV-Team (Bestätigung innerhalb von 14 Tagen).</p>
+                                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Stellt eine Löschanfrage an das SV-Team (Bestätigung innerhalb von 14 Tagen).</p>
                             </div>
                             <Button
                                 onClick={() => {
@@ -898,7 +899,7 @@ export default function Settings() {
                                 }}
                                 variant="ghost"
                                 size="sm"
-                                className="h-11 shrink-0 gap-1 rounded-lg px-4 text-xs font-semibold text-destructive hover:bg-destructive/10"
+                                className="h-11 w-full shrink-0 gap-1 rounded-lg px-4 text-xs font-semibold text-destructive hover:bg-destructive/10 sm:w-auto"
                             >
                                 <Trash2 size={14} /> Konto löschen
                             </Button>
@@ -918,8 +919,8 @@ export default function Settings() {
                             Melde Fehler, schlage Verbesserungen vor oder schreibe direkt an das SV-Team
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="p-6 pt-3 flex items-center justify-between gap-4">
-                        <div className="text-xs text-muted-foreground">
+                    <CardContent className="flex flex-col gap-4 p-6 pt-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="min-w-0 text-xs leading-relaxed text-muted-foreground">
                             Wir melden uns, sobald wir deine Anfrage bearbeitet haben.
                         </div>
                         <Button
@@ -927,7 +928,7 @@ export default function Settings() {
                                 triggerHaptic('light');
                                 setIsSupportOpen(true);
                             }}
-                            className="h-11 shrink-0 rounded-lg px-4 text-xs font-semibold"
+                            className="h-11 w-full shrink-0 rounded-lg px-4 text-xs font-semibold sm:w-auto"
                         >
                             Support-Center öffnen
                         </Button>
@@ -939,13 +940,13 @@ export default function Settings() {
             <motion.div variants={itemVariants}>
                 <Card className="border-border bg-card">
                     <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex items-start gap-3">
+                        <div className="flex min-w-0 items-start gap-3">
                             <span className="grid size-10 shrink-0 place-items-center rounded-full bg-muted text-muted-foreground">
                                 <BookOpen size={18} aria-hidden />
                             </span>
-                            <div>
+                            <div className="min-w-0">
                                 <h3 className="text-sm font-semibold text-foreground">Dokumentation</h3>
-                                <p className="mt-0.5 text-xs text-muted-foreground">Anleitungen zu Social, Vorschlägen und Merkliste.</p>
+                                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Anleitungen zu Social, Vorschlägen und Merkliste.</p>
                             </div>
                         </div>
                         <a
@@ -970,8 +971,8 @@ export default function Settings() {
                             Teile die Nachhilfebörse mit Mitschülern & Freunden via WhatsApp, QR-Code oder Direktlink
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="p-6 pt-3 flex items-center justify-between gap-4">
-                        <div className="text-xs text-muted-foreground">
+                    <CardContent className="flex flex-col gap-4 p-6 pt-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="min-w-0 text-xs leading-relaxed text-muted-foreground">
                             Wenn dir die Börse hilft, kannst du sie weitergeben.
                         </div>
                         <Button
@@ -980,7 +981,7 @@ export default function Settings() {
                                 triggerHaptic('light');
                                 setIsShareOpen(true);
                             }}
-                            className="rounded-lg font-semibold text-xs shrink-0 gap-1.5"
+                            className="h-11 w-full shrink-0 gap-1.5 rounded-lg text-xs font-semibold sm:w-auto"
                         >
                             <Share2 size={14} /> Teilen & QR-Code
                         </Button>
@@ -1057,7 +1058,7 @@ export default function Settings() {
                                     }}
                                 />
                             </div>
-                            <p className="text-xs text-muted-foreground">Wenn du einen Code erhalten hast, kannst du ihn hier einlösen und mit der Eingabetaste bestätigen.</p>
+                            <p className="text-xs leading-relaxed text-muted-foreground">Wenn du einen Code erhalten hast, kannst du ihn hier einlösen und mit der Eingabetaste bestätigen.</p>
                         </motion.div>
                     )}
                 </Card>

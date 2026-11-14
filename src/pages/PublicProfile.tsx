@@ -11,9 +11,10 @@ import {
 } from 'lucide-react';
 import { SubjectChip, subjectLabelMap } from '../components/SubjectChip';
 import type { Subject } from '../components/SubjectChip';
+import { PriceTag } from '../components/ui/price-tag';
 import { sanitizeHtml } from '../lib/sanitize';
 import { triggerHaptic } from '../lib/haptics';
-import { cn, formatAdPrice } from '../lib/utils';
+import { cn } from '../lib/utils';
 import { VerifiedPill } from '../components/ui/VerifiedPill';
 import ShareDialog from '../components/ShareDialog';
 import { useAuth } from '../context/AuthContext';
@@ -149,35 +150,35 @@ export default function PublicProfile() {
                         aria-hidden
                     />
                     <CardContent className="pt-0 px-6 sm:px-8 pb-8 relative">
-                        <div className="flex flex-col md:flex-row items-center md:items-end gap-6">
+                        <div className="flex flex-col items-center gap-6 xl:flex-row xl:items-end">
                             <div className="-mt-16 size-28 shrink-0 overflow-hidden rounded-2xl border-4 border-card bg-card p-1 sm:size-32">
                                 {profile.avatar_url ? (
-                                    <img src={profile.avatar_url} className="w-full h-full object-cover rounded-2xl" />
+                                    <img src={profile.avatar_url} alt="" className="w-full h-full object-cover rounded-2xl" />
                                 ) : (
                                     <div className="flex h-full w-full items-center justify-center rounded-2xl bg-muted text-4xl font-semibold text-foreground">
                                         {profile.display_name?.charAt(0) || '?'}
                                     </div>
                                 )}
                             </div>
-                            <div className="text-center md:text-left pt-3 pb-1 flex-1">
-                                <h1 className="flex flex-wrap items-center justify-center gap-2 text-2xl font-semibold tracking-tight text-foreground md:justify-start sm:text-3xl">
-                                    {profile.display_name || 'FWG Nutzer'}
+                            <div className="w-full min-w-0 flex-1 text-center xl:w-auto xl:text-left pt-3 pb-1">
+                                <h1 className="flex max-w-full flex-wrap items-center justify-center gap-2 break-words [overflow-wrap:anywhere] text-2xl font-semibold tracking-tight text-foreground xl:justify-start sm:text-3xl">
+                                    <span className="min-w-0 break-words [overflow-wrap:anywhere]">{profile.display_name || 'FWG Nutzer'}</span>
                                     {profile.is_verified && (
                                         <VerifiedPill />
                                     )}
                                 </h1>
-                                <p className="text-muted-foreground font-semibold flex items-center justify-center md:justify-start gap-2 mt-1">
+                                <p className="text-muted-foreground font-semibold flex items-center justify-center xl:justify-start gap-2 mt-1">
                                     <GraduationCap size={18} /> Klasse {profile.grade_level || '?'}
                                 </p>
                                 {reviewCount > 0 && (
-                                    <p className="mt-1.5 flex items-center justify-center md:justify-start gap-1.5 text-sm font-semibold text-foreground/80">
+                                    <p className="mt-1.5 flex items-center justify-center xl:justify-start gap-1.5 text-sm font-semibold text-foreground/80">
                                         <Star size={15} className="fill-primary text-foreground" aria-hidden />
                                         <span className="tabular-nums">{averageRating.toFixed(1)}</span>
                                         <span className="text-muted-foreground font-normal">· {reviewCount} {reviewCount === 1 ? 'Bewertung' : 'Bewertungen'}</span>
                                     </p>
                                 )}
                             </div>
-                            <div className="flex flex-wrap gap-2 justify-center md:justify-end">
+                            <div className="flex flex-wrap gap-2 justify-center xl:justify-end">
                                 {profile.is_coach && (
                                     <span className="flex items-center gap-1.5 rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-semibold text-foreground">
                                         <Award size={14} aria-hidden /> Schüler-Coach (5./6. Klasse)
@@ -257,8 +258,9 @@ export default function PublicProfile() {
                     {profile.availability && (
                         <motion.div variants={itemVariants}>
                             <Card className="border-border bg-card p-5">
-                                <h3 className="mb-3 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                                    <Calendar size={14} className="text-foreground" aria-hidden /> Wann hat {profile.display_name || 'dieser Nutzer'} Zeit?
+                                <h3 className="mb-3 flex min-w-0 items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                                    <Calendar size={14} className="shrink-0 text-foreground" aria-hidden />
+                                    <span className="min-w-0 break-words [overflow-wrap:anywhere]">Wann hat {profile.display_name || 'dieser Nutzer'} Zeit?</span>
                                 </h3>
                                 <AvailabilityCalendar
                                     availability={profile.availability}
@@ -302,10 +304,12 @@ export default function PublicProfile() {
                                         ))}
                                     </div>
                                 </div>
-                                <div className="text-right shrink-0">
-                                    <span className="rounded-md bg-muted px-4 py-2 text-base font-semibold tabular-nums text-foreground">
-                                        {formatAdPrice(ad.price_details)}
-                                    </span>
+                                <div className="shrink-0 text-right">
+                                    <PriceTag
+                                        price={ad.price_details?.value}
+                                        mode={ad.price_details?.mode}
+                                        duration={ad.price_details?.unit}
+                                    />
                                 </div>
                             </Button>
                         ))}

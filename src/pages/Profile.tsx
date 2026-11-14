@@ -5,7 +5,7 @@ import { motion } from 'motion/react';
 import { Button, buttonVariants } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { User, Shield, Loader2, Mail, Phone, Settings as SettingsIcon, Pen, Sparkles, CalendarDays, Award, X, Lock, Eye, Plus, Trash2, Check } from 'lucide-react';
+import { User, Shield, Loader2, Mail, Phone, Settings as SettingsIcon, Pen, Sparkles, CalendarDays, Award, X, Eye, Plus, Trash2, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { toast } from 'sonner';
@@ -43,7 +43,6 @@ export default function Profile() {
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
     const [availability, setAvailability] = useState<Availability>(emptyAvailability());
-    const [privacyCalendar, setPrivacyCalendar] = useState(true);
     const [isSubjectPickerOpen, setIsSubjectPickerOpen] = useState(false);
     const [isAvatarMakerOpen, setIsAvatarMakerOpen] = useState(false);
     const subjectsSaveQueueRef = useRef<Promise<void>>(Promise.resolve());
@@ -136,7 +135,6 @@ export default function Profile() {
                 offered_subjects: Array.from(subjectsSet)
             });
             setAvailability(data.availability || emptyAvailability());
-            setPrivacyCalendar(data.privacy_calendar ?? true);
         }
         setLoading(false);
     }
@@ -187,7 +185,9 @@ export default function Profile() {
             avatar_url: avatarUrl || undefined,
             avatar_type: getAvatarType(avatarUrl),
             availability: availability,
-            privacy_calendar: privacyCalendar,
+            // privacy_calendar steht nicht auf der API-Whitelist; die Anzeige
+            // wird deshalb nur beschrieben, nicht als gespeicherte Einstellung
+            // vorgetäuscht (siehe Availability-Karte).
             onboarding_complete: true
         }, user.id);
 
@@ -342,7 +342,7 @@ export default function Profile() {
                                     triggerHaptic('light');
                                     setIsAvatarMakerOpen(true);
                                 }}
-                                className="absolute bottom-0 right-0 grid size-10 place-items-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted"
+                                className="absolute bottom-0 right-0 grid size-11 place-items-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted"
                                 title="Avatar erstellen / ändern"
                             >
                                 <Pen size={14} />
@@ -364,7 +364,7 @@ export default function Profile() {
                         </Button>
                     </div>
 
-                    <h1 className="text-2xl font-semibold leading-tight tracking-tight text-foreground">
+                    <h1 className="max-w-full break-words text-2xl font-semibold leading-tight tracking-tight text-foreground">
                         {profile.first_name ? `${profile.first_name} ${profile.last_name}` : 'Profil einrichten'}
                     </h1>
                     <p className="text-sm font-semibold text-muted-foreground mt-0.5">
@@ -637,12 +637,12 @@ export default function Profile() {
                             <div className="flex flex-wrap items-center gap-2">
                                 {editableSubjects.map(s => (
                                     <span key={s} className="relative inline-flex">
-                                        <SubjectChip subject={s} className="pr-11" />
+                                        <SubjectChip subject={s} className="pr-12" />
                                         <Button variant="unstyled" size="unstyled"
                                             type="button"
                                             onClick={() => toggleTeachesSubject(s)}
                                             aria-label={`${subjectLabelMap[s]} entfernen`}
-                                            className="absolute right-0 top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-lg text-muted-foreground transition-colors hover:text-destructive"
+                                            className="absolute right-0 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-lg text-muted-foreground transition-colors hover:text-destructive"
                                         >
                                             <X size={12} strokeWidth={3} />
                                         </Button>
@@ -660,7 +660,7 @@ export default function Profile() {
                                 </Button>
                             </div>
                             {editableSubjects.length === 0 && (
-                                <p className="text-xs text-muted-foreground italic mt-2">Noch keine Fächer gewählt.</p>
+                                <p className="text-xs leading-relaxed text-muted-foreground italic mt-2">Noch keine Fächer gewählt.</p>
                             )}
 
                             {/* Read-only: nur über aktive Angebots-Anzeigen */}
@@ -691,25 +691,12 @@ export default function Profile() {
                             <CardTitle className="flex items-center gap-2 text-lg font-semibold text-foreground">
                                 <CalendarDays size={20} className="text-primary shrink-0" /> Wann hast du Zeit? (Verfügbarkeit)
                             </CardTitle>
-                            {isEditing && (
-                                <Button variant="unstyled" size="unstyled"
-                                    type="button"
-                                    onClick={() => setPrivacyCalendar(!privacyCalendar)}
-                                    className={cn(
-                                        "min-h-11 rounded-lg border px-3 text-xs font-medium transition-colors",
-                                        privacyCalendar
-                                            ? "border-border bg-muted text-muted-foreground"
-                                            : "border-border bg-muted text-foreground"
-                                    )}
-                                >
-                                    {privacyCalendar ? (<span className="inline-flex items-center gap-1"><Lock size={12} /> Nur für Vorschläge sichtbar</span>) : (<span className="inline-flex items-center gap-1"><Eye size={12} /> Öffentlich sichtbar</span>)}
-                                </Button>
-                            )}
+                            <span className="inline-flex items-center gap-1.5 py-2 text-xs font-medium text-muted-foreground">
+                                <Eye size={12} aria-hidden /> Anzeige: Profil & Vorschläge
+                            </span>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1 font-medium leading-relaxed">
-                            {privacyCalendar
-                                ? 'Dein Zeitplan wird für passende Vorschläge verwendet (zum Beispiel gemeinsame freie Zeiten mit anderen Schülerinnen und Schülern).'
-                                : 'Dein Kalender ist zusätzlich öffentlich auf deinem Profil sichtbar.'}
+                            Dein Zeitplan wird für passende Vorschläge genutzt und ist auf deinem Profil sichtbar. In Anzeigen sehen ihn andere erst nach einer bestätigten Anfrage.
                             {isEditing ? ' Klicke auf die Zeiten unten, um deine freien Stunden einzutragen.' : ''}
                         </p>
                     </CardHeader>
