@@ -33,9 +33,6 @@
   RewriteRule . /index.html [L]
 </IfModule>
 
-# Die Docs liefern eine eigene 404-Seite für unbekannte Dokumentationspfade.
-ErrorDocument 404 /docs/404.html
-
 # Caching-Optimierung für Vite-Assets
 <IfModule mod_expires.c>
   ExpiresActive On

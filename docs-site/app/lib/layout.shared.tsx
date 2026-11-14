@@ -8,7 +8,7 @@ export function baseOptions(): BaseLayoutProps {
         <>
           <span className="hidden items-center gap-2 md:inline-flex">
             Nachhilfebörse
-            <span className="rounded-full border border-fd-border px-2 py-0.5 text-[10px] leading-none font-semibold tracking-wide text-fd-muted-foreground">
+            <span className="rounded-full border border-fd-border px-1.5 py-0.5 text-[0.8125rem] leading-none font-medium tracking-wide text-fd-muted-foreground">
               Doku
             </span>
           </span>
