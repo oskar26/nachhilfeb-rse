@@ -40,8 +40,12 @@ if ($method === 'POST') {
     $admin = require_admin();
     $data = get_json_input();
 
-    $title = mb_substr(trim($data['title'] ?? ''), 0, 200);
-    $content = mb_substr(trim($data['content'] ?? ''), 0, 15000);
+    $rawTitle = $data['title'] ?? '';
+    $title = is_string($rawTitle) ? mb_substr(trim($rawTitle), 0, 200) : '';
+    // Aktueller Vertrag ist `content`. `body` bleibt als Alias für ältere
+    // Clients lesbar, damit kein Client mit dem alten Payload hart scheitert.
+    $rawContent = $data['content'] ?? $data['body'] ?? '';
+    $content = is_string($rawContent) ? mb_substr(trim($rawContent), 0, 15000) : '';
     $isPinned = !empty($data['is_pinned']);
 
     if (empty($title) || empty($content)) {
@@ -49,6 +53,8 @@ if ($method === 'POST') {
     }
 
     $newsId = generate_uuid();
+    // Kein Icon-Feld: Die Tabelle `news` hat keine icon-Spalte. Eine Auswahl
+    // im Admin-UI ist reine Vorschau, bis ein Schema-Update beschlossen wird.
     $stmt = $pdo->prepare('
         INSERT INTO news (id, title, content, author_id, is_pinned)
         VALUES (?, ?, ?, ?, ?)
@@ -56,6 +62,11 @@ if ($method === 'POST') {
     $stmt->execute([$newsId, $title, $content, $admin['id'], $isPinned ? 1 : 0]);
 
     fwg_audit($pdo, $admin['id'], 'news_create', 'news', $newsId, ['title' => $title]);
+
+    // HTML-Inhalte werden in E-Mail und In-App-Text als Klartext ausgegeben.
+    $plainContent = preg_match('/<[a-z][\s\S]*>/i', $content)
+        ? trim(html_entity_decode(strip_tags($content), ENT_QUOTES | ENT_HTML5, 'UTF-8'))
+        : $content;
 
     // An alle aktiven Nutzer per E-Mail & In-App Benachrichtigung versenden
     try {
@@ -69,14 +80,14 @@ if ($method === 'POST') {
         foreach ($allUsers as $u) {
             // E-Mail
             if (!empty($u['email'])) {
-                send_email_announcement($u['email'], $u['display_name'], $title, $content);
+                send_email_announcement($u['email'], $u['display_name'], $title, $plainContent);
             }
             // In-App Benachrichtigung
             $notifId = generate_uuid();
             $pdo->prepare('
                 INSERT INTO notifications (id, user_id, type, title, message, data)
                 VALUES (?, ?, "alert", ?, ?, ?)
-            ')->execute([$notifId, $u['id'], "📢 $title", mb_substr($content, 0, 200, 'UTF-8'), json_encode(['news_id' => $newsId])]);
+            ')->execute([$notifId, $u['id'], "📢 $title", mb_substr($plainContent, 0, 200, 'UTF-8'), json_encode(['news_id' => $newsId])]);
         }
     } catch (Exception $e) {
         error_log("Fehler beim Versenden der News-Mails: " . $e->getMessage());

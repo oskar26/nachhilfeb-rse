@@ -8,20 +8,22 @@ import { useState, useEffect } from 'react';
 import { api } from '../../lib/api';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
-import { Megaphone, Trash2, Plus, Calendar, AlertCircle } from 'lucide-react';
+import { Megaphone, Trash2, Plus, Calendar, AlertCircle, Eye, ShieldAlert } from 'lucide-react';
 import NewsIcon, { NEWS_ICONS } from '../../components/NewsIcon';
+import { normalizeNewsList, type NewsItem } from '../../lib/news';
+import { sanitizeHtml } from '../../lib/sanitize';
 import { toast } from 'sonner';
 
-interface Announcement {
-    id: string;
-    title: string;
-    body: string;
-    icon: string;
-    created_at: string;
+function getErrorMessage(error: unknown): string {
+    if (error && typeof error === 'object' && 'message' in error) {
+        const message = (error as { message?: unknown }).message;
+        if (typeof message === 'string' && message.trim()) return message;
+    }
+    return 'Unbekannter Fehler';
 }
 
 export default function AdminNews() {
-    const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+    const [announcements, setAnnouncements] = useState<NewsItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState<string | null>(null);
     const [creating, setCreating] = useState(false);
@@ -30,7 +32,7 @@ export default function AdminNews() {
 
     // Form fields
     const [title, setTitle] = useState('');
-    const [body, setBody] = useState('');
+    const [content, setContent] = useState('');
     const [icon, setIcon] = useState('megaphone');
 
     useEffect(() => {
@@ -51,8 +53,9 @@ export default function AdminNews() {
                 }
                 throw error;
             }
-            setAnnouncements(data || []);
-        } catch (error: any) {
+            // Eine Normalisierung für `content` (aktuell) und `body` (Altbestand).
+            setAnnouncements(normalizeNewsList(data));
+        } catch (error: unknown) {
             console.error('Error fetching announcements:', error);
             setLoadError('Neuigkeiten konnten nicht geladen werden.');
             toast.error('Neuigkeiten konnten nicht geladen werden.');
@@ -63,30 +66,31 @@ export default function AdminNews() {
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!title.trim() || !body.trim()) {
-            toast.error('Bitte Titel und Beschreibung ausfüllen.');
+        if (!title.trim() || !content.trim()) {
+            toast.error('Bitte Titel und Inhalt ausfüllen.');
             return;
         }
 
         setCreating(true);
         try {
-            // Payload bewusst unverändert (body/icon); news.php erwartet "content" – das Fehlerbild bleibt identisch zu vorher.
+            // `news.php` schreibt in die Spalte `news.content`. Ein separates
+            // Icon-Feld existiert im Schema nicht; die Icon-Auswahl ist daher
+            // nur eine Vorschau für spätere Schema-Erweiterungen.
             const { error } = await api.news.create({
                 title: title.trim(),
-                body: body.trim(),
-                icon: icon
-            } as any);
+                content: content.trim(),
+            });
 
             if (error) throw error;
 
             toast.success('Neuigkeit erfolgreich erstellt!');
             setTitle('');
-            setBody('');
+            setContent('');
             setIcon('megaphone');
             fetchAnnouncements();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error creating announcement:', error);
-            toast.error('Erstellen fehlgeschlagen: ' + error.message);
+            toast.error('Erstellen fehlgeschlagen: ' + getErrorMessage(error));
         } finally {
             setCreating(false);
         }
@@ -100,9 +104,9 @@ export default function AdminNews() {
 
             toast.success('Neuigkeit gelöscht.');
             fetchAnnouncements();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error deleting announcement:', error);
-            toast.error('Löschen fehlgeschlagen: ' + error.message);
+            toast.error('Löschen fehlgeschlagen: ' + getErrorMessage(error));
         }
     };
 
@@ -125,6 +129,8 @@ export default function AdminNews() {
         );
     }
 
+    const previewHtml = content.trim() ? sanitizeHtml(content) : '';
+
     return (
         <div className="space-y-6 sm:space-y-8">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -133,7 +139,7 @@ export default function AdminNews() {
                     <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">News & Infos verwalten</h2>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                    Gesamt: <span className="inline-flex items-center rounded-md bg-muted px-3 py-1 font-semibold tabular-nums text-foreground">{announcements.length} Einträge</span>
+                    Gesamt: <span className="inline-flex items-center rounded-md bg-muted px-3 py-1 font-semibold tabular-nums text-foreground">{announcements.length} {announcements.length === 1 ? 'Eintrag' : 'Einträge'}</span>
                 </p>
             </div>
 
@@ -168,16 +174,20 @@ export default function AdminNews() {
                             </div>
 
                             <div className="space-y-1.5">
-                                <Label htmlFor="news-body" className="text-sm font-medium">Beschreibung</Label>
+                                <Label htmlFor="news-content" className="text-sm font-medium">Inhalt</Label>
                                 <Textarea
-                                    id="news-body"
+                                    id="news-content"
                                     placeholder="Worum geht es in dieser Ankündigung?"
-                                    value={body}
-                                    onChange={e => setBody(e.target.value)}
+                                    value={content}
+                                    onChange={e => setContent(e.target.value)}
                                     rows={4}
                                     className="resize-none"
+                                    aria-describedby="news-content-hint"
                                     required
                                 />
+                                <p id="news-content-hint" className="text-xs leading-relaxed text-muted-foreground">
+                                    Einfacher Text oder begrenztes HTML (fett, Listen, Links). Vorschau wird vor dem Anzeigen bereinigt.
+                                </p>
                             </div>
 
                             <div className="space-y-2">
@@ -201,7 +211,36 @@ export default function AdminNews() {
                                         </Button>
                                     ))}
                                 </div>
+                                <p className="flex items-start gap-1.5 text-xs leading-relaxed text-muted-foreground">
+                                    <ShieldAlert size={14} className="mt-0.5 shrink-0" aria-hidden />
+                                    Das Symbol wird noch nicht dauerhaft gespeichert (kein Datenbankfeld); nach dem Speichern zeigt die App das Standard-Symbol.
+                                </p>
                             </div>
+
+                            {previewHtml && (
+                                <div className="space-y-2 rounded-xl border border-border bg-muted/40 p-3">
+                                    <p className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                                        <Eye size={14} aria-hidden /> Sichere Vorschau
+                                    </p>
+                                    <div className="flex items-start gap-2.5">
+                                        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-card text-muted-foreground">
+                                            <NewsIcon value={icon} size={16} />
+                                        </span>
+                                        <div className="min-w-0">
+                                            <p className="break-words text-sm font-semibold leading-snug text-foreground">
+                                                {title.trim() || 'Titel der Neuigkeit'}
+                                            </p>
+                                            <div
+                                                className="prose mt-1 max-w-none whitespace-pre-line break-words text-xs leading-relaxed text-muted-foreground [&_h1]:text-sm [&_h2]:text-sm [&_h3]:text-sm"
+                                                dangerouslySetInnerHTML={{ __html: previewHtml }}
+                                            />
+                                        </div>
+                                    </div>
+                                    <p className="text-[11px] leading-relaxed text-muted-foreground">
+                                        Skripte, iframes und Video-Einbettungen werden entfernt. Ein eigenes Embed-Feld benötigt erst eine Schema- und Sicherheitsentscheidung.
+                                    </p>
+                                </div>
+                            )}
 
                             <Button
                                 type="submit"
@@ -250,7 +289,10 @@ export default function AdminNews() {
                                                     <Trash2 size={16} aria-hidden />
                                                 </Button>
                                             </div>
-                                            <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-relaxed text-muted-foreground">{item.body}</p>
+                                            <div
+                                                className="prose mt-1 max-w-none whitespace-pre-line break-words text-sm leading-relaxed text-muted-foreground [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm"
+                                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.content) }}
+                                            />
                                             <div className="mt-3 flex items-center gap-1 text-xs font-medium text-muted-foreground">
                                                 <Calendar size={16} aria-hidden />
                                                 <span>

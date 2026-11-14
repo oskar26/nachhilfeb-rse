@@ -1,27 +1,28 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
-import { X, Megaphone, Bell, CheckCircle2 } from 'lucide-react';
+import { Bell, CheckCircle2, EyeOff, Megaphone, Newspaper, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from './ui/dialog';
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from './ui/sheet';
 import NewsIcon from './NewsIcon';
+import { useAuth } from '../context/AuthContext';
+import {
+    hideNews,
+    markNewsRead,
+    normalizeNewsList,
+    showNewsPopup,
+    sortNews,
+    type NewsItem,
+} from '../lib/news';
+import { sanitizeHtml } from '../lib/sanitize';
+import { notifyNewsStateChanged } from './news/NewsPreferences';
 
-interface Announcement {
-    id: string;
-    title: string;
-    body: string;
-    icon: string;
-    created_at: string;
-}
-
-const DISMISSED_NEWS_KEY = 'dismissed_news_ids';
-
-function getDismissedNews(): string[] {
-    try {
-        return JSON.parse(localStorage.getItem(DISMISSED_NEWS_KEY) || '[]');
-    } catch {
-        return [];
-    }
+function plainText(value: string): string {
+    return value
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
 }
 
 function useIsMobile(): boolean {
@@ -38,66 +39,70 @@ function useIsMobile(): boolean {
 }
 
 export function NewsPopupModal() {
-    const [news, setNews] = useState<Announcement | null>(null);
+    const { user, loading: authLoading } = useAuth();
+    const navigate = useNavigate();
+    const [news, setNews] = useState<NewsItem | null>(null);
     const [open, setOpen] = useState(false);
     const isMobile = useIsMobile();
+    const viewer = user?.id ?? null;
 
     const fetchLatestUnseenNews = useCallback(async () => {
         try {
             const { data, error } = await api.news.list();
 
-            if (error || !data || data.length === 0) return;
+            if (error || !data) return;
 
-            const latest = data[0] as Announcement;
-            // Defensive Validierung: Kaputte/ungültige Datensätze (z. B. leere Antwort,
-            // Proxy-Fehlerseite) dürfen niemals ein leeres "Invalid Date"-Modal erzeugen.
-            const hasValidDate = !!latest.created_at && !Number.isNaN(new Date(latest.created_at).getTime());
-            if (
-                !latest.id ||
-                typeof latest.title !== 'string' || !latest.title.trim() ||
-                typeof latest.body !== 'string' || !latest.body.trim() ||
-                !hasValidDate
-            ) {
-                return;
-            }
-            const dismissedIds = getDismissedNews();
+            // Eine Normalisierung für beide API-Payloads: `body` (Altbestand)
+            // und `content` (aktuelles Schema). Ungültige Zeilen werden verworfen.
+            const candidates = sortNews(normalizeNewsList(data)).filter((item) =>
+                showNewsPopup(item, viewer),
+            );
+            const latest = candidates[0];
+            if (!latest) return;
 
-            // Only show if user has NOT dismissed this specific news item
-            if (!dismissedIds.includes(latest.id)) {
-                setNews(latest);
-                setOpen(true);
+            setNews(latest);
+            setOpen(true);
 
-                // Try browser push notification if permissions granted
-                if ('Notification' in window && Notification.permission === 'granted') {
-                    try {
-                        new Notification(latest.title, {
-                            body: latest.body,
-                            icon: '/favicon.ico'
-                        });
-                    } catch {
-                        /* noop */
-                    }
+            // Try browser push notification if permissions granted
+            if ('Notification' in window && Notification.permission === 'granted') {
+                try {
+                    new Notification(latest.title, {
+                        body: plainText(latest.body),
+                        icon: '/favicon.ico',
+                    });
+                } catch {
+                    /* noop */
                 }
             }
         } catch (e) {
             console.error('[NewsPopupModal] fetch error:', e);
         }
-    }, []);
+    }, [viewer]);
 
     useEffect(() => {
-        // Fetch-on-Mount: idiomatischer Initial-Datenladung, kein kaskadierendes Render-Problem
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        fetchLatestUnseenNews();
-    }, [fetchLatestUnseenNews]);
+        // Erst nach der Session-Wiederherstellung laden, damit nicht zuerst der
+        // Gast-Scope und danach der persönliche Scope ein Popup öffnet.
+        if (authLoading) return;
+        // Fetch-on-Mount: idiomatische Initial-Datenladung, kein kaskadierendes Render-Problem
+        void fetchLatestUnseenNews();
+    }, [authLoading, fetchLatestUnseenNews]);
 
-    const handleDismiss = () => {
-        if (!news) return;
-        const dismissed = getDismissedNews();
-        if (!dismissed.includes(news.id)) {
-            dismissed.push(news.id);
-            localStorage.setItem(DISMISSED_NEWS_KEY, JSON.stringify(dismissed));
+    const close = () => setOpen(false);
+
+    const handleUnderstood = () => {
+        if (news) {
+            markNewsRead(news.id, viewer);
+            notifyNewsStateChanged();
         }
-        setOpen(false);
+        close();
+    };
+
+    const handleHide = () => {
+        if (news) {
+            hideNews(news.id, viewer);
+            notifyNewsStateChanged();
+        }
+        close();
     };
 
     const requestNotificationPermission = async () => {
@@ -119,7 +124,7 @@ export function NewsPopupModal() {
                 size="unstyled"
                 hapticStyle={false}
                 type="button"
-                onClick={handleDismiss}
+                onClick={close}
                 className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-background/80 text-muted-foreground transition-colors hover:text-foreground"
                 aria-label="Schließen"
             >
@@ -146,23 +151,49 @@ export function NewsPopupModal() {
                             month: '2-digit',
                             year: 'numeric',
                             hour: '2-digit',
-                            minute: '2-digit'
+                            minute: '2-digit',
                         })}
                     </p>
                 </div>
 
-                <Description className="whitespace-pre-wrap border-l-2 border-border pl-4 text-sm font-medium leading-relaxed text-muted-foreground">
-                    {news.body}
-                </Description>
+                <Description className="sr-only">Neue Schul-Mitteilung.</Description>
+                <div
+                    className="prose max-w-none whitespace-pre-line break-words border-l-2 border-border pl-4 text-sm font-medium leading-relaxed text-muted-foreground"
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(news.body) }}
+                />
 
-                {/* Actions */}
+                {/* Actions: Lesen und Ausblenden sind bewusst getrennt. */}
                 <div className="space-y-2 pb-[env(safe-area-inset-bottom,0px)] pt-2">
                     <Button
-                        onClick={handleDismiss}
+                        onClick={handleUnderstood}
                         className="h-12 min-h-12 w-full gap-2 rounded-full text-sm font-bold"
                     >
-                        <CheckCircle2 size={16} aria-hidden /> Verstanden &amp; dauerhaft ausblenden
+                        <CheckCircle2 size={16} aria-hidden /> Verstanden
                     </Button>
+
+                    <Button
+                        variant="outline"
+                        onClick={handleHide}
+                        className="h-11 min-h-11 w-full gap-2 rounded-full text-sm font-semibold"
+                    >
+                        <EyeOff size={16} aria-hidden /> Ausblenden
+                    </Button>
+
+                    {user && (
+                        <Button
+                            variant="unstyled"
+                            size="unstyled"
+                            hapticStyle={false}
+                            type="button"
+                            onClick={() => {
+                                close();
+                                navigate('/settings');
+                            }}
+                            className="flex min-h-11 w-full items-center justify-center gap-1.5 text-center text-xs font-semibold text-muted-foreground hover:text-foreground"
+                        >
+                            <Newspaper size={16} aria-hidden /> Gelesene Neuigkeiten anzeigen
+                        </Button>
+                    )}
 
                     {'Notification' in window && Notification.permission === 'default' && (
                         <Button
@@ -183,7 +214,7 @@ export function NewsPopupModal() {
 
     if (isMobile) {
         return (
-            <Sheet open={open} onOpenChange={(nextOpen) => { if (!nextOpen) handleDismiss(); }}>
+            <Sheet open={open} onOpenChange={(nextOpen) => { if (!nextOpen) close(); }}>
                 <SheetContent
                     side="bottom"
                     showCloseButton={false}
@@ -196,7 +227,7 @@ export function NewsPopupModal() {
     }
 
     return (
-        <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen) handleDismiss(); }}>
+        <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen) close(); }}>
             <DialogContent showCloseButton={false} className="max-w-md gap-0 overflow-hidden rounded-xl border border-border bg-card p-0 text-card-foreground">
                 {content(DialogTitle, DialogDescription)}
             </DialogContent>

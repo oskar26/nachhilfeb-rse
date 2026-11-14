@@ -28,6 +28,7 @@ import { triggerHaptic } from '../lib/haptics';
 import { requestPushPermission } from '../lib/push';
 import { Switch } from '../components/ui/switch';
 import { SubjectChip, SUBJECT_CATEGORIES, type Subject } from '../components/SubjectChip';
+import { NewsPreferences } from '../components/news/NewsPreferences';
 
 export default function Settings() {
     const { theme, setTheme } = useTheme();
@@ -285,6 +286,11 @@ export default function Settings() {
                         </Button>
                     </CardContent>
                 </Card>
+            </motion.div>
+
+            {/* News & Announcements Card */}
+            <motion.div variants={itemVariants}>
+                <NewsPreferences />
             </motion.div>
 
             {/* Privacy & Visibility Settings Card */}
