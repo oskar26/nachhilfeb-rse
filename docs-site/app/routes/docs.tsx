@@ -65,7 +65,17 @@ export default function Page({ loaderData }: Route.ComponentProps) {
   const { pageTree, path } = useFumadocsLoader(loaderData);
 
   return (
-    <DocsLayout {...baseOptions()} tree={pageTree}>
+    <DocsLayout
+      {...baseOptions()}
+      tree={pageTree}
+      sidebar={{
+        footer: (
+          <a href="/" className="platform-cta platform-cta-footer">
+            Zur Plattform
+          </a>
+        ),
+      }}
+    >
       <Content path={path} />
     </DocsLayout>
   );

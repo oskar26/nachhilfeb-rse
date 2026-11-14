@@ -10,13 +10,31 @@
   # Routen wie /api/ads oder /api/auth/login an api/index.php leiten
   RewriteRule ^api/(.*)$ api/index.php [QSA,L]
 
-  # 2. Single Page Application (SPA) Routing Fallback für das React-Frontend
+  # 2. Dokumentation: eigene statische Auslieferung unter /docs.
+  #    Die Startseiten-Daten der Docs liegen als /docs/docs.data, React Router
+  #    fragt sie aber unter /docs.data an.
+  RewriteRule ^docs\.data$ /docs/docs.data [L]
+
+  # Unbekannte Docs-Pfade bekommen die Docs-404 und nie die App-Shell.
+  RewriteCond %{REQUEST_URI} ^/docs(?:/|$) [NC]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ - [R=404,L]
+
+  # Vorhandene Docs-Dateien und -Verzeichnisse direkt ausliefern. Damit fällt
+  # kein /docs/*-Pfad auf den SPA-Fallback für die Anwendung zurück.
+  RewriteRule ^docs(?:/|$) - [L]
+
+  # 3. Single Page Application (SPA) Routing Fallback für das React-Frontend
   RewriteRule ^index\.html$ - [L]
   RewriteCond %{REQUEST_URI} !^/api
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule . /index.html [L]
 </IfModule>
+
+# Die Docs liefern eine eigene 404-Seite für unbekannte Dokumentationspfade.
+ErrorDocument 404 /docs/404.html
 
 # Caching-Optimierung für Vite-Assets
 <IfModule mod_expires.c>
