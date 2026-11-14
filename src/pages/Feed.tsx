@@ -400,13 +400,13 @@ export default function Feed() {
     const sortedAds = sortiereAnzeigen(filteredAds, { sortKey, filterByTime, myAvailability });
 
     return (
-        <div className="mx-auto w-full min-w-0 max-w-app space-y-4 overflow-x-clip p-4 pb-24 sm:space-y-6 sm:p-6">
+        <div className="mx-auto w-full min-w-0 max-w-app space-y-3 overflow-x-clip p-4 pb-24 sm:space-y-6 sm:p-6">
             {/* Desktop: eingeklappte News-Sektion. Mobile läuft der News-Einstieg
                 über das Schnellmenü der Shell, damit nichts doppelt erscheint. */}
             <div className="hidden md:block">
                 <CollapsedNewsWidget compact={isMobile} />
             </div>
-            <div className="relative flex min-w-0 flex-col gap-4">
+            <div className="relative flex min-w-0 flex-col gap-3 sm:gap-4">
                 <div className="flex flex-wrap items-center justify-between gap-2.5">
                     <div className="min-w-0">
                         <h1 className="min-w-0 text-[28px] font-extrabold leading-tight tracking-[-0.03em]">Aktuelle Anzeigen</h1>
@@ -666,10 +666,10 @@ export default function Feed() {
             </div>
 
             {savedSearch && !loading && !fetchError && (
-                <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 overflow-x-clip rounded-card border border-border bg-muted px-4 py-3 dark:bg-muted">
-                    <div className="flex min-w-0 items-center gap-2 text-sm">
+                <div className="flex min-w-0 flex-nowrap items-center justify-between gap-2 overflow-x-clip rounded-card border border-border bg-muted px-3 py-1.5 dark:bg-muted sm:flex-wrap sm:px-4 sm:py-3">
+                    <div className="flex min-w-0 flex-1 items-center gap-2 text-[13px] sm:text-sm">
                         <Bookmark size={15} className="shrink-0 fill-current text-foreground" aria-hidden />
-                        <span className="shrink-0 font-semibold text-foreground">Gespeicherte Suche:</span>
+                        <span className="sr-only font-semibold text-foreground sm:not-sr-only sm:shrink-0">Gespeicherte Suche:</span>
                         <span className="truncate text-muted-foreground">
                             {savedSearch.query ? `„${savedSearch.query}“` : 'Alle Anzeigen'}
                             {savedSearch.subject ? ` · ${savedSearch.subject}` : ''}
