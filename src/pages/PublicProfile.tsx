@@ -153,16 +153,16 @@ export default function PublicProfile() {
                         <div className="flex flex-col items-center gap-6 xl:flex-row xl:items-end">
                             <div className="-mt-16 size-28 shrink-0 overflow-hidden rounded-2xl border-4 border-card bg-card p-1 sm:size-32">
                                 {profile.avatar_url ? (
-                                    <img src={profile.avatar_url} className="w-full h-full object-cover rounded-2xl" />
+                                    <img src={profile.avatar_url} alt="" className="w-full h-full object-cover rounded-2xl" />
                                 ) : (
                                     <div className="flex h-full w-full items-center justify-center rounded-2xl bg-muted text-4xl font-semibold text-foreground">
                                         {profile.display_name?.charAt(0) || '?'}
                                     </div>
                                 )}
                             </div>
-                            <div className="min-w-0 flex-1 text-center xl:text-left pt-3 pb-1">
-                                <h1 className="flex max-w-full flex-wrap items-center justify-center gap-2 break-words text-2xl font-semibold tracking-tight text-foreground xl:justify-start sm:text-3xl">
-                                    {profile.display_name || 'FWG Nutzer'}
+                            <div className="w-full min-w-0 flex-1 text-center xl:w-auto xl:text-left pt-3 pb-1">
+                                <h1 className="flex max-w-full flex-wrap items-center justify-center gap-2 break-words [overflow-wrap:anywhere] text-2xl font-semibold tracking-tight text-foreground xl:justify-start sm:text-3xl">
+                                    <span className="min-w-0 break-words [overflow-wrap:anywhere]">{profile.display_name || 'FWG Nutzer'}</span>
                                     {profile.is_verified && (
                                         <VerifiedPill />
                                     )}
@@ -258,8 +258,9 @@ export default function PublicProfile() {
                     {profile.availability && (
                         <motion.div variants={itemVariants}>
                             <Card className="border-border bg-card p-5">
-                                <h3 className="mb-3 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                                    <Calendar size={14} className="text-foreground" aria-hidden /> Wann hat {profile.display_name || 'dieser Nutzer'} Zeit?
+                                <h3 className="mb-3 flex min-w-0 items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                                    <Calendar size={14} className="shrink-0 text-foreground" aria-hidden />
+                                    <span className="min-w-0 break-words [overflow-wrap:anywhere]">Wann hat {profile.display_name || 'dieser Nutzer'} Zeit?</span>
                                 </h3>
                                 <AvailabilityCalendar
                                     availability={profile.availability}

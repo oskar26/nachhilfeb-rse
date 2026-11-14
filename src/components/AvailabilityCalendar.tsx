@@ -88,7 +88,7 @@ export function AvailabilityCalendar({
     };
 
     return (
-        <div className={cn("mx-auto", compact ? "min-w-[280px]" : "min-w-[320px] max-w-full")}>
+        <div className="mx-auto w-full min-w-0">
             {/* Nur das Raster scrollt. Legende und Umschalter liegen außerhalb,
                 damit ihr Fokusring nicht am Scroll-Container abgeschnitten wird. */}
             <div
