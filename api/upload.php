@@ -126,12 +126,14 @@ if (!is_dir($uploadDir) || !is_writable($uploadDir)) {
     );
 }
 
-// Schutzdatei auch dann anlegen, wenn der Ordner erst zur Laufzeit entsteht
-// (z. B. weil das Deploy-Artefakt uploads/ nicht mitkopiert hat). Eine bereits
-// vorhandene .htaccess wird nie überschrieben.
+// Schutzdatei vor dem Move prüfen/anlegen. Eine vorhandene, gültige .htaccess
+// bleibt unangetastet; fehlende oder inhaltlich unvollständige Dateien werden
+// atomar ersetzt. Leere Dateien und Verzeichnisse an diesem Pfad sind ein
+// Fehlerzustand: dann wird fail-closed nichts gespeichert.
 $htaccessPath = $uploadDir . DIRECTORY_SEPARATOR . '.htaccess';
-if (!is_file($htaccessPath)) {
-    $protection = <<<'HTACCESS'
+$protectionMarker = '# FWG ad upload protection v1';
+$protection = <<<'HTACCESS'
+# FWG ad upload protection v1
 # Upload-Verzeichnis: ausschließlich statische Bilder ausliefern.
 # Automatisch von api/upload.php angelegt.
 <IfModule mod_autoindex.c>
@@ -164,8 +166,43 @@ if (!is_file($htaccessPath)) {
     Header set Content-Security-Policy "default-src 'none'; img-src 'self'; sandbox"
 </IfModule>
 HTACCESS;
-    if (@file_put_contents($htaccessPath, $protection, LOCK_EX) === false) {
-        error_log('Ad upload .htaccess could not be created: ' . $htaccessPath);
+
+$existingProtection = is_file($htaccessPath) ? @file_get_contents($htaccessPath) : false;
+$hasValidProtection = is_string($existingProtection)
+    && trim($existingProtection) !== ''
+    && strpos($existingProtection, $protectionMarker) !== false
+    && strpos($existingProtection, 'FilesMatch') !== false
+    && strpos($existingProtection, 'Require all denied') !== false
+    && strpos($existingProtection, 'php_flag engine off') !== false;
+
+if (!$hasValidProtection) {
+    $pathExists = file_exists($htaccessPath) || is_link($htaccessPath);
+    $isUnusable = $pathExists && (
+        !is_file($htaccessPath)
+        || (int)@filesize($htaccessPath) <= 0
+    );
+
+    if ($isUnusable) {
+        error_log('Ad upload .htaccess is empty or not a regular file: ' . $htaccessPath);
+        json_error(
+            'Bild-Upload ist auf diesem Server nicht verfügbar. Bitte nutze stattdessen eine Bild-URL.',
+            500,
+            ['code' => 'upload_unavailable']
+        );
+    }
+
+    // Fehlende oder inhaltlich unvollständige, aber beschreibbare Datei atomar
+    // ersetzen: erst in eine Tempdatei im selben Verzeichnis schreiben, dann
+    // umbenennen. Bei einem Fehler bleibt keine halbe Schutzdatei zurück.
+    $tmpProtection = @tempnam($uploadDir, '.htaccess.');
+    if ($tmpProtection === false
+        || @file_put_contents($tmpProtection, $protection, LOCK_EX) === false
+        || !@rename($tmpProtection, $htaccessPath)
+    ) {
+        if (is_string($tmpProtection)) {
+            @unlink($tmpProtection);
+        }
+        error_log('Ad upload .htaccess could not be written atomically: ' . $htaccessPath);
         json_error(
             'Bild-Upload ist auf diesem Server nicht verfügbar. Bitte nutze stattdessen eine Bild-URL.',
             500,
@@ -173,6 +210,15 @@ HTACCESS;
         );
     }
     @chmod($htaccessPath, 0644);
+}
+
+if (!is_file($htaccessPath) || (int)@filesize($htaccessPath) <= 0) {
+    error_log('Ad upload .htaccess is missing after write: ' . $htaccessPath);
+    json_error(
+        'Bild-Upload ist auf diesem Server nicht verfügbar. Bitte nutze stattdessen eine Bild-URL.',
+        500,
+        ['code' => 'upload_unavailable']
+    );
 }
 
 $extension = $allowed[$imageType]['ext'];

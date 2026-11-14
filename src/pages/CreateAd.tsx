@@ -204,6 +204,7 @@ export default function CreateAd() {
     const [isDraggingImage, setIsDraggingImage] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const uploadingCountRef = useRef(0);
+    const imageUploadGenerationRef = useRef(0);
 
     const totalLocations = formData.locations.length + formData.custom_locations.length;
 
@@ -365,6 +366,17 @@ export default function CreateAd() {
     }, [formData, currentStep, draftRestored, editingId]);
 
     const discardDraft = () => {
+        // Jeder Verwerfen-Versuch invalidiert laufende Upload-Ergebnisse. Während
+        // eines Uploads wird der Reset selbst nicht ausgeführt (der Button ist
+        // zusätzlich disabled); ein verspäteter Handler darf danach nichts mehr
+        // in den Entwurf schreiben.
+        imageUploadGenerationRef.current += 1;
+        if (uploadingCountRef.current > 0 || uploadingImages.length > 0) {
+            setUploadingImages([]);
+            uploadingCountRef.current = 0;
+            setImageFeedback(null);
+            return;
+        }
         try {
             localStorage.removeItem(DRAFT_KEY);
         } catch { /* ignore */ }
@@ -633,6 +645,7 @@ export default function CreateAd() {
     const handleImageFiles = async (incoming: FileList | File[]) => {
         const files = Array.from(incoming);
         if (files.length === 0) return;
+        const uploadGeneration = imageUploadGenerationRef.current;
 
         const errors: string[] = [];
         const uploadedNames: string[] = [];
@@ -649,6 +662,7 @@ export default function CreateAd() {
         }
 
         for (const file of files.slice(0, freeSlots)) {
+            if (uploadGeneration !== imageUploadGenerationRef.current) break;
             const problem = adImageFileProblem(file);
             if (problem) {
                 errors.push(`${file.name}: ${problem}`);
@@ -667,6 +681,7 @@ export default function CreateAd() {
                 if (error || !data?.url) {
                     throw new Error(error?.message || 'Bild konnte nicht hochgeladen werden.');
                 }
+                if (uploadGeneration !== imageUploadGenerationRef.current) continue;
                 const url = data.url;
                 setFormData(prev => (
                     prev.image_urls.length >= MAX_IMAGES || prev.image_urls.includes(url)
@@ -675,6 +690,7 @@ export default function CreateAd() {
                 ));
                 uploadedNames.push(file.name);
             } catch (error) {
+                if (uploadGeneration !== imageUploadGenerationRef.current) continue;
                 const message = error instanceof Error && error.message
                     ? error.message
                     : 'Bild konnte nicht hochgeladen werden.';
@@ -685,6 +701,7 @@ export default function CreateAd() {
             }
         }
 
+        if (uploadGeneration !== imageUploadGenerationRef.current) return;
         if (errors.length > 0) {
             setImageFeedback({ tone: 'error', message: errors.join(' ') });
         } else if (uploadedNames.length > 0) {
@@ -766,6 +783,8 @@ export default function CreateAd() {
                         <Button variant="unstyled" size="unstyled"
                             type="button"
                             onClick={discardDraft}
+                            disabled={uploadingImages.length > 0}
+                            title={uploadingImages.length > 0 ? 'Bilder werden hochgeladen – bitte warten.' : 'Entwurf verwerfen'}
                             className="mt-0.5 min-h-11 shrink-0 text-[13px] font-semibold text-muted-foreground underline underline-offset-4 hover:text-destructive"
                         >
                             Entwurf verwerfen

@@ -115,7 +115,9 @@ absolute `https://…`-URL in `image_urls`.
    Skriptausführung, Directory-Listing und setzt
    `X-Content-Type-Options: nosniff`. Prüfe nach dem Deploy:
    `https://…/uploads/ads/test.php` und `…/test.html` müssen 403 liefern,
-   ein vorhandenes Bild dagegen 200.
+   ein vorhandenes Bild dagegen 200. Ist die Datei leer oder kein reguläres
+   File, bricht `api/upload.php` bewusst mit `upload_unavailable` ab, bis die
+   Schutzdatei korrigiert oder gelöscht wurde.
 4. PHP muss mindestens 5-MB-Uploads annehmen. Prüfe in der `php.ini`
    (bzw. bei ALL-INKL in den PHP-Einstellungen):
    ```ini
