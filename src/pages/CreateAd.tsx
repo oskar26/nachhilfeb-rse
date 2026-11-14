@@ -12,7 +12,7 @@ import { ChevronLeft, ChevronRight, CheckCircle, Plus, X, Link as LinkIcon, Aler
 import { cn } from '../lib/utils';
 import { PriceTag } from '../components/ui/price-tag';
 import { PRICE_GUIDELINE, PRICE_MODE_LABELS } from '../lib/pricing';
-import { compressImage } from '../lib/image';
+import { AD_IMAGE_MAX_BYTES, adImageFileProblem, compressImage } from '../lib/image';
 import { useAuth } from '../context/AuthContext';
 import { api, uploadAdImage } from '../lib/api';
 import { toast } from 'sonner';
@@ -34,6 +34,7 @@ const STEP_SHORT_LABELS = ['Typ', 'Fächer', 'Ort/Zeit', 'Preis', 'Details', 'Vo
 
 type PriceMode = 'free' | 'fixed' | 'vb';
 type SessionFormat = 'single' | 'group' | 'any';
+type ImageFeedback = { tone: 'success' | 'error'; message: string };
 const SESSION_FORMATS: { value: SessionFormat; title: string; hint: string }[] = [
     { value: 'single', title: 'Einzelunterricht', hint: 'Nur du + Tutor' },
     { value: 'group', title: 'Kleingruppe', hint: '2–4 Schüler' },
@@ -56,8 +57,6 @@ const MAX_SUBJECTS = 10;
 const MAX_LOCATIONS = 10;
 const MAX_DURATIONS = 6;
 const MAX_IMAGES = 5;
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-const ACCEPTED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const MAX_CUSTOM_LOCATION_LENGTH = 120;
 
 const PRESET_LOCATIONS = new Set<string>(LOCATION_GROUPS.flatMap(group => group.locations));
@@ -96,21 +95,6 @@ function splitLocations(
     return { locations, custom_locations: customLocations };
 }
 
-function imageFileProblem(file: File): string | null {
-    const type = file.type.toLowerCase();
-    const extensionLooksValid = /\.(jpe?g|png|webp)$/i.test(file.name);
-    if (!ACCEPTED_IMAGE_TYPES.has(type) && !(type === '' && extensionLooksValid)) {
-        return 'Nur JPEG, PNG oder WebP sind erlaubt.';
-    }
-    if (file.size > MAX_IMAGE_BYTES) {
-        return 'Das Bild ist zu groß (max. 5 MB).';
-    }
-    if (file.size <= 0) {
-        return 'Die Datei ist leer.';
-    }
-    return null;
-}
-
 /**
  * Verkleinert große Bilder vor dem Upload. compressImage() liefert eine
  * Data-URL; diese wird hier ohne Netzwerkzugriff in einen echten Blob
@@ -140,7 +124,7 @@ async function prepareImageForUpload(file: File): Promise<File> {
     try {
         const dataUrl = await compressImage(file, 1600, 0.82);
         const blob = dataUrlToBlob(dataUrl);
-        if (!blob || !blob.size || blob.size > MAX_IMAGE_BYTES) return file;
+        if (!blob || !blob.size || blob.size > AD_IMAGE_MAX_BYTES) return file;
         const extension = blob.type === 'image/png' ? 'png' : blob.type === 'image/jpeg' ? 'jpg' : 'webp';
         const baseName = file.name.replace(/\.[^.]+$/, '') || 'anzeige-bild';
         return new File([blob], `${baseName}.${extension}`, { type: blob.type });
@@ -248,6 +232,7 @@ export default function CreateAd() {
     const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
     const [draftRestored, setDraftRestored] = useState(false);
     const [uploadingImages, setUploadingImages] = useState<{ id: string; name: string }[]>([]);
+    const [imageFeedback, setImageFeedback] = useState<ImageFeedback | null>(null);
     const [isDraggingImage, setIsDraggingImage] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const uploadingCountRef = useRef(0);
@@ -418,10 +403,12 @@ export default function CreateAd() {
         setCurrentStep(0);
         setSubjectQuery('');
         setDraftSavedAt(null);
+        setImageFeedback(null);
         toast.success('Entwurf verworfen – du startest mit einem leeren Formular.');
     };
 
     const handleNext = () => {
+        if (uploadingCountRef.current > 0 || uploadingImages.length > 0) return;
         const hint = getStepHint();
         if (hint) {
             triggerHaptic('error');
@@ -446,6 +433,7 @@ export default function CreateAd() {
 
     const handleSubmit = async () => {
         if (!user || !isVerified) return;
+        if (uploadingCountRef.current > 0 || uploadingImages.length > 0) return;
 
         const trimmedTitle = formData.title.trim();
         if (trimmedTitle.length < 4 || trimmedTitle.length > 80) {
@@ -643,16 +631,16 @@ export default function CreateAd() {
         const url = formData.new_image_url.trim();
         if (!url) return;
         if (!/^https:\/\//i.test(url)) {
-            toast.error('Bitte füge eine Bild-URL ein, die mit https:// beginnt.');
+            setImageFeedback({ tone: 'error', message: 'Bitte füge eine Bild-URL ein, die mit https:// beginnt.' });
             return;
         }
         if (formData.image_urls.includes(url)) {
-            toast.error('Dieses Bild ist schon in der Anzeige.');
+            setImageFeedback({ tone: 'error', message: 'Dieses Bild ist schon in der Anzeige.' });
             return;
         }
         if (formData.image_urls.length + uploadingCountRef.current >= MAX_IMAGES) {
             triggerHaptic('error');
-            toast.error('Du kannst höchstens 5 Bilder hinzufügen.');
+            setImageFeedback({ tone: 'error', message: 'Du kannst höchstens 5 Bilder hinzufügen.' });
             return;
         }
         setFormData(prev => ({
@@ -660,6 +648,7 @@ export default function CreateAd() {
             image_urls: [...prev.image_urls, url],
             new_image_url: ''
         }));
+        setImageFeedback({ tone: 'success', message: 'Bild-URL hinzugefügt.' });
     };
 
     const removeImage = (index: number) => {
@@ -673,20 +662,24 @@ export default function CreateAd() {
         const files = Array.from(incoming);
         if (files.length === 0) return;
 
+        const errors: string[] = [];
+        const uploadedNames: string[] = [];
+        setImageFeedback(null);
+
         const freeSlots = MAX_IMAGES - formData.image_urls.length - uploadingCountRef.current;
         if (freeSlots <= 0) {
             triggerHaptic('error');
-            toast.error('Du kannst höchstens 5 Bilder hinzufügen.');
+            setImageFeedback({ tone: 'error', message: 'Du kannst höchstens 5 Bilder hinzufügen.' });
             return;
         }
         if (files.length > freeSlots) {
-            toast.error(`Es passen nur noch ${freeSlots} ${freeSlots === 1 ? 'Bild' : 'Bilder'} in die Anzeige.`);
+            errors.push(`Es passen nur noch ${freeSlots} ${freeSlots === 1 ? 'Bild' : 'Bilder'} in die Anzeige.`);
         }
 
         for (const file of files.slice(0, freeSlots)) {
-            const problem = imageFileProblem(file);
+            const problem = adImageFileProblem(file);
             if (problem) {
-                toast.error(`${file.name}: ${problem}`);
+                errors.push(`${file.name}: ${problem}`);
                 continue;
             }
 
@@ -695,7 +688,7 @@ export default function CreateAd() {
             setUploadingImages(prev => [...prev, { id: uploadId, name: file.name }]);
             try {
                 const prepared = await prepareImageForUpload(file);
-                const preparedProblem = imageFileProblem(prepared);
+                const preparedProblem = adImageFileProblem(prepared);
                 if (preparedProblem) throw new Error(preparedProblem);
 
                 const { data, error } = await uploadAdImage(prepared);
@@ -708,16 +701,27 @@ export default function CreateAd() {
                         ? prev
                         : { ...prev, image_urls: [...prev.image_urls, url] }
                 ));
-                toast.success(`${file.name} hochgeladen.`);
+                uploadedNames.push(file.name);
             } catch (error) {
                 const message = error instanceof Error && error.message
                     ? error.message
                     : 'Bild konnte nicht hochgeladen werden.';
-                toast.error(`${file.name}: ${message}`);
+                errors.push(`${file.name}: ${message}`);
             } finally {
                 uploadingCountRef.current = Math.max(0, uploadingCountRef.current - 1);
                 setUploadingImages(prev => prev.filter(item => item.id !== uploadId));
             }
+        }
+
+        if (errors.length > 0) {
+            setImageFeedback({ tone: 'error', message: errors.join(' ') });
+        } else if (uploadedNames.length > 0) {
+            setImageFeedback({
+                tone: 'success',
+                message: uploadedNames.length === 1
+                    ? `Bild hochgeladen: ${uploadedNames[0]}`
+                    : `${uploadedNames.length} Bilder hochgeladen.`
+            });
         }
     };
 
@@ -1129,8 +1133,8 @@ export default function CreateAd() {
                                     {formData.custom_locations.length > 0 && (
                                         <div className="flex flex-wrap gap-2 pt-1">
                                             {formData.custom_locations.map(location => (
-                                                <span key={location} className="inline-flex min-h-11 max-w-full items-center gap-1 rounded-lg border border-primary/30 bg-primary-soft pl-3 pr-1 text-[13px] font-medium text-primary-soft-foreground">
-                                                    <span className="max-w-[16rem] truncate">{location}</span>
+                                                <span key={location} className="inline-flex min-h-11 max-w-full min-w-0 items-center gap-1 rounded-lg border border-primary/30 bg-primary-soft pl-3 pr-1 text-[13px] font-medium text-primary-soft-foreground">
+                                                    <span className="min-w-0 max-w-full break-words text-left" title={location}>{location}</span>
                                                     <Button variant="unstyled" size="unstyled"
                                                         type="button"
                                                         onClick={() => removeCustomLocation(location)}
@@ -1374,6 +1378,7 @@ export default function CreateAd() {
                                         ref={fileInputRef}
                                         id="ad-image-input"
                                         type="file"
+                                        aria-label="Bilder auswählen"
                                         accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
                                         multiple
                                         className="sr-only"
@@ -1401,6 +1406,18 @@ export default function CreateAd() {
                                         </Button>
                                         <p className="text-[13px] text-muted-foreground">oder Dateien hierher ziehen</p>
                                     </div>
+
+                                    {imageFeedback?.tone === 'success' && (
+                                        <p role="status" className="rounded-xl border border-border bg-pastel-mint px-3 py-2 text-[13px] font-medium text-pastel-mint-foreground">
+                                            {imageFeedback.message}
+                                        </p>
+                                    )}
+                                    {imageFeedback?.tone === 'error' && (
+                                        <div role="alert" className="flex items-start gap-2 rounded-xl border border-destructive/25 bg-destructive/5 px-3 py-2 text-[13px] font-medium leading-relaxed text-destructive">
+                                            <AlertCircle size={15} className="mt-0.5 shrink-0" aria-hidden />
+                                            <span>{imageFeedback.message}</span>
+                                        </div>
+                                    )}
 
                                     {(formData.image_urls.length > 0 || uploadingImages.length > 0) && (
                                         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -1529,6 +1546,11 @@ export default function CreateAd() {
 
                 </CardContent>
                 <CardFooter className="flex flex-col gap-3 rounded-b-card border-t border-border bg-card p-4 sm:p-6 md:sticky md:bottom-0 md:z-10 md:bg-card/95 md:pb-6 md:shadow-[0_-10px_30px_-24px_rgba(16,24,40,0.45)] md:backdrop-blur-md">
+                    {uploadingImages.length > 0 && (
+                        <p className="w-full rounded-xl bg-pastel-blue px-4 py-2.5 text-[13px] font-semibold leading-relaxed text-pastel-blue-foreground" role="status">
+                            Bilder werden hochgeladen …
+                        </p>
+                    )}
                     {!isStepValid() && stepHint && currentStep < STEPS.length - 1 && (
                         <p className="w-full rounded-xl bg-pastel-blue px-4 py-2.5 text-[13px] font-semibold leading-relaxed text-pastel-blue-foreground" role="status">
                             Noch offen: {stepHint}
@@ -1540,7 +1562,7 @@ export default function CreateAd() {
                         </Button>
 
                         {currentStep === STEPS.length - 1 ? (
-                            <Button onClick={handleSubmit} disabled={isSubmitting} isLoading={isSubmitting} className="w-full px-4 font-semibold sm:w-auto sm:px-5">
+                            <Button onClick={handleSubmit} disabled={isSubmitting || uploadingImages.length > 0} isLoading={isSubmitting} className="w-full px-4 font-semibold sm:w-auto sm:px-5">
                                 {isSubmitting
                                     ? (editingId ? 'Änderungen werden gespeichert' : 'Anzeige wird veröffentlicht')
                                     : (editingId ? 'Änderungen speichern' : 'Anzeige veröffentlichen')}
@@ -1549,8 +1571,8 @@ export default function CreateAd() {
                         ) : (
                             <Button
                                 onClick={handleNext}
-                                disabled={!isStepValid()}
-                                title={!isStepValid() && stepHint ? stepHint : 'Weiter zum nächsten Schritt'}
+                                disabled={!isStepValid() || uploadingImages.length > 0}
+                                title={uploadingImages.length > 0 ? 'Bilder werden hochgeladen …' : (!isStepValid() && stepHint ? stepHint : 'Weiter zum nächsten Schritt')}
                                 className="w-full px-4 sm:w-auto sm:px-5"
                             >
                                 Weiter <ChevronRight size={16} className="ml-1 shrink-0 sm:ml-2" />

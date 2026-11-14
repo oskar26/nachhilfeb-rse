@@ -21,3 +21,14 @@ if (fs.existsSync(srcDir)) {
     });
     console.log('✓ API successfully copied to dist/api (ohne db_credentials.php, ohne diag.php)');
 }
+
+// Uploads liegen außerhalb des SPA-Builds, brauchen aber dieselbe
+// Apache-Schutzdatei. Nur die .htaccess ins Artefakt kopieren, niemals
+// hochgeladene Nutzerbilder aus dem lokalen Arbeitsstand.
+const uploadsHtaccess = path.resolve(__dirname, '../uploads/ads/.htaccess');
+const distUploadsDir = path.resolve(__dirname, '../dist/uploads/ads');
+if (fs.existsSync(uploadsHtaccess)) {
+    fs.mkdirSync(distUploadsDir, { recursive: true });
+    fs.copyFileSync(uploadsHtaccess, path.join(distUploadsDir, '.htaccess'));
+    console.log('✓ uploads/ads/.htaccess copied to dist/uploads/ads/.htaccess');
+}

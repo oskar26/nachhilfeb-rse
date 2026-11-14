@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { uploadAdImage } from '../src/lib/api';
+import { AD_IMAGE_MAX_BYTES, adImageFileProblem } from '../src/lib/image';
 
 // Node-Testumgebung: minimaler localStorage-Ersatz für Token/User.
 const storage = new Map<string, string>();
@@ -71,8 +72,8 @@ describe('uploadAdImage', () => {
     const result = await uploadAdImage(makeImageFile());
 
     expect(result.data).toBeNull();
-    expect(result.error.status).toBe(413);
-    expect(result.error.message).toBe('Das Bild ist zu groß (max. 5 MB).');
+    expect(result.error?.status).toBe(413);
+    expect(result.error?.message).toBe('Das Bild ist zu groß (max. 5 MB).');
   });
 
   it('verwirft eine Antwort ohne gültige Bild-URL', async () => {
@@ -81,7 +82,7 @@ describe('uploadAdImage', () => {
     const result = await uploadAdImage(makeImageFile());
 
     expect(result.data).toBeNull();
-    expect(result.error.message).toContain('keine gültige Bild-URL');
+    expect(result.error?.message).toContain('keine gültige Bild-URL');
   });
 
   it('verlangt eine Anmeldung, bevor etwas hochgeladen wird', async () => {
@@ -93,6 +94,62 @@ describe('uploadAdImage', () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(result.data).toBeNull();
-    expect(result.error.status).toBe(401);
+    expect(result.error?.status).toBe(401);
+  });
+
+  it('liest den Fehlercode auch aus details.code und räumt bei 401 die Session auf', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({
+      error: 'Nicht autorisiert. Bitte melde dich an.',
+      details: { code: 'unauthorized' },
+    }, 401)));
+
+    const result = await uploadAdImage(makeImageFile());
+
+    expect(result.data).toBeNull();
+    expect(result.error?.status).toBe(401);
+    expect(result.error?.code).toBe('unauthorized');
+    expect(storage.has('fwg_auth_token')).toBe(false);
+    expect(storage.has('fwg_auth_user')).toBe(false);
+  });
+
+  it('dispatcht bei 403 fwg:access-denied mit details.code', async () => {
+    const dispatchEvent = vi.fn();
+    vi.stubGlobal('window', { dispatchEvent, location: { origin: 'https://app.example' } });
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({
+      error: 'Du musst dich erst verifizieren.',
+      details: { code: 'not_verified' },
+    }, 403)));
+
+    const result = await uploadAdImage(makeImageFile());
+
+    expect(result.data).toBeNull();
+    expect(result.error?.status).toBe(403);
+    expect(result.error?.code).toBe('not_verified');
+    expect(dispatchEvent).toHaveBeenCalledTimes(1);
+    const event = dispatchEvent.mock.calls[0][0] as CustomEvent<{ code?: string }>;
+    expect(event.type).toBe('fwg:access-denied');
+    expect(event.detail.code).toBe('not_verified');
+  });
+});
+
+describe('adImageFileProblem', () => {
+  it('akzeptiert image/jpg als JPEG-Schreibweise', () => {
+    expect(adImageFileProblem(new File(['x'], 'bild.jpg', { type: 'image/jpg' }))).toBeNull();
+  });
+
+  it('akzeptiert JPEG, PNG und WebP', () => {
+    expect(adImageFileProblem(new File(['x'], 'a.jpg', { type: 'image/jpeg' }))).toBeNull();
+    expect(adImageFileProblem(new File(['x'], 'a.png', { type: 'image/png' }))).toBeNull();
+    expect(adImageFileProblem(new File(['x'], 'a.webp', { type: 'image/webp' }))).toBeNull();
+  });
+
+  it('lehnt SVG und Dateien über 5 MB ab', () => {
+    expect(adImageFileProblem(new File(['<svg/>'], 'a.svg', { type: 'image/svg+xml' }))).toContain('JPEG, PNG oder WebP');
+    const tooLarge = { name: 'gross.jpg', type: 'image/jpeg', size: AD_IMAGE_MAX_BYTES + 1 } as File;
+    expect(adImageFileProblem(tooLarge)).toContain('max. 5 MB');
+  });
+
+  it('lehnt leere Dateien ab', () => {
+    expect(adImageFileProblem(new File([], 'leer.jpg', { type: 'image/jpeg' }))).toContain('leer');
   });
 });

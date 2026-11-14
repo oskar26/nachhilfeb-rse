@@ -168,6 +168,13 @@ interface UploadResponse {
     url?: unknown;
     error?: unknown;
     code?: unknown;
+    details?: { code?: unknown } | null;
+}
+
+function uploadErrorCode(json: UploadResponse | null): string | null {
+    if (typeof json?.code === 'string' && json.code.trim() !== '') return json.code;
+    if (typeof json?.details?.code === 'string' && json.details.code.trim() !== '') return json.details.code;
+    return null;
 }
 
 function resolveApiOrigin(): string {
@@ -246,6 +253,12 @@ export async function uploadAdImage(file: File): Promise<{ data: { url: string }
                     localStorage.removeItem(USER_KEY);
                 } catch { /* ignore */ }
             }
+            const code = uploadErrorCode(json);
+            // Belt-and-Braces wie apiRequest(): ein 403 aus dem Upload-Gate
+            // muss die zentrale AccessGuard-UI sofort nachziehen.
+            if (response.status === 403 && typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('fwg:access-denied', { detail: { code } }));
+            }
             return {
                 data: null,
                 error: {
@@ -253,7 +266,7 @@ export async function uploadAdImage(file: File): Promise<{ data: { url: string }
                         ? json.error
                         : defaultHttpMessage(response.status),
                     status: response.status,
-                    code: typeof json?.code === 'string' ? json.code : null,
+                    code,
                     url,
                 },
             };

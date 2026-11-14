@@ -95,8 +95,13 @@ Anzeigen können Bilder direkt hochladen. Die Dateien liegen nicht in der
 Datenbank, sondern im Webspace unter `uploads/ads/`; die App speichert nur die
 absolute `https://…`-URL in `image_urls`.
 
-1. Ordner `uploads/` und `uploads/ads/` mit dem Projekt auf den Webspace
-   kopieren (beide gehören nicht ins `dist/`-Artefakt).
+1. Ordner `uploads/` und `uploads/ads/` auf dem Webspace anlegen bzw. erhalten.
+   `npm run build` kopiert `uploads/ads/.htaccess` nach
+   `dist/uploads/ads/.htaccess`; beim Deployment die `.htaccess` aus
+   `dist/uploads/ads/` übernehmen. `api/upload.php` legt die Schutzdatei
+   zusätzlich selbst an, falls der Ordner erst zur Laufzeit entsteht.
+   Hochgeladene Bilder gehören nie ins Build-Artefakt und müssen bei
+   Deployments erhalten bleiben (z. B. `uploads/` ausnehmen).
 2. Der PHP-Benutzer muss dort schreiben dürfen. Üblich ist:
    ```bash
    chmod 755 uploads uploads/ads
@@ -105,8 +110,12 @@ absolute `https://…`-URL in `image_urls`.
    # bzw. Eigentümer auf den PHP/FPM-Benutzer setzen:
    chown -R www-data:www-data uploads uploads/ads
    ```
-3. `uploads/ads/.htaccess` mit hochladen. Es verbietet Skriptausführung,
-   Directory-Listing und setzt `X-Content-Type-Options: nosniff`.
+3. `uploads/ads/.htaccess` muss auf dem Server aktiv sein; der Webspace muss
+   `.htaccess`-Overrides erlauben (bei ALL-INKL Standard). Es verbietet
+   Skriptausführung, Directory-Listing und setzt
+   `X-Content-Type-Options: nosniff`. Prüfe nach dem Deploy:
+   `https://…/uploads/ads/test.php` und `…/test.html` müssen 403 liefern,
+   ein vorhandenes Bild dagegen 200.
 4. PHP muss mindestens 5-MB-Uploads annehmen. Prüfe in der `php.ini`
    (bzw. bei ALL-INKL in den PHP-Einstellungen):
    ```ini

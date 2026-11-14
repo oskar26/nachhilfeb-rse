@@ -126,6 +126,51 @@ if (!is_dir($uploadDir) || !is_writable($uploadDir)) {
     );
 }
 
+// Schutzdatei auch dann anlegen, wenn der Ordner erst zur Laufzeit entsteht
+// (z. B. weil das Deploy-Artefakt uploads/ nicht mitkopiert hat). Eine bereits
+// vorhandene .htaccess wird nie überschrieben.
+$htaccessPath = $uploadDir . DIRECTORY_SEPARATOR . '.htaccess';
+if (!is_file($htaccessPath)) {
+    $protection = <<<'HTACCESS'
+# Upload-Verzeichnis: ausschließlich statische Bilder ausliefern.
+# Automatisch von api/upload.php angelegt.
+<IfModule mod_autoindex.c>
+    Options -Indexes
+    IndexIgnore *
+</IfModule>
+
+<FilesMatch "\.(?i:php[0-9]?|phtml|phar|pht|pl|py|cgi|sh|asp|aspx|jsp|htm|html|htaccess)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag engine off
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set Content-Security-Policy "default-src 'none'; img-src 'self'; sandbox"
+</IfModule>
+HTACCESS;
+    if (@file_put_contents($htaccessPath, $protection, LOCK_EX) === false) {
+        error_log('Ad upload .htaccess could not be created: ' . $htaccessPath);
+    } else {
+        @chmod($htaccessPath, 0644);
+    }
+}
+
 $extension = $allowed[$imageType]['ext'];
 try {
     $filename = bin2hex(random_bytes(16)) . '.' . $extension;

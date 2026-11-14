@@ -319,8 +319,8 @@ export default function AdDetails() {
                                 </span>
                             )}
                             {ad.locations?.map((loc: string) => (
-                                <span key={loc} className="flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1 text-[13px]">
-                                    <MapPin size={14} aria-hidden /> {loc}
+                                <span key={loc} title={loc} className="flex max-w-full min-w-0 items-center gap-1 break-words rounded-lg bg-muted px-2.5 py-1 text-[13px]">
+                                    <MapPin size={14} className="shrink-0" aria-hidden /> <span className="min-w-0 break-words">{loc}</span>
                                 </span>
                             ))}
                             <span className="flex items-center gap-1 rounded-lg bg-muted px-2.5 py-1 text-[13px]" title={durationMeta}>
@@ -422,11 +422,11 @@ export default function AdDetails() {
                                                 <Button
                                                     onClick={sendRequest}
                                                     disabled={sending}
-                                                    className="inline-flex h-14 w-full text-base font-semibold"
+                                                    className="hidden h-14 w-full text-base font-semibold md:inline-flex"
                                                 >
                                                     <Send size={20} className="mr-2" /> Anfrage senden
                                                 </Button>
-                                                <p className="text-center text-[13px] leading-relaxed text-muted-foreground md:text-left">
+                                                <p className="hidden text-center text-[13px] leading-relaxed text-muted-foreground md:block md:text-left">
                                                     Unverbindlich · Kontakte erst nach Annahme sichtbar
                                                 </p>
                                             </div>
