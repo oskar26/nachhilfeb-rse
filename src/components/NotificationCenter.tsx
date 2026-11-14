@@ -1,9 +1,9 @@
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { useEffect, useState, useCallback } from 'react';
-import type { RefObject } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import {
     Bell,
     BellOff,
@@ -44,8 +44,11 @@ interface Props {
      * 'sticker': schwebender Poster-Sticker oben rechts + Bottom-Sheet (mobil).
      */
     variant?: 'desktop' | 'sticker';
-    /** Scroll-Container des App-Inhalts — steuert Schrumpfen/Fade des Stickers. */
-    scrollRef?: RefObject<HTMLElement | null>;
+    /** Optional kontrolliertes Öffnen (z. B. aus dem MobileQuickMenu). */
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    /** Blendet den eingebauten Trigger aus, wenn der Aufrufer ihn ersetzt. */
+    hideTrigger?: boolean;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────
@@ -96,23 +99,36 @@ function groupByDate(notifications: AppNotification[]): Record<string, AppNotifi
 
 // ── Component ────────────────────────────────────────────────────
 
-export default function NotificationCenter({ unreadCount, onCountChange, variant = 'desktop' }: Props) {
+export default function NotificationCenter({ unreadCount, onCountChange, variant = 'desktop', open: openProp, onOpenChange, hideTrigger = false }: Props) {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const [open, setOpen] = useState(false);
+    const [internalOpen, setInternalOpen] = useState(false);
+    const open = openProp ?? internalOpen;
     const [notifications, setNotifications] = useState<AppNotification[]>([]);
     const [unread, setUnread] = useState(unreadCount);
     const [loading, setLoading] = useState(false);
+    const [loadError, setLoadError] = useState(false);
+    const [staleError, setStaleError] = useState(false);
+    const notificationsRef = useRef<AppNotification[]>([]);
+    const wasOpenRef = useRef(open);
 
     useEffect(() => {
         setUnread(unreadCount);
     }, [unreadCount]);
 
+    useEffect(() => {
+        notificationsRef.current = notifications;
+    }, [notifications]);
+
     // ── Fetch ──────────────────────────────────────────────────────
     // silent=true: kein Spinner-Flash, Liste bleibt stehen (gegen Flackern)
     const fetchNotifications = useCallback(async (silent = false) => {
         if (!user) return;
-        if (!silent) setLoading(true);
+        if (!silent) {
+            setLoading(true);
+            setLoadError(false);
+            setStaleError(false);
+        }
         try {
             // 30 Einträge — identisch zum bisherigen Verhalten der Supabase-Attrappe (limit(50) war dort wirkungslos).
             const { data, error } = await api.notifications.list(30);
@@ -120,12 +136,20 @@ export default function NotificationCenter({ unreadCount, onCountChange, variant
             if (error) throw error;
 
             const list = (data ?? []) as AppNotification[];
+            notificationsRef.current = list;
             setNotifications(list);
+            setLoadError(false);
+            setStaleError(false);
             const count = list.filter(n => !n.read).length;
             setUnread(count);
             onCountChange(count);
         } catch (e) {
             console.error('[NotificationCenter] fetch error:', e);
+            if (silent && notificationsRef.current.length > 0) {
+                setStaleError(true);
+            } else {
+                setLoadError(true);
+            }
         } finally {
             setLoading(false);
         }
@@ -144,11 +168,19 @@ export default function NotificationCenter({ unreadCount, onCountChange, variant
         return stopPolling;
     }, [user, fetchNotifications]);
 
+    useEffect(() => {
+        if (open && !wasOpenRef.current) {
+            // Beim Öffnen still aktualisieren (kein Spinner-Flash) – auch
+            // wenn der Aufrufer das Sheet kontrolliert öffnet.
+            void fetchNotifications(true);
+        }
+        wasOpenRef.current = open;
+    }, [open, fetchNotifications]);
+
     const handleOpenChange = (nextOpen: boolean) => {
+        if (openProp === undefined) setInternalOpen(nextOpen);
+        onOpenChange?.(nextOpen);
         if (nextOpen) triggerHaptic('light');
-        setOpen(nextOpen);
-        // Beim Öffnen still aktualisieren (kein Spinner-Flash)
-        if (nextOpen) fetchNotifications(true);
     };
 
     // ── Mark all as read ───────────────────────────────────────────
@@ -156,7 +188,11 @@ export default function NotificationCenter({ unreadCount, onCountChange, variant
         if (!user || notifications.every(n => n.read)) return;
         triggerHaptic('medium');
         const ids = notifications.filter(n => !n.read).map(n => n.id);
-        await api.notifications.markRead(ids);
+        const { error } = await api.notifications.markRead(ids);
+        if (error) {
+            toast.error('Meldungen konnten nicht als gelesen markiert werden.');
+            return;
+        }
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
         setUnread(0);
         onCountChange(0);
@@ -166,13 +202,18 @@ export default function NotificationCenter({ unreadCount, onCountChange, variant
     const handleClick = async (n: AppNotification) => {
         triggerHaptic('light');
         if (!n.read) {
-            await api.notifications.markRead(n.id);
-            setNotifications(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x));
-            const newCount = unread - 1;
-            setUnread(newCount);
-            onCountChange(newCount);
+            const { error } = await api.notifications.markRead(n.id);
+            if (error) {
+                toast.error('Meldung konnte nicht als gelesen markiert werden.');
+            } else {
+                setNotifications(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x));
+                const newCount = Math.max(0, unread - 1);
+                setUnread(newCount);
+                onCountChange(newCount);
+            }
         }
-        setOpen(false);
+        // Ein fehlgeschlagenes Markieren darf die Navigation nicht blockieren.
+        handleOpenChange(false);
         if (n.link) navigate(n.link);
     };
 
@@ -197,7 +238,7 @@ export default function NotificationCenter({ unreadCount, onCountChange, variant
                 <Button variant="unstyled" size="unstyled"
                     type="button"
                     onClick={markAllRead}
-                    className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
                     <CheckCheck size={13} />
                     Alle als gelesen
@@ -207,14 +248,31 @@ export default function NotificationCenter({ unreadCount, onCountChange, variant
     );
 
     const listContent = (
-        <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-3 [scrollbar-width:thin]">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 [scrollbar-width:thin]">
             {loading && (
                 <div className="flex items-center justify-center py-12">
                     <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
                 </div>
             )}
 
-            {!loading && !hasNotifications && (
+            {!loading && loadError && (
+                <div className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center">
+                    <div className="grid h-14 w-14 place-items-center rounded-xl bg-muted text-muted-foreground">
+                        <AlertTriangle size={24} />
+                    </div>
+                    <p className="text-sm font-semibold text-foreground">Meldungen konnten nicht geladen werden.</p>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-11 min-h-11 text-xs"
+                        onClick={() => fetchNotifications(false)}
+                    >
+                        Erneut versuchen
+                    </Button>
+                </div>
+            )}
+
+            {!loading && !loadError && !hasNotifications && (
                 <div className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center">
                     <div className="grid h-14 w-14 place-items-center rounded-xl bg-muted text-muted-foreground">
                         <BellOff size={24} />
@@ -224,7 +282,13 @@ export default function NotificationCenter({ unreadCount, onCountChange, variant
                 </div>
             )}
 
-            {!loading && hasNotifications && Object.entries(groups).map(([label, items]) => (
+            {!loading && !loadError && staleError && hasNotifications && (
+                <div className="mb-2 rounded-lg border border-border bg-muted/50 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
+                    Aktualisierung fehlgeschlagen. Es werden die zuletzt geladenen Meldungen angezeigt.
+                </div>
+            )}
+
+            {!loading && !loadError && hasNotifications && Object.entries(groups).map(([label, items]) => (
                 <div key={label} className="mb-1 last:mb-0">
                     <p className="px-2 pb-1.5 pt-2 text-xs font-medium text-muted-foreground">
                         {label}
@@ -311,7 +375,7 @@ export default function NotificationCenter({ unreadCount, onCountChange, variant
     if (variant === 'desktop') {
         return (
             <Popover open={open} onOpenChange={handleOpenChange}>
-                <PopoverTrigger render={desktopTrigger} />
+                {!hideTrigger && <PopoverTrigger render={desktopTrigger} />}
                 <PopoverContent
                     align="end"
                     sideOffset={8}
@@ -327,7 +391,7 @@ export default function NotificationCenter({ unreadCount, onCountChange, variant
 
     return (
         <Sheet open={open} onOpenChange={handleOpenChange}>
-            <SheetTrigger render={mobileTrigger} />
+            {!hideTrigger && <SheetTrigger render={mobileTrigger} />}
             <SheetContent
                 side="bottom"
                 showCloseButton={false}
