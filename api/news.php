@@ -64,8 +64,11 @@ if ($method === 'POST') {
     fwg_audit($pdo, $admin['id'], 'news_create', 'news', $newsId, ['title' => $title]);
 
     // HTML-Inhalte werden in E-Mail und In-App-Text als Klartext ausgegeben.
+    // Skript-/Style-Blöcke zuerst entfernen, damit deren Inhalt nicht als
+    // sichtbarer Text in Benachrichtigungen landet.
+    $plainSource = preg_replace('~<(script|style)\b[^>]*>.*?</\1>~is', ' ', $content) ?? $content;
     $plainContent = preg_match('/<[a-z][\s\S]*>/i', $content)
-        ? trim(html_entity_decode(strip_tags($content), ENT_QUOTES | ENT_HTML5, 'UTF-8'))
+        ? trim(html_entity_decode(strip_tags($plainSource), ENT_QUOTES | ENT_HTML5, 'UTF-8'))
         : $content;
 
     // An alle aktiven Nutzer per E-Mail & In-App Benachrichtigung versenden

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff, Newspaper, RotateCcw, Megaphone } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '../../lib/api';
@@ -16,6 +17,8 @@ import {
     unhideNews,
     type NewsItem,
 } from '../../lib/news';
+import { isNewsCardEnabled, setNewsCardEnabled } from '../../lib/news-preferences';
+import { NEWS_STATE_EVENT, notifyNewsStateChanged } from '../../lib/news-events';
 import { sanitizeHtml } from '../../lib/sanitize';
 import { triggerHaptic } from '../../lib/haptics';
 import { Badge } from '../ui/badge';
@@ -23,18 +26,6 @@ import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Switch } from '../ui/switch';
 import NewsIcon from '../NewsIcon';
-
-/**
- * Wird nach jeder Änderung am Lese-/Ausblendestatus gefeuert, damit bereits
- * gemountete News-Flächen (Popup, Entdecken-Karte, Einstellungen) sofort
- * neu filtern. localStorage-Events feuern im selben Tab nicht.
- */
-export const NEWS_STATE_EVENT = 'fwg:news-state-changed';
-
-export function notifyNewsStateChanged(): void {
-    if (typeof window === 'undefined') return;
-    window.dispatchEvent(new Event(NEWS_STATE_EVENT));
-}
 
 function formatNewsDate(value: string): string {
     const date = new Date(value);
@@ -48,10 +39,13 @@ function formatNewsDate(value: string): string {
 
 export function NewsPreferences() {
     const { user } = useAuth();
+    const [searchParams] = useSearchParams();
     const viewer = user?.id ?? null;
+    const readParam = searchParams.get('news') === 'read';
 
     const [popupEnabled, setPopupEnabledState] = useState(() => isNewsPopupEnabled(viewer));
-    const [showRead, setShowRead] = useState(false);
+    const [cardEnabled, setCardEnabledState] = useState(() => isNewsCardEnabled(viewer));
+    const [showRead, setShowRead] = useState(readParam);
     const [items, setItems] = useState<NewsItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState<string | null>(null);
@@ -68,7 +62,12 @@ export function NewsPreferences() {
 
     useEffect(() => {
         setPopupEnabledState(isNewsPopupEnabled(viewer));
+        setCardEnabledState(isNewsCardEnabled(viewer));
     }, [viewer]);
+
+    useEffect(() => {
+        setShowRead(readParam);
+    }, [readParam]);
 
     useEffect(() => {
         let cancelled = false;
@@ -127,6 +126,18 @@ export function NewsPreferences() {
         toast.success(checked ? 'News-Popup aktiviert.' : 'News-Popup deaktiviert.');
     };
 
+    const handleCardToggle = (checked: boolean) => {
+        if (!setNewsCardEnabled(checked, viewer)) {
+            triggerHaptic('error');
+            toast.error('Einstellung konnte nicht gespeichert werden.');
+            return;
+        }
+        setCardEnabledState(checked);
+        triggerHaptic(checked ? 'success' : 'selection');
+        toast.success(checked ? 'Neuigkeiten-Karte aktiviert.' : 'Neuigkeiten-Karte deaktiviert.');
+        notifyNewsStateChanged();
+    };
+
     const handleMarkUnread = (item: NewsItem) => {
         if (!markNewsUnread(item.id, viewer)) {
             triggerHaptic('error');
@@ -175,7 +186,7 @@ export function NewsPreferences() {
                     <Newspaper size={18} className="text-muted-foreground" aria-hidden /> Neuigkeiten
                 </CardTitle>
                 <CardDescription className="text-xs">
-                    Steuere das News-Popup und sieh dir gelesene oder ausgeblendete Mitteilungen an.
+                    Steuere Popup und News-Karte und sieh dir gelesene oder ausgeblendete Mitteilungen an.
                 </CardDescription>
             </CardHeader>
             <CardContent padding="flush" className="divide-y divide-border">
@@ -193,13 +204,27 @@ export function NewsPreferences() {
                     />
                 </div>
 
+                <div className="flex items-center justify-between gap-4 p-4 sm:px-6">
+                    <div className="min-w-0">
+                        <h4 className="text-sm font-semibold text-foreground">Neuigkeiten-Karte auf Entdecken anzeigen</h4>
+                        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                            Blendet die kompakte News-Karte über den Anzeigen ein oder aus.
+                        </p>
+                    </div>
+                    <Switch
+                        checked={cardEnabled}
+                        onCheckedChange={handleCardToggle}
+                        label="Neuigkeiten-Karte auf Entdecken anzeigen"
+                    />
+                </div>
+
                 <div className="p-4 sm:px-6">
                     <div className="flex items-center justify-between gap-4">
                         <div className="min-w-0">
                             <h4 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                                 Gelesene Neuigkeiten anzeigen
                                 {readItems.length > 0 && (
-                                    <Badge variant="default" className="h-5 px-2 text-[11px] tabular-nums">
+                                    <Badge variant="default" className="h-6 px-2 text-xs tabular-nums">
                                         {readItems.length}
                                     </Badge>
                                 )}
@@ -237,7 +262,7 @@ export function NewsPreferences() {
                                         type="button"
                                         variant="outline"
                                         size="sm"
-                                        className="h-10"
+                                        className="h-11 min-h-11"
                                         onClick={refreshList}
                                     >
                                         Erneut laden
@@ -260,7 +285,7 @@ export function NewsPreferences() {
                                                         <span className="block truncate text-sm font-semibold text-foreground">
                                                             {item.title}
                                                         </span>
-                                                        <span className="mt-0.5 block text-[11px] font-medium text-muted-foreground">
+                                                        <span className="mt-0.5 block text-xs font-medium text-muted-foreground">
                                                             Gelesen · {formatNewsDate(item.created_at)}
                                                         </span>
                                                     </span>
@@ -273,7 +298,7 @@ export function NewsPreferences() {
                                                 </summary>
                                                 <div className="border-t border-border px-3 pb-3 pt-3">
                                                     <div
-                                                        className="prose max-w-none whitespace-pre-line break-words text-sm leading-relaxed text-muted-foreground [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm"
+                                                        className="prose max-w-none whitespace-pre-line break-words text-sm leading-relaxed text-muted-foreground [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm [&_a]:font-medium [&_a]:underline"
                                                         dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.content) }}
                                                     />
                                                     <div className="mt-3 flex flex-wrap gap-2">
@@ -281,7 +306,7 @@ export function NewsPreferences() {
                                                             type="button"
                                                             variant="outline"
                                                             size="sm"
-                                                            className="h-10 gap-1.5 text-xs"
+                                                            className="h-11 min-h-11 gap-1.5 text-xs"
                                                             onClick={() => handleMarkUnread(item)}
                                                         >
                                                             <RotateCcw size={14} aria-hidden /> Wieder ungelesen
@@ -290,7 +315,7 @@ export function NewsPreferences() {
                                                             type="button"
                                                             variant="ghost"
                                                             size="sm"
-                                                            className="h-10 gap-1.5 text-xs"
+                                                            className="h-11 min-h-11 gap-1.5 text-xs"
                                                             onClick={() => handleHide(item)}
                                                         >
                                                             <EyeOff size={14} aria-hidden /> Ausblenden
@@ -302,32 +327,35 @@ export function NewsPreferences() {
                                     ))}
                                 </ul>
                             )}
+                        </div>
+                    )}
 
-                            {hiddenItems.length > 0 && (
-                                <div className="rounded-xl border border-border bg-muted/40 p-3">
-                                    <h5 className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
-                                        <Megaphone size={14} aria-hidden /> Ausgeblendete Neuigkeiten
-                                    </h5>
-                                    <ul className="mt-2 space-y-2">
-                                        {hiddenItems.map((item) => (
-                                            <li key={item.id} className="flex items-center gap-3">
-                                                <span className="min-w-0 flex-1 truncate text-xs font-medium text-muted-foreground">
-                                                    {item.title}
-                                                </span>
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="h-10 shrink-0 gap-1.5 text-xs"
-                                                    onClick={() => handleUnhide(item)}
-                                                >
-                                                    <Eye size={14} aria-hidden /> Einblenden
-                                                </Button>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
+                    {hiddenItems.length > 0 && (
+                        <div className="mt-4 rounded-xl border border-border bg-muted/40 p-3">
+                            <h5 className="flex items-center gap-2 text-xs font-semibold text-foreground">
+                                <Megaphone size={14} aria-hidden /> Ausgeblendete Neuigkeiten
+                                <Badge variant="default" className="h-6 px-2 text-xs tabular-nums">
+                                    {hiddenItems.length}
+                                </Badge>
+                            </h5>
+                            <ul className="mt-2 space-y-2">
+                                {hiddenItems.map((item) => (
+                                    <li key={item.id} className="flex items-center gap-3">
+                                        <span className="min-w-0 flex-1 truncate text-xs font-medium text-muted-foreground">
+                                            {item.title}
+                                        </span>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-11 min-h-11 shrink-0 gap-1.5 text-xs"
+                                            onClick={() => handleUnhide(item)}
+                                        >
+                                            <Eye size={14} aria-hidden /> Einblenden
+                                        </Button>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
                     )}
                 </div>

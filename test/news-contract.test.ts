@@ -226,4 +226,20 @@ describe('cross-layer contract guards', () => {
     expect(widgetSource).toContain('getVisibleNews');
     expect(widgetSource).not.toContain('dismissed_news_ids');
   });
+
+  it('keeps the deep link, event module, card preference, and PHP plain-text cleanup wired', () => {
+    const popupSource = readRepoFile('src/components/NewsPopupModal.tsx');
+    const preferencesSource = readRepoFile('src/components/news/NewsPreferences.tsx');
+    const phpSource = readRepoFile('api/news.php');
+    const adminSource = readRepoFile('src/pages/admin/AdminNews.tsx');
+
+    expect(popupSource).toContain("navigate('/settings?news=read')");
+    expect(popupSource).not.toContain("from './news/NewsPreferences'");
+    expect(preferencesSource).toContain('useSearchParams');
+    expect(preferencesSource).toContain('isNewsCardEnabled');
+    expect(preferencesSource).not.toContain('export const NEWS_STATE_EVENT');
+    expect(readRepoFile('src/lib/news-events.ts')).toContain('fwg:news-state-changed');
+    expect(phpSource).toContain('(script|style)');
+    expect(adminSource).toContain('<code>news</code>');
+  });
 });

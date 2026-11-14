@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { Bell, CheckCircle2, EyeOff, Megaphone, Newspaper, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from './ui/dialog';
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from './ui/sheet';
@@ -16,13 +17,26 @@ import {
     type NewsItem,
 } from '../lib/news';
 import { sanitizeHtml } from '../lib/sanitize';
-import { notifyNewsStateChanged } from './news/NewsPreferences';
+import { notifyNewsStateChanged } from '../lib/news-events';
 
 function plainText(value: string): string {
-    return value
-        .replace(/<[^>]*>/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
+    const withoutBlocks = value.replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ');
+
+    try {
+        if (typeof DOMParser === 'undefined') throw new Error('DOMParser unavailable');
+        const doc = new DOMParser().parseFromString(withoutBlocks, 'text/html');
+        return (doc.body.textContent ?? '').replace(/\s+/g, ' ').trim();
+    } catch {
+        return withoutBlocks
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/&nbsp;/gi, ' ')
+            .replace(/&amp;/gi, '&')
+            .replace(/&lt;/gi, '<')
+            .replace(/&gt;/gi, '>')
+            .replace(/&quot;/gi, '"')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
 }
 
 function useIsMobile(): boolean {
@@ -90,18 +104,22 @@ export function NewsPopupModal() {
     const close = () => setOpen(false);
 
     const handleUnderstood = () => {
-        if (news) {
-            markNewsRead(news.id, viewer);
-            notifyNewsStateChanged();
+        if (!news || !user) return;
+        if (!markNewsRead(news.id, viewer)) {
+            toast.error('Neuigkeit konnte nicht als gelesen markiert werden.');
+            return;
         }
+        notifyNewsStateChanged();
         close();
     };
 
     const handleHide = () => {
-        if (news) {
-            hideNews(news.id, viewer);
-            notifyNewsStateChanged();
+        if (!news || !user) return;
+        if (!hideNews(news.id, viewer)) {
+            toast.error('Neuigkeit konnte nicht ausgeblendet werden.');
+            return;
         }
+        notifyNewsStateChanged();
         close();
     };
 
@@ -158,53 +176,63 @@ export function NewsPopupModal() {
 
                 <Description className="sr-only">Neue Schul-Mitteilung.</Description>
                 <div
-                    className="prose max-w-none whitespace-pre-line break-words border-l-2 border-border pl-4 text-sm font-medium leading-relaxed text-muted-foreground"
+                    className="prose max-w-none whitespace-pre-line break-words border-l-2 border-border pl-4 text-sm font-medium leading-relaxed text-muted-foreground [&_a]:font-medium [&_a]:underline"
                     dangerouslySetInnerHTML={{ __html: sanitizeHtml(news.body) }}
                 />
 
-                {/* Actions: Lesen und Ausblenden sind bewusst getrennt. */}
+                {/* Actions: Lesen und Ausblenden sind bewusst getrennt. Gäste
+                    können den Status nicht verwalten und bekommen nur Schließen. */}
                 <div className="space-y-2 pb-[env(safe-area-inset-bottom,0px)] pt-2">
-                    <Button
-                        onClick={handleUnderstood}
-                        className="h-12 min-h-12 w-full gap-2 rounded-full text-sm font-bold"
-                    >
-                        <CheckCircle2 size={16} aria-hidden /> Verstanden
-                    </Button>
+                    {user ? (
+                        <>
+                            <Button
+                                onClick={handleUnderstood}
+                                className="h-12 min-h-12 w-full gap-2 rounded-full text-sm font-bold"
+                            >
+                                <CheckCircle2 size={16} aria-hidden /> Verstanden
+                            </Button>
 
-                    <Button
-                        variant="outline"
-                        onClick={handleHide}
-                        className="h-11 min-h-11 w-full gap-2 rounded-full text-sm font-semibold"
-                    >
-                        <EyeOff size={16} aria-hidden /> Ausblenden
-                    </Button>
+                            <Button
+                                variant="outline"
+                                onClick={handleHide}
+                                className="h-11 min-h-11 w-full gap-2 rounded-full text-sm font-semibold"
+                            >
+                                <EyeOff size={16} aria-hidden /> Ausblenden
+                            </Button>
 
-                    {user && (
+                            <Button
+                                variant="unstyled"
+                                size="unstyled"
+                                hapticStyle={false}
+                                type="button"
+                                onClick={() => {
+                                    close();
+                                    navigate('/settings?news=read');
+                                }}
+                                className="flex min-h-11 w-full items-center justify-center gap-1.5 text-center text-xs font-semibold text-muted-foreground hover:text-foreground"
+                            >
+                                <Newspaper size={16} aria-hidden /> Gelesene Neuigkeiten anzeigen
+                            </Button>
+
+                            {'Notification' in window && Notification.permission === 'default' && (
+                                <Button
+                                    variant="unstyled"
+                                    size="unstyled"
+                                    hapticStyle={false}
+                                    type="button"
+                                    onClick={requestNotificationPermission}
+                                    className="flex min-h-11 w-full items-center justify-center gap-1.5 text-center text-xs font-semibold text-muted-foreground hover:text-foreground"
+                                >
+                                    <Bell size={16} aria-hidden /> Benachrichtigungen aktivieren
+                                </Button>
+                            )}
+                        </>
+                    ) : (
                         <Button
-                            variant="unstyled"
-                            size="unstyled"
-                            hapticStyle={false}
-                            type="button"
-                            onClick={() => {
-                                close();
-                                navigate('/settings');
-                            }}
-                            className="flex min-h-11 w-full items-center justify-center gap-1.5 text-center text-xs font-semibold text-muted-foreground hover:text-foreground"
+                            onClick={close}
+                            className="h-12 min-h-12 w-full gap-2 rounded-full text-sm font-bold"
                         >
-                            <Newspaper size={16} aria-hidden /> Gelesene Neuigkeiten anzeigen
-                        </Button>
-                    )}
-
-                    {'Notification' in window && Notification.permission === 'default' && (
-                        <Button
-                            variant="unstyled"
-                            size="unstyled"
-                            hapticStyle={false}
-                            type="button"
-                            onClick={requestNotificationPermission}
-                            className="flex min-h-11 w-full items-center justify-center gap-1.5 text-center text-xs font-semibold text-muted-foreground hover:text-foreground"
-                        >
-                            <Bell size={16} aria-hidden /> Benachrichtigungen aktivieren
+                            Schließen
                         </Button>
                     )}
                 </div>

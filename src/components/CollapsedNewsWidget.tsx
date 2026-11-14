@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { toast } from 'sonner';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -13,11 +14,12 @@ import {
     sortNews,
     type NewsItem,
 } from '../lib/news';
+import { isNewsCardEnabled } from '../lib/news-preferences';
+import { NEWS_STATE_EVENT, notifyNewsStateChanged } from '../lib/news-events';
 import { sanitizeHtml } from '../lib/sanitize';
 import { triggerHaptic } from '../lib/haptics';
 import { CheckCircle2, ChevronDown, ChevronUp, EyeOff } from 'lucide-react';
 import NewsIcon from './NewsIcon';
-import { NEWS_STATE_EVENT, notifyNewsStateChanged } from './news/NewsPreferences';
 
 export function CollapsedNewsWidget({ compact = false }: { compact?: boolean }) {
     const { user } = useAuth();
@@ -64,35 +66,47 @@ export function CollapsedNewsWidget({ compact = false }: { compact?: boolean }) 
     }, []);
 
     // Gelesene und ausgeblendete News werden hier nicht mehr angezeigt. Ohne
-    // ungelesene News verschwindet die Karte komplett aus dem ersten Viewport.
+    // ungelesene News oder bei deaktivierter Karte verschwindet die Fläche
+    // komplett aus dem ersten Viewport.
+    const cardEnabled = isNewsCardEnabled(viewer);
     const visibleNews = getVisibleNews(items, viewer);
     const news = visibleNews[0];
 
-    if (!news) {
+    if (!cardEnabled || !news) {
         return null;
     }
 
     const handleMarkRead = () => {
-        markNewsRead(news.id, viewer);
+        if (!user) return;
+        if (!markNewsRead(news.id, viewer)) {
+            triggerHaptic('error');
+            toast.error('Neuigkeit konnte nicht als gelesen markiert werden.');
+            return;
+        }
         triggerHaptic('success');
         setExpanded(false);
         notifyNewsStateChanged();
     };
 
     const handleHide = () => {
-        hideNews(news.id, viewer);
+        if (!user) return;
+        if (!hideNews(news.id, viewer)) {
+            triggerHaptic('error');
+            toast.error('Neuigkeit konnte nicht ausgeblendet werden.');
+            return;
+        }
         triggerHaptic('success');
         setExpanded(false);
         notifyNewsStateChanged();
     };
 
-    const actions = (
+    const actions = user ? (
         <div className="mt-3 flex flex-wrap gap-2">
             <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-10 gap-1.5 text-xs"
+                className="h-11 min-h-11 gap-1.5 text-xs"
                 onClick={handleMarkRead}
             >
                 <CheckCircle2 size={14} aria-hidden /> Verstanden
@@ -101,13 +115,13 @@ export function CollapsedNewsWidget({ compact = false }: { compact?: boolean }) 
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="h-10 gap-1.5 text-xs"
+                className="h-11 min-h-11 gap-1.5 text-xs"
                 onClick={handleHide}
             >
                 <EyeOff size={14} aria-hidden /> Ausblenden
             </Button>
         </div>
-    );
+    ) : null;
 
     if (compact) {
         return (
@@ -131,7 +145,7 @@ export function CollapsedNewsWidget({ compact = false }: { compact?: boolean }) 
                         <p className="text-xs font-semibold text-muted-foreground">{new Date(news.created_at).toLocaleDateString('de-DE')}</p>
                         <h4 className="mt-1 text-sm font-bold text-foreground">{news.title}</h4>
                         <div
-                            className="prose mt-2 max-w-none whitespace-pre-line break-words text-sm leading-relaxed text-muted-foreground [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm"
+                            className="prose mt-2 max-w-none whitespace-pre-line break-words text-sm leading-relaxed text-muted-foreground [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm [&_a]:font-medium [&_a]:underline"
                             dangerouslySetInnerHTML={{ __html: sanitizeHtml(news.body) }}
                         />
                         {actions}
@@ -159,10 +173,10 @@ export function CollapsedNewsWidget({ compact = false }: { compact?: boolean }) 
                     </div>
                     <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                            <Badge variant="secondary" className="h-5 bg-muted px-2 text-[11px] font-bold text-foreground">
+                            <Badge variant="secondary" className="h-6 bg-muted px-2 text-xs font-bold text-foreground">
                                 Neuigkeiten
                             </Badge>
-                            <span className="text-[11px] font-medium text-muted-foreground">
+                            <span className="text-xs font-medium text-muted-foreground">
                                 {new Date(news.created_at).toLocaleDateString('de-DE')}
                             </span>
                         </div>
@@ -182,7 +196,7 @@ export function CollapsedNewsWidget({ compact = false }: { compact?: boolean }) 
             {expanded && (
                 <CardContent id="collapsed-news-content" padding="flush" className="border-t border-border px-5 pb-5 pt-4">
                     <div
-                        className="prose max-w-none whitespace-pre-line break-words text-sm font-medium leading-relaxed text-muted-foreground [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm"
+                        className="prose max-w-none whitespace-pre-line break-words text-sm font-medium leading-relaxed text-muted-foreground [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm [&_a]:font-medium [&_a]:underline"
                         dangerouslySetInnerHTML={{ __html: sanitizeHtml(news.body) }}
                     />
                     {actions}

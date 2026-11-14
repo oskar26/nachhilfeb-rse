@@ -121,7 +121,7 @@ export default function AdminNews() {
                     <AlertCircle className="text-muted-foreground" aria-hidden />
                     <AlertTitle>Datenbank-Tabelle fehlt</AlertTitle>
                     <AlertDescription>
-                        Die Tabelle <code>announcements</code> ist auf dem Server derzeit nicht verfügbar.
+                        Die Tabelle <code>news</code> ist auf dem Server derzeit nicht verfügbar.
                         Bitte wende dich an die technische Administration, damit Neuigkeiten wieder verwaltet werden können.
                     </AlertDescription>
                 </Alert>
@@ -231,12 +231,12 @@ export default function AdminNews() {
                                                 {title.trim() || 'Titel der Neuigkeit'}
                                             </p>
                                             <div
-                                                className="prose mt-1 max-w-none whitespace-pre-line break-words text-xs leading-relaxed text-muted-foreground [&_h1]:text-sm [&_h2]:text-sm [&_h3]:text-sm"
+                                                className="prose mt-1 max-w-none whitespace-pre-line break-words text-xs leading-relaxed text-muted-foreground [&_h1]:text-sm [&_h2]:text-sm [&_h3]:text-sm [&_a]:font-medium [&_a]:underline"
                                                 dangerouslySetInnerHTML={{ __html: previewHtml }}
                                             />
                                         </div>
                                     </div>
-                                    <p className="text-[11px] leading-relaxed text-muted-foreground">
+                                    <p className="text-xs leading-relaxed text-muted-foreground">
                                         Skripte, iframes und Video-Einbettungen werden entfernt. Ein eigenes Embed-Feld benötigt erst eine Schema- und Sicherheitsentscheidung.
                                     </p>
                                 </div>
@@ -290,7 +290,7 @@ export default function AdminNews() {
                                                 </Button>
                                             </div>
                                             <div
-                                                className="prose mt-1 max-w-none whitespace-pre-line break-words text-sm leading-relaxed text-muted-foreground [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm"
+                                                className="prose mt-1 max-w-none whitespace-pre-line break-words text-sm leading-relaxed text-muted-foreground [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm [&_a]:font-medium [&_a]:underline"
                                                 dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.content) }}
                                             />
                                             <div className="mt-3 flex items-center gap-1 text-xs font-medium text-muted-foreground">
