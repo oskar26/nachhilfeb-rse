@@ -17,7 +17,6 @@ import { cn } from '../lib/utils';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet';
-import { SidebarTrigger } from './ui/sidebar';
 import NotificationCenter from './NotificationCenter';
 import NewsIcon from './NewsIcon';
 import { toast } from 'sonner';
@@ -50,9 +49,9 @@ function formatNewsDate(iso: string) {
 }
 
 /**
- * Mobile Utility-Chrome: ersetzt die frühere Markenleiste. Öffnet Navigation,
- * Neuigkeiten und Meldungen als kompakte Overlays, ohne die Bottom-Navigation
- * um einen weiteren Eintrag zu erweitern.
+ * Mobile Utility-Chrome: öffnet Neuigkeiten und Meldungen als kompakte
+ * Overlays. Die Navigation liegt ausschließlich in der Bottom-Navigation;
+ * deshalb gibt es hier bewusst keinen Sidebar-Trigger mehr.
  */
 export default function MobileQuickMenu({ unreadCount, onCountChange }: Props) {
     const { user } = useAuth();
@@ -179,12 +178,7 @@ export default function MobileQuickMenu({ unreadCount, onCountChange }: Props) {
     return (
         <>
             <Popover open={quickOpen} onOpenChange={setQuickOpen}>
-                <div className="flex items-center gap-0.5 rounded-full border border-border/70 bg-card/95 p-1 shadow-soft backdrop-blur-xl md:hidden">
-                    <SidebarTrigger
-                        aria-label="Navigation öffnen"
-                        title="Navigation öffnen"
-                        className="size-11 shrink-0 rounded-full text-muted-foreground hover:text-foreground"
-                    />
+                <div className="flex items-center justify-center rounded-full border border-border/70 bg-card/95 p-1 shadow-soft backdrop-blur-xl md:hidden">
                     <PopoverTrigger
                         render={
                             <Button
