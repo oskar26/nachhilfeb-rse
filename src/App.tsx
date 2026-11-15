@@ -12,6 +12,7 @@ import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Landing from './pages/Landing';
 import Chat from './pages/Chat';
+import Chats from './pages/Chats';
 import Social from './pages/Social';
 import { ThemeProvider } from './components/ThemeProvider';
 import { Toaster } from './components/ui/sonner';
@@ -161,6 +162,7 @@ function App() {
               <Route path="matching" element={<Social initialTab="matches" />} />
               <Route path="favorites" element={<Social initialTab="watchlist" />} />
               <Route path="settings" element={<Settings />} />
+              <Route path="chats" element={<Chats />} />
               <Route path="chat/:requestId" element={<Chat />} />
             </Route>
 

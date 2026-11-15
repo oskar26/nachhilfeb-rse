@@ -1,73 +1,90 @@
-import { Label } from '@/components/ui/label';
-import { NativeSelect } from '@/components/ui/native-select';
-import { Textarea } from '@/components/ui/textarea';
-import { useEffect, useState, useRef } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api, apiErrorMessage } from '../lib/api';
 import { startChatPoll } from '../lib/polling';
 import { useAuth } from '../context/AuthContext';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
 import { Skeleton } from '../components/ui/skeleton';
-import { ChevronLeft, Send, Trash2, Check, CheckCheck, Pencil, MoreVertical, Ban, Calendar, CalendarDays, Download, EyeOff, Flag } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../lib/utils';
 import { prefersReducedMotion } from '../lib/motion';
 import { mergeMessages, type ChatMessage } from '../lib/chat-messages';
 import ReportWizard from '../components/ReportWizard';
-import { downloadICSFile } from '../lib/calendar';
 import { blockedReason, checkContent, loadFilterOverrides, type FilterOverrides } from '../lib/profanity';
 import { maybeAutoReport } from '../lib/autoreport';
-import { avatarTone, initials } from '../lib/avatar';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/dialog';
+import { triggerHaptic } from '../lib/haptics';
+import { buildChatTimeline } from '../lib/chat-grouping';
+import { requestStatusLabel } from '../lib/chat-conversations';
+import {
+    appointmentSubjectFromRequest,
+    appointmentSlotKey,
+    buildAppointmentConfirmation,
+    buildAppointmentDecline,
+    buildAppointmentMessage,
+    deriveAppointmentStatus,
+    extractAppointments,
+    parseAppointmentMessage,
+    type AppointmentDetails,
+    type AppointmentLocalStatus,
+} from '../lib/chat-appointments';
+import { loadChatToolSettings, saveChatToolSettings, type ChatToolSettings } from '../lib/chat-settings';
+import { useIsMobile } from '@/hooks/use-mobile';
+import ChatHeader, { type ChatPartner } from '../components/chat/ChatHeader';
+import ChatComposer from '../components/chat/ChatComposer';
+import ChatEmptyState from '../components/chat/ChatEmptyState';
+import ChatToolsDialog from '../components/chat/ChatToolsDialog';
+import CalendarPanel from '../components/chat/CalendarPanel';
+import AppointmentDialog from '../components/chat/AppointmentDialog';
+import MessageBubble from '../components/chat/MessageBubble';
+import chatStyles from '../components/chat/chat-theme.module.css';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../components/ui/alert-dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
+import { Ban } from 'lucide-react';
+import { hideChatId } from '../lib/hidden-chats';
+
+// Bestehende Importe aus der Chat-Seite bleiben gültig.
+export { getHiddenChatIds, hideChatId, unhideChatId } from '../lib/hidden-chats';
 
 interface Message extends ChatMessage {
     request_id: string;
 }
 
-// Auf diesem Gerät verborgene Chats (Anfrage-IDs). Honest client-side hide: Die Anfrage
-// und der Verlauf bleiben für die SV-Moderation gespeichert, nur die Liste wird aufgeräumt.
-const HIDDEN_CHATS_KEY = 'fwg_hidden_chats';
-
-export function getHiddenChatIds(): string[] {
-    try {
-        const parsed: unknown = JSON.parse(localStorage.getItem(HIDDEN_CHATS_KEY) ?? '[]');
-        return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === 'string') : [];
-    } catch {
-        return [];
-    }
+interface ChatRequestInfo {
+    status?: string;
+    ad_title?: string | null;
+    ad_subjects?: string[] | null;
+    ads?: { short_description?: string | null } | null;
 }
 
-export function hideChatId(id: string): void {
-    try {
-        const next = new Set(getHiddenChatIds());
-        next.add(id);
-        localStorage.setItem(HIDDEN_CHATS_KEY, JSON.stringify([...next]));
-    } catch { /* Storage darf den Flow nie stoppen */ }
-}
+// Auf diesem Gerät verborgene Chats werden in src/lib/hidden-chats.ts verwaltet.
 
-export function unhideChatId(id: string): void {
-    try {
-        localStorage.setItem(HIDDEN_CHATS_KEY, JSON.stringify(getHiddenChatIds().filter(x => x !== id)));
-    } catch { /* ignore */ }
+function capitalize(value: string): string {
+    return value ? `${value.charAt(0).toLocaleUpperCase('de-DE')}${value.slice(1)}` : value;
 }
 
 export default function Chat() {
-    const { requestId } = useParams();    const navigate = useNavigate();
+    const { requestId } = useParams();
+    const navigate = useNavigate();
     const { user } = useAuth();
+    const isMobile = useIsMobile();
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
-    const [otherUser, setOtherUser] = useState<any>(null);
+    const [otherUser, setOtherUser] = useState<ChatPartner | null>(null);
+    const [requestInfo, setRequestInfo] = useState<ChatRequestInfo | null>(null);
     const [loading, setLoading] = useState(true);
-    const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+    const [isSending, setIsSending] = useState(false);
+    const [quickSendingId, setQuickSendingId] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const chatSurfaceRef = useRef<HTMLDivElement>(null);
+    const composerRef = useRef<HTMLTextAreaElement>(null);
     const forceScrollRef = useRef(false);
     const previousMessageCountRef = useRef(0);
     const nearBottomRef = useRef(true);
     const loadedRequestIdRef = useRef<string | null>(null);
+
+    // Lokale Bearbeitungen und lokal ausgeblendete Nachrichten überleben das
+    // 2-Sekunden-Polling. Das Backend hat dafür keine Endpunkte; nach einem
+    // Neuladen kommt der Serverstand wieder.
+    const [localEdits, setLocalEdits] = useState<Record<string, { content: string; edited_at: string }>>({});
+    const [hiddenMessageIds, setHiddenMessageIds] = useState<Set<string>>(() => new Set());
 
     // Edit state
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -95,29 +112,67 @@ export default function Chat() {
 
     // Appointment booking state
     const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
-    const [appSubject, setAppSubject] = useState('Mathematik');
-    const [appDate, setAppDate] = useState('');
-    const [appTime, setAppTime] = useState('14:00');
+    const [appointmentSeed, setAppointmentSeed] = useState<Partial<AppointmentDetails> | null>(null);
+    const [appointmentDialogKey, setAppointmentDialogKey] = useState(0);
+    const [calendarOpen, setCalendarOpen] = useState(false);
+    const [toolsOpen, setToolsOpen] = useState(false);
 
-    const handleCreateAppointment = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!appDate || !appTime || !user || !requestId) return;
-        if (isBlocked) {
-            toast.error('Du kannst diesem Nutzer keine Nachrichten senden.');
-            return;
+    // Lokale Chat-Werkzeuge: reine UI-Schalter, keine Backend-Features.
+    const [tools, setTools] = useState<ChatToolSettings>(() => loadChatToolSettings());
+
+    const updateTools = (next: ChatToolSettings) => {
+        setTools(next);
+        saveChatToolSettings(next);
+    };
+
+    useEffect(() => {
+        if (!tools.calendar) setCalendarOpen(false);
+    }, [tools.calendar]);
+
+    useEffect(() => {
+        if (!tools.appointments) setAppointmentModalOpen(false);
+    }, [tools.appointments]);
+
+    const displayedMessages = useMemo(() => messages
+        .filter((message) => !hiddenMessageIds.has(message.id))
+        .map((message) => {
+            const localEdit = localEdits[message.id];
+            return localEdit ? { ...message, ...localEdit } : message;
+        }), [messages, hiddenMessageIds, localEdits]);
+
+    const timeline = useMemo(() => buildChatTimeline(displayedMessages), [displayedMessages]);
+    const appointments = useMemo(() => extractAppointments(displayedMessages), [displayedMessages]);
+    const appointmentStatusById = useMemo(() => {
+        const statusBySlot = new Map(appointments.map((entry) => [appointmentSlotKey(entry.details), entry.status]));
+        const result = new Map<string, AppointmentLocalStatus>();
+        for (const message of displayedMessages) {
+            const details = parseAppointmentMessage(message.content);
+            if (!details) continue;
+            result.set(
+                message.id,
+                statusBySlot.get(appointmentSlotKey(details)) ?? deriveAppointmentStatus(message.id, displayedMessages)
+            );
         }
+        return result;
+    }, [appointments, displayedMessages]);
 
-        const formattedContent = `TERMIN-VEREINBARUNG\nFach: ${appSubject}\nDatum: ${appDate}\nUhrzeit: ${appTime} Uhr (45 Min)\nOrt: FWG Bibliothek / Schulgelände`;
+    const defaultAppointmentSubject = useMemo(
+        () => appointmentSubjectFromRequest(requestInfo?.ad_subjects),
+        [requestInfo]
+    );
 
-        const { error } = await api.messages.send(requestId, formattedContent);
+    const statusText = useMemo(() => {
+        const status = requestStatusLabel(requestInfo?.status);
+        const subject = requestInfo?.ads?.short_description?.trim()
+            || requestInfo?.ad_title?.trim()
+            || (requestInfo?.ad_subjects?.[0] ? capitalize(requestInfo.ad_subjects[0]) : '');
+        return subject ? `${subject} · ${status}` : status;
+    }, [requestInfo]);
 
-        if (error) {
-            toast.error('Fehler beim Termin-Vorschlagen.');
-        } else {
-            forceScrollRef.current = true;
-            toast.success('Terminvorschlag im Chat gesendet!');
-            setAppointmentModalOpen(false);
-        }
+    const openAppointmentDialog = (seed?: Partial<AppointmentDetails> | null) => {
+        setAppointmentSeed(seed ?? null);
+        setAppointmentDialogKey((key) => key + 1);
+        setAppointmentModalOpen(true);
     };
 
     const scrollToBottom = () => {
@@ -133,34 +188,36 @@ export default function Chat() {
     const fetchData = async () => {
         setLoading(true);
         if (!requestId) {
-            navigate('/requests');
+            navigate('/chats');
             return;
         }
         // Fetch request info to get other user id
         const { data: request } = await api.requests.get(requestId);
         if (!request) {
-            navigate('/requests');
+            navigate('/chats');
             return;
         }
 
-        const otherId = request.requester_id === user?.id ? request.owner_id : request.requester_id;
+        const requestRecord = request as ChatRequestInfo & { requester_id?: string; owner_id?: string };
+        setRequestInfo(requestRecord);
+        const otherId = requestRecord.requester_id === user?.id ? requestRecord.owner_id : requestRecord.requester_id;
+        if (!otherId) {
+            navigate('/chats');
+            return;
+        }
         const { data: profile } = await api.profiles.get(otherId);
-        setOtherUser(profile);
+        setOtherUser(profile as ChatPartner);
         setOtherUserId(otherId);
 
         // Blockstatus laden (andere Seite kann den Nutzer blockiert haben)
-        if (otherId) {
-            setIsBlockLoading(true);
-            try {
-                const { data: blockStatus } = await api.blocks.status(otherId);
-                setIsBlocked(!!blockStatus?.blocked);
-            } catch (e) {
-                console.error('Blockstatus konnte nicht geladen werden:', e);
-            } finally {
-                setIsBlockLoading(false);
-            }
-        } else {
-            setIsBlocked(false);
+        setIsBlockLoading(true);
+        try {
+            const { data: blockStatus } = await api.blocks.status(otherId);
+            setIsBlocked(!!blockStatus?.blocked);
+        } catch (e) {
+            console.error('Blockstatus konnte nicht geladen werden:', e);
+        } finally {
+            setIsBlockLoading(false);
         }
 
         // Fetch messages (der Server markiert empfangene Nachrichten beim GET serverseitig als gelesen)
@@ -200,12 +257,15 @@ export default function Chat() {
     }, [user, requestId]);
 
     // Neue Anfrage: Der Verlauf startet wieder unten, unabhängig davon, wo die
-    // vorherige Unterhaltung gescrollt war.
+    // vorherige Unterhaltung gescrollt war. Lokale Overlays gelten nur für die
+    // Unterhaltung, in der sie entstanden sind.
     useEffect(() => {
         previousMessageCountRef.current = 0;
         nearBottomRef.current = true;
         forceScrollRef.current = true;
         loadedRequestIdRef.current = null;
+        setLocalEdits({});
+        setHiddenMessageIds(new Set());
     }, [requestId]);
 
     // Nur bei echtem Zuwachs unten nachführen. Reine read_at-/edited-Polls
@@ -222,48 +282,109 @@ export default function Chat() {
         scrollToBottom();
     }, [messages]);
 
-    const sendMessage = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newMessage.trim() || !user || !requestId) return;
+    const sendTextMessage = async (content: string): Promise<boolean> => {
+        if (!requestId || !user) return false;
         if (isBlocked) {
             toast.error('Du kannst diesem Nutzer keine Nachrichten senden.');
-            return;
+            return false;
         }
 
-        const check = checkContent(newMessage, filterOverrides);
+        const check = checkContent(content, filterOverrides);
         if (check.blocked) {
-            toast.error(blockedReason(newMessage, filterOverrides) ?? 'Diese Nachricht wurde vom Inhaltsfilter blockiert.', { duration: 6000 });
-            void maybeAutoReport(check, newMessage, { category: 'chat', reportedUserId: user.id, place: 'Chat' });
-            return;
+            toast.error(blockedReason(content, filterOverrides) ?? 'Diese Nachricht wurde vom Inhaltsfilter blockiert.', { duration: 6000 });
+            void maybeAutoReport(check, content, { category: 'chat', reportedUserId: user.id, place: 'Chat' });
+            return false;
         }
 
-        const msgContent = newMessage;
-        setNewMessage(''); // optimistic clear
-        setMenuOpenId(null);
-
-        const { error } = await api.messages.send(requestId, msgContent);
-
+        const { error } = await api.messages.send(requestId, content);
         if (error) {
             toast.error(error.status === 403
                 ? 'Du kannst diesem Nutzer keine Nachrichten senden.'
                 : 'Fehler beim Senden.');
             console.error(error);
-        } else {
-            // Eigene Nachricht soll auch dann unten erscheinen, wenn man
-            // vorher hochgescrollt war.
-            forceScrollRef.current = true;
+            return false;
         }
+
+        // Eigene Nachricht soll auch dann unten erscheinen, wenn man
+        // vorher hochgescrollt war.
+        forceScrollRef.current = true;
+        triggerHaptic('light');
+        return true;
     };
 
-    const deleteMessage = async (msgId: string) => {
+    const sendMessage = async () => {
+        if (!newMessage.trim() || !user || !requestId || isSending) return;
+
+        const content = newMessage;
+        setIsSending(true);
+        setNewMessage(''); // optimistic clear
+
+        const sent = await sendTextMessage(content);
+        if (!sent) setNewMessage(content);
+        setIsSending(false);
+    };
+
+    const handleStarter = (text: string) => {
+        triggerHaptic('selection');
+        setNewMessage(text);
+        window.requestAnimationFrame(() => composerRef.current?.focus());
+    };
+
+    const handleQuickMessage = async (messageId: string, text: string) => {
+        if (quickSendingId) return;
+        setQuickSendingId(messageId);
+        const sent = await sendTextMessage(text);
+        setQuickSendingId(null);
+        if (sent) toast.success('Als Nachricht gesendet.', { duration: 1600 });
+    };
+
+    const handleAcceptAppointment = async (messageId: string, details: AppointmentDetails) => {
+        if (quickSendingId) return;
+        setQuickSendingId(messageId);
+        const sent = await sendTextMessage(buildAppointmentConfirmation(details));
+        setQuickSendingId(null);
+        if (sent) toast.success('Antwort gesendet.');
+    };
+
+    const handleDeclineAppointment = async (messageId: string, details: AppointmentDetails) => {
+        if (quickSendingId) return;
+        setQuickSendingId(messageId);
+        const sent = await sendTextMessage(buildAppointmentDecline(details));
+        setQuickSendingId(null);
+        if (sent) toast.success('Absage gesendet.');
+    };
+
+    const handleCreateAppointment = async (details: AppointmentDetails): Promise<boolean> => {
+        if (!tools.appointments) {
+            toast.error('Terminvorschläge sind in den Chat-Werkzeugen ausgeschaltet.');
+            return false;
+        }
+        const sent = await sendTextMessage(buildAppointmentMessage(details));
+        if (sent) toast.success('Terminvorschlag im Chat gesendet!');
+        return sent;
+    };
+
+    const handleGoToMessage = (messageId: string) => {
+        setCalendarOpen(false);
+        window.setTimeout(() => {
+            const element = chatSurfaceRef.current?.querySelector<HTMLElement>(`[data-message-id="${messageId}"]`);
+            element?.scrollIntoView({
+                behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+                block: 'center',
+            });
+        }, 80);
+    };
+
+    const deleteMessage = (msgId: string) => {
+        triggerHaptic('light');
         setConfirmDialog({
             title: 'Nachricht ausblenden?',
-            description: 'Möchtest du diese Nachricht auf diesem Gerät ausblenden?',
+            description: 'Möchtest du diese Nachricht auf diesem Gerät ausblenden? Nach einem Neuladen ist sie wieder sichtbar.',
             confirmLabel: 'Ausblenden',
             onConfirm: () => {
                 // Kein Backend-Endpunkt zum Ändern von Nachrichten: Das Löschen bleibt lokal
                 // sichtbar und ist nach dem Neuladen wieder da.
-                setMessages(prev => prev.filter(m => m.id !== msgId));
+                setHiddenMessageIds(prev => new Set(prev).add(msgId));
             },
         });
     };
@@ -277,7 +398,7 @@ export default function Chat() {
             onConfirm: () => {
                 if (requestId) hideChatId(requestId);
                 toast.success('Chat auf diesem Gerät verborgen.');
-                navigate('/requests');
+                navigate('/chats');
             },
         });
     };
@@ -327,7 +448,7 @@ export default function Chat() {
 
     const hideChatAndLeave = () => {
         if (!requestId) {
-            navigate('/requests');
+            navigate('/chats');
             return;
         }
         setConfirmDialog({
@@ -336,13 +457,14 @@ export default function Chat() {
             confirmLabel: 'Chat verbergen',
             onConfirm: () => {
                 hideChatId(requestId);
-                toast.success('Chat auf diesem Gerät verborgen. Über „Verborgene Chats einblenden“ in den Anfragen holst du ihn zurück.');
-                navigate('/requests');
+                toast.success('Chat auf diesem Gerät verborgen. Über „Verborgene Chats einblenden“ auf der Anfragen-Seite holst du ihn zurück.');
+                navigate('/chats');
             },
         });
     };
 
     const startEditing = (msg: Message) => {
+        triggerHaptic('light');
         setEditingId(msg.id);
         setEditContent(msg.content);
     };
@@ -363,385 +485,230 @@ export default function Chat() {
             return;
         }
 
-        // Kein Backend-Endpunkt zum Ändern von Nachrichten: Die Bearbeitung bleibt lokal sichtbar.
-        setMessages(prev => prev.map(m => m.id === msgId ? { ...m, content: trimmed, edited_at: new Date().toISOString() } : m));
+        // Kein Backend-Endpunkt zum Ändern von Nachrichten: Die Bearbeitung bleibt lokal
+        // sichtbar. Der Poll überschreibt sie dank localEdits nicht mehr nach 2 Sekunden.
+        setLocalEdits(prev => ({
+            ...prev,
+            [msgId]: { content: trimmed, edited_at: new Date().toISOString() },
+        }));
         setEditingId(null);
         setEditContent('');
-    };
-
-    const handleEditKeyDown = (e: React.KeyboardEvent, msgId: string) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            saveEdit(msgId);
-        }
-        if (e.key === 'Escape') {
-            cancelEditing();
-        }
+        triggerHaptic('light');
     };
 
     if (loading) return (
-        <div className="chat-surface flex min-h-0 flex-1 flex-col" role="status" aria-label="Chat wird geladen">
-            <div className="flex items-center gap-3 bg-chat-header p-3 shadow-soft">
-                <Skeleton className="size-10 rounded-full" />
-                <div className="space-y-2">
-                    <Skeleton className="h-3.5 w-32 rounded-full" />
-                    <Skeleton className="h-3 w-16 rounded-full" />
+        <div
+            className={cn('flex min-h-0 flex-1 flex-col overflow-hidden', chatStyles.surface)}
+            role="status"
+            aria-label="Chat wird geladen"
+        >
+            <div className={cn('shrink-0 pt-[max(0.5rem,env(safe-area-inset-top,0px))]', chatStyles.header)}>
+                <div className="mx-auto flex w-full max-w-3xl items-center gap-3 px-3 pb-3">
+                    <Skeleton className="size-11 rounded-full" />
+                    <Skeleton className="size-10 rounded-full" />
+                    <div className="space-y-2">
+                        <Skeleton className="h-3.5 w-32 rounded-full" />
+                        <Skeleton className="h-3 w-24 rounded-full" />
+                    </div>
                 </div>
             </div>
-            <div className="mx-auto w-full max-w-2xl flex-1 space-y-3 p-4">
-                <Skeleton className="mx-auto h-7 w-40 rounded-full bg-chat-chip" />
-                <Skeleton className="h-16 w-3/4 rounded-chat bg-chat-other" />
-                <Skeleton className="ml-auto h-14 w-2/3 rounded-chat bg-chat-own" />
-                <Skeleton className="h-20 w-4/5 rounded-chat bg-chat-other" />
-                <Skeleton className="ml-auto h-12 w-1/2 rounded-chat bg-chat-own" />
+            <div className="mx-auto w-full max-w-3xl flex-1 space-y-3 p-4">
+                <Skeleton className="mx-auto h-7 w-40 rounded-full" />
+                <Skeleton className="h-16 w-3/4 rounded-[18px] bg-chat-other" />
+                <Skeleton className="ml-auto h-14 w-2/3 rounded-[18px] bg-chat-own" />
+                <Skeleton className="h-20 w-4/5 rounded-[18px] bg-chat-other" />
+                <Skeleton className="ml-auto h-12 w-1/2 rounded-[18px] bg-chat-own" />
             </div>
         </div>
     );
 
     return (
         <>
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
-            {/* Header */}
-            <header className="flex shrink-0 items-center gap-0.5 bg-chat-header p-2 shadow-[0_1px_2px_rgba(0,0,0,0.06)] md:gap-1">
-                <Button variant="ghost" size="icon" onClick={() => navigate('/requests')} className="size-11 shrink-0 rounded-full text-chat-text hover:bg-black/5 dark:hover:bg-white/10" aria-label="Zurück zu den Anfragen">
-                    <ChevronLeft size={21} aria-hidden />
-                </Button>
-                <div className="flex min-w-0 flex-1 items-center gap-2.5 px-0.5">
-                    <div className={cn('grid size-10 shrink-0 place-items-center overflow-hidden rounded-full text-sm font-bold', otherUser?.avatar_url ? 'bg-muted' : avatarTone(otherUser?.display_name))}>
-                        {otherUser?.avatar_url ? <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" /> : initials(otherUser?.display_name)}
-                    </div>
-                    <div className="min-w-0">
-                        <p className="truncate text-[15px] font-bold leading-tight text-chat-text">{otherUser?.display_name || 'Unbekannt'}</p>
-                        <p className="text-[13px] text-chat-meta">Chat</p>
-                    </div>
-                </div>
+            <div className={cn('relative flex min-h-0 flex-1 flex-col overflow-hidden', chatStyles.surface)}>
+                <ChatHeader
+                    otherUser={otherUser}
+                    statusText={statusText}
+                    isBlocked={isBlocked}
+                    isBlockLoading={isBlockLoading}
+                    hasOtherUser={!!otherUserId}
+                    calendarOpen={calendarOpen}
+                    showAppointments={tools.appointments}
+                    showCalendar={tools.calendar}
+                    onBack={() => navigate('/chats')}
+                    onToggleCalendar={() => setCalendarOpen((open) => !open)}
+                    onOpenAppointment={() => openAppointmentDialog({ subject: defaultAppointmentSubject })}
+                    onOpenTools={() => setToolsOpen(true)}
+                    onReport={() => setReportOpen(true)}
+                    onToggleBlock={handleToggleBlock}
+                    onHideChat={handleHideChat}
+                    onHideAndLeave={hideChatAndLeave}
+                />
 
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setAppointmentModalOpen(true)}
-                    className="size-11 shrink-0 rounded-full text-chat-text hover:bg-black/5 dark:hover:bg-white/10"
-                    title="Termin für Nachhilfestunde vereinbaren"
-                    aria-label="Termin vereinbaren"
-                >
-                    <Calendar size={19} aria-hidden />
-                </Button>
-
-                <DropdownMenu>
-                    <DropdownMenuTrigger
-                        aria-label="Weitere Optionen"
-                        className="grid size-11 shrink-0 place-items-center rounded-full text-chat-text transition-colors hover:bg-black/5 dark:hover:bg-white/10"
-                    >
-                        <MoreVertical size={20} aria-hidden />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" sideOffset={6} className="min-w-56 p-1">
-                        <DropdownMenuItem onClick={() => setAppointmentModalOpen(true)} className="min-h-11 gap-2.5 px-3">
-                            <CalendarDays size={16} aria-hidden /> Termin vereinbaren
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setReportOpen(true)} className="min-h-11 gap-2.5 px-3">
-                            <Flag size={16} aria-hidden /> Nutzer melden
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                            onClick={handleToggleBlock}
-                            disabled={isBlockLoading || !otherUserId}
-                            className="min-h-11 gap-2.5 px-3"
+                <div className="flex min-h-0 flex-1 overflow-hidden">
+                    <div className="flex min-w-0 flex-1 flex-col">
+                        {/* Messages Area */}
+                        <div
+                            ref={chatSurfaceRef}
+                            onScroll={() => { nearBottomRef.current = isNearBottom(); }}
+                            role="log"
+                            aria-live="polite"
+                            aria-relevant="additions"
+                            aria-label="Chatverlauf"
+                            className={cn('min-h-0 flex-1 overflow-y-auto overscroll-contain px-2.5 py-4 sm:px-6', chatStyles.scroller)}
                         >
-                            <Ban size={16} aria-hidden /> {isBlocked ? 'Blockierung aufheben' : 'Nutzer blockieren'}
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={handleHideChat} className="min-h-11 gap-2.5 px-3">
-                            <Ban size={16} aria-hidden /> Chat verbergen
-                        </DropdownMenuItem>
-                        <DropdownMenuItem variant="destructive" onClick={hideChatAndLeave} className="min-h-11 gap-2.5 px-3">
-                            <EyeOff size={16} aria-hidden /> Chat verbergen und verlassen
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </header>
-
-            {/* Messages Area */}
-            <div
-                ref={chatSurfaceRef}
-                onScroll={() => { nearBottomRef.current = isNearBottom(); }}
-                className="chat-surface min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 sm:px-6"
-            >
-                {messages.length === 0 ? (
-                    <div className="mx-auto max-w-sm rounded-panel bg-chat-other/95 p-5 text-center text-[13px] leading-relaxed text-chat-meta shadow-soft">
-                        Hier beginnt euer Chat. Deine Nachrichten werden über eine verschlüsselte Verbindung (HTTPS) übertragen und auf Servern in Deutschland gespeichert. Bitte achte auf unsere <a href="#/nutzungsbedingungen" className="font-semibold text-chat-text underline underline-offset-4">Nutzungsbedingungen</a>.
-                    </div>
-                ) : (
-                    messages.map((msg, idx) => {
-                        const isMe = msg.sender_id === user?.id;
-                        const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                        const isEditing = editingId === msg.id;
-
-                        // Show date divider if day changed
-                        const prevMsg = idx > 0 ? messages[idx - 1] : null;
-                        const nextMsg = idx < messages.length - 1 ? messages[idx + 1] : null;
-                        const sameDayAsPrev = prevMsg && new Date(msg.created_at).toDateString() === new Date(prevMsg.created_at).toDateString();
-                        const showDate = !sameDayAsPrev;
-                        const firstInGroup = showDate || !prevMsg || prevMsg.sender_id !== msg.sender_id;
-                        const sameDayAsNext = nextMsg && new Date(msg.created_at).toDateString() === new Date(nextMsg.created_at).toDateString();
-                        const lastInGroup = !nextMsg || !sameDayAsNext || nextMsg.sender_id !== msg.sender_id;
-
-                        return (
-                            <div key={msg.id} className="flex flex-col">
-                                {showDate && (
-                                    <div className="my-3 text-center">
-                                        <span className="rounded-full bg-chat-chip px-3.5 py-1.5 text-xs font-medium text-chat-meta shadow-soft backdrop-blur-sm">
-                                            {new Date(msg.created_at).toLocaleDateString([], { weekday: 'long', day: '2-digit', month: 'long' })}
-                                        </span>
-                                    </div>
-                                )}
-                                <div className={cn("group/message relative flex max-w-[80%] items-start", isMe ? "self-end justify-end" : "self-start", firstInGroup ? "mt-3" : "mt-0.5")}>
-                                    <div
-                                        onClick={() => isMe && setMenuOpenId(prev => prev === msg.id ? null : msg.id)}
-                                        className={cn(
-                                            "relative min-w-[86px] break-words rounded-chat px-3 py-2 text-[15px] leading-[1.35] shadow-[0_1px_1px_rgba(11,20,26,0.06)]",
-                                            isMe ? "bg-chat-own text-primary-foreground" : "bg-chat-other text-foreground",
-                                            firstInGroup && (isMe ? "rounded-tr-chat-corner" : "rounded-tl-chat-corner"),
-                                            msg.is_deleted && "italic opacity-70"
-                                        )}
-                                    >
-                                        {firstInGroup && (
-                                            <svg
-                                                aria-hidden
-                                                viewBox="0 0 8 13"
-                                                className={cn('absolute top-0 h-3 w-2', isMe ? '-right-[7px] fill-chat-own' : '-left-[7px] -scale-x-100 fill-chat-other')}
-                                            >
-                                                <path d="M0 0h8L2 13H0z" />
-                                            </svg>
-                                        )}
-                                        {msg.is_deleted ? (
-                                            <span className="flex items-center gap-1 pr-14 text-xs opacity-70"><Ban size={12} aria-hidden /> Nachricht auf diesem Gerät ausgeblendet.</span>
-                                        ) : isEditing ? (
-                                            <div className="min-w-[200px] space-y-2">
-                                                <Textarea
-                                                    value={editContent}
-                                                    onChange={(e) => setEditContent(e.target.value)}
-                                                    onKeyDown={(e) => handleEditKeyDown(e, msg.id)}
-                                                    className="min-h-20 w-full resize-none bg-chat-other text-sm text-chat-text"
-                                                    rows={2}
-                                                    autoFocus
-                                                />
-                                                <div className="flex justify-end gap-1.5">
-                                                    <Button variant="outline" size="sm" type="button" onClick={cancelEditing} className="h-10 rounded-full bg-chat-other px-4 text-xs text-chat-text">
-                                                        Abbrechen
-                                                    </Button>
-                                                    <Button size="sm" type="button" onClick={() => saveEdit(msg.id)} className="h-10 rounded-full px-4 text-xs font-semibold">
-                                                        Speichern
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div>
-                                                <div className="whitespace-pre-wrap pr-14">{msg.content}</div>
-                                                {msg.content.includes('TERMIN-VEREINBARUNG') && (
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        type="button"
-                                                        onClick={() => {
-                                                            const lines = msg.content.split('\n');
-                                                            const subject = lines[1]?.replace('Fach: ', '') || 'Nachhilfe';
-                                                            const dateStr = lines[2]?.replace('Datum: ', '') || new Date().toISOString().slice(0, 10);
-                                                            const timeStr = lines[3]?.replace('Uhrzeit: ', '').slice(0, 5) || '14:00';
-                                                            const start = new Date(`${dateStr}T${timeStr}:00`);
-                                                            downloadICSFile({
-                                                                title: `FWG Nachhilfe: ${subject}`,
-                                                                description: `Nachhilfetermin mit ${otherUser?.display_name || 'Partner'}`,
-                                                                startDate: isNaN(start.getTime()) ? new Date() : start,
-                                                                durationMinutes: 45
-                                                            });
-                                                        }}
-                                                        className="mt-2 h-10 gap-1.5 rounded-full border-chat-border bg-chat-other px-3 text-xs font-semibold text-chat-text"
-                                                    >
-                                                        <Download size={14} aria-hidden /> In Kalender speichern (.ics)
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        )}
-
-                                        {!isEditing && (
-                                            <span className={cn("pointer-events-none absolute bottom-1 right-2 inline-flex items-center gap-1 text-[11px] leading-none", isMe ? "text-chat-meta-own" : "text-chat-meta")}>
-                                                {msg.edited_at && !msg.is_deleted && (
-                                                    <span className="italic">bearbeitet</span>
-                                                )}
-                                                <span className="tabular-nums">{time}</span>
-                                                {isMe && !msg.is_deleted && (
-                                                    <span className="ml-0.5">
-                                                        {msg.read_at
-                                                            ? <CheckCheck size={14} className="text-chat-tick-read" aria-hidden />
-                                                            : <Check size={14} className="text-chat-tick-sent" aria-hidden />}
+                            {displayedMessages.length === 0 ? (
+                                <ChatEmptyState
+                                    otherName={otherUser?.display_name}
+                                    showStarters={tools.quickReplies}
+                                    onStarter={handleStarter}
+                                />
+                            ) : (
+                                <div className="mx-auto w-full max-w-3xl">
+                                    {timeline.map((row) => (
+                                        <Fragment key={row.message.id}>
+                                            {row.showDateSeparator && (
+                                                <div className="flex justify-center py-3">
+                                                    <span className={cn('rounded-full px-3.5 py-1.5 text-xs font-medium text-chat-meta', chatStyles.dateChip)}>
+                                                        {row.dateLabel}
                                                     </span>
-                                                )}
-                                            </span>
-                                        )}
-                                    </div>
+                                                </div>
+                                            )}
+                                            <div data-message-id={row.message.id} className={cn('flex', row.isFirstInGroup ? 'mt-3' : 'mt-0.5')}>
+                                                <MessageBubble
+                                                    message={row.message}
+                                                    isMe={row.message.sender_id === user?.id}
+                                                    isFirstInGroup={row.isFirstInGroup}
+                                                    isLastInGroup={row.isLastInGroup}
+                                                    otherUser={otherUser}
+                                                    editing={editingId === row.message.id}
+                                                    editContent={editContent}
+                                                    onEditContentChange={setEditContent}
+                                                    onStartEdit={() => startEditing(row.message)}
+                                                    onCancelEdit={cancelEditing}
+                                                    onSaveEdit={() => { void saveEdit(row.message.id); }}
+                                                    onDelete={() => deleteMessage(row.message.id)}
+                                                    onQuickMessage={(text) => { void handleQuickMessage(row.message.id, text); }}
+                                                    onAcceptAppointment={(details) => { void handleAcceptAppointment(row.message.id, details); }}
+                                                    onDeclineAppointment={(details) => { void handleDeclineAppointment(row.message.id, details); }}
+                                                    onCounterAppointment={(details) => openAppointmentDialog(details)}
+                                                    appointmentStatus={appointmentStatusById.get(row.message.id) ?? 'proposed'}
+                                                    showAppointments={tools.appointments}
+                                                    showCalendar={tools.calendar}
+                                                    showQuickReplies={tools.quickReplies}
+                                                    quickBusy={quickSendingId === row.message.id}
+                                                />
+                                            </div>
+                                        </Fragment>
+                                    ))}
+                                    <div ref={messagesEndRef} />
+                                </div>
+                            )}
+                        </div>
 
-                                    {isMe && !msg.is_deleted && !isEditing && (
-                                        <DropdownMenu open={menuOpenId === msg.id} onOpenChange={(open) => setMenuOpenId(open ? msg.id : null)}>
-                                            <DropdownMenuTrigger
-                                                aria-label="Nachricht bearbeiten oder ausblenden"
-                                                onClick={(event) => event.stopPropagation()}
-                                                className={cn(
-                                                    "ml-1 mt-0.5 grid size-8 shrink-0 place-items-center rounded-full text-chat-meta transition-opacity hover:bg-black/5 dark:hover:bg-white/10 max-lg:size-11 max-lg:opacity-100",
-                                                    menuOpenId === msg.id ? "opacity-100" : "opacity-0 group-hover/message:opacity-100 focus-visible:opacity-100"
-                                                )}
-                                            >
-                                                <MoreVertical size={16} aria-hidden />
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" sideOffset={6} className="min-w-44 p-1">
-                                                <DropdownMenuItem onClick={() => startEditing(msg)} className="min-h-11 gap-2.5 px-3">
-                                                    <Pencil size={15} aria-hidden /> Bearbeiten
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem variant="destructive" onClick={() => deleteMessage(msg.id)} className="min-h-11 gap-2.5 px-3">
-                                                    <Trash2 size={15} aria-hidden /> Ausblenden
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    )}
-                                    {lastInGroup && <span className="sr-only">Ende der Nachrichtengruppe</span>}
+                        {isBlocked && (
+                            <div className="shrink-0 px-2 sm:px-4">
+                                <div className="mx-auto flex max-w-3xl items-start gap-2 rounded-2xl border border-border bg-chat-other/95 px-3 py-2.5 text-[13px] leading-relaxed text-chat-meta shadow-soft" role="status">
+                                    <Ban size={15} className="mt-0.5 shrink-0" aria-hidden />
+                                    Du hast diesen Nutzer blockiert. Du kannst die Blockierung im Menü aufheben.
                                 </div>
                             </div>
-                        );
-                    })
-                )}
-                <div ref={messagesEndRef} />
-            </div>
+                        )}
 
-            {/* Input Area */}
-            <div className="shrink-0 bg-chat-bg px-2 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] sm:px-4">
-                {isBlocked && (
-                    <div className="mb-2 rounded-panel border border-border bg-chat-other px-4 py-3 text-[13px] leading-relaxed text-chat-meta shadow-soft" role="status">
-                        Du hast diesen Nutzer blockiert. Du kannst die Blockierung im Menü aufheben.
-                    </div>
-                )}
-                <form onSubmit={sendMessage} className="flex items-center gap-2">
-                    <div className="min-w-0 flex-1 rounded-full bg-chat-composer px-4 shadow-soft">
-                        <Input
+                        <ChatComposer
                             value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            placeholder={isBlocked ? 'Nachrichten blockiert' : 'Nachricht schreiben'}
-                            className="h-12 w-full border-0 bg-transparent px-0 text-base shadow-none focus-visible:outline-none disabled:opacity-60"
-                            autoComplete="off"
-                            aria-label="Nachricht schreiben"
-                            disabled={isBlocked}
+                            onChange={setNewMessage}
+                            onSend={() => { void sendMessage(); }}
+                            onOpenAppointment={() => openAppointmentDialog({ subject: defaultAppointmentSubject })}
+                            onHideChat={handleHideChat}
+                            isBlocked={isBlocked}
+                            isSending={isSending}
+                            showAppointments={tools.appointments}
+                            showEmojiPicker={tools.emojiPicker}
+                            inputRef={composerRef}
                         />
                     </div>
-                    <Button
-                        type="submit"
-                        size="icon"
-                        className="size-12 shrink-0 rounded-full bg-chat-send text-primary-foreground shadow-soft hover:bg-primary-hover hover:text-primary-foreground hover:shadow-card active:scale-[0.98]"
-                        disabled={!newMessage.trim() || isBlocked}
-                        aria-label="Nachricht senden"
-                    >
-                        <Send size={19} className="ml-0.5" aria-hidden />
-                    </Button>
-                </form>
+
+                    {!isMobile && tools.calendar && (
+                        <CalendarPanel
+                            variant="desktop"
+                            open={calendarOpen}
+                            onOpenChange={setCalendarOpen}
+                            appointments={appointments}
+                            otherName={otherUser?.display_name}
+                            canCreateAppointment={tools.appointments}
+                            onNewAppointment={() => openAppointmentDialog({ subject: defaultAppointmentSubject })}
+                            onGoToMessage={handleGoToMessage}
+                        />
+                    )}
+                </div>
+
+                {isMobile && tools.calendar && (
+                    <CalendarPanel
+                        variant="mobile"
+                        open={calendarOpen}
+                        onOpenChange={setCalendarOpen}
+                        appointments={appointments}
+                        otherName={otherUser?.display_name}
+                        canCreateAppointment={tools.appointments}
+                        onNewAppointment={() => openAppointmentDialog({ subject: defaultAppointmentSubject })}
+                        onGoToMessage={handleGoToMessage}
+                    />
+                )}
             </div>
-        </div>
 
-        {/* Appointment Booking Modal */}
-        <Dialog open={appointmentModalOpen} onOpenChange={setAppointmentModalOpen}>
-            <DialogContent showCloseButton={false} className="max-h-[90dvh] overflow-y-auto rounded-dialog sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-base font-semibold">
-                        <CalendarDays className="text-muted-foreground" size={20} aria-hidden />
-                        Nachhilfetermin vereinbaren
-                    </DialogTitle>
-                    <DialogDescription>
-                        Schlage {otherUser?.display_name || 'deinem Lernpartner'} einen festen Nachhilfetermin vor.
-                    </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleCreateAppointment} className="space-y-4 py-3">
-                    <div className="space-y-1">
-                        <Label className="text-xs font-semibold text-foreground/80">Fach</Label>
-                        <NativeSelect
-                            value={appSubject}
-                            onChange={e => setAppSubject(e.target.value)}
-                            className="w-full text-sm font-semibold"
-                        >
-                            <option value="Mathematik">Mathematik</option>
-                            <option value="Englisch">Englisch</option>
-                            <option value="Deutsch">Deutsch</option>
-                            <option value="Französisch">Französisch</option>
-                            <option value="Latein">Latein</option>
-                            <option value="Physik">Physik</option>
-                            <option value="Chemie">Chemie</option>
-                            <option value="Biologie">Biologie</option>
-                            <option value="Informatik">Informatik</option>
-                            <option value="Geschichte">Geschichte</option>
-                        </NativeSelect>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                            <Label className="text-xs font-semibold text-foreground/80">Datum</Label>
-                            <Input
-                                type="date"
-                                value={appDate}
-                                onChange={e => setAppDate(e.target.value)}
-                                required
-                                className="h-12"
-                            />
-                        </div>
-                        <div className="space-y-1">
-                            <Label className="text-xs font-semibold text-foreground/80">Uhrzeit</Label>
-                            <Input
-                                type="time"
-                                value={appTime}
-                                onChange={e => setAppTime(e.target.value)}
-                                required
-                                className="h-12"
-                            />
-                        </div>
-                    </div>
-
-                    <DialogFooter className="pt-2">
-                        <Button type="button" variant="ghost" onClick={() => setAppointmentModalOpen(false)} className="h-12 rounded-full">Abbrechen</Button>
-                        <Button type="submit" className="h-12 rounded-full font-semibold">Termin vorschlagen</Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
-
-        <AlertDialog
-            open={!!confirmDialog}
-            onOpenChange={(open) => {
-                if (!open) setConfirmDialog(null);
-            }}
-        >
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>{confirmDialog?.title}</AlertDialogTitle>
-                    <AlertDialogDescription>{confirmDialog?.description}</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-                    <AlertDialogAction
-                        variant="destructive"
-                        onClick={() => {
-                            const action = confirmDialog?.onConfirm;
-                            setConfirmDialog(null);
-                            action?.();
-                        }}
-                    >
-                        {confirmDialog?.confirmLabel}
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
-
-        {/* Report Wizard Modal */}
-        {otherUserId && (
-            <ReportWizard
-                isOpen={reportOpen}
-                reportedUserId={otherUserId}
-                relatedMessageIds={messages.filter(m => m.sender_id === otherUserId).map(m => m.id)}
-                onClose={() => setReportOpen(false)}
+            <ChatToolsDialog
+                open={toolsOpen}
+                onOpenChange={setToolsOpen}
+                settings={tools}
+                onChange={updateTools}
             />
-        )}
+
+            {/* Appointment Booking Modal */}
+            <AppointmentDialog
+                key={appointmentDialogKey}
+                open={appointmentModalOpen}
+                onOpenChange={setAppointmentModalOpen}
+                otherName={otherUser?.display_name}
+                initial={appointmentSeed}
+                onSend={handleCreateAppointment}
+            />
+
+            <AlertDialog
+                open={!!confirmDialog}
+                onOpenChange={(open) => {
+                    if (!open) setConfirmDialog(null);
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>{confirmDialog?.title}</AlertDialogTitle>
+                        <AlertDialogDescription>{confirmDialog?.description}</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                        <AlertDialogAction
+                            variant="destructive"
+                            onClick={() => {
+                                const action = confirmDialog?.onConfirm;
+                                setConfirmDialog(null);
+                                action?.();
+                            }}
+                        >
+                            {confirmDialog?.confirmLabel}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Report Wizard Modal */}
+            {otherUserId && (
+                <ReportWizard
+                    isOpen={reportOpen}
+                    reportedUserId={otherUserId}
+                    relatedMessageIds={messages.filter(m => m.sender_id === otherUserId).map(m => m.id)}
+                    onClose={() => setReportOpen(false)}
+                />
+            )}
         </>
     );
 }
