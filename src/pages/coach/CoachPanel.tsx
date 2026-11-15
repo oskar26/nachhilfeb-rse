@@ -105,7 +105,9 @@ function isDuplicateCodeError(error: any): boolean {
 
 function formatCodeDate(value?: string | null): string | null {
     if (!value) return null;
-    const date = new Date(value);
+    // MySQL DATETIME liefert "YYYY-MM-DD HH:MM:SS"; Safari scheitert daran.
+    const normalized = value.includes('T') ? value : value.replace(' ', 'T');
+    const date = new Date(normalized);
     if (Number.isNaN(date.getTime())) return null;
     return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
 }
@@ -339,6 +341,7 @@ export default function CoachPanel() {
         try {
             const existingCodes = new Set(coachCodes.map(item => String(item.code || '').toUpperCase()));
             let lastError: any = null;
+            let retriedAfterServerError = false;
 
             for (let attempt = 0; attempt < 4; attempt += 1) {
                 const code = createCoachCode(prefix, existingCodes);
@@ -372,12 +375,23 @@ export default function CoachPanel() {
                     };
                     setCoachCodes(previous => [created, ...previous.filter(item => item.code !== code)]);
                     setCreatedCode({ id: created.id, code, expiresAt, maxUses });
+                    setCopiedId(null);
                     toast.success(`Coaching-Code „${code}“ erfolgreich erstellt!`);
                     return;
                 }
 
                 lastError = response.error;
                 existingCodes.add(code.toUpperCase());
+
+                // Das PHP-Backend fängt die Unique-Verletzung nicht ab und liefert
+                // dafür HTTP 500 statt 409. Ein 500er wird deshalb genau einmal
+                // mit einem frisch erzeugten Code wiederholt; ein zweiter Fehler
+                // wird unverändert an die Oberfläche durchgereicht.
+                if (retriedAfterServerError) break;
+                if (response.error.status === 500) {
+                    retriedAfterServerError = true;
+                    continue;
+                }
                 if (!isDuplicateCodeError(response.error)) break;
             }
 
@@ -505,7 +519,7 @@ export default function CoachPanel() {
                         <div className="relative w-full sm:w-80">
                             <Search size={20} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden />
                             <Input
-                                placeholder="Schüler suchen (Name, Klasse)..."
+                                placeholder="Schüler suchen (Name, Klasse, Funktion)"
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
                                 className="h-11 pl-11"
@@ -584,7 +598,7 @@ export default function CoachPanel() {
                                                                 <StudentAvatar student={student} />
                                                                 <div className="min-w-0">
                                                                     <div className="break-words text-[13px] font-semibold text-foreground">{studentDisplayName(student)}</div>
-                                                                    {student.is_verified ? <span className="mt-0.5 block text-[11px] font-medium text-muted-foreground">Verifiziert</span> : null}
+                                                                    {student.is_verified ? <span className="mt-0.5 block text-[13px] leading-4 font-medium text-muted-foreground">Verifiziert</span> : null}
                                                                 </div>
                                                             </div>
                                                         </TableCell>
@@ -698,7 +712,7 @@ export default function CoachPanel() {
                                             className="uppercase tracking-wider"
                                             required
                                         />
-                                        <p className="text-xs leading-5 text-muted-foreground">Der Code wird als Präfix plus zufälligem Suffix erzeugt, z. B. COACH-7K2M9.</p>
+                                        <p className="text-[13px] leading-5 text-muted-foreground">Der Code wird als Präfix plus zufälligem Suffix erzeugt, z. B. COACH-7K2M9.</p>
                                     </div>
                                     <div className="min-w-0 space-y-1.5">
                                         <Label htmlFor="coach-code-uses" className="text-[13px] font-medium">Nutzungen</Label>
@@ -712,7 +726,7 @@ export default function CoachPanel() {
                                             onChange={event => setCodeForm({ ...codeForm, maxUses: event.target.value })}
                                             placeholder="1"
                                         />
-                                        <p className="text-xs leading-5 text-muted-foreground">Leer lassen für unbegrenzte Einlösungen.</p>
+                                        <p className="text-[13px] leading-5 text-muted-foreground">Leer lassen für unbegrenzte Einlösungen.</p>
                                     </div>
                                     <div className="min-w-0 space-y-1.5">
                                         <Label htmlFor="coach-code-expiry" className="text-[13px] font-medium">Gültigkeit (Tage)</Label>
@@ -726,7 +740,7 @@ export default function CoachPanel() {
                                             onChange={event => setCodeForm({ ...codeForm, expiryDays: event.target.value })}
                                             placeholder="180"
                                         />
-                                        <p className="text-xs leading-5 text-muted-foreground">Leer lassen für unbegrenzt gültige Codes.</p>
+                                        <p className="text-[13px] leading-5 text-muted-foreground">Leer lassen für unbegrenzt gültige Codes.</p>
                                     </div>
                                 </div>
 
@@ -739,7 +753,7 @@ export default function CoachPanel() {
                                         placeholder={DEFAULT_CODE_DESCRIPTION}
                                         maxLength={255}
                                     />
-                                    <p className="text-xs leading-5 text-muted-foreground">Maximal 255 Zeichen. Die Beschreibung erscheint in der Code-Liste.</p>
+                                    <p className="text-[13px] leading-5 text-muted-foreground">Maximal 255 Zeichen. Die Beschreibung erscheint in der Code-Liste.</p>
                                 </div>
 
                                 <div className="rounded-lg border border-border bg-muted/40 p-3 text-[13px] leading-5 text-muted-foreground">
@@ -756,8 +770,8 @@ export default function CoachPanel() {
                                 )}
 
                                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                    <p className="text-xs leading-5 text-muted-foreground">
-                                        Der Code wird im Browser kryptografisch zufällig erzeugt; bei einer Kollision wird automatisch ein neuer Versuch gestartet.
+                                    <p className="text-[13px] leading-5 text-muted-foreground">
+                                        Der Code wird im Browser kryptografisch zufällig erzeugt. Bei einer Kollision oder einem einmaligen Serverfehler wird automatisch genau ein neuer Code versucht.
                                     </p>
                                     <Button type="submit" isLoading={creatingCode} className="h-11 min-h-11 shrink-0 px-5 text-[13px]">
                                         {creatingCode ? 'Code wird erstellt …' : <><Plus size={16} aria-hidden /> Coaching-Code erstellen</>}
@@ -772,7 +786,7 @@ export default function CoachPanel() {
                             <div className="min-w-0">
                                 <p className="text-[13px] font-semibold text-emerald-800 dark:text-emerald-300">Coaching-Code erstellt</p>
                                 <p className="mt-1 break-all text-base font-semibold tracking-wider text-foreground">{createdCode.code}</p>
-                                <p className="mt-1 text-xs text-muted-foreground">
+                                <p className="mt-1 text-[13px] leading-5 text-muted-foreground">
                                     {createdCode.maxUses === null ? 'Unbegrenzt einlösbar' : `${createdCode.maxUses} ${createdCode.maxUses === 1 ? 'Einlösung' : 'Einlösungen'}`}
                                     {' · '}
                                     {createdCode.expiresAt ? `gültig bis ${formatCodeDate(createdCode.expiresAt)}` : 'ohne Ablaufdatum'}
@@ -842,7 +856,7 @@ export default function CoachPanel() {
                                                     <p className="break-words text-[13px] leading-5 text-muted-foreground">
                                                         {code.description || 'Schüler-Coaching AG Mitgliedscode'}
                                                     </p>
-                                                    <p className="text-xs leading-5 text-muted-foreground">
+                                                    <p className="text-[13px] leading-5 text-muted-foreground">
                                                         {maxUses === null ? `${uses} Nutzungen · unbegrenzt` : `${uses} / ${maxUses} Nutzungen`}
                                                         {' · '}
                                                         {expiry ? `gültig bis ${expiry}` : 'ohne Ablaufdatum'}
@@ -876,7 +890,7 @@ export default function CoachPanel() {
                                 </div>
                             )}
 
-                            <p className="border-t border-border p-4 text-xs leading-5 text-muted-foreground">
+                            <p className="border-t border-border p-4 text-[13px] leading-5 text-muted-foreground">
                                 Hinweis: Die API bietet keinen Endpunkt zum nachträglichen Bearbeiten eines Coaching-Codes.
                                 Für andere Nutzungen, Laufzeiten oder Beschreibungen lösche den Code und erstelle einen neuen.
                             </p>

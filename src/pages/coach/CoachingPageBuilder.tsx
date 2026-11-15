@@ -82,7 +82,7 @@ function EditorField({
 }) {
     return (
         <div className="min-w-0 space-y-1.5">
-            <Label htmlFor={id} className="ml-1 text-xs font-medium text-muted-foreground">{label}</Label>
+            <Label htmlFor={id} className="ml-1 text-[13px] font-medium text-muted-foreground">{label}</Label>
             <Input id={id} type={type} value={value} placeholder={placeholder} onChange={event => onChange(event.target.value)} />
         </div>
     );
@@ -105,7 +105,7 @@ function EditorTextarea({
 }) {
     return (
         <div className="min-w-0 space-y-1.5">
-            <Label htmlFor={id} className="ml-1 text-xs font-medium text-muted-foreground">{label}</Label>
+            <Label htmlFor={id} className="ml-1 text-[13px] font-medium text-muted-foreground">{label}</Label>
             <Textarea id={id} value={value} rows={rows} placeholder={placeholder} onChange={event => onChange(event.target.value)} className={textareaCls} />
         </div>
     );
@@ -280,7 +280,7 @@ function ScheduleEditor({ block, onChange }: { block: CoachingSupportBlock; onCh
                 {block.days.map((day, index) => (
                     <div key={day.id} className="rounded-xl border border-border bg-muted/40 p-4">
                         <div className="mb-3 flex items-center justify-between gap-3">
-                            <span className="text-xs font-medium text-muted-foreground">Spalte {index + 1}</span>
+                            <span className="text-[13px] font-medium text-muted-foreground">Spalte {index + 1}</span>
                             <OrderControls name={`Tag ${index + 1}`} index={index} total={block.days.length} onMove={direction => moveDay(index, direction)} onDelete={() => deleteDay(day.id)} />
                         </div>
                         <EditorField id={`schedule-day-${day.id}`} label="Tagesname" value={day.label} onChange={value => updateDay(day.id, value)} />
@@ -292,7 +292,7 @@ function ScheduleEditor({ block, onChange }: { block: CoachingSupportBlock; onCh
                 <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
                         <h4 className="text-sm font-semibold text-foreground">Stundenplan</h4>
-                        <p className="mt-1 text-xs leading-5 text-muted-foreground">Eine Zeile ist ein Zeitfenster mit Fächern pro Tag. Die Zeit ist optional; sobald eine Zeile eine Zeit hat, zeigt die öffentliche Seite eine Spalte „Zeit“.</p>
+                        <p className="mt-1 text-[13px] leading-5 text-muted-foreground">Eine Zeile ist ein Zeitfenster mit Fächern pro Tag. Die Zeit ist optional; sobald eine Zeile eine Zeit hat, zeigt die öffentliche Seite eine Spalte „Zeit“.</p>
                     </div>
                     <Button type="button" variant="outline" size="sm" onClick={addRow} disabled={block.days.length === 0} className="min-h-11 shrink-0 font-semibold">
                         <Plus size={15} /> Zeile
@@ -301,7 +301,7 @@ function ScheduleEditor({ block, onChange }: { block: CoachingSupportBlock; onCh
                 {block.rows.map((row, rowIndex) => (
                     <div key={row.id} className="rounded-xl border border-border bg-muted/40 p-4">
                         <div className="mb-3 flex items-center justify-between gap-3">
-                            <span className="text-xs font-medium text-muted-foreground">Zeile {rowIndex + 1}</span>
+                            <span className="text-[13px] font-medium text-muted-foreground">Zeile {rowIndex + 1}</span>
                             <OrderControls
                                 name={`Stundenplanzeile ${rowIndex + 1}`}
                                 index={rowIndex}
@@ -339,7 +339,7 @@ function ScheduleEditor({ block, onChange }: { block: CoachingSupportBlock; onCh
                         </div>
                     </div>
                 ))}
-                <p className="text-xs leading-5 text-muted-foreground">
+                <p className="text-[13px] leading-5 text-muted-foreground">
                     Hinweis: Es gibt kein Backend für Unterrichtsstunden oder Anwesenheit. Der Stundenplan wird ausschließlich als redaktioneller Inhalt in <code>content_json</code> gespeichert.
                 </p>
             </div>

@@ -779,7 +779,30 @@ export function CoachingView({ document, preview = false }: { document: Coaching
                     {block.days.length > 0 ? (
                         <div className="mt-5">
                             <p className="mb-2 text-xs font-semibold text-muted-foreground md:hidden">Stundenplan · seitlich scrollbar</p>
-                            <div className="max-w-full overflow-x-auto rounded-xl border border-border" tabIndex={0} role="region" aria-label="Stundenplan des Förderunterrichts">
+                            <div
+                                className="max-w-full overflow-x-auto rounded-xl border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary [&_[data-slot=table-container]]:overflow-visible"
+                                tabIndex={0}
+                                role="region"
+                                aria-label="Stundenplan des Förderunterrichts"
+                                onKeyDown={event => {
+                                    const region = event.currentTarget;
+                                    if (region.scrollWidth <= region.clientWidth) return;
+                                    const step = Math.max(120, Math.round(region.clientWidth * 0.8));
+                                    if (event.key === 'ArrowRight') {
+                                        region.scrollBy({ left: step, behavior: 'auto' });
+                                        event.preventDefault();
+                                    } else if (event.key === 'ArrowLeft') {
+                                        region.scrollBy({ left: -step, behavior: 'auto' });
+                                        event.preventDefault();
+                                    } else if (event.key === 'Home') {
+                                        region.scrollTo({ left: 0, behavior: 'auto' });
+                                        event.preventDefault();
+                                    } else if (event.key === 'End') {
+                                        region.scrollTo({ left: region.scrollWidth, behavior: 'auto' });
+                                        event.preventDefault();
+                                    }
+                                }}
+                            >
                                 <Table className={cn('w-full border-collapse text-center text-xs md:text-sm', hasTimes ? 'min-w-[520px]' : 'min-w-[440px]')}>
                                     <TableHeader>
                                         <TableRow>
