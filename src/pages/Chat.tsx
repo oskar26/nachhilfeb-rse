@@ -13,6 +13,7 @@ import { ChevronLeft, Send, Trash2, Check, CheckCheck, Pencil, MoreVertical, Ban
 import { toast } from 'sonner';
 import { cn } from '../lib/utils';
 import { prefersReducedMotion } from '../lib/motion';
+import { mergeMessages, type ChatMessage } from '../lib/chat-messages';
 import ReportWizard from '../components/ReportWizard';
 import { downloadICSFile } from '../lib/calendar';
 import { blockedReason, checkContent, loadFilterOverrides, type FilterOverrides } from '../lib/profanity';
@@ -22,15 +23,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
 
-interface Message {
-    id: string;
+interface Message extends ChatMessage {
     request_id: string;
-    sender_id: string;
-    content: string;
-    is_deleted: boolean;
-    read_at: string | null;
-    created_at: string;
-    edited_at?: string | null;
 }
 
 // Auf diesem Gerät verborgene Chats (Anfrage-IDs). Honest client-side hide: Die Anfrage
@@ -69,6 +63,11 @@ export default function Chat() {
     const [loading, setLoading] = useState(true);
     const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const chatSurfaceRef = useRef<HTMLDivElement>(null);
+    const forceScrollRef = useRef(false);
+    const previousMessageCountRef = useRef(0);
+    const nearBottomRef = useRef(true);
+    const loadedRequestIdRef = useRef<string | null>(null);
 
     // Edit state
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -115,6 +114,7 @@ export default function Chat() {
         if (error) {
             toast.error('Fehler beim Termin-Vorschlagen.');
         } else {
+            forceScrollRef.current = true;
             toast.success('Terminvorschlag im Chat gesendet!');
             setAppointmentModalOpen(false);
         }
@@ -122,6 +122,12 @@ export default function Chat() {
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+    };
+
+    const isNearBottom = () => {
+        const surface = chatSurfaceRef.current;
+        if (!surface) return true;
+        return surface.scrollHeight - surface.scrollTop - surface.clientHeight < 80;
     };
 
     const fetchData = async () => {
@@ -160,8 +166,15 @@ export default function Chat() {
         // Fetch messages (der Server markiert empfangene Nachrichten beim GET serverseitig als gelesen)
         const { data: msgs } = await api.messages.list(requestId);
 
-        if (msgs) {
-            setMessages(msgs);
+        if (loadedRequestIdRef.current !== requestId) {
+            // Erster Load dieser Unterhaltung: komplett ersetzen, damit der
+            // Verlauf der vorherigen Anfrage nicht in den neuen Chat wächst.
+            setMessages((msgs ?? []) as Message[]);
+            loadedRequestIdRef.current = requestId;
+        } else if (msgs) {
+            // Erneuter Load derselben Unterhaltung: per id mergen, damit
+            // identische Poll-Antworten keinen neuen State erzeugen.
+            setMessages(prev => mergeMessages(prev, msgs as Message[]));
         }
         setLoading(false);
     };
@@ -172,20 +185,40 @@ export default function Chat() {
 
         // Live-Updates: kurzes Polling ersetzt den früheren Supabase-Realtime-Kanal.
         // Der Server liefert die vollständige Liste, damit auch read_at älterer Nachrichten aktualisiert wird.
+        let cancelled = false;
         const stopPolling = startChatPoll(requestId, (msgs: any[]) => {
-            setMessages(prev => {
-                const map = new Map<string, Message>(prev.map(m => [m.id, m] as const));
-                for (const m of msgs) {
-                    map.set(m.id, { ...(map.get(m.id) || {}), ...m });
-                }
-                return Array.from(map.values()).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-            });
+            // Eine verspätete Antwort der vorherigen Anfrage darf nicht in den
+            // neu ausgewählten Chat hineingeraten.
+            if (cancelled) return;
+            setMessages(prev => mergeMessages(prev, msgs as Message[]));
         });
 
-        return stopPolling;
+        return () => {
+            cancelled = true;
+            stopPolling();
+        };
     }, [user, requestId]);
 
+    // Neue Anfrage: Der Verlauf startet wieder unten, unabhängig davon, wo die
+    // vorherige Unterhaltung gescrollt war.
     useEffect(() => {
+        previousMessageCountRef.current = 0;
+        nearBottomRef.current = true;
+        forceScrollRef.current = true;
+        loadedRequestIdRef.current = null;
+    }, [requestId]);
+
+    // Nur bei echtem Zuwachs unten nachführen. Reine read_at-/edited-Polls
+    // erzeugen dank mergeMessages keinen neuen State und damit keinen Sprung.
+    useEffect(() => {
+        const messageCount = messages.length;
+        const grew = messageCount > previousMessageCountRef.current;
+        previousMessageCountRef.current = messageCount;
+
+        if (!forceScrollRef.current && !(grew && nearBottomRef.current)) {
+            return;
+        }
+        forceScrollRef.current = false;
         scrollToBottom();
     }, [messages]);
 
@@ -215,6 +248,10 @@ export default function Chat() {
                 ? 'Du kannst diesem Nutzer keine Nachrichten senden.'
                 : 'Fehler beim Senden.');
             console.error(error);
+        } else {
+            // Eigene Nachricht soll auch dann unten erscheinen, wenn man
+            // vorher hochgescrollt war.
+            forceScrollRef.current = true;
         }
     };
 
@@ -423,7 +460,11 @@ export default function Chat() {
             </header>
 
             {/* Messages Area */}
-            <div className="chat-surface min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 sm:px-6">
+            <div
+                ref={chatSurfaceRef}
+                onScroll={() => { nearBottomRef.current = isNearBottom(); }}
+                className="chat-surface min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 sm:px-6"
+            >
                 {messages.length === 0 ? (
                     <div className="mx-auto max-w-sm rounded-panel bg-chat-other/95 p-5 text-center text-[13px] leading-relaxed text-chat-meta shadow-soft">
                         Hier beginnt euer Chat. Deine Nachrichten werden über eine verschlüsselte Verbindung (HTTPS) übertragen und auf Servern in Deutschland gespeichert. Bitte achte auf unsere <a href="#/nutzungsbedingungen" className="font-semibold text-chat-text underline underline-offset-4">Nutzungsbedingungen</a>.

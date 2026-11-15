@@ -183,8 +183,8 @@ export default function AdDetails() {
         : 'none';
     const canRequest = !isOwn
         && status === 'none'
-        && ad.is_active !== false
-        && ad.is_archived !== true;
+        && !!ad.is_active
+        && !ad.is_archived;
     const isPaused = !isOwn && !ad.is_active;
 
     const subjectNames = (ad.subjects || []).map((subject: Subject) => subjectLabelMap[subject] ?? subject);

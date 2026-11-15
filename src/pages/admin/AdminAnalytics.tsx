@@ -1315,7 +1315,7 @@ export default function AdminAnalytics() {
                         <CardTitle className="flex items-center gap-2 text-base font-semibold">
                             <Euro size={20} className="text-foreground" aria-hidden /> Preisstrukturen
                         </CardTitle>
-                        <CardDescription>Alle Anzeigen · angegebene Stundensätze (€ / 45 Min)</CardDescription>
+                        <CardDescription>Alle Anzeigen · angegebene Preise je Einheit</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
                         {priceRows === null ? (

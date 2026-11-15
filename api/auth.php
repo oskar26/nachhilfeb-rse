@@ -6,6 +6,7 @@
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/jwt.php';
 require_once __DIR__ . '/response.php';
+require_once __DIR__ . '/parental-consent.php';
 require_once __DIR__ . '/middleware.php';
 require_once __DIR__ . '/mailer.php';
 require_once __DIR__ . '/ratelimit.php';
@@ -115,7 +116,8 @@ function fwg_is_under_16(?string $birthDate): bool {
  * Bei Datenbankfehlern wird für Minderjährige fail-closed entschieden.
  */
 function fwg_parental_consent_pending(PDO $pdo, string $userId, ?string $birthDate, $given): bool {
-    if (!fwg_is_under_16($birthDate)) {
+    $isUnder16 = fwg_is_under_16($birthDate);
+    if (!$isUnder16) {
         return false;
     }
     if (empty($given)) {
@@ -125,11 +127,12 @@ function fwg_parental_consent_pending(PDO $pdo, string $userId, ?string $birthDa
         $stmt = $pdo->prepare('SELECT confirmed_at FROM parental_consents WHERE user_id = ? LIMIT 1');
         $stmt->execute([$userId]);
         $row = $stmt->fetch();
-        return !$row || empty($row['confirmed_at']);
+        $consentRow = $row === false ? null : $row;
     } catch (Exception $e) {
         error_log('Elternbestätigung: Prüfung fehlgeschlagen: ' . $e->getMessage());
         return true;
     }
+    return !fwg_parental_consent_allows($isUnder16, (bool)$given, $consentRow);
 }
 
 /**

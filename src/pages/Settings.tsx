@@ -568,13 +568,13 @@ export default function Settings() {
                 <Card className="border-border bg-card">
                     <CardHeader className="p-6 pb-2">
                         <CardTitle className="text-base font-semibold">Datenschutz & Sichtbarkeit</CardTitle>
-                        <CardDescription className="text-xs">Steuere, welche Kontaktdaten in deinen Anzeigen öffentlich zu sehen sind</CardDescription>
+                        <CardDescription className="text-xs">Steuere, welche Kontaktdaten nach einer angenommenen Anfrage sichtbar sind.</CardDescription>
                     </CardHeader>
                     <CardContent className="divide-y divide-border p-0">
                         <div className="flex items-center justify-between gap-4 p-4 sm:px-6">
                             <div>
                                 <h4 className="font-semibold text-sm text-foreground">E-Mail-Adresse anzeigen</h4>
-                                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Zeigt deine E-Mail-Adresse öffentlich im Profil/Anzeigen an</p>
+                                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Zeigt deine E-Mail-Adresse nach Annahme einer Anfrage an. Standardmäßig aus.</p>
                             </div>
                             <Switch
                                 checked={settings.email_visible}
@@ -586,7 +586,7 @@ export default function Settings() {
                         <div className="flex items-center justify-between gap-4 p-4 sm:px-6">
                             <div>
                                 <h4 className="font-semibold text-sm text-foreground">Telefonnummer anzeigen</h4>
-                                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Zeigt deine Telefonnummer öffentlich für Anfragen an</p>
+                                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Zeigt deine Telefonnummer nach Annahme einer Anfrage an. Standardmäßig aus.</p>
                             </div>
                             <Switch
                                 checked={settings.phone_visible}
