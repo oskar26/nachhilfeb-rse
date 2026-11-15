@@ -3,11 +3,11 @@ import { Input } from '@/components/ui/input';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Button } from './ui/button';
-import { Shapes, Type, PenTool, Upload, RotateCcw, Trash2, Check, Sparkles, X, BookOpen, Pencil, GraduationCap, FlaskConical, Calculator, Lightbulb, Brain, Backpack, NotebookPen, Laptop, Palette, Globe, Smile, Laugh, Rocket, Star, Flame, Zap, Heart, ThumbsUp, Trophy, Music, Gamepad2, Bike, Dumbbell, Guitar, Headphones, Target, Camera, Medal, Flag, Puzzle, Dices, Timer, Tent, Cat, Dog, Rabbit, Bird, Fish, Bug, Turtle, Squirrel, PawPrint, Leaf, Flower2, Sprout, Sun, Moon, Cloud, Snowflake, IceCream, CakeSlice, Cookie, Popcorn, Coffee, Pizza, Apple, Gift, PartyPopper, Crown, Wand2, Ghost, SmilePlus, Glasses, Shirt, type LucideIcon } from 'lucide-react';
+import { Shapes, Type, PenTool, Upload, RotateCcw, Trash2, Check, Sparkles, X, Maximize2, BookOpen, Pencil, GraduationCap, FlaskConical, Calculator, Lightbulb, Brain, Backpack, NotebookPen, Laptop, Palette, Globe, Smile, Laugh, Rocket, Star, Flame, Zap, Heart, ThumbsUp, Trophy, Music, Gamepad2, Bike, Dumbbell, Guitar, Headphones, Target, Camera, Medal, Flag, Puzzle, Dices, Timer, Tent, Cat, Dog, Rabbit, Bird, Fish, Bug, Turtle, Squirrel, PawPrint, Leaf, Flower2, Sprout, Sun, Moon, Cloud, Snowflake, IceCream, CakeSlice, Cookie, Popcorn, Coffee, Pizza, Apple, Gift, PartyPopper, Crown, Wand2, Ghost, SmilePlus, Glasses, Shirt, type LucideIcon } from 'lucide-react';
 import { compressImage } from '../lib/image';
 import { toast } from 'sonner';
 import { cn } from '../lib/utils';
-import { triggerHaptic } from '../lib/haptics';
+import { triggerHaptic, type HapticStyle } from '../lib/haptics';
 import { m, prefersReducedMotion, SPRING } from '../lib/motion';
 
 interface AvatarMakerModalProps {
@@ -267,6 +267,17 @@ const MONOGRAM_FONTS = [
 
 const EMOJI_FONT = '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
 
+/**
+ * Interne Auflösung beider Zeichenflächen (normal + Vollbild). Beide Canvasse
+ * teilen sich dieselbe Auflösung, damit Bildstände beim Wechsel verlustfrei
+ * kopiert werden können.
+ */
+const DRAW_CANVAS_SIZE = 768;
+/** Strichstärken in der UI beziehen sich auf die frühere 384px-Fläche. */
+const DRAW_BRUSH_SCALE = DRAW_CANVAS_SIZE / 384;
+/** Speicherfreundliches Undo-Limit (ImageData bei 768px ist ca. 2,3 MB). */
+const DRAW_HISTORY_LIMIT = 8;
+
 /** Relative Helligkeit nach WCAG, damit Symbole auf jeder Fläche lesbar bleiben. */
 function relativeLuminance(hex: string): number {
     const value = hex.replace('#', '');
@@ -292,10 +303,11 @@ interface SwatchGridProps {
     label: string;
     reduceMotion: boolean;
     columns?: string;
+    hapticStyle?: HapticStyle | false;
 }
 
 /** Farbfelder als responsives Raster – kein waagerechtes Scrollen mehr. */
-function SwatchGrid({ colors, value, onChange, label, reduceMotion, columns = 'grid-cols-6 sm:grid-cols-8' }: SwatchGridProps) {
+function SwatchGrid({ colors, value, onChange, label, reduceMotion, columns = 'grid-cols-6 sm:grid-cols-8', hapticStyle }: SwatchGridProps) {
     return (
         <div role="group" aria-label={label} className={cn('grid gap-1.5', columns)}>
             {colors.map(color => {
@@ -316,6 +328,7 @@ function SwatchGrid({ colors, value, onChange, label, reduceMotion, columns = 'g
                         aria-label={`${color.name} (${color.hex})`}
                         aria-pressed={selected}
                         title={color.name}
+                        hapticStyle={hapticStyle}
                         className={cn(
                             'relative grid size-11 place-items-center justify-self-center rounded-xl border-2 transition-colors',
                             selected
@@ -336,6 +349,101 @@ function SwatchGrid({ colors, value, onChange, label, reduceMotion, columns = 'g
                     </Button>
                 );
             })}
+        </div>
+    );
+}
+
+/** Stiftfarben, Strichstärke und Werkzeuge – identisch in Modal und Vollbild. */
+interface DrawToolControlsProps {
+    brushColor: string;
+    onBrushColorChange: (hex: string) => void;
+    brushSize: number;
+    onBrushSizeChange: (size: number) => void;
+    canUndo: boolean;
+    onUndo: () => void;
+    onClear: () => void;
+    reduceMotion: boolean;
+    columns?: string;
+    className?: string;
+}
+
+function DrawToolControls({
+    brushColor,
+    onBrushColorChange,
+    brushSize,
+    onBrushSizeChange,
+    canUndo,
+    onUndo,
+    onClear,
+    reduceMotion,
+    columns,
+    className,
+}: DrawToolControlsProps) {
+    return (
+        <div className={cn('space-y-3', className)}>
+            <div>
+                <span className="mb-1.5 block text-[13px] font-semibold text-foreground/80">Stiftfarbe</span>
+                <SwatchGrid
+                    colors={BRUSH_COLORS}
+                    value={brushColor}
+                    onChange={onBrushColorChange}
+                    label="Stiftfarbe"
+                    reduceMotion={reduceMotion}
+                    columns={columns}
+                    hapticStyle="selection"
+                />
+            </div>
+
+            <div className="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                    <span className="mb-1.5 block text-[13px] font-semibold text-foreground/80">Strichstärke</span>
+                    <div className="flex items-center gap-1.5">
+                        {[3, 7, 14].map(size => (
+                            <Button variant="unstyled" size="unstyled" type="button"
+                                key={size}
+                                onClick={() => onBrushSizeChange(size)}
+                                aria-label={`Strichstärke ${size}`}
+                                aria-pressed={brushSize === size}
+                                hapticStyle="selection"
+                                className={cn(
+                                    'grid size-11 place-items-center rounded-lg border transition-colors',
+                                    brushSize === size ? 'border-primary bg-primary font-semibold text-primary-foreground' : 'border-border hover:bg-muted'
+                                )}
+                            >
+                                <div
+                                    style={{ width: Math.min(14, size), height: Math.min(14, size) }}
+                                    className="rounded-full bg-current"
+                                />
+                            </Button>
+                        ))}
+                    </div>
+                </div>
+
+                <div>
+                    <span className="mb-1.5 block text-[13px] font-semibold text-foreground/80">Werkzeuge</span>
+                    <div className="flex items-center gap-1.5">
+                        <Button variant="unstyled" size="unstyled" type="button"
+                            onClick={onUndo}
+                            disabled={!canUndo}
+                            aria-label="Rückgängig"
+                            hapticStyle={false}
+                            className="grid size-11 place-items-center rounded-lg border border-border transition-colors hover:bg-muted disabled:opacity-40"
+                            title="Rückgängig"
+                        >
+                            <RotateCcw size={16} aria-hidden />
+                        </Button>
+                        <Button variant="unstyled" size="unstyled" type="button"
+                            onClick={onClear}
+                            aria-label="Leinwand löschen"
+                            hapticStyle={false}
+                            className="grid size-11 place-items-center rounded-lg border border-destructive/25 text-destructive transition-colors hover:bg-destructive/10"
+                            title="Leinwand löschen"
+                        >
+                            <Trash2 size={16} aria-hidden />
+                        </Button>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
@@ -364,82 +472,202 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
     const [textFontIndex, setTextFontIndex] = useState(0);
 
     // Drawing Tab State
-    const canvasRef = useRef<HTMLCanvasElement | null>(null);
-    const [isDrawing, setIsDrawing] = useState(false);
+    const drawCanvasRef = useRef<HTMLCanvasElement | null>(null);
+    const fullscreenCanvasRef = useRef<HTMLCanvasElement | null>(null);
+    const isDrawingRef = useRef(false);
+    const activePointerIdRef = useRef<number | null>(null);
+    const drawSnapshotRef = useRef<ImageData | null>(null);
     const [brushColor, setBrushColor] = useState('#0f172a');
     const [brushSize, setBrushSize] = useState(7);
     const [drawBg] = useState('#ffffff');
     const [drawHistory, setDrawHistory] = useState<ImageData[]>([]);
+    const [isDrawFullscreen, setIsDrawFullscreen] = useState(false);
+    const fullscreenTriggerRef = useRef<HTMLButtonElement | null>(null);
+    const fullscreenCloseRef = useRef<HTMLButtonElement | null>(null);
 
     // Upload Tab State
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
 
-    const initDrawCanvas = useCallback(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
+    const getActiveDrawCanvas = useCallback(
+        () => (isDrawFullscreen ? fullscreenCanvasRef.current : drawCanvasRef.current),
+        [isDrawFullscreen]
+    );
 
-        // Fill background
+    /** Füllt eine Zeichenfläche mit dem Hintergrund und liefert den neuen Undo-Stand. */
+    const fillDrawCanvas = useCallback((canvas: HTMLCanvasElement): ImageData | null => {
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return null;
         ctx.fillStyle = drawBg;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        setDrawHistory([ctx.getImageData(0, 0, canvas.width, canvas.height)]);
+        const state = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        drawSnapshotRef.current = state;
+        return state;
     }, [drawBg]);
 
+    /** Setzt den aktiven Zeiger zurück, auch wenn ein Strich nie per pointerup endet. */
+    const resetDrawingPointer = useCallback(() => {
+        isDrawingRef.current = false;
+        activePointerIdRef.current = null;
+    }, []);
+
+    // Beim Einhängen einer Zeichenfläche den gemeinsamen Bildstand übertragen.
+    // Callback-Refs sind hier nötig, weil der Dialog-Portal erst nach dem
+    // Öffnen montiert wird und ein Layout-Effect den Canvas dann noch nicht sieht.
+    const hydrateDrawCanvas = useCallback((canvas: HTMLCanvasElement) => {
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        const snapshot = drawSnapshotRef.current;
+        if (snapshot && snapshot.width === canvas.width && snapshot.height === canvas.height) {
+            ctx.putImageData(snapshot, 0, 0);
+            return;
+        }
+        const state = fillDrawCanvas(canvas);
+        if (state) setDrawHistory([state]);
+    }, [fillDrawCanvas]);
+
+    const attachDrawCanvas = useCallback((node: HTMLCanvasElement | null) => {
+        drawCanvasRef.current = node;
+        if (node) {
+            hydrateDrawCanvas(node);
+        } else {
+            // Ein mitten im Strich unmountender Canvas darf keinen aktiven
+            // Pointer zurücklassen, sonst ignoriert die nächste Fläche Striche.
+            resetDrawingPointer();
+        }
+    }, [hydrateDrawCanvas, resetDrawingPointer]);
+
+    const attachFullscreenCanvas = useCallback((node: HTMLCanvasElement | null) => {
+        fullscreenCanvasRef.current = node;
+        if (node) {
+            hydrateDrawCanvas(node);
+        } else {
+            resetDrawingPointer();
+        }
+    }, [hydrateDrawCanvas, resetDrawingPointer]);
+
+    // Body-Scroll sperren, solange das Vollbild offen ist. Die App reserviert
+    // per `scrollbar-gutter: stable` dauerhaft Platz für die Scrollleiste; im
+    // Vollbild geben wir diese 10px frei, damit das Overlay wirklich die
+    // gesamte Viewport-Breite nutzt.
     useEffect(() => {
-        if (mode === 'draw') {
-            initDrawCanvas();
-        }
-    }, [mode, initDrawCanvas]);
+        if (!isDrawFullscreen) return;
+        const previousOverflow = document.body.style.overflow;
+        const root = document.documentElement;
+        const previousGutter = root.style.scrollbarGutter;
+        document.body.style.overflow = 'hidden';
+        root.style.scrollbarGutter = 'auto';
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            root.style.scrollbarGutter = previousGutter;
+        };
+    }, [isDrawFullscreen]);
 
-    // --- Drawing Handlers (Touch & Mouse) ---
-    const getCoordinates = (e: React.MouseEvent | React.TouchEvent) => {
-        const canvas = canvasRef.current;
-        if (!canvas) return { x: 0, y: 0 };
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-
-        if ('touches' in e && e.touches.length > 0) {
-            return {
-                x: (e.touches[0].clientX - rect.left) * scaleX,
-                y: (e.touches[0].clientY - rect.top) * scaleY
-            };
-        } else if ('clientX' in e) {
-            return {
-                x: (e.clientX - rect.left) * scaleX,
-                y: (e.clientY - rect.top) * scaleY
-            };
+    // Falls der äußere Dialog von außen geschlossen wird, Vollbild zurücksetzen.
+    // Beim Schließen außerdem den aktiven Zeiger löschen und die Undo-Historie
+    // auf den aktuellen Stand eindampfen: Das Modal bleibt im Profile-Baum
+    // gemountet und soll nicht bis zu 8 ImageData-Snapshots (~19 MB) halten.
+    useEffect(() => {
+        if (!isOpen) {
+            resetDrawingPointer();
+            setDrawHistory(prev => (prev.length > 1 ? [prev[prev.length - 1]] : prev));
         }
-        return { x: 0, y: 0 };
+        if (!isOpen && isDrawFullscreen) setIsDrawFullscreen(false);
+    }, [isOpen, isDrawFullscreen, resetDrawingPointer]);
+
+    const handleOpenFullscreen = () => {
+        triggerHaptic('light');
+        const canvas = drawCanvasRef.current;
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+                drawSnapshotRef.current = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            }
+        }
+        setIsDrawFullscreen(true);
     };
 
-    const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
+    /** Überträgt den Vollbild-Stand zurück auf die normale Fläche und schließt das Overlay. */
+    const closeDrawFullscreen = useCallback(() => {
+        // Auch bei Escape/X/Übernehmen mitten im Strich den Pointer freigeben.
+        resetDrawingPointer();
+        const source = fullscreenCanvasRef.current;
+        if (source) {
+            const sourceCtx = source.getContext('2d');
+            if (sourceCtx) {
+                const state = sourceCtx.getImageData(0, 0, source.width, source.height);
+                drawSnapshotRef.current = state;
+                const targetCtx = drawCanvasRef.current?.getContext('2d');
+                if (targetCtx) targetCtx.putImageData(state, 0, 0);
+            }
+        }
+        setIsDrawFullscreen(false);
+    }, [resetDrawingPointer]);
+
+    const handleCloseFullscreen = () => {
+        triggerHaptic('light');
+        closeDrawFullscreen();
+    };
+
+    const handleApplyFullscreen = () => {
+        triggerHaptic('success');
+        closeDrawFullscreen();
+    };
+
+    // --- Drawing Handlers (Pointer deckt Maus, Touch und Stift ab) ---
+    const getCoordinates = (e: React.PointerEvent<HTMLCanvasElement>) => {
+        const canvas = e.currentTarget;
+        const rect = canvas.getBoundingClientRect();
+        return {
+            x: (e.clientX - rect.left) * (canvas.width / rect.width),
+            y: (e.clientY - rect.top) * (canvas.height / rect.height)
+        };
+    };
+
+    const startDrawing = (e: React.PointerEvent<HTMLCanvasElement>) => {
+        if (activePointerIdRef.current !== null) return;
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
         e.preventDefault();
-        const canvas = canvasRef.current;
-        if (!canvas) return;
+        const canvas = e.currentTarget;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        setIsDrawing(true);
+        activePointerIdRef.current = e.pointerId;
+        try {
+            canvas.setPointerCapture(e.pointerId);
+        } catch {
+            /* Ältere Browser oder synthetische Events unterstützen kein Capture. */
+        }
+        isDrawingRef.current = true;
         const { x, y } = getCoordinates(e);
+
+        ctx.strokeStyle = brushColor;
+        ctx.lineWidth = brushSize * DRAW_BRUSH_SCALE;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        // Einzelner Tipp soll ebenfalls einen Punkt hinterlassen.
+        ctx.beginPath();
+        ctx.arc(x, y, ctx.lineWidth / 2, 0, Math.PI * 2);
+        ctx.fillStyle = brushColor;
+        ctx.fill();
 
         ctx.beginPath();
         ctx.moveTo(x, y);
-        ctx.lineTo(x, y);
-        ctx.strokeStyle = brushColor;
-        ctx.lineWidth = brushSize;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
     };
 
-    const draw = (e: React.MouseEvent | React.TouchEvent) => {
-        if (!isDrawing) return;
+    const draw = (e: React.PointerEvent<HTMLCanvasElement>) => {
+        // Defensive: Ein verlorenes pointerup darf bei einer bloßen
+        // Mausbewegung ohne gedrückte Taste keinen Strich fortsetzen.
+        if (e.pointerType === 'mouse' && e.buttons === 0) {
+            if (isDrawingRef.current && e.pointerId === activePointerIdRef.current) {
+                stopDrawing(e);
+            }
+            return;
+        }
+        if (!isDrawingRef.current || e.pointerId !== activePointerIdRef.current) return;
         e.preventDefault();
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
+        const ctx = e.currentTarget.getContext('2d');
         if (!ctx) return;
 
         const { x, y } = getCoordinates(e);
@@ -447,24 +675,31 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
         ctx.stroke();
     };
 
-    const stopDrawing = (e: React.MouseEvent | React.TouchEvent) => {
-        if (!isDrawing) return;
-        e.preventDefault();
-        setIsDrawing(false);
-        const canvas = canvasRef.current;
-        if (!canvas) return;
+    const stopDrawing = (e: React.PointerEvent<HTMLCanvasElement>) => {
+        if (!isDrawingRef.current || e.pointerId !== activePointerIdRef.current) return;
+        isDrawingRef.current = false;
+        activePointerIdRef.current = null;
+        const canvas = e.currentTarget;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
         ctx.closePath();
-        // Save history for undo
         const state = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        setDrawHistory(prev => [...prev.slice(-15), state]);
+        drawSnapshotRef.current = state;
+        setDrawHistory(prev => [...prev.slice(-(DRAW_HISTORY_LIMIT - 1)), state]);
+    };
+
+    const handlePointerLeave = (e: React.PointerEvent<HTMLCanvasElement>) => {
+        // Fallback für Browser ohne Pointer-Capture: Außerhalb der Fläche
+        // loslassen beendet den Strich, statt den aktiven Pointer zu blockieren.
+        if (isDrawingRef.current && !e.currentTarget.hasPointerCapture(e.pointerId)) {
+            stopDrawing(e);
+        }
     };
 
     const handleUndo = () => {
         if (drawHistory.length <= 1) return;
-        const canvas = canvasRef.current;
+        const canvas = getActiveDrawCanvas();
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
@@ -473,13 +708,17 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
         newHistory.pop(); // remove current state
         const prevState = newHistory[newHistory.length - 1];
         ctx.putImageData(prevState, 0, 0);
+        drawSnapshotRef.current = prevState;
         setDrawHistory(newHistory);
         triggerHaptic('light');
     };
 
     const handleClearDraw = () => {
-        initDrawCanvas();
-        triggerHaptic('medium');
+        const canvas = getActiveDrawCanvas();
+        if (!canvas) return;
+        const state = fillDrawCanvas(canvas);
+        if (state) setDrawHistory([state]);
+        triggerHaptic('light');
     };
 
     // --- Generate Final Output Image Data URL ---
@@ -561,7 +800,7 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
         }
 
         if (mode === 'draw') {
-            const drawCanvas = canvasRef.current;
+            const drawCanvas = getActiveDrawCanvas();
             if (!drawCanvas) return null;
             // Draw into circular clipped canvas
             ctx.save();
@@ -660,26 +899,36 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                 <div className="space-y-5 p-4 sm:p-6">
                     {mode === 'draw' ? (
                         /* Große, klar markierte Zeichenfläche */
-                        <div className="flex flex-col items-center gap-2">
-                            <div className="w-full">
-                                <span className="block text-[13px] font-semibold text-foreground">Zeichenfläche</span>
-                                <span className="block text-[13px] text-muted-foreground">Mit Maus oder Finger zeichnen</span>
+                        <div className="flex flex-col items-center gap-3">
+                            <div className="flex w-full items-start justify-between gap-3">
+                                <div>
+                                    <span className="block text-[13px] font-semibold text-foreground">Zeichenfläche</span>
+                                    <span className="block text-[13px] text-muted-foreground">Mit Maus oder Finger zeichnen</span>
+                                </div>
+                                <button
+                                    ref={fullscreenTriggerRef}
+                                    type="button"
+                                    onClick={handleOpenFullscreen}
+                                    aria-haspopup="dialog"
+                                    className="inline-flex h-11 min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-border bg-card px-3 text-[13px] font-semibold text-foreground transition-colors hover:bg-muted"
+                                >
+                                    <Maximize2 size={16} aria-hidden />
+                                    Vollbild
+                                </button>
                             </div>
                             <div className="relative aspect-square w-full max-w-[224px] overflow-hidden rounded-2xl border-2 border-dashed border-foreground/35 bg-white shadow-inner sm:max-w-[260px]">
                                 <canvas
-                                    ref={canvasRef}
-                                    width={384}
-                                    height={384}
+                                    ref={attachDrawCanvas}
+                                    width={DRAW_CANVAS_SIZE}
+                                    height={DRAW_CANVAS_SIZE}
                                     aria-label="Zeichenfläche für dein Profilbild"
                                     className="absolute inset-0 h-full w-full cursor-crosshair touch-none select-none"
-                                    onMouseDown={startDrawing}
-                                    onMouseMove={draw}
-                                    onMouseUp={stopDrawing}
-                                    onMouseLeave={stopDrawing}
-                                    onTouchStart={startDrawing}
-                                    onTouchMove={draw}
-                                    onTouchEnd={stopDrawing}
-                                    onTouchCancel={stopDrawing}
+                                    onPointerDown={startDrawing}
+                                    onPointerMove={draw}
+                                    onPointerUp={stopDrawing}
+                                    onPointerCancel={stopDrawing}
+                                    onPointerLeave={handlePointerLeave}
+                                    onLostPointerCapture={stopDrawing}
                                 />
                                 <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full border border-dashed border-foreground/20" />
                             </div>
@@ -913,67 +1162,17 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                     {/* MODE 4: DRAW */}
                     {mode === 'draw' && (
                         <div className="space-y-4">
-                            {/* Tool Controls */}
-                            <div className="space-y-3 rounded-xl border border-border bg-muted/40 p-3">
-                                <div>
-                                    <span className="mb-1.5 block text-[13px] font-semibold text-foreground/80">Stiftfarbe</span>
-                                    <SwatchGrid
-                                        colors={BRUSH_COLORS}
-                                        value={brushColor}
-                                        onChange={setBrushColor}
-                                        label="Stiftfarbe"
-                                        reduceMotion={reduceMotion}
-                                    />
-                                </div>
-
-                                <div className="flex flex-wrap items-end justify-between gap-3">
-                                    <div>
-                                        <span className="mb-1.5 block text-[13px] font-semibold text-foreground/80">Strichstärke</span>
-                                        <div className="flex items-center gap-1.5">
-                                            {[3, 7, 14].map(size => (
-                                                <Button variant="unstyled" size="unstyled" type="button"
-                                                    key={size}
-                                                    onClick={() => setBrushSize(size)}
-                                                    aria-label={`Strichstärke ${size}`}
-                                                    aria-pressed={brushSize === size}
-                                                    className={cn(
-                                                        'grid size-11 place-items-center rounded-lg border transition-colors',
-                                                        brushSize === size ? 'border-primary bg-primary font-semibold text-primary-foreground' : 'border-border hover:bg-muted'
-                                                    )}
-                                                >
-                                                    <div
-                                                        style={{ width: Math.min(14, size), height: Math.min(14, size) }}
-                                                        className="rounded-full bg-current"
-                                                    />
-                                                </Button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <span className="mb-1.5 block text-[13px] font-semibold text-foreground/80">Werkzeuge</span>
-                                        <div className="flex items-center gap-1.5">
-                                            <Button variant="unstyled" size="unstyled" type="button"
-                                                onClick={handleUndo}
-                                                disabled={drawHistory.length <= 1}
-                                                aria-label="Rückgängig"
-                                                className="grid size-11 place-items-center rounded-lg border border-border transition-colors hover:bg-muted disabled:opacity-40"
-                                                title="Rückgängig"
-                                            >
-                                                <RotateCcw size={16} aria-hidden />
-                                            </Button>
-                                            <Button variant="unstyled" size="unstyled" type="button"
-                                                onClick={handleClearDraw}
-                                                aria-label="Leinwand löschen"
-                                                className="grid size-11 place-items-center rounded-lg border border-destructive/25 text-destructive transition-colors hover:bg-destructive/10"
-                                                title="Leinwand löschen"
-                                            >
-                                                <Trash2 size={16} aria-hidden />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <DrawToolControls
+                                brushColor={brushColor}
+                                onBrushColorChange={setBrushColor}
+                                brushSize={brushSize}
+                                onBrushSizeChange={setBrushSize}
+                                canUndo={drawHistory.length > 1}
+                                onUndo={handleUndo}
+                                onClear={handleClearDraw}
+                                reduceMotion={reduceMotion}
+                                className="rounded-xl border border-border bg-muted/40 p-3"
+                            />
                         </div>
                     )}
 
@@ -1029,6 +1228,101 @@ export default function AvatarMakerModal({ isOpen, onClose, onSave, initialName 
                     </Button>
                 </div>
             </DialogContent>
+
+            {/* Vollbild-Zeichenfläche: eigenes, verschachteltes Dialog-Overlay,
+                damit Fokus, Escape und Scroll-Lock korrekt funktionieren. */}
+            <Dialog open={isDrawFullscreen} onClose={closeDrawFullscreen}>
+                <DialogContent
+                    showCloseButton={false}
+                    initialFocus={fullscreenCloseRef}
+                    finalFocus={fullscreenTriggerRef}
+                    className="inset-0 left-0 top-0 flex h-dvh max-h-none w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-0 bg-background p-0 shadow-none duration-150 motion-reduce:animate-none sm:max-w-none sm:p-0"
+                >
+                    <div className="flex h-full min-h-0 flex-col pb-[env(safe-area-inset-bottom,0px)] pt-[env(safe-area-inset-top,0px)]">
+                        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border bg-card/95 px-3 py-2">
+                            <div className="flex min-w-0 items-center gap-2.5">
+                                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-foreground" aria-hidden>
+                                    <PenTool size={18} />
+                                </span>
+                                <div className="min-w-0">
+                                    <DialogTitle className="text-sm font-semibold leading-tight">Zeichnen</DialogTitle>
+                                    <DialogDescription className="truncate text-xs text-muted-foreground">
+                                        Vollbild · mehr Platz für dein Profilbild
+                                    </DialogDescription>
+                                </div>
+                            </div>
+                            <button
+                                ref={fullscreenCloseRef}
+                                type="button"
+                                onClick={handleCloseFullscreen}
+                                aria-label="Vollbild schließen"
+                                className="grid size-11 shrink-0 place-items-center rounded-xl border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            >
+                                <X size={18} aria-hidden />
+                            </button>
+                        </div>
+
+                        <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-muted/30 p-2 [container-type:size] sm:p-3">
+                            <div
+                                className="relative aspect-square overflow-hidden rounded-2xl border-2 border-border bg-white shadow-inner"
+                                style={{ width: 'min(100cqw, 100cqh)', height: 'min(100cqw, 100cqh)' }}
+                            >
+                                <canvas
+                                    ref={attachFullscreenCanvas}
+                                    width={DRAW_CANVAS_SIZE}
+                                    height={DRAW_CANVAS_SIZE}
+                                    aria-label="Große Zeichenfläche für dein Profilbild"
+                                    className="absolute inset-0 h-full w-full cursor-crosshair touch-none select-none"
+                                    onPointerDown={startDrawing}
+                                    onPointerMove={draw}
+                                    onPointerUp={stopDrawing}
+                                    onPointerCancel={stopDrawing}
+                                    onPointerLeave={handlePointerLeave}
+                                    onLostPointerCapture={stopDrawing}
+                                />
+                                <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full border border-dashed border-foreground/15" />
+                            </div>
+                        </div>
+
+                        <div className="max-h-[42dvh] shrink-0 overflow-y-auto overscroll-contain border-t border-border bg-card/95 px-3 py-3">
+                            <div className="mx-auto w-full max-w-3xl">
+                                <DrawToolControls
+                                    brushColor={brushColor}
+                                    onBrushColorChange={setBrushColor}
+                                    brushSize={brushSize}
+                                    onBrushSizeChange={setBrushSize}
+                                    canUndo={drawHistory.length > 1}
+                                    onUndo={handleUndo}
+                                    onClear={handleClearDraw}
+                                    reduceMotion={reduceMotion}
+                                    columns="grid-cols-6 sm:grid-cols-12"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="shrink-0 border-t border-border bg-card/95 px-3 py-2 backdrop-blur">
+                            <div className="mx-auto flex w-full max-w-3xl items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    hapticStyle={false}
+                                    onClick={handleCloseFullscreen}
+                                    className="h-11 min-w-0 flex-1 rounded-xl"
+                                >
+                                    Schließen
+                                </Button>
+                                <Button
+                                    hapticStyle={false}
+                                    onClick={handleApplyFullscreen}
+                                    className="h-11 min-w-0 flex-1 gap-2 rounded-xl font-semibold"
+                                >
+                                    <Check size={16} aria-hidden />
+                                    Übernehmen
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </Dialog>
     );
 }
