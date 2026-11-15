@@ -441,7 +441,10 @@ export default function AdDetails() {
                                                     <Send size={20} className="mr-2" /> Anfrage senden
                                                 </Button>
                                                 <p className="text-center text-[13px] leading-relaxed text-muted-foreground md:text-left">
-                                                    Unverbindlich · Kontakte erst nach Annahme sichtbar
+                                                    Unverbindlich · Kontakte erst nach Annahme sichtbar · Bezahlung privat
+                                                </p>
+                                                <p className="text-center text-[13px] leading-relaxed text-muted-foreground md:text-left">
+                                                    Die Plattform ist kein Zahlungsdienstleister und nimmt keine Provision.
                                                 </p>
                                             </div>
                                         )}
@@ -491,6 +494,7 @@ export default function AdDetails() {
                                                         <p>
                                                             <strong>Sicherheit geht vor:</strong> Trefft euch möglichst in der Schule,
                                                             informiert eure Eltern und teilt nur Kontakte, die ihr freigegeben habt.
+                                                            Die Bezahlung erfolgt privat; die Plattform ist kein Zahlungsdienstleister und nimmt keine Provision.
                                                             Bei Problemen melde die Anzeige über den Button unten oder sprich das SV-Team an.
                                                         </p>
                                                     </div>

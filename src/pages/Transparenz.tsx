@@ -30,6 +30,11 @@ export default function Transparenz() {
                                 github.com/oskar26/nachhilfeb-rse <ExternalLink size={16} aria-hidden="true" />
                             </a>
                         </p>
+                        <p>
+                            Die Plattform ist kostenlos und nicht-kommerziell. Sie ist <strong>kein Zahlungsdienstleister</strong>,
+                            wickelt keine Zahlungen ab, nimmt keine Provision und verdient nichts an der Nachhilfe.
+                            Die Bezahlung der Nachhilfe erfolgt privat zwischen den Beteiligten.
+                        </p>
                     </div>
                 </section>
 

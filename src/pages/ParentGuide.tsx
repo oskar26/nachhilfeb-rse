@@ -99,7 +99,7 @@ export default function ParentGuide() {
                             ca. 12 € pro 45 Minuten
                         </p>
                         <p className="mt-2 max-w-prose text-sm leading-relaxed text-muted-foreground">
-                            Das entspricht ca. 16 € pro Stunde. Der Preis ist individuell anpassbar. Die Nachhilfe wird privat bezahlt.
+                            Das entspricht ca. 16 € pro Stunde. Der Preis ist individuell anpassbar. Die Nachhilfe wird privat bezahlt – die Börse ist kein Zahlungsdienstleister und nimmt keine Provision.
                         </p>
                     </div>
                 </m.section>
@@ -167,7 +167,7 @@ export default function ParentGuide() {
                             <strong className="text-foreground">Konsequenz:</strong> Verwarnung oder sofortige Sperrung bei Verstößen.
                         </CheckRow>
                         <CheckRow>
-                            <strong className="text-foreground">Keine Zahlungen:</strong> Die Börse wickelt keine Zahlungen ab. Vergütung und Umfang vereinbaren Sie direkt mit der Anbieter-Familie.
+                            <strong className="text-foreground">Keine Zahlungen über die Börse:</strong> Die Nachhilfebörse ist kein Zahlungsdienstleister, wickelt keine Zahlungen ab und behält keine Provision ein. Vergütung und Umfang vereinbaren Sie direkt mit der Anbieter-Familie. Wir verdienen nichts an der Nachhilfe.
                         </CheckRow>
                         <CheckRow>
                             <strong className="text-foreground">Primär-Kontakt:</strong>{' '}

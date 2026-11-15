@@ -1242,6 +1242,9 @@ export default function CreateAd() {
                                     <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">
                                         {PRICE_GUIDELINE.shortCopy}. Du legst den Preis selbst fest.
                                     </p>
+                                    <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+                                        Die Bezahlung erfolgt privat zwischen dir und der Nachhilfelehrkraft. Die Plattform ist kein Zahlungsdienstleister, wickelt keine Zahlungen ab und behält keine Provision ein.
+                                    </p>
                                 </div>
                             </div>
 

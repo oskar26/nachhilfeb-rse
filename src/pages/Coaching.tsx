@@ -21,7 +21,7 @@ export const FALLBACK: Record<string, string> = {
     s_boost_title: 'Warum stehen manche Anzeigen oben?',
     s_boost_body: 'Anzeigen mit dem Hinweis „Hervorgehoben“ erhalten eine bessere Platzierung und eine gelbe Markierung. Das passiert ausschließlich in zwei Fällen:\n\n• Coach-Status: Nach Einlösen eines Coaching-Codes werden Anzeigen des Coaches für 30 Tage hervorgehoben.\n• SV-Aktionen: Zeitlich begrenzte Hinweise des SV-Teams (z. B. zum Schuljahresstart).\n\nEs gibt keine bezahlten Platzierungen und keine Werbung. Anzeigen von Coaches werden etwas höher einsortiert, solange der Coach-Status aktiv ist. Die Regeln für die Platzierung stehen auf dieser Seite.',
     s_fair_title: 'Gleiche Chancen für alle',
-    s_fair_body: '• Das Erstellen einer Anzeige ist kostenlos, mit oder ohne Abzeichen. Die Nachhilfe wird privat bezahlt.\n• Der Filter „Nur Coaches“ hilft beim Finden geprüfter Coaches, blendet aber niemanden aus: Alle Anzeigen bleiben für alle sichtbar.\n• Codes sind personenbezogen und begrenzt (in der Regel einmalig einlösbar) und werden nur nach Schulung vergeben, nicht auf Zuruf oder gegen Gegenleistung.\n• Die Vergabe von Codes und Coach-Status wird protokolliert und kann vom SV-Team geprüft werden.\n• Anzeigen von Coaches werden etwas höher einsortiert, solange der Coach-Status aktiv ist.',
+    s_fair_body: '• Das Erstellen einer Anzeige ist kostenlos, mit oder ohne Abzeichen. Die Nachhilfe wird privat bezahlt. Die Plattform ist kein Zahlungsdienstleister, wickelt keine Zahlungen ab und nimmt keine Provision.\n• Der Filter „Nur Coaches“ hilft beim Finden geprüfter Coaches, blendet aber niemanden aus: Alle Anzeigen bleiben für alle sichtbar.\n• Codes sind personenbezogen und begrenzt (in der Regel einmalig einlösbar) und werden nur nach Schulung vergeben, nicht auf Zuruf oder gegen Gegenleistung.\n• Die Vergabe von Codes und Coach-Status wird protokolliert und kann vom SV-Team geprüft werden.\n• Anzeigen von Coaches werden etwas höher einsortiert, solange der Coach-Status aktiv ist.',
     s_conduct_title: 'Verhalten als Coach',
     s_conduct_body: '• Respektvoller, geduldiger Umgang, besonders mit jüngeren Schülerinnen und Schülern\n• Keine falschen Versprechen zu besseren Noten\n• Treffen möglichst in der Schule (z. B. Bibliothek, Mensa); private Treffen nur mit Wissen der Eltern\n• Bei Problemen: frühzeitig die AG-Leitung oder das SV-Team ansprechen',
     s_revoke_title: 'Entzug des Status & Widerspruch',
@@ -207,7 +207,7 @@ export function createDefaultCoachingDocument(legacy: Record<string, string> = F
                     listItem('step-2', 'Schulung', 'Nimm an der Coach-Schulung der AG-Leitung vor den Herbstferien teil.'),
                     listItem('step-3', 'Abzeichen und Start', 'Erhalte das Coach-Abzeichen und starte dienstags in H310.'),
                 ],
-                note: 'Die AG-Stunde dienstags in H310 ist ehrenamtlich. Private Nachhilfe über die Börse vereinbaren Familien direkt. Richtwert: 12 € pro 45 Minuten (16 €/h). Der Preis ist individuell anpassbar.',
+                note: 'Die AG-Stunde dienstags in H310 ist ehrenamtlich. Private Nachhilfe über die Börse vereinbaren Familien direkt. Richtwert: 12 € pro 45 Minuten (16 €/h). Der Preis ist individuell anpassbar. Die Bezahlung erfolgt privat; die Plattform ist kein Zahlungsdienstleister und nimmt keine Provision.',
                 verificationTitle: 'Verifizierung in der App',
                 verificationItems: [
                     listItem('verify-1', 'Konto anlegen', 'Lege ein Konto mit deinen Angaben an.'),

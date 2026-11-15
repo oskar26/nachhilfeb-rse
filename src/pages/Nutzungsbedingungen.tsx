@@ -172,6 +172,8 @@ export default function Nutzungsbedingungen() {
                             <strong>ausschließlich zwischen den beteiligten Nutzerinnen und Nutzern</strong> zustande.
                             Der Betreiber (SV-Team) ist an diesen Vereinbarungen nicht beteiligt, erhält keine
                             Provision und übernimmt keine Gewähr für deren Durchführung oder Qualität.
+                            Die Plattform ist kein Zahlungsdienstleister, wickelt keine Zahlungen ab und verdient
+                            nichts an der Nachhilfe.
                         </p>
                     </Para>
 
@@ -259,7 +261,8 @@ export default function Nutzungsbedingungen() {
                             Nachhilfe gegen Bezahlung zwischen Minderjährigen berührt das Taschengeldrecht
                             (§ 110 BGB): <strong>Bitte kläre Vergütung und Umfang vorab mit deinen Eltern</strong> –
                             besonders bei regelmäßiger oder teurer Nachhilfe. Für Streitigkeiten über Bezahlung
-                            zwischen Nutzern ist der Betreiber nicht zuständig.
+                            zwischen Nutzern ist der Betreiber nicht zuständig. Die Bezahlung erfolgt privat;
+                            der Betreiber ist kein Zahlungsdienstleister und nimmt keine Provision.
                         </p>
                     </Para>
 
