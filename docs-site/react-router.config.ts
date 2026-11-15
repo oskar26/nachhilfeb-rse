@@ -12,6 +12,8 @@ export default {
       paths.add(`/docs${slugs.length > 0 ? `/${slugs.join('/')}` : ''}`);
     }
 
+    paths.add('/docs/llms.txt');
+
     return [...paths];
   },
 } satisfies Config;

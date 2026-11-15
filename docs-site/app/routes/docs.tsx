@@ -1,15 +1,22 @@
 import type { Route } from './+types/docs';
+import { useBreadcrumb } from 'fumadocs-core/breadcrumb';
+import { usePathname } from 'fumadocs-core/framework';
+import { Link } from 'fumadocs-core/link';
 import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 import {
   DocsBody,
   DocsDescription,
   DocsPage,
   DocsTitle,
+  type BreadcrumbProps,
 } from 'fumadocs-ui/layouts/docs/page';
+import { useTreeContext } from 'fumadocs-ui/contexts/tree';
+import { ChevronRight } from 'lucide-react';
 import { docs, source } from '@/lib/source';
 import { baseOptions } from '@/lib/layout.shared';
 import { useFumadocsLoader } from 'fumadocs-core/source/client';
 import { useMDXComponents } from '@/components/mdx';
+import { PageActions } from '@/components/page-actions';
 import { use, type ComponentProps } from 'react';
 
 function Table(props: ComponentProps<'table'>) {
@@ -20,6 +27,51 @@ function Table(props: ComponentProps<'table'>) {
   );
 }
 
+function DocsBreadcrumb({
+  includeRoot: _includeRoot,
+  includeSeparator: _includeSeparator,
+  includePage: _includePage,
+  className,
+  ...props
+}: BreadcrumbProps) {
+  const pathname = usePathname();
+  const { full } = useTreeContext();
+  const items = useBreadcrumb(pathname, full, { includePage: true });
+  const trail = items.filter((item) => item.url !== '/docs');
+
+  return (
+    <nav
+      {...props}
+      aria-label="Brotkrumen"
+      className={['docs-breadcrumb', className].filter(Boolean).join(' ')}
+    >
+      <ol>
+        <li>
+          {trail.length === 0 ? (
+            <span aria-current="page">Dokumentation</span>
+          ) : (
+            <Link href="/docs">Dokumentation</Link>
+          )}
+        </li>
+        {trail.map((item, index) => {
+          const isLast = index === trail.length - 1;
+
+          return (
+            <li key={`${item.url ?? 'eintrag'}-${index}`}>
+              <ChevronRight aria-hidden="true" className="docs-breadcrumb-separator" />
+              {isLast || !item.url ? (
+                <span aria-current={isLast ? 'page' : undefined}>{item.name}</span>
+              ) : (
+                <Link href={item.url}>{item.name}</Link>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
+  );
+}
+
 export async function loader({ params }: Route.LoaderArgs) {
   const slugs = params['*'].split('/').filter((v) => v.length > 0);
   const page = source.getPage(slugs);
@@ -27,11 +79,12 @@ export async function loader({ params }: Route.LoaderArgs) {
 
   return {
     path: page.path,
+    markdown: await page.data.getText('processed'),
     pageTree: await source.serializePageTree(source.getPageTree()),
   };
 }
 
-function Content({ path }: { path: string }) {
+function Content({ path, markdown }: { path: string; markdown: string }) {
   const page = docs.getPage(path);
   if (!page) throw new Error(`unknown page: ${path}`);
 
@@ -39,10 +92,17 @@ function Content({ path }: { path: string }) {
   const Mdx = page.body;
 
   return (
-    <DocsPage toc={toc}>
+    <DocsPage
+      toc={toc}
+      slots={{ breadcrumb: DocsBreadcrumb }}
+      tableOfContent={{ container: { role: 'navigation', 'aria-labelledby': 'toc-title' } }}
+    >
       <title>{page.title}</title>
       <meta name="description" content={page.description} />
-      <DocsTitle>{page.title}</DocsTitle>
+      <div className="docs-page-title-row">
+        <DocsTitle>{page.title}</DocsTitle>
+        <PageActions markdown={markdown} />
+      </div>
       <DocsDescription>{page.description}</DocsDescription>
       <DocsBody>
         <Mdx components={{ ...useMDXComponents(), table: Table }} />
@@ -62,7 +122,7 @@ function Content({ path }: { path: string }) {
 }
 
 export default function Page({ loaderData }: Route.ComponentProps) {
-  const { pageTree, path } = useFumadocsLoader(loaderData);
+  const { pageTree, path, markdown } = useFumadocsLoader(loaderData);
 
   return (
     <DocsLayout
@@ -76,7 +136,7 @@ export default function Page({ loaderData }: Route.ComponentProps) {
         ),
       }}
     >
-      <Content path={path} />
+      <Content path={path} markdown={markdown} />
     </DocsLayout>
   );
 }
