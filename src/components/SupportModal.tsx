@@ -276,7 +276,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                 <DialogDescription className="sr-only">
                     Support, Fehlermeldungen und Nachrichten an das SV-Team.
                 </DialogDescription>
-                <div className="flex max-h-[92dvh] w-full flex-col overflow-hidden bg-card pb-[env(safe-area-inset-bottom)]">
+                <div className="flex max-h-[92dvh] w-full flex-col overflow-hidden bg-card pb-[env(safe-area-inset-bottom,0px)]">
                     {/* Header */}
                     <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-4 py-3 sm:px-6 sm:py-4">
                         <div className="flex min-w-0 flex-1 items-center gap-2">
@@ -575,7 +575,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
 
                     {/* Chat input footer */}
                     {view === 'chat' && activeTicket && (
-                        <div className="shrink-0 border-t border-border bg-muted/30 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:p-4">
+                        <div className="shrink-0 border-t border-border bg-muted/30 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:p-4">
                             <div className="flex gap-2">
                                 <Input
                                     type="text"

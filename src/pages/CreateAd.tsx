@@ -1228,8 +1228,10 @@ export default function CreateAd() {
                                                     : "border-border hover:border-primary/40"
                                             )}
                                         >
-                                            <span className="block font-semibold">{PRICE_MODE_LABELS[option.value]}</span>
-                                            <span className="text-[13px] opacity-75">{option.hint}</span>
+                                            <span className="flex min-w-0 flex-col items-start">
+                                                <span className="font-semibold">{PRICE_MODE_LABELS[option.value]}</span>
+                                                <span className="mt-0.5 text-[13px] leading-snug opacity-75">{option.hint}</span>
+                                            </span>
                                             {active && <CheckCircle size={16} className="absolute right-3 top-3" aria-hidden />}
                                         </Button>
                                     );

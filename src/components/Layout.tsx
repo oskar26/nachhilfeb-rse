@@ -402,7 +402,7 @@ function AppShell() {
                     ref={mainContentRef}
                     tabIndex={-1}
                     aria-label="Hauptinhalt"
-                    className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overflow-x-clip focus:outline-none"
+                    className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overflow-x-clip scroll-pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] focus:outline-none md:scroll-pb-0"
                 >
                     <AccessGuard>
                         <Outlet />
@@ -413,7 +413,7 @@ function AppShell() {
 
             <nav
                 aria-label="Hauptnavigation"
-                className="fixed right-2 bottom-[max(0.75rem,calc(0.75rem+env(safe-area-inset-bottom,0px)))] left-2 z-50 grid h-[4.5rem] grid-cols-5 items-center rounded-full border border-border/70 bg-card/95 px-1 shadow-overlay backdrop-blur-xl md:hidden"
+                className="fixed right-2 bottom-[max(0.75rem,calc(0.75rem+env(safe-area-inset-bottom,0px)))] left-2 z-50 grid h-[4.5rem] grid-cols-5 items-center rounded-full border border-border/70 bg-card/95 px-1 shadow-overlay backdrop-blur-xl max-[399px]:px-0.5 md:hidden"
             >
                 {mobileNavItems.map((item) => {
                     const Icon = item.icon;
@@ -429,7 +429,7 @@ function AppShell() {
                                     handleNavClick();
                                     navigate('/create-ad');
                                 }}
-                                className="flex h-full w-full items-center justify-center p-[3px]"
+                                className="flex h-full w-full items-center justify-center p-[3px] max-[399px]:p-0"
                                 title="Neue Anzeige"
                                 aria-label="Neue Anzeige"
                                 aria-current={createAdActive ? 'page' : undefined}
@@ -452,7 +452,7 @@ function AppShell() {
                             key={item.to}
                             to={item.to}
                             onClick={handleNavClick}
-                            className="group flex h-full w-full min-w-0 items-center justify-center p-[3px]"
+                            className="group flex h-full w-full min-w-0 items-center justify-center p-[3px] max-[399px]:p-0"
                             title={item.label}
                             aria-current={active ? 'page' : undefined}
                         >
@@ -465,7 +465,7 @@ function AppShell() {
                                 )}
                             >
                                 <Icon size={20} strokeWidth={active ? 2.25 : 2} aria-hidden />
-                                <span className="max-w-full truncate tracking-[-0.02em]">{item.label}</span>
+                                <span className="max-w-full truncate tracking-[-0.02em] max-[399px]:tracking-[-0.04em]">{item.label}</span>
                             </span>
                         </Link>
                     );

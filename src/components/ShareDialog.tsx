@@ -188,7 +188,7 @@ export default function ShareDialog({
                         </Button>
 
                         {showQr && (
-                            <div className="mt-3 flex flex-col items-center justify-center rounded-xl border border-border bg-card p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] animate-in fade-in zoom-in-95">
+                            <div className="mt-3 flex flex-col items-center justify-center rounded-xl border border-border bg-card p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] animate-in fade-in zoom-in-95">
                                 <QRCodeSVG value={shareUrl!} size={220} title="QR-Code zum Abscannen" className="size-44 rounded-lg" />
                                 <p className="mt-2 text-center text-xs font-medium text-muted-foreground">
                                     Scanne diesen Code mit deiner Handy-Kamera

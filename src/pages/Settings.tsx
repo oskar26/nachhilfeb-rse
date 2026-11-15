@@ -640,7 +640,7 @@ export default function Settings() {
                                             }
                                         }}
                                         disabled={emailChangeLoading}
-                                        className="flex-1"
+                                        className="w-full sm:flex-1"
                                     />
                                     <Button
                                         type="button"
@@ -677,7 +677,7 @@ export default function Settings() {
                                                 }
                                             }}
                                             disabled={emailConfirmLoading}
-                                            className="flex-1 text-center text-base font-semibold tabular-nums tracking-[0.3em]"
+                                            className="w-full text-center text-base font-semibold tabular-nums tracking-[0.3em] sm:flex-1"
                                         />
                                         <Button
                                             type="button"

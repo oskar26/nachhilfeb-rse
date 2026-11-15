@@ -292,7 +292,7 @@ export default function MobileQuickMenu({ unreadCount, onCountChange }: Props) {
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto overscroll-contain px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 [scrollbar-width:thin]">
+                    <div className="flex-1 overflow-y-auto overscroll-contain px-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-3 [scrollbar-width:thin]">
                         {newsLoading && (
                             <div className="flex items-center justify-center py-12">
                                 <Loader2 size={20} className="animate-spin text-muted-foreground" aria-hidden />

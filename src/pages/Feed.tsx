@@ -568,7 +568,7 @@ export default function Feed() {
                             </div>
                         </div>
                         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-                            <div className="min-w-0 space-y-6 overflow-x-clip p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:p-5 md:pb-5">
+                            <div className="min-w-0 space-y-6 overflow-x-clip p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] sm:p-5 md:pb-5">
 
                             {/* Schnellfilter: dieselben Schalter wie in der Desktop-Aktionszeile */}
                             <div>
@@ -1035,7 +1035,7 @@ export default function Feed() {
                                             triggerHaptic('light');
                                             setShareAd({ id: ad.id, title: `${ad.subjects?.[0]?.toUpperCase() || 'Nachhilfe'}: ${ad.profiles?.display_name || ''}` });
                                         }}
-                                        className="grid size-10 place-items-center rounded-full bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                                        className="grid size-11 place-items-center rounded-full bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                                         title="Anzeige teilen"
                                         aria-label="Anzeige teilen"
                                     >

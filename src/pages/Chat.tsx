@@ -543,7 +543,7 @@ export default function Chat() {
                                                 aria-label="Nachricht bearbeiten oder ausblenden"
                                                 onClick={(event) => event.stopPropagation()}
                                                 className={cn(
-                                                    "ml-1 mt-0.5 grid size-8 shrink-0 place-items-center rounded-full text-chat-meta transition-opacity hover:bg-black/5 dark:hover:bg-white/10",
+                                                    "ml-1 mt-0.5 grid size-8 shrink-0 place-items-center rounded-full text-chat-meta transition-opacity hover:bg-black/5 dark:hover:bg-white/10 max-lg:size-11 max-lg:opacity-100",
                                                     menuOpenId === msg.id ? "opacity-100" : "opacity-0 group-hover/message:opacity-100 focus-visible:opacity-100"
                                                 )}
                                             >
@@ -569,7 +569,7 @@ export default function Chat() {
             </div>
 
             {/* Input Area */}
-            <div className="shrink-0 bg-chat-bg px-2 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] sm:px-4">
+            <div className="shrink-0 bg-chat-bg px-2 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] sm:px-4">
                 {isBlocked && (
                     <div className="mb-2 rounded-panel border border-border bg-chat-other px-4 py-3 text-[13px] leading-relaxed text-chat-meta shadow-soft" role="status">
                         Du hast diesen Nutzer blockiert. Du kannst die Blockierung im Menü aufheben.

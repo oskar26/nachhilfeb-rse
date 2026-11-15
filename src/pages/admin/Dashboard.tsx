@@ -379,8 +379,8 @@ function AdManagement() {
                                     <TableHead className="hidden pl-4 sm:table-cell">Typ</TableHead>
                                     <TableHead>Anzeige</TableHead>
                                     <TableHead className="hidden lg:table-cell">Anbieter</TableHead>
-                                    <TableHead className="hidden md:table-cell">Datum</TableHead>
-                                    <TableHead className="hidden sm:table-cell text-right">Aufrufe</TableHead>
+                                    <TableHead className="hidden lg:table-cell">Datum</TableHead>
+                                    <TableHead className="hidden lg:table-cell text-right">Aufrufe</TableHead>
                                     <TableHead className="hidden sm:table-cell">Status</TableHead>
                                     <TableHead className="pr-2 text-right sm:pr-4">Aktionen</TableHead>
                                 </TableRow>
@@ -404,7 +404,7 @@ function AdManagement() {
                                                 <div className="flex min-w-0 flex-col gap-0.5">
                                                     <Link
                                                         to={`/ad/${ad.id}`}
-                                                        className="block w-full max-w-full truncate text-[13px] font-semibold text-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                                        className="relative max-w-full text-[13px] font-semibold text-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 max-lg:flex max-lg:min-h-11 max-lg:w-full max-lg:items-center max-lg:whitespace-normal max-lg:break-words lg:block lg:w-full lg:truncate"
                                                         title={ad.title || ad.short_description}
                                                     >
                                                         {ad.title || ad.short_description || 'Anzeige ohne Titel'}
@@ -426,14 +426,14 @@ function AdManagement() {
                                                 </div>
                                             </TableCell>
                                             <TableCell className="hidden max-w-[14rem] truncate lg:table-cell">{owner}</TableCell>
-                                            <TableCell className="hidden whitespace-nowrap text-xs text-muted-foreground md:table-cell">
+                                            <TableCell className="hidden whitespace-nowrap text-xs text-muted-foreground lg:table-cell">
                                                 {ad.created_at ? new Date(ad.created_at).toLocaleDateString('de-DE') : '—'}
                                             </TableCell>
-                                            <TableCell className="hidden text-right tabular-nums sm:table-cell" title={ad.view_count == null ? 'Keine Aufrufzahl im Payload' : undefined}>
+                                            <TableCell className="hidden text-right tabular-nums lg:table-cell" title={ad.view_count == null ? 'Keine Aufrufzahl im Payload' : undefined}>
                                                 {ad.view_count == null ? '—' : numberFormat.format(Number(ad.view_count) || 0)}
                                             </TableCell>
                                             <TableCell className="hidden sm:table-cell">
-                                                <div className="flex flex-nowrap items-center gap-1.5">
+                                                <div className="flex flex-wrap items-center gap-1.5">
                                                     {archived ? (
                                                         <Badge variant="outline" className="font-medium text-muted-foreground">Archiviert</Badge>
                                                     ) : active ? (

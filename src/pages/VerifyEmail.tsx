@@ -83,7 +83,7 @@ export default function VerifyEmail() {
     };
 
     return (
-        <div className="flex min-h-dvh flex-col items-center justify-center bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] text-foreground">
+        <div className="flex min-h-dvh flex-col items-center justify-center bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] pt-[calc(1rem+env(safe-area-inset-top,0px))] text-foreground">
             <div className="w-full max-w-md">
                 <Card className="border-border bg-card">
                     <CardContent className="space-y-6 p-5 sm:p-6">

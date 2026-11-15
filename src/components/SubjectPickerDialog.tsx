@@ -80,7 +80,7 @@ export default function SubjectPickerDialog({ open, onClose, selected, onToggle 
                     </div>
 
                     {/* Fußzeile */}
-                    <div className="sticky bottom-0 z-10 flex items-center justify-between gap-3 border-t border-border bg-card/95 px-5 py-3.5 pb-[calc(0.875rem+env(safe-area-inset-bottom))] backdrop-blur">
+                    <div className="sticky bottom-0 z-10 flex items-center justify-between gap-3 border-t border-border bg-card/95 px-5 py-3.5 pb-[calc(0.875rem+env(safe-area-inset-bottom,0px))] backdrop-blur">
                         <p className="text-xs font-semibold tabular-nums text-muted-foreground">
                             {selected.length} {selected.length === 1 ? 'Fach' : 'Fächer'} gewählt
                         </p>
