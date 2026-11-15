@@ -296,7 +296,7 @@ export default function AdminLayout() {
                 ref={headerRef}
                 className="sticky top-0 z-30 border-b border-border bg-background"
             >
-                <div className="flex min-h-14 items-center gap-3 px-4 pt-[env(safe-area-inset-top)] sm:px-6">
+                <div className="flex min-h-14 items-center gap-3 px-4 pt-[env(safe-area-inset-top,0px)] sm:px-6">
                     <nav className="flex min-w-0 items-center gap-1.5 text-sm" aria-label="Breadcrumb">
                         <Link
                             to="/sv-panel?tab=overview"

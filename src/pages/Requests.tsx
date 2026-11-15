@@ -51,7 +51,7 @@ export function IncomingRequestCard({ req, onStatus, onComplete }: { req: AdRequ
 
     return (
         <StreamCardShell>
-            <div className="flex items-start justify-between gap-2 sm:gap-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
                 <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
                     <Avatar person={req.requester} />
                     <h3 className="min-w-0 break-words text-base font-extrabold leading-tight text-foreground">
@@ -59,7 +59,7 @@ export function IncomingRequestCard({ req, onStatus, onComplete }: { req: AdRequ
                         {req.requester?.display_name || 'Unbekannt'}
                     </h3>
                 </div>
-                <div className="flex shrink-0 flex-col items-end gap-1 lg:flex-row lg:flex-wrap lg:items-center lg:justify-end lg:gap-1.5">
+                <div className="flex shrink-0 flex-row flex-wrap items-center gap-1 sm:flex-col sm:items-end lg:flex-row lg:flex-wrap lg:items-center lg:justify-end lg:gap-1.5">
                     <TypeChip label="Anfrage · Eingehend" dotClass="bg-primary" icon={MessageSquare} />
                     <StatusChip label={statusMeta.label} dotClass={statusMeta.dotClass} />
                     <span className="inline-flex items-center gap-1 rounded-full bg-pastel-gray px-2.5 py-1 text-xs font-semibold text-pastel-gray-foreground">
@@ -127,7 +127,7 @@ export function OutgoingRequestCard({ req, onComplete }: { req: AdRequestItem } 
 
     return (
         <StreamCardShell>
-            <div className="flex items-start justify-between gap-2 sm:gap-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
                 <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
                     <Avatar person={req.owner} />
                     <h3 className="min-w-0 break-words text-base font-extrabold leading-tight text-foreground">
@@ -135,7 +135,7 @@ export function OutgoingRequestCard({ req, onComplete }: { req: AdRequestItem } 
                         {req.owner?.display_name || 'Unbekannt'}
                     </h3>
                 </div>
-                <div className="flex shrink-0 flex-col items-end gap-1 lg:flex-row lg:flex-wrap lg:items-center lg:justify-end lg:gap-1.5">
+                <div className="flex shrink-0 flex-row flex-wrap items-center gap-1 sm:flex-col sm:items-end lg:flex-row lg:flex-wrap lg:items-center lg:justify-end lg:gap-1.5">
                     <TypeChip label="Anfrage · Ausgehend" dotClass="bg-muted-foreground" icon={MessageSquare} />
                     <StatusChip label={statusMeta.label} dotClass={statusMeta.dotClass} />
                     <span className="inline-flex items-center gap-1 rounded-full bg-pastel-gray px-2.5 py-1 text-xs font-semibold text-pastel-gray-foreground">

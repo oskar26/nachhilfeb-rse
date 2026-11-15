@@ -181,7 +181,7 @@ export function MatchStreamCard({
                         type="button"
                         onClick={() => setShowCalendar(!showCalendar)}
                         aria-expanded={showCalendar}
-                        className="inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full bg-pastel-mint px-3 py-1 font-semibold text-pastel-mint-foreground transition-colors hover:bg-pastel-mint/80"
+                        className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full bg-pastel-mint px-3 py-1 font-semibold text-pastel-mint-foreground transition-colors hover:bg-pastel-mint/80"
                         title="Gemeinsame Zeiten ansehen"
                     >
                         <CalendarDays size={12} aria-hidden />

@@ -33,7 +33,9 @@ export function MatchScoreBadge({ score, className }: { score: number; className
             aria-label={`Übereinstimmung ${score} Prozent: ${TIER_LABEL[tier]}`}
         >
             <Zap size={13} className="shrink-0" fill="currentColor" aria-hidden />
-            <span className="tabular-nums">{score} % passend</span>
+            <span className="tabular-nums">
+                {score} %<span className="hidden sm:inline"> passend</span>
+            </span>
         </Badge>
     );
 }

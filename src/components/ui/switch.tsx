@@ -26,7 +26,7 @@ function Switch({
         onCheckedChange?.(checked, eventDetails)
       }}
       className={cn(
-        "peer group/switch relative inline-flex shrink-0 items-center rounded-full border-2 border-transparent shadow-sm transition-colors outline-none after:absolute after:-inset-x-3 after:-inset-y-2 hover:opacity-90 aria-invalid:border-destructive data-[size=default]:h-6 data-[size=default]:w-11 data-[size=sm]:h-4 data-[size=sm]:w-7 data-checked:border-transparent data-checked:bg-primary data-unchecked:border-input data-unchecked:bg-muted-foreground/55 data-disabled:cursor-not-allowed data-disabled:opacity-50",
+        "peer group/switch relative inline-flex shrink-0 items-center rounded-full border-2 border-transparent shadow-sm transition-colors outline-none after:absolute after:-inset-x-3 after:-inset-y-2.5 data-[size=sm]:after:-inset-y-3.5 hover:opacity-90 aria-invalid:border-destructive data-[size=default]:h-6 data-[size=default]:w-11 data-[size=sm]:h-4 data-[size=sm]:w-7 data-checked:border-transparent data-checked:bg-primary data-unchecked:border-input data-unchecked:bg-muted-foreground/55 data-disabled:cursor-not-allowed data-disabled:opacity-50",
         className
       )}
       {...props}

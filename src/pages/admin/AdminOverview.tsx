@@ -227,7 +227,7 @@ export default function AdminOverview() {
             {/* Quick actions */}
             <section aria-labelledby="admin-quick-access">
                 <h2 id="admin-quick-access" className="mb-2 text-sm font-medium text-muted-foreground">Schnellzugriff</h2>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
                     {QUICK_ACTIONS.map(({ label, icon: Icon, tab }) => (
                         <Button
                             variant="unstyled"

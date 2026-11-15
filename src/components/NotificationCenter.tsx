@@ -248,7 +248,7 @@ export default function NotificationCenter({ unreadCount, onCountChange, variant
     );
 
     const listContent = (
-        <div className="flex-1 overflow-y-auto overscroll-contain px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 [scrollbar-width:thin]">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-3 [scrollbar-width:thin]">
             {loading && (
                 <div className="flex items-center justify-center py-12">
                     <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />

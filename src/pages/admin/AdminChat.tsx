@@ -45,7 +45,7 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
     const [loadError, setLoadError] = useState<string | null>(null);
     const [chatFound, setChatFound] = useState(true);
     const [names, setNames] = useState<{ user1: string; user2: string }>({ user1: 'Nutzer 1', user2: 'Nutzer 2' });
-    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const bodyRef = useRef<HTMLDivElement>(null);
 
     // Profanity-2.0-Training: Admin-Overrides für treffsicheres Highlight
     const [filterOverrides, setFilterOverrides] = useState<FilterOverrides>({ allow: [], block: [] });
@@ -60,8 +60,14 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
     }, [userId1, userId2, reportId]);
 
     useEffect(() => {
-        // Auto scroll to bottom
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        // Nur den Chatverlauf scrollen. scrollIntoView() zog früher auch die
+        // Admin-Seite nach oben und schob die Chat-Kopfzeile unter den Sticky-
+        // Header – auf 390 besonders sichtbar.
+        const body = bodyRef.current;
+        if (!body) return;
+        const reduce = typeof window.matchMedia === 'function'
+            && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        body.scrollTo({ top: body.scrollHeight, behavior: reduce ? 'auto' : 'smooth' });
     }, [messages]);
 
     const setupAccessAndLoad = async () => {
@@ -193,7 +199,7 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
     }
 
     return (
-        <Card className="flex h-[calc(100dvh-17rem)] min-h-[380px] flex-col overflow-hidden rounded-card md:h-[600px]">
+        <Card className="flex h-[calc(100dvh-18rem)] min-h-[380px] flex-col overflow-hidden rounded-card md:h-[600px]">
             {/* Header */}
             <div className="flex shrink-0 flex-col gap-3 border-b border-border bg-muted/40 p-3.5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex min-w-0 items-center gap-3">
@@ -230,6 +236,7 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
 
             {/* Chat Body */}
             <div
+                ref={bodyRef}
                 className="flex min-h-0 flex-1 flex-col space-y-4 overflow-y-auto bg-muted/20 p-4"
                 role="log"
                 aria-label="Chatverlauf der Meldung"
@@ -310,7 +317,6 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
                         );
                     })
                 )}
-                <div ref={messagesEndRef} />
             </div>
         </Card>
     );

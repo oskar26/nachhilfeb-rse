@@ -111,6 +111,26 @@ body {
     min-height: 2.75rem;
     padding: 0.4rem 0.7rem;
   }
+
+  /* Keep the mobile docs header on the same 44px touch baseline as the app. */
+  #nd-subnav > a {
+    min-height: 2.75rem;
+  }
+
+  #nd-subnav > button {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+}
+
+@media (max-width: 1279px) {
+  [data-toc-popover] {
+    height: 2.75rem;
+  }
+
+  [data-toc-popover] > header > button {
+    min-height: 2.75rem;
+  }
 }
 
 @media (min-width: 768px) {

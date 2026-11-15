@@ -66,7 +66,7 @@ export default function UpdatePassword() {
     };
 
     return (
-        <div className="flex min-h-dvh flex-col items-center justify-center bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] text-foreground">
+        <div className="flex min-h-dvh flex-col items-center justify-center bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] pt-[calc(1rem+env(safe-area-inset-top,0px))] text-foreground">
             <Card className="w-full max-w-md border-border bg-card">
                 <CardHeader className="space-y-1.5">
                     <CardTitle className="text-xl font-semibold">Neues Passwort erstellen</CardTitle>

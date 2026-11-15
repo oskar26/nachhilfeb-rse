@@ -640,7 +640,7 @@ export default function Settings() {
                                             }
                                         }}
                                         disabled={emailChangeLoading}
-                                        className="flex-1"
+                                        className="w-full sm:flex-1"
                                     />
                                     <Button
                                         type="button"

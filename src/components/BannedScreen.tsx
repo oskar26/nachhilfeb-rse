@@ -78,7 +78,7 @@ export default function BannedScreen({ banReason, banType, bannedUntil }: Banned
     };
 
     return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))]">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] pt-[calc(1rem+env(safe-area-inset-top,0px))]">
             <div className="w-full max-w-md space-y-5 rounded-xl border border-destructive/25 bg-card p-5 text-center shadow-overlay sm:p-6">
                 <div className="flex justify-center">
                     <div className="grid size-16 place-items-center rounded-xl bg-destructive/10 text-destructive">
