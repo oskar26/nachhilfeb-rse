@@ -172,7 +172,7 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
 
     if (!userId1 || !userId2 || !reportId) {
         return (
-            <Card className="overflow-hidden py-16 text-center ">
+            <Card className="overflow-hidden rounded-card py-16 text-center">
                 <CardContent className="mx-auto max-w-md space-y-4">
                     <div className="mx-auto grid size-16 place-items-center rounded-xl bg-destructive/10 text-destructive">
                         <Lock size={32} aria-hidden />
@@ -193,9 +193,9 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
     }
 
     return (
-        <Card className="flex h-[calc(100dvh-17rem)] min-h-[380px] flex-col overflow-hidden md:h-[600px]">
+        <Card className="flex h-[calc(100dvh-17rem)] min-h-[380px] flex-col overflow-hidden rounded-card md:h-[600px]">
             {/* Header */}
-            <div className="flex shrink-0 flex-col gap-3 border-b border-border bg-muted/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex shrink-0 flex-col gap-3 border-b border-border bg-muted/40 p-3.5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex min-w-0 items-center gap-3">
                     {onBack && (
                         <Button variant="ghost" size="icon" type="button" onClick={onBack} className="h-11 w-11 shrink-0" aria-label="Zurück zu den Meldungen">
@@ -229,7 +229,11 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
             </div>
 
             {/* Chat Body */}
-            <div className="flex min-h-0 flex-1 flex-col space-y-4 overflow-y-auto bg-muted/20 p-4">
+            <div
+                className="flex min-h-0 flex-1 flex-col space-y-4 overflow-y-auto bg-muted/20 p-4"
+                role="log"
+                aria-label="Chatverlauf der Meldung"
+            >
                 {loadError ? (
                     <div className="m-auto w-full max-w-sm">
                         <Alert variant="destructive">
@@ -245,7 +249,7 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
                 ) : granting ? (
                     <div className="m-auto text-center">
                         <Spinner className="mx-auto size-6 text-foreground" />
-                        <p className="mt-2 text-xs font-medium text-muted-foreground">Fordere temporäre RLS-Einsichtsrechte an...</p>
+                        <p className="mt-2 text-xs font-medium text-muted-foreground">Bereite Chat-Einsicht vor...</p>
                     </div>
                 ) : loading ? (
                     <div className="m-auto text-center">

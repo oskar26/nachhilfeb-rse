@@ -8,7 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
 import { Spinner } from '../../components/ui/spinner';
 import {
     Search, Bug, Lightbulb, MessageCircle, Send,
-    ChevronLeft, Clock, AlertCircle, RefreshCw, Shield, User
+    ChevronLeft, RefreshCw, Shield, User
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
@@ -54,6 +54,9 @@ export default function AdminSupport() {
     const [search, setSearch] = useState('');
     const [filterType, setFilterType] = useState('all');
     const [filterStatus, setFilterStatus] = useState('all');
+    const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
+    const PAGE_SIZE = 15;
+    const [page, setPage] = useState(0);
 
     // Active ticket view
     const [activeTicket, setActiveTicket] = useState<Ticket | null>(null);
@@ -195,8 +198,22 @@ export default function AdminSupport() {
         return matchesSearch && matchesType && matchesStatus;
     });
 
+    const sortedTickets = [...filteredTickets].sort((a, b) => {
+        const aTime = new Date(a.created_at).getTime() || 0;
+        const bTime = new Date(b.created_at).getTime() || 0;
+        return sortBy === 'oldest' ? aTime - bTime : bTime - aTime;
+    });
+    const totalPages = Math.max(1, Math.ceil(sortedTickets.length / PAGE_SIZE));
+    const safePage = Math.min(page, totalPages - 1);
+    const visibleTickets = sortedTickets.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
+
     const openCount = tickets.filter(t => t.status === 'open').length;
     const inProgressCount = tickets.filter(t => t.status === 'in_progress').length;
+    const completedCount = tickets.filter(t => t.status === 'resolved' || t.status === 'closed').length;
+
+    useEffect(() => {
+        setPage(0);
+    }, [search, filterType, filterStatus, sortBy]);
 
     const typeIcon = (type: string) => {
         if (type === 'bug') return <Bug size={16} className="text-destructive" aria-hidden />;
@@ -222,7 +239,7 @@ export default function AdminSupport() {
                 {/* Back button and header */}
                 <div className="flex flex-col gap-2">
                     <Button variant="ghost" onClick={() => setActiveTicket(null)} className="-ml-2 h-11 w-fit gap-1.5 px-2 text-sm">
-                        <ChevronLeft size={20} aria-hidden /> Zurück
+                        <ChevronLeft size={20} aria-hidden /> Zurück zu Tickets
                     </Button>
                     <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                         <div className="flex min-w-0 items-start gap-2">
@@ -355,43 +372,63 @@ export default function AdminSupport() {
 
     // Ticket list view
     return (
-        <div className="space-y-6">
-            {/* Stats row */}
-            <div className="flex flex-wrap gap-2">
-                <div className={cn(
-                    'flex items-center gap-2 rounded-md border px-3 py-2',
-                    openCount > 0 ? 'border-destructive/20 bg-destructive/5' : 'border-border bg-muted/50'
-                )}>
-                    <AlertCircle size={16} className={openCount > 0 ? 'text-destructive' : 'text-muted-foreground'} aria-hidden />
-                    <span className={cn('text-sm font-medium', openCount > 0 ? 'text-destructive' : 'text-foreground')}>{openCount} offene Tickets</span>
-                </div>
-                <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2">
-                    <Clock size={16} className="text-muted-foreground" aria-hidden />
-                    <span className="text-sm font-medium text-foreground">{inProgressCount} in Bearbeitung</span>
-                </div>
-                <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2">
-                    <span className="text-sm font-medium text-foreground">{tickets.length} gesamt</span>
-                </div>
+        <div className="space-y-5">
+            {/* Status-Kennzahlen */}
+            <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+                {[
+                    { label: 'Offen', value: loading || loadError ? null : openCount, hint: 'Wartet auf Antwort', emphasis: openCount > 0 },
+                    { label: 'In Bearbeitung', value: loading || loadError ? null : inProgressCount, hint: 'Aktuell in Arbeit' },
+                    { label: 'Abgeschlossen', value: loading || loadError ? null : completedCount, hint: 'Gelöst oder geschlossen' },
+                    { label: 'Gesamt', value: loading || loadError ? null : tickets.length, hint: 'Alle Tickets' },
+                ].map(tile => (
+                    <div key={tile.label} className="rounded-card border border-border bg-card p-3.5 shadow-soft">
+                        <p className="text-[13px] font-medium text-muted-foreground">{tile.label}</p>
+                        <p className={cn(
+                            'mt-1 text-2xl font-semibold tabular-nums tracking-tight',
+                            tile.value === null && 'text-base font-medium text-muted-foreground',
+                            tile.emphasis && tile.value !== null && tile.value > 0 && 'text-destructive'
+                        )}>{tile.value === null ? 'Nicht verfügbar' : tile.value}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{tile.hint}</p>
+                    </div>
+                ))}
             </div>
 
             {/* Filters */}
-            <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center">
-                <div className="relative w-full 2xl:max-w-md">
-                    <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} aria-hidden />
-                    <Input
-                        placeholder="Tickets suchen nach Titel, Beschreibung, Nutzer..."
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        className="h-11 pl-11"
-                        aria-label="Tickets durchsuchen"
-                    />
+            <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                    <div className="relative w-full min-w-0 lg:max-w-md">
+                        <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} aria-hidden />
+                        <Input
+                            placeholder="Tickets suchen nach Titel, Beschreibung, Nutzer..."
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            className="h-11 pl-10 text-[13px]"
+                            aria-label="Tickets durchsuchen"
+                        />
+                    </div>
+                    <p className="text-[13px] text-muted-foreground lg:ml-auto" aria-live="polite">
+                        {sortedTickets.length} {sortedTickets.length === 1 ? 'Ticket' : 'Tickets'}
+                    </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                     <NativeSelect
+                        value={filterStatus}
+                        onChange={e => setFilterStatus(e.target.value)}
+                        wrapperClassName="w-[calc(50%-0.25rem)] sm:w-44"
+                        className="w-full text-[13px]"
+                        aria-label="Nach Status filtern"
+                    >
+                        <option value="all">Alle Status</option>
+                        <option value="open">Offen</option>
+                        <option value="in_progress">In Bearbeitung</option>
+                        <option value="resolved">Gelöst</option>
+                        <option value="closed">Geschlossen</option>
+                    </NativeSelect>
+                    <NativeSelect
                         value={filterType}
                         onChange={e => setFilterType(e.target.value)}
-                        wrapperClassName="w-full sm:w-40"
-                        className="w-full"
+                        wrapperClassName="w-[calc(50%-0.25rem)] sm:w-40"
+                        className="w-full text-[13px]"
                         aria-label="Nach Typ filtern"
                     >
                         <option value="all">Alle Typen</option>
@@ -400,17 +437,14 @@ export default function AdminSupport() {
                         <option value="support">Support</option>
                     </NativeSelect>
                     <NativeSelect
-                        value={filterStatus}
-                        onChange={e => setFilterStatus(e.target.value)}
-                        wrapperClassName="w-full sm:w-44"
-                        className="w-full"
-                        aria-label="Nach Status filtern"
+                        value={sortBy}
+                        onChange={e => setSortBy(e.target.value as 'newest' | 'oldest')}
+                        wrapperClassName="w-[calc(50%-0.25rem)] sm:w-44"
+                        className="w-full text-[13px]"
+                        aria-label="Tickets sortieren"
                     >
-                        <option value="all">Alle Status</option>
-                        <option value="open">Offen</option>
-                        <option value="in_progress">In Bearbeitung</option>
-                        <option value="resolved">Gelöst</option>
-                        <option value="closed">Geschlossen</option>
+                        <option value="newest">Neueste zuerst</option>
+                        <option value="oldest">Älteste zuerst</option>
                     </NativeSelect>
                     <Button onClick={fetchTickets} variant="ghost" size="icon" className="h-11 w-11 shrink-0" title="Aktualisieren" aria-label="Tickets aktualisieren">
                         <RefreshCw size={16} className={cn(loading && 'animate-spin')} aria-hidden />
@@ -432,47 +466,62 @@ export default function AdminSupport() {
 
             {/* Ticket list */}
             {loadError ? null : loading ? (
-                <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card py-16 text-center">
+                <div className="flex flex-col items-center justify-center gap-3 rounded-card border border-border bg-card py-16 text-center">
                     <Spinner className="size-6 text-foreground" />
                     <p className="text-sm text-muted-foreground">Lade Tickets...</p>
                 </div>
-            ) : filteredTickets.length === 0 ? (
-                <div className="rounded-2xl border border-border bg-card px-4 py-16 text-center">
+            ) : sortedTickets.length === 0 ? (
+                <div className="rounded-card border border-border bg-card px-4 py-16 text-center">
                     <MessageCircle size={32} className="mx-auto text-muted-foreground" aria-hidden />
                     <p className="mt-3 text-base font-medium text-foreground">Keine Tickets gefunden</p>
                     <p className="mt-1 text-xs text-muted-foreground">Passe deine Filter an oder warte auf neue Anfragen.</p>
                 </div>
             ) : (
-                <Card className="">
-                    <CardContent className="p-0">
+                <Card className="rounded-card">
+                    <CardContent padding="flush">
                         <div className="divide-y divide-border">
-                            {filteredTickets.map(ticket => (
+                            {visibleTickets.map(ticket => (
                                 <Button
                                     variant="unstyled"
                                     size="unstyled"
                                     type="button"
                                     key={ticket.id}
                                     onClick={() => openTicket(ticket)}
-                                    className="flex w-full items-start gap-3 p-4 text-left transition-colors hover:bg-muted/40  "
+                                    className="flex w-full items-start gap-3 p-4 text-left transition-colors hover:bg-muted/40"
                                 >
                                     <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted">
                                         {typeIcon(ticket.type)}
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <div className="flex flex-wrap items-center gap-2">
-                                            <p className="break-words text-sm font-semibold text-foreground">{ticket.title}</p>
+                                            <p className="max-w-full break-words text-[13px] font-semibold text-foreground">{ticket.title}</p>
                                             {statusBadge(ticket.status)}
                                         </div>
-                                        <p className="mt-0.5 break-words text-xs text-muted-foreground">{ticket.description}</p>
+                                        <p className="mt-0.5 line-clamp-2 break-words text-xs text-muted-foreground">{ticket.description}</p>
                                         <p className="mt-1 break-words text-xs text-muted-foreground">
                                             {ticket.user_name} · {new Date(ticket.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                         </p>
                                     </div>
+                                    <ChevronLeft size={16} className="mt-1 shrink-0 rotate-180 text-muted-foreground" aria-hidden />
                                 </Button>
                             ))}
                         </div>
                     </CardContent>
                 </Card>
+            )}
+
+            {!loading && sortedTickets.length > PAGE_SIZE && (
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                    <Button variant="outline" className="h-11" disabled={safePage === 0} onClick={() => setPage(p => Math.max(0, p - 1))}>
+                        Zurück
+                    </Button>
+                    <span className="text-[13px] font-medium text-muted-foreground" aria-live="polite">
+                        Seite {safePage + 1} von {totalPages} · {sortedTickets.length} Tickets
+                    </span>
+                    <Button variant="outline" className="h-11" disabled={safePage + 1 >= totalPages} onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}>
+                        Weiter
+                    </Button>
+                </div>
             )}
         </div>
     );

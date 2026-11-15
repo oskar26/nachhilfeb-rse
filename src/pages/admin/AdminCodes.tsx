@@ -1,7 +1,7 @@
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Input } from '@/components/ui/input';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Button } from '../../components/ui/button';
 import {
     AlertDialog,
@@ -29,7 +29,10 @@ import {
     ToggleLeft,
     ToggleRight,
     Users,
-    UserMinus
+    UserMinus,
+    Info,
+    Wand2,
+    X
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
@@ -66,6 +69,38 @@ interface PromoCode {
     created_at: string;
 }
 
+const PROMO_EFFECT_LABELS: Record<PromoCode['effect_type'], string> = {
+    ad_boost: 'Anzeigen-Push',
+    badge: 'Profil-Badge',
+    coach_verification: 'Coaching-Mitgliedschaft',
+    special_discount: 'Sonderrabatt',
+    custom: 'Individuell',
+};
+
+const PROMO_PUSH_LABELS: Record<string, string> = {
+    standard: 'Standard',
+    super: 'Super',
+    ultra: 'Ultra',
+};
+
+function promoUses(promo: PromoCode): number {
+    // current_uses kann in älteren/Mock-Payloads 0 sein, während used_count
+    // bereits Einlösungen zählt – der höhere belegte Wert gewinnt.
+    const current = Number(promo.current_uses) || 0;
+    const legacy = Number((promo as PromoCode & { used_count?: number | null }).used_count) || 0;
+    return Math.max(current, legacy);
+}
+
+interface PromoTemplate {
+    key: string;
+    effectType: PromoCode['effect_type'];
+    pushLevel: 'standard' | 'super' | 'ultra';
+    boostDays: number;
+    targetGroup: string;
+    uses: number;
+    codeCount: number;
+}
+
 export default function AdminCodes() {
     const [activeTab, setActiveTab] = useState<'invite' | 'promo'>('invite');
     const rootRef = useRef<HTMLDivElement>(null);
@@ -87,6 +122,8 @@ export default function AdminCodes() {
     const [loadingPromo, setLoadingPromo] = useState(true);
     const [promoError, setPromoError] = useState<string | null>(null);
     const [creatingPromo, setCreatingPromo] = useState(false);
+    const [promoFormError, setPromoFormError] = useState<string | null>(null);
+    const [lastCreatedPromo, setLastCreatedPromo] = useState<string | null>(null);
 
     // Promo Code Form
     const [newPromoCode, setNewPromoCode] = useState('');
@@ -108,8 +145,11 @@ export default function AdminCodes() {
         onConfirm: () => void;
     } | null>(null);
 
+    // Sub-Tab-Wechsel beginnt oben im Admin-Scrollbereich, nicht an der alten
+    // Scrollposition – und nie unter dem Sticky-Header.
     useEffect(() => {
-        rootRef.current?.scrollIntoView({ block: 'start' });
+        const container = rootRef.current?.closest('[aria-label="Hauptinhalt"]') as HTMLElement | null;
+        container?.scrollTo({ top: 0, behavior: 'auto' });
     }, [activeTab]);
 
     useEffect(() => {
@@ -191,7 +231,10 @@ export default function AdminCodes() {
                 }
                 throw error;
             }
-            setPromoCodes(data || []);
+            setPromoCodes((data || []).map((promo: PromoCode) => ({
+                ...promo,
+                current_uses: promoUses(promo),
+            })));
         } catch (error: any) {
             console.error('Error fetching promo codes:', error);
             setPromoError('Promo-Codes konnten nicht geladen werden.');
@@ -199,6 +242,44 @@ export default function AdminCodes() {
         } finally {
             setLoadingPromo(false);
         }
+    };
+
+    // Rangliste aus vorhandenen Promo-Konfigurationen und deren tatsächlicher
+    // Nutzung. Kein neuer Aggregat-Endpunkt: die Liste kommt aus promo_list.
+    const promoTemplates = useMemo<PromoTemplate[]>(() => {
+        const grouped = new Map<string, PromoTemplate>();
+        promoCodes.forEach(promo => {
+            const pushLevel = (promo.push_level || 'standard') as PromoTemplate['pushLevel'];
+            const targetGroup = promo.target_group || 'all';
+            const key = [promo.effect_type, pushLevel, promo.boost_days, targetGroup].join('|');
+            const existing = grouped.get(key);
+            if (existing) {
+                existing.uses += promoUses(promo);
+                existing.codeCount += 1;
+            } else {
+                grouped.set(key, {
+                    key,
+                    effectType: promo.effect_type,
+                    pushLevel,
+                    boostDays: promo.boost_days,
+                    targetGroup,
+                    uses: promoUses(promo),
+                    codeCount: 1,
+                });
+            }
+        });
+        return [...grouped.values()]
+            .sort((a, b) => b.uses - a.uses || b.codeCount - a.codeCount)
+            .slice(0, 4);
+    }, [promoCodes]);
+
+    const applyPromoTemplate = (template: PromoTemplate) => {
+        setEffectType(template.effectType);
+        setPushLevel(template.pushLevel);
+        setBoostDays(template.boostDays);
+        setTargetGroup(template.targetGroup);
+        setPromoFormError(null);
+        toast.success('Schnellvorlage übernommen');
     };
 
     const generateInviteCodes = async () => {
@@ -225,14 +306,16 @@ export default function AdminCodes() {
         e.preventDefault();
         const codeClean = newPromoCode.trim().toUpperCase();
         if (!codeClean) {
+            setPromoFormError('Bitte einen Code eingeben.');
             toast.error('Bitte einen Code eingeben.');
             return;
         }
 
         setCreatingPromo(true);
+        setPromoFormError(null);
         try {
             const expiresAt = expiryDays ? new Date(Date.now() + parseInt(expiryDays) * 24 * 60 * 60 * 1000).toISOString() : null;
-            const parsedMaxUses = maxUses ? parseInt(maxUses) : null;
+            const parsedMaxUses = maxUses ? Math.max(1, parseInt(maxUses) || 1) : null;
 
             // Payload 1:1 wie bisher (inkl. is_active; codes.php setzt den Wert selbst auf 1).
             const { error } = await api.promo_codes.create({
@@ -250,11 +333,13 @@ export default function AdminCodes() {
             if (error) throw error;
 
             toast.success(`Promo-Code '${codeClean}' erfolgreich angelegt!`);
+            setLastCreatedPromo(codeClean);
             setNewPromoCode('');
             setMaxUses('');
             setDescription('');
             fetchPromoCodes();
         } catch (error: any) {
+            setPromoFormError(error?.message || 'Der Promo-Code konnte nicht erstellt werden.');
             toast.error('Fehler beim Erstellen des Promo-Codes: ' + error.message);
         } finally {
             setCreatingPromo(false);
@@ -314,11 +399,15 @@ export default function AdminCodes() {
         });
     };
 
-    const handleCopy = (id: string, code: string) => {
-        navigator.clipboard.writeText(code);
-        setCopiedCodeId(id);
-        toast.success('Code kopiert!');
-        setTimeout(() => setCopiedCodeId(null), 2000);
+    const handleCopy = async (id: string, code: string) => {
+        try {
+            await navigator.clipboard.writeText(code);
+            setCopiedCodeId(id);
+            toast.success('Code kopiert!');
+            setTimeout(() => setCopiedCodeId(null), 2000);
+        } catch {
+            toast.error('Kopieren nicht möglich. Bitte den Code manuell markieren.');
+        }
     };
 
     return (
@@ -340,36 +429,93 @@ export default function AdminCodes() {
                 <div className="space-y-6">
                     <div className="grid grid-cols-1 gap-6 2xl:grid-cols-3">
                         {/* Form */}
-                        <Card className="2xl:col-span-2">
+                        <Card className="rounded-card 2xl:col-span-2">
                             <CardContent className="space-y-4 p-4 sm:p-6">
                                 <h2 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
                                     <Tag size={20} className="text-foreground" aria-hidden />
                                     Neuen Promo-Code konfigurieren & erstellen
                                 </h2>
 
-                                {/* Presets / Schnellvorlagen */}
-                                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-muted p-3">
-                                    <span className="text-xs font-medium text-foreground">Schnell-Vorlagen:</span>
-                                    <Button variant="secondary" size="sm"
-                                        type="button"
-                                        onClick={() => {
-                                            setNewPromoCode('COACHING-AG');
-                                            setEffectType('coach_verification');
-                                            setPushLevel('super');
-                                            setBoostDays(30);
-                                            setMaxUses('');
-                                            setTargetGroup('coach');
-                                            setDescription('Schüler-Coaching AG: Verifizierung + Super-Boost');
-                                            setExpiryDays('365');
-                                            toast.success("Vorlage 'Schüler-Coaching AG' geladen!");
-                                        }}
-                                        className="h-11 px-3 text-xs"
-                                    >
-                                        Schüler-Coaching AG (COACHING-AG)
-                                    </Button>
+                                {/* Schnellvorlagen: aus vorhandenen Promo-Codes und
+                                    deren tatsächlicher Nutzung gerankt (kein neuer Endpunkt). */}
+                                <div className="space-y-2 rounded-xl border border-border bg-muted/40 p-3">
+                                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                                        <span className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+                                            <Wand2 size={16} aria-hidden /> Schnellvorlagen
+                                        </span>
+                                        <span className="text-xs text-muted-foreground">
+                                            Aus promo_list · nach Nutzung sortiert · kein Aggregat-Endpunkt
+                                        </span>
+                                    </div>
+                                    {promoTemplates.length === 0 ? (
+                                        <p className="text-xs text-muted-foreground">
+                                            Noch keine Vorlagen: Sobald Promo-Codes existieren, erscheinen hier die meistgenutzten Konfigurationen.
+                                        </p>
+                                    ) : (
+                                        <div className="flex flex-wrap gap-2">
+                                            {promoTemplates.map(template => (
+                                                <Button
+                                                    key={template.key}
+                                                    type="button"
+                                                    variant="outline"
+                                                    className="h-11 max-w-full gap-1.5 px-3 text-xs"
+                                                    onClick={() => applyPromoTemplate(template)}
+                                                    title={`${PROMO_EFFECT_LABELS[template.effectType]} · ${PROMO_PUSH_LABELS[template.pushLevel] || template.pushLevel} · ${template.boostDays} Tage · ${template.targetGroup === 'coach' ? 'Coaching-AG' : template.targetGroup === 'tutor' ? 'Nur Anbieter' : 'Alle'}`}
+                                                >
+                                                    <span className="truncate">
+                                                        {PROMO_EFFECT_LABELS[template.effectType]} · {PROMO_PUSH_LABELS[template.pushLevel] || template.pushLevel} · {template.boostDays} T.
+                                                    </span>
+                                                    <span className="shrink-0 tabular-nums text-muted-foreground">{template.uses}×</span>
+                                                </Button>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
 
-                                <form onSubmit={handleCreatePromoCode} className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                                <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
+                                    <Info size={16} className="mt-0.5 shrink-0" aria-hidden />
+                                    <p>
+                                        Hinweis: Die API hat keinen allgemeinen Update-Endpunkt für Promo-Codes.
+                                        Bestehende Codes können nur aktiviert/deaktiviert oder gelöscht und neu angelegt werden.
+                                    </p>
+                                </div>
+
+                                {promoFormError && (
+                                    <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-[13px] text-destructive">
+                                        {promoFormError}
+                                    </div>
+                                )}
+
+                                {lastCreatedPromo && (
+                                    <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 py-2">
+                                        <p className="min-w-0 text-[13px] text-foreground">
+                                            Code <span className="break-all font-semibold tabular-nums">{lastCreatedPromo}</span> wurde erstellt.
+                                        </p>
+                                        <div className="flex items-center gap-2">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className="h-11 gap-1.5 px-3 text-xs"
+                                                onClick={() => void handleCopy(lastCreatedPromo, lastCreatedPromo)}
+                                            >
+                                                {copiedCodeId === lastCreatedPromo ? <Check size={16} aria-hidden /> : <Copy size={16} aria-hidden />}
+                                                {copiedCodeId === lastCreatedPromo ? 'Kopiert' : 'Kopieren'}
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-11 w-11"
+                                                onClick={() => setLastCreatedPromo(null)}
+                                                aria-label="Erstellten Code ausblenden"
+                                            >
+                                                <X size={16} aria-hidden />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <form onSubmit={handleCreatePromoCode} noValidate className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                                     <div className="space-y-1.5">
                                         <Label htmlFor="promo-code" className="text-sm font-medium">Code-Name</Label>
                                         <Input
@@ -491,8 +637,8 @@ export default function AdminCodes() {
                         </Card>
 
                         {/* Active Promo Users & Perk Revocation */}
-                        <Card className="flex flex-col ">
-                            <div className="flex items-center justify-between gap-2 border-b border-border p-4">
+                        <Card className="flex flex-col rounded-card">
+                            <div className="flex items-center justify-between gap-2 border-b border-border p-3.5">
                                 <div className="flex items-center gap-2">
                                     <Users size={16} className="text-muted-foreground" aria-hidden />
                                     <span className="text-xs font-medium text-foreground">
@@ -564,9 +710,9 @@ export default function AdminCodes() {
                     </div>
 
                     {/* Promo-Codes */}
-                    <Card className="">
-                        <CardContent className="p-0">
-                            <div className="flex items-center justify-between gap-2 border-b border-border p-4">
+                    <Card className="rounded-card">
+                        <CardContent padding="flush">
+                            <div className="flex items-center justify-between gap-2 border-b border-border p-3.5">
                                 <span className="text-sm font-semibold text-foreground">
                                     Eingerichtete Promo-Codes ({promoCodes.length})
                                 </span>
@@ -604,14 +750,14 @@ export default function AdminCodes() {
                                         const isLimitReached = p.max_uses !== null && p.current_uses >= p.max_uses;
 
                                         return (
-                                            <li key={p.id} className="space-y-2.5 p-4">
+                                            <li key={p.id} className="space-y-2.5 p-3.5">
                                                 <div className="flex flex-wrap items-start justify-between gap-2">
                                                     <div className="min-w-0">
                                                         <div className="break-all tabular-nums text-sm font-semibold tracking-wider text-foreground">
                                                             {p.code}
                                                         </div>
                                                         <div className="mt-0.5 text-xs font-medium text-muted-foreground">
-                                                            {p.effect_type === 'coach_verification' ? 'Schüler-Coaching AG' : p.effect_type}
+                                                            {PROMO_EFFECT_LABELS[p.effect_type] || p.effect_type}
                                                         </div>
                                                     </div>
                                                     <div className="flex flex-wrap items-center gap-1.5">
@@ -638,7 +784,7 @@ export default function AdminCodes() {
                                                             size="icon"
                                                             variant="ghost"
                                                             className="h-11 w-11"
-                                                            onClick={() => handleCopy(p.id, p.code)}
+                                                            onClick={() => void handleCopy(p.id, p.code)}
                                                             title="Kopieren"
                                                             aria-label="Promo-Code kopieren"
                                                         >
@@ -668,7 +814,7 @@ export default function AdminCodes() {
                                                             p.push_level === 'super' ? 'bg-muted text-foreground' :
                                                             'bg-muted text-muted-foreground'
                                                         )}>
-                                                            {p.push_level}
+                                                            {PROMO_PUSH_LABELS[p.push_level] || p.push_level}
                                                         </span>
                                                     )}
                                                     <span className="rounded-md bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
@@ -698,7 +844,7 @@ export default function AdminCodes() {
             {/* TAB 2: INVITE CODES */}
             {activeTab === 'invite' && (
                 <div className="space-y-6">
-                    <Card className="w-full ">
+                    <Card className="w-full rounded-card">
                             <CardContent className="space-y-4 p-4 sm:p-6">
                                 <h2 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
                                     <Key size={20} className="text-foreground" aria-hidden />
@@ -783,7 +929,7 @@ export default function AdminCodes() {
 
                     {/* Frisch generierte Codes – sofort kopieren & verschicken */}
                     {generatedInviteCodes.length > 0 && (
-                        <Card className="border-border bg-muted/50 ">
+                        <Card className="rounded-card border-border bg-muted/50">
                             <CardContent className="space-y-3 p-4 sm:p-6">
                                 <h2 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
                                     <Check size={20} className="text-foreground" aria-hidden />
@@ -805,7 +951,7 @@ export default function AdminCodes() {
                                                     {c.expires_at ? ` · gültig bis ${new Date(c.expires_at).toLocaleDateString('de-DE')}` : ''}
                                                 </span>
                                             </div>
-                                            <Button size="icon" variant="ghost" onClick={() => handleCopy(c.code, c.code)} className="h-11 w-11 shrink-0" title="Code kopieren" aria-label="Code kopieren">
+                                            <Button size="icon" variant="ghost" onClick={() => void handleCopy(c.code, c.code)} className="h-11 w-11 shrink-0" title="Code kopieren" aria-label="Code kopieren">
                                                 {copiedCodeId === c.code ? <Check size={16} className="text-emerald-700 dark:text-emerald-400" /> : <Copy size={16} />}
                                             </Button>
                                         </div>
@@ -816,9 +962,9 @@ export default function AdminCodes() {
                     )}
 
                     {/* Einladungscodes */}
-                    <Card className="">
-                        <CardContent className="p-0">
-                            <div className="flex items-center justify-between gap-2 border-b border-border p-4">
+                    <Card className="rounded-card">
+                        <CardContent padding="flush">
+                            <div className="flex items-center justify-between gap-2 border-b border-border p-3.5">
                                 <span className="text-sm font-semibold text-foreground">
                                     Einladungscodes ({inviteCodes.length})
                                 </span>
@@ -856,9 +1002,9 @@ export default function AdminCodes() {
                                         const uses = c.current_uses ?? (c.is_used ? 1 : 0);
                                         const limit = c.max_uses ?? 1;
                                         const limitReached = c.max_uses === null ? false : uses >= limit;
-                                        const showDelete = !limitReached && !isExpired;
+                                        const showDelete = true;
                                         return (
-                                            <li key={c.id} className="space-y-2.5 p-4">
+                                            <li key={c.id} className="space-y-2.5 p-3.5">
                                                 <div className="flex flex-wrap items-start justify-between gap-2">
                                                     <div className="min-w-0">
                                                         <div className="break-all tabular-nums text-sm font-semibold tracking-wider text-foreground">
@@ -900,7 +1046,7 @@ export default function AdminCodes() {
                                                             size="icon"
                                                             variant="ghost"
                                                             className="h-11 w-11"
-                                                            onClick={() => handleCopy(c.id, c.code)}
+                                                            onClick={() => void handleCopy(c.id, c.code)}
                                                             title="Kopieren"
                                                             aria-label="Einladungscode kopieren"
                                                         >

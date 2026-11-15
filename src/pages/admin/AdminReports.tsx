@@ -109,7 +109,11 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
     const [filterCategory, setFilterCategory] = useState<string>('all');
     const [filterPriority, setFilterPriority] = useState<string>('all');
     const [filterSource, setFilterSource] = useState<'all' | 'auto' | 'manual'>('all');
+    const [filterStatus, setFilterStatus] = useState<string>('all');
+    const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'priority'>('newest');
     const [searchQuery, setSearchQuery] = useState('');
+    const PAGE_SIZE = 15;
+    const [page, setPage] = useState(0);
     
     // Detail States
     const [selectedReport, setSelectedReport] = useState<Report | null>(null);
@@ -125,6 +129,11 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
     useEffect(() => {
         fetchReports();
     }, []);
+
+    // Filter-/Sortierwechsel starten wieder auf Seite 1.
+    useEffect(() => {
+        setPage(0);
+    }, [searchQuery, filterCategory, filterPriority, filterSource, filterStatus, sortBy]);
 
     const fetchReports = async () => {
         setLoading(true);
@@ -349,39 +358,93 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
             descText.toLowerCase().includes(searchQuery.toLowerCase()) ||
             reasonText.toLowerCase().includes(searchQuery.toLowerCase());
 
-        return matchesCategory && matchesPriority && matchesSource && matchesSearch;
+        const matchesStatus = filterStatus === 'all' || r.status === filterStatus;
+        return matchesCategory && matchesPriority && matchesSource && matchesStatus && matchesSearch;
     });
 
-    // Grouping for Kanban columns
+    const PRIORITY_RANK: Record<string, number> = { kritisch: 0, hoch: 1, normal: 2 };
+    const sortedReports = [...filteredReports].sort((a, b) => {
+        if (sortBy === 'priority') {
+            const rank = (PRIORITY_RANK[a.priority] ?? 3) - (PRIORITY_RANK[b.priority] ?? 3);
+            if (rank !== 0) return rank;
+        }
+        const aTime = new Date(a.created_at).getTime() || 0;
+        const bTime = new Date(b.created_at).getTime() || 0;
+        return sortBy === 'oldest' ? aTime - bTime : bTime - aTime;
+    });
+    const totalPages = Math.max(1, Math.ceil(sortedReports.length / PAGE_SIZE));
+    const safePage = Math.min(page, totalPages - 1);
+    const visibleReports = sortedReports.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
+
+    // Gruppierung bleibt vollständig; die Seitenzahl gilt nur für die Listenansicht.
     const columns = {
-        open: filteredReports.filter(r => r.status === 'open'),
-        investigating: filteredReports.filter(r => r.status === 'investigating'),
-        dismissed: filteredReports.filter(r => r.status === 'dismissed'),
-        resolved: filteredReports.filter(r => r.status === 'resolved'),
+        open: sortedReports.filter(r => r.status === 'open'),
+        investigating: sortedReports.filter(r => r.status === 'investigating'),
+        dismissed: sortedReports.filter(r => r.status === 'dismissed'),
+        resolved: sortedReports.filter(r => r.status === 'resolved'),
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-5">
+            {/* Status-Kennzahlen (alle Meldungen, unabhängig vom Filter) */}
+            <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+                {[
+                    { label: 'Offen', value: loading || loadError ? null : reports.filter(r => r.status === 'open').length, emphasis: true },
+                    { label: 'In Prüfung', value: loading || loadError ? null : reports.filter(r => r.status === 'investigating').length },
+                    { label: 'Gelöst', value: loading || loadError ? null : reports.filter(r => r.status === 'resolved').length },
+                    { label: 'Abgewiesen', value: loading || loadError ? null : reports.filter(r => r.status === 'dismissed').length },
+                ].map(tile => (
+                    <div key={tile.label} className="rounded-card border border-border bg-card p-3.5 shadow-soft">
+                        <p className="text-[13px] font-medium text-muted-foreground">{tile.label}</p>
+                        <p className={cn(
+                            'mt-1 text-2xl font-semibold tabular-nums tracking-tight',
+                            tile.value === null && 'text-base font-medium text-muted-foreground',
+                            tile.emphasis && tile.value !== null && tile.value > 0 && 'text-destructive'
+                        )}>{tile.value === null ? 'Nicht verfügbar' : tile.value}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">Alle Meldungen</p>
+                    </div>
+                ))}
+            </div>
+
             {/* Header / Filter bar */}
             <div className="flex flex-col gap-3">
-                <div className="relative w-full 2xl:max-w-md">
-                    <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} aria-hidden />
-                    <Input
-                        type="text"
-                        placeholder="Meldungen durchsuchen..."
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                        className="h-11 pl-11"
-                        aria-label="Meldungen durchsuchen"
-                    />
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                    <div className="relative w-full min-w-0 lg:max-w-md">
+                        <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} aria-hidden />
+                        <Input
+                            type="text"
+                            placeholder="Meldungen durchsuchen..."
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            className="h-11 pl-10 text-[13px]"
+                            aria-label="Meldungen durchsuchen"
+                        />
+                    </div>
+                    <p className="text-[13px] text-muted-foreground lg:ml-auto" aria-live="polite">
+                        {sortedReports.length} {sortedReports.length === 1 ? 'Meldung' : 'Meldungen'}
+                    </p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
                     <NativeSelect
+                        value={filterStatus}
+                        onChange={e => setFilterStatus(e.target.value)}
+                        wrapperClassName="w-[calc(50%-0.25rem)] sm:w-44"
+                        className="w-full text-[13px]"
+                        aria-label="Nach Status filtern"
+                    >
+                        <option value="all">Alle Status</option>
+                        <option value="open">Offen</option>
+                        <option value="investigating">In Prüfung</option>
+                        <option value="resolved">Gelöst</option>
+                        <option value="dismissed">Abgewiesen</option>
+                    </NativeSelect>
+
+                    <NativeSelect
                         value={filterCategory}
                         onChange={e => setFilterCategory(e.target.value)}
-                        wrapperClassName="w-full sm:w-44"
-                        className="w-full"
+                        wrapperClassName="w-[calc(50%-0.25rem)] sm:w-44"
+                        className="w-full text-[13px]"
                         aria-label="Nach Kategorie filtern"
                     >
                         <option value="all">Alle Kategorien</option>
@@ -395,8 +458,8 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                     <NativeSelect
                         value={filterPriority}
                         onChange={e => setFilterPriority(e.target.value)}
-                        wrapperClassName="w-full sm:w-44"
-                        className="w-full"
+                        wrapperClassName="w-[calc(50%-0.25rem)] sm:w-40"
+                        className="w-full text-[13px]"
                         aria-label="Nach Priorität filtern"
                     >
                         <option value="all">Alle Prioritäten</option>
@@ -408,8 +471,8 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                     <NativeSelect
                         value={filterSource}
                         onChange={e => setFilterSource(e.target.value as 'all' | 'auto' | 'manual')}
-                        wrapperClassName="w-full sm:w-52"
-                        className="w-full"
+                        wrapperClassName="w-[calc(50%-0.25rem)] sm:w-48"
+                        className="w-full text-[13px]"
                         aria-label="Nach Quelle filtern"
                         title="Quelle der Meldung"
                     >
@@ -418,11 +481,23 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                         <option value="manual">Manuelle Meldungen</option>
                     </NativeSelect>
 
+                    <NativeSelect
+                        value={sortBy}
+                        onChange={e => setSortBy(e.target.value as 'newest' | 'oldest' | 'priority')}
+                        wrapperClassName="w-[calc(50%-0.25rem)] sm:w-44"
+                        className="w-full text-[13px]"
+                        aria-label="Meldungen sortieren"
+                    >
+                        <option value="newest">Neueste zuerst</option>
+                        <option value="oldest">Älteste zuerst</option>
+                        <option value="priority">Priorität zuerst</option>
+                    </NativeSelect>
+
                     <Button onClick={fetchReports} variant="ghost" size="icon" className="h-11 w-11" title="Aktualisieren" aria-label="Meldungen aktualisieren">
                         <RefreshCw size={16} aria-hidden className={cn(loading && 'animate-spin')} />
                     </Button>
 
-                    <div className="flex shrink-0 items-center gap-1 rounded-lg border border-border bg-muted p-1">
+                    <div className="flex shrink-0 items-center gap-1 rounded-full border border-border bg-muted p-1">
                         <Button
                             variant="unstyled"
                             size="unstyled"
@@ -431,8 +506,8 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                             aria-pressed={viewMode === 'kanban'}
                             aria-label="Board-Ansicht"
                             className={cn(
-                                'grid h-11 w-11 place-items-center rounded-lg transition-colors',
-                                viewMode === 'kanban' ? 'bg-card text-foreground ' : 'text-muted-foreground hover:text-foreground'
+                                'grid h-11 w-11 place-items-center rounded-full transition-colors',
+                                viewMode === 'kanban' ? 'bg-card text-foreground shadow-soft' : 'text-muted-foreground hover:text-foreground'
                             )}
                         >
                             <LayoutGrid size={16} aria-hidden />
@@ -445,8 +520,8 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                             aria-pressed={viewMode === 'list'}
                             aria-label="Listenansicht"
                             className={cn(
-                                'grid h-11 w-11 place-items-center rounded-lg transition-colors',
-                                viewMode === 'list' ? 'bg-card text-foreground ' : 'text-muted-foreground hover:text-foreground'
+                                'grid h-11 w-11 place-items-center rounded-full transition-colors',
+                                viewMode === 'list' ? 'bg-card text-foreground shadow-soft' : 'text-muted-foreground hover:text-foreground'
                             )}
                         >
                             <ListIcon size={16} aria-hidden />
@@ -476,8 +551,8 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                             <Spinner className="size-6 text-foreground" />
                             <p className="text-sm text-muted-foreground">Lade Meldungen...</p>
                         </div>
-                    ) : filteredReports.length === 0 ? (
-                        <div className="rounded-2xl border border-border bg-card px-4 py-16 text-center">
+                    ) : sortedReports.length === 0 ? (
+                        <div className="rounded-card border border-border bg-card px-4 py-16 text-center">
                             <AlertTriangle size={32} className="mx-auto text-muted-foreground" aria-hidden />
                             <p className="mt-3 text-base font-medium text-foreground">Keine Meldungen</p>
                             <p className="mt-1 text-xs text-muted-foreground">Aktuell sind keine Meldungen in dieser Ansicht vorhanden.</p>
@@ -519,7 +594,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                         </div>
                     ) : (
                         <div className="space-y-2">
-                            {filteredReports.map(r => (
+                            {visibleReports.map(r => (
                                 <Button
                                     variant="unstyled"
                                     size="unstyled"
@@ -527,7 +602,7 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                                     key={r.id}
                                     onClick={() => handleSelectReport(r)}
                                     className={cn(
-                                        'flex w-full items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4 text-left transition-colors hover:border-border',
+                                        'flex w-full items-center justify-between gap-3 rounded-card border border-border bg-card p-3.5 text-left transition-colors hover:bg-muted/30',
                                         selectedReport?.id === r.id && 'ring-2 ring-ring'
                                     )}
                                 >
@@ -560,6 +635,30 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                             ))}
                         </div>
                     )}
+
+                    {viewMode === 'list' && sortedReports.length > PAGE_SIZE && (
+                        <div className="flex flex-wrap items-center justify-center gap-3 pt-3">
+                            <Button
+                                variant="outline"
+                                className="h-11"
+                                disabled={safePage === 0}
+                                onClick={() => setPage(p => Math.max(0, p - 1))}
+                            >
+                                Zurück
+                            </Button>
+                            <span className="text-[13px] font-medium text-muted-foreground" aria-live="polite">
+                                Seite {safePage + 1} von {totalPages} · {sortedReports.length} Meldungen
+                            </span>
+                            <Button
+                                variant="outline"
+                                className="h-11"
+                                disabled={safePage + 1 >= totalPages}
+                                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                            >
+                                Weiter
+                            </Button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Right detail panel (mobil ersetzt sie die Liste) */}
@@ -568,6 +667,13 @@ export default function AdminReports({ onOpenChat }: { onOpenChat: (userId1: str
                         {/* Detail Header */}
                         <div className="flex items-start justify-between gap-3 border-b border-border p-4 sm:p-5">
                             <div className="min-w-0">
+                                <Button
+                                    variant="ghost"
+                                    className="mb-1 -ml-2 h-11 gap-1 px-2 text-[13px] 2xl:hidden"
+                                    onClick={() => setSelectedReport(null)}
+                                >
+                                    <ChevronRight size={16} className="rotate-180" aria-hidden /> Zurück zur Liste
+                                </Button>
                                 <div className="flex items-center gap-1.5 text-base font-semibold">
                                     <AlertTriangle size={20} className="shrink-0 text-destructive" aria-hidden />
                                     Meldungsdetails
