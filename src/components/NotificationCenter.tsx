@@ -21,7 +21,7 @@ import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
 import { triggerHaptic } from '../lib/haptics';
 import { useReducedMotion } from 'motion/react';
-import { EASE_STANDARD, m } from '../lib/motion';
+import { EASE_STANDARD, m, SPRING } from '../lib/motion';
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -55,14 +55,19 @@ interface Props {
 
 // ── Helpers ──────────────────────────────────────────────────────
 
+/* Die Zeile ist die `group`; das Piktogramm reagiert auf ihren Hover und
+   ihren Press, ohne dass für jede Meldung eigener React-State nötig ist. */
+const TYPE_ICON_CLASS =
+    'icon-react motion-safe:group-hover:-rotate-6 motion-safe:group-hover:scale-110 motion-safe:group-active:scale-90';
+
 function typeIcon(type: NotificationType) {
     switch (type) {
-        case 'message': return <MessageSquare size={16} className="text-muted-foreground" />;
-        case 'like':    return <Heart size={16} className="text-muted-foreground" />;
-        case 'alert':   return <AlertTriangle size={16} className="text-destructive" />;
-        case 'review':  return <Star size={16} className="text-muted-foreground" />;
-        case 'match':   return <Zap size={16} className="text-muted-foreground" />;
-        default:        return <Bell size={16} className="text-muted-foreground" />;
+        case 'message': return <MessageSquare size={16} className={`text-muted-foreground ${TYPE_ICON_CLASS}`} />;
+        case 'like':    return <Heart size={16} className={`text-muted-foreground ${TYPE_ICON_CLASS}`} />;
+        case 'alert':   return <AlertTriangle size={16} className={`text-destructive ${TYPE_ICON_CLASS}`} />;
+        case 'review':  return <Star size={16} className={`text-muted-foreground ${TYPE_ICON_CLASS}`} />;
+        case 'match':   return <Zap size={16} className={`text-muted-foreground ${TYPE_ICON_CLASS}`} />;
+        default:        return <Bell size={16} className={`text-muted-foreground ${TYPE_ICON_CLASS}`} />;
     }
 }
 
@@ -231,9 +236,15 @@ export default function NotificationCenter({ unreadCount, onCountChange, variant
                 <div className="flex items-center gap-2.5">
                     <h2 className="text-base font-semibold leading-none">Meldungen</h2>
                     {unread > 0 && (
-                        <span className="grid h-5 min-w-5 place-items-center rounded-md bg-muted px-1.5 text-xs font-medium leading-none text-foreground tabular-nums">
+                        <m.span
+                            key={badgeCount}
+                            initial={reduceMotion ? false : { opacity: 0, scale: 0.65, y: -2 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            transition={reduceMotion ? { duration: 0 } : SPRING.press}
+                            className="grid h-5 min-w-5 place-items-center rounded-md bg-muted px-1.5 text-xs font-medium leading-none text-foreground tabular-nums"
+                        >
                             {badgeCount}
-                        </span>
+                        </m.span>
                     )}
                 </div>
             </div>
@@ -306,7 +317,7 @@ export default function NotificationCenter({ unreadCount, onCountChange, variant
                                 type="button"
                                 onClick={() => handleClick(n)}
                                 className={cn(
-                                    'flex w-full select-none cursor-pointer items-start gap-3 rounded-xl border p-3.5 text-left transition-colors',
+                                    'group flex w-full select-none cursor-pointer items-start gap-3 rounded-xl border p-3.5 text-left transition-colors',
                                     n.read
                                         ? 'border-border bg-card hover:bg-muted/40'
                                         : 'border-foreground/20 bg-muted/50 hover:bg-muted'
@@ -383,9 +394,15 @@ export default function NotificationCenter({ unreadCount, onCountChange, variant
             </m.span>
             {unread > 0 && (
                 <span className="absolute -right-1 -top-1 grid place-items-center">
-                    <span className="relative grid h-5 min-w-5 place-items-center rounded-full bg-foreground px-1 text-xs font-medium leading-none text-background ring-2 ring-background tabular-nums">
+                    <m.span
+                        key={badgeCount}
+                        initial={reduceMotion ? false : { opacity: 0, scale: 0.65, y: -2 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        transition={reduceMotion ? { duration: 0 } : SPRING.press}
+                        className="relative grid h-5 min-w-5 place-items-center rounded-full bg-foreground px-1 text-xs font-medium leading-none text-background ring-2 ring-background tabular-nums"
+                    >
                         {badgeCount}
-                    </span>
+                    </m.span>
                 </span>
             )}
         </Button>

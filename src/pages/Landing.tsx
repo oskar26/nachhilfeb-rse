@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { motion, useReducedMotion } from 'motion/react';
+import { motion, useReducedMotion, type Variants } from 'motion/react';
 import {
     ArrowRight,
     BadgeCheck,
@@ -30,6 +30,7 @@ import { Button, buttonVariants } from '../components/ui/button';
 import { DeviceFrame } from '../components/site/DeviceFrame';
 import { Reveal } from '../components/site/Reveal';
 import { m, prefersReducedMotion, SPRING } from '../lib/motion';
+import { triggerHaptic } from '../lib/haptics';
 import { cn } from '../lib/utils';
 import phoneFeedShot from '../../docs/screenshots/v2-phone-feed.png';
 import phoneChatShot from '../../docs/screenshots/v2-phone-chat.png';
@@ -57,6 +58,21 @@ function parseCount(value: unknown): number | null {
 
 /* Einmal pro Datei erzeugt, nie im Render: Motion-Variante des React-Router-Links. */
 const MotionLink = motion.create(Link);
+
+/* Karten und ihre Piktogramme teilen eine kleine, federnde Reaktion:
+   Die Karte hebt sich, das Piktogramm kippt kurz an und federt zurück. */
+const CARD_VARIANTS: Variants = {
+    hover: { y: -4 },
+    press: { y: 0, scale: 0.988 },
+};
+
+const ICON_VARIANTS: Variants = {
+    hover: { rotate: -6, scale: 1.1 },
+    press: { rotate: 0, scale: 0.9 },
+};
+
+const ICON_REACT_CLASS =
+    'icon-react motion-safe:group-hover:-rotate-6 motion-safe:group-hover:scale-110 motion-safe:group-active:scale-90';
 
 export default function Landing() {
     const { user, isAdmin } = useAuth();
@@ -164,10 +180,15 @@ export default function Landing() {
                                     Nachhilfe in Mathematik, Englisch und weiteren Fächern, direkt unter Mitschülerinnen und Mitschülern. Jede Anzeige stammt von einem verifizierten Konto.
                                 </p>
                                 <div className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row">
-                                    <Link to={registerZiel} className={buttonVariants({ size: 'lg' }) + ' w-full sm:w-auto'}>
-                                        {user ? 'Anzeigen ansehen' : 'Kostenlos registrieren'} <ArrowRight aria-hidden />
+                                    <Link
+                                        to={registerZiel}
+                                        onClick={() => triggerHaptic('light')}
+                                        className={buttonVariants({ size: 'lg' }) + ' group w-full motion-safe:hover:-translate-y-0.5 sm:w-auto'}
+                                    >
+                                        {user ? 'Anzeigen ansehen' : 'Kostenlos registrieren'}{' '}
+                                        <ArrowRight aria-hidden className={ICON_REACT_CLASS + ' motion-safe:group-hover:translate-x-0.5'} />
                                     </Link>
-                                    <Link to="/eltern-leitfaden" className={buttonVariants({ variant: 'outline', size: 'lg' }) + ' w-full sm:w-auto'}>
+                                    <Link to="/eltern-leitfaden" className={buttonVariants({ variant: 'outline', size: 'lg' }) + ' w-full motion-safe:hover:-translate-y-0.5 sm:w-auto'}>
                                         Eltern-Leitfaden
                                     </Link>
                                 </div>
@@ -183,8 +204,8 @@ export default function Landing() {
                                         { icon: Lock, label: 'Server in Deutschland', tone: 'bg-pastel-rose text-pastel-rose-foreground' },
                                         { icon: BadgeCheck, label: 'Nutzung kostenlos', tone: 'bg-pastel-yellow text-pastel-yellow-foreground' },
                                     ].map((s) => (
-                                        <li key={s.label} className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-semibold ${s.tone}`}>
-                                            <s.icon size={15} aria-hidden /> {s.label}
+                                        <li key={s.label} className={`group inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-semibold ${s.tone}`}>
+                                            <s.icon size={15} aria-hidden className={ICON_REACT_CLASS} /> {s.label}
                                         </li>
                                     ))}
                                 </ul>
@@ -264,14 +285,19 @@ export default function Landing() {
                         ].map((w, i) => (
                             <Reveal key={w.title} delay={i * 70} className="h-full">
                                 <m.article
-                                    whileHover={reduce ? undefined : { y: -2 }}
-                                    whileTap={reduce ? undefined : { scale: 0.985 }}
+                                    whileHover={reduce ? undefined : 'hover'}
+                                    whileTap={reduce ? undefined : 'press'}
+                                    variants={CARD_VARIANTS}
                                     transition={SPRING.settle}
                                     className={cn('flex h-full flex-col rounded-card p-6 shadow-soft transition-[box-shadow] duration-150 hover:shadow-card sm:p-7', WAY_TONES[i].card)}
                                 >
-                                    <span className="grid size-16 shrink-0 place-items-center rounded-full bg-white shadow-soft">
+                                    <m.span
+                                        variants={ICON_VARIANTS}
+                                        transition={SPRING.press}
+                                        className="grid size-16 shrink-0 place-items-center rounded-full bg-white shadow-soft"
+                                    >
                                         <w.icon size={28} className={WAY_TONES[i].icon} aria-hidden />
-                                    </span>
+                                    </m.span>
                                     <div className="mt-5 flex min-w-0 flex-1 flex-col">
                                         <h3 className="text-xl font-extrabold tracking-tight">{w.title}</h3>
                                         <p className="mt-2 text-sm leading-relaxed">{w.text}</p>
@@ -285,11 +311,17 @@ export default function Landing() {
                                     </div>
                                     <Link
                                         to={w.to}
+                                        onClick={() => triggerHaptic('light')}
                                         aria-describedby={`wege-punkte-${i}`}
                                         aria-label={`${w.cta}: ${w.title}`}
-                                        className="mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-foreground shadow-soft"
+                                        className="group mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-foreground shadow-soft transition-[transform,box-shadow] duration-150 ease-out hover:shadow-card motion-safe:active:scale-[0.97]"
                                     >
-                                        {w.cta} <ArrowRight size={17} aria-hidden />
+                                        {w.cta}
+                                        <ArrowRight
+                                            size={17}
+                                            aria-hidden
+                                            className={ICON_REACT_CLASS + ' motion-safe:group-hover:translate-x-0.5'}
+                                        />
                                     </Link>
                                 </m.article>
                             </Reveal>
@@ -303,14 +335,19 @@ export default function Landing() {
                 <div className="mx-auto max-w-site px-4 py-14 sm:px-6 sm:py-20">
                     <Reveal>
                         <div className="flex flex-col items-start gap-3 rounded-panel bg-pastel-blue p-4 text-pastel-blue-foreground sm:flex-row sm:items-center sm:gap-4 sm:p-5">
-                            <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white/80 px-3.5 py-2 text-xs font-semibold">
-                                <Users size={15} aria-hidden /> Empfehlung
+                            <span className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-white/80 px-3.5 py-2 text-xs font-semibold">
+                                <Users size={15} aria-hidden className={ICON_REACT_CLASS} /> Empfehlung
                             </span>
                             <p className="min-w-0 flex-1 text-sm leading-relaxed">
                                 <strong className="font-bold">Ein Konto pro Kind:</strong> In den Klassen 5 und 6 betreuen viele Eltern mit, ältere nutzen die Börse selbstständig.
                             </p>
-                            <Link to="/eltern-leitfaden" className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold transition-colors hover:bg-white/60">
-                                Eltern-Leitfaden <ArrowRight size={16} aria-hidden />
+                            <Link to="/eltern-leitfaden" className="group inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold transition-colors hover:bg-white/60">
+                                Eltern-Leitfaden
+                                <ArrowRight
+                                    size={16}
+                                    aria-hidden
+                                    className={ICON_REACT_CLASS + ' motion-safe:group-hover:translate-x-0.5'}
+                                />
                             </Link>
                         </div>
                     </Reveal>
@@ -429,9 +466,14 @@ export default function Landing() {
                                         <p className="mt-3 max-w-md text-base leading-relaxed text-muted-foreground">{row.text}</p>
                                         <Link
                                             to={appTourZiel(i)}
-                                            className="mt-5 inline-flex min-h-11 items-center gap-1.5 rounded-full text-sm font-semibold text-foreground transition-colors hover:text-muted-foreground"
+                                            className="group mt-5 inline-flex min-h-11 items-center gap-1.5 rounded-full text-sm font-semibold text-foreground transition-colors hover:text-muted-foreground"
                                         >
-                                            {user ? 'In der App ansehen' : 'Kostenlos registrieren'} <ArrowRight size={16} aria-hidden />
+                                            {user ? 'In der App ansehen' : 'Kostenlos registrieren'}
+                                            <ArrowRight
+                                                size={16}
+                                                aria-hidden
+                                                className={ICON_REACT_CLASS + ' motion-safe:group-hover:translate-x-0.5'}
+                                            />
                                         </Link>
                                     </div>
                                     <div className={cn('rounded-panel p-5 shadow-soft sm:p-8', row.tone)}>
@@ -443,10 +485,10 @@ export default function Landing() {
                     </div>
 
                     <Reveal>
-                        <div className="mt-14 flex flex-col items-start justify-between gap-4 rounded-panel bg-primary p-5 text-primary-foreground shadow-card sm:mt-20 sm:flex-row sm:items-center sm:p-7">
+                        <div className="group mt-14 flex flex-col items-start justify-between gap-4 rounded-panel bg-primary p-5 text-primary-foreground shadow-card sm:mt-20 sm:flex-row sm:items-center sm:p-7">
                             <div className="flex items-center gap-3">
                                 <span className="grid size-11 place-items-center rounded-full bg-white/45">
-                                    <ImageIcon size={21} aria-hidden />
+                                    <ImageIcon size={21} aria-hidden className={ICON_REACT_CLASS} />
                                 </span>
                                 <p className="text-lg font-extrabold">Börse ansehen</p>
                             </div>
@@ -457,7 +499,8 @@ export default function Landing() {
                                 transition={SPRING.settle}
                                 className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-7 text-sm font-semibold text-background shadow-soft transition-[box-shadow] duration-150 hover:shadow-card"
                             >
-                                {user ? 'Börse ansehen' : 'Kostenlos registrieren'} <ArrowRight aria-hidden />
+                                {user ? 'Börse ansehen' : 'Kostenlos registrieren'}{' '}
+                                <ArrowRight aria-hidden className={ICON_REACT_CLASS + ' motion-safe:group-hover:translate-x-0.5'} />
                             </MotionLink>
                         </div>
                     </Reveal>
@@ -468,8 +511,8 @@ export default function Landing() {
             <section id="sicher" className="scroll-mt-28 bg-card">
                 <div className="mx-auto grid max-w-site gap-4 px-4 py-14 sm:px-6 sm:py-24 lg:grid-cols-[1.15fr_0.85fr]">
                     <Reveal className="h-full">
-                        <div className="flex h-full flex-col justify-center rounded-card bg-background p-6 shadow-soft sm:p-8">
-                            <Shield size={24} className="text-pastel-blue-foreground" aria-hidden />
+                        <div className="group flex h-full flex-col justify-center rounded-card bg-background p-6 shadow-soft sm:p-8">
+                            <Shield size={24} className={ICON_REACT_CLASS + ' text-pastel-blue-foreground'} aria-hidden />
                             <h2 className="mt-4 text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">Du entscheidest, wer was sieht.</h2>
                             <p className="mt-4 leading-relaxed text-muted-foreground">Du entscheidest, welche Kontaktdaten sichtbar sind. Telefonnummer und Moodle-Name sehen andere erst nach Annahme einer Anfrage. Die E-Mail-Adresse kannst du im Profil öffentlich schalten.</p>
                             <div className="mt-6 rounded-card border border-border/80 bg-card p-4 shadow-soft sm:p-5">
@@ -505,7 +548,7 @@ export default function Landing() {
                     </Reveal>
 
                     <Reveal delay={80} className="h-full">
-                        <div className="flex h-full flex-col justify-center rounded-card bg-pastel-mint p-6 text-pastel-mint-foreground shadow-soft sm:p-8">
+                        <div className="group flex h-full flex-col justify-center rounded-card bg-pastel-mint p-6 text-pastel-mint-foreground shadow-soft sm:p-8">
                             <h2 className="text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">So wird dein Konto verifiziert.</h2>
                             <div className="mt-7">
                                 <VerifySteps tone="du" variant="timeline" />
@@ -517,7 +560,8 @@ export default function Landing() {
                                 transition={SPRING.settle}
                                 className="mt-8 inline-flex min-h-12 items-center justify-center gap-2 self-start rounded-full bg-white px-6 text-sm font-semibold text-foreground shadow-soft transition-[box-shadow] duration-150 hover:shadow-card"
                             >
-                                {user ? 'Zur Börse' : 'Zur Anmeldung'} <ArrowRight aria-hidden />
+                                {user ? 'Zur Börse' : 'Zur Anmeldung'}
+                                <ArrowRight aria-hidden className={ICON_REACT_CLASS + ' motion-safe:group-hover:translate-x-0.5'} />
                             </MotionLink>
                         </div>
                     </Reveal>
@@ -529,8 +573,8 @@ export default function Landing() {
                 <div className="mx-auto max-w-site px-4 py-14 sm:px-6 sm:py-24">
                     <Reveal>
                         <div className="rounded-panel bg-primary p-5 text-primary-foreground shadow-card sm:p-8">
-                            <span className="inline-flex items-center gap-2 rounded-full bg-white/55 px-3.5 py-2 text-xs font-semibold">
-                                <Sparkles size={15} aria-hidden /> Coaching-AG am FWG
+                            <span className="group inline-flex items-center gap-2 rounded-full bg-white/55 px-3.5 py-2 text-xs font-semibold">
+                                <Sparkles size={15} aria-hidden className={ICON_REACT_CLASS} /> Coaching-AG am FWG
                             </span>
                             <h2 className="mt-4 text-[2rem] font-extrabold leading-[1.06] tracking-[-0.035em] sm:text-[2.75rem]">Die Coaching-AG</h2>
                             <p className="mt-4 max-w-3xl text-base font-medium leading-relaxed text-primary-foreground/85 sm:text-lg">Ältere unterstützen Jüngere: Unter Leitung von <strong className="font-bold text-primary-foreground">Frau Balistreri</strong> begleiten geschulte Schülerinnen und Schüler <strong className="font-bold text-primary-foreground">ab Klasse 8</strong> gezielt Kinder der <strong className="font-bold text-primary-foreground">Klassen 5 und 6</strong> beim Start an unserer Schule.</p>
@@ -541,13 +585,23 @@ export default function Landing() {
                                     { icon: Shield, t: 'Offizielles Coach-Abzeichen', d: 'Coaches mit Abzeichen haben die Schulung besucht und sind verifiziert.' },
                                     { icon: Users, t: 'Gemeinschaft & Fairness', d: 'Kontakt über die App. Richtwert: 12 € pro 45 Minuten (≈ 16 €/h), individuell anpassbar.' },
                                 ].map((c) => (
-                                    <div key={c.t} className="rounded-card bg-card p-5 text-foreground shadow-soft">
-                                        <span className="grid size-11 place-items-center rounded-full bg-pastel-violet text-pastel-violet-foreground">
+                                    <m.div
+                                        key={c.t}
+                                        whileHover={reduce ? undefined : 'hover'}
+                                        variants={CARD_VARIANTS}
+                                        transition={SPRING.settle}
+                                        className="rounded-card bg-card p-5 text-foreground shadow-soft"
+                                    >
+                                        <m.span
+                                            variants={ICON_VARIANTS}
+                                            transition={SPRING.press}
+                                            className="grid size-11 place-items-center rounded-full bg-pastel-violet text-pastel-violet-foreground"
+                                        >
                                             <c.icon size={20} aria-hidden />
-                                        </span>
+                                        </m.span>
                                         <h3 className="mt-3 text-base font-bold">{c.t}</h3>
                                         <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{c.d}</p>
-                                    </div>
+                                    </m.div>
                                 ))}
                             </div>
 
@@ -561,9 +615,10 @@ export default function Landing() {
                                     whileHover={reduce ? undefined : { y: -2 }}
                                     whileTap={reduce ? undefined : { scale: 0.985 }}
                                     transition={SPRING.settle}
-                                    className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-white px-6 text-sm font-semibold text-foreground shadow-soft transition-[box-shadow] duration-150 hover:shadow-card"
+                                    className="group inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-semibold text-foreground shadow-soft transition-[box-shadow] duration-150 hover:shadow-card"
                                 >
                                     Jetzt mitmachen
+                                    <ArrowRight aria-hidden className={ICON_REACT_CLASS + ' motion-safe:group-hover:translate-x-0.5'} />
                                 </MotionLink>
                             </div>
                         </div>
@@ -576,7 +631,9 @@ export default function Landing() {
                 <div className="mx-auto max-w-site px-4 py-14 sm:px-6 sm:py-24">
                     <Reveal>
                         <div className="max-w-3xl">
-                            <span className="inline-grid size-14 place-items-center rounded-full bg-pastel-orange text-pastel-orange-foreground"><Shield size={24} aria-hidden /></span>
+                            <span className="group inline-grid size-14 place-items-center rounded-full bg-pastel-orange text-pastel-orange-foreground">
+                                <Shield size={24} aria-hidden className={ICON_REACT_CLASS} />
+                            </span>
                             <h2 className="mt-5 text-[2rem] font-extrabold leading-[1.06] tracking-[-0.035em] sm:text-[2.75rem]">Informationen für Eltern</h2>
                             <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">Ihr Kind nutzt die Nachhilfebörse über sein eigenes Konto. Wie selbstständig es läuft, entscheiden Sie gemeinsam: In den Klassen 5 bis 7 empfehlen wir die gemeinsame Betreuung. So behalten Sie Anzeigen und Anfragen im Blick. Unter 16 Jahren brauchen wir Ihre Einwilligung.</p>
                         </div>
@@ -590,11 +647,22 @@ export default function Landing() {
                             { icon: Shield, t: 'Melden & Fragen', d: 'Jede Anzeige und jedes Profil lässt sich melden. Das SV-Team sichtet Meldungen mindestens einmal pro Woche, oft auch häufiger.', tone: 'bg-pastel-rose text-pastel-rose-foreground' },
                         ].map((f, i) => (
                             <Reveal key={f.t} delay={i * 50} className="h-full">
-                                <article className={`h-full rounded-card p-6 shadow-soft ${f.tone}`}>
-                                    <span className="inline-grid size-12 place-items-center rounded-full bg-white/85"><f.icon size={21} aria-hidden /></span>
+                                <m.article
+                                    whileHover={reduce ? undefined : 'hover'}
+                                    variants={CARD_VARIANTS}
+                                    transition={SPRING.settle}
+                                    className={`h-full rounded-card p-6 shadow-soft ${f.tone}`}
+                                >
+                                    <m.span
+                                        variants={ICON_VARIANTS}
+                                        transition={SPRING.press}
+                                        className="inline-grid size-12 place-items-center rounded-full bg-white/85"
+                                    >
+                                        <f.icon size={21} aria-hidden />
+                                    </m.span>
                                     <h3 className="mt-4 text-lg font-extrabold">{f.t}</h3>
                                     <p className="mt-2 text-sm leading-relaxed">{f.d}</p>
-                                </article>
+                                </m.article>
                             </Reveal>
                         ))}
                     </div>
@@ -602,15 +670,21 @@ export default function Landing() {
                     <Reveal delay={70}>
                         <m.a
                             href="mailto:info@nachhilfe-sv.de?subject=Frage%20als%20Elternteil"
-                            whileHover={reduce ? undefined : { y: -2 }}
-                            whileTap={reduce ? undefined : { scale: 0.995 }}
+                            onClick={() => triggerHaptic('light')}
+                            whileHover={reduce ? undefined : 'hover'}
+                            whileTap={reduce ? undefined : 'press'}
+                            variants={{ hover: { y: -2 }, press: { scale: 0.995 } }}
                             transition={SPRING.settle}
                             className="group mt-6 flex flex-col gap-4 rounded-card border border-primary/35 bg-primary-soft p-5 text-foreground shadow-soft transition-[box-shadow] duration-200 hover:shadow-card sm:flex-row sm:items-center sm:justify-between"
                         >
                             <div className="flex items-center gap-4">
-                                <span className="grid size-12 shrink-0 place-items-center rounded-full bg-card text-primary shadow-soft">
+                                <m.span
+                                    variants={ICON_VARIANTS}
+                                    transition={SPRING.press}
+                                    className="grid size-12 shrink-0 place-items-center rounded-full bg-card text-primary shadow-soft"
+                                >
                                     <Mail size={21} aria-hidden />
-                                </span>
+                                </m.span>
                                 <div>
                                     <p className="text-base font-extrabold">Fragen als Elternteil?</p>
                                     <p className="mt-1 max-w-xl text-sm leading-relaxed text-muted-foreground">
@@ -619,7 +693,12 @@ export default function Landing() {
                                 </div>
                             </div>
                             <span className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-foreground px-5 text-sm font-semibold text-background transition-colors group-hover:bg-foreground/90">
-                                info@nachhilfe-sv.de <ArrowRight size={16} aria-hidden />
+                                info@nachhilfe-sv.de
+                                <ArrowRight
+                                    size={16}
+                                    aria-hidden
+                                    className={ICON_REACT_CLASS + ' motion-safe:group-hover:translate-x-0.5'}
+                                />
                             </span>
                         </m.a>
                     </Reveal>
@@ -632,12 +711,14 @@ export default function Landing() {
                             </div>
                             <MotionLink
                                 to={elternZiel}
+                                onClick={() => triggerHaptic('light')}
                                 whileHover={reduce ? undefined : { y: -2 }}
                                 whileTap={reduce ? undefined : { scale: 0.985 }}
                                 transition={SPRING.settle}
-                                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-foreground px-7 text-sm font-semibold text-background shadow-soft transition-[box-shadow] duration-150 hover:shadow-card"
+                                className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-foreground px-7 text-sm font-semibold text-background shadow-soft transition-[box-shadow] duration-150 hover:shadow-card"
                             >
-                                Eltern-Leitfaden lesen <ArrowRight aria-hidden />
+                                Eltern-Leitfaden lesen
+                                <ArrowRight aria-hidden className={ICON_REACT_CLASS + ' motion-safe:group-hover:translate-x-0.5'} />
                             </MotionLink>
                         </div>
                     </Reveal>
@@ -648,10 +729,10 @@ export default function Landing() {
             <section id="funktionswunsch" className="scroll-mt-28 bg-secondary/60 text-foreground">
                 <div className="mx-auto max-w-site px-4 py-12 sm:px-6 sm:py-16">
                     <Reveal>
-                        <div className="flex flex-col gap-6 rounded-panel border border-border bg-card p-6 shadow-card sm:p-8 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="group flex flex-col gap-6 rounded-panel border border-border bg-card p-6 shadow-card sm:p-8 lg:flex-row lg:items-center lg:justify-between">
                             <div className="flex items-start gap-4">
                                 <span className="grid size-12 shrink-0 place-items-center rounded-full bg-primary-soft text-primary-soft-foreground">
-                                    <Lightbulb size={22} aria-hidden />
+                                    <Lightbulb size={22} aria-hidden className={ICON_REACT_CLASS} />
                                 </span>
                                 <div>
                                     <h2 className="text-xl font-extrabold tracking-tight sm:text-2xl">Etwas fehlt?</h2>
@@ -666,15 +747,17 @@ export default function Landing() {
                                         <Lightbulb size={16} aria-hidden /> Funktionswunsch senden
                                     </Button>
                                 ) : (
-                                    <Link to="/login?mode=register" className={cn(buttonVariants(), 'min-h-11 rounded-full font-semibold')}>
-                                        Konto erstellen <ArrowRight size={16} aria-hidden />
+                                    <Link to="/login?mode=register" className={cn(buttonVariants(), 'group min-h-11 rounded-full font-semibold')}>
+                                        Konto erstellen
+                                        <ArrowRight size={16} aria-hidden className={ICON_REACT_CLASS + ' motion-safe:group-hover:translate-x-0.5'} />
                                     </Link>
                                 )}
                                 <a
                                     href="mailto:info@nachhilfe-sv.de?subject=Funktionswunsch"
-                                    className={cn(buttonVariants({ variant: 'outline' }), 'min-h-11 rounded-full font-semibold')}
+                                    onClick={() => triggerHaptic('light')}
+                                    className={cn(buttonVariants({ variant: 'outline' }), 'group min-h-11 rounded-full font-semibold')}
                                 >
-                                    <Mail size={16} aria-hidden /> Per E-Mail
+                                    <Mail size={16} aria-hidden className={ICON_REACT_CLASS} /> Per E-Mail
                                 </a>
                             </div>
                         </div>
@@ -708,8 +791,12 @@ export default function Landing() {
                     <div className="mt-8 flex flex-col justify-between gap-3 border-t border-border pt-6 text-xs sm:flex-row">
                         <p>© Schülervertretung Friedrich-Wilhelm-Gymnasium Köln {new Date().getFullYear()}.</p>
                         <div className="flex flex-col gap-1 sm:items-end">
-                            <a href="mailto:info@nachhilfe-sv.de" className="inline-flex min-h-11 items-center gap-1.5 font-medium transition-colors hover:text-foreground">
-                                <Mail size={14} aria-hidden /> info@nachhilfe-sv.de
+                            <a
+                                href="mailto:info@nachhilfe-sv.de"
+                                onClick={() => triggerHaptic('light')}
+                                className="group inline-flex min-h-11 items-center gap-1.5 font-medium transition-colors hover:text-foreground"
+                            >
+                                <Mail size={14} aria-hidden className={ICON_REACT_CLASS} /> info@nachhilfe-sv.de
                             </a>
                             <p className="tabular-nums">Hosting in Deutschland · DSGVO-konform</p>
                         </div>

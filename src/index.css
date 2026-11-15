@@ -144,6 +144,28 @@
     transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   }
 
+  /* Tactile press for links and custom controls that do not use the Button
+     primitive. The scale is intentionally tiny and only runs when the user
+     allows motion; reduced-motion users keep the color/shadow feedback. */
+  .tactile-press {
+    transition-property: transform, translate, scale, rotate, box-shadow, background-color, border-color, color;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .tactile-press:active { transform: scale(0.97); }
+  }
+
+  /* Shared timing for pictograms that react to a parent's hover/press state.
+     The transforms themselves are authored with `motion-safe:` so this class
+     only owns the interpolation. */
+  .icon-react {
+    transform-origin: center;
+    transition-property: transform, rotate, scale;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
   .chat-surface {
     background-color: var(--chat-bg);
   }
