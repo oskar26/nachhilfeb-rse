@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, useCallback, type MouseEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { BookOpen, Menu, X } from 'lucide-react';
-import { useReducedMotion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 import { Logo } from './ui/Logo';
 import { m, prefersReducedMotion, SPRING } from '../lib/motion';
+import { triggerHaptic } from '../lib/haptics';
 import { useAuth } from '../context/AuthContext';
 import {
     Sheet,
@@ -29,6 +30,21 @@ const MOBILE_NAV: NavItem[] = NAV_ITEMS.map((item) => {
     if (item.to === '/eltern-leitfaden') return { ...item, label: 'Eltern-Leitfaden' };
     return item;
 });
+
+/* Die Wortmarke ist ein eigener Motion-Bereich: Beim Hover kippt das Logo
+   kurz an, beim Tippen federt es zurück. Der Link selbst hebt sich nur um
+   einen Pixel, damit die Navigation ruhig bleibt. */
+const HeaderLink = motion.create(Link);
+
+const LOGO_LINK_VARIANTS = {
+    hover: { y: -1 },
+    press: { scale: 0.985 },
+};
+
+const LOGO_MARK_VARIANTS = {
+    hover: { rotate: -7, scale: 1.09 },
+    press: { rotate: 3, scale: 0.92 },
+};
 
 function scrollToSection(id: string): void {
     const scrollNow = () => {
@@ -147,19 +163,28 @@ export default function SiteHeader() {
     };
 
     const navLinkClass = (active: boolean) =>
-        `relative isolate inline-flex min-h-11 items-center whitespace-nowrap rounded-full px-4 text-sm font-semibold transition-colors ${active
+        `relative isolate inline-flex min-h-11 items-center whitespace-nowrap rounded-full px-4 text-sm font-semibold transition-[color,background-color,transform,translate,scale] duration-150 ease-out motion-safe:hover:-translate-y-px motion-safe:active:scale-[0.97] ${active
             ? 'text-primary-soft-foreground'
             : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`;
 
     const menuTrigger = (
         <button
             type="button"
-            className="inline-flex size-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-soft transition-[box-shadow] duration-150 hover:shadow-card lg:hidden"
+            className="tactile-press inline-flex size-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-soft hover:shadow-card lg:hidden"
             aria-label={menuOpen ? 'Menü schließen' : 'Menü öffnen'}
             aria-expanded={menuOpen}
             aria-controls="mobile-nav"
+            onClick={() => triggerHaptic('light')}
         >
-            {menuOpen ? <X size={20} aria-hidden /> : <Menu size={20} aria-hidden />}
+            <m.span
+                key={menuOpen ? 'close' : 'open'}
+                initial={reduceMotion ? false : { rotate: menuOpen ? -45 : 45, scale: 0.82, opacity: 0 }}
+                animate={{ rotate: 0, scale: 1, opacity: 1 }}
+                transition={reduceMotion ? { duration: 0 } : SPRING.press}
+                className="inline-flex"
+            >
+                {menuOpen ? <X size={20} aria-hidden /> : <Menu size={20} aria-hidden />}
+            </m.span>
         </button>
     );
 
@@ -173,12 +198,27 @@ export default function SiteHeader() {
                 >
                     <div className="mx-auto w-full max-w-site px-3 sm:px-6">
                     <div className="flex h-16 items-center gap-3 rounded-full border border-border/80 bg-card/95 px-4 shadow-soft backdrop-blur-xl supports-[backdrop-filter]:bg-card/90 sm:px-5 xl:gap-6">
-                        <Link to="/welcome" onClick={goStart} className="flex min-h-11 min-w-0 items-center gap-2.5 rounded-full px-1" aria-label="Nachhilfebörse Startseite">
-                            <Logo size={27} className="shrink-0 text-primary" />
+                        <HeaderLink
+                            to="/welcome"
+                            onClick={goStart}
+                            whileHover={reduceMotion ? undefined : 'hover'}
+                            whileTap={reduceMotion ? undefined : 'press'}
+                            variants={LOGO_LINK_VARIANTS}
+                            transition={SPRING.settle}
+                            className="flex min-h-11 min-w-0 items-center gap-2.5 rounded-full px-1"
+                            aria-label="Nachhilfebörse Startseite"
+                        >
+                            <m.span
+                                variants={LOGO_MARK_VARIANTS}
+                                transition={SPRING.press}
+                                className="inline-flex shrink-0"
+                            >
+                                <Logo size={27} className="shrink-0 text-primary" />
+                            </m.span>
                             <span className="truncate text-base font-bold tracking-tight text-foreground sm:text-lg">
                                 Nachhilfebörse <span className="text-foreground">FWG</span>
                             </span>
-                        </Link>
+                        </HeaderLink>
                         <nav className="hidden min-w-0 flex-1 items-center justify-end gap-1 text-sm text-foreground lg:flex" aria-label="Bereiche">
                             {NAV_ITEMS.map((item) => {
                                 const active = isActive(item);
@@ -226,15 +266,20 @@ export default function SiteHeader() {
                         <div className="ml-auto flex shrink-0 items-center gap-2 lg:ml-2">
                             <a
                                 href="/docs"
-                                className={navLinkClass(false) + ' max-lg:hidden gap-1.5'}
+                                className={navLinkClass(false) + ' group max-lg:hidden gap-1.5'}
                             >
                                 Dokumentation
-                                <BookOpen size={15} aria-hidden />
+                                <BookOpen
+                                    size={15}
+                                    aria-hidden
+                                    className="icon-react motion-safe:group-hover:-rotate-6 motion-safe:group-hover:scale-110 motion-safe:group-active:scale-90"
+                                />
                             </a>
                             {!user && (
                                 <Link
                                     to="/login"
-                                    className="inline-flex h-12 items-center justify-center rounded-full bg-foreground px-5 text-sm font-semibold text-background shadow-soft transition-[box-shadow] duration-150 hover:shadow-card max-lg:hidden"
+                                    onClick={() => triggerHaptic('light')}
+                                    className="tactile-press inline-flex h-12 items-center justify-center rounded-full bg-foreground px-5 text-sm font-semibold text-background shadow-soft hover:shadow-card motion-safe:hover:-translate-y-0.5 max-lg:hidden"
                                 >
                                     Anmelden
                                 </Link>
@@ -263,7 +308,8 @@ export default function SiteHeader() {
                         <SheetClose
                             type="button"
                             aria-label="Menü schließen"
-                            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted"
+                            onClick={() => triggerHaptic('light')}
+                            className="tactile-press inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground hover:bg-muted"
                         >
                             <X size={20} aria-hidden />
                         </SheetClose>
@@ -277,9 +323,14 @@ export default function SiteHeader() {
                                     <li key={item.label}>
                                         <Link
                                             to={item.to}
-                                            onClick={item.section ? goSection(item.section) : item.to === '/welcome' ? goStart : closeMenu}
+                                            onClick={(event) => {
+                                                triggerHaptic('light');
+                                                if (item.section) goSection(item.section)(event);
+                                                else if (item.to === '/welcome') goStart(event);
+                                                else closeMenu();
+                                            }}
                                             aria-current={active ? (item.section ? 'location' : 'page') : undefined}
-                                            className={`flex min-h-12 items-center gap-4 rounded-full px-4 py-3 text-base font-semibold transition-colors ${active ? 'bg-primary-soft text-primary-soft-foreground' : 'text-foreground hover:bg-muted'}`}
+                                            className={`tactile-press flex min-h-12 items-center gap-4 rounded-full px-4 py-3 text-base font-semibold ${active ? 'bg-primary-soft text-primary-soft-foreground' : 'text-foreground hover:bg-muted'}`}
                                         >
                                             {item.label}
                                         </Link>
@@ -294,8 +345,11 @@ export default function SiteHeader() {
                     <div className="shrink-0 space-y-2 border-t border-border p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
                         <a
                             href="/docs"
-                            onClick={closeMenu}
-                            className="flex min-h-12 items-center justify-center gap-2 rounded-full border border-border bg-card px-4 text-base font-semibold text-foreground transition-colors hover:bg-muted"
+                            onClick={() => {
+                                triggerHaptic('light');
+                                closeMenu();
+                            }}
+                            className="tactile-press flex min-h-12 items-center justify-center gap-2 rounded-full border border-border bg-card px-4 text-base font-semibold text-foreground hover:bg-muted"
                         >
                             Dokumentation
                             <BookOpen size={17} aria-hidden />
@@ -304,7 +358,10 @@ export default function SiteHeader() {
                             <SheetClose
                                 nativeButton={false}
                                 render={<Link to="/login" />}
-                                className="inline-flex h-12 w-full items-center justify-center rounded-full bg-foreground px-5 text-sm font-semibold text-background shadow-soft transition-[box-shadow] duration-150 hover:shadow-card"
+                                onPointerDown={(event) => {
+                                    if (event.button === 0) triggerHaptic('light');
+                                }}
+                                className="tactile-press inline-flex h-12 w-full items-center justify-center rounded-full bg-foreground px-5 text-sm font-semibold text-background shadow-soft hover:shadow-card"
                             >
                                 Anmelden
                             </SheetClose>

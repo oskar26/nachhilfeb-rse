@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 import { triggerHaptic, type HapticStyle } from "@/lib/haptics"
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-full border border-transparent bg-clip-padding text-sm font-semibold whitespace-nowrap transition-[background-color,border-color,color,box-shadow,transform] duration-150 ease-out outline-none select-none active:not-aria-[haspopup]:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 items-center justify-center rounded-full border border-transparent bg-clip-padding text-sm font-semibold whitespace-nowrap transition-[background-color,border-color,color,box-shadow,transform,translate,scale,rotate] duration-150 ease-out outline-none select-none active:not-aria-[haspopup]:scale-[0.97] disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:transition-[transform,translate,scale,rotate] [&_svg]:duration-150 [&_svg]:ease-out motion-safe:active:[&_svg]:scale-90 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
