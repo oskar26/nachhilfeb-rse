@@ -195,9 +195,8 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                     </h1>
                     <Link
                         to="/chats"
-                        aria-label="Chats öffnen"
                         onClick={() => triggerHaptic('selection')}
-                        className="inline-flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-border bg-card px-4 text-sm font-semibold text-foreground shadow-soft transition-colors hover:bg-muted hover:text-foreground"
+                        className="inline-flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-border bg-card px-4 text-sm font-semibold text-foreground shadow-soft transition-colors hover:bg-muted hover:text-foreground md:hidden"
                     >
                         <MessageCircle size={18} aria-hidden />
                         <span>Chats</span>
