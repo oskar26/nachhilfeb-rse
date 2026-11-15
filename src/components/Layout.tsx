@@ -88,6 +88,8 @@ function AppShell() {
 
     const isTabActive = (tab: DesktopSocialTab) => isSocialRoute && currentTab === tab;
     const isPathActive = (path: string) => path === '/' ? pathname === '/' : pathname === path || pathname.startsWith(`${path}/`);
+    // The Chats entry owns the whole chat area: overview plus open conversations.
+    const isChatsActive = isChatRoute;
     // Dark mode uses the neutral active surface; the base button would otherwise
     // show the olive --primary-soft pill in the SV/sidebar navigation.
     const activeNavClass = 'relative isolate dark:text-foreground dark:data-active:text-foreground dark:data-active:hover:text-foreground';
@@ -199,13 +201,13 @@ function AppShell() {
                                 </SidebarMenuItem>
                                 <SidebarMenuItem>
                                     <SidebarMenuButton
-                                        isActive={isPathActive('/chats')}
+                                        isActive={isChatsActive}
                                         tooltip="Chats"
                                         aria-label="Chats"
-                                        className={isPathActive('/chats') ? activeNavClass : undefined}
-                                        render={<NavLink to="/chats" onClick={handleNavClick} />}
+                                        className={isChatsActive ? activeNavClass : undefined}
+                                        render={<Link to="/chats" aria-current={isChatsActive ? 'page' : undefined} onClick={handleNavClick} />}
                                     >
-                                        {sidebarActiveIndicator(isPathActive('/chats'))}
+                                        {sidebarActiveIndicator(isChatsActive)}
                                         <MessagesSquare aria-hidden />
                                         <span className="group-data-[collapsible=icon]:hidden">Chats</span>
                                     </SidebarMenuButton>
@@ -473,7 +475,7 @@ function AppShell() {
                     // bottom safe area), so the left gap can never look larger
                     // than the top gap.
                     'fixed inset-x-2 bottom-[max(0.5rem,calc(0.5rem+env(safe-area-inset-bottom,0px)))] z-50',
-                    'grid h-[4.75rem] grid-cols-5 items-stretch overflow-hidden rounded-full border border-border/60 p-1.5 md:hidden',
+                    'grid h-[4.75rem] grid-cols-5 items-stretch overflow-hidden rounded-full border border-border/60 p-1.5 max-[399px]:p-1 md:hidden',
                     'bg-linear-to-b from-card/85 via-card/70 to-card/55 backdrop-blur-2xl backdrop-saturate-150',
                     'shadow-[0_1px_0_0_rgb(255_255_255/0.7)_inset,0_-1px_0_0_rgb(24_24_27/0.04)_inset,0_18px_45px_-18px_rgb(16_24_40/0.45),0_4px_14px_-8px_rgb(16_24_40/0.18)]',
                     'dark:shadow-[0_1px_0_0_rgb(255_255_255/0.08)_inset,0_-1px_0_0_rgb(0_0_0/0.35)_inset,0_18px_45px_-18px_rgb(0_0_0/0.7),0_4px_14px_-8px_rgb(0_0_0/0.4)]',
@@ -497,7 +499,7 @@ function AppShell() {
                                     handleNavClick();
                                     navigate('/create-ad');
                                 }}
-                                className="group flex h-full w-full min-w-0 items-center justify-center px-0.5"
+                                className="group flex h-full w-full min-w-0 items-center justify-center px-0.5 max-[399px]:px-0"
                                 title="Neue Anzeige"
                                 aria-label="Neue Anzeige"
                                 aria-current={createAdActive ? 'page' : undefined}
@@ -520,7 +522,7 @@ function AppShell() {
                             key={item.to}
                             to={item.to}
                             onClick={handleNavClick}
-                            className="group relative flex h-full w-full min-w-0 items-center justify-center px-0.5"
+                            className="group relative flex h-full w-full min-w-0 items-center justify-center px-0.5 max-[399px]:px-0"
                             title={item.label}
                             aria-current={active ? 'page' : undefined}
                         >
@@ -556,7 +558,7 @@ function AppShell() {
                                     />
                                 )}
                                 <Icon size={20} strokeWidth={active ? 2.25 : 2} className="relative z-10" aria-hidden />
-                                <span className="relative z-10 max-w-full truncate tracking-[-0.02em] max-[399px]:text-[0.75rem] max-[399px]:tracking-[-0.03em]">{item.label}</span>
+                                <span className="relative z-10 max-w-full truncate tracking-[-0.02em] max-[399px]:tracking-[-0.05em]">{item.label}</span>
                             </span>
                         </Link>
                     );
