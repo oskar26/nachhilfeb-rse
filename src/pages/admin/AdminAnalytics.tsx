@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../..
 import { Button } from '../../components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
 import { Spinner } from '../../components/ui/spinner';
+import { Skeleton } from '../../components/ui/skeleton';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '../../components/ui/chart';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import {
@@ -83,6 +84,10 @@ function toNumber(value: unknown): number | null {
 
 function formatNumber(value: number | null): string {
     return value === null ? NA : numberFormat.format(value);
+}
+
+function rangeLabelFor(days: StatsRange): string {
+    return days === 7 ? 'letzte 7 Tage' : days === 90 ? 'letzte 90 Tage' : 'letzte 30 Tage';
 }
 
 function percent(part: number | null, total: number | null): number | null {
@@ -185,17 +190,21 @@ function weekdaySeries(byDay: { day: string; views: number }[]) {
     return WEEKDAYS.map((label, index) => ({ label, views: totals[index] }));
 }
 
-function StatTile({ label, value, hint }: { label: string; value: number | null; hint: string }) {
+function StatTile({ label, value, hint, loading = false }: { label: string; value: number | null; hint: string; loading?: boolean }) {
     return (
         <div className="rounded-card border border-border bg-card p-3.5 shadow-soft sm:p-4">
             <p className="text-[13px] font-medium text-muted-foreground">{label}</p>
-            <p className={cn(
-                'mt-1 text-2xl font-semibold tabular-nums tracking-tight text-foreground',
-                value === null && 'text-base font-medium text-muted-foreground'
-            )}>
-                {formatNumber(value)}
-            </p>
-            <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>
+            {loading ? (
+                <Skeleton className="mt-1 h-8 w-16" aria-hidden />
+            ) : (
+                <p className={cn(
+                    'mt-1 text-2xl font-semibold tabular-nums tracking-tight text-foreground',
+                    value === null && 'text-base font-medium text-muted-foreground'
+                )}>
+                    {formatNumber(value)}
+                </p>
+            )}
+            <p className="mt-0.5 text-xs text-muted-foreground">{loading ? 'Wird geladen...' : hint}</p>
         </div>
     );
 }
@@ -250,6 +259,7 @@ export default function AdminAnalytics() {
 
     const [statsDays, setStatsDays] = useState<StatsRange>(30);
     const [pageStats, setPageStats] = useState<PageStatsState | null>(null);
+    const [pageStatsRange, setPageStatsRange] = useState<StatsRange | null>(null);
     const [pageStatsLoading, setPageStatsLoading] = useState(true);
     const [pageStatsError, setPageStatsError] = useState<string | null>(null);
 
@@ -267,8 +277,9 @@ export default function AdminAnalytics() {
     const fetchPageStats = async (days: StatsRange, isCancelled?: () => boolean) => {
         setPageStatsLoading(true);
         setPageStatsError(null);
-        // Keine alten Zeitraumwerte unter neuem Range-Label weiterzeigen.
-        setPageStats(null);
+        // Vorherige Zeitraumwerte bleiben sichtbar, bis die neue Antwort da ist;
+        // Labels nutzen pageStatsRange, damit währenddessen kein falscher
+        // Zeitraum an den alten Zahlen steht.
         try {
             const { data, error } = await api.analytics.stats(days);
             if (error) throw error;
@@ -301,9 +312,9 @@ export default function AdminAnalytics() {
                     views: toNumber(row.views) ?? 0,
                 })),
             });
+            setPageStatsRange(days);
         } catch {
             if (!isCancelled?.()) {
-                setPageStats(null);
                 setPageStatsError('Seitenaufrufe und Publikumsdaten konnten nicht geladen werden.');
                 toast.error('Seitenaufrufe konnten nicht geladen werden.');
             }
@@ -377,7 +388,7 @@ export default function AdminAnalytics() {
             }
 
             setLoadError(unavailable.length > 0
-                ? `${unavailable.join(' / ')} ${unavailable.length === 1 ? 'ist' : 'sind'} nicht verfügbar.`
+                ? `${unavailable.join(' / ')} sind nicht verfügbar.`
                 : null);
         } catch {
             setLoadError('Analytics konnten nicht geladen werden.');
@@ -387,8 +398,11 @@ export default function AdminAnalytics() {
         }
     };
 
-    const rangeLabel = statsDays === 7 ? 'letzte 7 Tage' : statsDays === 90 ? 'letzte 90 Tage' : 'letzte 30 Tage';
-    const dailyViews = pageStats?.byDay ? buildDailySeries(pageStats.byDay, statsDays) : null;
+    const rangeLabel = rangeLabelFor(statsDays);
+    // Welcher Zeitraum steckt tatsächlich in den sichtbaren pageStats?
+    const dataRange = pageStatsRange ?? statsDays;
+    const dataRangeLabel = rangeLabelFor(dataRange);
+    const dailyViews = pageStats?.byDay ? buildDailySeries(pageStats.byDay, dataRange) : null;
     const rangeViews = dailyViews ? dailyViews.reduce((sum, row) => sum + row.views, 0) : null;
     const topPages = pageStats?.byPath
         ? [...pageStats.byPath].sort((a, b) => b.views - a.views)
@@ -478,17 +492,21 @@ export default function AdminAnalytics() {
     })() : null;
 
     const hasViewCounts = ads !== null && ads.some(ad => ad.view_count !== undefined && ad.view_count !== null);
-    const topAds = ads && hasViewCounts
-        ? [...ads]
-            .map(ad => ({
-                id: String(ad.id ?? ''),
-                title: String(ad.title || ad.short_description || 'Anzeige ohne Titel'),
-                type: ad.type === 'search' ? 'Gesuch' : 'Angebot',
-                views: Number(ad.view_count) || 0,
-            }))
-            .sort((a, b) => b.views - a.views)
-            .slice(0, 6)
-        : null;
+    const topAds = ads === null
+        ? null
+        : ads.length === 0
+            ? []
+            : hasViewCounts
+                ? [...ads]
+                    .map(ad => ({
+                        id: String(ad.id ?? ''),
+                        title: String(ad.title || ad.short_description || 'Anzeige ohne Titel'),
+                        type: ad.type === 'search' ? 'Gesuch' : 'Angebot',
+                        views: Number(ad.view_count) || 0,
+                    }))
+                    .sort((a, b) => b.views - a.views)
+                    .slice(0, 6)
+                : null;
 
     // Meldungs-Snapshot
     const reportStats = reports ? {
@@ -609,7 +627,7 @@ export default function AdminAnalytics() {
 
     const exportAnalyticsCSV = () => {
         if (!pageStats) {
-            toast.error('Seitenaufrufe sind nicht verfügbar.');
+            toast.error(pageStatsLoading ? 'Seitenaufrufe werden noch geladen.' : 'Seitenaufrufe sind nicht verfügbar.');
             return;
         }
         const rows: (string | number)[][] = [
@@ -617,22 +635,21 @@ export default function AdminAnalytics() {
             ...(deviceRows ?? []).map(row => ['Gerät', DEVICE_LABELS[row.type] || row.type, row.views] as (string | number)[]),
             ...(browserRows ?? []).map(row => ['Browser', BROWSER_LABELS[row.browser] || row.browser, row.views] as (string | number)[]),
             ...(dailyViews ?? []).map(row => ['Tag', row.day, row.views] as (string | number)[]),
-            ...(topAds ?? []).map(row => ['Top-Anzeige', `${row.type}: ${row.title}`, row.views] as (string | number)[]),
         ];
         if (rows.length === 0) {
             toast.error('Keine Analytics-Daten zum Export vorhanden.');
             return;
         }
-        exportToCSV(`fwg_analytics_${statsDays}_tage_${new Date().toISOString().slice(0, 10)}.csv`, ['Bereich', 'Schlüssel', 'Aufrufe'], rows);
+        exportToCSV(`fwg_analytics_${dataRange}_tage_${new Date().toISOString().slice(0, 10)}.csv`, ['Bereich', 'Schlüssel', 'Aufrufe'], rows);
     };
 
     const exportTopPagesCSV = () => {
         if (!topPages || topPages.length === 0) {
-            toast.error('Keine Seitenaufrufe im Zeitraum.');
+            toast.error(pageStatsLoading ? 'Seitenaufrufe werden noch geladen.' : 'Keine Seitenaufrufe im Zeitraum.');
             return;
         }
         exportToCSV(
-            `fwg_top_seiten_${statsDays}_tage_${new Date().toISOString().slice(0, 10)}.csv`,
+            `fwg_top_seiten_${dataRange}_tage_${new Date().toISOString().slice(0, 10)}.csv`,
             ['Seite', 'Aufrufe'],
             topPages.map(row => [row.path, row.views])
         );
@@ -699,7 +716,7 @@ export default function AdminAnalytics() {
                                 Anzeigen (alle)
                             </DropdownMenuItem>
                             <DropdownMenuItem className="min-h-11" onClick={exportAnalyticsCSV}>
-                                Aufrufe ({rangeLabel})
+                                Aufrufe ({dataRangeLabel})
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -730,7 +747,8 @@ export default function AdminAnalytics() {
                 <StatTile
                     label="Seitenaufrufe gesamt"
                     value={pageStats?.totalViews ?? null}
-                    hint={rangeViews !== null ? `${formatNumber(rangeViews)} im Zeitraum (${rangeLabel})` : 'Server-Gesamtzähler · alle Zeit'}
+                    loading={pageStatsLoading && pageStats === null}
+                    hint={rangeViews !== null ? `${formatNumber(rangeViews)} im Zeitraum (${dataRangeLabel})` : 'Server-Gesamtzähler · alle Zeit'}
                 />
                 <StatTile
                     label="Aktive Anzeigen"
@@ -753,21 +771,28 @@ export default function AdminAnalytics() {
                                 <TrendingUp size={20} className="text-foreground" aria-hidden /> Aufrufe-Verlauf
                             </CardTitle>
                             <CardDescription>
-                                Seitenaufrufe pro Tag ({rangeLabel}) · anonyme Server-Statistik ohne IP
+                                Seitenaufrufe pro Tag ({dataRangeLabel}) · anonyme Server-Statistik ohne IP
                             </CardDescription>
                         </div>
                         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                            <span className="rounded-md border border-border bg-muted/40 px-2 py-1">Zeitraum: {rangeLabel}</span>
-                            <span className="rounded-md border border-border bg-muted/40 px-2 py-1">Gesamt alle Zeit: {formatNumber(pageStats?.totalViews ?? null)}</span>
+                            <span className="rounded-md border border-border bg-muted/40 px-2 py-1">Zeitraum: {dataRangeLabel}</span>
+                            <span className="rounded-md border border-border bg-muted/40 px-2 py-1">
+                                Gesamt alle Zeit: {pageStatsLoading && pageStats === null ? 'Lädt...' : formatNumber(pageStats?.totalViews ?? null)}
+                            </span>
+                            {pageStatsLoading && (
+                                <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-foreground" role="status">
+                                    <Spinner className="size-3" /> Aktualisiere auf {rangeLabel}...
+                                </span>
+                            )}
                         </div>
                     </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {pageStatsLoading ? (
-                        <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground">
+                    {pageStatsLoading && pageStats === null ? (
+                        <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground" role="status">
                             <Spinner className="size-4" /> Lade Verlauf...
                         </div>
-                    ) : pageStatsError ? (
+                    ) : pageStatsError && pageStats === null ? (
                         <div className="space-y-3">
                             <Alert variant="destructive">
                                 <AlertTitle>Seitenaufrufe nicht verfügbar</AlertTitle>
@@ -787,11 +812,22 @@ export default function AdminAnalytics() {
                         </div>
                     ) : (
                         <>
+                            {pageStatsError && (
+                                <Alert variant="destructive">
+                                    <AlertTitle>Aktualisierung fehlgeschlagen</AlertTitle>
+                                    <AlertDescription className="flex flex-col items-start gap-3">
+                                        <span>{pageStatsError} Die zuletzt geladenen Werte bleiben sichtbar.</span>
+                                        <Button type="button" variant="outline" className="h-11" onClick={() => fetchPageStats(statsDays)}>
+                                            Erneut laden
+                                        </Button>
+                                    </AlertDescription>
+                                </Alert>
+                            )}
                             <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
                                 <MiniMetric
                                     label="Aufrufe im Zeitraum"
                                     value={formatNumber(rangeViews)}
-                                    hint={`Summe der Tageswerte · ${rangeLabel}`}
+                                    hint={`Summe der Tageswerte · ${dataRangeLabel}`}
                                 />
                                 <MiniMetric
                                     label="Eingeloggte Besucher"
@@ -805,8 +841,8 @@ export default function AdminAnalytics() {
                                 />
                                 <MiniMetric
                                     label="Ø Aufrufe pro Tag"
-                                    value={rangeViews === null ? NA : numberFormat.format(Math.round(rangeViews / statsDays))}
-                                    hint={`${rangeLabel} · gerundet`}
+                                    value={rangeViews === null ? NA : numberFormat.format(Math.round(rangeViews / dataRange))}
+                                    hint={`${dataRangeLabel} · gerundet`}
                                 />
                             </div>
 
@@ -822,7 +858,7 @@ export default function AdminAnalytics() {
                                     config={dailyChartConfig}
                                     className="h-[220px] w-full"
                                     role="img"
-                                    aria-label={`Seitenaufrufe pro Tag, ${rangeLabel}`}
+                                    aria-label={`Seitenaufrufe pro Tag, ${dataRangeLabel}`}
                                 >
                                     <BarChart data={dailyChartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                                         <CartesianGrid vertical={false} />
@@ -845,11 +881,13 @@ export default function AdminAnalytics() {
                         <CardTitle className="flex items-center gap-2 text-base font-semibold">
                             <Globe size={20} className="text-foreground" aria-hidden /> Browser-Anteil
                         </CardTitle>
-                        <CardDescription>Seitenaufrufe nach Browser · {rangeLabel}</CardDescription>
+                        <CardDescription>Seitenaufrufe nach Browser · {dataRangeLabel}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
                         {browserRows === null ? (
-                            <Unavailable hint="Die Statistik-Antwort enthält keine Browser-Daten." />
+                            pageStatsLoading && pageStats === null
+                                ? <Skeleton className="h-24 w-full" aria-hidden />
+                                : <Unavailable hint="Die Statistik-Antwort enthält keine Browser-Daten." />
                         ) : browserRows.length === 0 ? (
                             <p className="py-6 text-center text-[13px] text-muted-foreground">Keine Browser-Daten im Zeitraum.</p>
                         ) : browserRows.map(row => (
@@ -868,11 +906,13 @@ export default function AdminAnalytics() {
                         <CardTitle className="flex items-center gap-2 text-base font-semibold">
                             <Monitor size={20} className="text-foreground" aria-hidden /> Verwendete Geräte
                         </CardTitle>
-                        <CardDescription>Seitenaufrufe nach Gerätetyp · {rangeLabel}</CardDescription>
+                        <CardDescription>Seitenaufrufe nach Gerätetyp · {dataRangeLabel}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
                         {deviceRows === null ? (
-                            <Unavailable hint="Die Statistik-Antwort enthält keine Geräte-Daten." />
+                            pageStatsLoading && pageStats === null
+                                ? <Skeleton className="h-24 w-full" aria-hidden />
+                                : <Unavailable hint="Die Statistik-Antwort enthält keine Geräte-Daten." />
                         ) : deviceRows.length === 0 ? (
                             <p className="py-6 text-center text-[13px] text-muted-foreground">Keine Geräte-Daten im Zeitraum.</p>
                         ) : deviceRows.map(row => {
@@ -902,11 +942,13 @@ export default function AdminAnalytics() {
                         <CardTitle className="flex items-center gap-2 text-base font-semibold">
                             <Users size={20} className="text-foreground" aria-hidden /> Anonym vs. eingeloggt
                         </CardTitle>
-                        <CardDescription>Personen und Aufrufe getrennt ausgewiesen · {rangeLabel}</CardDescription>
+                        <CardDescription>Personen und Aufrufe getrennt ausgewiesen · {dataRangeLabel}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
                         {pageStats === null || (pageStats.uniqueLoggedIn === null && pageStats.anonymousHits === null) ? (
-                            <Unavailable hint="Die Statistik-Antwort enthält keine Besucherzahlen." />
+                            pageStatsLoading
+                                ? <Skeleton className="h-24 w-full" aria-hidden />
+                                : <Unavailable hint="Die Statistik-Antwort enthält keine Besucherzahlen." />
                         ) : (
                             <>
                                 <div className="flex items-start gap-2 rounded-lg border border-border bg-background p-3">
@@ -946,8 +988,8 @@ export default function AdminAnalytics() {
                             </CardTitle>
                             <CardDescription>
                                 {topPages === null
-                                    ? `Seitenaufrufe im Zeitraum (${rangeLabel}) · Daten nicht verfügbar`
-                                    : `Seitenaufrufe im Zeitraum (${rangeLabel}) · Top 10 von ${topPages.length}`}
+                                    ? `Seitenaufrufe im Zeitraum (${dataRangeLabel}) · ${pageStatsLoading ? 'Wird geladen...' : 'Daten nicht verfügbar'}`
+                                    : `Seitenaufrufe im Zeitraum (${dataRangeLabel}) · ${topPages.length <= 10 ? `${topPages.length} Seiten` : 'Top 10'}`}
                             </CardDescription>
                         </div>
                         <Button onClick={exportTopPagesCSV} variant="outline" className="h-11 w-fit gap-1.5 px-3 text-xs">
@@ -957,7 +999,15 @@ export default function AdminAnalytics() {
                 </CardHeader>
                 <CardContent padding="flush">
                     {topPages === null ? (
-                        <div className="p-4"><Unavailable hint="Die Statistik-Antwort enthält keine Seitenpfade." /></div>
+                        pageStatsLoading && pageStats === null ? (
+                            <div className="space-y-2 p-4 sm:p-6">
+                                <Skeleton className="h-8 w-full" aria-hidden />
+                                <Skeleton className="h-8 w-full" aria-hidden />
+                                <Skeleton className="h-8 w-3/4" aria-hidden />
+                            </div>
+                        ) : (
+                            <div className="p-4"><Unavailable hint="Die Statistik-Antwort enthält keine Seitenpfade." /></div>
+                        )
                     ) : topPages.length === 0 ? (
                         <p className="px-4 py-10 text-center text-[13px] text-muted-foreground">Keine Seitenaufrufe im Zeitraum.</p>
                     ) : (
@@ -999,7 +1049,9 @@ export default function AdminAnalytics() {
                     {subjectRows === null ? (
                         <div className="p-4"><Unavailable hint="Anzeigen konnten nicht geladen werden." /></div>
                     ) : subjectRows.length === 0 ? (
-                        <p className="px-4 py-10 text-center text-[13px] text-muted-foreground">Keine Fächer in Anzeigen vorhanden.</p>
+                        <p className="px-4 py-10 text-center text-[13px] text-muted-foreground">
+                            {ads !== null && ads.length === 0 ? 'Keine Anzeigen vorhanden.' : 'Keine Fächer in Anzeigen vorhanden.'}
+                        </p>
                     ) : (
                         <Table className="text-[13px]">
                             <TableHeader>
@@ -1045,6 +1097,11 @@ export default function AdminAnalytics() {
                     <CardContent className="space-y-4">
                         {adStats === null ? (
                             <Unavailable hint="Anzeigen konnten nicht geladen werden." />
+                        ) : adStats.total === 0 ? (
+                            <div className="py-8 text-center">
+                                <p className="text-[13px] font-medium text-foreground">Keine Anzeigen</p>
+                                <p className="mt-1 text-xs text-muted-foreground">Sobald Anzeigen existieren, erscheint hier ihr Lebenszyklus.</p>
+                            </div>
                         ) : (
                             <>
                                 <div className="grid grid-cols-2 gap-2">
@@ -1144,7 +1201,7 @@ export default function AdminAnalytics() {
                         <CardTitle className="flex items-center gap-2 text-base font-semibold">
                             <Clock size={20} className="text-foreground" aria-hidden /> Spitzenzeiten &amp; Wochentage
                         </CardTitle>
-                        <CardDescription>Aufrufe im Zeitraum ({rangeLabel})</CardDescription>
+                        <CardDescription>Aufrufe im Zeitraum ({dataRangeLabel})</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="grid grid-cols-2 gap-2">
@@ -1170,7 +1227,7 @@ export default function AdminAnalytics() {
                                     config={hourlyChartConfig}
                                     className="h-[170px] w-full"
                                     role="img"
-                                    aria-label={`Seitenaufrufe nach Stunde, ${rangeLabel}`}
+                                    aria-label={`Seitenaufrufe nach Stunde, ${dataRangeLabel}`}
                                 >
                                     <BarChart data={hourlyChartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                                         <CartesianGrid vertical={false} />
@@ -1263,6 +1320,8 @@ export default function AdminAnalytics() {
                     <CardContent className="space-y-3">
                         {priceRows === null ? (
                             <Unavailable hint="Anzeigen konnten nicht geladen werden." />
+                        ) : ads !== null && ads.length === 0 ? (
+                            <p className="py-6 text-center text-[13px] text-muted-foreground">Keine Anzeigen vorhanden.</p>
                         ) : priceRows.every(row => row.count === 0) ? (
                             <p className="py-6 text-center text-[13px] text-muted-foreground">Keine Preisangaben in Anzeigen.</p>
                         ) : priceRows.map(row => (
@@ -1348,6 +1407,11 @@ export default function AdminAnalytics() {
                     <CardContent className="space-y-2">
                         {topAds === null ? (
                             <Unavailable hint="Anzeigen oder Aufrufzahlen sind nicht verfügbar." />
+                        ) : ads !== null && ads.length === 0 ? (
+                            <div className="py-8 text-center">
+                                <p className="text-[13px] font-medium text-foreground">Keine Anzeigen</p>
+                                <p className="mt-1 text-xs text-muted-foreground">Sobald Anzeigen existieren, erscheinen hier ihre Aufrufe.</p>
+                            </div>
                         ) : topAds.length === 0 || topAds.every(ad => ad.views === 0) ? (
                             <div className="py-8 text-center">
                                 <p className="text-[13px] font-medium text-foreground">Noch keine Anzeigenaufrufe gezählt</p>

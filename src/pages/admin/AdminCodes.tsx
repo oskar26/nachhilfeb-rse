@@ -84,8 +84,11 @@ const PROMO_PUSH_LABELS: Record<string, string> = {
 };
 
 function promoUses(promo: PromoCode): number {
-    const legacy = (promo as PromoCode & { used_count?: number | null }).used_count;
-    return Number(promo.current_uses ?? legacy ?? 0) || 0;
+    // current_uses kann in älteren/Mock-Payloads 0 sein, während used_count
+    // bereits Einlösungen zählt – der höhere belegte Wert gewinnt.
+    const current = Number(promo.current_uses) || 0;
+    const legacy = Number((promo as PromoCode & { used_count?: number | null }).used_count) || 0;
+    return Math.max(current, legacy);
 }
 
 interface PromoTemplate {

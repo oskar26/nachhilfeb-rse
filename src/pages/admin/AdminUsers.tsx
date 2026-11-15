@@ -8,6 +8,7 @@ import { Input } from '../../components/ui/input';
 import { Card, CardContent } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Spinner } from '../../components/ui/spinner';
+import { Skeleton } from '../../components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import {
@@ -119,23 +120,29 @@ function SummaryTile({
     value,
     hint,
     emphasis,
+    loading = false,
 }: {
     label: string;
     value: number | null;
     hint: string;
     emphasis?: boolean;
+    loading?: boolean;
 }) {
     return (
         <div className="rounded-card border border-border bg-card p-3.5 shadow-soft">
             <p className="text-[13px] font-medium text-muted-foreground">{label}</p>
-            <p className={cn(
-                'mt-1 text-2xl font-semibold tabular-nums tracking-tight',
-                value === null && 'text-base font-medium text-muted-foreground',
-                emphasis && value !== null && value > 0 && 'text-destructive'
-            )}>
-                {value === null ? 'Nicht verfügbar' : value}
-            </p>
-            <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>
+            {loading ? (
+                <Skeleton className="mt-1 h-7 w-12" aria-hidden />
+            ) : (
+                <p className={cn(
+                    'mt-1 text-2xl font-semibold tabular-nums tracking-tight',
+                    value === null && 'text-base font-medium text-muted-foreground',
+                    emphasis && value !== null && value > 0 && 'text-destructive'
+                )}>
+                    {value === null ? 'Nicht verfügbar' : value}
+                </p>
+            )}
+            <p className="mt-0.5 text-xs text-muted-foreground">{loading ? 'Wird geladen...' : hint}</p>
         </div>
     );
 }
@@ -158,6 +165,7 @@ export default function AdminUsers() {
         verified: number | null;
         banned: number | null;
     }>({ total: null, verified: null, banned: null });
+    const [accountSummaryLoading, setAccountSummaryLoading] = useState(true);
 
     // Dialog States
     const [editingUser, setEditingUser] = useState<Profile | null>(null);
@@ -188,6 +196,9 @@ export default function AdminUsers() {
         return () => clearTimeout(t);
     }, [search]);
 
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    const safePage = Math.min(page, totalPages - 1);
+
     const fetchUsers = useCallback(async () => {
         setLoading(true);
         setLoadError(null);
@@ -195,7 +206,7 @@ export default function AdminUsers() {
             // Suche/Filter/Pagination laufen serverseitig (admin.php?action=users → {data, total})
             const { data, error } = await api.admin.users(debouncedSearch || undefined, filterRole, {
                 limit: PAGE_SIZE,
-                offset: page * PAGE_SIZE,
+                offset: safePage * PAGE_SIZE,
                 status: filterStatus,
             });
             if (error) throw error;
@@ -213,13 +224,18 @@ export default function AdminUsers() {
         } finally {
             setLoading(false);
         }
-    }, [debouncedSearch, filterRole, filterStatus, page]);
+    }, [debouncedSearch, filterRole, filterStatus, safePage]);
 
     useEffect(() => {
         fetchUsers();
     }, [fetchUsers]);
 
+    useEffect(() => {
+        if (page !== safePage) setPage(safePage);
+    }, [page, safePage]);
+
     const fetchAccountSummary = useCallback(async () => {
+        setAccountSummaryLoading(true);
         try {
             const { data, error } = await api.admin.overview();
             if (error) throw error;
@@ -233,6 +249,8 @@ export default function AdminUsers() {
         } catch {
             // Kennzahlen sind optional; die Liste bleibt nutzbar.
             setAccountSummary({ total: null, verified: null, banned: null });
+        } finally {
+            setAccountSummaryLoading(false);
         }
     }, []);
 
@@ -432,8 +450,6 @@ export default function AdminUsers() {
     };
 
     const unverifiedCount = users.filter(u => !u.is_verified && !u.is_banned).length;
-    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-
     const renderUserActions = (user: Profile) => (
         <DropdownMenu>
             <DropdownMenuTrigger
@@ -529,10 +545,10 @@ export default function AdminUsers() {
         <div className="space-y-5">
             {/* Aggregat-Kennzahlen */}
             <div className="grid grid-cols-2 gap-2.5 xl:grid-cols-4">
-                <SummaryTile label="Nutzer gesamt" value={accountSummary.total} hint="Alle registrierten Konten" />
-                <SummaryTile label="Verifiziert" value={accountSummary.verified} hint="Freigeschaltete Konten" />
-                <SummaryTile label="Gesperrt" value={accountSummary.banned} hint="Aktive Sperren" emphasis />
-                <SummaryTile label="Treffer" value={loading || !!loadError ? null : total} hint="Aktuelle Suche und Filter" />
+                <SummaryTile label="Nutzer gesamt" value={accountSummary.total} hint="Alle registrierten Konten" loading={accountSummaryLoading} />
+                <SummaryTile label="Verifiziert" value={accountSummary.verified} hint="Freigeschaltete Konten" loading={accountSummaryLoading} />
+                <SummaryTile label="Gesperrt" value={accountSummary.banned} hint="Aktive Sperren" emphasis loading={accountSummaryLoading} />
+                <SummaryTile label="Treffer" value={loadError ? null : total} hint="Aktuelle Suche und Filter" loading={loading} />
             </div>
 
             {/* Toolbar: Suche und Aktionen ab lg in einer Zeile */}
@@ -763,19 +779,19 @@ export default function AdminUsers() {
                     <Button
                         variant="outline"
                         className="h-11"
-                        disabled={page === 0}
-                        onClick={() => setPage(p => Math.max(0, p - 1))}
+                        disabled={safePage === 0}
+                        onClick={() => setPage(Math.max(0, safePage - 1))}
                     >
                         Zurück
                     </Button>
                     <span className="text-[13px] font-medium text-muted-foreground" aria-live="polite">
-                        Seite {page + 1} von {totalPages} · {total} Nutzer
+                        Seite {safePage + 1} von {totalPages} · {total} Nutzer
                     </span>
                     <Button
                         variant="outline"
                         className="h-11"
-                        disabled={page + 1 >= totalPages}
-                        onClick={() => setPage(p => p + 1)}
+                        disabled={safePage + 1 >= totalPages}
+                        onClick={() => setPage(Math.min(totalPages - 1, safePage + 1))}
                     >
                         Weiter
                     </Button>

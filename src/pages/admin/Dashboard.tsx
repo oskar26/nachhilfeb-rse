@@ -5,6 +5,7 @@ import { Card, CardContent } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
 import { Spinner } from '../../components/ui/spinner';
+import { Skeleton } from '../../components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
 import { NativeSelect } from '../../components/ui/native-select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
@@ -139,23 +140,29 @@ function SummaryTile({
     value,
     hint,
     emphasis,
+    loading = false,
 }: {
     label: string;
     value: number | null;
     hint: string;
     emphasis?: boolean;
+    loading?: boolean;
 }) {
     return (
         <div className="rounded-card border border-border bg-card p-3.5 shadow-soft sm:p-4">
             <p className="text-[13px] font-medium text-muted-foreground">{label}</p>
-            <p className={cn(
-                'mt-1 text-2xl font-semibold tabular-nums tracking-tight',
-                value === null && 'text-base font-medium text-muted-foreground',
-                emphasis && value !== null && value > 0 && 'text-destructive'
-            )}>
-                {value === null ? 'Nicht verfügbar' : value}
-            </p>
-            <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>
+            {loading ? (
+                <Skeleton className="mt-1 h-7 w-12" aria-hidden />
+            ) : (
+                <p className={cn(
+                    'mt-1 text-2xl font-semibold tabular-nums tracking-tight',
+                    value === null && 'text-base font-medium text-muted-foreground',
+                    emphasis && value !== null && value > 0 && 'text-destructive'
+                )}>
+                    {value === null ? 'Nicht verfügbar' : value}
+                </p>
+            )}
+            <p className="mt-0.5 text-xs text-muted-foreground">{loading ? 'Wird geladen...' : hint}</p>
         </div>
     );
 }
@@ -274,10 +281,10 @@ function AdManagement() {
             </div>
 
             <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
-                <SummaryTile label="Gesamt" value={loading || loadError ? null : totalAds} hint="Alle Anzeigen" />
-                <SummaryTile label="Aktiv" value={loading || loadError ? null : activeAds} hint="Sichtbar im Feed" />
-                <SummaryTile label="Versteckt" value={loading || loadError ? null : hiddenAds} hint="Inaktiv oder archiviert" />
-                <SummaryTile label="Geboostet" value={loading || loadError ? null : boostedAds} hint="Aktive Hervorhebung" />
+                <SummaryTile label="Gesamt" value={loadError ? null : totalAds} hint="Alle Anzeigen" loading={loading} />
+                <SummaryTile label="Aktiv" value={loadError ? null : activeAds} hint="Sichtbar im Feed" loading={loading} />
+                <SummaryTile label="Versteckt" value={loadError ? null : hiddenAds} hint="Inaktiv oder archiviert" loading={loading} />
+                <SummaryTile label="Geboostet" value={loadError ? null : boostedAds} hint="Aktive Hervorhebung" loading={loading} />
             </div>
 
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
@@ -426,11 +433,11 @@ function AdManagement() {
                                                 {ad.view_count == null ? '—' : numberFormat.format(Number(ad.view_count) || 0)}
                                             </TableCell>
                                             <TableCell className="hidden sm:table-cell">
-                                                <div className="flex flex-wrap items-center gap-1.5">
+                                                <div className="flex flex-nowrap items-center gap-1.5">
                                                     {archived ? (
                                                         <Badge variant="outline" className="font-medium text-muted-foreground">Archiviert</Badge>
                                                     ) : active ? (
-                                                        <Badge variant="outline" className="gap-1.5 font-medium">
+                                                        <Badge variant="outline" className="shrink-0 gap-1.5 font-medium">
                                                             <span className="size-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400" aria-hidden />
                                                             Aktiv
                                                         </Badge>
@@ -441,7 +448,7 @@ function AdManagement() {
                                                         </Badge>
                                                     )}
                                                     {boosted && (
-                                                        <Badge className="gap-1 font-medium">
+                                                        <Badge className="shrink-0 gap-1 font-medium">
                                                             Boost <Sparkles size={12} aria-hidden />
                                                         </Badge>
                                                     )}
