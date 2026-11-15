@@ -1,13 +1,14 @@
 
 
 import { useMemo, type ReactNode } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useReducedMotion } from 'motion/react';
-import { EyeOff, Heart, Inbox, RotateCcw, Sparkles } from 'lucide-react';
+import { EyeOff, Heart, Inbox, MessageCircle, RotateCcw, Sparkles } from 'lucide-react';
 import { DURATION, DISTANCE, EASE_OUT, m, STAGGER } from '../lib/motion';
 import { Button } from '../components/ui/button';
 import { EmptyState } from '../components/social/EmptyState';
 import { SocialFilterPills, type SocialFilterOption } from '../components/social/SocialFilterPills';
+import { SOCIAL_FILTER_PANEL_ID, socialFilterTabId } from '../components/social/filterNavigation';
 import { useSocialStream } from '../components/social/useSocialStream';
 import {
     buildStream,
@@ -124,7 +125,6 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
 
     const selectFilter = (next: string) => {
         if (!(next in FILTER_LABEL)) return;
-        triggerHaptic('selection');
         const nextParams = new URLSearchParams(searchParams);
         nextParams.set('tab', FILTER_TAB[next as StreamFilter] ?? next);
         setSearchParams(nextParams, { replace: true });
@@ -189,9 +189,20 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
     return (
         <div className="mx-auto w-full min-w-0 max-w-app space-y-6 overflow-x-clip p-4 pb-24 sm:p-6">
             <header className="min-w-0">
-                <h1 className="text-[28px] font-extrabold leading-tight tracking-[-0.03em] text-foreground">
-                    {initialTab === 'requests' ? 'Anfragen' : 'Social'}
-                </h1>
+                <div className="flex items-start justify-between gap-3">
+                    <h1 className="text-[28px] font-extrabold leading-tight tracking-[-0.03em] text-foreground">
+                        {initialTab === 'requests' ? 'Anfragen' : 'Social'}
+                    </h1>
+                    <Link
+                        to="/chats"
+                        aria-label="Chats öffnen"
+                        onClick={() => triggerHaptic('selection')}
+                        className="inline-flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-border bg-card px-4 text-sm font-semibold text-foreground shadow-soft transition-colors hover:bg-muted hover:text-foreground"
+                    >
+                        <MessageCircle size={18} aria-hidden />
+                        <span>Chats</span>
+                    </Link>
+                </div>
                 <p className="mt-2 max-w-[65ch] text-[15px] leading-relaxed text-muted-foreground">
                     Anfragen, Vorschläge und gemerkte Anzeigen auf einer Seite. Das Wichtigste steht oben.
                 </p>
@@ -204,135 +215,146 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                 onChange={selectFilter}
                 className="md:hidden"
             />
-            <p className="sr-only" aria-live="polite">
-                {counts[filter]} {counts[filter] === 1 ? 'Eintrag' : 'Einträge'} in der Übersicht
-            </p>
+            <div
+                id={SOCIAL_FILTER_PANEL_ID}
+                role="tabpanel"
+                aria-labelledby={socialFilterTabId(filter)}
+                className="min-w-0 space-y-6"
+            >
+                <p className="sr-only" aria-live="polite">
+                    {counts[filter]} {counts[filter] === 1 ? 'Eintrag' : 'Einträge'} in der Übersicht
+                </p>
 
-            {stream.hiddenIds.length > 0 && (filter === 'alle' || filter === 'anfragen') && (
-                <Button variant="unstyled" size="unstyled"
-                    type="button"
-                    onClick={() => {
-                        triggerHaptic('light');
-                        stream.unhideAllChats();
-                    }}
-                    className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-card px-4 text-xs font-semibold text-muted-foreground shadow-soft transition-colors hover:bg-muted hover:text-foreground"
-                >
-                    <EyeOff size={14} aria-hidden /> Verborgene Chats einblenden
-                    <span className="rounded-md bg-muted px-2 py-0.5 font-sans text-xs font-semibold tabular-nums text-muted-foreground">{stream.hiddenIds.length}</span>
-                </Button>
-            )}
-
-            {stream.dismissedIds.length > 0 && (filter === 'alle' || filter === 'matches') && (
-                <div className="flex justify-center">
+                {stream.hiddenIds.length > 0 && (filter === 'alle' || filter === 'anfragen') && (
                     <Button variant="unstyled" size="unstyled"
                         type="button"
                         onClick={() => {
-                            triggerHaptic('success');
-                            stream.resetDismissed();
+                            triggerHaptic('light');
+                            stream.unhideAllChats();
                         }}
-                        className="flex min-h-12 cursor-pointer items-center gap-1.5 rounded-full bg-card px-4 text-xs font-semibold tabular-nums text-muted-foreground shadow-soft transition-colors hover:bg-muted hover:text-foreground"
-                        title="Ausgeblendete Vorschläge wiederherstellen"
+                        className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-card px-4 text-xs font-semibold text-muted-foreground shadow-soft transition-colors hover:bg-muted hover:text-foreground"
                     >
-                        <RotateCcw size={13} aria-hidden />
-                        <span>{stream.dismissedIds.length} ausgeblendete {stream.dismissedIds.length === 1 ? 'Vorschlag' : 'Vorschläge'} wiederherstellen</span>
+                        <EyeOff size={14} aria-hidden /> Verborgene Chats einblenden
+                        <span className="rounded-md bg-muted px-2 py-0.5 font-sans text-xs font-semibold tabular-nums text-muted-foreground">{stream.hiddenIds.length}</span>
                     </Button>
-                </div>
-            )}
+                )}
 
-            {/* Loading: Karten-Skelette statt leerem Bildschirm */}
-            {stream.loading && (
-                <div className="space-y-4" role="status" aria-label="Deine Übersicht wird geladen">
-                    <RequestSkeleton />
-                    <MatchSkeleton />
-                    <FavoriteSkeleton />
-                </div>
-            )}
-
-            {/* Fehler: Problem + Weg zurück */}
-            {!stream.loading && Boolean(stream.error) && (
-                <EmptyState
-                    icon={Inbox}
-                    tone="error"
-                    title="Die Übersicht konnte nicht geladen werden"
-                    text={apiErrorMessage(stream.error, 'Verbindung zum Server fehlgeschlagen. Prüfe deine Internetverbindung und versuch es erneut.')}
-                    action={
-                        <Button onClick={stream.reload} className="h-11 rounded-lg px-6 text-sm font-semibold">
-                            Erneut versuchen
+                {stream.dismissedIds.length > 0 && (filter === 'alle' || filter === 'matches') && (
+                    <div className="flex justify-center">
+                        <Button variant="unstyled" size="unstyled"
+                            type="button"
+                            onClick={() => {
+                                triggerHaptic('success');
+                                stream.resetDismissed();
+                            }}
+                            className="flex min-h-12 cursor-pointer items-center gap-1.5 rounded-full bg-card px-4 text-xs font-semibold tabular-nums text-muted-foreground shadow-soft transition-colors hover:bg-muted hover:text-foreground"
+                            title="Ausgeblendete Vorschläge wiederherstellen"
+                        >
+                            <RotateCcw size={13} aria-hidden />
+                            <span>{stream.dismissedIds.length} ausgeblendete {stream.dismissedIds.length === 1 ? 'Vorschlag' : 'Vorschläge'} wiederherstellen</span>
                         </Button>
-                    }
-                />
-            )}
+                    </div>
+                )}
 
-            {/* Leerzustand passend zum aktiven Filter */}
-            {isEmpty && !stream.error && (
-                <EmptyState
-                    icon={filter === 'matches' ? Sparkles : filter === 'merkliste' ? Heart : Inbox}
-                    title={
-                        filter === 'matches' ? 'Noch keine Vorschläge'
-                            : filter === 'merkliste' ? 'Merkliste ist leer'
-                                : filter === 'anfragen' ? 'Keine Anfragen in der Übersicht'
-                                    : 'Noch keine Einträge'
-                    }
-                    text={
-                        filter === 'matches'
-                            ? 'Sobald eine Anzeige zu deinen Fächern, Klassen und deiner Verfügbarkeit passt, erscheint sie hier.'
-                            : filter === 'merkliste'
-                                ? 'Merke Anzeigen in der Übersicht über das Herz-Symbol. Sie erscheinen dann hier.'
-                                : filter === 'anfragen'
-                                    ? 'Sobald jemand Interesse an deiner Anzeige hat oder du eine Anfrage schickst, erscheint sie hier.'
-                                    : 'Anfragen, Vorschläge und gemerkte Anzeigen findest du hier. Erstelle eine Anzeige.'
-                    }
-                    action={
-                        <>
-                            {filter !== 'alle' && (
-                                <Button onClick={() => selectFilter('alle')} className="h-11 rounded-lg px-5 text-sm font-semibold">
-                                    Alle Einträge anzeigen
-                                </Button>
-                            )}
-                            <Button
-                                variant={filter === 'alle' ? 'default' : 'outline'}
-                                onClick={() => navigate('/')}
-                                className="h-11 rounded-lg px-5 text-sm font-semibold"
-                            >
-                                Anzeigen stöbern
+                {/* Loading: Karten-Skelette statt leerem Bildschirm */}
+                {stream.loading && (
+                    <div className="space-y-4" role="status" aria-label="Deine Übersicht wird geladen">
+                        <RequestSkeleton />
+                        <MatchSkeleton />
+                        <FavoriteSkeleton />
+                    </div>
+                )}
+
+                {/* Fehler: Problem + Weg zurück */}
+                {!stream.loading && Boolean(stream.error) && (
+                    <EmptyState
+                        icon={Inbox}
+                        tone="error"
+                        title="Die Übersicht konnte nicht geladen werden"
+                        text={apiErrorMessage(stream.error, 'Verbindung zum Server fehlgeschlagen. Prüfe deine Internetverbindung und versuch es erneut.')}
+                        action={
+                            <Button onClick={stream.reload} className="h-11 rounded-lg px-6 text-sm font-semibold">
+                                Erneut versuchen
                             </Button>
-                            {filter !== 'merkliste' && (
+                        }
+                    />
+                )}
+
+                {/* Leerzustand passend zum aktiven Filter */}
+                {isEmpty && !stream.error && (
+                    <EmptyState
+                        icon={filter === 'matches' ? Sparkles : filter === 'merkliste' ? Heart : Inbox}
+                        title={
+                            filter === 'matches' ? 'Noch keine Vorschläge'
+                                : filter === 'merkliste' ? 'Merkliste ist leer'
+                                    : filter === 'anfragen' ? 'Keine Anfragen in der Übersicht'
+                                        : 'Noch keine Einträge'
+                        }
+                        text={
+                            filter === 'matches'
+                                ? 'Sobald eine Anzeige zu deinen Fächern, Klassen und deiner Verfügbarkeit passt, erscheint sie hier.'
+                                : filter === 'merkliste'
+                                    ? 'Merke Anzeigen in der Übersicht über das Herz-Symbol. Sie erscheinen dann hier.'
+                                    : filter === 'anfragen'
+                                        ? 'Sobald jemand Interesse an deiner Anzeige hat oder du eine Anfrage schickst, erscheint sie hier.'
+                                        : 'Anfragen, Vorschläge und gemerkte Anzeigen findest du hier. Erstelle eine Anzeige.'
+                        }
+                        action={
+                            <>
+                                {filter !== 'alle' && (
+                                    <Button
+                                        hapticStyle="selection"
+                                        onClick={() => selectFilter('alle')}
+                                        className="h-11 rounded-lg px-5 text-sm font-semibold"
+                                    >
+                                        Alle Einträge anzeigen
+                                    </Button>
+                                )}
                                 <Button
-                                    variant="outline"
-                                    onClick={() => navigate('/create-ad')}
+                                    variant={filter === 'alle' ? 'default' : 'outline'}
+                                    onClick={() => navigate('/')}
                                     className="h-11 rounded-lg px-5 text-sm font-semibold"
                                 >
-                                    Anzeige erstellen
+                                    Anzeigen stöbern
                                 </Button>
-                            )}
-                        </>
-                    }
-                />
-            )}
+                                {filter !== 'merkliste' && (
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => navigate('/create-ad')}
+                                        className="h-11 rounded-lg px-5 text-sm font-semibold"
+                                    >
+                                        Anzeige erstellen
+                                    </Button>
+                                )}
+                            </>
+                        }
+                    />
+                )}
 
-            {/* Der Strom: Dringlichkeits-Tier mit sichtbaren Trennern, jede Karte mit Primäraktion */}
-            {!stream.loading && !isEmpty && !stream.error && (
-                <div id="social-stream" key={filter} className="min-w-0 space-y-6">
-                    {tiers.map((tier, tierIndex) => (
-                        <section key={tier.key} aria-label={tier.label} className="min-w-0 space-y-4">
-                            <div className="flex items-center gap-2 px-1">
-                                <h2 className="inline-flex items-center gap-2 rounded-full bg-pastel-gray px-3.5 py-1.5 text-[13px] font-bold text-pastel-gray-foreground">
-                                    {tier.label}
-                                    <span className="rounded-full bg-card px-2 py-0.5 text-xs tabular-nums">
-                                        {tier.items.length}
-                                        <span className="sr-only"> Einträge</span>
-                                    </span>
-                                </h2>
-                            </div>
-                            {tier.items.map((item, index) => (
-                                <StreamReveal key={item.key} index={tierIndex + index}>
-                                    {renderItem(item)}
-                                </StreamReveal>
-                            ))}
-                        </section>
-                    ))}
-                </div>
-            )}
+                {/* Der Strom: Dringlichkeits-Tier mit sichtbaren Trennern, jede Karte mit Primäraktion */}
+                {!stream.loading && !isEmpty && !stream.error && (
+                    <div id="social-stream" key={filter} className="min-w-0 space-y-6">
+                        {tiers.map((tier, tierIndex) => (
+                            <section key={tier.key} aria-label={tier.label} className="min-w-0 space-y-4">
+                                <div className="flex items-center gap-2 px-1">
+                                    <h2 className="inline-flex items-center gap-2 rounded-full bg-pastel-gray px-3.5 py-1.5 text-[13px] font-bold text-pastel-gray-foreground">
+                                        {tier.label}
+                                        <span className="rounded-full bg-card px-2 py-0.5 text-xs tabular-nums">
+                                            {tier.items.length}
+                                            <span className="sr-only"> Einträge</span>
+                                        </span>
+                                    </h2>
+                                </div>
+                                {tier.items.map((item, index) => (
+                                    <StreamReveal key={item.key} index={tierIndex + index}>
+                                        {renderItem(item)}
+                                    </StreamReveal>
+                                ))}
+                            </section>
+                        ))}
+                    </div>
+                )}
+            </div>
 
             <RatingDialog
                 open={stream.rating.open}
