@@ -138,7 +138,7 @@ export default function AppointmentDialog({
                     <div className="space-y-2">
                         <div className="flex items-center justify-between gap-2">
                             <Label htmlFor="appointment-date" className="text-xs font-semibold text-foreground/80">Datum</Label>
-                            <span className="text-[11px] text-muted-foreground">Schnellwahl</span>
+                            <span className="text-xs text-muted-foreground">Schnellwahl</span>
                         </div>
                         <div className="grid grid-cols-3 gap-1.5">
                             {dateOptions.map((option) => {
@@ -177,7 +177,7 @@ export default function AppointmentDialog({
                     <div className="space-y-2">
                         <div className="flex items-center justify-between gap-2">
                             <Label htmlFor="appointment-time" className="text-xs font-semibold text-foreground/80">Uhrzeit</Label>
-                            <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                                 <Clock size={12} aria-hidden /> 45 Min
                             </span>
                         </div>

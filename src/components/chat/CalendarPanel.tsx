@@ -73,7 +73,7 @@ function AppointmentRow({
                         ? 'border-black/5 bg-black/[0.03] text-muted-foreground dark:border-white/10 dark:bg-white/5'
                         : 'border-[#efe4c0] bg-[#fffdf4] text-[#18181b]'
                 )}>
-                    <span className="text-[11px] font-semibold uppercase leading-none text-[#8a7318]">
+                    <span className="text-xs font-semibold uppercase leading-none text-[#8a7318]">
                         {appointment.start.toLocaleDateString('de-DE', { month: 'short' })}
                     </span>
                     <span className="mt-0.5 text-lg font-bold leading-none tabular-nums">
@@ -86,15 +86,15 @@ function AppointmentRow({
                         <p className="min-w-0 truncate text-[14px] font-bold leading-tight text-foreground">
                             {appointment.details.subject}
                         </p>
-                        <span className={cn('rounded-full border px-2 py-0.5 text-[11px] font-semibold leading-tight', status.className)}>
+                        <span className={cn('rounded-full border px-2 py-0.5 text-xs font-semibold leading-tight', status.className)}>
                             {status.label}
                         </span>
                     </div>
-                    <p className="mt-1 flex items-center gap-1 text-[12px] font-medium text-foreground/80">
+                    <p className="mt-1 flex items-center gap-1 text-xs font-medium text-foreground/80">
                         <Clock size={12} aria-hidden /> {formatAppointmentTime(appointment.details)}
                     </p>
                     {appointment.details.location && (
-                        <p className="mt-0.5 flex items-start gap-1 text-[12px] leading-snug text-muted-foreground">
+                        <p className="mt-0.5 flex items-start gap-1 text-xs leading-snug text-muted-foreground">
                             <MapPin size={12} className="mt-0.5 shrink-0" aria-hidden />
                             <span className="min-w-0 break-words">{appointment.details.location}</span>
                         </p>
@@ -163,7 +163,7 @@ function PanelBody({
                 <div className="rounded-[18px] border border-dashed border-black/10 bg-white/45 px-4 py-6 text-center dark:border-white/15 dark:bg-white/5">
                     <CalendarRange size={24} className="mx-auto text-muted-foreground" aria-hidden />
                     <p className="mt-2 text-sm font-semibold text-foreground">Keine kommenden Termine</p>
-                    <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                         Terminvorschläge aus dem Chat erscheinen hier automatisch.
                     </p>
                     {canCreateAppointment && (
@@ -191,7 +191,7 @@ function PanelBody({
 
             {past.length > 0 && (
                 <details className="group">
-                    <summary className="min-h-11 cursor-pointer list-none rounded-full px-2 py-3 text-[12px] font-semibold text-muted-foreground hover:text-foreground">
+                    <summary className="min-h-11 cursor-pointer list-none rounded-full px-2 py-3 text-xs font-semibold text-muted-foreground hover:text-foreground">
                         Vergangene Termine ({past.length})
                     </summary>
                     <div className="mt-1 space-y-2">
@@ -230,7 +230,7 @@ export default function CalendarPanel({
                 <div className="flex shrink-0 items-center justify-between gap-2 border-b border-black/5 px-4 py-3 dark:border-white/10">
                     <div className="min-w-0">
                         <h2 className="text-sm font-bold leading-tight text-foreground">Termine</h2>
-                        <p className="truncate text-[12px] text-muted-foreground">
+                        <p className="truncate text-xs text-muted-foreground">
                             {otherName ? `Mit ${otherName}` : 'Aus diesem Chat'}
                         </p>
                     </div>
@@ -266,7 +266,7 @@ export default function CalendarPanel({
             >
                 <SheetHeader className="shrink-0 border-b border-black/5 px-4 pb-3 pt-4 pr-14 dark:border-white/10">
                     <SheetTitle className="text-left text-base font-bold text-foreground">Termine</SheetTitle>
-                    <SheetDescription className="text-left text-[12px] text-muted-foreground">
+                    <SheetDescription className="text-left text-xs text-muted-foreground">
                         {otherName ? `Terminvorschläge mit ${otherName}` : 'Terminvorschläge aus diesem Chat'}
                     </SheetDescription>
                 </SheetHeader>

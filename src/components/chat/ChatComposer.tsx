@@ -117,7 +117,7 @@ export default function ChatComposer({
                                 <Smile size={20} aria-hidden />
                             </PopoverTrigger>
                             <PopoverContent align="end" side="top" sideOffset={8} className="w-auto p-2">
-                                <p className="px-1 pb-1 text-[11px] font-medium text-muted-foreground">Emoji einfügen</p>
+                                <p className="px-1 pb-1 text-xs font-medium text-muted-foreground">Emoji einfügen</p>
                                 <div className="grid grid-cols-6 gap-0.5">
                                     {COMPOSER_EMOJIS.map((emoji) => (
                                         <Button
@@ -134,7 +134,7 @@ export default function ChatComposer({
                                         </Button>
                                     ))}
                                 </div>
-                                <p className="px-1 pt-1 text-[10px] leading-tight text-muted-foreground">Wird als Text gesendet.</p>
+                                <p className="px-1 pt-1 text-xs leading-tight text-muted-foreground">Wird als Text gesendet.</p>
                             </PopoverContent>
                         </Popover>
                     )}

@@ -578,7 +578,7 @@ export default function Chat() {
                                         <Fragment key={row.message.id}>
                                             {row.showDateSeparator && (
                                                 <div className="flex justify-center py-3">
-                                                    <span className={cn('rounded-full px-3.5 py-1.5 text-[11px] font-medium text-chat-meta', chatStyles.dateChip)}>
+                                                    <span className={cn('rounded-full px-3.5 py-1.5 text-xs font-medium text-chat-meta', chatStyles.dateChip)}>
                                                         {row.dateLabel}
                                                     </span>
                                                 </div>

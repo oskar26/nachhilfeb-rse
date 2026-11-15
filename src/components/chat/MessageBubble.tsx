@@ -68,7 +68,7 @@ export default function MessageBubble({
     if (message.is_deleted) {
         return (
             <div className="my-2 flex justify-center">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3 py-1.5 text-[11px] font-medium text-chat-meta shadow-sm backdrop-blur-sm dark:bg-black/25">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3 py-1.5 text-xs font-medium leading-tight text-chat-meta shadow-sm backdrop-blur-sm dark:bg-black/25">
                     <Ban size={12} aria-hidden /> Nachricht auf diesem Gerät ausgeblendet.
                 </span>
             </div>
@@ -84,7 +84,7 @@ export default function MessageBubble({
     const meta = (
         <div
             className={cn(
-                'flex flex-wrap items-center justify-end gap-1 text-[11px] leading-none',
+                'flex flex-wrap items-center justify-end gap-1 text-xs leading-tight',
                 emojiOnly && 'mx-auto w-fit rounded-full bg-white/70 px-2 py-1 text-[#5a5140] backdrop-blur-sm dark:bg-black/30 dark:text-[#d6d2c4]',
                 metaTone
             )}
@@ -168,7 +168,7 @@ export default function MessageBubble({
             {!isMe && (
                 <span className="mb-0.5 size-7 shrink-0 self-end" aria-hidden>
                     {isLastInGroup && (
-                        <span className={cn('grid size-7 place-items-center overflow-hidden rounded-full text-[10px] font-bold ring-1 ring-black/5 dark:ring-white/10', otherUser?.avatar_url ? 'bg-muted' : avatarTone(otherUser?.display_name))}>
+                        <span className={cn('grid size-7 place-items-center overflow-hidden rounded-full text-xs font-bold ring-1 ring-black/5 dark:ring-white/10', otherUser?.avatar_url ? 'bg-muted' : avatarTone(otherUser?.display_name))}>
                             {otherUser?.avatar_url
                                 ? <img src={otherUser.avatar_url} alt="" className="h-full w-full object-cover" />
                                 : initials(otherUser?.display_name)}
@@ -226,7 +226,7 @@ export default function MessageBubble({
                     <DropdownMenuContent align={isMe ? 'end' : 'start'} side="top" sideOffset={6} className="w-[17.5rem] p-2">
                         {showQuickReplies && (
                             <>
-                                <p className="px-1 pb-1 text-[11px] font-medium text-muted-foreground">Schnell reagieren</p>
+                                <p className="px-1 pb-1 text-xs font-medium text-muted-foreground">Schnell reagieren</p>
                                 <div className="grid grid-cols-6 gap-0.5">
                                     {QUICK_REACTION_EMOJIS.map((emoji) => (
                                         <DropdownMenuItem
@@ -240,7 +240,7 @@ export default function MessageBubble({
                                         </DropdownMenuItem>
                                     ))}
                                 </div>
-                                <p className="px-1 pt-1.5 text-[10px] leading-tight text-muted-foreground">Wird als normale Nachricht gesendet.</p>
+                                <p className="px-1 pt-1.5 text-xs leading-tight text-muted-foreground">Wird als normale Nachricht gesendet.</p>
                             </>
                         )}
                         {isMe && (

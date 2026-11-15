@@ -47,7 +47,7 @@ function Row({
                 {icon}
             </span>
             <div className="min-w-0">
-                <p className="text-[11px] font-medium leading-tight text-[#7b6c3a]">{label}</p>
+                <p className="text-xs font-medium leading-tight text-[#7b6c3a]">{label}</p>
                 <p className="mt-0.5 break-words text-[13px] font-semibold leading-snug text-[#2c2818]">{children}</p>
             </div>
         </div>
@@ -99,14 +99,14 @@ export default function AppointmentCard({
                     <CalendarDays size={17} aria-hidden />
                 </span>
                 <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-semibold leading-tight text-[#8a7318]">Terminvorschlag</p>
+                    <p className="text-xs font-semibold leading-tight text-[#8a7318]">Terminvorschlag</p>
                     <p className="truncate text-[15px] font-bold leading-tight text-[#18181b]">{details.subject}</p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">
-                    <span className={cn('rounded-full border px-2 py-0.5 text-[11px] font-semibold leading-tight', statusMeta.className)}>
+                    <span className={cn('rounded-full border px-2 py-0.5 text-xs font-semibold leading-tight', statusMeta.className)}>
                         {statusMeta.label}
                     </span>
-                    <span className="text-[11px] font-semibold tabular-nums text-[#8b8168]">{details.durationMinutes} Min</span>
+                    <span className="text-xs font-semibold tabular-nums leading-tight text-[#8b8168]">{details.durationMinutes} Min</span>
                 </div>
             </div>
 
@@ -197,7 +197,7 @@ export default function AppointmentCard({
             )}
 
             {hasActions && (
-                <p className="mt-2 text-center text-[11px] leading-tight text-[#8b8168]">
+                <p className="mt-2 text-center text-xs leading-tight text-[#8b8168]">
                     {!showQuickReplies
                         ? 'Schnellantworten sind in den Chat-Werkzeugen aus.'
                         : isMe
@@ -212,7 +212,7 @@ export default function AppointmentCard({
                 </p>
             )}
             {!showQuickReplies && !showCalendar && (
-                <p className="mt-2 text-[11px] leading-tight text-[#8b8168]">
+                <p className="mt-2 text-xs leading-tight text-[#8b8168]">
                     Terminkarten sind schreibgeschützt. Alle Funktionen lassen sich in den Chat-Werkzeugen einschalten.
                 </p>
             )}

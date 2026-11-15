@@ -56,7 +56,7 @@ export default function ChatEmptyState({ otherName, showStarters, onStarter }: C
                     </div>
                 )}
 
-                <p className="mt-5 text-[11px] leading-relaxed text-chat-meta">
+                <p className="mt-5 text-xs leading-relaxed text-chat-meta">
                     Nachrichten werden über HTTPS übertragen und auf Servern in Deutschland gespeichert. Bitte beachte unsere{' '}
                     <a
                         href="#/nutzungsbedingungen"

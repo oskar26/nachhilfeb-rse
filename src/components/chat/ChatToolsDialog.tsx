@@ -71,7 +71,7 @@ export default function ChatToolsDialog({ open, onOpenChange, settings, onChange
                             </span>
                             <div className="min-w-0 flex-1">
                                 <p className="text-sm font-semibold leading-tight text-foreground">{item.title}</p>
-                                <p className="mt-0.5 text-[12px] leading-snug text-muted-foreground">{item.description}</p>
+                                <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{item.description}</p>
                             </div>
                             <Switch
                                 checked={settings[item.key]}
@@ -82,7 +82,7 @@ export default function ChatToolsDialog({ open, onOpenChange, settings, onChange
                     ))}
                 </div>
 
-                <p className="text-[11px] leading-relaxed text-muted-foreground">
+                <p className="text-xs leading-relaxed text-muted-foreground">
                     Die Schalter ändern nur die Darstellung. Es werden keine Backend-Funktionen vorgetäuscht und keine Daten gelöscht.
                 </p>
 

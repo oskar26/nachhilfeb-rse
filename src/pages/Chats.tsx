@@ -148,7 +148,7 @@ export default function Chats() {
             <div className={cn('min-h-0 flex-1 overflow-y-auto overscroll-contain px-2.5 py-3 sm:px-6', chatStyles.scroller)}>
                 <div className="mx-auto w-full max-w-3xl">
                     {staleError && (
-                        <div className="mb-2 rounded-2xl border border-border bg-white/70 px-3 py-2 text-[12px] leading-relaxed text-chat-meta dark:bg-white/5">
+                        <div className="mb-2 rounded-2xl border border-border bg-white/70 px-3 py-2 text-xs leading-relaxed text-chat-meta dark:bg-white/5">
                             Aktualisierung fehlgeschlagen. Es werden die zuletzt geladenen Chats angezeigt.
                         </div>
                     )}
@@ -200,7 +200,7 @@ export default function Chats() {
                                 Sobald eine Anfrage angenommen wurde, erscheint euer Chat hier. Offene Anfragen findest du weiterhin unter Anfragen.
                             </p>
                             {conversations.length > visibleConversations.length && (
-                                <p className="mt-1.5 text-[12px] leading-relaxed text-chat-meta">
+                                <p className="mt-1.5 text-xs leading-relaxed text-chat-meta">
                                     Verborgene Chats kannst du auf der Anfragen-Seite wieder einblenden.
                                 </p>
                             )}
@@ -262,7 +262,7 @@ export default function Chats() {
                                                     <span className={cn('min-w-0 flex-1 truncate text-[15px] leading-tight', unread > 0 ? 'font-bold text-foreground' : 'font-semibold text-foreground')}>
                                                         {name}
                                                     </span>
-                                                    <span className={cn('shrink-0 text-[11px] tabular-nums', unread > 0 ? 'font-semibold text-primary-soft-foreground dark:text-primary' : 'text-chat-meta')}>
+                                                    <span className={cn('shrink-0 text-xs tabular-nums', unread > 0 ? 'font-semibold text-primary-soft-foreground dark:text-primary' : 'text-chat-meta')}>
                                                         {time}
                                                     </span>
                                                 </span>
@@ -271,7 +271,7 @@ export default function Chats() {
                                                         {preview}
                                                     </span>
                                                     {unread > 0 && (
-                                                        <span className="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-primary px-1.5 text-[11px] font-bold leading-none text-primary-foreground tabular-nums">
+                                                        <span className="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-primary px-1.5 text-xs font-bold leading-none text-primary-foreground tabular-nums">
                                                             {unread > 99 ? '99+' : unread}
                                                         </span>
                                                     )}
