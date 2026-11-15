@@ -1,5 +1,5 @@
 import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Home, Plus, PlusCircle, User, LogOut, Settings, MessageSquare, Inbox, Zap, Heart, Sparkles, Award, ShieldCheck, MoreVertical, BookOpen } from 'lucide-react';
+import { Home, Plus, PlusCircle, User, LogOut, Settings, MessageSquare, MessagesSquare, Inbox, Zap, Heart, Sparkles, Award, ShieldCheck, MoreVertical, BookOpen } from 'lucide-react';
 import AccessGuard from './AccessGuard';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/button';
@@ -56,7 +56,7 @@ export default function Layout() {
 
 function AppShell() {
     const { signOut, isAdmin, isCoachAdmin, profile } = useAuth();
-    const { setOpenMobile } = useSidebar();
+    const { setOpenMobile, state: sidebarState } = useSidebar();
     const navigate = useNavigate();
     const location = useLocation();
     const isMobile = useIsMobile();
@@ -82,23 +82,36 @@ function AppShell() {
         mainContentRef.current?.scrollTo({ top: 0, behavior: 'auto' });
     }, [pathname]);
     const isSocialRoute = ['/social', '/requests', '/matches', '/matching', '/favorites', '/watchlist'].includes(pathname);
-    const isChatRoute = pathname === '/chat' || pathname.startsWith('/chat/');
+    const isChatRoute = pathname === '/chat' || pathname.startsWith('/chat/') || pathname === '/chats' || pathname.startsWith('/chats/');
     const isSvPanel = pathname.startsWith('/sv-panel');
     const currentTab = getDesktopSocialTab(pathname, location.search);
 
     const isTabActive = (tab: DesktopSocialTab) => isSocialRoute && currentTab === tab;
     const isPathActive = (path: string) => path === '/' ? pathname === '/' : pathname === path || pathname.startsWith(`${path}/`);
+    // The Chats entry owns the whole chat area: overview plus open conversations.
+    const isChatsActive = isChatRoute;
     // Dark mode uses the neutral active surface; the base button would otherwise
     // show the olive --primary-soft pill in the SV/sidebar navigation.
     const activeNavClass = 'relative isolate dark:text-foreground dark:data-active:text-foreground dark:data-active:hover:text-foreground';
-    const sidebarActiveIndicator = (active: boolean) => active ? (
-        <m.span
-            aria-hidden="true"
-            layoutId={reduceMotion ? undefined : 'sidebar-active-pill'}
-            transition={reduceMotion ? { duration: 0 } : SPRING.settle}
-            className="pointer-events-none absolute inset-0 -z-10 rounded-full bg-primary-soft shadow-[inset_0_0_0_1px_rgb(250_204_21_/_0.28)] dark:bg-muted dark:shadow-none"
-        />
-    ) : null;
+    // The pill may only use Motion layout projection while the sidebar is
+    // expanded. A CSS width animation plus layout measurement makes the marker
+    // chase a moving target; collapsed (and reduced-motion) renders stay static.
+    const sidebarPillClass = 'pointer-events-none absolute inset-0 -z-10 rounded-full bg-primary-soft shadow-[inset_0_0_0_1px_rgb(250_204_21_/_0.28)] dark:bg-muted dark:shadow-none';
+    const sidebarExpanded = sidebarState === 'expanded';
+    const sidebarActiveIndicator = (active: boolean) => {
+        if (!active) return null;
+        if (sidebarExpanded && !reduceMotion) {
+            return (
+                <m.span
+                    aria-hidden="true"
+                    layoutId="sidebar-active-pill"
+                    transition={SPRING.settle}
+                    className={sidebarPillClass}
+                />
+            );
+        }
+        return <span aria-hidden="true" className={sidebarPillClass} />;
+    };
 
     const mobileNavItems = [
         { to: '/', label: 'Entdecken', icon: Home },
@@ -184,6 +197,19 @@ function AppShell() {
                                         {sidebarActiveIndicator(isTabActive('requests'))}
                                         <Inbox aria-hidden />
                                         <span className="group-data-[collapsible=icon]:hidden">Anfragen</span>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton
+                                        isActive={isChatsActive}
+                                        tooltip="Chats"
+                                        aria-label="Chats"
+                                        className={isChatsActive ? activeNavClass : undefined}
+                                        render={<Link to="/chats" aria-current={isChatsActive ? 'page' : undefined} onClick={handleNavClick} />}
+                                    >
+                                        {sidebarActiveIndicator(isChatsActive)}
+                                        <MessagesSquare aria-hidden />
+                                        <span className="group-data-[collapsible=icon]:hidden">Chats</span>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
                                 <SidebarMenuItem>
@@ -408,14 +434,16 @@ function AppShell() {
             </Sidebar>
 
             <SidebarInset className="h-dvh min-h-0 overflow-hidden bg-transparent">
-                <div className="flex shrink-0 justify-end px-3 pb-1 pt-[max(0.5rem,calc(0.5rem+env(safe-area-inset-top,0px)))] md:hidden">
-                    {isMobile && (
-                        <MobileQuickMenu
-                            unreadCount={unreadCount}
-                            onCountChange={setUnreadCount}
-                        />
-                    )}
-                </div>
+                {!isChatRoute && (
+                    <div className="flex shrink-0 justify-end px-3 pb-1 pt-[max(0.5rem,calc(0.5rem+env(safe-area-inset-top,0px)))] md:hidden">
+                        {isMobile && (
+                            <MobileQuickMenu
+                                unreadCount={unreadCount}
+                                onCountChange={setUnreadCount}
+                            />
+                        )}
+                    </div>
+                )}
                 <div
                     ref={mainContentRef}
                     tabIndex={-1}
@@ -424,10 +452,13 @@ function AppShell() {
                 >
                     <m.div
                         key={location.pathname}
-                        initial={reduceMotion ? false : { opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={reduceMotion ? { duration: 0 } : PAGE_ENTER}
-                        className="flex min-h-0 w-full flex-1 flex-col"
+                        initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={reduceMotion ? { duration: 0 } : { opacity: PAGE_ENTER, y: SPRING.settle }}
+                        className={cn(
+                            'flex min-h-0 w-full flex-1 flex-col',
+                            isChatRoute && 'bg-chat-header'
+                        )}
                     >
                         <AccessGuard>
                             <Outlet />
@@ -439,7 +470,20 @@ function AppShell() {
 
             <nav
                 aria-label="Hauptnavigation"
-                className="fixed right-2 bottom-[max(0.75rem,calc(0.75rem+env(safe-area-inset-bottom,0px)))] left-2 z-50 grid h-[4.5rem] grid-cols-5 items-center rounded-full border border-border/70 bg-card/95 px-1 shadow-overlay backdrop-blur-xl max-[399px]:px-0.5 md:hidden"
+                className={cn(
+                    // Floating glass bar: one inset on every edge (8px plus the
+                    // bottom safe area), so the left gap can never look larger
+                    // than the top gap.
+                    'fixed inset-x-2 bottom-[max(0.5rem,calc(0.5rem+env(safe-area-inset-bottom,0px)))] z-50',
+                    'grid h-[4.75rem] grid-cols-5 items-stretch overflow-hidden rounded-full border border-border/60 p-1.5 max-[399px]:p-1 md:hidden',
+                    'bg-linear-to-b from-card/85 via-card/70 to-card/55 backdrop-blur-2xl backdrop-saturate-150',
+                    'shadow-[0_1px_0_0_rgb(255_255_255/0.7)_inset,0_-1px_0_0_rgb(24_24_27/0.04)_inset,0_18px_45px_-18px_rgb(16_24_40/0.45),0_4px_14px_-8px_rgb(16_24_40/0.18)]',
+                    'dark:shadow-[0_1px_0_0_rgb(255_255_255/0.08)_inset,0_-1px_0_0_rgb(0_0_0/0.35)_inset,0_18px_45px_-18px_rgb(0_0_0/0.7),0_4px_14px_-8px_rgb(0_0_0/0.4)]',
+                    // Top sheen and a faint bottom bounce keep the bar reading
+                    // as a piece of glass instead of a flat card.
+                    'before:pointer-events-none before:absolute before:inset-x-10 before:top-0 before:h-px before:bg-linear-to-r before:from-transparent before:via-white/80 before:to-transparent dark:before:via-white/20',
+                    'after:pointer-events-none after:absolute after:inset-x-8 after:bottom-0 after:h-px after:bg-linear-to-r after:from-transparent after:via-foreground/5 after:to-transparent'
+                )}
             >
                 {mobileNavItems.map((item) => {
                     const Icon = item.icon;
@@ -455,15 +499,15 @@ function AppShell() {
                                     handleNavClick();
                                     navigate('/create-ad');
                                 }}
-                                className="flex h-full w-full items-center justify-center p-[3px] max-[399px]:p-0"
+                                className="group flex h-full w-full min-w-0 items-center justify-center px-0.5 max-[399px]:px-0"
                                 title="Neue Anzeige"
                                 aria-label="Neue Anzeige"
                                 aria-current={createAdActive ? 'page' : undefined}
                             >
                                 <span
                                     className={cn(
-                                        'grid size-11 place-items-center rounded-full bg-primary text-primary-foreground shadow-card transition-[background-color,box-shadow,transform] duration-150 ease-out hover:bg-primary-hover',
-                                        createAdActive && 'ring-2 ring-foreground ring-offset-2 ring-offset-card'
+                                        'grid size-11 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_1px_0_0_rgb(255_255_255/0.5)_inset,0_8px_18px_-8px_rgb(234_179_8/0.8)] transition-[background-color,box-shadow,transform] duration-150 ease-out hover:bg-primary-hover active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100',
+                                        createAdActive && 'ring-2 ring-foreground/85 ring-offset-2 ring-offset-card'
                                     )}
                                 >
                                     <Plus size={22} strokeWidth={2.4} aria-hidden />
@@ -478,7 +522,7 @@ function AppShell() {
                             key={item.to}
                             to={item.to}
                             onClick={handleNavClick}
-                            className="group flex h-full w-full min-w-0 items-center justify-center p-[3px] max-[399px]:p-0"
+                            className="group relative flex h-full w-full min-w-0 items-center justify-center px-0.5 max-[399px]:px-0"
                             title={item.label}
                             aria-current={active ? 'page' : undefined}
                         >
@@ -489,10 +533,10 @@ function AppShell() {
                                        Label. So wandert nur die Fläche, nicht der
                                        Inhalt; bei reduzierter Bewegung bleibt sie
                                        statisch. */
-                                    'relative isolate flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-full text-xs font-medium transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none',
+                                    'relative isolate flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-full text-xs font-medium transition-[color,background-color,transform] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] group-active:scale-[0.96] motion-reduce:transition-none motion-reduce:group-active:scale-100',
                                     active
                                         ? 'text-primary-soft-foreground dark:text-foreground'
-                                        : 'text-muted-foreground group-hover:bg-muted/60 group-hover:text-foreground'
+                                        : 'text-muted-foreground group-hover:bg-muted/50 group-hover:text-foreground'
                                 )}
                             >
                                 {active && (
@@ -500,12 +544,21 @@ function AppShell() {
                                         layoutId={reduceMotion ? undefined : 'mobile-nav-active'}
                                         initial={false}
                                         transition={reduceMotion ? { duration: 0 } : SPRING.settle}
-                                        className="absolute inset-0 -z-10 rounded-full bg-primary-soft dark:bg-muted"
+                                        className={cn(
+                                            'absolute inset-0 -z-10 rounded-full',
+                                            // Liquid-glass fill: translucent yellow
+                                            // bleeding into mint, with a crisp inner
+                                            // highlight instead of a flat block.
+                                            'bg-linear-to-br from-primary-soft/95 via-primary-soft/85 to-pastel-mint/75',
+                                            'shadow-[inset_0_1px_0_0_rgb(255_255_255/0.9),inset_0_-1px_0_0_rgb(24_24_27/0.04),0_8px_20px_-14px_rgb(250_204_21/0.9)]',
+                                            'dark:from-muted/95 dark:via-muted/85 dark:to-muted/75',
+                                            'dark:shadow-[inset_0_1px_0_0_rgb(255_255_255/0.08)]'
+                                        )}
                                         aria-hidden
                                     />
                                 )}
                                 <Icon size={20} strokeWidth={active ? 2.25 : 2} className="relative z-10" aria-hidden />
-                                <span className="relative z-10 max-w-full truncate tracking-[-0.02em] max-[399px]:tracking-[-0.04em]">{item.label}</span>
+                                <span className="relative z-10 max-w-full truncate tracking-[-0.02em] max-[399px]:tracking-[-0.05em]">{item.label}</span>
                             </span>
                         </Link>
                     );
