@@ -192,6 +192,120 @@ html.dark body :is(a, button, [tabindex]):focus-visible {
     0 18px 40px -24px rgb(0 0 0 / 0.7);
 }
 
+/* Breadcrumb above the title. The links keep a 44px row so the trail is as
+   comfortable to tap as the rest of the docs chrome. */
+.docs-breadcrumb {
+  font-size: 0.8125rem;
+  color: var(--color-fd-muted-foreground);
+}
+
+.docs-breadcrumb ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.docs-breadcrumb li {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.docs-breadcrumb a,
+.docs-breadcrumb span[aria-current='page'] {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  color: inherit;
+}
+
+.docs-breadcrumb a {
+  text-underline-offset: 3px;
+}
+
+.docs-breadcrumb a:hover {
+  color: var(--color-fd-foreground);
+  text-decoration: underline;
+}
+
+.docs-breadcrumb span[aria-current='page'] {
+  color: var(--color-fd-foreground);
+  font-weight: 600;
+}
+
+.docs-breadcrumb-separator {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex: 0 0 auto;
+  color: var(--color-fd-muted-foreground);
+}
+
+/* Title and page actions share one row on wide screens and wrap on narrow
+   ones, keeping both controls at the 44px touch target. */
+.docs-page-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+}
+
+.docs-page-title-row > h1 {
+  min-width: 0;
+  margin: 0;
+}
+
+.docs-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.docs-action {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid var(--color-fd-border);
+  border-radius: 9999px;
+  background: var(--color-fd-card);
+  padding: 0.5rem 0.9rem;
+  color: var(--color-fd-foreground);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.docs-action:hover {
+  border-color: var(--color-fd-ring);
+  background: var(--color-fd-accent);
+  color: var(--color-fd-accent-foreground);
+}
+
+.docs-action-icon {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 479px) {
+  .docs-page-actions {
+    width: 100%;
+  }
+}
+
 /* Sidebar navigation: comfortable 44px rows and soft, state-aware tokens. */
 :is(#nd-sidebar, #nd-sidebar-mobile) a,
 :is(#nd-sidebar, #nd-sidebar-mobile) button {
@@ -264,8 +378,19 @@ html.dark body :is(a, button, [tabindex]):focus-visible {
 }
 
 #nd-toc a {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
   border-radius: 9999px;
   padding-inline: 0.6rem;
+  line-height: 1.35;
+}
+
+[data-toc-popover] a {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  line-height: 1.35;
 }
 
 #nd-toc a:hover {
@@ -385,11 +510,50 @@ button[data-theme-toggle] svg {
 
 @media (prefers-reduced-motion: reduce) {
   .platform-cta,
+  .docs-action,
   button[data-theme-toggle] {
     transition: none;
   }
 
   .platform-cta:hover {
     transform: none;
+  }
+}
+
+/* Printing the article should not print the docs chrome. Tables switch from
+   their scroll panel to full, unclipped rows. */
+@media print {
+  #nd-subnav,
+  #nd-sidebar,
+  #nd-sidebar-mobile,
+  #nd-toc,
+  [data-toc-popover],
+  .docs-breadcrumb,
+  .docs-page-actions,
+  .platform-cta {
+    display: none !important;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  #nd-docs-layout {
+    display: block !important;
+  }
+
+  #nd-page {
+    max-width: none;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .docs-table-scroll {
+    overflow: visible;
+    border: 0;
   }
 }
