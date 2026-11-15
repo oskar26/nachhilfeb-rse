@@ -175,22 +175,23 @@ html.dark body :is(a, button, [tabindex]):focus-visible {
 }
 
 /* Collapsed, the zero-width sidebar column hands its width back to the main
-   column, but the reading column must not stretch to the far right. Cap the
-   main track at 900px article + 64px left gutter + 68px TOC gap, then place
-   the TOC directly behind it and leave the rest on the right. */
+   column. Below xl there is no TOC column, so let the main track span the full
+   available width; keep the 4rem left gutter for the edge controls. */
 @media (min-width: 768px) {
-  #nd-docs-layout[data-sidebar-collapsed='true'] {
-    grid-template-columns:
-      0 0 minmax(0, 1032px) var(--fd-toc-width) minmax(0, 1fr) !important;
-  }
-
   #nd-docs-layout[data-sidebar-collapsed='true'] [data-layout-main] {
     justify-items: start;
     padding-inline: 4rem 1rem;
   }
 }
 
+/* At xl the TOC exists. Cap the main track at 900px article + 64px left gutter
+   + 68px TOC gap, place the TOC directly behind it, and leave the rest right. */
 @media (min-width: 1280px) {
+  #nd-docs-layout[data-sidebar-collapsed='true'] {
+    grid-template-columns:
+      0 0 minmax(0, 1032px) var(--fd-toc-width) minmax(0, 1fr) !important;
+  }
+
   #nd-docs-layout[data-sidebar-collapsed='true'] [data-layout-main] {
     padding-inline-end: 4.25rem;
   }
@@ -406,7 +407,7 @@ html.dark body :is(a, button, [tabindex]):focus-visible {
 }
 
 /* Collapsed sidebar controls: a 44px edge tab for expand + search. It sits in
-   the article's left padding, so it never covers running text while scrolling. */
+   the main column's 4rem left gutter, so it never covers running text. */
 .docs-collapsed-controls {
   position: fixed;
   top: calc(3rem + var(--fd-docs-row-3, 0px));
