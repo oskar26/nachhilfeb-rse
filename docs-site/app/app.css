@@ -174,12 +174,26 @@ html.dark body :is(a, button, [tabindex]):focus-visible {
     0 var(--fd-sidebar-col) minmax(0, 1fr) var(--fd-toc-width) 0 !important;
 }
 
-/* Collapsed, the zero-width sidebar column hands its full width to the main
-   column. Anchor the article to the viewport edge so the freed space is used
-   instead of being split into a dead rail and a centering gutter. */
-#nd-docs-layout[data-sidebar-collapsed='true'] [data-layout-main] {
-  justify-items: start;
-  padding-inline: 1rem;
+/* Collapsed, the zero-width sidebar column hands its width back to the main
+   column, but the reading column must not stretch to the far right. Cap the
+   main track at 900px article + 64px left gutter + 68px TOC gap, then place
+   the TOC directly behind it and leave the rest on the right. */
+@media (min-width: 768px) {
+  #nd-docs-layout[data-sidebar-collapsed='true'] {
+    grid-template-columns:
+      0 0 minmax(0, 1032px) var(--fd-toc-width) minmax(0, 1fr) !important;
+  }
+
+  #nd-docs-layout[data-sidebar-collapsed='true'] [data-layout-main] {
+    justify-items: start;
+    padding-inline: 4rem 1rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  #nd-docs-layout[data-sidebar-collapsed='true'] [data-layout-main] {
+    padding-inline-end: 4.25rem;
+  }
 }
 
 /* Readable editorial content on a soft, rounded card. The article keeps one
@@ -461,11 +475,11 @@ html.dark body :is(a, button, [tabindex]):focus-visible {
   line-height: 1.35;
 }
 
-/* Hover stays neutral so only the active TOC entry can show the yellow pill.
-   (The TOC auto-scrolls under a resting pointer after a click, which made a
-   second accent-coloured row look active.) */
+/* Hover is text-only so only the active TOC entry can show a filled pill.
+   (The TOC auto-scrolls under a resting pointer after a click, so any hover
+   fill there looked like a second active row.) */
 #nd-toc a:hover {
-  background: var(--color-fd-muted);
+  background: transparent;
   color: var(--color-fd-foreground);
 }
 

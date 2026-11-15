@@ -3,7 +3,7 @@
 import { useSidebar } from 'fumadocs-ui/components/sidebar/base';
 import { SearchTrigger } from 'fumadocs-ui/layouts/shared/slots/search-trigger';
 import { ArrowUp, PanelLeftOpen } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 /**
  * The built-in collapsed panel uses the "Collapse Sidebar" label even when the
@@ -12,6 +12,13 @@ import { useEffect, useState } from 'react';
  */
 export function DocsCollapsedControls() {
   const { collapsed, setCollapsed, mode } = useSidebar();
+  const expandRef = useRef<HTMLButtonElement>(null);
+
+  // Collapsing makes the sidebar trigger inert, so the browser drops focus to
+  // <body>. Move it to the newly mounted expand control instead.
+  useEffect(() => {
+    if (collapsed && mode === 'full') expandRef.current?.focus();
+  }, [collapsed, mode]);
 
   if (!collapsed || mode !== 'full') return null;
 
@@ -25,8 +32,9 @@ export function DocsCollapsedControls() {
   }
 
   return (
-    <div className="docs-collapsed-controls" role="group" aria-label="Dokumentation">
+    <div className="docs-collapsed-controls" role="group" aria-label="Dokumentationswerkzeuge">
       <button
+        ref={expandRef}
         type="button"
         aria-label="Seitenleiste ausklappen"
         aria-expanded={false}
