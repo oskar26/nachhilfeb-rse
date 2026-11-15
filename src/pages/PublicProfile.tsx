@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { LIST_ITEM, m, STAGGER } from '../lib/motion';
+import { LIST_ITEM, m, PAGE_ENTER, STAGGER } from '../lib/motion';
 import { api } from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
@@ -100,7 +100,7 @@ export default function PublicProfile() {
         hidden: { opacity: 0 },
         visible: {
             opacity: 1,
-            transition: { staggerChildren: STAGGER.step }
+            transition: { ...PAGE_ENTER, staggerChildren: STAGGER.step }
         }
     };
 

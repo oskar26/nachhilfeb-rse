@@ -30,7 +30,8 @@ function CheckRow({ children }: { children: React.ReactNode }) {
 
 export default function ParentGuide() {
     const reduceMotion = useReducedMotion();
-    /* Read-Modus: ruhiger als die Landing — dezenter Authored Reveal (y 18, 0.55 s).
+    /* Read-Modus: ruhiger als die Landing — dezenter Authored Reveal
+       (DISTANCE.enter, PAGE_ENTER: 0,2 s mit EASE_OUT).
        Nur Transform, keine Opacity: Inhalt bleibt bei Full-Page/Print sofort sichtbar. */
     const anim: AnimFn = (delay = 0) => reduceMotion ? {} : {
         initial: { y: DISTANCE.enter },

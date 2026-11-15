@@ -1,7 +1,7 @@
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { useState, useEffect, useRef } from 'react';
-import { LIST_ITEM, m, STAGGER } from '../lib/motion';
+import { LIST_ITEM, m, PAGE_ENTER, STAGGER } from '../lib/motion';
 import { Button, buttonVariants } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -300,7 +300,7 @@ export default function Profile() {
         hidden: { opacity: 0 },
         visible: {
             opacity: 1,
-            transition: { staggerChildren: STAGGER.step }
+            transition: { ...PAGE_ENTER, staggerChildren: STAGGER.step }
         }
     };
 

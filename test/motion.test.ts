@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import * as motionTokens from '../src/lib/motion';
 import {
   APP_TRANSITION,
@@ -69,6 +69,17 @@ describe('motion tokens', () => {
   it('exposes prefersReducedMotion as a safe boolean helper', () => {
     // The test environment has no window.matchMedia; the helper must not throw.
     expect(typeof prefersReducedMotion()).toBe('boolean');
+  });
+
+  it('honours a reduced-motion match from window.matchMedia', () => {
+    vi.stubGlobal('window', {
+      matchMedia: (query: string) => ({ matches: query === '(prefers-reduced-motion: reduce)' }),
+    });
+    try {
+      expect(prefersReducedMotion()).toBe(true);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it('keeps every app transition value finite and the object stable', () => {

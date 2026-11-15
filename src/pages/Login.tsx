@@ -411,20 +411,20 @@ export default function Login() {
 
                 <div className="relative z-10 max-w-[95ch]">
                     <m.h1
-                        {...(reduceMotion ? {} : { initial: { opacity: 0, y: DISTANCE.enter }, animate: { opacity: 1, y: 0 }, transition: { delay: 0.1 } })}
+                        {...(reduceMotion ? {} : { initial: { opacity: 0, y: DISTANCE.enter }, animate: { opacity: 1, y: 0 }, transition: { ...PAGE_ENTER, delay: 0.1 } })}
                         className="mb-6 text-balance text-5xl font-semibold leading-tight"
                     >
                         Nachhilfe am FWG.
                     </m.h1>
                     <m.p
-                        {...(reduceMotion ? {} : { initial: { opacity: 0, y: DISTANCE.enter }, animate: { opacity: 1, y: 0 }, transition: { delay: 0.2 } })}
+                        {...(reduceMotion ? {} : { initial: { opacity: 0, y: DISTANCE.enter }, animate: { opacity: 1, y: 0 }, transition: { ...PAGE_ENTER, delay: 0.2 } })}
                         className="mb-8 text-lg font-normal leading-relaxed text-muted-foreground"
                     >
                         Finde Nachhilfe oder biete dein Wissen an. Für Schülerinnen und Schüler des Friedrich-Wilhelm-Gymnasiums. Eltern nutzen das Konto ihres Kindes mit.
                     </m.p>
 
                     <m.div
-                        {...(reduceMotion ? {} : { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { delay: 0.3 } })}
+                        {...(reduceMotion ? {} : { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { ...PAGE_ENTER, delay: 0.3 } })}
                         className="space-y-3"
                     >
                         <div className="flex items-center gap-3 font-medium">

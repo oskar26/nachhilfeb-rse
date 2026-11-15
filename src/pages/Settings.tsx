@@ -461,7 +461,7 @@ export default function Settings() {
         hidden: { opacity: 0 },
         visible: {
             opacity: 1,
-            transition: { staggerChildren: STAGGER.step }
+            transition: { ...PAGE_ENTER, staggerChildren: STAGGER.step }
         }
     };
 
