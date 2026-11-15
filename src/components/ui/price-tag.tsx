@@ -27,15 +27,15 @@ function secondaryLine(
 
 const MODE_CLASS: Record<string, string> = {
     fixed: 'border-primary/45 bg-primary text-primary-foreground shadow-[0_3px_0_rgb(24_24_27_/_0.08)]',
-    vb: 'border-border bg-card text-foreground shadow-[0_2px_0_rgb(24_24_27_/_0.04)]',
+    vb: 'border-pastel-orange/70 bg-pastel-orange text-pastel-orange-foreground shadow-[0_3px_0_rgb(194_65_12_/_0.08)]',
     free: 'border-pastel-mint/70 bg-pastel-mint text-pastel-mint-foreground',
     missing: 'border-border bg-muted text-muted-foreground',
 };
 
 /**
- * Preis-Baustein mit klarer linker Kante. Festpreise stehen als kräftige
- * gelbe Fahrkarte, Verhandlungsbasis als ruhige Karte und „Kostenlos“ als
- * mintfarbene Auszeichnung. Betrag und Einheit bleiben untereinander.
+ * Preis-Baustein im Fahrkarten-Stil. Festpreise stehen als kräftige gelbe
+ * Auszeichnung, Verhandlungsbasis als warme Orange-Karte und „Kostenlos“ als
+ * mintfarbene Marke. Betrag und Einheit bleiben untereinander.
  * Für Screenreader gilt der kanonische formatAdPrice-Text.
  */
 export function PriceTag({
@@ -86,8 +86,12 @@ export function PriceTag({
                     'font-medium leading-tight tabular-nums',
                     isInline ? 'text-xs' : 'text-[13px]',
                     parts.mode === 'fixed'
-                        ? 'text-primary-foreground/80'
-                        : 'opacity-80'
+                        ? 'text-primary-foreground/85'
+                        : parts.mode === 'vb'
+                          ? 'text-pastel-orange-foreground'
+                          : parts.mode === 'free'
+                            ? 'text-pastel-mint-foreground'
+                            : 'text-muted-foreground'
                 )}
             >
                 {secondary}
