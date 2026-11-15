@@ -4,6 +4,7 @@ import AccessGuard from './AccessGuard';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/button';
 import { useEffect, useRef, useState } from 'react';
+import { useReducedMotion } from 'motion/react';
 import NotificationCenter from './NotificationCenter';
 import MobileQuickMenu from './MobileQuickMenu';
 import InstallPrompt from './InstallPrompt';
@@ -12,6 +13,7 @@ import { triggerHaptic } from '../lib/haptics';
 import { avatarTone, initials } from '../lib/avatar';
 import { cn } from '../lib/utils';
 import { getDesktopSocialTab, type DesktopSocialTab } from '../lib/navigation';
+import { m, SPRING } from '../lib/motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
     DropdownMenu,
@@ -58,6 +60,7 @@ function AppShell() {
     const navigate = useNavigate();
     const location = useLocation();
     const isMobile = useIsMobile();
+    const reduceMotion = useReducedMotion();
     const [unreadCount, setUnreadCount] = useState(0);
     const mainContentRef = useRef<HTMLDivElement>(null);
 
@@ -458,18 +461,28 @@ function AppShell() {
                         >
                             <span
                                 className={cn(
-                                    /* Aktiver Zustand als CSS-Hintergrund-Transition: ein
-                                       layoutId auf diesem Span würde Icon und Label beim
-                                       Tabwechsel mitverschieben, und ein eigenes
-                                       Hintergrund-Element ist nicht erlaubt. */
-                                    'flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-full text-xs font-medium transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none',
+                                    /* Der aktive Hintergrund liegt als eigenes,
+                                       layoutId-verbundenes Element unter Icon und
+                                       Label. So wandert nur die Fläche, nicht der
+                                       Inhalt; bei reduzierter Bewegung bleibt sie
+                                       statisch. */
+                                    'relative isolate flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-full text-xs font-medium transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none',
                                     active
-                                        ? 'bg-primary-soft text-primary-soft-foreground dark:bg-muted dark:text-foreground'
+                                        ? 'text-primary-soft-foreground dark:text-foreground'
                                         : 'text-muted-foreground group-hover:bg-muted/60 group-hover:text-foreground'
                                 )}
                             >
-                                <Icon size={20} strokeWidth={active ? 2.25 : 2} aria-hidden />
-                                <span className="max-w-full truncate tracking-[-0.02em] max-[399px]:tracking-[-0.04em]">{item.label}</span>
+                                {active && (
+                                    <m.span
+                                        layoutId={reduceMotion ? undefined : 'mobile-nav-active'}
+                                        initial={false}
+                                        transition={reduceMotion ? { duration: 0 } : SPRING.settle}
+                                        className="absolute inset-0 -z-10 rounded-full bg-primary-soft dark:bg-muted"
+                                        aria-hidden
+                                    />
+                                )}
+                                <Icon size={20} strokeWidth={active ? 2.25 : 2} className="relative z-10" aria-hidden />
+                                <span className="relative z-10 max-w-full truncate tracking-[-0.02em] max-[399px]:tracking-[-0.04em]">{item.label}</span>
                             </span>
                         </Link>
                     );

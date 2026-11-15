@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, useCallback, type MouseEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { BookOpen, Menu, X } from 'lucide-react';
+import { useReducedMotion } from 'motion/react';
 import { Logo } from './ui/Logo';
-import { prefersReducedMotion } from '../lib/motion';
+import { m, prefersReducedMotion, SPRING } from '../lib/motion';
 import { useAuth } from '../context/AuthContext';
 import {
     Sheet,
@@ -52,6 +53,7 @@ export default function SiteHeader() {
     const location = useLocation();
     const navigate = useNavigate();
     const { user } = useAuth();
+    const reduceMotion = useReducedMotion();
     const onWelcomePage = location.pathname === '/welcome' || location.pathname === '/landing';
     const [menuOpen, setMenuOpen] = useState(false);
     const [activeSection, setActiveSection] = useState<string | null>(null);
@@ -145,8 +147,8 @@ export default function SiteHeader() {
     };
 
     const navLinkClass = (active: boolean) =>
-        `inline-flex min-h-11 items-center whitespace-nowrap rounded-full px-4 text-sm font-semibold transition-colors ${active
-            ? 'bg-primary-soft text-primary-soft-foreground'
+        `relative isolate inline-flex min-h-11 items-center whitespace-nowrap rounded-full px-4 text-sm font-semibold transition-colors ${active
+            ? 'text-primary-soft-foreground'
             : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`;
 
     const menuTrigger = (
@@ -188,7 +190,16 @@ export default function SiteHeader() {
                                         aria-current={active ? 'location' : undefined}
                                         className={navLinkClass(active)}
                                     >
-                                        {item.label}
+                                        {active && (
+                                            <m.span
+                                                layoutId={reduceMotion ? undefined : 'site-nav-active'}
+                                                initial={false}
+                                                transition={reduceMotion ? { duration: 0 } : SPRING.settle}
+                                                className="absolute inset-0 -z-10 rounded-full bg-primary-soft"
+                                                aria-hidden
+                                            />
+                                        )}
+                                        <span className="relative z-10">{item.label}</span>
                                     </Link>
                                 ) : (
                                     <Link
@@ -198,7 +209,16 @@ export default function SiteHeader() {
                                         aria-current={active ? 'page' : undefined}
                                         className={navLinkClass(active)}
                                     >
-                                        {item.label}
+                                        {active && (
+                                            <m.span
+                                                layoutId={reduceMotion ? undefined : 'site-nav-active'}
+                                                initial={false}
+                                                transition={reduceMotion ? { duration: 0 } : SPRING.settle}
+                                                className="absolute inset-0 -z-10 rounded-full bg-primary-soft"
+                                                aria-hidden
+                                            />
+                                        )}
+                                        <span className="relative z-10">{item.label}</span>
                                     </Link>
                                 );
                             })}

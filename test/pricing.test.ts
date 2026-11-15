@@ -3,10 +3,12 @@ import { formatAdPrice } from '../src/lib/utils';
 import {
   PRICE_GUIDELINE,
   PRICE_MODE_LABELS,
+  assessPrice,
   formatPriceLabel,
   formatPriceParts,
   normalizePriceDuration,
   normalizePriceMode,
+  priceDurationMinutes,
 } from '../src/lib/pricing';
 
 describe('PRICE_GUIDELINE', () => {
@@ -19,9 +21,12 @@ describe('PRICE_GUIDELINE', () => {
   it('documents the researched student-tutor range without inventing data', () => {
     expect(PRICE_GUIDELINE.studentHourlyMin).toBe(10);
     expect(PRICE_GUIDELINE.studentHourlyMax).toBe(20);
+    expect(PRICE_GUIDELINE.marketMedianHourly).toBe(20);
+    expect(PRICE_GUIDELINE.cologneMedianHourly).toBe(24);
     expect(PRICE_GUIDELINE.studentRangeLabel).toBe('10–20 € pro Stunde');
     expect(PRICE_GUIDELINE.copy).toContain('12 € pro 45 Minuten');
     expect(PRICE_GUIDELINE.copy).toContain('10–20 € pro Stunde');
+    expect(PRICE_GUIDELINE.marketBasis).toContain('Median Köln');
   });
 });
 
@@ -64,6 +69,72 @@ describe('normalizePriceDuration', () => {
     expect(normalizePriceDuration('1h')).toBe('1h');
     expect(normalizePriceDuration('h')).toBe('1h');
     expect(normalizePriceDuration(undefined)).toBe('45min');
+  });
+
+  it('converts the price unit to minutes for the hourly assessment', () => {
+    expect(priceDurationMinutes('45min')).toBe(45);
+    expect(priceDurationMinutes('60min')).toBe(60);
+    expect(priceDurationMinutes('1h')).toBe(60);
+    expect(priceDurationMinutes(90)).toBe(90);
+    expect(priceDurationMinutes(undefined)).toBe(45);
+  });
+});
+
+describe('assessPrice', () => {
+  it('rates 12 € per 45 minutes as fair at 16 €/h', () => {
+    const result = assessPrice({ price: 12, mode: 'fixed', duration: '45min' });
+    expect(result.tone).toBe('good');
+    expect(result.title).toBe('Fair');
+    expect(result.hourly).toBe(16);
+    expect(result.hourlyLabel).toBe('16 €/h');
+    expect(result.detail).toContain('10–20 €/h');
+    expect(result.detail).toContain('24 €/h');
+    expect(result.basis).toBe(PRICE_GUIDELINE.marketBasis);
+  });
+
+  it('marks prices below 10 €/h as günstig without shaming them', () => {
+    const result = assessPrice({ price: 9, mode: 'fixed', duration: '60min' });
+    expect(result.tone).toBe('low');
+    expect(result.title).toBe('Günstig');
+    expect(result.hourlyLabel).toBe('9 €/h');
+  });
+
+  it('keeps the 10–20 €/h range inclusive and fair', () => {
+    expect(assessPrice({ price: 10, mode: 'fixed', duration: '60min' }).tone).toBe('good');
+    expect(assessPrice({ price: 20, mode: 'fixed', duration: '60min' }).tone).toBe('good');
+  });
+
+  it('marks 20–24 €/h as gehoben but below the Cologne median', () => {
+    const result = assessPrice({ price: 21, mode: 'fixed', duration: '60min' });
+    expect(result.tone).toBe('high');
+    expect(result.title).toBe('Gehoben');
+    expect(result.detail).toContain('nicht über dem Kölner Median');
+  });
+
+  it('marks prices above the Cologne median as over the usual frame', () => {
+    const result = assessPrice({ price: 25, mode: 'fixed', duration: '60min' });
+    expect(result.tone).toBe('high');
+    expect(result.title).toBe('Über dem üblichen Rahmen');
+    expect(result.detail).toContain('über dem Kölner Median');
+  });
+
+  it('explains free and negotiable prices without inventing an hourly rate', () => {
+    const free = assessPrice({ mode: 'free' });
+    expect(free.tone).toBe('free');
+    expect(free.title).toBe('Ehrenamtlich');
+    expect(free.hourly).toBeNull();
+
+    const vb = assessPrice({ mode: 'vb' });
+    expect(vb.tone).toBe('vb');
+    expect(vb.title).toBe('Verhandlungsbasis');
+    expect(vb.detail).toContain('12 € / 45 Min');
+    expect(vb.hourly).toBeNull();
+  });
+
+  it('asks for a price when a fixed mode has no usable value', () => {
+    expect(assessPrice({ mode: 'fixed' }).tone).toBe('missing');
+    expect(assessPrice({ price: 0, mode: 'fixed' }).tone).toBe('missing');
+    expect(assessPrice({ price: -3, mode: 'fixed' }).tone).toBe('missing');
   });
 });
 
@@ -140,6 +211,9 @@ describe('formatPriceParts', () => {
       'Preis auf Anfrage',
     );
     expect(formatPriceParts({ price: -12, mode: 'fixed' }).label).toBe(
+      'Preis auf Anfrage',
+    );
+    expect(formatPriceParts({ price: 0, mode: 'fixed' }).label).toBe(
       'Preis auf Anfrage',
     );
   });

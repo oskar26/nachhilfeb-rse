@@ -8,10 +8,10 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../compone
 import { SubjectChip, SUBJECT_CATEGORIES, subjectLabelMap, type Subject } from '../components/SubjectChip';
 import { GradeSelector } from '../components/GradeSelector';
 import { RichTextEditor } from '../components/RichTextEditor';
-import { ChevronLeft, ChevronRight, CheckCircle, Plus, X, Link as LinkIcon, AlertCircle, Lock, GraduationCap, Search, Users, User, Shuffle, School, Wifi, Home, MapPin, Calculator, Info, Loader2, ImagePlus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle, Plus, X, Link as LinkIcon, AlertCircle, AlertTriangle, Lock, GraduationCap, Search, Users, User, Shuffle, School, Wifi, Home, MapPin, Calculator, Info, Loader2, ImagePlus } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { PriceTag } from '../components/ui/price-tag';
-import { PRICE_GUIDELINE, PRICE_MODE_LABELS } from '../lib/pricing';
+import { PRICE_GUIDELINE, PRICE_MODE_LABELS, assessPrice } from '../lib/pricing';
 import { AD_IMAGE_MAX_BYTES, adImageFileProblem, compressImage } from '../lib/image';
 import { MAX_AD_CUSTOM_LOCATION_LENGTH, MAX_AD_LOCATIONS, splitAdLocations } from '../lib/ad-locations';
 import { useAuth } from '../context/AuthContext';
@@ -208,21 +208,18 @@ export default function CreateAd() {
 
     const totalLocations = formData.locations.length + formData.custom_locations.length;
 
-    const getEffectiveHourlyRate = () => {
-        if (formData.price_mode !== 'fixed' || !formData.price_value) {
-            return null;
-        }
-        const val = Number(formData.price_value);
-        if (isNaN(val) || val <= 0) return null;
-        const minutes = formData.price_unit === '45min' ? 45 : formData.price_unit === '60min' ? 60 : formData.price_unit === '90min' ? 90 : 60;
-        const hourly = (val / minutes) * 60;
-        return {
-            hourly,
-            minutes,
-            formatted: Number.isInteger(hourly) ? String(hourly) : hourly.toFixed(1).replace('.', ',')
-        };
-    };
-    const effectiveHourly = getEffectiveHourlyRate();
+    const priceAssessment = assessPrice({
+        price: formData.price_value,
+        mode: formData.price_mode,
+        duration: formData.price_unit,
+    });
+    const PriceAssessmentIcon = priceAssessment.tone === 'good'
+        ? CheckCircle
+        : priceAssessment.tone === 'high'
+            ? AlertTriangle
+            : priceAssessment.tone === 'low'
+                ? Calculator
+                : Info;
 
     useEffect(() => {
         const template = location.state?.editAd || location.state?.duplicateAd;
@@ -1208,7 +1205,7 @@ export default function CreateAd() {
                     {/* Step 3: Pricing */}
                     {currentStep === 3 && (
                         <div className="space-y-6">
-                            <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
+                            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                                 {([
                                     { value: 'fixed', hint: 'Fester Preis pro Einheit' },
                                     { value: 'vb', hint: 'Preis wird besprochen' },
@@ -1222,7 +1219,7 @@ export default function CreateAd() {
                                             onClick={() => setFormData({ ...formData, price_mode: option.value })}
                                             aria-pressed={active}
                                             className={cn(
-                                                "relative min-h-16 rounded-xl border p-4 text-left transition-colors",
+                                                "relative !flex min-h-16 w-full !items-start !justify-start rounded-xl border p-4 pr-10 !text-left transition-colors",
                                                 active
                                                     ? "border-primary bg-primary-soft text-primary-soft-foreground shadow-[inset_0_0_0_1px_var(--primary)]"
                                                     : "border-border hover:border-primary/40"
@@ -1242,7 +1239,9 @@ export default function CreateAd() {
                                 <Info size={16} className="mt-0.5 shrink-0 text-muted-foreground" aria-hidden />
                                 <div>
                                     <p className="text-[13px] font-semibold text-foreground">Preis-Richtwert</p>
-                                    <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">{PRICE_GUIDELINE.copy}</p>
+                                    <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">
+                                        {PRICE_GUIDELINE.shortCopy}. Du legst den Preis selbst fest.
+                                    </p>
                                 </div>
                             </div>
 
@@ -1295,31 +1294,41 @@ export default function CreateAd() {
                                             </Button>
                                         ))}
                                     </div>
+                                </div>
+                            )}
 
-                                    {effectiveHourly && (
-                                        <div className="flex flex-col gap-1 rounded-xl border border-border bg-muted/50 p-3 text-[13px] sm:flex-row sm:items-center sm:justify-between">
-                                            <span className="flex items-center gap-2 font-medium text-muted-foreground">
-                                                <Calculator size={15} aria-hidden /> Entspricht
-                                            </span>
-                                            <span className="font-semibold tabular-nums text-foreground">{effectiveHourly.formatted} € pro Stunde</span>
-                                        </div>
+                            <div
+                                aria-live="polite"
+                                aria-atomic="true"
+                                className={cn(
+                                    "rounded-2xl border p-4",
+                                    priceAssessment.tone === 'good'
+                                        ? 'border-pastel-mint bg-pastel-mint text-pastel-mint-foreground'
+                                        : priceAssessment.tone === 'high'
+                                            ? 'border-pastel-orange bg-pastel-orange text-pastel-orange-foreground'
+                                            : priceAssessment.tone === 'low'
+                                                ? 'border-pastel-blue bg-pastel-blue text-pastel-blue-foreground'
+                                                : priceAssessment.tone === 'free'
+                                                    ? 'border-pastel-yellow bg-pastel-yellow text-pastel-yellow-foreground'
+                                                    : priceAssessment.tone === 'vb'
+                                                        ? 'border-pastel-blue bg-pastel-blue text-pastel-blue-foreground'
+                                                        : 'border-border bg-muted text-foreground'
+                                )}
+                            >
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <span className="inline-flex items-center gap-2 text-[13px] font-semibold">
+                                        <PriceAssessmentIcon size={16} aria-hidden />
+                                        Preis-Check: {priceAssessment.title}
+                                    </span>
+                                    {priceAssessment.hourlyLabel && (
+                                        <span className="text-[15px] font-bold tabular-nums">{priceAssessment.hourlyLabel}</span>
                                     )}
                                 </div>
-                            )}
-
-                            {formData.price_mode === 'free' && (
-                                <div className="flex items-center gap-2.5 rounded-2xl border border-border bg-muted p-4 text-[13px] font-medium text-foreground/80 animate-in fade-in">
-                                    <CheckCircle size={16} className="shrink-0 text-muted-foreground" aria-hidden />
-                                    <span>Du bietest die Nachhilfe kostenlos an.</span>
-                                </div>
-                            )}
-
-                            {formData.price_mode === 'vb' && (
-                                <div className="flex items-center gap-2.5 rounded-2xl border border-border bg-muted p-4 text-[13px] font-medium text-foreground/80 animate-in fade-in">
-                                    <Info size={16} className="shrink-0 text-muted-foreground" aria-hidden />
-                                    <span>Du möchtest verhandeln – den Preis klärt ihr im Chat.</span>
-                                </div>
-                            )}
+                                <p className="mt-1.5 text-[13px] leading-relaxed">{priceAssessment.detail}</p>
+                                <p className="mt-2 border-t border-current/20 pt-2 text-[13px] leading-relaxed">
+                                    {priceAssessment.basis}
+                                </p>
+                            </div>
                         </div>
                     )}
 
@@ -1510,8 +1519,8 @@ export default function CreateAd() {
                                     <h2 className="mb-2 break-anywhere text-2xl font-semibold">{formData.title}</h2>
                                     <div className="flex flex-wrap gap-2 mb-4">
                                         <PriceTag
-                                            layout="inline"
-                                            price={Number(formData.price_value) || 0}
+                                            layout="stacked"
+                                            price={formData.price_value}
                                             mode={formData.price_mode}
                                             duration={formData.price_unit}
                                         />
@@ -1548,7 +1557,7 @@ export default function CreateAd() {
                     )}
 
                 </CardContent>
-                <CardFooter className="flex flex-col gap-3 rounded-b-card border-t border-border bg-card p-4 sm:p-6 md:sticky md:bottom-0 md:z-10 md:bg-card/95 md:pb-6 md:shadow-[0_-10px_30px_-24px_rgba(16,24,40,0.45)] md:backdrop-blur-md">
+                <CardFooter className="flex flex-col gap-3 rounded-b-card border-t border-border bg-card p-4 sm:p-6 md:sticky md:bottom-0 md:z-10 md:bg-card md:pb-6">
                     {uploadingImages.length > 0 && (
                         <p className="w-full rounded-xl bg-pastel-blue px-4 py-2.5 text-[13px] font-semibold leading-relaxed text-pastel-blue-foreground" role="status">
                             Bilder werden hochgeladen …

@@ -25,11 +25,17 @@ export const PRICE_GUIDELINE = {
     hourlyPrice: 16,
     studentHourlyMin: 10,
     studentHourlyMax: 20,
+    /** Marktvergleich 2026 (OnMathe, 35.278 Inserate): Median privater Nachhilfe. */
+    marketMedianHourly: 20,
+    /** Köln liegt laut derselben Auswertung über dem Bundesmedian. */
+    cologneMedianHourly: 24,
     studentRangeLabel: '10–20 € pro Stunde',
     /** Volle Copy für CreateAd und Erklärtexte. */
     copy: 'Richtwert: 12 € pro 45 Minuten (16 € pro Stunde). Schüler:innen als Nachhilfelehrkräfte liegen meist bei 10–20 € pro Stunde; du legst den Preis selbst fest.',
     /** Kurzform für enge Karten und Inline-Hinweise. */
     shortCopy: '12 € pro 45 Minuten = 16 € pro Stunde',
+    /** Sichtbare Grundlage der Preis-Einschätzung. */
+    marketBasis: 'Marktvergleich 2026: Schüler:innen 10–20 €/h, privater Median Köln ca. 24 €/h.',
 } as const;
 
 /** Deutsche Labels für die drei erlaubten Modi (z. B. CreateAd-Auswahl). */
@@ -84,11 +90,11 @@ export function normalizePriceDuration(duration?: PriceDuration): string {
 
 function normalizePriceValue(price: PriceValue): number | null {
     if (typeof price === 'number') {
-        return Number.isFinite(price) && price >= 0 ? price : null;
+        return Number.isFinite(price) && price > 0 ? price : null;
     }
     if (typeof price === 'string' && price.trim()) {
         const parsed = Number(price.replace(',', '.'));
-        return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+        return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
     }
     return null;
 }
@@ -140,4 +146,121 @@ export function formatPriceParts(
 /** Kanonischer Preistext (identisch zu formatAdPrice für dieselben Werte). */
 export function formatPriceLabel(input: PriceInput): string {
     return formatPriceParts(input).label;
+}
+
+/** Minuten einer Preis-Einheit; unbekannte Tokens fallen auf 45 Minuten zurück. */
+export function priceDurationMinutes(duration?: PriceDuration): number {
+    const token = normalizePriceDuration(duration).trim().toLowerCase();
+    const minutes = /^(\d+(?:[.,]\d+)?)\s*min$/.exec(token);
+    if (minutes) return Number(minutes[1].replace(',', '.'));
+    const hours = /^(\d+(?:[.,]\d+)?)\s*h$/.exec(token);
+    if (hours) return Number(hours[1].replace(',', '.')) * 60;
+    return PRICE_GUIDELINE.sessionMinutes;
+}
+
+export type PriceAssessmentTone = 'good' | 'low' | 'high' | 'free' | 'vb' | 'missing';
+
+export interface PriceAssessment {
+    tone: PriceAssessmentTone;
+    title: string;
+    detail: string;
+    /** Auf den Stundenpreis umgerechnet; null bei free/vb/fehlendem Preis. */
+    hourly: number | null;
+    hourlyLabel: string | null;
+    basis: string;
+}
+
+function formatHourly(hourly: number): string {
+    return Number.isInteger(hourly)
+        ? String(hourly)
+        : hourly.toFixed(1).replace('.', ',');
+}
+
+/**
+ * Bewertet einen Preis anhand des 2026 recherchierten Marktvergleichs.
+ * Die Einschätzung ist eine Orientierung, keine Vorgabe: Der Preis bleibt
+ * Sache der Anbieter:innen.
+ */
+export function assessPrice(input: PriceInput): PriceAssessment {
+    const mode = normalizePriceMode(input.mode);
+    const basis = PRICE_GUIDELINE.marketBasis;
+
+    if (mode === 'free') {
+        return {
+            tone: 'free',
+            title: 'Ehrenamtlich',
+            detail: 'Du bietest kostenlos an. Das ist großzügig und kein Marktstandard – fair bleibt es, wenn es für dich passt.',
+            hourly: null,
+            hourlyLabel: null,
+            basis,
+        };
+    }
+
+    if (mode === 'vb') {
+        return {
+            tone: 'vb',
+            title: 'Verhandlungsbasis',
+            detail: 'Nenne im Chat einen Anker: 12 € / 45 Min (16 €/h) liegt im üblichen Rahmen. So bleibt die Erwartung klar.',
+            hourly: null,
+            hourlyLabel: null,
+            basis,
+        };
+    }
+
+    const price = normalizePriceValue(input.price);
+    if (price === null || price <= 0) {
+        return {
+            tone: 'missing',
+            title: 'Preis fehlt',
+            detail: 'Trage einen Festpreis ein oder wähle Verhandlungsbasis bzw. Kostenlos.',
+            hourly: null,
+            hourlyLabel: null,
+            basis,
+        };
+    }
+
+    const hourly = (price / priceDurationMinutes(input.duration)) * 60;
+    const hourlyLabel = `${formatHourly(hourly)} €/h`;
+
+    if (hourly < PRICE_GUIDELINE.studentHourlyMin) {
+        return {
+            tone: 'low',
+            title: 'Günstig',
+            detail: `${hourlyLabel} liegt unter dem üblichen Rahmen von 10–20 €/h. Das ist attraktiv – prüfe, ob dein Aufwand für dich passt.`,
+            hourly,
+            hourlyLabel,
+            basis,
+        };
+    }
+
+    if (hourly <= PRICE_GUIDELINE.studentHourlyMax) {
+        return {
+            tone: 'good',
+            title: 'Fair',
+            detail: `${hourlyLabel} liegt im üblichen Rahmen von 10–20 €/h. In Köln liegt der Median privater Nachhilfe bei rund 24 €/h.`,
+            hourly,
+            hourlyLabel,
+            basis,
+        };
+    }
+
+    if (hourly <= PRICE_GUIDELINE.cologneMedianHourly) {
+        return {
+            tone: 'high',
+            title: 'Gehoben',
+            detail: `${hourlyLabel} liegt über dem üblichen Schüler:innen-Rahmen (10–20 €/h), aber nicht über dem Kölner Median von rund 24 €/h.`,
+            hourly,
+            hourlyLabel,
+            basis,
+        };
+    }
+
+    return {
+        tone: 'high',
+        title: 'Über dem üblichen Rahmen',
+        detail: `${hourlyLabel} liegt über dem Kölner Median von rund 24 €/h. Das kann bei hoher Qualifikation passen – begründe den Preis in deiner Beschreibung.`,
+        hourly,
+        hourlyLabel,
+        basis,
+    };
 }

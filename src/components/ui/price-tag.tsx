@@ -14,10 +14,22 @@ export interface PriceTagProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'ch
     layout?: 'stacked' | 'inline';
 }
 
+function secondaryLine(
+    parts: ReturnType<typeof formatPriceParts>,
+    inline: boolean,
+): string | null {
+    if (parts.unit) return inline ? `/ ${parts.unit}` : parts.unit;
+    if (parts.mode === 'free') return inline ? '· Ehrenamtlich' : 'Ehrenamtlich';
+    if (parts.mode === 'vb') return inline ? '· Verhandelbar' : 'Verhandelbar';
+    if (parts.label === 'Preis auf Anfrage') return inline ? '· Noch offen' : 'Noch offen';
+    return inline ? '· Auf Anfrage' : 'Auf Anfrage';
+}
+
 /**
- * Kompakter Preis-Baustein. Die sichtbaren Teile bleiben bewusst klein:
- * 15px/700 für den Betrag, 11px gedämpft für die Einheit. Für Screenreader
- * gilt der kanonische formatAdPrice-Text.
+ * Kompakter Preis-Baustein. Betrag und Einheit stehen untereinander, damit
+ * „Kostenlos“, „VB“ und Festpreise dieselbe ruhige linke Kante behalten.
+ * Die sichtbaren Teile bleiben bewusst klein: 15px/700 und 13px/500.
+ * Für Screenreader gilt der kanonische formatAdPrice-Text.
  */
 export function PriceTag({
     price,
@@ -29,6 +41,7 @@ export function PriceTag({
 }: PriceTagProps) {
     const parts = formatPriceParts({ price, mode, duration });
     const isInline = layout === 'inline';
+    const secondary = secondaryLine(parts, isInline);
 
     return (
         <span
@@ -36,10 +49,10 @@ export function PriceTag({
             data-price-mode={parts.mode}
             data-layout={layout}
             className={cn(
-                'inline-flex shrink-0 select-none items-center rounded-lg bg-primary-soft text-primary-soft-foreground',
+                'inline-flex shrink-0 select-none rounded-lg bg-primary-soft text-primary-soft-foreground',
                 isInline
-                    ? 'gap-1 px-2 py-0.5'
-                    : 'flex-col items-start gap-0.5 px-2.5 py-1',
+                    ? 'items-baseline gap-1.5 px-2 py-0.5'
+                    : 'min-w-[5.25rem] flex-col items-start gap-1 px-2.5 py-1.5 text-left',
                 className
             )}
             {...props}
@@ -51,14 +64,12 @@ export function PriceTag({
             >
                 {parts.primary}
             </span>
-            {parts.unit ? (
-                <span
-                    aria-hidden="true"
-                    className="text-[11px] font-medium leading-none text-muted-foreground dark:text-primary-soft-foreground/75"
-                >
-                    {isInline ? `/ ${parts.unit}` : parts.unit}
-                </span>
-            ) : null}
+            <span
+                aria-hidden="true"
+                className="text-xs font-medium leading-tight text-primary-soft-foreground/80 tabular-nums"
+            >
+                {secondary}
+            </span>
         </span>
     );
 }

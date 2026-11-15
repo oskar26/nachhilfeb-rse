@@ -12,6 +12,7 @@ import { Button } from '../components/ui/button';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle } from '../components/ui/sheet';
 import { Skeleton } from '../components/ui/skeleton';
 import { PriceTag } from '../components/ui/price-tag';
+import { AnimatedHeart } from '../components/ui/animated-heart';
 import { GradeSelector } from '../components/GradeSelector';
 import { Input } from '../components/ui/input';
 import { PriceRangeSlider } from '../components/PriceRangeSlider';
@@ -167,6 +168,8 @@ export default function Feed() {
     const [shareAd, setShareAd] = useState<{ id: string; title: string } | null>(null);
     const [savedSearch, setSavedSearch] = useState<SavedSearch | null>(() => ladeGespeicherteSuche());
     const [savedSearchId, setSavedSearchId] = useState<string | null>(null);
+    const [favoriteIds, setFavoriteIds] = useState<Set<string>>(() => new Set());
+    const [favoritePendingIds, setFavoritePendingIds] = useState<Set<string>>(() => new Set());
     const [popularSubjects, setPopularSubjects] = useState<Subject[]>(POPULAR_FALLBACK);
 
     // „Beliebt:“-Fächer: 1 Fetch pro Session (Memory-Cache), Fallback bleibt die Standardliste
@@ -256,6 +259,26 @@ export default function Feed() {
         });
         return () => { cancelled = true; };
     }, [loadAttempt]);
+
+    // Merkliste einmal je Nutzer:in laden, damit die Herzchen im Feed stimmen.
+    useEffect(() => {
+        if (!user) {
+            setFavoriteIds(new Set());
+            return;
+        }
+        let cancelled = false;
+        api.favorites.list()
+            .then(({ data }) => {
+                if (cancelled || !Array.isArray(data)) return;
+                setFavoriteIds(new Set(
+                    data
+                        .map((entry: any) => String(entry.ad_id ?? entry.id ?? ''))
+                        .filter(Boolean),
+                ));
+            })
+            .catch(() => { /* Feed bleibt nutzbar; die Herzchen starten leer. */ });
+        return () => { cancelled = true; };
+    }, [user, loadAttempt]);
 
     useEffect(() => {
         api.coach.getCoachInfo().then(res => {
@@ -389,6 +412,41 @@ export default function Feed() {
                 if (!error && saved?.id) setSavedSearchId(saved.id);
             })
             .catch(() => { /* offline: localStorage-Fallback greift */ });
+    };
+
+    const toggleFeedFavorite = async (adId: string) => {
+        if (!user || favoritePendingIds.has(adId)) return;
+        const wasFavorite = favoriteIds.has(adId);
+        setFavoriteIds((previous) => {
+            const next = new Set(previous);
+            if (wasFavorite) next.delete(adId);
+            else next.add(adId);
+            return next;
+        });
+        setFavoritePendingIds((previous) => new Set(previous).add(adId));
+        triggerHaptic('light');
+
+        const { error } = await api.favorites.toggle(adId);
+        setFavoritePendingIds((previous) => {
+            const next = new Set(previous);
+            next.delete(adId);
+            return next;
+        });
+
+        if (error) {
+            setFavoriteIds((previous) => {
+                const next = new Set(previous);
+                if (wasFavorite) next.add(adId);
+                else next.delete(adId);
+                return next;
+            });
+            toast.error(wasFavorite
+                ? 'Konnte nicht von der Merkliste entfernt werden.'
+                : 'Konnte nicht zur Merkliste hinzugefügt werden.');
+            return;
+        }
+
+        toast.success(wasFavorite ? 'Aus Merkliste entfernt' : 'In Merkliste gespeichert!');
     };
 
     // Filter (Suche, Typ, Fach, Klasse, Preis, Coaches) liegt in lib/anzeigen.ts.
@@ -963,6 +1021,9 @@ export default function Feed() {
                         ].filter(Boolean).join(', ');
                         const cardLabel = `Anzeige von ${ad.profiles?.display_name || 'Unbekannt'} öffnen${cardFacts ? `: ${cardFacts}` : ''}`;
                         const openAd = () => navigate(`/ad/${ad.id}`);
+                        const isOwn = user?.id === ad.user_id;
+                        const favorite = favoriteIds.has(ad.id);
+                        const favoritePending = favoritePendingIds.has(ad.id);
                         return (
                         <MotionCard
                             key={ad.id}
@@ -1050,19 +1111,40 @@ export default function Feed() {
                                             <span className="inline-flex items-center gap-1 rounded-full bg-pastel-yellow px-3 py-1.5 font-semibold text-pastel-yellow-foreground"><CalendarDays size={12} aria-hidden /> {matchScore} Übereinstimmung{matchScore !== 1 ? 'en' : ''}</span>
                                         )}
                                     </div>
-                                    <Button variant="unstyled" size="unstyled"
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            triggerHaptic('light');
-                                            setShareAd({ id: ad.id, title: `${ad.subjects?.[0]?.toUpperCase() || 'Nachhilfe'}: ${ad.profiles?.display_name || ''}` });
-                                        }}
-                                        className="grid size-11 place-items-center rounded-full bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                                        title="Anzeige teilen"
-                                        aria-label="Anzeige teilen"
-                                    >
-                                        <Share2 size={16} aria-hidden />
-                                    </Button>
+                                    <div className="ml-auto flex shrink-0 items-center gap-1">
+                                        {user && !isOwn && (
+                                            <Button variant="unstyled" size="unstyled"
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    void toggleFeedFavorite(ad.id);
+                                                }}
+                                                disabled={favoritePending}
+                                                className={cn(
+                                                    'grid size-11 place-items-center rounded-full bg-background transition-colors hover:bg-destructive/10 disabled:opacity-60',
+                                                    favorite ? 'text-destructive' : 'text-muted-foreground hover:text-destructive'
+                                                )}
+                                                title={favorite ? 'Aus Merkliste entfernen' : 'Zur Merkliste hinzufügen'}
+                                                aria-label={favorite ? 'Aus Merkliste entfernen' : 'Zur Merkliste hinzufügen'}
+                                                aria-pressed={favorite}
+                                            >
+                                                <AnimatedHeart filled={favorite} size={18} />
+                                            </Button>
+                                        )}
+                                        <Button variant="unstyled" size="unstyled"
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                triggerHaptic('light');
+                                                setShareAd({ id: ad.id, title: `${ad.subjects?.[0]?.toUpperCase() || 'Nachhilfe'}: ${ad.profiles?.display_name || ''}` });
+                                            }}
+                                            className="grid size-11 place-items-center rounded-full bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                                            title="Anzeige teilen"
+                                            aria-label="Anzeige teilen"
+                                        >
+                                            <Share2 size={16} aria-hidden />
+                                        </Button>
+                                    </div>
                                 </div>
                             </CardContent>
                         </MotionCard>

@@ -936,15 +936,17 @@ export default function Settings() {
             {/* Documentation Help Card */}
             <m.div variants={itemVariants}>
                 <Card className="border-border bg-card">
-                    <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex min-w-0 items-start gap-3">
-                            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-muted text-muted-foreground">
-                                <BookOpen size={18} aria-hidden />
-                            </span>
-                            <div className="min-w-0">
-                                <h3 className="text-sm font-semibold text-foreground">Dokumentation</h3>
-                                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Anleitungen zu Social, Vorschlägen und Merkliste.</p>
-                            </div>
+                    <CardHeader className="p-6 pb-2">
+                        <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground">
+                            <BookOpen size={18} className="text-muted-foreground" aria-hidden /> Dokumentation
+                        </CardTitle>
+                        <CardDescription className="text-xs">
+                            Schritt-für-Schritt-Anleitungen für Anzeigen, Social, Vorschläge und Merkliste.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex flex-col gap-4 p-6 pt-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="min-w-0 text-xs leading-relaxed text-muted-foreground">
+                            Öffne die Dokumentation, wenn du wissen möchtest, wie ein Bereich funktioniert.
                         </div>
                         <a
                             href="/docs"

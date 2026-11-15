@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import { Card, CardHeader, CardContent } from '../components/ui/card';
 import { SubjectChip, subjectLabelMap, type Subject } from '../components/SubjectChip';
 import { toast } from 'sonner';
-import { ChevronLeft, MapPin, Clock, Heart, Send, CheckCircle, Phone, Mail, CalendarDays, Share2, Copy, Eye, Users, User, Shuffle, Flag, ShieldAlert, Lock, Pencil, Pause, Play, Trash2, GraduationCap } from 'lucide-react';
+import { ChevronLeft, MapPin, Clock, Send, CheckCircle, Phone, Mail, CalendarDays, Share2, Copy, Eye, Users, User, Shuffle, Flag, ShieldAlert, Lock, Pencil, Pause, Play, Trash2, GraduationCap } from 'lucide-react';
 import ReportWizard from '../components/ReportWizard';
 import ShareDialog from '../components/ShareDialog';
 import { AvailabilityCalendar, emptyAvailability, countMatches, type Availability } from '../components/AvailabilityCalendar';
@@ -14,6 +14,7 @@ import { sanitizeHtml } from '../lib/sanitize';
 import { formatGradeLabel, formatGradeRange } from '../lib/matching';
 import { cn, formatAdPrice, formatHourlyFromDetails } from '../lib/utils';
 import { PriceTag } from '../components/ui/price-tag';
+import { AnimatedHeart } from '../components/ui/animated-heart';
 import { VerifiedPill } from '../components/ui/VerifiedPill';
 import { CustomContactsList, publicCustomContacts } from '../components/CustomContacts';
 import {
@@ -74,7 +75,10 @@ export default function AdDetails() {
                 const { data: myProf } = await api.profiles.get(user.id);
                 setMyAvailability(myProf?.availability || emptyAvailability());
                 const { data: fav } = await api.favorites.list();
-                setIsFavorite(!!fav);
+                setIsFavorite(
+                    Array.isArray(fav)
+                    && fav.some((entry: any) => String(entry.ad_id ?? entry.id) === String(adData.id)),
+                );
 
                 const { data: reqList } = await api.requests.list();
                 const req = (reqList || []).find((r: any) => r.requester_id === user.id && r.ad_id === id);
@@ -92,28 +96,24 @@ export default function AdDetails() {
 
     const toggleFavorite = async () => {
         if (!user || !ad) return;
-        
+
         if ('vibrate' in navigator) navigator.vibrate([15]);
 
-        if (isFavorite) {
-            const { error } = await api.favorites.toggle(ad.id);
-            if (error) {
-                console.error("Error removing favorite:", error);
-                toast.error("Konnte nicht von der Merkliste entfernt werden.");
-            } else {
-                setIsFavorite(false);
-                toast.success("Aus Merkliste entfernt");
-            }
-        } else {
-            const { error } = await api.favorites.toggle(ad.id);
-            if (error) {
-                console.error("Error adding favorite:", error);
-                toast.error("Konnte nicht zur Merkliste hinzugefügt werden.");
-            } else {
-                setIsFavorite(true);
-                toast.success("In Merkliste gespeichert!");
-            }
+        const nextFavorite = !isFavorite;
+        // Sofort umschalten, damit die Herz-Animation direkt auf den Tap folgt.
+        setIsFavorite(nextFavorite);
+
+        const { error } = await api.favorites.toggle(ad.id);
+        if (error) {
+            console.error(nextFavorite ? 'Error adding favorite:' : 'Error removing favorite:', error);
+            setIsFavorite(!nextFavorite);
+            toast.error(nextFavorite
+                ? 'Konnte nicht zur Merkliste hinzugefügt werden.'
+                : 'Konnte nicht von der Merkliste entfernt werden.');
+            return;
         }
+
+        toast.success(nextFavorite ? 'In Merkliste gespeichert!' : 'Aus Merkliste entfernt');
     };
 
     const sendRequest = async () => {
@@ -244,7 +244,7 @@ export default function AdDetails() {
                     </Button>
                     {!isOwn && (
                         <Button variant="ghost" size="icon" onClick={toggleFavorite} className={`size-11 rounded-lg hover:bg-destructive/10 ${isFavorite ? 'text-destructive' : 'text-muted-foreground'}`} aria-label={isFavorite ? 'Aus Merkliste entfernen' : 'Zur Merkliste hinzufügen'} aria-pressed={isFavorite}>
-                            <Heart fill={isFavorite ? 'currentColor' : 'none'} aria-hidden />
+                            <AnimatedHeart filled={isFavorite} size={20} />
                         </Button>
                     )}
                 </div>
