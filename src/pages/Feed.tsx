@@ -1,12 +1,12 @@
 import { Label } from '@/components/ui/label';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/table';
 import { NativeSelect } from '@/components/ui/native-select';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type FocusEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
 import { Card, CardContent, CardHeader } from '../components/ui/card';
 import { SubjectChip, SUBJECT_CATEGORIES, subjectLabelMap, type Subject } from '../components/SubjectChip';
-import { GraduationCap, MapPin, Clock, Filter, Search, CalendarDays, ShieldCheck, ChevronDown, ChevronUp, Share2, Sparkles, Bookmark, X, SearchX, Award, Users, ArrowUpDown } from 'lucide-react';
+import { GraduationCap, MapPin, Clock, Filter, Search, CalendarDays, ShieldCheck, ChevronDown, ChevronUp, ChevronRight, Share2, Sparkles, Bookmark, X, SearchX, Award, Users, ArrowUpDown, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle } from '../components/ui/sheet';
@@ -170,6 +170,8 @@ export default function Feed() {
     const [favoriteIds, setFavoriteIds] = useState<Set<string>>(() => new Set());
     const [favoritePendingIds, setFavoritePendingIds] = useState<Set<string>>(() => new Set());
     const [popularSubjects, setPopularSubjects] = useState<Subject[]>(POPULAR_FALLBACK);
+    const infoScrollerRef = useRef<HTMLDivElement>(null);
+    const [infoScroll, setInfoScroll] = useState({ left: false, right: false });
 
     // „Beliebt:“-Fächer: 1 Fetch pro Session (Memory-Cache), Fallback bleibt die Standardliste
     useEffect(() => {
@@ -305,6 +307,60 @@ export default function Feed() {
 
     const posterBlock = (coachingDoc.blocks.find((b): b is CoachingPosterBlock => b.type === 'poster')
         ?? DEFAULT_COACHING_DOC.blocks.find((b): b is CoachingPosterBlock => b.type === 'poster')) as CoachingPosterBlock;
+
+    // Die Fades an den Rändern sind echte Overflow-Signale: Sie erscheinen nur,
+    // wenn wirklich weitere Links außerhalb des Viewports liegen.
+    useEffect(() => {
+        const scroller = infoScrollerRef.current;
+        if (!scroller) return;
+
+        let cancelled = false;
+        const update = () => {
+            if (cancelled) return;
+            const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth;
+            const edgeTolerance = 8;
+            const next = {
+                left: scroller.scrollLeft > edgeTolerance,
+                right: maxScrollLeft > edgeTolerance && scroller.scrollLeft < maxScrollLeft - edgeTolerance,
+            };
+            setInfoScroll((current) => (
+                current.left === next.left && current.right === next.right ? current : next
+            ));
+        };
+
+        update();
+        const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update);
+        observer?.observe(scroller);
+        scroller.addEventListener('scroll', update, { passive: true });
+        window.addEventListener('resize', update);
+        if (document.fonts) {
+            void document.fonts.ready.then(update).catch(() => { /* Layout bleibt nutzbar. */ });
+        }
+
+        return () => {
+            cancelled = true;
+            observer?.disconnect();
+            scroller.removeEventListener('scroll', update);
+            window.removeEventListener('resize', update);
+        };
+    }, [posterBlock.time, posterBlock.room]);
+
+    // Tastaturfokus holt den jeweiligen Link mit etwas Rand in den Scroller,
+    // damit der 5px-Fokusring nicht am Rand abgeschnitten wird.
+    const revealInfoLink = (event: FocusEvent<HTMLDivElement>) => {
+        const scroller = infoScrollerRef.current;
+        const button = (event.target as HTMLElement | null)?.closest('button');
+        if (!scroller || !button) return;
+
+        const margin = 8;
+        const scrollerRect = scroller.getBoundingClientRect();
+        const buttonRect = button.getBoundingClientRect();
+        if (buttonRect.left < scrollerRect.left + margin) {
+            scroller.scrollLeft -= scrollerRect.left + margin - buttonRect.left;
+        } else if (buttonRect.right > scrollerRect.right - margin) {
+            scroller.scrollLeft += buttonRect.right - (scrollerRect.right - margin);
+        }
+    };
 
     useEffect(() => {
         if (user) {
@@ -777,49 +833,79 @@ export default function Feed() {
                 )}
             </AnimatePresence>
 
-            {/* Mobile: Anzeigen zuerst, nur die kompakten Info-Pills danach.
-                Desktop: kompakte Pills plus aufklappbare Info-Karten oben. */}
+            {/* Mobile: Anzeigen zuerst, nur die kompakte Info-Leiste danach.
+                Desktop: Info-Leiste plus aufklappbare Info-Karten oben. */}
             <div className="flex flex-col gap-6">
             <div className="order-2 md:order-1">
-            {/* Kompakte Info-Pills; die ausführlichen Karten gibt es nur ab md,
+            {/* Kompakte Info-Leiste; die ausführlichen Karten gibt es nur ab md,
                 damit mobile Ansicht und erster Anzeigen-Viewport schlank bleiben. */}
-            <div className="flex min-w-0 items-center gap-2">
-                <div className="no-scrollbar flex min-w-0 flex-1 items-center gap-2 overflow-x-auto pb-1">
-                    <span className="shrink-0 rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground">Infos</span>
-                    <Button variant="ghost" size="sm"
-                        type="button"
-                        onClick={() => navigate('/coaching')}
-                        className="h-9 shrink-0 rounded-full bg-muted/60 px-3 text-[13px] font-medium text-foreground hover:bg-muted"
+            <div className="flex h-14 min-w-0 items-center gap-2 rounded-2xl border border-border bg-card pl-4 pr-1.5">
+                <span className="inline-flex shrink-0 items-center gap-1.5 text-[13px] font-semibold text-muted-foreground">
+                    <Info size={14} className="shrink-0" aria-hidden />
+                    Infos
+                </span>
+                <span className="h-5 w-px shrink-0 bg-border" aria-hidden />
+                <div className="relative min-w-0 flex-1">
+                    <div
+                        ref={infoScrollerRef}
+                        onFocus={revealInfoLink}
+                        className="no-scrollbar flex w-full min-w-0 items-center gap-1.5 overflow-x-auto px-1.5 py-1.5"
                     >
-                        Coaching · {posterBlock.time} · {posterBlock.room}
-                    </Button>
-                    <Button variant="ghost" size="sm"
-                        type="button"
-                        onClick={() => navigate('/coaching', { state: { section: 'foerderung' } })}
-                        className="h-9 shrink-0 rounded-full bg-muted/60 px-3 text-[13px] font-medium text-foreground hover:bg-muted"
-                    >
-                        Förderunterricht
-                    </Button>
-                    <Button variant="ghost" size="sm"
-                        type="button"
-                        onClick={() => navigate('/eltern-leitfaden')}
-                        className="h-9 shrink-0 rounded-full bg-muted/60 px-3 text-[13px] font-medium text-foreground hover:bg-muted"
-                    >
-                        Eltern
-                    </Button>
+                        <Button variant="ghost" size="sm"
+                            type="button"
+                            onClick={() => navigate('/coaching')}
+                            title={`Coaching · ${posterBlock.time} · ${posterBlock.room}`}
+                            className="h-11 shrink-0 rounded-xl px-3 text-[13px] font-medium text-foreground hover:bg-muted"
+                        >
+                            <span className="whitespace-nowrap">Coaching</span>
+                        </Button>
+                        <Button variant="ghost" size="sm"
+                            type="button"
+                            onClick={() => navigate('/coaching', { state: { section: 'foerderung' } })}
+                            className="h-11 shrink-0 rounded-xl px-3 text-[13px] font-medium text-foreground hover:bg-muted"
+                        >
+                            <span className="whitespace-nowrap">Förderunterricht</span>
+                        </Button>
+                        <Button variant="ghost" size="sm"
+                            type="button"
+                            onClick={() => navigate('/eltern-leitfaden')}
+                            className="h-11 shrink-0 rounded-xl px-3 text-[13px] font-medium text-foreground hover:bg-muted"
+                        >
+                            <span className="whitespace-nowrap">Eltern</span>
+                        </Button>
+                    </div>
+                    {infoScroll.left && (
+                        <span
+                            className="pointer-events-none absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-card from-60% via-card/70 via-80% to-transparent"
+                            aria-hidden
+                        />
+                    )}
+                    {infoScroll.right && (
+                        <>
+                            <span
+                                className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-card via-card/80 to-transparent"
+                                aria-hidden
+                            />
+                            <span
+                                className="pointer-events-none absolute inset-y-0 right-0 flex w-8 items-center justify-center text-muted-foreground"
+                                aria-hidden
+                            >
+                                <ChevronRight size={15} />
+                            </span>
+                        </>
+                    )}
                 </div>
+                <span className="hidden h-5 w-px shrink-0 bg-border md:block" aria-hidden />
                 <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     aria-expanded={showBanners}
-                    className="hidden h-11 shrink-0 rounded-full bg-card px-4 text-[13px] font-semibold md:inline-flex"
+                    aria-label={showBanners ? 'Details verbergen' : 'Details anzeigen'}
+                    className="hidden h-11 shrink-0 gap-1.5 rounded-xl px-3 text-[13px] font-semibold text-foreground hover:bg-muted md:inline-flex"
                     onClick={() => { const next = !showBanners; setShowBanners(next); try { localStorage.setItem('feed_show_banners', String(next)); } catch { /* ignore */ } }}
                 >
-                    {showBanners ? (
-                        <><span>Details verbergen</span><ChevronUp size={14} aria-hidden /></>
-                    ) : (
-                        <><span>Details</span><ChevronDown size={14} aria-hidden /></>
-                    )}
+                    <span>Details</span>
+                    {showBanners ? <ChevronUp size={14} aria-hidden /> : <ChevronDown size={14} aria-hidden />}
                 </Button>
             </div>
 
@@ -1078,7 +1164,6 @@ export default function Feed() {
                                             price={ad.price_details?.value}
                                             mode={ad.price_details?.mode}
                                             duration={ad.price_details?.unit}
-                                            className={boosted ? 'ring-2 ring-primary-soft-foreground/15' : undefined}
                                         />
                                         {priceSecondary(ad) && (
                                             <div className="text-[13px] tabular-nums text-primary-soft-foreground/75">
