@@ -165,6 +165,38 @@ html.dark body :is(a, button, [tabindex]):focus-visible {
   outline-color: #facc15;
 }
 
+/* Documentation shell. Fumadocs centers the whole grid inside a 97rem track,
+   which pushes the sidebar away from the viewport edge on wide screens and
+   leaves an empty rail when the sidebar is collapsed. Pin the outer tracks to
+   zero so the sidebar is a true edge panel at every width. */
+#nd-docs-layout {
+  grid-template-columns:
+    0 var(--fd-sidebar-col) minmax(0, 1fr) var(--fd-toc-width) 0 !important;
+}
+
+/* Collapsed, the zero-width sidebar column hands its width back to the main
+   column. Below xl there is no TOC column, so let the main track span the full
+   available width; keep the 4rem left gutter for the edge controls. */
+@media (min-width: 768px) {
+  #nd-docs-layout[data-sidebar-collapsed='true'] [data-layout-main] {
+    justify-items: start;
+    padding-inline: 4rem 1rem;
+  }
+}
+
+/* At xl the TOC exists. Cap the main track at 900px article + 64px left gutter
+   + 68px TOC gap, place the TOC directly behind it, and leave the rest right. */
+@media (min-width: 1280px) {
+  #nd-docs-layout[data-sidebar-collapsed='true'] {
+    grid-template-columns:
+      0 0 minmax(0, 1032px) var(--fd-toc-width) minmax(0, 1fr) !important;
+  }
+
+  #nd-docs-layout[data-sidebar-collapsed='true'] [data-layout-main] {
+    padding-inline-end: 4.25rem;
+  }
+}
+
 /* Readable editorial content on a soft, rounded card. The article keeps one
    top padding layer so the first heading does not sit below an empty band. */
 #nd-page {
@@ -352,24 +384,75 @@ html.dark body :is(a, button, [tabindex]):focus-visible {
   color: #ffffff;
 }
 
-/* Search trigger and sidebar surfaces. */
+/* Search trigger and sidebar surfaces. The open sidebar is a full-height
+   panel with its own right-hand border, anchored to the viewport edge. */
 #nd-sidebar {
-  background: transparent;
+  background: var(--color-fd-card);
+  border-inline-end: 1px solid var(--color-fd-border);
 }
 
-/* A collapsed panel slides over the page; it needs an opaque surface so the
-   article does not show through it. */
+/* Keep the same edge-aligned surface while the panel is off-canvas, so the
+   expand transition does not travel through a floating rounded card. The
+   hover rail is replaced by the labelled control in `DocsCollapsedControls`. */
 #nd-sidebar[data-collapsed='true'] {
+  inset-block: 0;
+  border-radius: 0;
+  background: var(--color-fd-card);
+  box-shadow: none;
+}
+
+[data-sidebar-placeholder] > div:first-child,
+[data-sidebar-panel] {
+  display: none !important;
+}
+
+/* Collapsed sidebar controls: a 44px edge tab for expand + search. It sits in
+   the main column's 4rem left gutter, so it never covers running text. */
+.docs-collapsed-controls {
+  position: fixed;
+  top: calc(3rem + var(--fd-docs-row-3, 0px));
+  inset-inline-start: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.125rem;
+  border: 1px solid var(--color-fd-border);
+  border-inline-start: 0;
+  border-radius: 0 9999px 9999px 0;
   background: var(--color-fd-card);
   box-shadow:
     0 1px 2px rgb(23 24 28 / 0.06),
-    0 24px 48px -24px rgb(23 24 28 / 0.28);
+    0 18px 40px -24px rgb(23 24 28 / 0.28);
 }
 
-.dark #nd-sidebar[data-collapsed='true'] {
+.dark .docs-collapsed-controls {
   box-shadow:
     0 1px 2px rgb(0 0 0 / 0.4),
-    0 24px 48px -24px rgb(0 0 0 / 0.8);
+    0 18px 40px -24px rgb(0 0 0 / 0.8);
+}
+
+.docs-collapsed-controls button {
+  display: inline-flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  color: var(--color-fd-foreground);
+}
+
+.docs-collapsed-controls button:hover {
+  background: var(--color-fd-accent);
+  color: var(--color-fd-accent-foreground);
+}
+
+.docs-collapsed-controls svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: 0 0 auto;
 }
 
 #nd-sidebar [data-search-trigger],
@@ -393,15 +476,104 @@ html.dark body :is(a, button, [tabindex]):focus-visible {
   line-height: 1.35;
 }
 
+/* Hover is text-only so only the active TOC entry can show a filled pill.
+   (The TOC auto-scrolls under a resting pointer after a click, so any hover
+   fill there looked like a second active row.) */
 #nd-toc a:hover {
+  background: transparent;
+  color: var(--color-fd-foreground);
+}
+
+/* Back-to-top lives at the bottom of the TOC rail on desktop and floats in
+   the bottom corner where the TOC is hidden. */
+.docs-toc-top {
+  display: inline-flex;
+  width: 100%;
+  min-height: 2.75rem;
+  margin-top: 0.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--color-fd-border);
+  border-radius: 9999px;
+  background: var(--color-fd-card);
+  padding: 0.5rem 0.75rem;
+  color: var(--color-fd-muted-foreground);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.2;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.docs-toc-top:hover {
+  border-color: var(--color-fd-ring);
   background: var(--color-fd-accent);
   color: var(--color-fd-accent-foreground);
 }
 
-/* Fumadocs marks every heading in the current section as active. A filled
-   pill on each one stacks into a yellow blob, so keep the ancestor headings
-   quiet and highlight only the deepest active heading. Browsers without
-   :has() still get the flat, blob-free fallback above. */
+.docs-toc-top-icon {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+}
+
+.docs-back-to-top {
+  position: fixed;
+  inset-inline-end: 1.25rem;
+  bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  z-index: 30;
+  display: inline-flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-fd-border);
+  border-radius: 9999px;
+  background: var(--color-fd-card);
+  color: var(--color-fd-foreground);
+  box-shadow:
+    0 1px 2px rgb(23 24 28 / 0.06),
+    0 18px 40px -24px rgb(23 24 28 / 0.28);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(0.5rem);
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease,
+    background-color 150ms ease,
+    visibility 0s linear 150ms;
+}
+
+.docs-back-to-top[data-visible='true'] {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0s;
+}
+
+.docs-back-to-top:hover {
+  background: var(--color-fd-accent);
+  color: var(--color-fd-accent-foreground);
+}
+
+.dark .docs-back-to-top {
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.4),
+    0 18px 40px -24px rgb(0 0 0 / 0.8);
+}
+
+@media (min-width: 1280px) {
+  .docs-back-to-top {
+    display: none;
+  }
+}
+
+/* `single` (see docs.tsx) keeps exactly one active TOC anchor. Keep the accent
+   pill on that item only; the :not(:has(...)) guard is a defensive fallback
+   if several ancestors ever report active. Browsers without :has() still get
+   the flat, blob-free fallback above. */
 #nd-toc a[data-active='true'] {
   background: transparent;
   color: var(--color-fd-muted-foreground);
@@ -511,11 +683,17 @@ button[data-theme-toggle] svg {
 @media (prefers-reduced-motion: reduce) {
   .platform-cta,
   .docs-action,
+  .docs-toc-top,
+  .docs-back-to-top,
   button[data-theme-toggle] {
     transition: none;
   }
 
   .platform-cta:hover {
+    transform: none;
+  }
+
+  .docs-back-to-top {
     transform: none;
   }
 }
@@ -530,6 +708,8 @@ button[data-theme-toggle] svg {
   [data-toc-popover],
   .docs-breadcrumb,
   .docs-page-actions,
+  .docs-collapsed-controls,
+  .docs-back-to-top,
   .platform-cta {
     display: none !important;
   }

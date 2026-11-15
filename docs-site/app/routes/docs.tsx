@@ -17,6 +17,11 @@ import { baseOptions } from '@/lib/layout.shared';
 import { useFumadocsLoader } from 'fumadocs-core/source/client';
 import { useMDXComponents } from '@/components/mdx';
 import { PageActions } from '@/components/page-actions';
+import {
+  DocsCollapsedControls,
+  DocsMobileBackToTop,
+  DocsTocBackToTop,
+} from '@/components/docs-controls';
 import { use, type ComponentProps } from 'react';
 
 function Table(props: ComponentProps<'table'>) {
@@ -95,8 +100,15 @@ function Content({ path, markdown }: { path: string; markdown: string }) {
     <DocsPage
       toc={toc}
       slots={{ breadcrumb: DocsBreadcrumb }}
-      tableOfContent={{ container: { role: 'navigation', 'aria-labelledby': 'toc-title' } }}
+      tableOfContent={{
+        // A single active anchor keeps one TOC pill on the section the reader
+        // clicked, instead of marking every heading visible in the viewport.
+        single: true,
+        container: { role: 'navigation', 'aria-labelledby': 'toc-title' },
+        footer: <DocsTocBackToTop />,
+      }}
     >
+      <DocsCollapsedControls />
       <title>{page.title}</title>
       <meta name="description" content={page.description} />
       <div className="docs-page-title-row">
@@ -111,12 +123,21 @@ function Content({ path, markdown }: { path: string; markdown: string }) {
           <span aria-hidden>·</span>
           <a
             href="mailto:info@nachhilfe-sv.de?subject=Feedback%20zur%20Dokumentation"
-            className="underline underline-offset-2 hover:text-fd-foreground"
+            className="inline-flex min-h-11 items-center underline underline-offset-2 hover:text-fd-foreground"
           >
             Feedback zur Dokumentation
           </a>
+          <span aria-hidden>·</span>
+          <a
+            href="/docs/llms.txt"
+            className="inline-flex min-h-11 items-center underline underline-offset-2 hover:text-fd-foreground"
+            title="Die Dokumentation als llms.txt für KI-Assistenten"
+          >
+            llms.txt für KI-Assistenten
+          </a>
         </footer>
       </DocsBody>
+      <DocsMobileBackToTop />
     </DocsPage>
   );
 }
