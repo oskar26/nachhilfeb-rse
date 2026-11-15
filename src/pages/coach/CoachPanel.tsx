@@ -10,6 +10,18 @@ import { Input } from '../../components/ui/input';
 import { Checkbox } from '../../components/ui/checkbox';
 import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
 import { Spinner } from '../../components/ui/spinner';
+import { Badge } from '../../components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '../../components/ui/alert-dialog';
 import {
     Award,
     Search,
@@ -18,16 +30,112 @@ import {
     RefreshCw,
     Plus,
     History,
-    GraduationCap,
     Users,
     Key,
     Megaphone,
-    LayoutTemplate
+    LayoutTemplate,
+    Trash2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
 import { triggerHaptic } from '../../lib/haptics';
 import CoachingPageBuilder from './CoachingPageBuilder';
+
+const DEFAULT_CODE_DESCRIPTION = 'Vergeben durch Schüler-Coaching Leitung (Frau Balistreri)';
+const CODE_PREFIX_MAX_LENGTH = 16;
+const CODE_SUFFIX_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const ROLE_LABELS: Record<string, string> = {
+    sv_admin: 'SV-Admin',
+    coach_admin: 'Coach-Leitung',
+    parent: 'Elternteil',
+};
+
+function studentDisplayName(student: any): string {
+    return student.display_name
+        || [student.first_name, student.last_name].filter(Boolean).join(' ')
+        || 'Unbekannt';
+}
+
+function studentInitials(student: any): string {
+    const parts = studentDisplayName(student).split(/\s+/).filter(Boolean);
+    const initials = parts.slice(0, 2).map(part => part.charAt(0)).join('');
+    return (initials || '?').toUpperCase();
+}
+
+function studentFunction(student: any): string {
+    return ROLE_LABELS[student.role] ?? (student.is_coach ? 'Coach' : 'Schüler/in');
+}
+
+function normalizeCodePrefix(value: string): string {
+    return value
+        .trim()
+        .toUpperCase()
+        .replace(/[^A-Z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, CODE_PREFIX_MAX_LENGTH);
+}
+
+function randomCodeSuffix(length: number): string {
+    if (typeof crypto === 'undefined' || typeof crypto.getRandomValues !== 'function') {
+        throw new Error('Der sichere Zufallsgenerator des Browsers ist nicht verfügbar.');
+    }
+    const values = new Uint32Array(length);
+    crypto.getRandomValues(values);
+    return Array.from(values, value => CODE_SUFFIX_ALPHABET[value % CODE_SUFFIX_ALPHABET.length]).join('');
+}
+
+function createCoachCode(prefix: string, existingCodes: Set<string>): string {
+    const cleanPrefix = normalizeCodePrefix(prefix) || 'COACH';
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+        const code = `${cleanPrefix}-${randomCodeSuffix(5)}`;
+        if (!existingCodes.has(code.toUpperCase())) return code;
+    }
+    throw new Error('Es konnte kein freier Code erzeugt werden. Bitte erneut versuchen.');
+}
+
+function isDuplicateCodeError(error: any): boolean {
+    const text = [
+        error?.message,
+        error?.rawText,
+        error?.details?.message,
+        typeof error?.details === 'string' ? error.details : '',
+    ].filter(Boolean).join(' ');
+    return error?.status === 409 || /duplicate|eindeutig|existiert|already exists|unique/i.test(text);
+}
+
+function formatCodeDate(value?: string | null): string | null {
+    if (!value) return null;
+    // MySQL DATETIME liefert "YYYY-MM-DD HH:MM:SS"; Safari scheitert daran.
+    const normalized = value.includes('T') ? value : value.replace(' ', 'T');
+    const date = new Date(normalized);
+    if (Number.isNaN(date.getTime())) return null;
+    return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
+}
+
+function StudentAvatar({ student, className }: { student: any; className?: string }) {
+    const avatarUrl = typeof student.avatar_url === 'string' ? student.avatar_url.trim() : '';
+    const [failed, setFailed] = useState(false);
+
+    useEffect(() => {
+        setFailed(false);
+    }, [avatarUrl]);
+
+    return (
+        <div className={cn('grid size-11 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted text-sm font-semibold text-foreground', className)}>
+            {avatarUrl && !failed ? (
+                <img
+                    src={avatarUrl}
+                    alt=""
+                    loading="lazy"
+                    className="size-full object-cover"
+                    onError={() => setFailed(true)}
+                />
+            ) : (
+                <span aria-hidden>{studentInitials(student)}</span>
+            )}
+        </div>
+    );
+}
 
 export default function CoachPanel() {
     const { isCoachAdmin } = useAuth();
@@ -45,8 +153,18 @@ export default function CoachPanel() {
     const [coachCodes, setCoachCodes] = useState<any[]>([]);
     const [loadingCodes, setLoadingCodes] = useState(false);
     const [codesError, setCodesError] = useState<string | null>(null);
-    const [generatingCode, setGeneratingCode] = useState(false);
+    const [creatingCode, setCreatingCode] = useState(false);
+    const [codeCreateError, setCodeCreateError] = useState<string | null>(null);
+    const [createdCode, setCreatedCode] = useState<{ id: string; code: string; expiresAt: string | null; maxUses: number | null } | null>(null);
+    const [deletingCodeId, setDeletingCodeId] = useState<string | null>(null);
+    const [pendingDelete, setPendingDelete] = useState<any | null>(null);
     const [copiedId, setCopiedId] = useState<string | null>(null);
+    const [codeForm, setCodeForm] = useState({
+        prefix: 'COACH',
+        maxUses: '1',
+        expiryDays: '180',
+        description: DEFAULT_CODE_DESCRIPTION,
+    });
 
     // Info-Box State
     const [infoForm, setInfoForm] = useState({
@@ -86,10 +204,14 @@ export default function CoachPanel() {
         setStudentsError(null);
         try {
             const res = await api.coach.listStudents();
+            if (res.error) throw new Error(res.error.message || 'Fehler beim Laden');
             if (res.data) setStudents(res.data);
-        } catch {
-            setStudentsError('Schülerliste konnte nicht geladen werden.');
-            toast.error('Schülerliste konnte nicht geladen werden.');
+        } catch (e: any) {
+            const message = e?.message && e.message !== 'Fehler beim Laden'
+                ? `Schülerliste konnte nicht geladen werden: ${e.message}`
+                : 'Schülerliste konnte nicht geladen werden.';
+            setStudentsError(message);
+            toast.error(message);
         } finally {
             setLoadingStudents(false);
         }
@@ -100,11 +222,13 @@ export default function CoachPanel() {
         setCodesError(null);
         try {
             const res = await api.promo_codes.list();
+            if (res.error) throw new Error(res.error.message || 'Fehler beim Laden');
             const list = (res.data || []).filter((c: any) => c.effect_type === 'coach_verification' || c.target_group === 'coach');
             setCoachCodes(list);
         } catch (e: any) {
-            setCodesError('Codes konnten nicht geladen werden: ' + (e.message || 'Fehler'));
-            toast.error('Codes konnten nicht geladen werden: ' + (e.message || 'Fehler'));
+            const detail = e?.message && e.message !== 'Fehler beim Laden' ? `: ${e.message}` : '.';
+            setCodesError(`Codes konnten nicht geladen werden${detail}`);
+            toast.error(`Codes konnten nicht geladen werden${detail}`);
         } finally {
             setLoadingCodes(false);
         }
@@ -115,10 +239,12 @@ export default function CoachPanel() {
         setLogsError(null);
         try {
             const res = await api.coach.listLogs();
+            if (res.error) throw new Error(res.error.message || 'Fehler beim Laden');
             if (res.data) setLogs(res.data);
         } catch (e: any) {
-            setLogsError('Protokoll konnte nicht geladen werden: ' + (e.message || 'Fehler'));
-            toast.error('Protokoll konnte nicht geladen werden: ' + (e.message || 'Fehler'));
+            const detail = e?.message && e.message !== 'Fehler beim Laden' ? `: ${e.message}` : '.';
+            setLogsError(`Protokoll konnte nicht geladen werden${detail}`);
+            toast.error(`Protokoll konnte nicht geladen werden${detail}`);
         } finally {
             setLoadingLogs(false);
         }
@@ -129,6 +255,7 @@ export default function CoachPanel() {
         setInfoError(null);
         try {
             const res = await api.coach.getCoachInfo();
+            if (res.error) throw new Error(res.error.message || 'Fehler beim Laden');
             if (res.data) {
                 setInfoForm({
                     title: res.data.title || '',
@@ -138,9 +265,10 @@ export default function CoachPanel() {
                     is_visible: res.data.is_visible !== false
                 });
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error('Error loading coach info:', e);
-            setInfoError('Startseiten-Infos konnten nicht geladen werden.');
+            const detail = e?.message && e.message !== 'Fehler beim Laden' ? `: ${e.message}` : '.';
+            setInfoError(`Startseiten-Infos konnten nicht geladen werden${detail}`);
         } finally {
             setLoadingInfo(false);
         }
@@ -166,45 +294,144 @@ export default function CoachPanel() {
     const handleToggleCoach = async (student: any) => {
         triggerHaptic('selection');
         const nextStatus = !student.is_coach;
+        const name = studentDisplayName(student);
         try {
-            await api.coach.setCoachStatus(student.id, nextStatus);
+            const response = await api.coach.setCoachStatus(student.id, nextStatus);
+            if (response.error) throw new Error(response.error.message || 'Fehler');
             setStudents(prev => prev.map(s => s.id === student.id ? { ...s, is_coach: nextStatus } : s));
-            toast.success(nextStatus ? `${student.display_name} ist jetzt Schüler-Coach!` : `Coach-Status für ${student.display_name} entfernt.`);
+            toast.success(nextStatus ? `${name} ist jetzt Schüler-Coach!` : `Coach-Status für ${name} entfernt.`);
         } catch (e: any) {
-            toast.error('Änderung fehlgeschlagen: ' + e.message);
+            toast.error('Änderung fehlgeschlagen: ' + (e?.message || 'Unbekannter Fehler'));
         }
     };
 
-    const handleGenerateCoachCode = async () => {
+    const handleCreateCoachCode = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        if (creatingCode) return;
         triggerHaptic('medium');
-        setGeneratingCode(true);
+        setCodeCreateError(null);
+        setCreatedCode(null);
+
+        const prefix = normalizeCodePrefix(codeForm.prefix);
+        if (!prefix) {
+            setCodeCreateError('Bitte gib ein Präfix mit mindestens einem Buchstaben oder einer Zahl an.');
+            return;
+        }
+
+        const maxUsesInput = codeForm.maxUses.trim();
+        const maxUses = maxUsesInput ? Number(maxUsesInput) : null;
+        if (maxUses !== null && (!Number.isInteger(maxUses) || maxUses < 1)) {
+            setCodeCreateError('Nutzungen müssen eine ganze Zahl ab 1 sein – oder leer für unbegrenzt.');
+            return;
+        }
+
+        const expiryInput = codeForm.expiryDays.trim();
+        const expiryDays = expiryInput ? Number(expiryInput) : null;
+        if (expiryDays !== null && (!Number.isInteger(expiryDays) || expiryDays < 1)) {
+            setCodeCreateError('Die Gültigkeit muss eine ganze Zahl ab 1 Tag sein – oder leer für unbegrenzt.');
+            return;
+        }
+
+        const expiresAt = expiryDays === null
+            ? null
+            : new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000).toISOString();
+        const description = codeForm.description.trim();
+
+        setCreatingCode(true);
         try {
-            const randomCode = 'COACH-' + Math.random().toString(36).substring(2, 7).toUpperCase();
-            await api.promo_codes.create({
-                code: randomCode,
-                effect_type: 'coach_verification',
-                push_level: 'super',
-                boost_days: 30,
-                max_uses: 1,
-                target_group: 'coach',
-                description: 'Vergeben durch Schüler-Coaching Leitung (Frau Balistreri)',
-                expiry_days: 180
-            });
-            toast.success(`Coaching-Code „${randomCode}“ erfolgreich erstellt!`);
-            loadCodes();
+            const existingCodes = new Set(coachCodes.map(item => String(item.code || '').toUpperCase()));
+            let lastError: any = null;
+            let retriedAfterServerError = false;
+
+            for (let attempt = 0; attempt < 4; attempt += 1) {
+                const code = createCoachCode(prefix, existingCodes);
+                const response = await api.promo_codes.create({
+                    code,
+                    effect_type: 'coach_verification',
+                    // Bestehende Coach-Code-Semantik: Coach-Haken plus 30 Tage Hervorhebung.
+                    push_level: 'super',
+                    boost_days: 30,
+                    max_uses: maxUses,
+                    target_group: 'coach',
+                    description: description || undefined,
+                    ...(expiryDays !== null ? { expiry_days: expiryDays } : {}),
+                });
+
+                if (!response.error) {
+                    const created = {
+                        id: String(response.data?.id || `local-${Date.now()}`),
+                        code,
+                        effect_type: 'coach_verification',
+                        push_level: 'super',
+                        boost_days: 30,
+                        max_uses: maxUses,
+                        current_uses: 0,
+                        used_count: 0,
+                        is_active: true,
+                        target_group: 'coach',
+                        description: description || DEFAULT_CODE_DESCRIPTION,
+                        created_at: new Date().toISOString(),
+                        expires_at: expiresAt,
+                    };
+                    setCoachCodes(previous => [created, ...previous.filter(item => item.code !== code)]);
+                    setCreatedCode({ id: created.id, code, expiresAt, maxUses });
+                    setCopiedId(null);
+                    toast.success(`Coaching-Code „${code}“ erfolgreich erstellt!`);
+                    return;
+                }
+
+                lastError = response.error;
+                existingCodes.add(code.toUpperCase());
+
+                // Das PHP-Backend fängt die Unique-Verletzung nicht ab und liefert
+                // dafür HTTP 500 statt 409. Ein 500er wird deshalb genau einmal
+                // mit einem frisch erzeugten Code wiederholt; ein zweiter Fehler
+                // wird unverändert an die Oberfläche durchgereicht.
+                if (retriedAfterServerError) break;
+                if (response.error.status === 500) {
+                    retriedAfterServerError = true;
+                    continue;
+                }
+                if (!isDuplicateCodeError(response.error)) break;
+            }
+
+            throw new Error(lastError?.message || 'Code konnte nicht erstellt werden.');
         } catch (e: any) {
-            toast.error('Erstellung fehlgeschlagen: ' + e.message);
+            const message = e?.message || 'Unbekannter Fehler';
+            setCodeCreateError('Erstellung fehlgeschlagen: ' + message);
+            toast.error('Erstellung fehlgeschlagen: ' + message);
         } finally {
-            setGeneratingCode(false);
+            setCreatingCode(false);
         }
     };
 
-    const handleCopy = (id: string, text: string) => {
+    const handleDeleteCode = async () => {
+        if (!pendingDelete || deletingCodeId) return;
+        setDeletingCodeId(pendingDelete.id);
+        try {
+            const response = await api.promo_codes.delete(pendingDelete.id);
+            if (response.error) throw new Error(response.error.message || 'Fehler');
+            setCoachCodes(previous => previous.filter(item => item.id !== pendingDelete.id));
+            if (createdCode?.id === pendingDelete.id) setCreatedCode(null);
+            toast.success(`Coaching-Code „${pendingDelete.code}“ gelöscht.`);
+            setPendingDelete(null);
+        } catch (e: any) {
+            toast.error('Löschen fehlgeschlagen: ' + (e?.message || 'Unbekannter Fehler'));
+        } finally {
+            setDeletingCodeId(null);
+        }
+    };
+
+    const handleCopy = async (id: string, text: string) => {
         triggerHaptic('light');
-        navigator.clipboard.writeText(text);
-        setCopiedId(id);
-        toast.success('Code kopiert!');
-        setTimeout(() => setCopiedId(null), 2000);
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopiedId(id);
+            toast.success('Code kopiert!');
+            setTimeout(() => setCopiedId(null), 2000);
+        } catch {
+            toast.error('Kopieren nicht möglich. Bitte markiere den Code und kopiere ihn manuell.');
+        }
     };
 
     const filteredStudents = students.filter(s => {
@@ -212,7 +439,8 @@ export default function CoachPanel() {
             (s.display_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
             (s.first_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
             (s.last_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (s.grade_level || '').toLowerCase().includes(searchQuery.toLowerCase())
+            (s.grade_level || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            studentFunction(s).toLowerCase().includes(searchQuery.toLowerCase())
         );
 
         if (!matchesQuery) return false;
@@ -291,7 +519,7 @@ export default function CoachPanel() {
                         <div className="relative w-full sm:w-80">
                             <Search size={20} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden />
                             <Input
-                                placeholder="Schüler suchen (Name, Klasse)..."
+                                placeholder="Schüler suchen (Name, Klasse, Funktion)"
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
                                 className="h-11 pl-11"
@@ -346,52 +574,107 @@ export default function CoachPanel() {
                             Keine Schüler passend zu deinen Suchkriterien gefunden.
                         </Card>
                     ) : (
-                        <div className="grid gap-3 lg:grid-cols-2">
-                            {filteredStudents.map(student => (
-                                <Card key={student.id} className=" transition-colors hover:border-foreground/30">
-                                    <CardContent className="flex flex-col gap-3 p-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="grid size-11 shrink-0 place-items-center rounded-xl border bg-muted font-semibold text-muted-foreground">
-                                                {student.display_name?.charAt(0) || '?'}
-                                            </div>
-                                            <div className="min-w-0">
-                                                <div className="flex items-center gap-1.5">
-                                                    <span className="break-words text-sm font-semibold text-foreground">
-                                                        {student.display_name || `${student.first_name} ${student.last_name}`}
-                                                    </span>
-                                                    {student.is_coach && (
-                                                        <span title="Schüler-Coach">
-                                                            <Award size={16} className="shrink-0 text-muted-foreground" aria-hidden />
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <p className="mt-0.5 flex flex-wrap items-center gap-1 text-xs font-medium text-muted-foreground">
-                                                    <GraduationCap size={16} aria-hidden />
-                                                    {student.grade_level ? `Klasse ${student.grade_level}${student.class_letter || ''}` : 'Keine Klasse'}
-                                                    {student.active_ads_count > 0 && (
-                                                        <span className="ml-1 rounded-lg bg-muted px-2 py-1 text-xs font-medium">
-                                                            {student.active_ads_count} {student.active_ads_count === 1 ? 'Anzeige' : 'Anzeigen'}
-                                                        </span>
-                                                    )}
-                                                </p>
-                                            </div>
-                                        </div>
+                        <>
+                            {/* Desktop: kompakte Tabelle */}
+                            <Card className="hidden md:block">
+                                <CardContent padding="flush">
+                                    <Table className="text-[13px]">
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead className="h-11 pl-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Schüler</TableHead>
+                                                <TableHead className="h-11 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Klasse</TableHead>
+                                                <TableHead className="h-11 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Funktion</TableHead>
+                                                <TableHead className="h-11 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Anzeigen</TableHead>
+                                                <TableHead className="h-11 pr-4 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Aktion</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {filteredStudents.map(student => {
+                                                const activeAds = Number(student.active_ads_count) || 0;
+                                                return (
+                                                    <TableRow key={student.id}>
+                                                        <TableCell className="max-w-[22rem] py-3 pl-4 whitespace-normal">
+                                                            <div className="flex min-w-0 items-center gap-3">
+                                                                <StudentAvatar student={student} />
+                                                                <div className="min-w-0">
+                                                                    <div className="break-words text-[13px] font-semibold text-foreground">{studentDisplayName(student)}</div>
+                                                                    {student.is_verified ? <span className="mt-0.5 block text-[13px] leading-4 font-medium text-muted-foreground">Verifiziert</span> : null}
+                                                                </div>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell className="py-3 text-[13px] text-muted-foreground">
+                                                            {student.grade_level ? `Klasse ${student.grade_level}${student.class_letter || ''}` : '–'}
+                                                        </TableCell>
+                                                        <TableCell className="py-3">
+                                                            <Badge variant={student.is_coach ? 'success' : 'outline'} className="font-medium">
+                                                                {studentFunction(student)}
+                                                            </Badge>
+                                                        </TableCell>
+                                                        <TableCell className="py-3 text-right text-[13px] tabular-nums text-muted-foreground">
+                                                            {activeAds}
+                                                        </TableCell>
+                                                        <TableCell className="py-3 pr-4 text-right">
+                                                            <Button
+                                                                size="sm"
+                                                                variant={student.is_coach ? 'outline' : 'primary'}
+                                                                onClick={() => handleToggleCoach(student)}
+                                                                className={cn(
+                                                                    'h-11 min-h-11 px-3 text-[13px]',
+                                                                    student.is_coach && 'text-destructive hover:bg-destructive/10'
+                                                                )}
+                                                                aria-label={`${studentDisplayName(student)} ${student.is_coach ? 'Coach-Status entziehen' : 'zum Coach machen'}`}
+                                                            >
+                                                                {student.is_coach ? 'Coach entziehen' : 'Zum Coach machen'}
+                                                            </Button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                );
+                                            })}
+                                        </TableBody>
+                                    </Table>
+                                </CardContent>
+                            </Card>
 
-                                        <Button
-                                            size="sm"
-                                            variant={student.is_coach ? 'outline' : 'primary'}
-                                            onClick={() => handleToggleCoach(student)}
-                                            className={cn(
-                                                'h-11 w-full text-xs',
-                                                student.is_coach && 'text-destructive hover:bg-destructive/10'
-                                            )}
-                                        >
-                                            {student.is_coach ? 'Coach entziehen' : 'Zum Coach machen'}
-                                        </Button>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
+                            {/* Mobil: Zeilenkarten mit Avatar links und kompakter Aktion rechts */}
+                            <div className="space-y-2 md:hidden">
+                                {filteredStudents.map(student => {
+                                    const activeAds = Number(student.active_ads_count) || 0;
+                                    return (
+                                        <Card key={student.id}>
+                                            <CardContent className="flex items-center gap-3 p-3">
+                                                <StudentAvatar student={student} />
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="break-words text-[13px] font-semibold leading-tight text-foreground">
+                                                        {studentDisplayName(student)}
+                                                    </div>
+                                                    <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[13px] leading-tight text-muted-foreground">
+                                                        <span>{student.grade_level ? `Klasse ${student.grade_level}${student.class_letter || ''}` : 'Keine Klasse'}</span>
+                                                        <span aria-hidden>·</span>
+                                                        <span>{studentFunction(student)}</span>
+                                                    </p>
+                                                    <p className="mt-1 flex items-center gap-1 text-[13px] leading-tight text-muted-foreground">
+                                                        <Megaphone size={14} aria-hidden />
+                                                        {activeAds} {activeAds === 1 ? 'Anzeige' : 'Anzeigen'}
+                                                    </p>
+                                                </div>
+                                                <Button
+                                                    size="sm"
+                                                    variant={student.is_coach ? 'outline' : 'primary'}
+                                                    onClick={() => handleToggleCoach(student)}
+                                                    className={cn(
+                                                        'h-11 min-h-11 shrink-0 px-3 text-[13px]',
+                                                        student.is_coach && 'text-destructive hover:bg-destructive/10'
+                                                    )}
+                                                    aria-label={`${studentDisplayName(student)} ${student.is_coach ? 'Coach-Status entziehen' : 'zum Coach machen'}`}
+                                                >
+                                                    {student.is_coach ? 'Coach entziehen' : 'Zum Coach machen'}
+                                                </Button>
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })}
+                            </div>
+                        </>
                     )}
                 </div>
             )}
@@ -399,32 +682,132 @@ export default function CoachPanel() {
             {/* TAB 2: COACHING CODES */}
             {activeTab === 'codes' && (
                 <div className="min-h-[480px] space-y-4">
-                    <Card className="">
-                        <CardContent className="flex flex-col gap-3 p-4 lg:flex-row lg:items-start lg:justify-between sm:p-5">
-                            <div className="min-w-0">
-                                <h3 className="text-base font-semibold text-foreground">Neue Schüler-Coaching Codes vergeben</h3>
-                                <p className="mt-1 text-xs text-muted-foreground">
-                                    Diese Codes schalten den offiziellen Schüler-Coach-Haken und eine 30-tägige
-                                    Hervorhebung („Hervorgehobene Anzeige“) frei. <strong className="font-semibold text-foreground">Fairness:</strong> Codes nur
-                                    nach Schulung und nur an AG-Mitglieder vergeben – jede Vergabe und Einlösung wird
-                                    protokolliert. Die öffentlichen Regeln stehen auf der Coaching-Seite.
-                                </p>
+                    <Card>
+                        <CardContent className="p-4 sm:p-5">
+                            <div className="flex items-start gap-3">
+                                <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-muted text-foreground">
+                                    <Key size={18} aria-hidden />
+                                </span>
+                                <div className="min-w-0">
+                                    <h3 className="text-base font-semibold text-foreground">Neuen Coaching-Code erstellen</h3>
+                                    <p className="mt-1 text-[13px] leading-5 text-muted-foreground">
+                                        Codes schalten den offiziellen Schüler-Coach-Haken frei. Nur nach Schulung und nur an
+                                        AG-Mitglieder vergeben – jede Vergabe und Einlösung wird protokolliert.
+                                    </p>
+                                </div>
                             </div>
-                            <Button
-                                onClick={handleGenerateCoachCode}
-                                disabled={generatingCode}
-                                className="h-11 shrink-0 gap-2 text-xs"
-                            >
-                                <Plus size={16} aria-hidden /> Neuen Coaching-Code erstellen
-                            </Button>
+
+                            <form onSubmit={handleCreateCoachCode} className="mt-4 space-y-4">
+                                <div className="grid gap-4 sm:grid-cols-3">
+                                    <div className="min-w-0 space-y-1.5">
+                                        <Label htmlFor="coach-code-prefix" className="text-[13px] font-medium">Präfix</Label>
+                                        <Input
+                                            id="coach-code-prefix"
+                                            value={codeForm.prefix}
+                                            onChange={event => setCodeForm({ ...codeForm, prefix: event.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '') })}
+                                            placeholder="COACH"
+                                            maxLength={CODE_PREFIX_MAX_LENGTH}
+                                            autoComplete="off"
+                                            spellCheck={false}
+                                            className="uppercase tracking-wider"
+                                            required
+                                        />
+                                        <p className="text-[13px] leading-5 text-muted-foreground">Der Code wird als Präfix plus zufälligem Suffix erzeugt, z. B. COACH-7K2M9.</p>
+                                    </div>
+                                    <div className="min-w-0 space-y-1.5">
+                                        <Label htmlFor="coach-code-uses" className="text-[13px] font-medium">Nutzungen</Label>
+                                        <Input
+                                            id="coach-code-uses"
+                                            type="number"
+                                            inputMode="numeric"
+                                            min={1}
+                                            step={1}
+                                            value={codeForm.maxUses}
+                                            onChange={event => setCodeForm({ ...codeForm, maxUses: event.target.value })}
+                                            placeholder="1"
+                                        />
+                                        <p className="text-[13px] leading-5 text-muted-foreground">Leer lassen für unbegrenzte Einlösungen.</p>
+                                    </div>
+                                    <div className="min-w-0 space-y-1.5">
+                                        <Label htmlFor="coach-code-expiry" className="text-[13px] font-medium">Gültigkeit (Tage)</Label>
+                                        <Input
+                                            id="coach-code-expiry"
+                                            type="number"
+                                            inputMode="numeric"
+                                            min={1}
+                                            step={1}
+                                            value={codeForm.expiryDays}
+                                            onChange={event => setCodeForm({ ...codeForm, expiryDays: event.target.value })}
+                                            placeholder="180"
+                                        />
+                                        <p className="text-[13px] leading-5 text-muted-foreground">Leer lassen für unbegrenzt gültige Codes.</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <Label htmlFor="coach-code-description" className="text-[13px] font-medium">Beschreibung (optional)</Label>
+                                    <Input
+                                        id="coach-code-description"
+                                        value={codeForm.description}
+                                        onChange={event => setCodeForm({ ...codeForm, description: event.target.value })}
+                                        placeholder={DEFAULT_CODE_DESCRIPTION}
+                                        maxLength={255}
+                                    />
+                                    <p className="text-[13px] leading-5 text-muted-foreground">Maximal 255 Zeichen. Die Beschreibung erscheint in der Code-Liste.</p>
+                                </div>
+
+                                <div className="rounded-lg border border-border bg-muted/40 p-3 text-[13px] leading-5 text-muted-foreground">
+                                    <strong className="font-semibold text-foreground">Coach-Semantik:</strong> Coach-Codes vergeben wie bisher
+                                    den Coach-Haken und heben Anzeigen für 30 Tage hervor. Push-Stufe „super“ und 30 Boost-Tage
+                                    sind fest an die Coach-Verifizierung gekoppelt und deshalb nicht separat einstellbar.
+                                </div>
+
+                                {codeCreateError && (
+                                    <Alert variant="destructive">
+                                        <AlertTitle>Code konnte nicht erstellt werden</AlertTitle>
+                                        <AlertDescription>{codeCreateError}</AlertDescription>
+                                    </Alert>
+                                )}
+
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                    <p className="text-[13px] leading-5 text-muted-foreground">
+                                        Der Code wird im Browser kryptografisch zufällig erzeugt. Bei einer Kollision oder einem einmaligen Serverfehler wird automatisch genau ein neuer Code versucht.
+                                    </p>
+                                    <Button type="submit" isLoading={creatingCode} className="h-11 min-h-11 shrink-0 px-5 text-[13px]">
+                                        {creatingCode ? 'Code wird erstellt …' : <><Plus size={16} aria-hidden /> Coaching-Code erstellen</>}
+                                    </Button>
+                                </div>
+                            </form>
                         </CardContent>
                     </Card>
 
-                    <Card className="">
+                    {createdCode && (
+                        <div role="status" className="flex flex-col gap-3 rounded-xl border border-emerald-600/30 bg-emerald-500/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="min-w-0">
+                                <p className="text-[13px] font-semibold text-emerald-800 dark:text-emerald-300">Coaching-Code erstellt</p>
+                                <p className="mt-1 break-all text-base font-semibold tracking-wider text-foreground">{createdCode.code}</p>
+                                <p className="mt-1 text-[13px] leading-5 text-muted-foreground">
+                                    {createdCode.maxUses === null ? 'Unbegrenzt einlösbar' : `${createdCode.maxUses} ${createdCode.maxUses === 1 ? 'Einlösung' : 'Einlösungen'}`}
+                                    {' · '}
+                                    {createdCode.expiresAt ? `gültig bis ${formatCodeDate(createdCode.expiresAt)}` : 'ohne Ablaufdatum'}
+                                </p>
+                            </div>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => handleCopy('created', createdCode.code)}
+                                className="h-11 min-h-11 shrink-0 px-4 text-[13px]"
+                            >
+                                {copiedId === 'created' ? <><Check size={16} aria-hidden /> Kopiert</> : <><Copy size={16} aria-hidden /> Code kopieren</>}
+                            </Button>
+                        </div>
+                    )}
+
+                    <Card>
                         <CardContent className="p-0">
                             <div className="flex items-center justify-between gap-2 border-b border-border p-4">
-                                <span className="text-xs font-medium text-foreground">
-                                    Verfügbare Schüler-Coaching Codes ({coachCodes.length})
+                                <span className="text-[13px] font-medium text-foreground">
+                                    Schüler-Coaching-Codes ({coachCodes.length})
                                 </span>
                                 <Button onClick={loadCodes} variant="ghost" size="icon" className="h-11 w-11" aria-label="Coaching-Codes aktualisieren">
                                     <RefreshCw size={16} className={cn(loadingCodes && 'animate-spin')} aria-hidden />
@@ -451,44 +834,85 @@ export default function CoachPanel() {
                                 </div>
                             ) : coachCodes.length === 0 ? (
                                 <div className="p-8 text-center text-sm text-muted-foreground">
-                                    Noch keine spezifischen Coaching-Codes erstellt. Klicke oben auf „Neuen Coaching-Code erstellen“.
+                                    Noch keine Coaching-Codes erstellt. Erstelle oben den ersten Code.
                                 </div>
                             ) : (
                                 <div className="divide-y divide-border">
-                                    {coachCodes.map(code => (
-                                        <div key={code.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
-                                            <div className="min-w-0 space-y-0.5">
-                                                <span className="break-all tabular-nums text-sm font-semibold tracking-wider text-foreground">
-                                                    {code.code}
-                                                </span>
-                                                <p className="break-words text-xs text-muted-foreground">
-                                                    {code.description || 'Schüler-Coaching AG Mitgliedscode'} • {code.current_uses} Nutzungen
-                                                </p>
+                                    {coachCodes.map(code => {
+                                        const uses = Number(code.current_uses ?? code.used_count) || 0;
+                                        const maxUses = code.max_uses === null || code.max_uses === undefined ? null : Number(code.max_uses);
+                                        const expiry = formatCodeDate(code.expires_at);
+                                        return (
+                                            <div key={code.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                                                <div className="min-w-0 space-y-1">
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        <span className="break-all text-[13px] font-semibold tracking-wider text-foreground">
+                                                            {code.code}
+                                                        </span>
+                                                        <Badge variant={code.is_active ? 'success' : 'outline'} className="font-medium">
+                                                            {code.is_active ? 'Aktiv' : 'Inaktiv'}
+                                                        </Badge>
+                                                    </div>
+                                                    <p className="break-words text-[13px] leading-5 text-muted-foreground">
+                                                        {code.description || 'Schüler-Coaching AG Mitgliedscode'}
+                                                    </p>
+                                                    <p className="text-[13px] leading-5 text-muted-foreground">
+                                                        {maxUses === null ? `${uses} Nutzungen · unbegrenzt` : `${uses} / ${maxUses} Nutzungen`}
+                                                        {' · '}
+                                                        {expiry ? `gültig bis ${expiry}` : 'ohne Ablaufdatum'}
+                                                    </p>
+                                                </div>
+                                                <div className="flex shrink-0 items-center gap-1 self-end sm:self-auto">
+                                                    <Button
+                                                        size="icon"
+                                                        variant="ghost"
+                                                        className="h-11 w-11"
+                                                        onClick={() => handleCopy(code.id, code.code)}
+                                                        title="Kopieren"
+                                                        aria-label={`Coaching-Code ${code.code} kopieren`}
+                                                    >
+                                                        {copiedId === code.id ? <Check size={16} className="text-emerald-700 dark:text-emerald-400" /> : <Copy size={16} />}
+                                                    </Button>
+                                                    <Button
+                                                        size="icon"
+                                                        variant="ghost"
+                                                        className="h-11 w-11 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                                        onClick={() => setPendingDelete(code)}
+                                                        title="Löschen"
+                                                        aria-label={`Coaching-Code ${code.code} löschen`}
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </Button>
+                                                </div>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className={cn(
-                                                    'rounded-lg px-2.5 py-1 text-xs font-medium',
-                                                    code.is_active ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400' : 'bg-muted text-muted-foreground'
-                                                )}>
-                                                    {code.is_active ? 'Aktiv' : 'Inaktiv'}
-                                                </span>
-                                                <Button
-                                                    size="icon"
-                                                    variant="ghost"
-                                                    className="h-11 w-11"
-                                                    onClick={() => handleCopy(code.id, code.code)}
-                                                    title="Kopieren"
-                                                    aria-label="Coaching-Code kopieren"
-                                                >
-                                                    {copiedId === code.id ? <Check size={16} className="text-emerald-700 dark:text-emerald-400" /> : <Copy size={16} />}
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             )}
+
+                            <p className="border-t border-border p-4 text-[13px] leading-5 text-muted-foreground">
+                                Hinweis: Die API bietet keinen Endpunkt zum nachträglichen Bearbeiten eines Coaching-Codes.
+                                Für andere Nutzungen, Laufzeiten oder Beschreibungen lösche den Code und erstelle einen neuen.
+                            </p>
                         </CardContent>
                     </Card>
+
+                    <AlertDialog open={!!pendingDelete} onOpenChange={open => { if (!open) setPendingDelete(null); }}>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Coaching-Code löschen?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    „{pendingDelete?.code}“ wird endgültig gelöscht. Bereits eingelöste Coach-Status bleiben bestehen.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel disabled={!!deletingCodeId}>Abbrechen</AlertDialogCancel>
+                                <AlertDialogAction variant="destructive" onClick={handleDeleteCode} disabled={!!deletingCodeId}>
+                                    {deletingCodeId ? 'Wird gelöscht …' : 'Löschen'}
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </div>
             )}
 

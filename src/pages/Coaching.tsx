@@ -1,10 +1,11 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { Fragment, useEffect, useState, type ReactNode } from 'react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/table';
 import { Link, useLocation } from 'react-router-dom';
 import { Award, ClipboardCheck, Scale, Megaphone, HeartHandshake, Gavel, Mail, School, Clock, MapPin, type LucideIcon } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
 import StaticLayout from '../components/StaticLayout';
 import { api } from '../lib/api';
+import { cn } from '../lib/utils';
 
 const easeOut = [0.16, 1, 0.3, 1] as const;
 
@@ -50,6 +51,8 @@ export interface CoachingScheduleCell {
 
 export interface CoachingScheduleRow {
     id: string;
+    /** Optionale Zeitangabe für die Zeile, z. B. "7. Stunde". Legacy-Zeilen bleiben leer. */
+    time?: string;
     cells: CoachingScheduleCell[];
 }
 
@@ -204,7 +207,7 @@ export function createDefaultCoachingDocument(legacy: Record<string, string> = F
                     listItem('step-2', 'Schulung', 'Nimm an der Coach-Schulung der AG-Leitung vor den Herbstferien teil.'),
                     listItem('step-3', 'Abzeichen und Start', 'Erhalte das Coach-Abzeichen und starte dienstags in H310.'),
                 ],
-                note: 'Die AG-Stunde dienstags in H310 ist ehrenamtlich. Private Nachhilfe über die Börse vereinbaren Familien direkt. Richtwert ca. 12 € pro Stunde. Der Preis ist individuell anpassbar.',
+                note: 'Die AG-Stunde dienstags in H310 ist ehrenamtlich. Private Nachhilfe über die Börse vereinbaren Familien direkt. Richtwert: 12 € pro 45 Minuten (16 €/h). Der Preis ist individuell anpassbar.',
                 verificationTitle: 'Verifizierung in der App',
                 verificationItems: [
                     listItem('verify-1', 'Konto anlegen', 'Lege ein Konto mit deinen Angaben an.'),
@@ -258,6 +261,7 @@ export function createDefaultCoachingDocument(legacy: Record<string, string> = F
                 rows: [
                     {
                         id: 'schedule-row-1',
+                        time: '',
                         cells: [
                             { id: 'r1c1', text: 'D' },
                             { id: 'r1c2', text: 'M' },
@@ -267,6 +271,7 @@ export function createDefaultCoachingDocument(legacy: Record<string, string> = F
                     },
                     {
                         id: 'schedule-row-2',
+                        time: '',
                         cells: [
                             { id: 'r2c1', text: 'LRS 5. und 6. Klasse' },
                             { id: 'r2c2', text: 'E' },
@@ -276,6 +281,7 @@ export function createDefaultCoachingDocument(legacy: Record<string, string> = F
                     },
                     {
                         id: 'schedule-row-3',
+                        time: '',
                         cells: [
                             { id: 'r3c1', text: 'L' },
                             { id: 'r3c2', text: '' },
@@ -285,6 +291,7 @@ export function createDefaultCoachingDocument(legacy: Record<string, string> = F
                     },
                     {
                         id: 'schedule-row-4',
+                        time: '',
                         cells: [
                             { id: 'r4c1', text: '' },
                             { id: 'r4c2', text: '' },
@@ -332,6 +339,15 @@ function textValue(value: unknown, fallback: string): string {
     return typeof value === 'string' ? value : fallback;
 }
 
+// Alte gespeicherte Coaching-Inhalte enthielten teilweise noch „ca. 12 € pro Stunde“.
+// Beim Laden wird nur dieser Satz auf die abgestimmte Preis-Copy umgestellt.
+const LEGACY_HOURLY_PRICE = /Richtwert(?:\s+ca\.?)?\s*12\s*€\s*(?:pro|\/)\s*Stunde\.?/gi;
+const CANONICAL_PRICE_COPY = 'Richtwert: 12 € pro 45 Minuten (16 €/h).';
+
+function normalizeLegacyPriceCopy(value: string): string {
+    return value.replace(LEGACY_HOURLY_PRICE, CANONICAL_PRICE_COPY);
+}
+
 function uniqueId(value: unknown, prefix: string, used: Set<string>): string {
     const base = typeof value === 'string' && value.trim() ? value : createId(prefix);
     let id = base;
@@ -376,7 +392,9 @@ function normalizeDays(value: unknown, fallback: CoachingScheduleDay[]): Coachin
 }
 
 function normalizeRows(value: unknown, fallback: CoachingScheduleRow[]): CoachingScheduleRow[] {
-    if (!Array.isArray(value)) return fallback.map(row => ({ ...row, cells: row.cells.map(cell => ({ ...cell })) }));
+    if (!Array.isArray(value)) {
+        return fallback.map(row => ({ ...row, time: row.time ?? '', cells: row.cells.map(cell => ({ ...cell })) }));
+    }
     const usedRows = new Set<string>();
     const usedCells = new Set<string>();
     return value.flatMap((raw, rowIndex) => {
@@ -384,6 +402,7 @@ function normalizeRows(value: unknown, fallback: CoachingScheduleRow[]): Coachin
         const source = fallback[rowIndex % Math.max(fallback.length, 1)];
         return [{
             id: uniqueId(raw.id, `schedule-row-${rowIndex + 1}`, usedRows),
+            time: textValue(raw.time, '').trim(),
             cells: raw.cells.flatMap((cell, cellIndex) => {
                 const cellText = typeof cell === 'string'
                     ? cell
@@ -423,7 +442,7 @@ function normalizeBlock(raw: unknown, fallback: CoachingBlock): CoachingBlock | 
             ...fallback,
             title: textValue(raw.title, fallback.title),
             items: normalizeList(raw.items, fallback.items, 'step'),
-            note: textValue(raw.note, fallback.note),
+            note: normalizeLegacyPriceCopy(textValue(raw.note, fallback.note)),
             verificationTitle: textValue(raw.verificationTitle, fallback.verificationTitle),
             verificationItems: normalizeList(raw.verificationItems, fallback.verificationItems, 'verify'),
         };
@@ -552,7 +571,15 @@ function linkify(text: string) {
             return <a key={index} href={`mailto:${part}`} className={LINK_CLS}>{part}</a>;
         }
         if (/^fwg-koeln\.de/.test(part)) {
-            return <a key={index} href={`https://${part}`} target="_blank" rel="noreferrer" className={LINK_CLS}>{part}</a>;
+            // Satzzeichen nach einem Link gehören nicht zur URL.
+            const url = part.replace(/[.,;:!?]+$/, '');
+            const trailing = part.slice(url.length);
+            return (
+                <Fragment key={index}>
+                    <a href={`https://${url}`} target="_blank" rel="noreferrer" className={LINK_CLS}>{url}</a>
+                    {trailing}
+                </Fragment>
+            );
         }
         return <span key={index}>{part}</span>;
     });
@@ -736,6 +763,7 @@ export function CoachingView({ document, preview = false }: { document: Coaching
         }
 
         if (block.type === 'support') {
+            const hasTimes = block.rows.some(row => (row.time ?? '').trim().length > 0);
             return (
                 <motion.section key={block.id} id={block.id === supportAnchorId ? `${idPrefix}foerderung` : undefined} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="scroll-mt-24 rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
                     <h2 id={`${idPrefix}${block.id}-title`} className="text-2xl tracking-tight sm:text-3xl">{block.title}</h2>
@@ -751,18 +779,57 @@ export function CoachingView({ document, preview = false }: { document: Coaching
                     {block.days.length > 0 ? (
                         <div className="mt-5">
                             <p className="mb-2 text-xs font-semibold text-muted-foreground md:hidden">Stundenplan · seitlich scrollbar</p>
-                            <div className="max-w-full overflow-x-auto rounded-xl border border-border" tabIndex={0} role="region" aria-label="Stundenplan des Förderunterrichts">
-                                <Table className="w-full min-w-[440px] border-collapse text-center text-xs md:text-sm">
+                            <div
+                                className="max-w-full overflow-x-auto rounded-xl border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary [&_[data-slot=table-container]]:overflow-visible"
+                                tabIndex={0}
+                                role="region"
+                                aria-label="Stundenplan des Förderunterrichts"
+                                onKeyDown={event => {
+                                    const region = event.currentTarget;
+                                    if (region.scrollWidth <= region.clientWidth) return;
+                                    const step = Math.max(120, Math.round(region.clientWidth * 0.8));
+                                    if (event.key === 'ArrowRight') {
+                                        region.scrollBy({ left: step, behavior: 'auto' });
+                                        event.preventDefault();
+                                    } else if (event.key === 'ArrowLeft') {
+                                        region.scrollBy({ left: -step, behavior: 'auto' });
+                                        event.preventDefault();
+                                    } else if (event.key === 'Home') {
+                                        region.scrollTo({ left: 0, behavior: 'auto' });
+                                        event.preventDefault();
+                                    } else if (event.key === 'End') {
+                                        region.scrollTo({ left: region.scrollWidth, behavior: 'auto' });
+                                        event.preventDefault();
+                                    }
+                                }}
+                            >
+                                <Table className={cn('w-full border-collapse text-center text-xs md:text-sm', hasTimes ? 'min-w-[520px]' : 'min-w-[440px]')}>
                                     <TableHeader>
-                                        <TableRow>{block.days.map(day => <TableHead key={day.id} className="border border-border p-2 tabular-nums">{day.label}</TableHead>)}</TableRow>
+                                        <TableRow>
+                                            {hasTimes ? <TableHead scope="col" className="border border-border p-2 whitespace-nowrap">Zeit</TableHead> : null}
+                                            {block.days.map(day => <TableHead key={day.id} scope="col" className="border border-border p-2 tabular-nums">{day.label}</TableHead>)}
+                                        </TableRow>
                                     </TableHeader>
                                     <TableBody className="tabular-nums">
                                         {block.rows.map(row => (
-                                            <TableRow key={row.id}>{row.cells.map(cell => <TableCell key={cell.id} className={scheduleCellClass(cell.text)}>{cell.text}</TableCell>)}</TableRow>
+                                            <TableRow key={row.id}>
+                                                {hasTimes ? (
+                                                    <TableCell className="border border-border p-2 whitespace-nowrap font-medium text-foreground">
+                                                        {row.time?.trim() || '–'}
+                                                    </TableCell>
+                                                ) : null}
+                                                {block.days.map((day, cellIndex) => {
+                                                    const cell = row.cells[cellIndex];
+                                                    return <TableCell key={`${row.id}-${day.id}`} className={scheduleCellClass(cell?.text ?? '')}>{cell?.text ?? ''}</TableCell>;
+                                                })}
+                                            </TableRow>
                                         ))}
                                     </TableBody>
                                 </Table>
                             </div>
+                            <p className="mt-2 max-w-prose text-xs leading-5 text-muted-foreground">
+                                Der Stundenplan ist eine redaktionelle Übersicht. Anwesenheit und einzelne Stunden werden nicht in der App erfasst.
+                            </p>
                         </div>
                     ) : null}
                     {block.learnCoachingText || block.learnCoachingEmail ? (
