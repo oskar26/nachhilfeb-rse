@@ -321,30 +321,35 @@ export default function Profile() {
                 />
                 {/* Avatar & User Info */}
                 <div className="flex flex-col items-center text-center px-4 pb-6 -mt-16 sm:px-6">
-                    <div className="relative group mb-2">
-                        <div className="relative rounded-full border border-border bg-card p-1.5">
-                            {profile.avatar_url ? (
-                                <img src={profile.avatar_url} alt="" className="size-28 rounded-full border-4 border-card object-cover" />
-                            ) : (
-                                <div className="grid size-28 place-items-center rounded-full border-4 border-card bg-muted text-muted-foreground">
-                                    <User size={48} />
-                                </div>
-                            )}
-                            <Button
-                                variant="unstyled"
-                                size="unstyled"
-                                hapticStyle={false}
-                                type="button"
-                                onClick={() => {
-                                    triggerHaptic('light');
-                                    setIsAvatarMakerOpen(true);
-                                }}
-                                className="absolute bottom-0 right-0 grid size-11 place-items-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted"
-                                title="Avatar erstellen / ändern"
-                            >
-                                <Pen size={14} />
-                            </Button>
-                        </div>
+                    <div className="relative mb-4">
+                        {/* Der gesamte Avatar ist die Bearbeiten-Fläche: gestrichelter
+                            Ring plus sichtbares Label statt eines einzelnen Stift-Symbols. */}
+                        <Button
+                            variant="unstyled"
+                            size="unstyled"
+                            hapticStyle={false}
+                            type="button"
+                            onClick={() => {
+                                triggerHaptic('light');
+                                setIsAvatarMakerOpen(true);
+                            }}
+                            aria-label="Avatar bearbeiten"
+                            title="Avatar bearbeiten"
+                            className="group/avatar relative block rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                        >
+                            <span className="block rounded-full border-2 border-dashed border-foreground/50 p-1.5 transition-colors group-hover/avatar:border-foreground">
+                                {profile.avatar_url ? (
+                                    <img src={profile.avatar_url} alt="" className="size-28 rounded-full border-4 border-card object-cover" />
+                                ) : (
+                                    <span className="grid size-28 place-items-center rounded-full border-4 border-card bg-muted text-muted-foreground">
+                                        <User size={48} />
+                                    </span>
+                                )}
+                            </span>
+                            <span className="pointer-events-none absolute -bottom-2.5 left-1/2 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-full border border-border bg-card px-2.5 py-1 text-[13px] font-semibold leading-none text-foreground shadow-sm">
+                                <Pen size={12} aria-hidden /> Avatar bearbeiten
+                            </span>
+                        </Button>
                     </div>
 
                     <div className="mb-2">
