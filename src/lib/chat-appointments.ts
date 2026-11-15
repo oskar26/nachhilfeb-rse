@@ -413,4 +413,3 @@ export function extractAppointments(
         }))
         .sort((a, b) => a.start.getTime() - b.start.getTime());
 }
-
