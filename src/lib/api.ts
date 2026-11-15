@@ -495,6 +495,11 @@ export const api = {
             return apiRequest(url);
         },
 
+        /** Chatübersicht: akzeptierte/abgeschlossene Unterhaltungen. */
+        async conversations() {
+            return apiRequest('/messages.php?conversations=1');
+        },
+
         async send(requestId: string, content: string) {
             return apiRequest('/messages.php', {
                 method: 'POST',

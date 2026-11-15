@@ -39,6 +39,71 @@ try {
 // 1. GET: NACHRICHTEN EINES CHATS ABRUFEN (inkl. Polling mit 'after')
 // ------------------------------------------------------------------------------
 if ($method === 'GET') {
+    // --------------------------------------------------------------------------
+    // 1a. CHATÜBERSICHT: akzeptierte/abgeschlossene Unterhaltungen des Nutzers
+    // --------------------------------------------------------------------------
+    // Eigene Aktion, damit das bestehende ?request_id=-Verhalten unverändert
+    // bleibt. Keine Schemaänderung: letzte Nachricht und Ungelesen-Zahl werden
+    // aus messages abgeleitet. Es werden ausschließlich eigene Anfragen
+    // zurückgegeben (kein Admin-Fremdzugriff über diese Liste).
+    if (!empty($_GET['conversations'])) {
+        $uid = $user['id'];
+        $convStmt = $pdo->prepare('
+            SELECT
+                r.id AS request_id,
+                r.status,
+                r.created_at AS request_created_at,
+                a.id AS ad_id,
+                a.short_description AS ad_title,
+                a.short_description AS ad_short_description,
+                a.subjects AS ad_subjects,
+                partner.id AS other_user_id,
+                partner.display_name,
+                partner.avatar_url,
+                partner.avatar_type,
+                partner.grade_level,
+                lm.id AS last_message_id,
+                SUBSTRING(lm.content, 1, 300) AS last_message,
+                lm.created_at AS last_message_at,
+                lm.sender_id AS last_message_sender_id,
+                COALESCE(unread.unread_count, 0) AS unread_count
+            FROM ad_requests r
+            JOIN ads a ON a.id = r.ad_id
+            JOIN profiles partner ON partner.id = CASE
+                WHEN r.requester_id = ? THEN r.owner_id
+                ELSE r.requester_id
+            END
+            LEFT JOIN messages lm ON lm.id = (
+                SELECT m2.id
+                FROM messages m2
+                WHERE m2.request_id = r.id
+                ORDER BY m2.created_at DESC, m2.id DESC
+                LIMIT 1
+            )
+            LEFT JOIN (
+                SELECT request_id, COUNT(*) AS unread_count
+                FROM messages
+                WHERE sender_id <> ? AND is_read = 0
+                GROUP BY request_id
+            ) unread ON unread.request_id = r.id
+            WHERE (r.requester_id = ? OR r.owner_id = ?)
+              AND r.status IN (\'accepted\', \'completed\')
+            ORDER BY COALESCE(lm.created_at, r.created_at) DESC
+            LIMIT 200
+        ');
+        $convStmt->execute([$uid, $uid, $uid, $uid]);
+        $conversations = $convStmt->fetchAll();
+
+        foreach ($conversations as &$conversation) {
+            $conversation['unread_count'] = (int)$conversation['unread_count'];
+            $conversation['ad_subjects'] = json_decode($conversation['ad_subjects'] ?? '[]', true) ?: [];
+            $conversation['is_last_message_mine'] = ($conversation['last_message_sender_id'] === $uid);
+        }
+        unset($conversation);
+
+        json_response($conversations);
+    }
+
     $requestId = $_GET['request_id'] ?? null;
     $after = $_GET['after'] ?? null; // Timestamp ISO oder YYYY-MM-DD HH:MM:SS
 
