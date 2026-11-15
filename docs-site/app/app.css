@@ -124,8 +124,13 @@ body {
 }
 
 @media (max-width: 1279px) {
+  #nd-docs-layout {
+    --fd-toc-popover-height: 2.75rem;
+  }
+
   [data-toc-popover] {
-    height: 2.75rem;
+    --fd-toc-popover-height: 2.75rem;
+    height: var(--fd-toc-popover-height);
   }
 
   [data-toc-popover] > header > button {

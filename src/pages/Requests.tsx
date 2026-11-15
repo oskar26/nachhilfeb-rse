@@ -52,7 +52,7 @@ export function IncomingRequestCard({ req, onStatus, onComplete }: { req: AdRequ
     return (
         <StreamCardShell>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
-                <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+                <div className="flex w-full min-w-0 items-center gap-2 sm:flex-1 sm:gap-3">
                     <Avatar person={req.requester} />
                     <h3 className="min-w-0 break-words text-base font-extrabold leading-tight text-foreground">
                         <span className="sr-only">Anfrage von </span>
@@ -128,7 +128,7 @@ export function OutgoingRequestCard({ req, onComplete }: { req: AdRequestItem } 
     return (
         <StreamCardShell>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
-                <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+                <div className="flex w-full min-w-0 items-center gap-2 sm:flex-1 sm:gap-3">
                     <Avatar person={req.owner} />
                     <h3 className="min-w-0 break-words text-base font-extrabold leading-tight text-foreground">
                         <span className="sr-only">Anfrage an </span>

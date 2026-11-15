@@ -404,7 +404,7 @@ function AdManagement() {
                                                 <div className="flex min-w-0 flex-col gap-0.5">
                                                     <Link
                                                         to={`/ad/${ad.id}`}
-                                                        className="relative block w-full max-w-full truncate text-[13px] font-semibold text-foreground underline-offset-4 after:absolute after:-inset-x-2 after:-inset-y-4 after:content-[''] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                                        className="relative max-w-full text-[13px] font-semibold text-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 max-lg:flex max-lg:min-h-11 max-lg:w-full max-lg:items-center max-lg:whitespace-normal max-lg:break-words lg:block lg:w-full lg:truncate"
                                                         title={ad.title || ad.short_description}
                                                     >
                                                         {ad.title || ad.short_description || 'Anzeige ohne Titel'}
