@@ -161,7 +161,7 @@
      only owns the interpolation. */
   .icon-react {
     transform-origin: center;
-    transition-property: transform, rotate, scale;
+    transition-property: transform, translate, rotate, scale;
     transition-duration: 150ms;
     transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   }

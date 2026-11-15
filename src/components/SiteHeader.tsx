@@ -163,7 +163,7 @@ export default function SiteHeader() {
     };
 
     const navLinkClass = (active: boolean) =>
-        `relative isolate inline-flex min-h-11 items-center whitespace-nowrap rounded-full px-4 text-sm font-semibold transition-[color,background-color,transform] duration-150 ease-out motion-safe:hover:-translate-y-px motion-safe:active:scale-[0.97] ${active
+        `relative isolate inline-flex min-h-11 items-center whitespace-nowrap rounded-full px-4 text-sm font-semibold transition-[color,background-color,transform,translate,scale] duration-150 ease-out motion-safe:hover:-translate-y-px motion-safe:active:scale-[0.97] ${active
             ? 'text-primary-soft-foreground'
             : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`;
 
