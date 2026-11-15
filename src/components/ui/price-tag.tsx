@@ -90,7 +90,7 @@ export function PriceTag({
                     isInline
                         ? 'text-[16px]'
                         : isMissing
-                          ? 'text-[17px] leading-tight'
+                          ? 'text-[15px] leading-tight sm:text-[17px]'
                           : 'text-[24px]',
                     PRIMARY_CLASS[tone] ?? PRIMARY_CLASS.missing
                 )}
