@@ -457,7 +457,7 @@ function AppShell() {
                         transition={reduceMotion ? { duration: 0 } : { opacity: PAGE_ENTER, y: SPRING.settle }}
                         className={cn(
                             'flex min-h-0 w-full flex-1 flex-col',
-                            isChatRoute && 'bg-chat-header pt-[env(safe-area-inset-top,0px)]'
+                            isChatRoute && 'bg-chat-header'
                         )}
                     >
                         <AccessGuard>
