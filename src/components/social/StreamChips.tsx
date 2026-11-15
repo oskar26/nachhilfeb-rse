@@ -34,7 +34,7 @@ export function StatusChip({ label, dotClass }: { label: string; dotClass: strin
 export function StreamCardShell({ children, className }: { children: ReactNode; className?: string }) {
     return (
         <article className={cn(
-            'flex min-w-0 flex-col rounded-card bg-card p-4 shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-card sm:p-6',
+            'flex min-w-0 flex-col rounded-card bg-card p-4 shadow-soft transition-[box-shadow] duration-150 hover:shadow-card sm:p-6',
             className
         )}>
             {children}

@@ -129,7 +129,7 @@ export function CollapsedNewsWidget({ compact = false }: { compact?: boolean }) 
                 <button
                     type="button"
                     onClick={() => setExpanded(e => !e)}
-                    className="inline-flex max-w-full items-center gap-2 rounded-full border border-border/80 bg-card py-2 pl-3 pr-4 text-left shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-card"
+                    className="inline-flex max-w-full items-center gap-2 rounded-full border border-border/80 bg-card py-2 pl-3 pr-4 text-left shadow-soft transition-[box-shadow] duration-150 hover:shadow-card"
                     aria-expanded={expanded}
                     aria-controls="collapsed-news-popover"
                 >

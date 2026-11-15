@@ -13,6 +13,7 @@ import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 import { cn } from '../lib/utils';
 import { triggerHaptic } from '../lib/haptics';
+import { prefersReducedMotion } from '../lib/motion';
 import { blockedReason, checkContent, loadFilterOverrides, type FilterOverrides } from '../lib/profanity';
 import { maybeAutoReport } from '../lib/autoreport';
 import ReportWizard from './ReportWizard';
@@ -104,7 +105,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
     }, [isOpen]);
 
     useEffect(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        chatEndRef.current?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
     }, [messages]);
 
     const handleSubmitTicket = async () => {

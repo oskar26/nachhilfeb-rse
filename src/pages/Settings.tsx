@@ -1,7 +1,7 @@
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useTheme } from '../components/ThemeProvider';
-import { motion } from 'motion/react';
+import { DISTANCE, LIST_ITEM, m, PAGE_ENTER, STAGGER } from '../lib/motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Moon, Sun, Monitor, ChevronLeft, Shield, Trash2, Download, AlertTriangle, LifeBuoy, Share2, BookOpen, Check, KeyRound, Mail, UserX } from 'lucide-react';
 import { Button } from '../components/ui/button';
@@ -461,23 +461,20 @@ export default function Settings() {
         hidden: { opacity: 0 },
         visible: {
             opacity: 1,
-            transition: { staggerChildren: 0.08 }
+            transition: { ...PAGE_ENTER, staggerChildren: STAGGER.step }
         }
     };
 
-    const itemVariants = {
-        hidden: { opacity: 0, y: 14 },
-        visible: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 350, damping: 25 } }
-    };
+    const itemVariants = LIST_ITEM;
 
     return (
-        <motion.div
+        <m.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
             className="mx-auto w-full max-w-3xl space-y-5 p-4 pb-28 sm:p-6"
         >
-            <motion.div variants={itemVariants} className="flex items-start justify-between gap-3">
+            <m.div variants={itemVariants} className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                     <Button
                         variant="ghost"
@@ -491,10 +488,10 @@ export default function Settings() {
                     </Button>
                     <h1 className="text-2xl font-semibold leading-tight tracking-tight text-foreground">Einstellungen</h1>
                 </div>
-            </motion.div>
+            </m.div>
 
             {/* Appearance Theme Card */}
-            <motion.div variants={itemVariants}>
+            <m.div variants={itemVariants}>
                 <Card className="overflow-hidden border-border bg-card">
                     <CardHeader className="p-6 pb-2">
                         <CardTitle className="text-base font-semibold">Erscheinungsbild</CardTitle>
@@ -536,10 +533,10 @@ export default function Settings() {
                         </div>
                     </CardContent>
                 </Card>
-            </motion.div>
+            </m.div>
 
             {/* Notifications Card */}
-            <motion.div variants={itemVariants}>
+            <m.div variants={itemVariants}>
                 <Card className="border-border bg-card">
                     <CardHeader className="p-6 pb-2">
                         <CardTitle className="text-base font-semibold">Benachrichtigungen</CardTitle>
@@ -559,15 +556,15 @@ export default function Settings() {
                         </Button>
                     </CardContent>
                 </Card>
-            </motion.div>
+            </m.div>
 
             {/* News & Announcements Card */}
-            <motion.div variants={itemVariants}>
+            <m.div variants={itemVariants}>
                 <NewsPreferences />
-            </motion.div>
+            </m.div>
 
             {/* Privacy & Visibility Settings Card */}
-            <motion.div variants={itemVariants}>
+            <m.div variants={itemVariants}>
                 <Card className="border-border bg-card">
                     <CardHeader className="p-6 pb-2">
                         <CardTitle className="text-base font-semibold">Datenschutz & Sichtbarkeit</CardTitle>
@@ -599,10 +596,10 @@ export default function Settings() {
                         </div>
                     </CardContent>
                 </Card>
-            </motion.div>
+            </m.div>
 
             {/* Account & Login Card */}
-            <motion.div variants={itemVariants}>
+            <m.div variants={itemVariants}>
                 <Card className="border-border bg-card">
                     <CardHeader className="p-6 pb-2">
                         <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground">
@@ -755,10 +752,10 @@ export default function Settings() {
                         </div>
                     </CardContent>
                 </Card>
-            </motion.div>
+            </m.div>
 
             {/* Blocked Users Card */}
-            <motion.div variants={itemVariants}>
+            <m.div variants={itemVariants}>
                 <Card className="border-border bg-card">
                     <CardHeader className="p-6 pb-2">
                         <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground">
@@ -819,9 +816,9 @@ export default function Settings() {
                         )}
                     </CardContent>
                 </Card>
-            </motion.div>
+            </m.div>
 
-            <motion.div variants={itemVariants}>
+            <m.div variants={itemVariants}>
                 <Card className="border-border bg-card">
                     <CardHeader className="p-6 pb-2">
                         <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground">
@@ -856,10 +853,10 @@ export default function Settings() {
                         </div>
                     </CardContent>
                 </Card>
-            </motion.div>
+            </m.div>
 
             {/* DSGVO Data Protection & Rights Card */}
-            <motion.div variants={itemVariants}>
+            <m.div variants={itemVariants}>
                 <Card className="border-border bg-card">
                     <CardHeader className="p-6 pb-2">
                         <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground">
@@ -906,10 +903,10 @@ export default function Settings() {
                         </div>
                     </CardContent>
                 </Card>
-            </motion.div>
+            </m.div>
 
             {/* Support, Feedback & Bug Report Card */}
-            <motion.div variants={itemVariants}>
+            <m.div variants={itemVariants}>
                 <Card className="border-border bg-card">
                     <CardHeader className="p-6 pb-2">
                         <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground">
@@ -934,10 +931,10 @@ export default function Settings() {
                         </Button>
                     </CardContent>
                 </Card>
-            </motion.div>
+            </m.div>
 
             {/* Documentation Help Card */}
-            <motion.div variants={itemVariants}>
+            <m.div variants={itemVariants}>
                 <Card className="border-border bg-card">
                     <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex min-w-0 items-start gap-3">
@@ -958,10 +955,10 @@ export default function Settings() {
                         </a>
                     </CardContent>
                 </Card>
-            </motion.div>
+            </m.div>
 
             {/* Share App Card */}
-            <motion.div variants={itemVariants}>
+            <m.div variants={itemVariants}>
                 <Card className="border-border bg-card">
                     <CardHeader className="p-6 pb-2">
                         <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground">
@@ -987,10 +984,10 @@ export default function Settings() {
                         </Button>
                     </CardContent>
                 </Card>
-            </motion.div>
+            </m.div>
 
             {/* App Info & Secret Developer Mode Card */}
-            <motion.div variants={itemVariants}>
+            <m.div variants={itemVariants}>
                 <Card className="border-border bg-card text-center p-6 space-y-4">
                     <div className="flex justify-center">
                         <Logo className="size-12 text-primary" />
@@ -1016,9 +1013,10 @@ export default function Settings() {
                     </div>
 
                     {showSecretInput && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
+                        <m.div
+                            initial={{ opacity: 0, y: DISTANCE.enter }}
                             animate={{ opacity: 1, y: 0 }}
+                            transition={PAGE_ENTER}
                             className="pt-4 border-t border-border space-y-3 text-left"
                         >
                             <Label className="block text-xs font-semibold text-foreground/80">Code einlösen</Label>
@@ -1059,10 +1057,10 @@ export default function Settings() {
                                 />
                             </div>
                             <p className="text-xs leading-relaxed text-muted-foreground">Wenn du einen Code erhalten hast, kannst du ihn hier einlösen und mit der Eingabetaste bestätigen.</p>
-                        </motion.div>
+                        </m.div>
                     )}
                 </Card>
-            </motion.div>
+            </m.div>
 
             <AlertDialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
                 <AlertDialogContent>
@@ -1094,6 +1092,6 @@ export default function Settings() {
 
             <SupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} />
             <ShareDialog type="app" isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} />
-        </motion.div>
+        </m.div>
     );
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { motion, useReducedMotion } from 'motion/react';
 import {
     ArrowRight,
     BadgeCheck,
@@ -24,6 +25,7 @@ import { Switch } from '../components/ui/switch';
 import { buttonVariants } from '../components/ui/button';
 import { DeviceFrame } from '../components/site/DeviceFrame';
 import { Reveal } from '../components/site/Reveal';
+import { m, prefersReducedMotion, SPRING } from '../lib/motion';
 import { cn } from '../lib/utils';
 import phoneFeedShot from '../../docs/screenshots/v2-phone-feed.png';
 import phoneChatShot from '../../docs/screenshots/v2-phone-chat.png';
@@ -49,9 +51,13 @@ function parseCount(value: unknown): number | null {
     return Number.isFinite(n) && n >= 0 ? n : null;
 }
 
+/* Einmal pro Datei erzeugt, nie im Render: Motion-Variante des React-Router-Links. */
+const MotionLink = motion.create(Link);
+
 export default function Landing() {
     const { user, isAdmin } = useAuth();
     const location = useLocation();
+    const reduce = useReducedMotion();
     const [liveStats, setLiveStats] = useState<{ active_ads: number | null; users: number | null } | null>(null);
 
     /* Privatsphäre-Demo */
@@ -100,8 +106,7 @@ export default function Landing() {
         const scrollToTarget = () => {
             const el = document.getElementById(section);
             if (el) {
-                const reduce = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+                el.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
                 return;
             }
             if (tries < 30) {
@@ -127,8 +132,7 @@ export default function Landing() {
                 onClick={() => {
                     const el = document.getElementById('inhalt') as HTMLElement | null;
                     if (!el) return;
-                    const reduce = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                    el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+                    el.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
                     try { el.focus({ preventScroll: true }); } catch { el.focus(); }
                 }}
                 className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-primary focus:px-5 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-primary-foreground"
@@ -253,7 +257,12 @@ export default function Landing() {
                             { icon: Users, title: 'Für Eltern: Begleitung & Einwilligung', text: 'Betreuen Sie das Konto gemeinsam mit Ihrem Kind oder lassen Sie es selbstständig nutzen. In den Klassen 5 bis 7 empfehlen wir die gemeinsame Betreuung. So behalten Sie Anzeigen und Anfragen im Blick.', points: ['Ein Konto pro Kind', 'Gemeinsam Anzeigen und Anfragen ansehen', 'Kontakt zur SV bei Fragen'], cta: 'Eltern-Leitfaden', to: '/eltern-leitfaden' },
                         ].map((w, i) => (
                             <Reveal key={w.title} delay={i * 70} className="h-full">
-                                <article className={cn('flex h-full flex-col rounded-card p-6 shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-1 hover:shadow-card sm:p-7', WAY_TONES[i].card)}>
+                                <m.article
+                                    whileHover={reduce ? undefined : { y: -2 }}
+                                    whileTap={reduce ? undefined : { scale: 0.985 }}
+                                    transition={SPRING.settle}
+                                    className={cn('flex h-full flex-col rounded-card p-6 shadow-soft transition-[box-shadow] duration-150 hover:shadow-card sm:p-7', WAY_TONES[i].card)}
+                                >
                                     <span className="grid size-16 shrink-0 place-items-center rounded-full bg-white shadow-soft">
                                         <w.icon size={28} className={WAY_TONES[i].icon} aria-hidden />
                                     </span>
@@ -276,7 +285,7 @@ export default function Landing() {
                                     >
                                         {w.cta} <ArrowRight size={17} aria-hidden />
                                     </Link>
-                                </article>
+                                </m.article>
                             </Reveal>
                         ))}
                     </div>
@@ -435,9 +444,15 @@ export default function Landing() {
                                 </span>
                                 <p className="text-lg font-extrabold">Börse ansehen</p>
                             </div>
-                            <Link to={registerZiel} className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-7 text-sm font-semibold text-background shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-card">
+                            <MotionLink
+                                to={registerZiel}
+                                whileHover={reduce ? undefined : { y: -2 }}
+                                whileTap={reduce ? undefined : { scale: 0.985 }}
+                                transition={SPRING.settle}
+                                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-7 text-sm font-semibold text-background shadow-soft transition-[box-shadow] duration-150 hover:shadow-card"
+                            >
                                 {user ? 'Börse ansehen' : 'Kostenlos registrieren'} <ArrowRight aria-hidden />
-                            </Link>
+                            </MotionLink>
                         </div>
                     </Reveal>
                 </div>
@@ -489,9 +504,15 @@ export default function Landing() {
                             <div className="mt-7">
                                 <VerifySteps tone="du" variant="timeline" />
                             </div>
-                            <Link to={loginZiel} className="mt-8 inline-flex min-h-12 items-center justify-center gap-2 self-start rounded-full bg-white px-6 text-sm font-semibold text-foreground shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-card">
+                            <MotionLink
+                                to={loginZiel}
+                                whileHover={reduce ? undefined : { y: -2 }}
+                                whileTap={reduce ? undefined : { scale: 0.985 }}
+                                transition={SPRING.settle}
+                                className="mt-8 inline-flex min-h-12 items-center justify-center gap-2 self-start rounded-full bg-white px-6 text-sm font-semibold text-foreground shadow-soft transition-[box-shadow] duration-150 hover:shadow-card"
+                            >
                                 {user ? 'Zur Börse' : 'Zur Anmeldung'} <ArrowRight aria-hidden />
-                            </Link>
+                            </MotionLink>
                         </div>
                     </Reveal>
                 </div>
@@ -529,7 +550,15 @@ export default function Landing() {
                                     <p className="text-sm font-semibold">Schüler-Coach werden? Ab Klasse 8</p>
                                     <p className="mt-1 max-w-xl text-sm leading-relaxed text-primary-foreground/80">Du möchtest Schülerinnen und Schüler der Klassen 5 und 6 unterstützen? Sprich Frau Balistreri oder die SV an. Alle Regeln findest du transparent auf der <Link to="/coaching" className="font-semibold text-primary-foreground underline underline-offset-4">Coaching-Seite</Link>.</p>
                                 </div>
-                                <Link to="/coaching" className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-white px-6 text-sm font-semibold text-foreground shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-card">Jetzt mitmachen</Link>
+                                <MotionLink
+                                    to="/coaching"
+                                    whileHover={reduce ? undefined : { y: -2 }}
+                                    whileTap={reduce ? undefined : { scale: 0.985 }}
+                                    transition={SPRING.settle}
+                                    className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-white px-6 text-sm font-semibold text-foreground shadow-soft transition-[box-shadow] duration-150 hover:shadow-card"
+                                >
+                                    Jetzt mitmachen
+                                </MotionLink>
                             </div>
                         </div>
                     </Reveal>
@@ -570,7 +599,15 @@ export default function Landing() {
                                 <p className="text-xl font-extrabold sm:text-2xl">Der Eltern-Leitfaden</p>
                                 <p className="mt-1.5 text-sm font-medium text-primary-foreground/80">Ablauf, Einwilligung und Kontakt zur SV in einem Dokument.</p>
                             </div>
-                            <Link to={elternZiel} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-foreground px-7 text-sm font-semibold text-background shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-card">Eltern-Leitfaden lesen <ArrowRight aria-hidden /></Link>
+                            <MotionLink
+                                to={elternZiel}
+                                whileHover={reduce ? undefined : { y: -2 }}
+                                whileTap={reduce ? undefined : { scale: 0.985 }}
+                                transition={SPRING.settle}
+                                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-foreground px-7 text-sm font-semibold text-background shadow-soft transition-[box-shadow] duration-150 hover:shadow-card"
+                            >
+                                Eltern-Leitfaden lesen <ArrowRight aria-hidden />
+                            </MotionLink>
                         </div>
                     </Reveal>
                 </div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'motion/react';
+import { LIST_ITEM, m, PAGE_ENTER, STAGGER } from '../lib/motion';
 import { api } from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
@@ -100,23 +100,20 @@ export default function PublicProfile() {
         hidden: { opacity: 0 },
         visible: {
             opacity: 1,
-            transition: { staggerChildren: 0.08 }
+            transition: { ...PAGE_ENTER, staggerChildren: STAGGER.step }
         }
     };
 
-    const itemVariants = {
-        hidden: { opacity: 0, y: 14 },
-        visible: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 350, damping: 25 } }
-    };
+    const itemVariants = LIST_ITEM;
 
     return (
-        <motion.div
+        <m.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
             className="mx-auto w-full max-w-5xl space-y-5 p-4 pb-28 sm:p-6"
         >
-            <motion.div variants={itemVariants} className="flex items-center justify-between gap-2">
+            <m.div variants={itemVariants} className="flex items-center justify-between gap-2">
                 <Button
                     variant="ghost"
                     onClick={() => {
@@ -140,10 +137,10 @@ export default function PublicProfile() {
                     <Share2 size={15} className="text-foreground" />
                     <span>Profil teilen</span>
                 </Button>
-            </motion.div>
+            </m.div>
 
             {/* Profile Header */}
-            <motion.div variants={itemVariants} className="relative">
+            <m.div variants={itemVariants} className="relative">
                 <Card className="relative overflow-hidden border-border bg-card p-0">
                     <div
                         className="h-36 bg-[linear-gradient(135deg,var(--primary-soft),var(--pastel-blue))]"
@@ -198,12 +195,12 @@ export default function PublicProfile() {
 
                     </CardContent>
                 </Card>
-            </motion.div>
+            </m.div>
 
             {/* Ab md zweispaltig: links Bio/Kontakt/Statistik, rechts Verfügbarkeit + Anzeigen */}
             <div className="grid items-start gap-6 lg:grid-cols-2">
                 <div className="space-y-6 min-w-0">
-                    <motion.div variants={itemVariants}>
+                    <m.div variants={itemVariants}>
                         <Card className="border-border bg-card p-5">
                                 <div>
                                     <h3 className="mb-2 text-xs font-semibold text-muted-foreground">Über mich</h3>
@@ -213,20 +210,20 @@ export default function PublicProfile() {
                                     />
                                 </div>
                         </Card>
-                    </motion.div>
+                    </m.div>
 
                     {teachingSubjects.length > 0 && (
-                        <motion.div variants={itemVariants}>
+                        <m.div variants={itemVariants}>
                             <Card className="border-border bg-card p-5">
                                 <h3 className="mb-3 text-xs font-semibold text-muted-foreground">Ich biete Nachhilfe</h3>
                                 <div className="flex flex-wrap gap-2">
                                     {teachingSubjects.map(s => <SubjectChip key={s} subject={s} />)}
                                 </div>
                             </Card>
-                        </motion.div>
+                        </m.div>
                     )}
 
-                    <motion.div variants={itemVariants}>
+                    <m.div variants={itemVariants}>
                         <Card className="border-border bg-card p-5">
                             <h3 className="mb-2 text-xs font-semibold text-muted-foreground">Statistiken</h3>
                                     <div className="divide-y divide-border">
@@ -250,13 +247,13 @@ export default function PublicProfile() {
                                         </div>
                                     </div>
                         </Card>
-                    </motion.div>
+                    </m.div>
                 </div>
 
                 {/* Rechte Spalte: Verfügbarkeit + Anzeigen */}
                 <div className="space-y-6 min-w-0">
                     {profile.availability && (
-                        <motion.div variants={itemVariants}>
+                        <m.div variants={itemVariants}>
                             <Card className="border-border bg-card p-5">
                                 <h3 className="mb-3 flex min-w-0 items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                                     <Calendar size={14} className="shrink-0 text-foreground" aria-hidden />
@@ -267,11 +264,11 @@ export default function PublicProfile() {
                                     matchWith={myAvailability}
                                 />
                             </Card>
-                        </motion.div>
+                        </m.div>
                     )}
 
             {/* Ads Feed */}
-            <motion.div variants={itemVariants} className="space-y-4">
+            <m.div variants={itemVariants} className="space-y-4">
                 <h2 className="px-1 text-xl font-semibold tracking-tight text-foreground">Aktive Anzeigen ({ads.length})</h2>
                 {ads.length === 0 ? (
                     <Card className="border-2 border-border bg-muted/30 py-12 text-center text-sm text-muted-foreground shadow-none">
@@ -315,7 +312,7 @@ export default function PublicProfile() {
                         ))}
                     </div>
                 )}
-                    </motion.div>
+                    </m.div>
                 </div>
             </div>
 
@@ -327,6 +324,6 @@ export default function PublicProfile() {
                 isOpen={isShareOpen}
                 onClose={() => setIsShareOpen(false)}
             />
-        </motion.div>
+        </m.div>
     );
 }

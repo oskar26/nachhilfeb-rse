@@ -103,10 +103,10 @@ export function SubjectChip({ subject, className, onClick, selected, size = 'def
     const tone = SUBJECT_TONES[subject] ?? SUBJECT_TONES.sport;
     const interactive = Boolean(onClick);
     const baseCls = cn(
-        'inline-flex select-none items-center gap-1 border border-transparent text-xs font-semibold transition-[background-color,border-color,box-shadow,transform] duration-150',
+        'inline-flex select-none items-center gap-1 border border-transparent text-xs font-semibold transition-[background-color,border-color,box-shadow] duration-150',
         interactive
             ? cn(
-                'cursor-pointer rounded-lg hover:-translate-y-0.5',
+                'cursor-pointer rounded-lg',
                 size === 'compact'
                     ? 'min-h-9 px-3 py-1.5'
                     : 'min-h-11 px-3.5 py-1.5'

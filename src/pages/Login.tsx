@@ -9,7 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardFooter } from '../c
 import { toast } from 'sonner';
 import { useTheme } from '../components/ThemeProvider';
 import { Sun, Moon, CheckCircle, ShieldAlert, Users } from 'lucide-react';
-import { motion, useReducedMotion } from 'motion/react';
+import { useReducedMotion } from 'motion/react';
+import { DISTANCE, m, PAGE_ENTER } from '../lib/motion';
 import { RefinedGradeSelector } from '../components/RefinedGradeSelector';
 import { Logo } from '../components/ui/Logo';
 
@@ -379,9 +380,9 @@ export default function Login() {
 
     const credentialError = Boolean(error && /E-Mail|Passwort|Zugangsdaten/i.test(error));
     const cardAnim = reduceMotion ? {} : {
-        initial: { opacity: 0, y: 12 },
+        initial: { opacity: 0, y: DISTANCE.enter },
         animate: { opacity: 1, y: 0 },
-        transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] as const },
+        transition: PAGE_ENTER,
     };
 
     return (
@@ -399,31 +400,31 @@ export default function Login() {
             {/* Left Side - Branding (Hidden on Mobile) */}
             <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden border-r border-border bg-muted p-12 text-foreground lg:flex">
                 <div className="relative z-10">
-                    <motion.div
-                        {...(reduceMotion ? {} : { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } })}
+                    <m.div
+                        {...(reduceMotion ? {} : { initial: { opacity: 0, y: DISTANCE.enter }, animate: { opacity: 1, y: 0 } })}
                         className="flex items-center gap-3.5 text-3xl font-semibold tracking-tight"
                     >
                         <Logo className="h-12 w-12 shrink-0 text-primary" />
                         Nachhilfebörse
-                    </motion.div>
+                    </m.div>
                 </div>
 
                 <div className="relative z-10 max-w-[95ch]">
-                    <motion.h1
-                        {...(reduceMotion ? {} : { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { delay: 0.1 } })}
+                    <m.h1
+                        {...(reduceMotion ? {} : { initial: { opacity: 0, y: DISTANCE.enter }, animate: { opacity: 1, y: 0 }, transition: { ...PAGE_ENTER, delay: 0.1 } })}
                         className="mb-6 text-balance text-5xl font-semibold leading-tight"
                     >
                         Nachhilfe am FWG.
-                    </motion.h1>
-                    <motion.p
-                        {...(reduceMotion ? {} : { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { delay: 0.2 } })}
+                    </m.h1>
+                    <m.p
+                        {...(reduceMotion ? {} : { initial: { opacity: 0, y: DISTANCE.enter }, animate: { opacity: 1, y: 0 }, transition: { ...PAGE_ENTER, delay: 0.2 } })}
                         className="mb-8 text-lg font-normal leading-relaxed text-muted-foreground"
                     >
                         Finde Nachhilfe oder biete dein Wissen an. Für Schülerinnen und Schüler des Friedrich-Wilhelm-Gymnasiums. Eltern nutzen das Konto ihres Kindes mit.
-                    </motion.p>
+                    </m.p>
 
-                    <motion.div
-                        {...(reduceMotion ? {} : { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { delay: 0.3 } })}
+                    <m.div
+                        {...(reduceMotion ? {} : { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { ...PAGE_ENTER, delay: 0.3 } })}
                         className="space-y-3"
                     >
                         <div className="flex items-center gap-3 font-medium">
@@ -435,7 +436,7 @@ export default function Login() {
                         <div className="flex items-center gap-3 font-medium">
                             <CheckCircle size={20} className="shrink-0" aria-hidden /> Von Schülern für Schüler
                         </div>
-                    </motion.div>
+                    </m.div>
                 </div>
 
                 <div className="relative z-10 text-sm font-medium text-muted-foreground">
@@ -445,7 +446,7 @@ export default function Login() {
 
             {/* Right Side - Form */}
             <div className="relative flex w-full items-center justify-center px-4 pb-[calc(2rem+env(safe-area-inset-bottom,0px))] pt-8 sm:px-8 lg:w-1/2 lg:p-12">
-                <motion.div
+                <m.div
                     {...cardAnim}
                     className="relative z-10 my-auto w-full max-w-md"
                 >
@@ -714,7 +715,7 @@ export default function Login() {
                             </CardFooter>
                         )}
                     </Card>
-                </motion.div>
+                </m.div>
             </div>
         </div>
     );

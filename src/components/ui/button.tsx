@@ -10,13 +10,13 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-soft hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-card",
+          "bg-primary text-primary-foreground shadow-soft hover:bg-primary-hover hover:shadow-card",
         primary:
-          "bg-primary text-primary-foreground shadow-soft hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-card",
+          "bg-primary text-primary-foreground shadow-soft hover:bg-primary-hover hover:shadow-card",
         outline:
-          "border-border bg-card text-foreground shadow-soft hover:-translate-y-0.5 hover:border-border hover:bg-muted hover:text-foreground hover:shadow-card aria-expanded:bg-muted aria-expanded:text-foreground dark:border-border dark:bg-card dark:hover:bg-muted",
+          "border-border bg-card text-foreground shadow-soft hover:border-border hover:bg-muted hover:text-foreground hover:shadow-card aria-expanded:bg-muted aria-expanded:text-foreground dark:border-border dark:bg-card dark:hover:bg-muted",
         secondary:
-          "bg-muted text-secondary-foreground hover:-translate-y-0.5 hover:bg-secondary aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+          "bg-muted text-secondary-foreground hover:bg-secondary aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
         ghost:
           "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/70",
         destructive:

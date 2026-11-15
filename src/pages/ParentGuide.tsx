@@ -1,11 +1,10 @@
 import { ShieldCheck, BadgeCheck, Mail, Check, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { motion, useReducedMotion } from 'motion/react';
+import { useReducedMotion } from 'motion/react';
 import { buttonVariants } from '../components/ui/button';
 import StaticLayout from '../components/StaticLayout';
 import VerifySteps from '../components/VerifySteps';
-
-const easeOut = [0.16, 1, 0.3, 1] as const;
+import { DISTANCE, m, PAGE_ENTER } from '../lib/motion';
 
 type AnimFn = (delay?: number) => Record<string, unknown>;
 
@@ -31,13 +30,14 @@ function CheckRow({ children }: { children: React.ReactNode }) {
 
 export default function ParentGuide() {
     const reduceMotion = useReducedMotion();
-    /* Read-Modus: ruhiger als die Landing — dezenter Authored Reveal (y 18, 0.55 s).
+    /* Read-Modus: ruhiger als die Landing — dezenter Authored Reveal
+       (DISTANCE.enter, PAGE_ENTER: 0,2 s mit EASE_OUT).
        Nur Transform, keine Opacity: Inhalt bleibt bei Full-Page/Print sofort sichtbar. */
     const anim: AnimFn = (delay = 0) => reduceMotion ? {} : {
-        initial: { y: 18 },
+        initial: { y: DISTANCE.enter },
         whileInView: { y: 0 },
         viewport: { once: true, margin: '-80px 0px' },
-        transition: { duration: 0.55, delay, ease: easeOut },
+        transition: { ...PAGE_ENTER, delay },
     };
     return (
         <StaticLayout
@@ -47,7 +47,7 @@ export default function ParentGuide() {
             <div className="mx-auto flex min-w-0 max-w-4xl flex-col gap-10 px-4 pb-16 sm:gap-12 sm:px-6">
 
                 {/* A: Helle Spec-Karte im Papier-Stil (ohne Eyebrow — die H2 trägt das Gewicht) */}
-                <motion.section
+                <m.section
                     aria-labelledby="eltern-sicherheit"
                     {...anim()}
                     className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8"
@@ -73,10 +73,10 @@ export default function ParentGuide() {
                     <div className="[&_li]:transform-none! [&_li]:opacity-100!">
                         <VerifySteps tone="sie" variant="rows" />
                     </div>
-                </motion.section>
+                </m.section>
 
                 {/* B: Helle Preis-Tafel mit Preis in Mono */}
-                <motion.section
+                <m.section
                     aria-labelledby="eltern-qualitaet"
                     {...anim()}
                     className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8"
@@ -102,10 +102,10 @@ export default function ParentGuide() {
                             Das entspricht ca. 16 € pro Stunde. Der Preis ist individuell anpassbar. Die Nachhilfe wird privat bezahlt.
                         </p>
                     </div>
-                </motion.section>
+                </m.section>
 
                 {/* C: Gemeinsame Betreuung — ein Konto, altersgerechte Begleitung */}
-                <motion.section
+                <m.section
                     aria-labelledby="eltern-gemeinsam"
                     {...anim()}
                     className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8"
@@ -140,10 +140,10 @@ export default function ParentGuide() {
                             <a href="mailto:info@nachhilfe-sv.de" className="break-anywhere font-semibold text-foreground hover:underline">info@nachhilfe-sv.de</a>.
                         </CheckRow>
                     </ul>
-                </motion.section>
+                </m.section>
 
                 {/* D: Awareness & Kontakt als schlichte Checkliste */}
-                <motion.section
+                <m.section
                     aria-labelledby="eltern-awareness"
                     {...anim()}
                     className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8"
@@ -175,10 +175,10 @@ export default function ParentGuide() {
                             {'. Fragen und Hilfe rund um die Börse.'}
                         </CheckRow>
                     </ul>
-                </motion.section>
+                </m.section>
 
                 {/* E: Gelber CTA-Block mit der einzigen Aktion der Seite */}
-                <motion.section
+                <m.section
                     aria-labelledby="eltern-kontakt"
                     {...anim()}
                     className="rounded-xl bg-card p-6 text-center text-card-foreground sm:p-10"
@@ -200,7 +200,7 @@ export default function ParentGuide() {
                     >
                         Fragen? Schreiben Sie uns
                     </a>
-                </motion.section>
+                </m.section>
 
             </div>
         </StaticLayout>

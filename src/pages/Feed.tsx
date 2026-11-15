@@ -2,6 +2,7 @@ import { Label } from '@/components/ui/label';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/table';
 import { NativeSelect } from '@/components/ui/native-select';
 import { useEffect, useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
 import { Card, CardContent, CardHeader } from '../components/ui/card';
 import { SubjectChip, SUBJECT_CATEGORIES, subjectLabelMap, type Subject } from '../components/SubjectChip';
@@ -35,6 +36,7 @@ import {
     type SortKey,
 } from '../lib/anzeigen';
 import { triggerHaptic } from '../lib/haptics';
+import { DISTANCE, DURATION, EASE_IN, m, PAGE_ENTER, SPRING } from '../lib/motion';
 import { avatarTone, initials } from '../lib/avatar';
 import { api, apiErrorMessage } from '../lib/api';
 import { formatGradeLabel, formatGradeRange } from '../lib/matching';
@@ -50,6 +52,9 @@ import {
 } from './Coaching';
 
 const DEFAULT_COACHING_DOC = createDefaultCoachingDocument();
+
+/* Einmal pro Datei erzeugt: Card als Motion-Fläche für Hover/Press. */
+const MotionCard = motion.create(Card);
 
 interface Ad {
     id: string;
@@ -144,6 +149,7 @@ export default function Feed() {
     const { user } = useAuth();
     const navigate = useNavigate();
     const isMobile = useIsMobile();
+    const reduce = useReducedMotion();
     const [ads, setAds] = useState<Ad[]>([]);
     const [loading, setLoading] = useState(true);
     const [fetchError, setFetchError] = useState<unknown>(null);
@@ -400,7 +406,12 @@ export default function Feed() {
     const sortedAds = sortiereAnzeigen(filteredAds, { sortKey, filterByTime, myAvailability });
 
     return (
-        <div className="mx-auto w-full min-w-0 max-w-app space-y-3 overflow-x-clip p-4 pb-24 sm:space-y-6 sm:p-6">
+        <m.div
+            className="mx-auto w-full min-w-0 max-w-app space-y-3 overflow-x-clip p-4 pb-24 sm:space-y-6 sm:p-6"
+            initial={reduce ? false : { opacity: 0, y: DISTANCE.enter }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={PAGE_ENTER}
+        >
             {/* Desktop: eingeklappte News-Sektion. Mobile läuft der News-Einstieg
                 über das Schnellmenü der Shell, damit nichts doppelt erscheint. */}
             <div className="hidden md:block">
@@ -665,41 +676,49 @@ export default function Feed() {
                 </Sheet>
             </div>
 
-            {savedSearch && !loading && !fetchError && (
-                <div className="flex min-w-0 flex-nowrap items-center justify-between gap-2 overflow-x-clip rounded-card border border-border bg-muted px-3 py-1.5 dark:bg-muted sm:flex-wrap sm:px-4 sm:py-3">
-                    <div className="flex min-w-0 flex-1 items-center gap-2 text-[13px] sm:text-sm">
-                        <Bookmark size={15} className="shrink-0 fill-current text-foreground" aria-hidden />
-                        <span className="sr-only font-semibold text-foreground sm:not-sr-only sm:shrink-0">Gespeicherte Suche:</span>
-                        <span className="truncate text-muted-foreground">
-                            {savedSearch.query ? `„${savedSearch.query}“` : 'Alle Anzeigen'}
-                            {savedSearch.subject ? ` · ${savedSearch.subject}` : ''}
-                            {savedSearch.grades.length > 0 ? ` · Kl. ${savedSearch.grades.join(', ')}` : ''}
-                            {savedSearch.minPrice > PRICE_SLIDER_MIN || savedSearch.maxPrice < DEFAULT_MAX_PRICE
-                                ? ` · ${savedSearch.minPrice}–${savedSearch.maxPrice}€`
-                                : ''}
-                        </span>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={applySavedSearch}
-                            className="h-11 rounded-full border-border px-4 text-xs font-semibold"
-                        >
-                            Suchen
-                        </Button>
-                        <Button variant="unstyled" size="unstyled"
-                            type="button"
-                            onClick={discardSavedSearch}
-                            aria-label="Gespeicherte Suche verwerfen"
-                            title="Gespeicherte Suche verwerfen"
-                            className="grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                        >
-                            <X size={15} aria-hidden />
-                        </Button>
-                    </div>
-                </div>
-            )}
+            <AnimatePresence initial={false}>
+                {savedSearch && !loading && !fetchError && (
+                    <m.div
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: DURATION.exit, ease: EASE_IN }}
+                        className="flex min-w-0 flex-nowrap items-center justify-between gap-2 overflow-x-clip rounded-card border border-border bg-muted px-3 py-1.5 dark:bg-muted sm:flex-wrap sm:px-4 sm:py-3"
+                    >
+                        <div className="flex min-w-0 flex-1 items-center gap-2 text-[13px] sm:text-sm">
+                            <Bookmark size={15} className="shrink-0 fill-current text-foreground" aria-hidden />
+                            <span className="sr-only font-semibold text-foreground sm:not-sr-only sm:shrink-0">Gespeicherte Suche:</span>
+                            <span className="truncate text-muted-foreground">
+                                {savedSearch.query ? `„${savedSearch.query}“` : 'Alle Anzeigen'}
+                                {savedSearch.subject ? ` · ${savedSearch.subject}` : ''}
+                                {savedSearch.grades.length > 0 ? ` · Kl. ${savedSearch.grades.join(', ')}` : ''}
+                                {savedSearch.minPrice > PRICE_SLIDER_MIN || savedSearch.maxPrice < DEFAULT_MAX_PRICE
+                                    ? ` · ${savedSearch.minPrice}–${savedSearch.maxPrice}€`
+                                    : ''}
+                            </span>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={applySavedSearch}
+                                className="h-11 rounded-full border-border px-4 text-xs font-semibold"
+                            >
+                                Suchen
+                            </Button>
+                            <Button variant="unstyled" size="unstyled"
+                                type="button"
+                                onClick={discardSavedSearch}
+                                aria-label="Gespeicherte Suche verwerfen"
+                                title="Gespeicherte Suche verwerfen"
+                                className="grid size-11 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            >
+                                <X size={15} aria-hidden />
+                            </Button>
+                        </div>
+                    </m.div>
+                )}
+            </AnimatePresence>
 
             {/* Mobile: Anzeigen zuerst, nur die kompakten Info-Pills danach.
                 Desktop: kompakte Pills plus aufklappbare Info-Karten oben. */}
@@ -945,13 +964,16 @@ export default function Feed() {
                         const cardLabel = `Anzeige von ${ad.profiles?.display_name || 'Unbekannt'} öffnen${cardFacts ? `: ${cardFacts}` : ''}`;
                         const openAd = () => navigate(`/ad/${ad.id}`);
                         return (
-                        <Card
+                        <MotionCard
                             key={ad.id}
                             role="link"
                             tabIndex={0}
                             aria-label={cardLabel}
+                            whileHover={reduce ? undefined : { y: -2 }}
+                            whileTap={reduce ? undefined : { scale: 0.985 }}
+                            transition={SPRING.settle}
                             className={cn(
-                                "w-full min-w-0 cursor-pointer overflow-hidden rounded-card border-border bg-card shadow-soft transition-[transform,box-shadow,border-color] duration-150 ease-out hover:-translate-y-0.5 hover:shadow-card focus-visible:outline-none",
+                                "w-full min-w-0 cursor-pointer overflow-hidden rounded-card border-border bg-card shadow-soft transition-[box-shadow,border-color] duration-150 ease-out hover:shadow-card focus-visible:outline-none",
                                 boosted && "border-primary bg-pastel-yellow"
                             )}
                             onClick={openAd}
@@ -1043,7 +1065,7 @@ export default function Feed() {
                                     </Button>
                                 </div>
                             </CardContent>
-                        </Card>
+                        </MotionCard>
                         );
                     })
                 )}
@@ -1060,6 +1082,6 @@ export default function Feed() {
                     onClose={() => setShareAd(null)}
                 />
             )}
-        </div>
+        </m.div>
     );
 }

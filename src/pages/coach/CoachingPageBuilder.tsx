@@ -9,6 +9,7 @@ import { Input } from '../../components/ui/input';
 import { Spinner } from '../../components/ui/spinner';
 import { cn } from '../../lib/utils';
 import { triggerHaptic } from '../../lib/haptics';
+import { prefersReducedMotion } from '../../lib/motion';
 import {
     CoachingView,
     FALLBACK,
@@ -474,7 +475,7 @@ export default function CoachingPageBuilder() {
         triggerHaptic('selection');
         const block = type === 'text' ? createCoachingTextBlock() : createDefaultCoachingBlock(type);
         mutate(document => ({ ...document, blocks: [...document.blocks, block] }));
-        window.setTimeout(() => document.getElementById(`editor-${block.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
+        window.setTimeout(() => document.getElementById(`editor-${block.id}`)?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' }), 0);
     };
 
     const handleSave = async () => {
