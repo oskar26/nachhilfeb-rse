@@ -533,7 +533,7 @@ function AppShell() {
                                        Label. So wandert nur die Fläche, nicht der
                                        Inhalt; bei reduzierter Bewegung bleibt sie
                                        statisch. */
-                                    'relative isolate flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-full text-xs font-medium transition-[color,background-color,transform] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] group-active:scale-[0.96] motion-reduce:transition-none motion-reduce:group-active:scale-100',
+                                    'relative isolate flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-full text-xs font-medium transition-[color,background-color,transform,scale] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] group-active:scale-[0.96] motion-reduce:transition-none motion-reduce:group-active:scale-100',
                                     active
                                         ? 'text-primary-soft-foreground dark:text-foreground'
                                         : 'text-muted-foreground group-hover:bg-muted/50 group-hover:text-foreground'
