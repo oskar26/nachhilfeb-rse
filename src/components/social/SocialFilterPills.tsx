@@ -54,7 +54,7 @@ export function SocialFilterPills({ options, value, onChange, ariaLabel, classNa
             aria-label={ariaLabel}
             aria-orientation="horizontal"
             className={cn(
-                'grid min-h-12 grid-cols-4 gap-1 rounded-full border border-border bg-card p-1.5 shadow-soft',
+                'grid min-h-12 grid-cols-4 gap-0.5 rounded-full border border-border bg-card p-1 shadow-soft',
                 className
             )}
         >
@@ -76,7 +76,7 @@ export function SocialFilterPills({ options, value, onChange, ariaLabel, classNa
                         onClick={() => activate(option.key)}
                         onKeyDown={event => handleKeyDown(event, index)}
                         className={cn(
-                            'relative isolate flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 rounded-full px-1 py-1.5 text-[13px] font-semibold leading-none tracking-[-0.01em] transition-colors max-[379px]:text-[12px] max-[359px]:text-[11px]',
+                            'relative isolate flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 rounded-full px-0.5 py-1 text-[13px] font-semibold leading-none tracking-[-0.02em] transition-colors',
                             isActive
                                 ? 'text-primary-foreground'
                                 : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'
@@ -95,7 +95,7 @@ export function SocialFilterPills({ options, value, onChange, ariaLabel, classNa
                         {typeof option.count === 'number' && (
                             <span
                                 className={cn(
-                                    'relative z-10 text-[11px] font-bold leading-none tabular-nums max-[379px]:text-[10px]',
+                                    'relative z-10 text-[13px] font-bold leading-none tabular-nums',
                                     isActive ? 'text-primary-foreground/75' : 'text-muted-foreground'
                                 )}
                             >
