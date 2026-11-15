@@ -13,11 +13,14 @@ import { prefersReducedMotion } from '../../lib/motion';
 import {
     CoachingView,
     FALLBACK,
+    appendScheduleDay,
+    appendScheduleRow,
     createCoachingTextBlock,
     createDefaultCoachingBlock,
     createDefaultCoachingDocument,
     documentToLegacy,
     parseCoachingDocument,
+    resizeScheduleRows,
     type CoachingBenefitsBlock,
     type CoachingBlock,
     type CoachingBlockType,
@@ -224,18 +227,9 @@ function ParagraphsEditor({ paragraphs, onChange }: { paragraphs: string[]; onCh
 }
 
 function ScheduleEditor({ block, onChange }: { block: CoachingSupportBlock; onChange: (block: CoachingSupportBlock) => void }) {
-    const resizeRows = (days: CoachingScheduleDay[], rows: CoachingScheduleRow[]) => rows.map(row => {
-        const cells = row.cells.slice(0, days.length);
-        while (cells.length < days.length) cells.push({ id: editorId('cell'), text: '' });
-        return { ...row, cells };
-    });
+    const setDays = (days: CoachingScheduleDay[]) => onChange({ ...block, days, rows: resizeScheduleRows(days, block.rows) });
 
-    const setDays = (days: CoachingScheduleDay[]) => onChange({ ...block, days, rows: resizeRows(days, block.rows) });
-
-    const addDay = () => {
-        const day: CoachingScheduleDay = { id: editorId('day'), label: 'Neuer Tag' };
-        setDays([...block.days, day]);
-    };
+    const addDay = () => onChange(appendScheduleDay(block));
 
     const updateDay = (id: string, label: string) => setDays(block.days.map(day => day.id === id ? { ...day, label } : day));
 
@@ -256,14 +250,7 @@ function ScheduleEditor({ block, onChange }: { block: CoachingSupportBlock; onCh
         setDays(block.days.filter(day => day.id !== id));
     };
 
-    const addRow = () => {
-        const row: CoachingScheduleRow = {
-            id: editorId('schedule-row'),
-            time: '',
-            cells: block.days.map(() => ({ id: editorId('cell'), text: '' })),
-        };
-        onChange({ ...block, rows: [...block.rows, row] });
-    };
+    const addRow = () => onChange(appendScheduleRow(block));
 
     const updateRow = (id: string, updater: (row: CoachingScheduleRow) => CoachingScheduleRow) => {
         onChange({ ...block, rows: block.rows.map(row => row.id === id ? updater(row) : row) });
@@ -746,12 +733,17 @@ export default function CoachingPageBuilder() {
                 </div>
 
                 <aside className="min-w-0 xl:sticky xl:top-24">
-                    <div className="mb-2 flex items-center justify-between gap-3">
+                    <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                         <h3 className="text-sm font-semibold text-foreground">Live-Vorschau</h3>
-                        <span className="text-xs text-muted-foreground">Links sind deaktiviert</span>
+                        <span className="text-[13px] leading-5 text-muted-foreground">Texte direkt in der Vorschau anklicken und bearbeiten.</span>
                     </div>
                     <div onClickCapture={handlePreviewClickCapture} className="max-h-[calc(100vh-8rem)] overflow-auto rounded-xl border border-border bg-muted/40 ">
-                        <CoachingView document={draft} preview />
+                        <CoachingView
+                            document={draft}
+                            preview
+                            editable
+                            onDocumentChange={nextDocument => mutate(() => nextDocument)}
+                        />
                     </div>
                 </aside>
             </div>

@@ -20,6 +20,8 @@ export default function StaticLayout({
     children,
     title,
     intro,
+    titleContent,
+    introContent,
     showHeader = true,
     embedded = false,
     idPrefix = '',
@@ -27,12 +29,18 @@ export default function StaticLayout({
     children: React.ReactNode;
     title: string;
     intro?: string;
+    /** Optional custom heading content (e.g. an inline editor). Falls back to `title`. */
+    titleContent?: React.ReactNode;
+    /** Optional custom intro content. Falls back to `intro`. */
+    introContent?: React.ReactNode;
     showHeader?: boolean;
     embedded?: boolean;
     idPrefix?: string;
 }): JSX.Element {
     const location = useLocation();
     const contentId = `${idPrefix}inhalt`;
+    const hasCustomIntro = introContent !== undefined;
+    const introContentValue = hasCustomIntro ? introContent : intro;
 
     // Öffentliche Unterseiten starten nach einem Routenwechsel oben. Ausnahmen:
     // eingebettete Vorschauen und gezielte Sprünge zu Abschnitten (z. B.
@@ -48,11 +56,11 @@ export default function StaticLayout({
         <div className="border-b border-border bg-muted/40 text-foreground">
             <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14">
                 <h1 id={`${idPrefix}page-title`} className="max-w-4xl text-3xl font-semibold leading-tight tracking-tight text-balance sm:text-4xl">
-                    {title || <span className="sr-only">Seitentitel</span>}
+                    {titleContent !== undefined ? titleContent : (title || <span className="sr-only">Seitentitel</span>)}
                 </h1>
-                {intro ? (
+                {hasCustomIntro || intro ? (
                     <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                        {intro}
+                        {introContentValue}
                     </p>
                 ) : null}
             </div>
