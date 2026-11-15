@@ -73,7 +73,7 @@ function AppointmentRow({
                         ? 'border-black/5 bg-black/[0.03] text-muted-foreground dark:border-white/10 dark:bg-white/5'
                         : 'border-[#efe4c0] bg-[#fffdf4] text-[#18181b]'
                 )}>
-                    <span className="text-xs font-semibold uppercase leading-none text-[#8a7318]">
+                    <span className={cn('text-xs font-semibold uppercase leading-none text-[#7a6400]', muted && 'dark:text-[#e8d48a]')}>
                         {appointment.start.toLocaleDateString('de-DE', { month: 'short' })}
                     </span>
                     <span className="mt-0.5 text-lg font-bold leading-none tabular-nums">

@@ -54,7 +54,7 @@ export default function ChatComposer({
     };
 
     return (
-        <div className="shrink-0 px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] sm:px-4 sm:pb-4">
+        <div className="shrink-0 px-2 pt-1.5 pb-2 sm:px-4 sm:pb-4">
             <form onSubmit={handleSubmit} className="mx-auto w-full max-w-3xl">
                 <div className={cn('flex w-full items-end gap-0.5 rounded-[28px] px-1 py-1', styles.composer)}>
                     <DropdownMenu>
@@ -101,7 +101,7 @@ export default function ChatComposer({
                         }}
                         rows={1}
                         placeholder={isBlocked ? 'Nachrichten blockiert' : 'Nachricht schreiben'}
-                        className="field-sizing-content max-h-32 min-h-11 min-w-0 flex-1 resize-none border-0 bg-transparent px-2 py-3 text-base leading-5 text-foreground shadow-none outline-none placeholder:text-[#8a8471] focus-visible:outline-none disabled:opacity-60 dark:placeholder:text-muted-foreground/80 sm:text-[15px]"
+                        className="field-sizing-content max-h-32 min-h-11 min-w-0 flex-1 resize-none border-0 bg-transparent px-2 py-3 text-base leading-5 text-foreground shadow-none outline-none placeholder:text-[#6b6452] focus-visible:outline-none disabled:opacity-60 dark:placeholder:text-muted-foreground sm:text-[15px]"
                         autoComplete="off"
                         aria-label="Nachricht schreiben"
                         disabled={isBlocked}

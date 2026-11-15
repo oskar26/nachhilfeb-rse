@@ -23,6 +23,38 @@ export interface ConversationSummary {
     request_created_at?: string | null;
 }
 
+const UNEXPECTED_FORMAT = 'Unerwartetes Antwortformat der Chat-Übersicht.';
+
+/**
+ * Validiert die Antwort von `?conversations=1`. Eine 200-Antwort mit einem
+ * Objekt (z. B. `{ success: true }`) oder einer Nachrichtenliste ist ein Fehler
+ * und darf nicht als „keine Chats“ durchrutschen.
+ */
+export function parseConversationSummaries(value: unknown): ConversationSummary[] {
+    if (!Array.isArray(value)) throw new Error(UNEXPECTED_FORMAT);
+    for (const item of value) {
+        if (!item || typeof item !== 'object') throw new Error(UNEXPECTED_FORMAT);
+        const record = item as Record<string, unknown>;
+        if (typeof record.request_id !== 'string' || typeof record.other_user_id !== 'string') {
+            throw new Error(UNEXPECTED_FORMAT);
+        }
+    }
+    return value as ConversationSummary[];
+}
+
+/** Header-Status der Anfrage; `rejected` ist der aktuelle Schema-Wert. */
+export function requestStatusLabel(status?: string): string {
+    switch (status) {
+        case 'accepted': return 'Anfrage angenommen';
+        case 'completed': return 'Anfrage abgeschlossen';
+        case 'rejected':
+        case 'declined': return 'Anfrage abgelehnt';
+        case 'cancelled': return 'Anfrage abgebrochen';
+        case 'pending': return 'Anfrage offen';
+        default: return 'Nachhilfe-Chat';
+    }
+}
+
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 function startOfLocalDay(date: Date): Date {

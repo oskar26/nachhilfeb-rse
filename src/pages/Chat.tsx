@@ -13,6 +13,7 @@ import { blockedReason, checkContent, loadFilterOverrides, type FilterOverrides 
 import { maybeAutoReport } from '../lib/autoreport';
 import { triggerHaptic } from '../lib/haptics';
 import { buildChatTimeline } from '../lib/chat-grouping';
+import { requestStatusLabel } from '../lib/chat-conversations';
 import {
     appointmentSubjectFromRequest,
     appointmentSlotKey,
@@ -54,17 +55,6 @@ interface ChatRequestInfo {
 }
 
 // Auf diesem Gerät verborgene Chats werden in src/lib/hidden-chats.ts verwaltet.
-
-function requestStatusLabel(status?: string): string {
-    switch (status) {
-        case 'accepted': return 'Anfrage angenommen';
-        case 'completed': return 'Anfrage abgeschlossen';
-        case 'declined': return 'Anfrage abgelehnt';
-        case 'cancelled': return 'Anfrage abgebrochen';
-        case 'pending': return 'Anfrage offen';
-        default: return 'Nachhilfe-Chat';
-    }
-}
 
 function capitalize(value: string): string {
     return value ? `${value.charAt(0).toLocaleUpperCase('de-DE')}${value.slice(1)}` : value;

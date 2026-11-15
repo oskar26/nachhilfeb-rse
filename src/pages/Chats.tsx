@@ -11,6 +11,7 @@ import {
     excludeHiddenConversations,
     filterConversations,
     formatConversationTime,
+    parseConversationSummaries,
     type ConversationSummary,
 } from '@/lib/chat-conversations';
 import { triggerHaptic } from '@/lib/haptics';
@@ -50,15 +51,8 @@ export default function Chats() {
                 if (conversationsRef.current.length > 0) setStaleError(true);
                 return;
             }
-            const list = Array.isArray(data) ? data : [];
-            const valid = list.every((item) => item
-                && typeof item === 'object'
-                && typeof (item as ConversationSummary).request_id === 'string'
-                && typeof (item as ConversationSummary).other_user_id === 'string');
-            if (!valid) {
-                throw new Error('Unerwartetes Antwortformat der Chat-Übersicht.');
-            }
-            setConversations(list as ConversationSummary[]);
+            const list = parseConversationSummaries(data);
+            setConversations(list);
             setError(null);
         } catch (e) {
             console.error('[Chats] fetch error:', e);
@@ -120,7 +114,7 @@ export default function Chats() {
                     <div className="relative mt-2.5">
                         <Search
                             size={17}
-                            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#8a8471] dark:text-muted-foreground"
+                            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#6b6452] dark:text-muted-foreground"
                             aria-hidden
                         />
                         <Input
@@ -129,7 +123,7 @@ export default function Chats() {
                             placeholder="Chats durchsuchen"
                             aria-label="Chats durchsuchen"
                             autoComplete="off"
-                            className="h-12 rounded-full border-black/5 bg-white/85 pl-11 pr-11 text-base text-foreground shadow-sm placeholder:text-[#8a8471] hover:bg-white focus-visible:border-primary/60 dark:border-white/10 dark:bg-white/10 dark:placeholder:text-muted-foreground sm:text-sm"
+                            className="h-12 rounded-full border-black/5 bg-white/85 pl-11 pr-11 text-base text-foreground shadow-sm placeholder:text-[#6b6452] hover:bg-white focus-visible:border-primary/60 dark:border-white/10 dark:bg-white/10 dark:placeholder:text-muted-foreground sm:text-sm"
                         />
                         {query && (
                             <button

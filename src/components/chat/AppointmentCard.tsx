@@ -43,7 +43,7 @@ function Row({
 }) {
     return (
         <div className="flex items-start gap-2">
-            <span className="mt-0.5 grid size-5 shrink-0 place-items-center text-[#8a7318]" aria-hidden>
+            <span className="mt-0.5 grid size-5 shrink-0 place-items-center text-[#7a6400]" aria-hidden>
                 {icon}
             </span>
             <div className="min-w-0">
@@ -99,14 +99,14 @@ export default function AppointmentCard({
                     <CalendarDays size={17} aria-hidden />
                 </span>
                 <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold leading-tight text-[#8a7318]">Terminvorschlag</p>
+                    <p className="text-xs font-semibold leading-tight text-[#7a6400]">Terminvorschlag</p>
                     <p className="truncate text-[15px] font-bold leading-tight text-[#18181b]">{details.subject}</p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">
                     <span className={cn('rounded-full border px-2 py-0.5 text-xs font-semibold leading-tight', statusMeta.className)}>
                         {statusMeta.label}
                     </span>
-                    <span className="text-xs font-semibold tabular-nums leading-tight text-[#8b8168]">{details.durationMinutes} Min</span>
+                    <span className="text-xs font-semibold tabular-nums leading-tight text-[#6b614c]">{details.durationMinutes} Min</span>
                 </div>
             </div>
 
@@ -197,7 +197,7 @@ export default function AppointmentCard({
             )}
 
             {hasActions && (
-                <p className="mt-2 text-center text-xs leading-tight text-[#8b8168]">
+                <p className="mt-2 text-center text-xs leading-tight text-[#6b614c]">
                     {!showQuickReplies
                         ? 'Schnellantworten sind in den Chat-Werkzeugen aus.'
                         : isMe
@@ -212,7 +212,7 @@ export default function AppointmentCard({
                 </p>
             )}
             {!showQuickReplies && !showCalendar && (
-                <p className="mt-2 text-xs leading-tight text-[#8b8168]">
+                <p className="mt-2 text-xs leading-tight text-[#6b614c]">
                     Terminkarten sind schreibgeschützt. Alle Funktionen lassen sich in den Chat-Werkzeugen einschalten.
                 </p>
             )}

@@ -178,7 +178,7 @@ export default function AppointmentDialog({
                         <div className="flex items-center justify-between gap-2">
                             <Label htmlFor="appointment-time" className="text-xs font-semibold text-foreground/80">Uhrzeit</Label>
                             <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                                <Clock size={12} aria-hidden /> 45 Min
+                                <Clock size={12} aria-hidden /> {durationMinutes} Min
                             </span>
                         </div>
                         <div className="flex flex-wrap gap-1.5">

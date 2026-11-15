@@ -4,6 +4,8 @@ import {
   excludeHiddenConversations,
   filterConversations,
   formatConversationTime,
+  parseConversationSummaries,
+  requestStatusLabel,
   type ConversationSummary,
 } from '../src/lib/chat-conversations';
 
@@ -76,5 +78,34 @@ describe('excludeHiddenConversations', () => {
     ];
     expect(excludeHiddenConversations(items, ['req-2']).map((item) => item.request_id)).toEqual(['req-1']);
     expect(excludeHiddenConversations(items, [])).toBe(items);
+  });
+});
+
+describe('parseConversationSummaries', () => {
+  it('accepts a valid conversation array', () => {
+    const items = [conversation()];
+    expect(parseConversationSummaries(items)).toBe(items);
+  });
+
+  it('treats non-array 200 responses as an error', () => {
+    expect(() => parseConversationSummaries({ success: true })).toThrow('Antwortformat');
+    expect(() => parseConversationSummaries(null)).toThrow('Antwortformat');
+  });
+
+  it('rejects message-shaped arrays', () => {
+    expect(() => parseConversationSummaries([{ id: 'm1', sender_id: 'u-mia', content: 'Hallo' }]))
+      .toThrow('Antwortformat');
+  });
+});
+
+describe('requestStatusLabel', () => {
+  it('handles the schema status rejected and legacy values', () => {
+    expect(requestStatusLabel('accepted')).toBe('Anfrage angenommen');
+    expect(requestStatusLabel('completed')).toBe('Anfrage abgeschlossen');
+    expect(requestStatusLabel('rejected')).toBe('Anfrage abgelehnt');
+    expect(requestStatusLabel('declined')).toBe('Anfrage abgelehnt');
+    expect(requestStatusLabel('cancelled')).toBe('Anfrage abgebrochen');
+    expect(requestStatusLabel('pending')).toBe('Anfrage offen');
+    expect(requestStatusLabel(undefined)).toBe('Nachhilfe-Chat');
   });
 });
