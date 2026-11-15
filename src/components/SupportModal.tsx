@@ -420,8 +420,9 @@ export default function SupportModal({ isOpen, onClose, initialType, initialView
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <Label className="text-xs font-semibold text-foreground/80">Titel *</Label>
+                                    <Label htmlFor="support-ticket-title" className="text-xs font-semibold text-foreground/80">Titel *</Label>
                                     <Input
+                                        id="support-ticket-title"
                                         type="text"
                                         value={title}
                                         onChange={e => setTitle(e.target.value)}
@@ -432,10 +433,11 @@ export default function SupportModal({ isOpen, onClose, initialType, initialView
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <Label className="text-xs font-semibold text-foreground/80">
+                                    <Label htmlFor="support-ticket-description" className="text-xs font-semibold text-foreground/80">
                                         {ticketType === 'bug' ? 'Was ist passiert? *' : 'Beschreibe deinen Funktionswunsch *'}
                                     </Label>
                                     <Textarea
+                                        id="support-ticket-description"
                                         value={description}
                                         onChange={e => setDescription(e.target.value)}
                                         placeholder={ticketType === 'bug' 

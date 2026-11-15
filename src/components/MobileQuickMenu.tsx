@@ -182,6 +182,7 @@ export default function MobileQuickMenu({ unreadCount, onCountChange }: Props) {
                 <div className="flex items-center gap-0.5 rounded-full border border-border/70 bg-card/95 p-1 shadow-soft backdrop-blur-xl md:hidden">
                     <SidebarTrigger
                         aria-label="Navigation öffnen"
+                        title="Navigation öffnen"
                         className="size-11 shrink-0 rounded-full text-muted-foreground hover:text-foreground"
                     />
                     <PopoverTrigger
