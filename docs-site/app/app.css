@@ -268,8 +268,28 @@ html.dark body :is(a, button, [tabindex]):focus-visible {
   padding-inline: 0.6rem;
 }
 
-#nd-toc a:hover,
+#nd-toc a:hover {
+  background: var(--color-fd-accent);
+  color: var(--color-fd-accent-foreground);
+}
+
+/* Fumadocs marks every heading in the current section as active. A filled
+   pill on each one stacks into a yellow blob, so keep the ancestor headings
+   quiet and highlight only the deepest active heading. Browsers without
+   :has() still get the flat, blob-free fallback above. */
 #nd-toc a[data-active='true'] {
+  background: transparent;
+  color: var(--color-fd-muted-foreground);
+  font-weight: 500;
+}
+
+#nd-toc a[data-active='true']:not(:has(+ a[data-active='true'])) {
+  background: var(--color-fd-accent);
+  color: var(--color-fd-accent-foreground);
+  font-weight: 600;
+}
+
+#nd-toc a[data-active='true']:not(:has(+ a[data-active='true'])):hover {
   background: var(--color-fd-accent);
   color: var(--color-fd-accent-foreground);
 }
