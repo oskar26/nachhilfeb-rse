@@ -10,7 +10,6 @@ import {
     BookOpen, GraduationCap, MapPin, Search, Euro, Zap
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { VerifiedPill } from '../components/ui/VerifiedPill';
 import { AvailabilityCalendar } from '../components/AvailabilityCalendar';
 import { MatchScoreBadge } from '../components/social/MatchScoreBadge';
 import { StreamCardShell, StatusChip, TypeChip } from '../components/social/StreamChips';
@@ -97,7 +96,6 @@ export function MatchStreamCard({
                                 {isOffer ? <GraduationCap size={12} aria-hidden /> : <Search size={12} aria-hidden />}
                                 {isOffer ? 'Bietet' : 'Sucht Nachhilfe'}
                             </span>
-                            {ad.profiles?.is_verified && <VerifiedPill />}
                         </div>
                         <p className="mt-1.5 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
                             <span className="tabular-nums">{formatGradeLabel(ad.profiles?.grade_level || ad.grade_levels?.[0])}</span>

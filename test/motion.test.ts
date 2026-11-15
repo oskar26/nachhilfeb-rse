@@ -44,8 +44,8 @@ describe('motion tokens', () => {
     expect(STAGGER).toEqual({ step: 0.04, maxItems: 6 });
   });
 
-  it('uses compact travel distances', () => {
-    expect(DISTANCE).toEqual({ state: 4, enter: 8 });
+  it('uses compact travel distances for state, page, and reveal entrances', () => {
+    expect(DISTANCE).toEqual({ state: 4, enter: 8, page: 14, reveal: 20 });
   });
 
   it('builds the app transition from the base duration and ease-out', () => {

@@ -1318,16 +1318,16 @@ export function CoachingView({
                                         }
                                     }}
                                 >
-                                    <Table className={cn('w-full border-collapse text-center text-xs md:text-sm', hasTimes ? 'min-w-[520px]' : 'min-w-[440px]')}>
+                                    <Table className={cn('w-full table-fixed border-collapse text-center text-xs md:text-sm', hasTimes ? 'min-w-[520px]' : 'min-w-[440px]')}>
                                         <TableHeader>
                                             <TableRow>
                                                 {hasTimes ? (
-                                                    <TableHead scope="col" className="border border-border p-2 whitespace-nowrap">
+                                                    <TableHead scope="col" className="w-[4.75rem] border border-border p-2 whitespace-nowrap">
                                                         {editing ? <span className="block text-center">Zeit</span> : 'Zeit'}
                                                     </TableHead>
                                                 ) : null}
                                                 {block.days.map((day, dayIndex) => (
-                                                    <TableHead key={day.id} scope="col" className="border border-border p-1 tabular-nums">
+                                                    <TableHead key={day.id} scope="col" className="min-w-0 break-words border border-border p-1 tabular-nums">
                                                         {editing ? (
                                                             <input
                                                                 type="text"
@@ -1335,7 +1335,7 @@ export function CoachingView({
                                                                 onChange={event => updateDayLabel(day.id, event.target.value)}
                                                                 aria-label={`Tagesname von Spalte ${dayIndex + 1}`}
                                                                 placeholder={`Tag ${dayIndex + 1}`}
-                                                                className="min-h-11 w-full min-w-[4.5rem] rounded-sm bg-transparent px-1 py-2 text-center font-medium text-inherit outline-none placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-primary"
+                                                                className="min-h-11 w-full min-w-0 rounded-sm bg-transparent px-1 py-2 text-center font-medium text-inherit outline-none placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-primary"
                                                             />
                                                         ) : day.label}
                                                     </TableHead>
@@ -1354,7 +1354,7 @@ export function CoachingView({
                                                                     onChange={event => updateRowTime(row.id, event.target.value)}
                                                                     aria-label={`Zeit von Zeile ${rowIndex + 1}`}
                                                                     placeholder="–"
-                                                                    className="min-h-11 w-full min-w-[4.5rem] rounded-sm bg-transparent px-2 py-2 text-center font-medium text-inherit outline-none placeholder:font-normal placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-primary"
+                                                                    className="min-h-11 w-full min-w-0 rounded-sm bg-transparent px-2 py-2 text-center font-medium text-inherit outline-none placeholder:font-normal placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-primary"
                                                                 />
                                                             ) : (row.time?.trim() || '–')}
                                                         </TableCell>
@@ -1363,7 +1363,7 @@ export function CoachingView({
                                                         const cell = row.cells[cellIndex];
                                                         const text = cell?.text ?? '';
                                                         return (
-                                                            <TableCell key={`${row.id}-${day.id}`} className={editing ? cn(scheduleCellClass(text), 'p-0') : scheduleCellClass(text)}>
+                                                            <TableCell key={`${row.id}-${day.id}`} className={cn('min-w-0 break-words text-sm', scheduleCellClass(text), editing && 'p-0')}>
                                                                 {editing ? (
                                                                     <input
                                                                         type="text"
@@ -1372,7 +1372,7 @@ export function CoachingView({
                                                                         aria-label={`Fach für ${day.label || `Spalte ${cellIndex + 1}`} in Zeile ${rowIndex + 1}`}
                                                                         placeholder="–"
                                                                         data-schedule-cell="true"
-                                                                        className="min-h-11 w-full min-w-[4.5rem] rounded-sm bg-transparent px-2 py-2 text-center font-[inherit] text-inherit outline-none placeholder:font-normal placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-primary"
+                                                                        className="min-h-11 w-full min-w-0 rounded-sm bg-transparent px-2 py-2 text-center font-[inherit] text-inherit outline-none placeholder:font-normal placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-primary"
                                                                     />
                                                                 ) : text}
                                                             </TableCell>

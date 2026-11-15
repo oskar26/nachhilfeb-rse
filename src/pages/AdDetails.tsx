@@ -15,7 +15,6 @@ import { formatGradeLabel, formatGradeRange } from '../lib/matching';
 import { cn, formatAdPrice, formatHourlyFromDetails } from '../lib/utils';
 import { PriceTag } from '../components/ui/price-tag';
 import { AnimatedHeart } from '../components/ui/animated-heart';
-import { VerifiedPill } from '../components/ui/VerifiedPill';
 import { CustomContactsList, publicCustomContacts } from '../components/CustomContacts';
 import {
     AlertDialog,
@@ -186,6 +185,7 @@ export default function AdDetails() {
         && !!ad.is_active
         && !ad.is_archived;
     const isPaused = !isOwn && !ad.is_active;
+    const requestAccepted = !isOwn && (status === 'accepted' || status === 'completed');
 
     const subjectNames = (ad.subjects || []).map((subject: Subject) => subjectLabelMap[subject] ?? subject);
     const generatedHeading = `${subjectNames[0] || 'Nachhilfe'} - ${profile?.display_name || 'Nutzer'}`;
@@ -293,9 +293,6 @@ export default function AdDetails() {
                             <div className="min-w-0">
                                 <div className="mb-2 flex flex-wrap items-center gap-2">
                                     <h1 className={cn('break-anywhere text-xl font-semibold text-foreground sm:text-2xl', !ownTitle && 'capitalize')}>{heading}</h1>
-                                    {profile?.is_verified && (
-                                        <VerifiedPill className="shrink-0" />
-                                    )}
                                 </div>
                                 <p className="text-[15px] leading-relaxed text-muted-foreground">
                                     {ad.type === 'offer' ? 'Biete Nachhilfe' : 'Suche Nachhilfe'}
@@ -385,11 +382,17 @@ export default function AdDetails() {
                     Anfrage/Verwaltung rechts; mobil bleibt beides gestapelt. */}
                 <Card className="border-border bg-card">
                     <CardContent className="p-4 sm:p-6">
-                        <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between md:gap-6">
+                        <div className={cn(
+                            'flex flex-col gap-5',
+                            !requestAccepted && 'md:flex-row md:items-start md:justify-between md:gap-6'
+                        )}>
                             <Button variant="unstyled" size="unstyled"
                                 type="button"
                                 onClick={() => navigate(`/profile/${profile?.id}`)}
-                                className="flex min-w-0 items-center gap-4 rounded-xl p-2 text-left transition-colors hover:bg-muted md:flex-1"
+                                className={cn(
+                                    'flex min-w-0 items-center gap-4 rounded-xl p-2 text-left transition-colors hover:bg-muted',
+                                    !requestAccepted && 'md:flex-1'
+                                )}
                             >
                                 <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted text-2xl font-semibold text-foreground">
                                     {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" /> : (profile?.display_name?.charAt(0) || '?')}
@@ -405,9 +408,9 @@ export default function AdDetails() {
 
                             <div className={cn(
                                 'min-w-0',
-                                isOwn
+                                !requestAccepted && (isOwn
                                     ? 'md:w-[25rem] md:shrink-0 md:border-l md:border-border md:pl-6'
-                                    : 'md:w-[20rem] md:shrink-0 md:border-l md:border-border md:pl-6'
+                                    : 'md:w-[20rem] md:shrink-0 md:border-l md:border-border md:pl-6')
                             )}>
                                 {isOwn ? (
                                     <div className="space-y-3">
@@ -447,42 +450,52 @@ export default function AdDetails() {
                                                 Anfrage gesendet. Warte auf Antwort.
                                             </div>
                                         )}
-                                        {(status === 'accepted' || status === 'completed') && (
-                                            <div className="space-y-4 animate-in fade-in zoom-in-95">
-                                                <div className="flex items-center gap-3 rounded-xl border border-border bg-muted p-4 text-foreground/80">
+                                        {requestAccepted && (
+                                            <m.div
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ duration: DURATION.enter, ease: EASE_IN }}
+                                                className="space-y-4"
+                                            >
+                                                <div className="flex items-center gap-3 rounded-xl border border-primary/30 bg-primary-soft p-4 text-primary-soft-foreground">
                                                     <CheckCircle size={24} />
                                                     <div>
                                                         <p className="font-semibold">Anfrage akzeptiert!</p>
                                                         <p className="text-sm">Hier sind die Kontaktdaten:</p>
                                                     </div>
                                                 </div>
-                                                <div className="flex gap-2.5 rounded-xl border border-border bg-muted/50 p-3.5 text-[13px] leading-relaxed text-muted-foreground">
-                                                    <ShieldAlert size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
-                                                    <p>
-                                                        <strong>Sicherheit geht vor:</strong> Trefft euch möglichst in der Schule,
-                                                        informiert eure Eltern und teilt nur Kontakte, die ihr freigegeben habt.
-                                                        Bei Problemen melde die Anzeige über den Button unten oder sprich das SV-Team an.
-                                                    </p>
-                                                </div>
-                                                <div className="grid grid-cols-1 gap-3">
-                                                    {profile?.phone_number && profile?.settings?.phone_visible && (
-                                                        <a href={`tel:${profile.phone_number}`} className="flex items-center justify-center gap-2 rounded-xl border border-border bg-card p-4 text-[13px] transition-colors hover:bg-muted">
-                                                            <Phone size={20} /> {profile.phone_number}
-                                                        </a>
-                                                    )}
-                                                    {profile?.email && profile?.settings?.email_visible && (
-                                                        <a href={`mailto:${profile.email}`} className="flex items-center justify-center gap-2 rounded-xl border border-border bg-card p-4 text-[13px] transition-colors hover:bg-muted">
-                                                            <Mail size={20} /> {profile.email}
-                                                        </a>
-                                                    )}
-                                                    {(!profile?.settings?.phone_visible && !profile?.settings?.email_visible && publicCustomContacts(profile?.settings?.custom_contacts).length === 0) && (
-                                                        <div className="rounded-xl border border-border bg-muted/60 p-4 text-center text-[13px] text-muted-foreground">
-                                                            Dieser Nutzer hat seine Kontaktdaten auf privat gestellt. Schreibe ihm direkt im Chat.
+                                                <div className="grid gap-3 lg:grid-cols-2">
+                                                    <div className="space-y-3 rounded-xl border border-border bg-card p-4">
+                                                        <p className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">Kontaktdaten</p>
+                                                        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
+                                                            {profile?.phone_number && profile?.settings?.phone_visible && (
+                                                                <a href={`tel:${profile.phone_number}`} className="flex min-h-11 items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2.5 text-[13px] font-medium text-foreground transition-colors hover:bg-muted">
+                                                                    <Phone size={17} aria-hidden /> {profile.phone_number}
+                                                                </a>
+                                                            )}
+                                                            {profile?.email && profile?.settings?.email_visible && (
+                                                                <a href={`mailto:${profile.email}`} className="flex min-h-11 items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2.5 text-[13px] font-medium text-foreground transition-colors hover:bg-muted">
+                                                                    <Mail size={17} aria-hidden /> {profile.email}
+                                                                </a>
+                                                            )}
+                                                            {(!profile?.settings?.phone_visible && !profile?.settings?.email_visible && publicCustomContacts(profile?.settings?.custom_contacts).length === 0) && (
+                                                                <div className="rounded-lg border border-border bg-muted/60 p-4 text-[13px] text-muted-foreground">
+                                                                    Dieser Nutzer hat seine Kontaktdaten auf privat gestellt. Schreibe ihm direkt im Chat.
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                    )}
+                                                        <CustomContactsList contacts={profile?.settings?.custom_contacts} />
+                                                    </div>
+                                                    <div className="flex gap-2.5 rounded-xl border border-border bg-muted/50 p-4 text-[13px] leading-relaxed text-muted-foreground">
+                                                        <ShieldAlert size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+                                                        <p>
+                                                            <strong>Sicherheit geht vor:</strong> Trefft euch möglichst in der Schule,
+                                                            informiert eure Eltern und teilt nur Kontakte, die ihr freigegeben habt.
+                                                            Bei Problemen melde die Anzeige über den Button unten oder sprich das SV-Team an.
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <CustomContactsList contacts={profile?.settings?.custom_contacts} />
-                                            </div>
+                                            </m.div>
                                         )}
                                         {status === 'rejected' && (
                                             <div className="rounded-xl border border-destructive/25 bg-destructive/5 p-4 text-center font-medium text-destructive">

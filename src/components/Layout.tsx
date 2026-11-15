@@ -13,7 +13,7 @@ import { triggerHaptic } from '../lib/haptics';
 import { avatarTone, initials } from '../lib/avatar';
 import { cn } from '../lib/utils';
 import { getDesktopSocialTab, type DesktopSocialTab } from '../lib/navigation';
-import { m, SPRING } from '../lib/motion';
+import { m, PAGE_ENTER, SPRING } from '../lib/motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
     DropdownMenu,
@@ -90,13 +90,13 @@ function AppShell() {
     const isPathActive = (path: string) => path === '/' ? pathname === '/' : pathname === path || pathname.startsWith(`${path}/`);
     // Dark mode uses the neutral active surface; the base button would otherwise
     // show the olive --primary-soft pill in the SV/sidebar navigation.
-    const activeNavClass = 'relative dark:bg-muted dark:text-foreground dark:data-active:bg-muted dark:data-active:text-foreground dark:data-active:hover:bg-muted dark:data-active:hover:text-foreground';
+    const activeNavClass = 'relative isolate dark:text-foreground dark:data-active:text-foreground dark:data-active:hover:text-foreground';
     const sidebarActiveIndicator = (active: boolean) => active ? (
         <m.span
             aria-hidden="true"
-            layoutId={reduceMotion ? undefined : 'sidebar-active-indicator'}
+            layoutId={reduceMotion ? undefined : 'sidebar-active-pill'}
             transition={reduceMotion ? { duration: 0 } : SPRING.settle}
-            className="pointer-events-none absolute inset-y-2 left-1 w-1 rounded-full bg-primary"
+            className="pointer-events-none absolute inset-0 -z-10 rounded-full bg-primary-soft shadow-[inset_0_0_0_1px_rgb(250_204_21_/_0.28)] dark:bg-muted dark:shadow-none"
         />
     ) : null;
 
@@ -422,9 +422,17 @@ function AppShell() {
                     aria-label="Hauptinhalt"
                     className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overflow-x-clip scroll-pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] focus:outline-none md:scroll-pb-0"
                 >
-                    <AccessGuard>
-                        <Outlet />
-                    </AccessGuard>
+                    <m.div
+                        key={location.pathname}
+                        initial={reduceMotion ? false : { opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={reduceMotion ? { duration: 0 } : PAGE_ENTER}
+                        className="flex min-h-0 w-full flex-1 flex-col"
+                    >
+                        <AccessGuard>
+                            <Outlet />
+                        </AccessGuard>
+                    </m.div>
                     <div className="h-[calc(6.5rem+env(safe-area-inset-bottom,0px))] shrink-0 md:hidden" />
                 </div>
             </SidebarInset>

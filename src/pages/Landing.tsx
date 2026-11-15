@@ -19,6 +19,7 @@ import {
 import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
 import SupportModal from '../components/SupportModal';
 import SiteHeader from '../components/SiteHeader';
+import { PageEnter } from '../components/site/PageEnter';
 import VerifySteps from '../components/VerifySteps';
 import { Logo } from '../components/ui/Logo';
 import { useAuth } from '../context/AuthContext';
@@ -146,6 +147,7 @@ export default function Landing() {
 
             <SiteHeader />
 
+            <PageEnter>
             <section id="inhalt" tabIndex={-1} className="scroll-mt-24 bg-background">
                 <div className="mx-auto max-w-site px-4 pb-14 pt-7 sm:px-6 sm:pb-20 sm:pt-10">
                     <Reveal>
@@ -714,6 +716,7 @@ export default function Landing() {
                     </div>
                 </div>
             </footer>
+            </PageEnter>
         </main>
     );
 }

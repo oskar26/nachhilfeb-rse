@@ -5,6 +5,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Logo } from './ui/Logo';
 import SiteHeader from './SiteHeader';
 import { Button } from '@/components/ui/button';
+import { PageEnter } from './site/PageEnter';
 
 const FOOTER_LINKS: Array<[string, string]> = [
     ['Impressum', '/impressum'],
@@ -103,8 +104,10 @@ export default function StaticLayout({
             <SiteHeader />
 
             <main id={contentId} tabIndex={-1} className="flex-1 bg-background focus:outline-none">
-                {pageHeader}
-                {pageContent}
+                <PageEnter>
+                    {pageHeader}
+                    {pageContent}
+                </PageEnter>
             </main>
 
             <footer className="border-t border-border bg-background text-muted-foreground">

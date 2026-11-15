@@ -27,7 +27,7 @@ export const SPRING = {
 
 export const STAGGER = { step: 0.04, maxItems: 6 } as const;
 
-export const DISTANCE = { state: 4, enter: 8 } as const;
+export const DISTANCE = { state: 4, enter: 8, page: 14, reveal: 20 } as const;
 
 export const APP_TRANSITION = {
   duration: DURATION.base,

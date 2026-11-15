@@ -20,6 +20,8 @@ import { startNotificationPoll } from '../lib/polling';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
 import { triggerHaptic } from '../lib/haptics';
+import { useReducedMotion } from 'motion/react';
+import { EASE_STANDARD, m } from '../lib/motion';
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -100,6 +102,7 @@ function groupByDate(notifications: AppNotification[]): Record<string, AppNotifi
 // ── Component ────────────────────────────────────────────────────
 
 export default function NotificationCenter({ unreadCount, onCountChange, variant = 'desktop', open: openProp, onOpenChange, hideTrigger = false }: Props) {
+    const reduceMotion = useReducedMotion();
     const { user } = useAuth();
     const navigate = useNavigate();
     const [internalOpen, setInternalOpen] = useState(false);
@@ -343,7 +346,15 @@ export default function NotificationCenter({ unreadCount, onCountChange, variant
             className="relative grid size-11 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             aria-label={triggerLabel}
         >
-            <Bell size={20} />
+            <m.span
+                aria-hidden
+                whileHover={reduceMotion ? undefined : { rotate: [0, -12, 10, -6, 0] }}
+                whileTap={reduceMotion ? undefined : { scale: 0.88, rotate: -8 }}
+                transition={reduceMotion ? { duration: 0 } : { duration: 0.42, ease: EASE_STANDARD }}
+                className="inline-flex"
+            >
+                <Bell size={20} />
+            </m.span>
             {unread > 0 && (
                 <span className="absolute right-1.5 top-1.5 grid place-items-center" aria-hidden>
                     <span className="relative h-2.5 w-2.5 rounded-full bg-foreground ring-2 ring-card" />
@@ -361,7 +372,15 @@ export default function NotificationCenter({ unreadCount, onCountChange, variant
             className="relative size-11 shrink-0 text-muted-foreground hover:text-foreground"
             aria-label={triggerLabel}
         >
-            <Bell size={20} strokeWidth={2} aria-hidden />
+            <m.span
+                aria-hidden
+                whileHover={reduceMotion ? undefined : { rotate: [0, -12, 10, -6, 0] }}
+                whileTap={reduceMotion ? undefined : { scale: 0.88, rotate: -8 }}
+                transition={reduceMotion ? { duration: 0 } : { duration: 0.42, ease: EASE_STANDARD }}
+                className="inline-flex"
+            >
+                <Bell size={20} strokeWidth={2} />
+            </m.span>
             {unread > 0 && (
                 <span className="absolute -right-1 -top-1 grid place-items-center">
                     <span className="relative grid h-5 min-w-5 place-items-center rounded-full bg-foreground px-1 text-xs font-medium leading-none text-background ring-2 ring-background tabular-nums">

@@ -42,7 +42,6 @@ import { avatarTone, initials } from '../lib/avatar';
 import { api, apiErrorMessage } from '../lib/api';
 import { formatGradeLabel, formatGradeRange } from '../lib/matching';
 import { useIsMobile } from '../hooks/use-mobile';
-import { VerifiedPill } from '../components/ui/VerifiedPill';
 import {
     createDefaultCoachingDocument,
     parseCoachingDocument,
@@ -1017,7 +1016,6 @@ export default function Feed() {
                             subjectLabels.join(', '),
                             gradeRange,
                             formatPrice(ad),
-                            ad.profiles?.is_verified ? 'verifiziert' : '',
                         ].filter(Boolean).join(', ');
                         const cardLabel = `Anzeige von ${ad.profiles?.display_name || 'Unbekannt'} öffnen${cardFacts ? `: ${cardFacts}` : ''}`;
                         const openAd = () => navigate(`/ad/${ad.id}`);
@@ -1054,7 +1052,6 @@ export default function Feed() {
                                     <div className="min-w-0 flex-1">
                                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                                             <h3 className="min-w-0 truncate text-base font-extrabold text-foreground">{ad.profiles?.display_name || 'Unbekannt'}</h3>
-                                            {ad.profiles?.is_verified && <VerifiedPill />}
                                             {ad.profiles?.is_coach && (
                                                 <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-pastel-orange px-2.5 py-1 text-xs font-semibold text-pastel-orange-foreground" title="Mitglied der Coaching-AG">
                                                     <Award size={12} aria-hidden />
@@ -1081,7 +1078,7 @@ export default function Feed() {
                                             price={ad.price_details?.value}
                                             mode={ad.price_details?.mode}
                                             duration={ad.price_details?.unit}
-                                            className={boosted ? 'bg-white/75 dark:bg-white/15' : undefined}
+                                            className={boosted ? 'ring-2 ring-primary-soft-foreground/15' : undefined}
                                         />
                                         {priceSecondary(ad) && (
                                             <div className="text-[13px] tabular-nums text-primary-soft-foreground/75">
