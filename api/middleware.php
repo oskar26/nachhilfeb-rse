@@ -6,6 +6,7 @@
 require_once __DIR__ . '/jwt.php';
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/response.php';
+require_once __DIR__ . '/parental-consent.php';
 
 function get_bearer_token(): ?string {
     $headers = null;
@@ -94,17 +95,21 @@ function get_auth_user(): ?array {
         }
     }
     if ($isUnder16) {
-        $parentalConfirmed = false;
+        $consentRow = null;
+        $consentReadFailed = false;
         try {
             $consentStmt = $pdo->prepare('SELECT confirmed_at FROM parental_consents WHERE user_id = ? LIMIT 1');
             $consentStmt->execute([$user['id']]);
-            $consentRow = $consentStmt->fetch();
-            $parentalConfirmed = $consentRow && !empty($consentRow['confirmed_at']);
+            $fetchedConsentRow = $consentStmt->fetch();
+            $consentRow = $fetchedConsentRow === false ? null : $fetchedConsentRow;
         } catch (Exception $e) {
             error_log('U16-Prüfung: Elternbestätigung nicht lesbar: ' . $e->getMessage());
-            $parentalConfirmed = false;
+            // Lesefehler dürfen nicht wie "keine Zeile" (Bestandskonto) wirken.
+            $consentReadFailed = true;
         }
-        if (empty($user['parental_consent_given']) || !$parentalConfirmed) {
+        $parentalAllowed = !$consentReadFailed
+            && fwg_parental_consent_allows($isUnder16, !empty($user['parental_consent_given']), $consentRow);
+        if (!$parentalAllowed) {
             json_error('Ein Elternteil muss die Nutzung noch per E-Mail bestätigen. Bitte prüfe das E-Mail-Postfach deiner Eltern.', 403, [
                 'code' => 'parental_consent_pending',
                 'parental_consent_pending' => true

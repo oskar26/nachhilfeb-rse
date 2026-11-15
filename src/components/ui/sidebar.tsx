@@ -289,14 +289,14 @@ function SidebarTrigger({
 }
 
 function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
-  const { toggleSidebar } = useSidebar()
+  const { toggleSidebar, state } = useSidebar()
 
   return (
     <button
       data-sidebar="rail"
       data-slot="sidebar-rail"
       aria-label="Navigation umschalten"
-      tabIndex={-1}
+      tabIndex={state === "collapsed" ? 0 : -1}
       onClick={toggleSidebar}
       title="Navigation umschalten"
       className={cn(
