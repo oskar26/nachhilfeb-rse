@@ -1,11 +1,10 @@
 import { Link } from 'react-router-dom';
-import { motion, useReducedMotion } from 'motion/react';
+import { useReducedMotion } from 'motion/react';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, Mail } from 'lucide-react';
 import StaticLayout from '../components/StaticLayout';
 import VerifySteps from '../components/VerifySteps';
-
-const easeOut = [0.16, 1, 0.3, 1] as const;
+import { DISTANCE, m, PAGE_ENTER, prefersReducedMotion } from '../lib/motion';
 
 function scrollToId(id: string) {
     // Hinweis: Die App nutzt einen HashRouter (Routen wie #/nutzungsbedingungen).
@@ -16,10 +15,7 @@ function scrollToId(id: string) {
     if (el && el.tagName === 'DETAILS' && !(el as HTMLDetailsElement).open) {
         (el as HTMLDetailsElement).open = true;
     }
-    const reduce = typeof window !== 'undefined'
-        && typeof window.matchMedia === 'function'
-        && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    el?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    el?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
 }
 
 // Listenwüsten vermeiden: Regeln als nummerierte Stapelliste (Copy unverändert).
@@ -92,10 +88,10 @@ const SANKTIONEN: Array<{ v: string; m: React.ReactNode }> = [
 export default function Nutzungsbedingungen() {
     const reduceMotion = useReducedMotion();
     const anim = (delay = 0) => reduceMotion ? {} : {
-        initial: { y: 28 },
+        initial: { y: DISTANCE.enter },
         whileInView: { y: 0 },
         viewport: { once: true, margin: '-80px 0px' },
-        transition: { duration: 0.7, delay, ease: easeOut },
+        transition: { ...PAGE_ENTER, delay },
     };
     return (
         <StaticLayout
@@ -107,7 +103,7 @@ export default function Nutzungsbedingungen() {
                 {/* Leseeinheit 1: Zusammenfassung + Inhaltsübersicht gehören zusammen. */}
                 <div className="flex flex-col gap-4 sm:gap-5 min-w-0">
                 {/* Gelbe TL;DR-Box zum Einstieg (H2 trägt das Gewicht, kein Kicker) */}
-                <motion.section
+                <m.section
                     aria-labelledby="nutz-kurz"
                     {...anim()}
                     className="relative overflow-hidden rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8"
@@ -128,10 +124,10 @@ export default function Nutzungsbedingungen() {
                             </p>
                         </div>
                     </div>
-                </motion.section>
+                </m.section>
 
                 {/* Mini-TOC als Scroll-Buttons, kein href-Anker wegen HashRouter */}
-                <motion.nav
+                <m.nav
                     aria-label="Inhaltsübersicht"
                     {...anim()}
                     className="rounded-xl border border-border bg-card p-6 sm:p-8"
@@ -153,7 +149,7 @@ export default function Nutzungsbedingungen() {
                             </li>
                         ))}
                     </ol>
-                </motion.nav>
+                </m.nav>
                 </div>
 
                 {/* Paragrafen als aufklappbare Details-Gruppen */}
@@ -296,7 +292,7 @@ export default function Nutzungsbedingungen() {
                 </section>
 
                 {/* Einzige CTA der Seite: Kontakt per Mail */}
-                <motion.section
+                <m.section
                     aria-labelledby="nutz-kontakt"
                     {...anim()}
                     className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8"
@@ -313,7 +309,7 @@ export default function Nutzungsbedingungen() {
                     >
                         <Mail size={16} aria-hidden /> {MAIL}
                     </a>
-                </motion.section>
+                </m.section>
             </div>
         </StaticLayout>
     );

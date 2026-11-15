@@ -33,3 +33,24 @@ export const APP_TRANSITION = {
   duration: DURATION.base,
   ease: EASE_OUT,
 } as const satisfies Transition;
+
+/** Standard page entrance: one duration/ease for every page-level reveal. */
+export const PAGE_ENTER = {
+  duration: DURATION.base,
+  ease: EASE_OUT,
+} as const satisfies Transition;
+
+/** Standard entrance for items inside a page/list container. */
+export const LIST_ITEM = {
+  hidden: { opacity: 0, y: DISTANCE.enter },
+  visible: { opacity: 1, y: 0, transition: PAGE_ENTER },
+} as const;
+
+/**
+ * Reads the OS motion preference. Guarded for SSR and test environments
+ * without `window.matchMedia`.
+ */
+export function prefersReducedMotion(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}

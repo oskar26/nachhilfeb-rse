@@ -26,6 +26,8 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '../components/ui/alert-dialog';
+import { AnimatePresence } from 'motion/react';
+import { DURATION, EASE_IN, m } from '../lib/motion';
 
 export default function AdDetails() {
     const { id } = useParams();
@@ -263,15 +265,24 @@ export default function AdDetails() {
                 </div>
             )}
 
-            {isPaused && (
-                <div role="status" className="flex items-start gap-2.5 rounded-card border border-border bg-pastel-yellow p-4">
-                    <Pause size={18} className="mt-0.5 shrink-0 text-pastel-yellow-foreground" aria-hidden />
-                    <div>
-                        <p className="text-[15px] font-semibold text-pastel-yellow-foreground">Diese Anzeige ist pausiert.</p>
-                        <p className="mt-0.5 text-[13px] text-pastel-yellow-foreground">Der Anbieter hat die Anzeige vorübergehend deaktiviert. Eine Anfrage ist derzeit nicht möglich.</p>
-                    </div>
-                </div>
-            )}
+            <AnimatePresence initial={false}>
+                {isPaused && (
+                    <m.div
+                        role="status"
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: DURATION.exit, ease: EASE_IN }}
+                        className="flex items-start gap-2.5 rounded-card border border-border bg-pastel-yellow p-4"
+                    >
+                        <Pause size={18} className="mt-0.5 shrink-0 text-pastel-yellow-foreground" aria-hidden />
+                        <div>
+                            <p className="text-[15px] font-semibold text-pastel-yellow-foreground">Diese Anzeige ist pausiert.</p>
+                            <p className="mt-0.5 text-[13px] text-pastel-yellow-foreground">Der Anbieter hat die Anzeige vorübergehend deaktiviert. Eine Anfrage ist derzeit nicht möglich.</p>
+                        </div>
+                    </m.div>
+                )}
+            </AnimatePresence>
 
             <div className="grid gap-6">
                 {/* Header Card: Titel, Preis und Ort/Raum/Zeit liegen auf einer

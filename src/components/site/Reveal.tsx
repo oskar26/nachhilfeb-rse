@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import { useReducedMotion } from 'motion/react';
+import { DISTANCE, m, PAGE_ENTER } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
 interface RevealProps {
@@ -7,35 +9,21 @@ interface RevealProps {
     delay?: number;
 }
 
-/* Sanftes Einblenden beim ersten Sichtbarwerden. CSS respektiert
-   prefers-reduced-motion; der Observer wird danach sofort getrennt. */
+/* Sanftes Einblenden beim ersten Sichtbarwerden. Motion respektiert
+   prefers-reduced-motion über MotionConfig; der Viewport wird nur einmal
+   beobachtet. */
 export function Reveal({ children, className, delay = 0 }: RevealProps) {
-    const ref = useRef<HTMLDivElement>(null);
-    const [visible, setVisible] = useState(false);
-
-    useEffect(() => {
-        const el = ref.current;
-        if (!el) return;
-        if (typeof IntersectionObserver === 'undefined') {
-            setVisible(true);
-            return;
-        }
-        const observer = new IntersectionObserver(([entry]) => {
-            if (!entry.isIntersecting) return;
-            setVisible(true);
-            observer.disconnect();
-        }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
-        observer.observe(el);
-        return () => observer.disconnect();
-    }, []);
+    const reduce = useReducedMotion();
 
     return (
-        <div
-            ref={ref}
-            className={cn('reveal', visible && 'is-visible', className)}
-            style={delay ? { transitionDelay: `${delay}ms` } : undefined}
+        <m.div
+            className={cn(className)}
+            initial={reduce ? false : { opacity: 0, y: DISTANCE.enter }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.08, margin: '0px 0px -8% 0px' }}
+            transition={{ ...PAGE_ENTER, delay: delay / 1000 }}
         >
             {children}
-        </div>
+        </m.div>
     );
 }

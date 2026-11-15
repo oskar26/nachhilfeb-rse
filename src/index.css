@@ -165,19 +165,6 @@
     mask-image: linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
   }
 
-  .reveal {
-    opacity: 0;
-    transform: translateY(12px);
-    transition: opacity 300ms ease-out, transform 300ms ease-out;
-  }
-  .reveal.is-visible {
-    opacity: 1;
-    transform: none;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .reveal { opacity: 1; transform: none; transition: none; }
-  }
-
   @keyframes accordion-unfurl {
     from { opacity: 0; transform: translateY(-4px); }
     to { opacity: 1; transform: none; }

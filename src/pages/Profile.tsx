@@ -1,7 +1,7 @@
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'motion/react';
+import { LIST_ITEM, m, STAGGER } from '../lib/motion';
 import { Button, buttonVariants } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -300,24 +300,21 @@ export default function Profile() {
         hidden: { opacity: 0 },
         visible: {
             opacity: 1,
-            transition: { staggerChildren: 0.08 }
+            transition: { staggerChildren: STAGGER.step }
         }
     };
 
-    const itemVariants = {
-        hidden: { opacity: 0, y: 14 },
-        visible: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 350, damping: 25 } }
-    };
+    const itemVariants = LIST_ITEM;
 
     return (
-        <motion.div
+        <m.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
             className="mx-auto w-full max-w-3xl space-y-5 p-4 pb-28 sm:p-6"
         >
             {/* Header with Dynamic Banner & Avatar */}
-            <motion.div variants={itemVariants} className="relative overflow-hidden rounded-xl border border-border bg-card">
+            <m.div variants={itemVariants} className="relative overflow-hidden rounded-xl border border-border bg-card">
                 <div
                     className="h-28 bg-[linear-gradient(135deg,var(--primary-soft),var(--pastel-blue))]"
                     aria-hidden
@@ -393,10 +390,10 @@ export default function Profile() {
                         </Link>
                     </div>
                 </div>
-            </motion.div>
+            </m.div>
 
             {!profile.is_verified && (
-                <motion.div variants={itemVariants} className="rounded-xl border border-border bg-muted/50 p-4 text-sm text-foreground">
+                <m.div variants={itemVariants} className="rounded-xl border border-border bg-muted/50 p-4 text-sm text-foreground">
                     <p className="font-semibold">Konto noch nicht verifiziert</p>
                     <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Du musst dich im SV-Raum verifizieren lassen, um eigene Nachhilfeanzeigen zu veröffentlichen.</p>
                     <Link
@@ -405,13 +402,13 @@ export default function Profile() {
                     >
                         So geht's in 3 Schritten →
                     </Link>
-                </motion.div>
+                </m.div>
             )}
 
             {/* Goal gradient: head-start from signup (name+grade), never 0%.
                 Bei 100 % verschwindet das Widget; der Übergang wird oben gefeiert. */}
             {strengthPct < 100 && (
-                <motion.div variants={itemVariants} className="rounded-xl border border-border bg-card p-4" aria-label={`Profil-Fortschritt: ${strengthPct} Prozent`}>
+                <m.div variants={itemVariants} className="rounded-xl border border-border bg-card p-4" aria-label={`Profil-Fortschritt: ${strengthPct} Prozent`}>
                     <div className="flex items-center justify-between mb-2 gap-3">
                         <p className="text-xs font-semibold text-muted-foreground">Profil vervollständigen</p>
                         <p className="text-sm font-semibold tabular-nums text-foreground">{strengthPct}%</p>
@@ -426,11 +423,11 @@ export default function Profile() {
                             </li>
                         ))}
                     </ul>
-                </motion.div>
+                </m.div>
             )}
 
             {/* Profile Data Card */}
-            <motion.div variants={itemVariants}>
+            <m.div variants={itemVariants}>
                 <Card className="overflow-hidden border-border bg-card">
                     <CardHeader className="border-b border-border bg-card px-4 py-4 sm:px-6">
                         <div className="flex items-center justify-between gap-3">
@@ -681,10 +678,10 @@ export default function Profile() {
                         </div>
                     </CardContent>
                 </Card>
-            </motion.div>
+            </m.div>
 
             {/* Availability Calendar (Wann hast du Zeit?) */}
-            <motion.div variants={itemVariants}>
+            <m.div variants={itemVariants}>
                 <Card className="border-border bg-card">
                     <CardHeader className="pb-3">
                         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -727,7 +724,7 @@ export default function Profile() {
                         )}
                     </CardContent>
                 </Card>
-            </motion.div>
+            </m.div>
 
             {/* Fach-Auswahl (teaches_subjects) */}
             <SubjectPickerDialog
@@ -746,6 +743,6 @@ export default function Profile() {
             />
 
             {/* Konfetti beim Übergang auf 100 % Profil-Stärke */}
-        </motion.div>
+        </m.div>
     );
 }

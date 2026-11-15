@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
+import { prefersReducedMotion } from '../../lib/motion';
 
 interface AdminChatProps {
     userId1?: string | null;
@@ -65,9 +66,7 @@ export default function AdminChat({ userId1, userId2, reportId, onBack }: AdminC
         // Header – auf 390 besonders sichtbar.
         const body = bodyRef.current;
         if (!body) return;
-        const reduce = typeof window.matchMedia === 'function'
-            && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        body.scrollTo({ top: body.scrollHeight, behavior: reduce ? 'auto' : 'smooth' });
+        body.scrollTo({ top: body.scrollHeight, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
     }, [messages]);
 
     const setupAccessAndLoad = async () => {

@@ -2,8 +2,9 @@
 
 import { useMemo, type ReactNode } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { motion, useReducedMotion } from 'motion/react';
+import { useReducedMotion } from 'motion/react';
 import { EyeOff, Heart, Inbox, RotateCcw, Sparkles } from 'lucide-react';
+import { DURATION, DISTANCE, EASE_OUT, m, STAGGER } from '../lib/motion';
 import { Button } from '../components/ui/button';
 import { EmptyState } from '../components/social/EmptyState';
 import { SocialFilterPills, type SocialFilterOption } from '../components/social/SocialFilterPills';
@@ -71,14 +72,14 @@ const FILTER_LABEL: Record<StreamFilter, string> = {
 function StreamReveal({ index, children }: { index: number; children: ReactNode }) {
     const reduceMotion = useReducedMotion();
     return (
-        <motion.div
-            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+        <m.div
+            initial={reduceMotion ? false : { opacity: 0, y: DISTANCE.enter }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1], delay: Math.min(index, 6) * 0.05 }}
+            transition={{ duration: DURATION.enter, ease: EASE_OUT, delay: Math.min(index, STAGGER.maxItems) * STAGGER.step }}
             className="min-w-0"
         >
             {children}
-        </motion.div>
+        </m.div>
     );
 }
 

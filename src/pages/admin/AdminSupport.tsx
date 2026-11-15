@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
+import { prefersReducedMotion } from '../../lib/motion';
 import { blockedReason, checkContent, loadFilterOverrides, type FilterOverrides } from '../../lib/profanity';
 import { maybeAutoReport } from '../../lib/autoreport';
 
@@ -77,7 +78,7 @@ export default function AdminSupport() {
     }, []);
 
     useEffect(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        chatEndRef.current?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
     }, [messages]);
 
     const fetchTickets = async () => {

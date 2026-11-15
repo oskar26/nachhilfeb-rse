@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback, type MouseEvent } from 'react
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { BookOpen, Menu, X } from 'lucide-react';
 import { Logo } from './ui/Logo';
+import { prefersReducedMotion } from '../lib/motion';
 import { useAuth } from '../context/AuthContext';
 import {
     Sheet,
@@ -27,11 +28,6 @@ const MOBILE_NAV: NavItem[] = NAV_ITEMS.map((item) => {
     if (item.to === '/eltern-leitfaden') return { ...item, label: 'Eltern-Leitfaden' };
     return item;
 });
-
-function prefersReducedMotion(): boolean {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
 
 function scrollToSection(id: string): void {
     const scrollNow = () => {
@@ -156,7 +152,7 @@ export default function SiteHeader() {
     const menuTrigger = (
         <button
             type="button"
-            className="inline-flex size-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-card lg:hidden"
+            className="inline-flex size-11 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-soft transition-[box-shadow] duration-150 hover:shadow-card lg:hidden"
             aria-label={menuOpen ? 'Menü schließen' : 'Menü öffnen'}
             aria-expanded={menuOpen}
             aria-controls="mobile-nav"
@@ -218,7 +214,7 @@ export default function SiteHeader() {
                             {!user && (
                                 <Link
                                     to="/login"
-                                    className="inline-flex h-12 items-center justify-center rounded-full bg-foreground px-5 text-sm font-semibold text-background shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-card max-lg:hidden"
+                                    className="inline-flex h-12 items-center justify-center rounded-full bg-foreground px-5 text-sm font-semibold text-background shadow-soft transition-[box-shadow] duration-150 hover:shadow-card max-lg:hidden"
                                 >
                                     Anmelden
                                 </Link>
@@ -288,7 +284,7 @@ export default function SiteHeader() {
                             <SheetClose
                                 nativeButton={false}
                                 render={<Link to="/login" />}
-                                className="inline-flex h-12 w-full items-center justify-center rounded-full bg-foreground px-5 text-sm font-semibold text-background shadow-soft transition-[transform,box-shadow] duration-150 hover:-translate-y-0.5 hover:shadow-card"
+                                className="inline-flex h-12 w-full items-center justify-center rounded-full bg-foreground px-5 text-sm font-semibold text-background shadow-soft transition-[box-shadow] duration-150 hover:shadow-card"
                             >
                                 Anmelden
                             </SheetClose>

@@ -458,7 +458,11 @@ function AppShell() {
                         >
                             <span
                                 className={cn(
-                                    'flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-full text-xs font-medium transition-colors',
+                                    /* Aktiver Zustand als CSS-Hintergrund-Transition: ein
+                                       layoutId auf diesem Span würde Icon und Label beim
+                                       Tabwechsel mitverschieben, und ein eigenes
+                                       Hintergrund-Element ist nicht erlaubt. */
+                                    'flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-full text-xs font-medium transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none',
                                     active
                                         ? 'bg-primary-soft text-primary-soft-foreground dark:bg-muted dark:text-foreground'
                                         : 'text-muted-foreground group-hover:bg-muted/60 group-hover:text-foreground'

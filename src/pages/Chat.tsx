@@ -12,6 +12,7 @@ import { Skeleton } from '../components/ui/skeleton';
 import { ChevronLeft, Send, Trash2, Check, CheckCheck, Pencil, MoreVertical, Ban, Calendar, CalendarDays, Download, EyeOff, Flag } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../lib/utils';
+import { prefersReducedMotion } from '../lib/motion';
 import ReportWizard from '../components/ReportWizard';
 import { downloadICSFile } from '../lib/calendar';
 import { blockedReason, checkContent, loadFilterOverrides, type FilterOverrides } from '../lib/profanity';
@@ -120,7 +121,7 @@ export default function Chat() {
     };
 
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        messagesEndRef.current?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
     };
 
     const fetchData = async () => {
@@ -590,7 +591,7 @@ export default function Chat() {
                     <Button
                         type="submit"
                         size="icon"
-                        className="size-12 shrink-0 rounded-full bg-chat-send text-primary-foreground shadow-soft hover:-translate-y-0.5 hover:bg-primary-hover hover:text-primary-foreground hover:shadow-card active:scale-[0.98]"
+                        className="size-12 shrink-0 rounded-full bg-chat-send text-primary-foreground shadow-soft hover:bg-primary-hover hover:text-primary-foreground hover:shadow-card active:scale-[0.98]"
                         disabled={!newMessage.trim() || isBlocked}
                         aria-label="Nachricht senden"
                     >

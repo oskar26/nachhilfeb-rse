@@ -7,6 +7,9 @@ import {
   EASE_IN,
   EASE_OUT,
   EASE_STANDARD,
+  LIST_ITEM,
+  PAGE_ENTER,
+  prefersReducedMotion,
   SPRING,
   STAGGER,
 } from '../src/lib/motion';
@@ -49,6 +52,23 @@ describe('motion tokens', () => {
     expect(APP_TRANSITION).toEqual({ duration: 0.2, ease: [0.16, 1, 0.3, 1] });
     expect(APP_TRANSITION.duration).toBe(DURATION.base);
     expect(APP_TRANSITION.ease).toBe(EASE_OUT);
+  });
+
+  it('builds the page entrance from the shared duration and ease-out', () => {
+    expect(PAGE_ENTER).toEqual({ duration: 0.2, ease: [0.16, 1, 0.3, 1] });
+    expect(PAGE_ENTER.duration).toBe(DURATION.base);
+    expect(PAGE_ENTER.ease).toBe(EASE_OUT);
+  });
+
+  it('builds list items from the enter distance and page entrance', () => {
+    expect(LIST_ITEM.hidden).toEqual({ opacity: 0, y: DISTANCE.enter });
+    expect(LIST_ITEM.visible).toEqual({ opacity: 1, y: 0, transition: PAGE_ENTER });
+    expect(LIST_ITEM.visible.transition).toBe(PAGE_ENTER);
+  });
+
+  it('exposes prefersReducedMotion as a safe boolean helper', () => {
+    // The test environment has no window.matchMedia; the helper must not throw.
+    expect(typeof prefersReducedMotion()).toBe('boolean');
   });
 
   it('keeps every app transition value finite and the object stable', () => {

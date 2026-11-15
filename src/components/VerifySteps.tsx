@@ -1,13 +1,12 @@
-import { motion, useReducedMotion } from 'motion/react';
+import { useReducedMotion } from 'motion/react';
 import { Smartphone, DoorOpen, BadgeCheck } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { DISTANCE, m, PAGE_ENTER, STAGGER } from '../lib/motion';
 
 /* Single Source of Truth für die Schüler-Verifizierung (beschlossene Wahrheit
    laut DESIGN.md-Nachträgen): 3 Schritte im Schulhof-Ton, OHNE Code.
    Anmelden → im SV-Raum melden (wörtliche Rede) → freigeschaltet = verifiziert.
    Copy ist wörtlich aus den bisherigen Seiten übernommen, nichts erfunden. */
-
-const easeOut = [0.16, 1, 0.3, 1] as const;
 
 export type VerifyTone = 'du' | 'sie';
 export type VerifyVariant = 'spotlight' | 'chips' | 'rows' | 'rows-dark' | 'timeline';
@@ -40,12 +39,12 @@ export interface VerifyStepsProps {
 export default function VerifySteps({ tone = 'du', variant = 'rows' }: VerifyStepsProps) {
     const steps = tone === 'sie' ? STEPS_SIE : STEPS_DU;
     const reduceMotion = useReducedMotion();
-    /* Liste als Liste: 3-Schritt-Stagger, Total-Delay 180 ms (Cap ~400 ms). */
+    /* Liste als Liste: 3-Schritt-Stagger über STAGGER.step. */
     const stepAnim = (i: number) => reduceMotion ? {} : {
-        initial: { opacity: 0, y: 14 },
+        initial: { opacity: 0, y: DISTANCE.enter },
         whileInView: { opacity: 1, y: 0 },
         viewport: { once: true, margin: '-60px 0px' },
-        transition: { duration: 0.5, delay: i * 0.09, ease: easeOut },
+        transition: { ...PAGE_ENTER, delay: i * STAGGER.step },
     };
 
     if (variant === 'spotlight') {
@@ -53,14 +52,14 @@ export default function VerifySteps({ tone = 'du', variant = 'rows' }: VerifySte
             <>
                 <ol className="mt-8 space-y-0">
                     {steps.map((s, i) => (
-                        <motion.li key={s.title} {...stepAnim(i)} className="relative flex gap-5 pb-8 last:pb-0">
+                        <m.li key={s.title} {...stepAnim(i)} className="relative flex gap-5 pb-8 last:pb-0">
                             {i < 2 && <span className="absolute left-[27px] top-14 bottom-0 w-0.5 bg-foreground/10" aria-hidden />}
                             <span className="grid place-items-center w-14 h-14 rounded-xl bg-muted text-foreground text-xl font-semibold shrink-0 z-10" aria-hidden>{i + 1}</span>
                             <div className="pt-1">
                                 <p className="text-lg font-semibold text-foreground inline-flex items-center gap-2"><s.icon size={18} className="text-muted-foreground" aria-hidden />{s.title}</p>
                                 <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{s.text}</p>
                             </div>
-                        </motion.li>
+                        </m.li>
                     ))}
                 </ol>
             </>
@@ -76,7 +75,7 @@ export default function VerifySteps({ tone = 'du', variant = 'rows' }: VerifySte
         return (
             <ol className="grid gap-8 sm:grid-cols-3 sm:gap-6">
                 {steps.map((s, i) => (
-                    <motion.li key={s.title} {...stepAnim(i)} className="relative pl-16 sm:pl-0">
+                    <m.li key={s.title} {...stepAnim(i)} className="relative pl-16 sm:pl-0">
                         {i < steps.length - 1 && (
                             <span aria-hidden className="absolute left-[23px] top-12 h-[calc(100%+2rem)] w-0.5 rounded-full bg-pastel-mint-foreground/30 sm:left-14 sm:top-6 sm:h-0.5 sm:w-[calc(100%-2rem)]" />
                         )}
@@ -85,7 +84,7 @@ export default function VerifySteps({ tone = 'du', variant = 'rows' }: VerifySte
                         </span>
                         <p className="mt-4 text-base font-bold text-foreground">{s.title}</p>
                         <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{s.text}</p>
-                    </motion.li>
+                    </m.li>
                 ))}
             </ol>
         );
@@ -96,10 +95,10 @@ export default function VerifySteps({ tone = 'du', variant = 'rows' }: VerifySte
             <>
                 <ol className="mt-3 flex flex-wrap gap-2">
                     {steps.map((s, i) => (
-                        <motion.li key={s.title} {...stepAnim(i)} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-muted-foreground">
+                        <m.li key={s.title} {...stepAnim(i)} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-muted-foreground">
                             <span className="tabular-nums font-semibold text-foreground" aria-hidden>{i + 1}</span>
                             <span><strong className="text-foreground">{s.title}:</strong> {s.text}</span>
-                        </motion.li>
+                        </m.li>
                     ))}
                 </ol>
             </>
@@ -111,7 +110,7 @@ export default function VerifySteps({ tone = 'du', variant = 'rows' }: VerifySte
             <>
                 <ol className="mt-3 space-y-0 border-t border-border">
                     {steps.map((s, i) => (
-                        <motion.li key={s.title} {...stepAnim(i)} className="flex gap-4 py-3 border-b border-border">
+                        <m.li key={s.title} {...stepAnim(i)} className="flex gap-4 py-3 border-b border-border">
                             <span className="grid place-items-center w-8 h-8 rounded-lg bg-muted text-foreground font-semibold text-xs tabular-nums shrink-0" aria-hidden>
                                 {i + 1}
                             </span>
@@ -119,7 +118,7 @@ export default function VerifySteps({ tone = 'du', variant = 'rows' }: VerifySte
                                 <p className="font-semibold text-foreground text-base">{s.title}</p>
                                 <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">{s.text}</p>
                             </div>
-                        </motion.li>
+                        </m.li>
                     ))}
                 </ol>
             </>
@@ -130,13 +129,13 @@ export default function VerifySteps({ tone = 'du', variant = 'rows' }: VerifySte
         <>
             <ol className="divide-y divide-border border-y border-border">
                 {steps.map((s, i) => (
-                    <motion.li key={s.title} {...stepAnim(i)} className="grid grid-cols-[2.5rem_1fr] gap-3 py-3">
+                    <m.li key={s.title} {...stepAnim(i)} className="grid grid-cols-[2.5rem_1fr] gap-3 py-3">
                         <span className="tabular-nums font-semibold text-foreground" aria-hidden>{i + 1}</span>
                         <div>
                             <p className="font-semibold text-foreground">{s.title}</p>
                             <p>{s.text}</p>
                         </div>
-                    </motion.li>
+                    </m.li>
                 ))}
             </ol>
         </>

@@ -2,12 +2,11 @@ import { Fragment, useEffect, useState, type ReactNode } from 'react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/table';
 import { Link, useLocation } from 'react-router-dom';
 import { Award, ClipboardCheck, Scale, Megaphone, HeartHandshake, Gavel, Mail, School, Clock, MapPin, type LucideIcon } from 'lucide-react';
-import { motion, useReducedMotion } from 'motion/react';
+import { useReducedMotion } from 'motion/react';
 import StaticLayout from '../components/StaticLayout';
 import { api } from '../lib/api';
 import { cn } from '../lib/utils';
-
-const easeOut = [0.16, 1, 0.3, 1] as const;
+import { DISTANCE, m, PAGE_ENTER, prefersReducedMotion } from '../lib/motion';
 
 export const FALLBACK: Record<string, string> = {
     hero_title: 'Coaching-AG am FWG',
@@ -622,17 +621,17 @@ export function CoachingView({ document, preview = false }: { document: Coaching
     const reduceMotion = useReducedMotion();
     const idPrefix = preview ? 'preview-' : '';
     const anim = (delay = 0) => reduceMotion ? {} : {
-        initial: { y: 18 },
+        initial: { y: DISTANCE.enter },
         whileInView: { y: 0 },
         viewport: { once: true, margin: '-80px 0px' },
-        transition: { duration: 0.55, delay, ease: easeOut },
+        transition: { ...PAGE_ENTER, delay },
     };
     const supportAnchorId = document.blocks.find(block => block.type === 'support')?.id;
 
     const renderBlock = (block: CoachingBlock): ReactNode => {
         if (block.type === 'poster') {
             return (
-                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="relative overflow-hidden rounded-xl bg-card p-6 text-card-foreground sm:p-10">
+                <m.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="relative overflow-hidden rounded-xl bg-card p-6 text-card-foreground sm:p-10">
                     <div className="absolute inset-0 " aria-hidden />
                     <div className="relative">
                         {block.stamp ? (
@@ -659,13 +658,13 @@ export function CoachingView({ document, preview = false }: { document: Coaching
                             </div>
                         ) : null}
                     </div>
-                </motion.section>
+                </m.section>
             );
         }
 
         if (block.type === 'steps') {
             return (
-                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
+                <m.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
                     <h2 id={`${idPrefix}${block.id}-title`} className="text-2xl tracking-tight sm:text-3xl">{block.title}</h2>
                     {block.items.length > 0 ? (
                         <ol className="mt-6 divide-y-2 divide-solid divide-border border-y-2 border-border border-border">
@@ -696,13 +695,13 @@ export function CoachingView({ document, preview = false }: { document: Coaching
                             ) : null}
                         </div>
                     ) : null}
-                </motion.section>
+                </m.section>
             );
         }
 
         if (block.type === 'benefits') {
             return (
-                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
+                <m.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
                     <h2 id={`${idPrefix}${block.id}-title`} className="text-2xl tracking-tight sm:text-3xl">{block.title}</h2>
                     {block.items.length > 0 ? (
                         <ul className="mt-6 grid gap-4 sm:grid-cols-3">
@@ -715,13 +714,13 @@ export function CoachingView({ document, preview = false }: { document: Coaching
                             ))}
                         </ul>
                     ) : null}
-                </motion.section>
+                </m.section>
             );
         }
 
         if (block.type === 'rules') {
             return (
-                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
+                <m.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
                     <h2 id={`${idPrefix}${block.id}-title`} className="text-2xl tracking-tight sm:text-3xl">{block.title}</h2>
                     {block.items.length > 0 ? (
                         <div className="mt-6 border-t-2 border-foreground">
@@ -739,13 +738,13 @@ export function CoachingView({ document, preview = false }: { document: Coaching
                             })}
                         </div>
                     ) : null}
-                </motion.section>
+                </m.section>
             );
         }
 
         if (block.type === 'contact') {
             return (
-                <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
+                <m.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
                     <h2 id={`${idPrefix}${block.id}-title`} className="text-xl tracking-tight text-foreground">{block.title}</h2>
                     {block.text || block.email ? (
                         <p className="mt-3 max-w-prose text-base leading-7 text-muted-foreground">
@@ -758,14 +757,14 @@ export function CoachingView({ document, preview = false }: { document: Coaching
                             {block.parentLinkLabel ? <Link to={block.parentLinkPath} className={LINK_CLS}>{block.parentLinkLabel}</Link> : null}
                         </p>
                     ) : null}
-                </motion.section>
+                </m.section>
             );
         }
 
         if (block.type === 'support') {
             const hasTimes = block.rows.some(row => (row.time ?? '').trim().length > 0);
             return (
-                <motion.section key={block.id} id={block.id === supportAnchorId ? `${idPrefix}foerderung` : undefined} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="scroll-mt-24 rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
+                <m.section key={block.id} id={block.id === supportAnchorId ? `${idPrefix}foerderung` : undefined} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="scroll-mt-24 rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
                     <h2 id={`${idPrefix}${block.id}-title`} className="text-2xl tracking-tight sm:text-3xl">{block.title}</h2>
                     <div className="mt-4 max-w-prose space-y-2 text-base leading-7 text-muted-foreground">
                         {block.paragraphs.filter(paragraph => paragraph.trim()).map((paragraph, index) => <p key={`${block.id}-paragraph-${index}`}>{linkify(paragraph)}</p>)}
@@ -838,15 +837,15 @@ export function CoachingView({ document, preview = false }: { document: Coaching
                             {block.learnCoachingEmail ? <a href={`mailto:${block.learnCoachingEmail}`} className={`${LINK_CLS} break-anywhere`}>{block.learnCoachingEmail}</a> : null}
                         </p>
                     ) : null}
-                </motion.section>
+                </m.section>
             );
         }
 
         return (
-            <motion.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
+            <m.section key={block.id} aria-labelledby={block.title.trim() ? `${idPrefix}${block.id}-title` : undefined} aria-label={block.title.trim() ? undefined : 'Inhaltsbereich'} {...anim()} className="rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
                 <h2 id={`${idPrefix}${block.id}-title`} className="text-2xl tracking-tight sm:text-3xl">{block.title}</h2>
                 {block.body ? <div className="mt-5 max-w-prose space-y-3 text-base leading-7 text-muted-foreground">{renderBody(block.body)}</div> : null}
-            </motion.section>
+            </m.section>
         );
     };
 
@@ -889,8 +888,7 @@ export default function Coaching() {
         const timer = window.setTimeout(() => {
             const element = document.getElementById(section);
             if (!element) return;
-            const reduce = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            element.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+            element.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
         }, 150);
         return () => window.clearTimeout(timer);
     }, [location.state, coachingDocument]);

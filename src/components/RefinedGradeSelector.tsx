@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { cn } from '../lib/utils';
-import { motion, AnimatePresence } from 'motion/react';
+import { AnimatePresence } from 'motion/react';
+import { m, PAGE_ENTER } from '../lib/motion';
 
 interface RefinedGradeSelectorProps {
     grade: string;
@@ -67,10 +68,11 @@ export function RefinedGradeSelector({ grade, letter, onChange, className }: Ref
 
             <AnimatePresence>
                 {selectedGrade && !isOberstufe && (
-                    <motion.div
+                    <m.div
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
+                        transition={PAGE_ENTER}
                         className="overflow-hidden"
                     >
                         <p className="mb-2 ml-1 text-xs font-medium text-muted-foreground">Klasse {selectedGrade} …</p>
@@ -92,7 +94,7 @@ export function RefinedGradeSelector({ grade, letter, onChange, className }: Ref
                                 </Button>
                             ))}
                         </div>
-                    </motion.div>
+                    </m.div>
                 )}
             </AnimatePresence>
         </div>
