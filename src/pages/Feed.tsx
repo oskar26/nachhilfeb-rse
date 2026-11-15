@@ -6,7 +6,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
 import { Card, CardContent, CardHeader } from '../components/ui/card';
 import { SubjectChip, SUBJECT_CATEGORIES, subjectLabelMap, type Subject } from '../components/SubjectChip';
-import { GraduationCap, MapPin, Clock, Filter, Search, CalendarDays, ShieldCheck, ChevronDown, ChevronUp, Share2, Sparkles, Bookmark, X, SearchX, Award, Users, ArrowUpDown } from 'lucide-react';
+import { GraduationCap, MapPin, Clock, Filter, Search, CalendarDays, ShieldCheck, ChevronDown, ChevronUp, Share2, Sparkles, Bookmark, X, SearchX, Award, Users, ArrowUpDown, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle } from '../components/ui/sheet';
@@ -777,49 +777,58 @@ export default function Feed() {
                 )}
             </AnimatePresence>
 
-            {/* Mobile: Anzeigen zuerst, nur die kompakten Info-Pills danach.
-                Desktop: kompakte Pills plus aufklappbare Info-Karten oben. */}
+            {/* Mobile: Anzeigen zuerst, nur die kompakte Info-Leiste danach.
+                Desktop: Info-Leiste plus aufklappbare Info-Karten oben. */}
             <div className="flex flex-col gap-6">
             <div className="order-2 md:order-1">
-            {/* Kompakte Info-Pills; die ausführlichen Karten gibt es nur ab md,
+            {/* Kompakte Info-Leiste; die ausführlichen Karten gibt es nur ab md,
                 damit mobile Ansicht und erster Anzeigen-Viewport schlank bleiben. */}
-            <div className="flex min-w-0 items-center gap-2">
-                <div className="no-scrollbar flex min-w-0 flex-1 items-center gap-2 overflow-x-auto pb-1">
-                    <span className="shrink-0 rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground">Infos</span>
-                    <Button variant="ghost" size="sm"
-                        type="button"
-                        onClick={() => navigate('/coaching')}
-                        className="h-9 shrink-0 rounded-full bg-muted/60 px-3 text-[13px] font-medium text-foreground hover:bg-muted"
-                    >
-                        Coaching · {posterBlock.time} · {posterBlock.room}
-                    </Button>
-                    <Button variant="ghost" size="sm"
-                        type="button"
-                        onClick={() => navigate('/coaching', { state: { section: 'foerderung' } })}
-                        className="h-9 shrink-0 rounded-full bg-muted/60 px-3 text-[13px] font-medium text-foreground hover:bg-muted"
-                    >
-                        Förderunterricht
-                    </Button>
-                    <Button variant="ghost" size="sm"
-                        type="button"
-                        onClick={() => navigate('/eltern-leitfaden')}
-                        className="h-9 shrink-0 rounded-full bg-muted/60 px-3 text-[13px] font-medium text-foreground hover:bg-muted"
-                    >
-                        Eltern
-                    </Button>
+            <div className="flex h-12 min-w-0 items-center gap-2 rounded-2xl border border-border bg-card pl-4 pr-1.5">
+                <span className="inline-flex shrink-0 items-center gap-1.5 text-[13px] font-semibold text-muted-foreground">
+                    <Info size={14} className="shrink-0" aria-hidden />
+                    Infos
+                </span>
+                <span className="h-5 w-px shrink-0 bg-border" aria-hidden />
+                <div className="relative min-w-0 flex-1">
+                    <div className="no-scrollbar flex min-w-0 w-full items-center gap-1.5 overflow-x-auto py-1">
+                        <Button variant="ghost" size="sm"
+                            type="button"
+                            onClick={() => navigate('/coaching')}
+                            className="h-10 shrink-0 rounded-xl px-3.5 text-[13px] font-medium text-foreground hover:bg-muted"
+                        >
+                            <span className="whitespace-nowrap">Coaching · {posterBlock.time} · {posterBlock.room}</span>
+                        </Button>
+                        <Button variant="ghost" size="sm"
+                            type="button"
+                            onClick={() => navigate('/coaching', { state: { section: 'foerderung' } })}
+                            className="h-10 shrink-0 rounded-xl px-3.5 text-[13px] font-medium text-foreground hover:bg-muted"
+                        >
+                            <span className="whitespace-nowrap">Förderunterricht</span>
+                        </Button>
+                        <Button variant="ghost" size="sm"
+                            type="button"
+                            onClick={() => navigate('/eltern-leitfaden')}
+                            className="h-10 shrink-0 rounded-xl px-3.5 text-[13px] font-medium text-foreground hover:bg-muted"
+                        >
+                            <span className="whitespace-nowrap">Eltern</span>
+                        </Button>
+                    </div>
+                    <span
+                        className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-card to-transparent md:hidden"
+                        aria-hidden
+                    />
                 </div>
+                <span className="hidden h-5 w-px shrink-0 bg-border md:block" aria-hidden />
                 <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     aria-expanded={showBanners}
-                    className="hidden h-11 shrink-0 rounded-full bg-card px-4 text-[13px] font-semibold md:inline-flex"
+                    aria-label={showBanners ? 'Details verbergen' : 'Details anzeigen'}
+                    className="hidden h-10 shrink-0 gap-1.5 rounded-xl px-3 text-[13px] font-semibold text-foreground hover:bg-muted md:inline-flex"
                     onClick={() => { const next = !showBanners; setShowBanners(next); try { localStorage.setItem('feed_show_banners', String(next)); } catch { /* ignore */ } }}
                 >
-                    {showBanners ? (
-                        <><span>Details verbergen</span><ChevronUp size={14} aria-hidden /></>
-                    ) : (
-                        <><span>Details</span><ChevronDown size={14} aria-hidden /></>
-                    )}
+                    <span>Details</span>
+                    {showBanners ? <ChevronUp size={14} aria-hidden /> : <ChevronDown size={14} aria-hidden />}
                 </Button>
             </div>
 
@@ -1078,7 +1087,6 @@ export default function Feed() {
                                             price={ad.price_details?.value}
                                             mode={ad.price_details?.mode}
                                             duration={ad.price_details?.unit}
-                                            className={boosted ? 'ring-2 ring-primary-soft-foreground/15' : undefined}
                                         />
                                         {priceSecondary(ad) && (
                                             <div className="text-[13px] tabular-nums text-primary-soft-foreground/75">

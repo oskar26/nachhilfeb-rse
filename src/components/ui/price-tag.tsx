@@ -18,25 +18,41 @@ function secondaryLine(
     parts: ReturnType<typeof formatPriceParts>,
     inline: boolean,
 ): string | null {
-    if (parts.unit) return inline ? `/ ${parts.unit}` : `je ${parts.unit}`;
-    if (parts.mode === 'free') return inline ? '· Ehrenamtlich' : 'Ehrenamtlich';
-    if (parts.mode === 'vb') return inline ? '· Verhandelbar' : 'Verhandelbar';
-    if (parts.label === 'Preis auf Anfrage') return inline ? '· Noch offen' : 'Noch offen';
-    return inline ? '· Auf Anfrage' : 'Auf Anfrage';
+    if (inline) {
+        if (parts.unit) return `/ ${parts.unit}`;
+        if (parts.mode === 'vb') return '· Verhandelbar';
+        // Kostenlos und fehlende Preise sind in der engen Zeile selbsterklärend.
+        return null;
+    }
+    if (parts.unit) return `je ${parts.unit}`;
+    if (parts.mode === 'free') return 'Ehrenamtlich';
+    if (parts.mode === 'vb') return 'Verhandelbar';
+    if (parts.label === 'Preis auf Anfrage') return 'Noch offen';
+    return 'Auf Anfrage';
 }
 
-const MODE_CLASS: Record<string, string> = {
-    fixed: 'border-primary/45 bg-primary text-primary-foreground shadow-[0_3px_0_rgb(24_24_27_/_0.08)]',
-    vb: 'border-pastel-orange/70 bg-pastel-orange text-pastel-orange-foreground shadow-[0_3px_0_rgb(194_65_12_/_0.08)]',
-    free: 'border-pastel-mint/70 bg-pastel-mint text-pastel-mint-foreground',
-    missing: 'border-border bg-muted text-muted-foreground',
+/** Farbe der großen Zeile; Flächen und Rahmen gibt es bewusst keine. */
+const PRIMARY_CLASS: Record<string, string> = {
+    fixed: 'text-foreground',
+    vb: 'text-pastel-orange-foreground',
+    free: 'text-pastel-mint-foreground',
+    missing: 'text-muted-foreground',
+};
+
+/** Die zweite Zeile bleibt kleiner; Orange und Mint tragen den Ton mit. */
+const SECONDARY_CLASS: Record<string, string> = {
+    fixed: 'text-muted-foreground',
+    vb: 'text-pastel-orange-foreground',
+    free: 'text-pastel-mint-foreground',
+    missing: 'text-muted-foreground',
 };
 
 /**
- * Preis-Baustein im Fahrkarten-Stil. Festpreise stehen als kräftige gelbe
- * Auszeichnung, Verhandlungsbasis als warme Orange-Karte und „Kostenlos“ als
- * mintfarbene Marke. Betrag und Einheit bleiben untereinander.
- * Für Screenreader gilt der kanonische formatAdPrice-Text.
+ * Preis-Baustein ohne Karte, Rahmen oder Schatten: Der Betrag steht frei und
+ * groß rechtsbündig, die Einheit darunter. Festpreise in kräftiger
+ * Vordergrundfarbe, Verhandlungsbasis in Orange, „Kostenlos“ in Mint und
+ * fehlende Preise gedämpft. Für Screenreader gilt der kanonische
+ * formatAdPrice-Text.
  */
 export function PriceTag({
     price,
@@ -49,19 +65,19 @@ export function PriceTag({
     const parts = formatPriceParts({ price, mode, duration });
     const isInline = layout === 'inline';
     const secondary = secondaryLine(parts, isInline);
-    const longLabel = parts.primary.length > 7;
+    const isMissing = parts.mode === 'fixed' && parts.unit === null;
+    const tone = isMissing ? 'missing' : parts.mode;
 
     return (
         <span
             data-slot="price-tag"
-            data-price-mode={parts.mode}
+            data-price-mode={tone}
             data-layout={layout}
             className={cn(
-                'inline-flex shrink-0 select-none overflow-hidden border text-left',
-                MODE_CLASS[parts.mode] ?? MODE_CLASS.missing,
+                'inline-flex min-w-0 shrink-0 select-none',
                 isInline
-                    ? 'items-baseline gap-1.5 rounded-lg px-2.5 py-1'
-                    : 'min-w-[5.75rem] flex-col items-start gap-1.5 rounded-xl px-3 py-2',
+                    ? 'items-baseline gap-1.5 text-left'
+                    : 'flex-col items-end gap-1 text-right',
                 className
             )}
             {...props}
@@ -70,32 +86,28 @@ export function PriceTag({
             <span
                 aria-hidden="true"
                 className={cn(
-                    'font-extrabold leading-none tracking-[-0.035em] tabular-nums',
+                    'whitespace-nowrap font-extrabold leading-none tracking-[-0.04em] tabular-nums',
                     isInline
-                        ? 'text-[15px]'
-                        : longLabel
-                          ? 'text-[15px] leading-tight'
-                          : 'text-[21px]'
+                        ? 'text-[16px]'
+                        : isMissing
+                          ? 'text-[17px] leading-tight'
+                          : 'text-[24px]',
+                    PRIMARY_CLASS[tone] ?? PRIMARY_CLASS.missing
                 )}
             >
                 {parts.primary}
             </span>
-            <span
-                aria-hidden="true"
-                className={cn(
-                    'font-medium leading-tight tabular-nums',
-                    isInline ? 'text-xs' : 'text-[13px]',
-                    parts.mode === 'fixed'
-                        ? 'text-primary-foreground/85'
-                        : parts.mode === 'vb'
-                          ? 'text-pastel-orange-foreground'
-                          : parts.mode === 'free'
-                            ? 'text-pastel-mint-foreground'
-                            : 'text-muted-foreground'
-                )}
-            >
-                {secondary}
-            </span>
+            {secondary && (
+                <span
+                    aria-hidden="true"
+                    className={cn(
+                        'whitespace-nowrap text-[13px] font-medium leading-tight tabular-nums',
+                        SECONDARY_CLASS[tone] ?? SECONDARY_CLASS.missing
+                    )}
+                >
+                    {secondary}
+                </span>
+            )}
         </span>
     );
 }
