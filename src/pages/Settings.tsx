@@ -913,7 +913,7 @@ export default function Settings() {
                             <LifeBuoy size={18} className="text-muted-foreground" aria-hidden /> Hilfe, Feedback & Support
                         </CardTitle>
                         <CardDescription className="text-xs">
-                            Melde Fehler, schlage Verbesserungen vor oder schreibe direkt an das SV-Team
+                            Melde Fehler, wünsche dir eine Funktion oder schreibe direkt an das SV-Team
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="flex flex-col gap-4 p-6 pt-3 sm:flex-row sm:items-center sm:justify-between">

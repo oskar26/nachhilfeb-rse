@@ -21,6 +21,8 @@ import ReportWizard from './ReportWizard';
 interface SupportModalProps {
     isOpen: boolean;
     onClose: () => void;
+    initialType?: TicketType;
+    initialView?: ModalView;
 }
 
 type TicketType = 'bug' | 'feature' | 'support';
@@ -70,7 +72,7 @@ function getDeviceInfo() {
     return { device, os, browser, ua, screenWidth: window.innerWidth, screenHeight: window.innerHeight };
 }
 
-export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
+export default function SupportModal({ isOpen, onClose, initialType, initialView }: SupportModalProps) {
     const { user } = useAuth();
     const [view, setView] = useState<ModalView>('menu');
     const [ticketType, setTicketType] = useState<TicketType>('bug');
@@ -103,6 +105,13 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
             setShowReportWizard(false);
         }
     }, [isOpen]);
+
+    // Landing und andere Einstiegspunkte können direkt einen Funktionswunsch öffnen.
+    useEffect(() => {
+        if (!isOpen) return;
+        if (initialType) setTicketType(initialType);
+        if (initialView) setView(initialView);
+    }, [initialType, initialView, isOpen]);
 
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
@@ -275,7 +284,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                 className="bottom-0 left-0 right-0 top-auto max-h-[92dvh] max-w-none translate-x-0 translate-y-0 gap-0 overflow-hidden rounded-b-none rounded-t-3xl border border-border p-0 shadow-overlay sm:bottom-auto sm:left-1/2 sm:right-auto sm:top-1/2 sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl"
             >
                 <DialogDescription className="sr-only">
-                    Support, Fehlermeldungen und Nachrichten an das SV-Team.
+                    Support, Fehlermeldungen, Funktionswünsche und Nachrichten an das SV-Team.
                 </DialogDescription>
                 <div className="flex max-h-[92dvh] w-full flex-col overflow-hidden bg-card pb-[env(safe-area-inset-bottom,0px)]">
                     {/* Header */}
@@ -298,7 +307,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                             )}
                             <DialogTitle className="text-base font-semibold text-foreground flex items-center gap-1.5">
                                 {view === 'menu' && 'Hilfe'}
-                                {view === 'form' && (ticketType === 'bug' ? <><Bug size={18} className="inline" /> Fehler melden</> : <><Lightbulb size={18} className="inline" /> Verbesserung vorschlagen</>)}
+                                {view === 'form' && (ticketType === 'bug' ? <><Bug size={18} className="inline" /> Fehler melden</> : <><Lightbulb size={18} className="inline" /> Funktionswunsch</>)}
                                 {view === 'chat' && (activeTicket ? activeTicket.title : <><MessageCircle size={18} className="inline" /> Nachrichten</>)}
                                 {view === 'success' && <><CheckCircle size={18} className="inline text-foreground" /> Eingereicht!</>}
                             </DialogTitle>
@@ -341,8 +350,8 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                                         <Lightbulb size={22} className="" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-semibold text-foreground">Verbesserung vorschlagen</p>
-                                        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Hast du eine Idee für eine Verbesserung?</p>
+                                        <p className="text-sm font-semibold text-foreground">Funktionswunsch</p>
+                                        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">Fehlt dir etwas oder könnte die App besser sein? Sag uns, was du brauchst.</p>
                                     </div>
                                 </Button>
 
@@ -424,14 +433,14 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
 
                                 <div className="space-y-1.5">
                                     <Label className="text-xs font-semibold text-foreground/80">
-                                        {ticketType === 'bug' ? 'Was ist passiert? *' : 'Beschreibe deine Idee *'}
+                                        {ticketType === 'bug' ? 'Was ist passiert? *' : 'Beschreibe deinen Funktionswunsch *'}
                                     </Label>
                                     <Textarea
                                         value={description}
                                         onChange={e => setDescription(e.target.value)}
                                         placeholder={ticketType === 'bug' 
                                             ? 'Beschreibe den Fehler so genau wie möglich...\n\nWas hast du getan?\nWas hätte passieren sollen?\nWas ist stattdessen passiert?' 
-                                            : 'Beschreibe deine gewünschte Verbesserung...\n\nWas soll es können?\nWarum wäre es nützlich?'}
+                                            : 'Beschreibe deinen Funktionswunsch...\n\nWas soll die App können?\nWarum wäre es nützlich?'}
                                         className="min-h-36 w-full resize-none"
                                         maxLength={2000}
                                     />
@@ -511,7 +520,7 @@ export default function SupportModal({ isOpen, onClose }: SupportModalProps) {
                             <div className="space-y-3">
                                 {/* Ticket info */}
                                 <div className="space-y-1 rounded-xl border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
-                                    <p><span className="font-semibold">Typ:</span> {activeTicket.type === 'bug' ? 'Bug' : activeTicket.type === 'feature' ? 'Feature' : 'Support'}</p>
+                                    <p><span className="font-semibold">Typ:</span> {activeTicket.type === 'bug' ? 'Fehler' : activeTicket.type === 'feature' ? 'Funktionswunsch' : 'Support'}</p>
                                     <p><span className="font-semibold">Status:</span> {activeTicket.status}</p>
                                     <p className="text-muted-foreground line-clamp-2">{activeTicket.description}</p>
                                 </div>

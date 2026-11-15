@@ -90,7 +90,15 @@ function AppShell() {
     const isPathActive = (path: string) => path === '/' ? pathname === '/' : pathname === path || pathname.startsWith(`${path}/`);
     // Dark mode uses the neutral active surface; the base button would otherwise
     // show the olive --primary-soft pill in the SV/sidebar navigation.
-    const activeNavClass = 'dark:bg-muted dark:text-foreground dark:data-active:bg-muted dark:data-active:text-foreground dark:data-active:hover:bg-muted dark:data-active:hover:text-foreground';
+    const activeNavClass = 'relative dark:bg-muted dark:text-foreground dark:data-active:bg-muted dark:data-active:text-foreground dark:data-active:hover:bg-muted dark:data-active:hover:text-foreground';
+    const sidebarActiveIndicator = (active: boolean) => active ? (
+        <m.span
+            aria-hidden="true"
+            layoutId={reduceMotion ? undefined : 'sidebar-active-indicator'}
+            transition={reduceMotion ? { duration: 0 } : SPRING.settle}
+            className="pointer-events-none absolute inset-y-2 left-1 w-1 rounded-full bg-primary"
+        />
+    ) : null;
 
     const mobileNavItems = [
         { to: '/', label: 'Entdecken', icon: Home },
@@ -125,8 +133,8 @@ function AppShell() {
                 collapsible="icon"
                 className="[&_[data-sidebar=sidebar]]:border [&_[data-sidebar=sidebar]]:border-border/70 [&_[data-sidebar=sidebar]]:bg-card [&_[data-sidebar=sidebar]]:shadow-card"
             >
-                <SidebarHeader className="gap-0 p-3 pr-14 md:pr-2">
-                    <div className="flex min-w-0 items-center gap-1">
+                <SidebarHeader className="gap-0 p-3 pr-14 md:pr-2 group-data-[collapsible=icon]:p-1">
+                    <div className="flex min-w-0 items-center gap-1 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-1.5">
                         <NavLink
                             to="/welcome"
                             onClick={handleNavClick}
@@ -141,10 +149,7 @@ function AppShell() {
                                 <p className="mt-0.5 text-[13px] font-medium text-muted-foreground">FWG Köln</p>
                             </div>
                         </NavLink>
-                        <SidebarTrigger
-                            aria-label="Navigation einklappen"
-                            className="hidden size-11 shrink-0 rounded-full text-muted-foreground hover:text-foreground md:inline-flex group-data-[collapsible=icon]:hidden"
-                        />
+                        <SidebarTrigger className="hidden size-11 shrink-0 rounded-full text-muted-foreground hover:text-foreground md:inline-flex group-data-[collapsible=icon]:inline-flex" />
                     </div>
                 </SidebarHeader>
 
@@ -163,6 +168,7 @@ function AppShell() {
                                         className={pathname === '/' ? activeNavClass : undefined}
                                         render={<NavLink to="/" end onClick={handleNavClick} />}
                                     >
+                                        {sidebarActiveIndicator(pathname === '/')}
                                         <Home aria-hidden />
                                         <span className="group-data-[collapsible=icon]:hidden">Entdecken</span>
                                     </SidebarMenuButton>
@@ -175,6 +181,7 @@ function AppShell() {
                                         className={isTabActive('requests') ? activeNavClass : undefined}
                                         render={<NavLink to="/requests" onClick={handleNavClick} />}
                                     >
+                                        {sidebarActiveIndicator(isTabActive('requests'))}
                                         <Inbox aria-hidden />
                                         <span className="group-data-[collapsible=icon]:hidden">Anfragen</span>
                                     </SidebarMenuButton>
@@ -187,6 +194,7 @@ function AppShell() {
                                         className={isTabActive('matches') ? activeNavClass : undefined}
                                         render={<NavLink to="/matches" onClick={handleNavClick} />}
                                     >
+                                        {sidebarActiveIndicator(isTabActive('matches'))}
                                         <Zap aria-hidden />
                                         <span className="group-data-[collapsible=icon]:hidden">Vorschläge</span>
                                     </SidebarMenuButton>
@@ -199,6 +207,7 @@ function AppShell() {
                                         className={isTabActive('watchlist') ? activeNavClass : undefined}
                                         render={<NavLink to="/favorites" onClick={handleNavClick} />}
                                     >
+                                        {sidebarActiveIndicator(isTabActive('watchlist'))}
                                         <Heart aria-hidden />
                                         <span className="group-data-[collapsible=icon]:hidden">Merkliste</span>
                                     </SidebarMenuButton>
@@ -219,6 +228,7 @@ function AppShell() {
                                         className={isPathActive('/create-ad') ? activeNavClass : undefined}
                                         render={<NavLink to="/create-ad" onClick={handleNavClick} />}
                                     >
+                                        {sidebarActiveIndicator(isPathActive('/create-ad'))}
                                         <PlusCircle aria-hidden />
                                         <span className="group-data-[collapsible=icon]:hidden">Neue Anzeige</span>
                                     </SidebarMenuButton>
@@ -239,6 +249,7 @@ function AppShell() {
                                         className={isPathActive('/profile') ? activeNavClass : undefined}
                                         render={<NavLink to="/profile" onClick={handleNavClick} />}
                                     >
+                                        {sidebarActiveIndicator(isPathActive('/profile'))}
                                         <User aria-hidden />
                                         <span className="group-data-[collapsible=icon]:hidden">Profil</span>
                                     </SidebarMenuButton>
@@ -251,6 +262,7 @@ function AppShell() {
                                         className={isPathActive('/settings') ? activeNavClass : undefined}
                                         render={<NavLink to="/settings" onClick={handleNavClick} />}
                                     >
+                                        {sidebarActiveIndicator(isPathActive('/settings'))}
                                         <Settings aria-hidden />
                                         <span className="group-data-[collapsible=icon]:hidden">Einstellungen</span>
                                     </SidebarMenuButton>
@@ -273,6 +285,7 @@ function AppShell() {
                                         className={isPathActive('/welcome') ? activeNavClass : undefined}
                                         render={<NavLink to="/welcome" onClick={handleNavClick} />}
                                     >
+                                        {sidebarActiveIndicator(isPathActive('/welcome'))}
                                         <Sparkles aria-hidden />
                                         <span className="group-data-[collapsible=icon]:hidden">Willkommen</span>
                                     </SidebarMenuButton>
@@ -294,6 +307,7 @@ function AppShell() {
                                             className={isPathActive('/coach-panel') ? activeNavClass : undefined}
                                             render={<NavLink to="/coach-panel" onClick={handleNavClick} />}
                                         >
+                                            {sidebarActiveIndicator(isPathActive('/coach-panel'))}
                                             <Award aria-hidden />
                                             <span className="group-data-[collapsible=icon]:hidden">Coaching Panel</span>
                                         </SidebarMenuButton>
@@ -316,6 +330,7 @@ function AppShell() {
                                             className={isSvPanel ? activeNavClass : undefined}
                                             render={<NavLink to="/sv-panel" onClick={handleNavClick} />}
                                         >
+                                            {sidebarActiveIndicator(isSvPanel)}
                                             <ShieldCheck aria-hidden />
                                             <span className="group-data-[collapsible=icon]:hidden">SV Panel</span>
                                         </SidebarMenuButton>

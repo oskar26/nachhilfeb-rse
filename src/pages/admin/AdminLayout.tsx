@@ -18,6 +18,8 @@ import {
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
+import { useReducedMotion } from 'motion/react';
+import { m, SPRING } from '../../lib/motion';
 import { cn } from '../../lib/utils';
 import {
     ShieldCheck,
@@ -69,9 +71,9 @@ const TAB_LABELS: Record<string, string> = Object.fromEntries(
 
 function tabButtonClass(active: boolean) {
     return cn(
-        'h-11 min-h-11 shrink-0 justify-start gap-1.5 rounded-full px-2 text-[13px] sm:gap-2 sm:px-3 sm:text-sm',
+        'relative isolate h-11 min-h-11 shrink-0 justify-start gap-1.5 rounded-full px-2 text-[13px] sm:gap-2 sm:px-3 sm:text-sm',
         active
-            ? 'bg-card text-foreground shadow-soft hover:bg-card'
+            ? 'text-foreground hover:bg-card'
             : 'text-muted-foreground hover:bg-card/70 hover:text-foreground'
     );
 }
@@ -87,6 +89,7 @@ function countClass(value: string) {
 
 export default function AdminLayout() {
     const { isAdmin } = useAuth();
+    const reduceMotion = useReducedMotion();
     const navigate = useNavigate();
     const location = useLocation();
     const [openReports, setOpenReports] = useState(0);
@@ -342,6 +345,14 @@ export default function AdminLayout() {
                                     aria-current={isActive ? 'page' : undefined}
                                     className={tabButtonClass(isActive)}
                                 >
+                                    {isActive && (
+                                        <m.span
+                                            layoutId={reduceMotion ? undefined : 'admin-tab-active'}
+                                            transition={reduceMotion ? { duration: 0 } : SPRING.settle}
+                                            className="absolute inset-0 -z-10 rounded-full bg-card shadow-soft"
+                                            aria-hidden
+                                        />
+                                    )}
                                     {renderTabContent(value, label, Icon)}
                                 </Button>
                             );

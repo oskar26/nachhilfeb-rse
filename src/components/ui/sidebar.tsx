@@ -21,7 +21,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { PanelLeftIcon } from "lucide-react"
+import { PanelLeftIcon, PanelLeftOpenIcon } from "lucide-react"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -267,7 +267,8 @@ function SidebarTrigger({
   onClick,
   ...props
 }: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar } = useSidebar()
+  const { toggleSidebar, state } = useSidebar()
+  const collapsed = state === "collapsed"
 
   return (
     <Button
@@ -275,6 +276,8 @@ function SidebarTrigger({
       data-slot="sidebar-trigger"
       variant="ghost"
       size="icon-sm"
+      aria-label={collapsed ? "Navigation ausklappen" : "Navigation einklappen"}
+      title={collapsed ? "Navigation ausklappen" : "Navigation einklappen"}
       className={cn(className)}
       onClick={(event) => {
         onClick?.(event)
@@ -282,8 +285,8 @@ function SidebarTrigger({
       }}
       {...props}
     >
-      <PanelLeftIcon />
-      <span className="sr-only">Navigation umschalten</span>
+      {collapsed ? <PanelLeftOpenIcon /> : <PanelLeftIcon />}
+      <span className="sr-only">{collapsed ? "Navigation ausklappen" : "Navigation einklappen"}</span>
     </Button>
   )
 }

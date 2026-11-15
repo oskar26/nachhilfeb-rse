@@ -7,7 +7,9 @@ import {
     ChevronDown,
     GraduationCap,
     Image as ImageIcon,
+    Lightbulb,
     Lock,
+    Mail,
     Search,
     Shield,
     ShieldCheck,
@@ -15,6 +17,7 @@ import {
     Users,
 } from 'lucide-react';
 import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
+import SupportModal from '../components/SupportModal';
 import SiteHeader from '../components/SiteHeader';
 import VerifySteps from '../components/VerifySteps';
 import { Logo } from '../components/ui/Logo';
@@ -22,7 +25,7 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { SUBJECT_CATEGORIES, SubjectChip, type Subject } from '../components/SubjectChip';
 import { Switch } from '../components/ui/switch';
-import { buttonVariants } from '../components/ui/button';
+import { Button, buttonVariants } from '../components/ui/button';
 import { DeviceFrame } from '../components/site/DeviceFrame';
 import { Reveal } from '../components/site/Reveal';
 import { m, prefersReducedMotion, SPRING } from '../lib/motion';
@@ -59,6 +62,7 @@ export default function Landing() {
     const location = useLocation();
     const reduce = useReducedMotion();
     const [liveStats, setLiveStats] = useState<{ active_ads: number | null; users: number | null } | null>(null);
+    const [isFeatureOpen, setIsFeatureOpen] = useState(false);
 
     /* Privatsphäre-Demo */
     const [showPhone, setShowPhone] = useState(true);
@@ -581,7 +585,7 @@ export default function Landing() {
                             { icon: Users, t: 'Gemeinsam betreuen', d: 'Ihr Kind nutzt sein Konto, Sie schauen mit und unterstützen. Wie eng Sie begleiten, entscheiden Sie gemeinsam.', tone: 'bg-pastel-blue text-pastel-blue-foreground' },
                             { icon: BadgeCheck, t: 'Verifizierte Konten', d: 'Nur verifizierte Konten können Anzeigen erstellen, Kontakt aufnehmen oder Anzeigen ansehen. Im Profil ist sichtbar, ob jemand verifiziert ist.', tone: 'bg-pastel-mint text-pastel-mint-foreground' },
                             { icon: Lock, t: 'Keine Zahlungen über die App', d: 'Die Börse vermittelt nur den Kontakt. Vergütung und Umfang klären Sie direkt mit der Familie der Anbieterin oder des Anbieters.', tone: 'bg-pastel-violet text-pastel-violet-foreground' },
-                            { icon: Shield, t: 'Melden & Fragen', d: 'Jede Anzeige und jedes Profil lässt sich melden. Das SV-Team sichtet Meldungen mindestens einmal pro Woche, oft auch häufiger. Bei Fragen: info@nachhilfe-sv.de.', tone: 'bg-pastel-rose text-pastel-rose-foreground' },
+                            { icon: Shield, t: 'Melden & Fragen', d: 'Jede Anzeige und jedes Profil lässt sich melden. Das SV-Team sichtet Meldungen mindestens einmal pro Woche, oft auch häufiger.', tone: 'bg-pastel-rose text-pastel-rose-foreground' },
                         ].map((f, i) => (
                             <Reveal key={f.t} delay={i * 50} className="h-full">
                                 <article className={`h-full rounded-card p-6 shadow-soft ${f.tone}`}>
@@ -592,6 +596,31 @@ export default function Landing() {
                             </Reveal>
                         ))}
                     </div>
+
+                    <Reveal delay={70}>
+                        <m.a
+                            href="mailto:info@nachhilfe-sv.de?subject=Frage%20als%20Elternteil"
+                            whileHover={reduce ? undefined : { y: -2 }}
+                            whileTap={reduce ? undefined : { scale: 0.995 }}
+                            transition={SPRING.settle}
+                            className="group mt-6 flex flex-col gap-4 rounded-card border border-primary/35 bg-primary-soft p-5 text-foreground shadow-soft transition-[box-shadow] duration-200 hover:shadow-card sm:flex-row sm:items-center sm:justify-between"
+                        >
+                            <div className="flex items-center gap-4">
+                                <span className="grid size-12 shrink-0 place-items-center rounded-full bg-card text-primary shadow-soft">
+                                    <Mail size={21} aria-hidden />
+                                </span>
+                                <div>
+                                    <p className="text-base font-extrabold">Fragen als Elternteil?</p>
+                                    <p className="mt-1 max-w-xl text-sm leading-relaxed text-muted-foreground">
+                                        Schreib dem SV-Team direkt bei Fragen zu Registrierung, Einwilligung oder Sicherheit.
+                                    </p>
+                                </div>
+                            </div>
+                            <span className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-foreground px-5 text-sm font-semibold text-background transition-colors group-hover:bg-foreground/90">
+                                info@nachhilfe-sv.de <ArrowRight size={16} aria-hidden />
+                            </span>
+                        </m.a>
+                    </Reveal>
 
                     <Reveal delay={80}>
                         <div className="mt-10 flex flex-col items-start justify-between gap-5 rounded-panel bg-[linear-gradient(135deg,var(--primary),var(--primary-soft))] p-6 text-primary-foreground shadow-card sm:flex-row sm:items-center sm:p-8">
@@ -612,6 +641,46 @@ export default function Landing() {
                     </Reveal>
                 </div>
             </section>
+
+            {/* Funktionswunsch */}
+            <section id="funktionswunsch" className="scroll-mt-28 bg-secondary/60 text-foreground">
+                <div className="mx-auto max-w-site px-4 py-12 sm:px-6 sm:py-16">
+                    <Reveal>
+                        <div className="flex flex-col gap-6 rounded-panel border border-border bg-card p-6 shadow-card sm:p-8 lg:flex-row lg:items-center lg:justify-between">
+                            <div className="flex items-start gap-4">
+                                <span className="grid size-12 shrink-0 place-items-center rounded-full bg-primary-soft text-primary-soft-foreground">
+                                    <Lightbulb size={22} aria-hidden />
+                                </span>
+                                <div>
+                                    <h2 className="text-xl font-extrabold tracking-tight sm:text-2xl">Etwas fehlt?</h2>
+                                    <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                                        Wünsch dir eine Funktion für die Nachhilfebörse. Dein Funktionswunsch landet direkt beim SV-Team – ohne Umwege.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                                {user ? (
+                                    <Button type="button" onClick={() => setIsFeatureOpen(true)} className="min-h-11 rounded-full font-semibold">
+                                        <Lightbulb size={16} aria-hidden /> Funktionswunsch senden
+                                    </Button>
+                                ) : (
+                                    <Link to="/login?mode=register" className={cn(buttonVariants(), 'min-h-11 rounded-full font-semibold')}>
+                                        Konto erstellen <ArrowRight size={16} aria-hidden />
+                                    </Link>
+                                )}
+                                <a
+                                    href="mailto:info@nachhilfe-sv.de?subject=Funktionswunsch"
+                                    className={cn(buttonVariants({ variant: 'outline' }), 'min-h-11 rounded-full font-semibold')}
+                                >
+                                    <Mail size={16} aria-hidden /> Per E-Mail
+                                </a>
+                            </div>
+                        </div>
+                    </Reveal>
+                </div>
+            </section>
+
+            <SupportModal isOpen={isFeatureOpen} onClose={() => setIsFeatureOpen(false)} initialType="feature" initialView="form" />
 
             {/* Footer */}
             <footer className="rounded-t-panel bg-secondary text-muted-foreground">
@@ -636,7 +705,12 @@ export default function Landing() {
                     </div>
                     <div className="mt-8 flex flex-col justify-between gap-3 border-t border-border pt-6 text-xs sm:flex-row">
                         <p>© Schülervertretung Friedrich-Wilhelm-Gymnasium Köln {new Date().getFullYear()}.</p>
-                        <p className="tabular-nums">Hosting in Deutschland · DSGVO-konform</p>
+                        <div className="flex flex-col gap-1 sm:items-end">
+                            <a href="mailto:info@nachhilfe-sv.de" className="inline-flex min-h-11 items-center gap-1.5 font-medium transition-colors hover:text-foreground">
+                                <Mail size={14} aria-hidden /> info@nachhilfe-sv.de
+                            </a>
+                            <p className="tabular-nums">Hosting in Deutschland · DSGVO-konform</p>
+                        </div>
                     </div>
                 </div>
             </footer>
