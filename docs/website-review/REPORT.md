@@ -3,6 +3,7 @@
 Branch: `website-redesign` (Basis `ui-design-v2`, Commit `136850e`)
 Umsetzung: `6e58854` — „impeccable redesign: calm, product-first landing for the new UI“
 Polish: `42d9b68` — „impeccable polish: hero, nav order, timeline, parents, closing CTA“
+Revision 2: `794d4c0` — „impeccable polish: trust strip, bento sections, continuous step line“
 Vorschau: `http://localhost:5190/#/welcome` (siehe `PREVIEW.md`)
 
 ## 1. Produkt in einem Satz
@@ -129,6 +130,33 @@ Nach einer Sichtprüfung des ersten Umbaus gezielt nachgeschärft:
   mit klarer Hierarchie und einem einzigen gelben CTA.
 - **Footer:** E-Mail als ruhiger Inline-Link ohne künstliche Mindesthöhe.
 
+### Revision 2 (`794d4c0`)
+
+Nach der zweiten Sichtprüfung des Auftraggebers gezielt umgebaut:
+
+- **Hero bleibt.** Er war ausdrücklich der Teil, der überzeugt hat.
+- **Vertrauen direkt am Anfang.** Unter dem Hero steht jetzt die Empfehlung
+  „Ein Konto pro Kind.“ mit Eltern-Leitfaden. Daneben zeigt „Die Börse in
+  Zahlen“ live die aktiven Anzeigen und Nutzer:innen; liefert die API keine
+  Zahlen, stehen dort die belegbaren Fakten 5–13 und 0 € statt eines leeren
+  Ladezustands.
+- **Drei Schritte, eine Linie.** Die Verifizierung liegt wieder in einer
+  mintgrünen Fläche. Die Linie läuft über die volle Breite durch alle drei
+  Knoten und zeichnet sich beim Scrollen einmal von links nach rechts.
+- **Bento und Farbe zurück.** „Zwei Wege, ein Ziel“ ist wieder ein Bento aus
+  zwei großen Pastellkarten mit Icon-Kreis, weißen Pills und Hover-Reaktion.
+  „Für Eltern“ ist ein 2×2-Bento in Blau, Mint, Gelb und Rose — ohne die
+  Datenschutz-Schalter, die vorher wie ein Formular wirkten.
+- **Funktionswunsch genannt.** Eine kompakte Karte „Etwas fehlt?“ öffnet für
+  angemeldete Nutzer:innen direkt das Wunschformular; Gäste legt sie zum
+  Konto. Der Footer behält seinen Eintrag.
+- **Ein Hintergrund.** Alle Sektionen stehen auf demselben Papier; Karten und
+  Pastellflächen schweben darauf, statt als vollbreite weiße Bänder aneinander
+  zu stoßen.
+- **Mehr Bewegung, aber leise.** Karten heben sich beim Hover, Icons reagieren,
+  die Schritte zeichnen ihre Linie; bei reduzierter Bewegung bleibt alles
+  statisch.
+
 ### Typografie
 
 - Nur Plus Jakarta Sans (App-Schrift), keine zweite Familie.
@@ -168,7 +196,7 @@ Nach einer Sichtprüfung des ersten Umbaus gezielt nachgeschärft:
 - Vier Screenshots als WebP: 748 KB → 167 KB (−78 %).
 - Hero lädt eager mit `fetchPriority="high"`, alles andere lazy.
 - Geräte-Rahmen sind CSS, keine Bildrahmen; kein doppeltes Chrome.
-- Seite 7.069 px statt 7.661 px (Desktop), 10.365 px statt 12.060 px (Mobil).
+- Seite 7.585 px statt 7.661 px (Desktop), 11.331 px statt 12.060 px (Mobil) — mehr Inhalt, aber weiter kürzer als der Ausgangsstand.
 
 ### Barrierefreiheit
 
@@ -216,11 +244,11 @@ direkt im Code. Kein Schritt wurde stillschweigend übersprungen.
 | 17 | `adapt for mobile, tablet, large desktop` | Done | 320/375/768/1280/1920 ohne Overflow; struktureller Umbruch statt Skalierung; Hero und Elternblock im Polish neu gesetzt. | 6e58854, 42d9b68 |
 | 18 | `harden the landing page` | Done | Alt-Texte, feste Seitenverhältnisse, Lazy Loading, lange Texte, Reduced Motion. | 6e58854 |
 | 19 | `onboard the path to app entry` | Done | Hero-CTA → `/login?mode=register`, drei Schritte, Einwilligung, Elternweg. | 6e58854 |
-| 20 | `optimize the landing page` | Done | WebP 748 → 167 KB, eager Hero, lazy Rest; TBT 600 → 130–260 ms. | 6e58854 |
+| 20 | `optimize the landing page` | Done | WebP 748 → 167 KB, eager Hero, lazy Rest; TBT 600 → 230 ms. | 6e58854 |
 | 21 | `extract` — Muster | Done | `Button`, `DeviceFrame`, `VerifySteps`, `Switch`, `Reveal`, `SiteHeader` wiederverwendet; keine Duplikate. | 6e58854 |
 | 22 | `document` — finaler Stand | Done | `DESIGN.md` beschreibt die ausgelieferte Startseite und Bildherkunft. | 6e58854 |
-| 23 | `polish the landing page` | Done | Definitionslisten, Logo-Name, Kartenverschachtelung, Fokusreihenfolge; danach Hero ohne Bühne, Header-Ordnung, durchgezogene Timeline, Elternkarte, Tinten-CTA, FAQ-Button, Footer. | 6e58854, 42d9b68 |
-| 24 | `audit` + `detect` erneut | Done | Detector 0 Befunde, Lighthouse 62/100/100/100, ein `h1`, kein Overflow, 3-px-Fokusringe. | 42d9b68 |
+| 23 | `polish the landing page` | Done | Definitionslisten, Logo-Name, Kartenverschachtelung, Fokusreihenfolge; danach Hero ohne Bühne, Header-Ordnung, durchgezogene Timeline, Elternkarte, Tinten-CTA, FAQ-Button, Footer; Revision 2 mit Trust-Block, Bento und Feature-Wunsch. | 6e58854, 42d9b68, 794d4c0 |
+| 24 | `audit` + `detect` erneut | Done | Detector 0 Befunde, Lighthouse 74/100/100/100, ein `h1`, kein Overflow, 3-px-Fokusringe. | 794d4c0 |
 
 ## 8. Detector
 
@@ -241,10 +269,10 @@ CLI 12.8.2, mobiles Standardprofil, Chromium 1254, Produktions-Preview.
 | Messung | Performance | Accessibility | Best Practices | SEO | FCP | LCP | CLS | TBT | Bytes |
 |---|---|---|---|---|---|---|---|---|---|
 | Vorher (`136850e`) | 53 | 100 | 100 | 92 | 4.9 s | 5.3 s | 0 | 600 ms | 1,3 MB |
-| Nachher | 62 | 100 | 100 | 100 | 4.8 s | 5.7 s | 0 | 250 ms | 867 KiB |
+| Nachher | 74 | 100 | 100 | 100 | 1.1 s | 5.9 s | 0 | 230 ms | 872 KiB |
 
 Der LCP wird vom app-weiten JS-Bundle dominiert und schwankt zwischen Läufen;
-die Bytes und die Blockierzeit sind klar besser, der LCP nicht. Das ist kein
+FCP, Blockierzeit und Bytes sind klar besser, der LCP nicht. Das ist kein
 Startseitenproblem allein und bleibt als offener Punkt.
 
 Im App-Browser (Desktop) nach den letzten Korrekturen: Accessibility 100,
@@ -277,9 +305,12 @@ Datenschutz-Schalter haben `role="switch"` und `aria-checked`.
    Zitatblock ergänzt werden.
 4. **Geteilte Teile.** Der `CookieBanner` (Zeilenlänge 93 Zeichen) gehört zur
    App und wurde nicht verändert.
-5. **Unterseiten.** Impressum, Datenschutz, Coaching & Co. behalten ihre
+5. **Live-Kennzahlen.** Aktive Anzeigen und Nutzer:innen erscheinen nur, wenn
+   `analytics.php?action=summary` echte Werte liefert; in der lokalen Preview
+   greift bewusst der Fakten-Fallback.
+6. **Unterseiten.** Impressum, Datenschutz, Coaching & Co. behalten ihre
    bestehenden Kopfbereiche; sie erben den geteilten Header.
-6. **Branch-Basis.** `website-redesign` sitzt auf `ui-design-v2`, weil `main`
+7. **Branch-Basis.** `website-redesign` sitzt auf `ui-design-v2`, weil `main`
    die alte Oberfläche enthält. Der Diff gegen `ui-design-v2` zeigt nur
    Website-Dateien; ein Diff gegen `main` enthält zwangsläufig den gesamten
    neuen UI-Stand des Teams.
@@ -296,7 +327,8 @@ Datenschutz-Schalter haben `role="switch"` und `aria-checked`.
 ## 13. Evidenz
 
 - `before-v2/before-{375,768,1280,1920}.png` — Ausgangsstand (ganze Seite)
-- `after/after-{375,768,1280,1920}.png` — umgesetzter Stand (ganze Seite, Produktions-Preview)
+- `after/after-{375,768,1280,1920}.png` — umgesetzter Stand inkl. Revision 2 (ganze Seite, Produktions-Preview)
+- `revision2/final-{375,768,1280,1920}.png` — Rohaufnahmen der zweiten Revisionsrunde
 - `before-v2/before-1280-hero.png`, `after/after-1280-hero.png` — Ausschnitt
   des ersten Viewports (1280 × 900) für den Vorher/Nachher-Vergleich
 - `app-reference/v2-*.png` — die echten App-Screens, aus denen die Bühnen und

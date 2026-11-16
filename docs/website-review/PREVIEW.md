@@ -25,17 +25,24 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:5190/
 
 - Ruhiger, produktgeführter Hero: ein echter Laptop-Feed frei auf dem
   Seitenhintergrund, ohne gelben Kasten und ohne überlappendes Telefon.
+- Direkt darunter Vertrauen: „Ein Konto pro Kind“ mit Eltern-Leitfaden und
+  eine Karte mit aktiven Anzeigen und Nutzer:innen (live, sonst Fakten).
 - Chronologische Navigation (Start, Ablauf, Die App, Für Eltern, Coaching,
   FAQ) ohne Entwickler-Link.
 - Drei echte Screens statt vier Showcase-Zeilen und ohne Admin-Screenshot.
-- „Zwei Wege, ein Ziel“ in einer Fläche statt drei Pastellkarten.
-- Elternblock mit korrekt skalierter Sichtbarkeits-Vorschau und vier Fakten.
-- Verifizierungs-Timeline, deren Linie durch alle drei Punkte läuft.
+- „Zwei Wege, ein Ziel“ als Bento aus zwei großen Pastellkarten.
+- Elternbereich als 2×2-Bento in Blau, Mint, Gelb und Rose – ohne
+  Datenschutz-Schalter.
+- Verifizierung in einer mintgrünen Fläche; die Linie läuft über die ganze
+  Breite durch alle drei Punkte und zeichnet sich beim Scrollen.
 - Eine Coaching-Fläche statt drei verschachtelter Karten.
 - Sieben echte FAQs (Kosten, Alter, Einwilligung, Sichtbarkeit, Meldung).
+- Kompakte Funktionswunsch-Karte „Etwas fehlt?“ vor den FAQs.
 - Abschluss als dunkle Fläche mit einem klaren CTA statt loser weißer Karte.
-- Deutlich kürzer: 7.069 px statt 7.661 px (Desktop), 10.365 px statt
-  12.060 px (Mobil).
+- Ein durchgehender Seitenhintergrund; Karten und Pastellflächen schweben
+  darauf, statt als weiße Bänder aneinanderzustoßen.
+- Länge: 7.585 px (Desktop) und 11.331 px (Mobil) – mehr Inhalt als im ersten
+  Umbau, aber weiter unter dem Ausgangsstand (7.661 / 12.060).
 - Screenshots als WebP: 748 KB → 167 KB.
 - Neue Meta-Daten (Canonical, OG/Twitter, JSON-LD), `robots.txt`, `sitemap.xml`.
 
