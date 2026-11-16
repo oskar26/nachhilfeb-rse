@@ -41,8 +41,9 @@ Rollen (suchen / geben), dann die Elternfragen, dann Coaching und FAQ.
 **FIRST VIEWPORT.** H1 „Nachhilfe, die am FWG bleibt.“; ein Satz Support;
 gelbe primäre Aktion „Kostenlos registrieren“; sekundär „So funktioniert’s“;
 vier ruhige Vertrauenszeilen; rechts ein echter Laptop-Screenshot der
-Anzeigenübersicht auf gelber Fläche, darunter ein überlappendes Telefon.
-Keine erfundenen Anzeigenkarten, keine Namen, keine Zahlen.
+Anzeigenübersicht, frei auf dem Seitenhintergrund und ohne Bühne. Die
+Bildunterschrift steht im Textfluss. Keine erfundenen Anzeigenkarten, keine
+Namen, keine Zahlen.
 
 **FORM.** Code-geführt. Bestehende Tokens, `Button`, `DeviceFrame`,
 `VerifySteps`, `Reveal`, `SiteHeader` und `Switch` werden wiederverwendet.

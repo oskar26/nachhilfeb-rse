@@ -89,13 +89,14 @@ Die Startseite ist bewusst nur hell; die App bleibt im Systemmodus.
 
 - Papier `#f5f6f8`; Abschnitte wechseln zwischen Papier und Weiß, damit die
   Seite atmet, ohne zusätzliche Rahmen.
-- Gelb nur für die primäre Aktion im Hero, die Coaching-Fläche und den
-  Abschluss-CTA. Keine gelben Textstellen auf Weiß.
-- Produktbilder bekommen eine Pastellbühne (blau, mint, gelb) und einen
-  echten Geräterahmen; nie einen zweiten Rahmen um einen Screenshot mit
-  eingebautem Rahmen.
-- Der Header ist geteilt und bleibt unverändert in Form und Verhalten; nur der
-  zugängliche Name des Logos wurde präzisiert.
+- Gelb nur für primäre Aktionen, die Coaching-Fläche und den Abschluss-CTA.
+  Keine gelben Textstellen auf Weiß; der Hero bleibt neutral.
+- Die drei Showcase-Bilder bekommen eine Pastellbühne (blau, mint, gelb) und
+  einen echten Geräterahmen; nie einen zweiten Rahmen um einen Screenshot mit
+  eingebautem Rahmen. Der Hero zeigt das Laptop-Bild ohne Bühne.
+- Der Header ist geteilt. Seine Navigation folgt jetzt der Seitenreihenfolge
+  (Start, Ablauf, Die App, Für Eltern, Coaching, FAQ); alle Unterseiten erben
+  diese Reihenfolge. Form, Fokus und mobile Ausführung bleiben unverändert.
 
 ## Herkunft der Bilder
 

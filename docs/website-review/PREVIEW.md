@@ -23,14 +23,18 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:5190/
 
 ## Was anders ist
 
-- Ruhiger, produktgeführter Hero mit einem echten Laptop-Feed und Telefon
-  statt gelbem Verlauf und erfundenen Anzeigenkarten.
+- Ruhiger, produktgeführter Hero: ein echter Laptop-Feed frei auf dem
+  Seitenhintergrund, ohne gelben Kasten und ohne überlappendes Telefon.
+- Chronologische Navigation (Start, Ablauf, Die App, Für Eltern, Coaching,
+  FAQ) ohne Entwickler-Link.
 - Drei echte Screens statt vier Showcase-Zeilen und ohne Admin-Screenshot.
 - „Zwei Wege, ein Ziel“ in einer Fläche statt drei Pastellkarten.
-- Ein Elternblock mit vier Fakten und echten Datenschutz-Schaltern.
+- Elternblock mit korrekt skalierter Sichtbarkeits-Vorschau und vier Fakten.
+- Verifizierungs-Timeline, deren Linie durch alle drei Punkte läuft.
 - Eine Coaching-Fläche statt drei verschachtelter Karten.
 - Sieben echte FAQs (Kosten, Alter, Einwilligung, Sichtbarkeit, Meldung).
-- Deutlich kürzer: 7.135 px statt 7.661 px (Desktop), 10.361 px statt
+- Abschluss als dunkle Fläche mit einem klaren CTA statt loser weißer Karte.
+- Deutlich kürzer: 7.069 px statt 7.661 px (Desktop), 10.365 px statt
   12.060 px (Mobil).
 - Screenshots als WebP: 748 KB → 167 KB.
 - Neue Meta-Daten (Canonical, OG/Twitter, JSON-LD), `robots.txt`, `sitemap.xml`.
