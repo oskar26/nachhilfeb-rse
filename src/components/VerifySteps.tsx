@@ -77,7 +77,7 @@ export default function VerifySteps({ tone = 'du', variant = 'rows' }: VerifySte
                 {steps.map((s, i) => (
                     <m.li key={s.title} {...stepAnim(i)} className="relative pl-16 sm:pl-0">
                         {i < steps.length - 1 && (
-                            <span aria-hidden className="absolute left-[23px] top-12 h-[calc(100%+2rem)] w-0.5 rounded-full bg-pastel-mint-foreground/30 sm:left-14 sm:top-6 sm:h-0.5 sm:w-[calc(100%-2rem)]" />
+                            <span aria-hidden className="absolute left-6 top-6 h-[calc(100%+3.5rem)] w-0.5 rounded-full bg-pastel-mint-foreground/40 sm:h-0.5 sm:w-[calc(100%+1.5rem)]" />
                         )}
                         <span className={`relative z-10 grid size-12 place-items-center rounded-full ${circleTones[i]}`} aria-hidden>
                             <s.icon size={21} strokeWidth={2} />

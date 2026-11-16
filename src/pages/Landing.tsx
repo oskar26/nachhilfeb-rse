@@ -5,10 +5,8 @@ import {
     BadgeCheck,
     Check,
     ChevronDown,
-    GraduationCap,
     Lock,
     Mail,
-    Search,
     Shield,
     ShieldCheck,
     Users,
@@ -175,25 +173,20 @@ export default function Landing() {
                             </Reveal>
 
                             <Reveal delay={90}>
-                                <div className="relative mx-auto w-full max-w-[600px]">
-                                    <div className="relative rounded-panel bg-pastel-yellow p-4 pb-20 shadow-card sm:p-6 sm:pb-24">
+                                <div className="mx-auto w-full max-w-[620px] px-2 sm:px-0">
+                                    <div className="relative">
                                         <DeviceFrame
                                             kind="laptop"
                                             src={feedShot}
                                             alt="Anzeigenübersicht der Nachhilfebörse am Laptop"
                                             priority
-                                            className="relative z-10 w-[94%] sm:w-[92%]"
+                                            className="relative z-10 w-full"
                                         />
-                                        <DeviceFrame
-                                            kind="phone"
-                                            src={phoneFeedShot}
-                                            alt="Anzeigenübersicht der Nachhilfebörse am Handy"
-                                            className="absolute -bottom-4 right-3 z-20 w-[27%] max-w-[170px] sm:-bottom-6 sm:right-5"
-                                        />
-                                        <p className="absolute bottom-4 left-4 text-xs font-semibold text-pastel-yellow-foreground/70 sm:left-6">
-                                            Echte Ansicht · Anzeigenübersicht
-                                        </p>
                                     </div>
+                                    <p className="mt-4 flex items-center justify-center gap-2 text-xs font-medium text-muted-foreground sm:mt-6 sm:justify-start sm:pl-1">
+                                        <span aria-hidden className="size-1.5 rounded-full bg-primary" />
+                                        Echte Ansicht aus der App
+                                    </p>
                                 </div>
                             </Reveal>
                         </div>
@@ -322,7 +315,6 @@ export default function Landing() {
                                 <div className="grid divide-y divide-border md:grid-cols-2 md:divide-x md:divide-y-0">
                                     {[
                                         {
-                                            icon: Search,
                                             title: 'Ich suche Nachhilfe',
                                             text: 'Finde jemanden, der dein Fach wirklich kann – und der an deiner Schule ist.',
                                             points: ['Filter nach Fach, Klasse und Preis', 'Kontakt erst nach deiner Zusage', 'Merkliste für später'],
@@ -330,7 +322,6 @@ export default function Landing() {
                                             to: registerZiel,
                                         },
                                         {
-                                            icon: GraduationCap,
                                             title: 'Ich gebe Nachhilfe',
                                             text: 'Du kennst ein Fach gut? Bestimme deinen Preis und deine Zeiten selbst.',
                                             points: ['Eigene Anzeige in wenigen Minuten', 'Preise und Termine selbst festlegen', 'Bewertungen nach dem ersten Kontakt'],
@@ -339,10 +330,7 @@ export default function Landing() {
                                         },
                                     ].map((w) => (
                                         <div key={w.title} className="flex flex-col p-6 sm:p-8">
-                                            <span className="grid size-12 place-items-center rounded-full bg-muted text-foreground" aria-hidden>
-                                                <w.icon size={22} strokeWidth={2} />
-                                            </span>
-                                            <h3 className="mt-5 text-xl font-extrabold tracking-tight sm:text-2xl">{w.title}</h3>
+                                            <h3 className="text-xl font-extrabold tracking-tight sm:text-2xl">{w.title}</h3>
                                             <p className="mt-2 max-w-sm text-base leading-relaxed text-muted-foreground">{w.text}</p>
                                             <ul className="mt-5 space-y-2.5">
                                                 {w.points.map((p) => (
@@ -383,29 +371,13 @@ export default function Landing() {
                 {/* ELTERN */}
                 <section id="eltern" className="scroll-mt-24 bg-card">
                     <div className="mx-auto max-w-site px-4 py-16 sm:px-6 sm:py-24">
-                        <div className="grid items-start gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+                        <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start lg:gap-16">
                             <Reveal>
                                 <div className="min-w-0">
                                     <h2 className="text-[2rem] font-extrabold leading-[1.06] tracking-[-0.035em] sm:text-[2.75rem]">Für Eltern.</h2>
                                     <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
                                         Ihr Kind nutzt sein eigenes Konto. In den Klassen 5 bis 7 empfehlen wir, gemeinsam mitzuschauen – wie eng, entscheiden Sie zusammen.
                                     </p>
-
-                                    <dl className="mt-8 divide-y divide-border border-y border-border">
-                                        {[
-                                            { icon: BadgeCheck, t: 'Nur verifizierte Konten', d: 'Anzeigen erstellen und Kontakt aufnehmen ist erst nach der Prüfung im SV-Raum möglich.' },
-                                            { icon: Lock, t: 'Keine Zahlungen über die App', d: 'Die Börse vermittelt den Kontakt. Umfang und Vergütung klären die Familien direkt.' },
-                                            { icon: Shield, t: 'Kontaktdaten bleiben geschützt', d: 'Telefonnummer und Moodle-Name werden erst nach einer angenommenen Anfrage sichtbar.' },
-                                            { icon: Mail, t: 'Melden und nachfragen', d: 'Jede Anzeige und jedes Profil lässt sich melden. Das SV-Team ist unter info@nachhilfe-sv.de erreichbar.' },
-                                        ].map((p) => (
-                                            <div key={p.t} className="grid grid-cols-[19px_1fr] gap-x-4 py-4">
-                                                <p.icon size={19} className="mt-1 shrink-0 text-foreground" aria-hidden />
-                                                <dt className="text-base font-bold">{p.t}</dt>
-                                                <dd className="col-start-2 mt-1 text-pretty text-sm leading-relaxed text-muted-foreground">{p.d}</dd>
-                                            </div>
-                                        ))}
-                                    </dl>
-
                                     <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                                         <Link to="/eltern-leitfaden" className={cn(buttonVariants(), 'group w-full sm:w-auto')}>
                                             Eltern-Leitfaden lesen
@@ -420,7 +392,7 @@ export default function Landing() {
                             </Reveal>
 
                             <Reveal delay={80}>
-                                <div className="rounded-panel border border-border bg-background p-6 shadow-soft sm:p-8">
+                                <div className="rounded-panel border border-border bg-secondary p-6 sm:p-8 lg:justify-self-end lg:w-full lg:max-w-[440px]">
                                     <div className="flex flex-wrap items-center justify-between gap-2">
                                         <h3 className="text-lg font-extrabold tracking-tight">Du entscheidest, wer was sieht.</h3>
                                         <span className="rounded-full bg-pastel-yellow px-2.5 py-1 text-xs font-semibold text-pastel-yellow-foreground">Beispiel</span>
@@ -462,6 +434,23 @@ export default function Landing() {
                                 </div>
                             </Reveal>
                         </div>
+
+                        <Reveal delay={120}>
+                            <dl className="mt-12 grid border-t border-border sm:grid-cols-2 sm:gap-x-12">
+                                {[
+                                    { icon: BadgeCheck, t: 'Nur verifizierte Konten', d: 'Anzeigen erstellen und Kontakt aufnehmen ist erst nach der Prüfung im SV-Raum möglich.' },
+                                    { icon: Lock, t: 'Keine Zahlungen über die App', d: 'Die Börse vermittelt den Kontakt. Umfang und Vergütung klären die Familien direkt.' },
+                                    { icon: Shield, t: 'Kontaktdaten bleiben geschützt', d: 'Telefonnummer und Moodle-Name werden erst nach einer angenommenen Anfrage sichtbar.' },
+                                    { icon: Mail, t: 'Melden und nachfragen', d: 'Jede Anzeige und jedes Profil lässt sich melden. Das SV-Team ist unter info@nachhilfe-sv.de erreichbar.' },
+                                ].map((p) => (
+                                    <div key={p.t} className="grid grid-cols-[19px_1fr] gap-x-4 border-b border-border py-5">
+                                        <p.icon size={19} className="mt-1 shrink-0 text-foreground" aria-hidden />
+                                        <dt className="text-base font-bold">{p.t}</dt>
+                                        <dd className="col-start-2 mt-1 text-pretty text-sm leading-relaxed text-muted-foreground">{p.d}</dd>
+                                    </div>
+                                ))}
+                            </dl>
+                        </Reveal>
                     </div>
                 </section>
 
@@ -519,11 +508,12 @@ export default function Landing() {
                                     </p>
                                     <a
                                         href="mailto:info@nachhilfe-sv.de?subject=Frage%20zur%20Nachhilfeb%C3%B6rse"
-                                        className="mt-5 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-foreground underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground"
+                                        className={cn(buttonVariants({ variant: 'outline' }), 'mt-6')}
                                     >
                                         <Mail size={16} aria-hidden />
-                                        Frage nicht dabei? Schreib uns.
+                                        Frage stellen
                                     </a>
+                                    <p className="mt-2 text-[13px] text-muted-foreground">Deine Frage ist nicht dabei? Schreib dem SV-Team.</p>
                                 </div>
                             </Reveal>
 
@@ -548,19 +538,31 @@ export default function Landing() {
 
                 {/* ABSCHLUSS */}
                 <section className="bg-background">
-                    <div className="mx-auto max-w-site px-4 pb-16 sm:px-6 sm:pb-24">
+                    <div className="mx-auto max-w-site px-4 pb-20 sm:px-6 sm:pb-28">
                         <Reveal>
-                            <div className="flex flex-col items-start gap-6 rounded-panel border border-border bg-card p-6 shadow-soft sm:flex-row sm:items-center sm:justify-between sm:p-10">
-                                <div className="max-w-2xl">
-                                    <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Bereit für die erste Nachhilfe?</h2>
-                                    <p className="mt-2 text-base leading-relaxed text-muted-foreground">
-                                        Konto anlegen, im SV-Raum verifizieren, passende Anzeige finden. Kostenlos und nur für das FWG.
-                                    </p>
+                            <div className="rounded-panel bg-foreground p-7 text-background shadow-card sm:p-12">
+                                <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between lg:gap-12">
+                                    <div className="max-w-2xl">
+                                        <h2 className="text-[1.9rem] font-extrabold leading-[1.05] tracking-[-0.035em] text-background sm:text-[2.6rem]">
+                                            Bereit für die erste Nachhilfe?
+                                        </h2>
+                                        <p className="mt-3 max-w-xl text-base leading-relaxed text-background/70 sm:text-lg">
+                                            Konto anlegen, im SV-Raum verifizieren, passende Anzeige finden. Kostenlos und nur für das FWG.
+                                        </p>
+                                    </div>
+                                    <div className="flex shrink-0 flex-col items-start gap-4 sm:flex-row sm:items-center lg:flex-col lg:items-end">
+                                        <Link to={registerZiel} className={cn(buttonVariants({ size: 'lg' }), 'group w-full sm:w-auto')}>
+                                            {user ? 'Zur Börse' : 'Kostenlos registrieren'}
+                                            <ArrowRight size={18} aria-hidden className="motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" />
+                                        </Link>
+                                        <a
+                                            href="mailto:info@nachhilfe-sv.de?subject=Frage%20zur%20Nachhilfeb%C3%B6rse"
+                                            className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-background/80 underline decoration-background/30 underline-offset-4 transition-colors hover:text-background hover:decoration-background"
+                                        >
+                                            Noch Fragen? Schreib uns
+                                        </a>
+                                    </div>
                                 </div>
-                                <Link to={registerZiel} className={cn(buttonVariants({ size: 'lg' }), 'group w-full shrink-0 sm:w-auto')}>
-                                    {user ? 'Zur Börse' : 'Kostenlos registrieren'}
-                                    <ArrowRight size={18} aria-hidden className="motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" />
-                                </Link>
                             </div>
                         </Reveal>
                     </div>
@@ -583,11 +585,11 @@ export default function Landing() {
                                 <address className="mt-5 text-sm not-italic leading-relaxed">
                                     Schülervertretung Friedrich-Wilhelm-Gymnasium<br />
                                     Severinstraße 241, 50676 Köln<br />
-                                    <a href="mailto:info@nachhilfe-sv.de" className="inline-flex min-h-11 items-center font-medium text-foreground transition-colors hover:text-muted-foreground">
+                                    <a href="mailto:info@nachhilfe-sv.de" className="inline-block py-0.5 font-medium text-foreground underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground">
                                         info@nachhilfe-sv.de
                                     </a>
                                 </address>
-                                <p className="mt-1 text-xs">Hosting in Deutschland · DSGVO-konform</p>
+                                <p className="mt-2 text-xs">Hosting in Deutschland · DSGVO-konform</p>
                             </div>
 
                             <nav aria-label="Die Börse">
