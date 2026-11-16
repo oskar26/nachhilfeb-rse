@@ -3,10 +3,12 @@ import { Link, useLocation } from 'react-router-dom';
 import {
     ArrowRight,
     BadgeCheck,
-    Check,
     ChevronDown,
+    GraduationCap,
+    Lightbulb,
     Lock,
     Mail,
+    Search,
     Shield,
     ShieldCheck,
     Users,
@@ -17,13 +19,12 @@ import { PageEnter } from '../components/site/PageEnter';
 import VerifySteps from '../components/VerifySteps';
 import { Logo } from '../components/ui/Logo';
 import { useAuth } from '../context/AuthContext';
-import { Switch } from '../components/ui/switch';
+import { api } from '../lib/api';
 import { buttonVariants } from '../components/ui/button';
 import { DeviceFrame } from '../components/site/DeviceFrame';
 import { Reveal } from '../components/site/Reveal';
 import { prefersReducedMotion } from '../lib/motion';
 import { cn } from '../lib/utils';
-import phoneFeedShot from '../assets/screens/v2-phone-feed.webp';
 import phoneChatShot from '../assets/screens/v2-phone-chat.webp';
 import tabletSettingsShot from '../assets/screens/v2-tablet-settings.webp';
 import feedShot from '../assets/screens/v2-laptop-feed.webp';
@@ -66,18 +67,45 @@ const FAQ = [
     },
 ];
 
+/** Nur echte, plausible Zahlen anzeigen — nie 0 oder einen Platzhalter erfinden. */
+function parseCount(value: unknown): number | null {
+    if (value === null || value === undefined || value === '') return null;
+    const n = typeof value === 'number' ? value : Number(value);
+    return Number.isFinite(n) && n >= 0 ? n : null;
+}
+
 export default function Landing() {
     const { user } = useAuth();
     const location = useLocation();
     const [isFeatureOpen, setIsFeatureOpen] = useState(false);
+    const [liveStats, setLiveStats] = useState<{ activeAds: number | null; users: number | null } | null>(null);
 
-    /* Privatsphäre-Demo: zeigt nur, wie die Einstellungen in der App aussehen. */
-    const [showPhone, setShowPhone] = useState(true);
-    const [showMoodle, setShowMoodle] = useState(false);
+    // Live-Kennzahlen sind optional: ohne verwertbare Antwort bleibt die Seite vollständig.
+    useEffect(() => {
+        let cancelled = false;
+        api.analytics.summary()
+            .then(({ data, error }) => {
+                if (cancelled || error || !data) return;
+                const summary = data as { active_ads?: unknown; users?: unknown };
+                const activeAds = parseCount(summary.active_ads);
+                const users = parseCount(summary.users);
+                if (activeAds === null && users === null) return;
+                setLiveStats({ activeAds, users });
+            })
+            .catch(() => { /* Kennzahlen sind optional. */ });
+        return () => { cancelled = true; };
+    }, []);
 
     const registerZiel = user ? '/' : '/login?mode=register';
     const loginZiel = user ? '/' : '/login';
     const bietZiel = user ? '/create-ad' : '/login';
+
+    const stats = liveStats
+        ? [
+            ...(liveStats.activeAds !== null ? [{ value: liveStats.activeAds, label: 'Aktive Anzeigen', tone: 'bg-pastel-yellow text-pastel-yellow-foreground' }] : []),
+            ...(liveStats.users !== null ? [{ value: liveStats.users, label: 'Nutzer:innen', tone: 'bg-pastel-mint text-pastel-mint-foreground' }] : []),
+        ]
+        : [];
 
     // Gezielte Sprünge aus dem Header (Router-State) und Reset beim Seitenwechsel.
     useEffect(() => {
@@ -193,34 +221,91 @@ export default function Landing() {
                     </div>
                 </section>
 
+                {/* EMPFEHLUNG + KENNZAHLEN — früh sichtbar, weil Vertrauen zuerst zählt. */}
+                <section aria-labelledby="vertrauen-titel" className="bg-background">
+                    <div className="mx-auto max-w-site px-4 pb-6 sm:px-6 sm:pb-10">
+                        <Reveal>
+                            <div className="grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
+                                <div className="rounded-panel bg-pastel-blue p-6 text-pastel-blue-foreground sm:p-8">
+                                    <span className="inline-flex rounded-full bg-white/80 px-3 py-1 text-xs font-bold">Empfehlung</span>
+                                    <h2 id="vertrauen-titel" className="mt-4 text-2xl font-extrabold leading-tight tracking-[-0.03em] sm:text-3xl">
+                                        Ein Konto pro Kind.
+                                    </h2>
+                                    <p className="mt-3 max-w-xl text-base leading-relaxed text-pastel-blue-foreground">
+                                        In den Klassen 5 und 6 betreuen viele Eltern mit, ältere nutzen die Börse selbstständig. Ein Konto, eine verifizierte Person – so bleibt klar, wer schreibt.
+                                    </p>
+                                    <Link
+                                        to="/eltern-leitfaden"
+                                        className="group mt-5 inline-flex min-h-11 items-center gap-1.5 text-sm font-bold text-pastel-blue-foreground underline decoration-pastel-blue-foreground/30 underline-offset-4 transition-colors hover:decoration-pastel-blue-foreground"
+                                    >
+                                        Eltern-Leitfaden lesen
+                                        <ArrowRight size={16} aria-hidden className="motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" />
+                                    </Link>
+                                </div>
+
+                                <div className="rounded-panel border border-border bg-card p-6 shadow-soft sm:p-8">
+                                    <h3 className="text-sm font-bold text-muted-foreground">Die Börse in Zahlen</h3>
+                                    {stats.length > 0 ? (
+                                        <>
+                                            <dl className="mt-4 grid grid-cols-2 gap-3">
+                                                {stats.map((s) => (
+                                                    <div key={s.label} className={cn('rounded-card px-4 py-5', s.tone)}>
+                                                        <dt className="text-xs font-semibold leading-snug">{s.label}</dt>
+                                                        <dd className="mt-2 text-[2rem] font-extrabold leading-none tabular-nums">{s.value.toLocaleString('de-DE')}</dd>
+                                                    </div>
+                                                ))}
+                                            </dl>
+                                            <p className="mt-4 text-xs leading-relaxed text-muted-foreground">Live aus der Börse, ohne Namen und ohne Profile.</p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <dl className="mt-4 grid grid-cols-2 gap-3">
+                                                <div className="rounded-card bg-pastel-yellow px-4 py-5 text-pastel-yellow-foreground">
+                                                    <dt className="text-xs font-semibold leading-snug">Alle Klassen</dt>
+                                                    <dd className="mt-2 text-[2rem] font-extrabold leading-none">5–13</dd>
+                                                </div>
+                                                <div className="rounded-card bg-pastel-mint px-4 py-5 text-pastel-mint-foreground">
+                                                    <dt className="text-xs font-semibold leading-snug">Kosten</dt>
+                                                    <dd className="mt-2 text-[2rem] font-extrabold leading-none">0 €</dd>
+                                                </div>
+                                            </dl>
+                                            <p className="mt-4 text-xs leading-relaxed text-muted-foreground">Kostenlos für alle am FWG. Keine Zahlung über die App.</p>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </Reveal>
+                    </div>
+                </section>
+
                 {/* VERIFIZIERUNG */}
                 <section id="so-funktioniert-es" className="scroll-mt-24 bg-background">
                     <div className="mx-auto max-w-site px-4 pb-16 sm:px-6 sm:pb-24">
                         <Reveal>
-                            <div className="rounded-panel border border-border bg-card p-6 shadow-soft sm:p-10">
+                            <div className="overflow-hidden rounded-panel bg-pastel-mint p-6 text-pastel-mint-foreground shadow-card sm:p-10">
                                 <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                                     <div className="max-w-2xl">
                                         <h2 className="text-[2rem] font-extrabold leading-[1.06] tracking-[-0.035em] sm:text-[2.75rem]">
                                             In drei Schritten dabei.
                                         </h2>
-                                        <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
+                                        <p className="mt-4 text-base leading-relaxed text-pastel-mint-foreground sm:text-lg">
                                             Die Börse ist nur für das FWG. Deshalb prüft das SV-Team jedes Konto persönlich, bevor es losgeht.
                                         </p>
                                     </div>
                                     <Link
                                         to={loginZiel}
-                                        className="group inline-flex min-h-11 shrink-0 items-center gap-1.5 text-sm font-semibold text-foreground transition-colors hover:text-muted-foreground"
+                                        className="group inline-flex min-h-11 shrink-0 items-center gap-1.5 text-sm font-bold text-pastel-mint-foreground underline decoration-pastel-mint-foreground/30 underline-offset-4 transition-colors hover:decoration-pastel-mint-foreground"
                                     >
                                         {user ? 'Zur Börse' : 'Zur Anmeldung'}
                                         <ArrowRight size={16} aria-hidden className="motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" />
                                     </Link>
                                 </div>
-                                <div className="mt-10">
+                                <div className="mt-12">
                                     <VerifySteps tone="du" variant="timeline" />
                                 </div>
-                                <p className="mt-8 border-t border-border pt-5 text-[13px] leading-relaxed text-muted-foreground">
+                                <p className="mt-10 border-t border-pastel-mint-foreground/20 pt-5 text-[13px] leading-relaxed text-pastel-mint-foreground">
                                     Unter 16 Jahren braucht die Anmeldung die Einwilligung eines Erziehungsberechtigten. Details im{' '}
-                                    <Link to="/eltern-leitfaden" className="font-semibold text-foreground underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground">
+                                    <Link to="/eltern-leitfaden" className="font-semibold text-pastel-mint-foreground underline decoration-pastel-mint-foreground/30 underline-offset-4 transition-colors hover:decoration-pastel-mint-foreground">
                                         Eltern-Leitfaden
                                     </Link>.
                                 </p>
@@ -230,7 +315,7 @@ export default function Landing() {
                 </section>
 
                 {/* APP-RUNDGANG */}
-                <section id="brett" className="scroll-mt-24 bg-card">
+                <section id="brett" className="scroll-mt-24 bg-background">
                     <div className="mx-auto max-w-site px-4 py-16 sm:px-6 sm:py-24">
                         <Reveal>
                             <div className="max-w-2xl">
@@ -310,146 +395,113 @@ export default function Landing() {
                             </div>
                         </Reveal>
 
-                        <Reveal delay={60}>
-                            <div className="mt-10 overflow-hidden rounded-panel border border-border bg-card shadow-soft">
-                                <div className="grid divide-y divide-border md:grid-cols-2 md:divide-x md:divide-y-0">
-                                    {[
-                                        {
-                                            title: 'Ich suche Nachhilfe',
-                                            text: 'Finde jemanden, der dein Fach wirklich kann – und der an deiner Schule ist.',
-                                            points: ['Filter nach Fach, Klasse und Preis', 'Kontakt erst nach deiner Zusage', 'Merkliste für später'],
-                                            cta: 'Anzeigen entdecken',
-                                            to: registerZiel,
-                                        },
-                                        {
-                                            title: 'Ich gebe Nachhilfe',
-                                            text: 'Du kennst ein Fach gut? Bestimme deinen Preis und deine Zeiten selbst.',
-                                            points: ['Eigene Anzeige in wenigen Minuten', 'Preise und Termine selbst festlegen', 'Bewertungen nach dem ersten Kontakt'],
-                                            cta: 'Anzeige erstellen',
-                                            to: bietZiel,
-                                        },
-                                    ].map((w) => (
-                                        <div key={w.title} className="flex flex-col p-6 sm:p-8">
-                                            <h3 className="text-xl font-extrabold tracking-tight sm:text-2xl">{w.title}</h3>
-                                            <p className="mt-2 max-w-sm text-base leading-relaxed text-muted-foreground">{w.text}</p>
-                                            <ul className="mt-5 space-y-2.5">
-                                                {w.points.map((p) => (
-                                                    <li key={p} className="flex items-start gap-2 text-sm leading-relaxed text-muted-foreground">
-                                                        <Check size={16} className="mt-0.5 shrink-0 text-foreground" aria-hidden />
-                                                        {p}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                            <Link
-                                                to={w.to}
-                                                className={cn(buttonVariants({ variant: 'outline' }), 'group mt-7 self-start')}
-                                            >
-                                                {w.cta}
-                                                <ArrowRight size={16} aria-hidden className="motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" />
-                                            </Link>
-                                        </div>
-                                    ))}
-                                </div>
-                                <div className="flex flex-col gap-3 border-t border-border bg-background px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-                                    <p className="flex items-start gap-2 text-sm leading-relaxed text-muted-foreground sm:items-center">
-                                        <Users size={17} className="mt-0.5 shrink-0 text-foreground sm:mt-0" aria-hidden />
-                                        Sie begleiten Ihr Kind? Der Eltern-Leitfaden erklärt Konto, Einwilligung und Sicherheit.
-                                    </p>
-                                    <Link
-                                        to="/eltern-leitfaden"
-                                        className="group inline-flex min-h-11 shrink-0 items-center gap-1.5 text-sm font-semibold text-foreground transition-colors hover:text-muted-foreground"
-                                    >
-                                        Eltern-Leitfaden
-                                        <ArrowRight size={16} aria-hidden className="motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" />
-                                    </Link>
-                                </div>
+                        <div className="mt-10 grid gap-4 lg:grid-cols-2">
+                            {[
+                                {
+                                    title: 'Ich suche Nachhilfe',
+                                    text: 'Finde jemanden, der dein Fach wirklich kann – und der an deiner Schule ist.',
+                                    points: ['Filter nach Fach, Klasse und Preis', 'Kontakt erst nach deiner Zusage', 'Merkliste für später'],
+                                    cta: 'Anzeigen entdecken',
+                                    to: registerZiel,
+                                    icon: Search,
+                                    tone: 'bg-pastel-blue text-pastel-blue-foreground',
+                                    pill: 'bg-white/75 text-pastel-blue-foreground',
+                                },
+                                {
+                                    title: 'Ich gebe Nachhilfe',
+                                    text: 'Du kennst ein Fach gut? Bestimme deinen Preis und deine Zeiten selbst.',
+                                    points: ['Eigene Anzeige in wenigen Minuten', 'Preise und Termine selbst festlegen', 'Bewertungen nach dem ersten Kontakt'],
+                                    cta: 'Anzeige erstellen',
+                                    to: bietZiel,
+                                    icon: GraduationCap,
+                                    tone: 'bg-pastel-mint text-pastel-mint-foreground',
+                                    pill: 'bg-white/75 text-pastel-mint-foreground',
+                                },
+                            ].map((w, i) => (
+                                <Reveal key={w.title} delay={i * 70}>
+                                    <article className={cn('group flex h-full flex-col rounded-panel p-6 shadow-soft motion-safe:transition-transform motion-safe:duration-300 motion-safe:hover:-translate-y-1 sm:p-8', w.tone)}>
+                                        <span className="grid size-14 place-items-center rounded-full bg-white/80" aria-hidden>
+                                            <w.icon size={26} className="motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:-rotate-6 motion-safe:group-hover:scale-110" />
+                                        </span>
+                                        <h3 className="mt-5 text-2xl font-extrabold tracking-tight sm:text-[1.75rem]">{w.title}</h3>
+                                        <p className="mt-2 max-w-sm text-base leading-relaxed">{w.text}</p>
+                                        <ul className="mt-5 flex flex-wrap gap-2">
+                                            {w.points.map((p) => (
+                                                <li key={p} className={cn('rounded-full px-3 py-1.5 text-xs font-semibold', w.pill)}>{p}</li>
+                                            ))}
+                                        </ul>
+                                        <Link
+                                            to={w.to}
+                                            className={cn(buttonVariants({ variant: 'outline' }), 'group/cta mt-7 self-start border-transparent bg-white/85 hover:bg-white')}
+                                        >
+                                            {w.cta}
+                                            <ArrowRight size={16} aria-hidden className="motion-safe:transition-transform motion-safe:group-hover/cta:translate-x-0.5" />
+                                        </Link>
+                                    </article>
+                                </Reveal>
+                            ))}
+                        </div>
+
+                        <Reveal delay={120}>
+                            <div className="mt-4 flex flex-col gap-3 rounded-panel border border-border bg-card px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                                <p className="flex items-start gap-2 text-sm leading-relaxed text-muted-foreground sm:items-center">
+                                    <Users size={17} className="mt-0.5 shrink-0 text-foreground sm:mt-0" aria-hidden />
+                                    Sie begleiten Ihr Kind? Der Eltern-Leitfaden erklärt Konto, Einwilligung und Sicherheit.
+                                </p>
+                                <Link
+                                    to="/eltern-leitfaden"
+                                    className="group inline-flex min-h-11 shrink-0 items-center gap-1.5 text-sm font-semibold text-foreground transition-colors hover:text-muted-foreground"
+                                >
+                                    Eltern-Leitfaden
+                                    <ArrowRight size={16} aria-hidden className="motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" />
+                                </Link>
                             </div>
                         </Reveal>
                     </div>
                 </section>
 
                 {/* ELTERN */}
-                <section id="eltern" className="scroll-mt-24 bg-card">
+                <section id="eltern" className="scroll-mt-24 bg-background">
                     <div className="mx-auto max-w-site px-4 py-16 sm:px-6 sm:py-24">
-                        <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start lg:gap-16">
-                            <Reveal>
-                                <div className="min-w-0">
-                                    <h2 className="text-[2rem] font-extrabold leading-[1.06] tracking-[-0.035em] sm:text-[2.75rem]">Für Eltern.</h2>
-                                    <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                                        Ihr Kind nutzt sein eigenes Konto. In den Klassen 5 bis 7 empfehlen wir, gemeinsam mitzuschauen – wie eng, entscheiden Sie zusammen.
-                                    </p>
-                                    <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-                                        <Link to="/eltern-leitfaden" className={cn(buttonVariants(), 'group w-full sm:w-auto')}>
-                                            Eltern-Leitfaden lesen
-                                            <ArrowRight size={16} aria-hidden className="motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" />
-                                        </Link>
-                                        <a href="mailto:info@nachhilfe-sv.de?subject=Frage%20als%20Elternteil" className={cn(buttonVariants({ variant: 'outline' }), 'w-full sm:w-auto')}>
-                                            <Mail size={16} aria-hidden />
-                                            E-Mail an das SV-Team
-                                        </a>
-                                    </div>
-                                </div>
-                            </Reveal>
+                        <Reveal>
+                            <div className="max-w-2xl">
+                                <h2 className="text-[2rem] font-extrabold leading-[1.06] tracking-[-0.035em] sm:text-[2.75rem]">Für Eltern.</h2>
+                                <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+                                    Ihr Kind nutzt sein eigenes Konto. In den Klassen 5 bis 7 empfehlen wir, gemeinsam mitzuschauen – wie eng, entscheiden Sie zusammen.
+                                </p>
+                            </div>
+                        </Reveal>
 
-                            <Reveal delay={80}>
-                                <div className="rounded-panel border border-border bg-secondary p-6 sm:p-8 lg:justify-self-end lg:w-full lg:max-w-[440px]">
-                                    <div className="flex flex-wrap items-center justify-between gap-2">
-                                        <h3 className="text-lg font-extrabold tracking-tight">Du entscheidest, wer was sieht.</h3>
-                                        <span className="rounded-full bg-pastel-yellow px-2.5 py-1 text-xs font-semibold text-pastel-yellow-foreground">Beispiel</span>
-                                    </div>
-                                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                                        So sehen die Sichtbarkeits-Einstellungen in der App aus.
-                                    </p>
-                                    <div className="mt-4 divide-y divide-border">
-                                        {[
-                                            { label: 'Telefonnummer', desc: 'Nur für angenommene Anfragen', on: showPhone, set: setShowPhone },
-                                            { label: 'Moodle-Name', desc: 'Nur für angenommene Anfragen', on: showMoodle, set: setShowMoodle },
-                                        ].map((r, index) => {
-                                            const descId = `privacy-row-${index}`;
-                                            return (
-                                                <div key={r.label} className="flex items-center justify-between gap-4 py-3.5">
-                                                    <div className="min-w-0">
-                                                        <p className="text-sm font-semibold">{r.label}</p>
-                                                        <p id={descId} className="text-[13px] text-muted-foreground">
-                                                            {r.on ? r.desc : 'Versteckt: niemand sieht das'}
-                                                        </p>
-                                                    </div>
-                                                    <Switch
-                                                        checked={r.on}
-                                                        onCheckedChange={() => r.set((v) => !v)}
-                                                        label={`${r.label} Sichtbarkeit`}
-                                                        aria-describedby={descId}
-                                                    />
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                    <p className="mt-5 text-[13px] leading-relaxed text-muted-foreground">
-                                        <Lock size={15} className="mr-1.5 inline-block -translate-y-px" aria-hidden />
-                                        Die Vorschau speichert nichts. In der App stellst du die Sichtbarkeit in den Einstellungen ein. Mehr im{' '}
-                                        <Link to="/datenschutz" className="font-semibold text-foreground underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground">
-                                            Datenschutz
-                                        </Link>.
-                                    </p>
-                                </div>
-                            </Reveal>
-                        </div>
-
-                        <Reveal delay={120}>
-                            <dl className="mt-12 grid border-t border-border sm:grid-cols-2 sm:gap-x-12">
+                        <Reveal delay={60}>
+                            <dl className="mt-10 grid gap-4 sm:grid-cols-2">
                                 {[
-                                    { icon: BadgeCheck, t: 'Nur verifizierte Konten', d: 'Anzeigen erstellen und Kontakt aufnehmen ist erst nach der Prüfung im SV-Raum möglich.' },
-                                    { icon: Lock, t: 'Keine Zahlungen über die App', d: 'Die Börse vermittelt den Kontakt. Umfang und Vergütung klären die Familien direkt.' },
-                                    { icon: Shield, t: 'Kontaktdaten bleiben geschützt', d: 'Telefonnummer und Moodle-Name werden erst nach einer angenommenen Anfrage sichtbar.' },
-                                    { icon: Mail, t: 'Melden und nachfragen', d: 'Jede Anzeige und jedes Profil lässt sich melden. Das SV-Team ist unter info@nachhilfe-sv.de erreichbar.' },
+                                    { icon: BadgeCheck, t: 'Nur verifizierte Konten', d: 'Anzeigen erstellen und Kontakt aufnehmen ist erst nach der Prüfung im SV-Raum möglich.', tone: 'bg-pastel-blue text-pastel-blue-foreground' },
+                                    { icon: Lock, t: 'Keine Zahlungen über die App', d: 'Die Börse vermittelt den Kontakt. Umfang und Vergütung klären die Familien direkt.', tone: 'bg-pastel-mint text-pastel-mint-foreground' },
+                                    { icon: Shield, t: 'Kontaktdaten bleiben geschützt', d: 'Telefonnummer und Moodle-Name werden erst nach einer angenommenen Anfrage sichtbar.', tone: 'bg-pastel-yellow text-pastel-yellow-foreground' },
+                                    { icon: Mail, t: 'Melden und nachfragen', d: 'Jede Anzeige und jedes Profil lässt sich melden. Das SV-Team ist unter info@nachhilfe-sv.de erreichbar.', tone: 'bg-pastel-rose text-pastel-rose-foreground' },
                                 ].map((p) => (
-                                    <div key={p.t} className="grid grid-cols-[19px_1fr] gap-x-4 border-b border-border py-5">
-                                        <p.icon size={19} className="mt-1 shrink-0 text-foreground" aria-hidden />
-                                        <dt className="text-base font-bold">{p.t}</dt>
-                                        <dd className="col-start-2 mt-1 text-pretty text-sm leading-relaxed text-muted-foreground">{p.d}</dd>
+                                    <div key={p.t} className={cn('rounded-panel p-6', p.tone)}>
+                                        <dt className="flex items-center gap-2.5 text-lg font-extrabold tracking-tight">
+                                            <p.icon size={22} className="shrink-0" aria-hidden />
+                                            {p.t}
+                                        </dt>
+                                        <dd className="mt-2 text-pretty text-sm leading-relaxed">{p.d}</dd>
                                     </div>
                                 ))}
                             </dl>
+                        </Reveal>
+
+                        <Reveal delay={100}>
+                            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                                <Link to="/eltern-leitfaden" className={cn(buttonVariants(), 'group w-full sm:w-auto')}>
+                                    Eltern-Leitfaden lesen
+                                    <ArrowRight size={16} aria-hidden className="motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" />
+                                </Link>
+                                <a href="mailto:info@nachhilfe-sv.de?subject=Frage%20als%20Elternteil" className={cn(buttonVariants({ variant: 'outline' }), 'w-full sm:w-auto')}>
+                                    <Mail size={16} aria-hidden />
+                                    E-Mail an das SV-Team
+                                </a>
+                            </div>
                         </Reveal>
                     </div>
                 </section>
@@ -494,9 +546,45 @@ export default function Landing() {
                     </div>
                 </section>
 
+                {/* FUNKTIONSWUNSCH — kurz genannt, ohne eigene Werbefläche. */}
+                <section id="funktionswunsch" className="scroll-mt-24 bg-background">
+                    <div className="mx-auto max-w-site px-4 pb-16 sm:px-6 sm:pb-24">
+                        <Reveal>
+                            <div className="flex flex-col gap-5 rounded-panel border border-border bg-card p-6 shadow-soft sm:flex-row sm:items-center sm:justify-between sm:p-8">
+                                <div className="flex items-start gap-4">
+                                    <span className="grid size-12 shrink-0 place-items-center rounded-full bg-pastel-yellow text-pastel-yellow-foreground" aria-hidden>
+                                        <Lightbulb size={22} />
+                                    </span>
+                                    <div>
+                                        <h2 className="text-xl font-extrabold tracking-tight sm:text-2xl">Etwas fehlt?</h2>
+                                        <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-muted-foreground">
+                                            Wünsch dir eine Funktion für die Nachhilfebörse. Dein Wunsch landet direkt beim SV-Team – ohne Umwege.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                                    {user ? (
+                                        <button type="button" onClick={() => setIsFeatureOpen(true)} className={buttonVariants({ variant: 'outline' })}>
+                                            Funktionswunsch senden
+                                        </button>
+                                    ) : (
+                                        <Link to={registerZiel} className={buttonVariants({ variant: 'outline' })}>
+                                            Konto erstellen
+                                        </Link>
+                                    )}
+                                    <a href="mailto:info@nachhilfe-sv.de?subject=Funktionswunsch" className={cn(buttonVariants({ variant: 'ghost' }), 'text-muted-foreground hover:text-foreground')}>
+                                        Per E-Mail
+                                    </a>
+                                </div>
+                            </div>
+                        </Reveal>
+                    </div>
+                </section>
+
                 {/* FAQ */}
-                <section id="faq" className="scroll-mt-24 bg-card">
-                    <div className="mx-auto max-w-site px-4 py-16 sm:px-6 sm:py-24">
+                <section id="faq" className="scroll-mt-24 bg-background">
+                    <div className="mx-auto max-w-site px-4 pb-16 sm:px-6 sm:pb-24">
+                        <div className="rounded-panel border border-border bg-card p-6 shadow-soft sm:p-10">
                         <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
                             <Reveal>
                                 <div>
@@ -532,6 +620,7 @@ export default function Landing() {
                                     ))}
                                 </div>
                             </Reveal>
+                        </div>
                         </div>
                     </div>
                 </section>
