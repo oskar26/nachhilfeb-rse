@@ -1,136 +1,87 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { motion, useReducedMotion, type Variants } from 'motion/react';
 import {
     ArrowRight,
     BadgeCheck,
+    Check,
     ChevronDown,
     GraduationCap,
-    Image as ImageIcon,
-    Lightbulb,
     Lock,
     Mail,
     Search,
     Shield,
     ShieldCheck,
-    Sparkles,
     Users,
 } from 'lucide-react';
-import { CollapsedNewsWidget } from '../components/CollapsedNewsWidget';
 import SupportModal from '../components/SupportModal';
 import SiteHeader from '../components/SiteHeader';
 import { PageEnter } from '../components/site/PageEnter';
 import VerifySteps from '../components/VerifySteps';
 import { Logo } from '../components/ui/Logo';
 import { useAuth } from '../context/AuthContext';
-import { api } from '../lib/api';
-import { SUBJECT_CATEGORIES, SubjectChip, type Subject } from '../components/SubjectChip';
 import { Switch } from '../components/ui/switch';
-import { Button, buttonVariants } from '../components/ui/button';
+import { buttonVariants } from '../components/ui/button';
 import { DeviceFrame } from '../components/site/DeviceFrame';
 import { Reveal } from '../components/site/Reveal';
-import { m, prefersReducedMotion, SPRING } from '../lib/motion';
-import { triggerHaptic } from '../lib/haptics';
+import { prefersReducedMotion } from '../lib/motion';
 import { cn } from '../lib/utils';
-import phoneFeedShot from '../../docs/screenshots/v2-phone-feed.png';
-import phoneChatShot from '../../docs/screenshots/v2-phone-chat.png';
-import tabletSettingsShot from '../../docs/screenshots/v2-tablet-settings.png';
-import feedShot from '../../docs/screenshots/v2-laptop-feed.png';
-import svPanelShot from '../../docs/screenshots/07-sv-panel.png';
+import phoneFeedShot from '../assets/screens/v2-phone-feed.webp';
+import phoneChatShot from '../assets/screens/v2-phone-chat.webp';
+import tabletSettingsShot from '../assets/screens/v2-tablet-settings.webp';
+import feedShot from '../assets/screens/v2-laptop-feed.webp';
 
-/* Single Source of Truth für alle Fächer: SUBJECT_CATEGORIES aus SubjectChip.tsx
-   (dieselbe Quelle nutzen CreateAd + Feed). */
-const POPULAR_SUBJECTS: Subject[] = ['mathematik', 'deutsch', 'englisch', 'physik', 'latein', 'franzoesisch', 'chemie', 'informatik'];
-const ALL_SUBJECTS = SUBJECT_CATEGORIES.flatMap((c) => c.subjects);
-const MORE_SUBJECTS = ALL_SUBJECTS.filter((s) => !POPULAR_SUBJECTS.includes(s));
-
-const WAY_TONES = [
-    { card: 'bg-pastel-blue text-pastel-blue-foreground', icon: 'text-pastel-blue-foreground', pill: 'bg-white/80 text-pastel-blue-foreground' },
-    { card: 'bg-primary text-primary-foreground', icon: 'text-primary-foreground', pill: 'bg-white/70 text-primary-foreground' },
-    { card: 'bg-pastel-mint text-pastel-mint-foreground', icon: 'text-pastel-mint-foreground', pill: 'bg-white/80 text-pastel-mint-foreground' },
+const TRUST = [
+    { icon: BadgeCheck, label: 'SV-verifiziert' },
+    { icon: Users, label: 'Nur für das FWG' },
+    { icon: Lock, label: 'Keine Zahlungen' },
+    { icon: ShieldCheck, label: 'Server in Deutschland' },
 ];
 
-function parseCount(value: unknown): number | null {
-    if (value === null || value === undefined || value === '') return null;
-    const n = typeof value === 'number' ? value : Number(value);
-    return Number.isFinite(n) && n >= 0 ? n : null;
-}
-
-/* Einmal pro Datei erzeugt, nie im Render: Motion-Variante des React-Router-Links. */
-const MotionLink = motion.create(Link);
-
-/* Karten und ihre Piktogramme teilen eine kleine, federnde Reaktion:
-   Die Karte hebt sich, das Piktogramm kippt kurz an und federt zurück. */
-const CARD_VARIANTS: Variants = {
-    hover: { y: -4 },
-    press: { y: 0, scale: 0.988 },
-};
-
-/* Cards without a press target only animate on hover; a press variant would
-   never fire and would just enlarge the variant surface. */
-const HOVER_CARD_VARIANTS: Variants = {
-    hover: { y: -4 },
-};
-
-const ICON_VARIANTS: Variants = {
-    hover: { rotate: -6, scale: 1.1 },
-    press: { rotate: 0, scale: 0.9 },
-};
-
-const HOVER_ICON_VARIANTS: Variants = {
-    hover: { rotate: -6, scale: 1.1 },
-};
-
-const ICON_REACT_CLASS =
-    'icon-react motion-safe:group-hover:-rotate-6 motion-safe:group-hover:scale-110 motion-safe:group-active:scale-90';
-
-/* Non-interactive surfaces (trust badges, panels, pills) only get the hover
-   reaction. `group-active` belongs on real controls, not on those wrappers. */
-const ICON_REACT_HOVER_CLASS =
-    'icon-react motion-safe:group-hover:-rotate-6 motion-safe:group-hover:scale-110';
+const FAQ = [
+    {
+        q: 'Kostet die Nachhilfebörse etwas?',
+        a: 'Nein. Die Nutzung ist für alle am FWG kostenlos. Es gibt keine Gebühren und keine Zahlungen über die App. Die Vergütung der Nachhilfe klären die Familien direkt.',
+    },
+    {
+        q: 'Wer kann die Börse nutzen?',
+        a: 'Schülerinnen und Schüler des Friedrich-Wilhelm-Gymnasiums in Köln, von Klasse 5 bis 13. Jedes Konto wird vom SV-Team im SV-Raum persönlich freigeschaltet.',
+    },
+    {
+        q: 'Wie läuft die Verifizierung ab?',
+        a: 'Konto anlegen, im SV-Raum dem SV-Team den eigenen Namen nennen und die Freischaltung abwarten. Erst danach sind Anzeigen und Anfragen möglich.',
+    },
+    {
+        q: 'Ab welchem Alter kann mein Kind mitmachen?',
+        a: 'Ab Klasse 5. Unter 16 Jahren ist bei der Anmeldung die Einwilligung eines Erziehungsberechtigten nötig.',
+    },
+    {
+        q: 'Was kostet die Nachhilfe?',
+        a: 'Das legt die anbietende Person selbst fest. Als Orientierung gilt am FWG ein Richtwert von 12 € pro 45 Minuten (16 €/h). Die Börse vermittelt nur den Kontakt und nimmt keine Provision.',
+    },
+    {
+        q: 'Wer sieht meine Telefonnummer?',
+        a: 'Telefonnummer und Moodle-Name werden erst sichtbar, wenn du eine Anfrage annimmst. In den Einstellungen kannst du außerdem festlegen, welche Angaben in deinem Profil erscheinen.',
+    },
+    {
+        q: 'Was passiert, wenn etwas schiefgeht?',
+        a: 'Jede Anzeige und jedes Profil lässt sich melden. Das SV-Team sichtet die Meldungen und ist unter info@nachhilfe-sv.de erreichbar. Bei Problemen im Coaching kann die AG-Leitung den Coach-Status entziehen.',
+    },
+];
 
 export default function Landing() {
-    const { user, isAdmin } = useAuth();
+    const { user } = useAuth();
     const location = useLocation();
-    const reduce = useReducedMotion();
-    const [liveStats, setLiveStats] = useState<{ active_ads: number | null; users: number | null } | null>(null);
     const [isFeatureOpen, setIsFeatureOpen] = useState(false);
 
-    /* Privatsphäre-Demo */
+    /* Privatsphäre-Demo: zeigt nur, wie die Einstellungen in der App aussehen. */
     const [showPhone, setShowPhone] = useState(true);
     const [showMoodle, setShowMoodle] = useState(false);
 
-    useEffect(() => {
-        // Statistik ist optional (die Landing funktioniert auch ohne Daten);
-        // Fehler werden bewusst still ignoriert.
-        api.analytics.summary().then(({ data, error }) => {
-            if (error || !data) return;
-            const summary = data as { active_ads?: unknown; users?: unknown };
-            const active_ads = parseCount(summary.active_ads);
-            const users = parseCount(summary.users);
-            // Ohne verwertbare Zahl keine Statistik rendern (kein 0- oder —-Platzhalter).
-            if (active_ads === null && users === null) return;
-            setLiveStats({ active_ads, users });
-        }).catch(() => { /* Statistik ist optional */ });
-    }, []);
-
-    // Registrierungs-CTAs öffnen direkt den Registrieren-Tab; „Anmelden“ bleibt /login.
     const registerZiel = user ? '/' : '/login?mode=register';
     const loginZiel = user ? '/' : '/login';
-    const suchZiel = user ? '/' : '/login';
     const bietZiel = user ? '/create-ad' : '/login';
-    const elternZiel = '/eltern-leitfaden';
-    // Das SV-Panel ist nur für bestätigte SV-Admins sichtbar; alle anderen bleiben beim sicheren Ziel.
-    const appTourZiel = (index: number) => {
-        if (!user) return registerZiel;
-        if (index === 0) return '/';
-        if (index === 1) return '/';
-        if (index === 2) return '/profile';
-        return isAdmin ? '/sv-panel' : '/';
-    };
 
-    // Routenwechsel startet oben; gezielte Abschnittssprünge (z. B. aus dem
-    // Header) werden über den Router-State übergeben und hier ausgeführt.
+    // Gezielte Sprünge aus dem Header (Router-State) und Reset beim Seitenwechsel.
     useEffect(() => {
         const section = (location.state as { section?: string } | null)?.section;
         if (!section) {
@@ -153,12 +104,12 @@ export default function Landing() {
         frame = window.requestAnimationFrame(scrollToTarget);
         return () => window.cancelAnimationFrame(frame);
     }, [location.key, location.pathname, location.state]);
-    const stats = liveStats
-        ? [
-            ...(liveStats.active_ads !== null ? [{ value: liveStats.active_ads, label: 'Aktive Anzeigen', tone: 'bg-pastel-yellow text-pastel-yellow-foreground' }] : []),
-            ...(liveStats.users !== null ? [{ value: liveStats.users, label: 'Nutzer', tone: 'bg-pastel-mint text-pastel-mint-foreground' }] : []),
-        ]
-        : [];
+
+    const zuAbschnitt = (id: string) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
+    };
 
     return (
         <main className="min-h-dvh overflow-x-clip bg-background font-sans text-foreground">
@@ -179,644 +130,522 @@ export default function Landing() {
             <SiteHeader />
 
             <PageEnter>
-            <section id="inhalt" tabIndex={-1} className="scroll-mt-24 bg-background">
-                <div className="mx-auto max-w-site px-4 pb-14 pt-7 sm:px-6 sm:pb-20 sm:pt-10">
-                    <Reveal>
-                        <CollapsedNewsWidget compact />
-                    </Reveal>
-
-                    <div className="mt-6 grid items-center gap-10 lg:mt-10 lg:grid-cols-[1.02fr_0.98fr] lg:gap-14">
-                        <Reveal>
-                            <div className="min-w-0">
-                                <h1 className="max-w-2xl text-[2.6rem] font-extrabold leading-[1.02] tracking-[-0.045em] sm:text-[3.4rem] lg:text-[3.5rem]">
-                                    Finde Nachhilfe. Direkt am FWG.
-                                </h1>
-                                <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:mt-6 sm:text-lg">
-                                    Nachhilfe in Mathematik, Englisch und weiteren Fächern, direkt unter Mitschülerinnen und Mitschülern. Jede Anzeige stammt von einem verifizierten Konto.
-                                </p>
-                                <div className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row">
-                                    <Link
-                                        to={registerZiel}
-                                        onClick={() => triggerHaptic('light')}
-                                        className={buttonVariants({ size: 'lg' }) + ' group w-full motion-safe:hover:-translate-y-0.5 sm:w-auto'}
-                                    >
-                                        {user ? 'Anzeigen ansehen' : 'Kostenlos registrieren'}{' '}
-                                        <ArrowRight aria-hidden className={ICON_REACT_CLASS + ' motion-safe:group-hover:translate-x-0.5'} />
-                                    </Link>
-                                    <Link to="/eltern-leitfaden" className={buttonVariants({ variant: 'outline', size: 'lg' }) + ' w-full motion-safe:hover:-translate-y-0.5 sm:w-auto'}>
-                                        Eltern-Leitfaden
-                                    </Link>
-                                </div>
-                                {!user && (
-                                    <p className="mt-3 text-[13px] font-medium leading-relaxed text-muted-foreground">
-                                        Konto erstellen → im SV-Raum verifizieren → loslegen.
+                {/* HERO */}
+                <section id="inhalt" tabIndex={-1} className="scroll-mt-24 bg-background">
+                    <div className="mx-auto max-w-site px-4 pb-16 pt-10 sm:px-6 sm:pb-24 sm:pt-16">
+                        <div className="grid items-center gap-12 lg:grid-cols-[1.02fr_0.98fr] lg:gap-16">
+                            <Reveal>
+                                <div className="min-w-0">
+                                    <h1 className="max-w-[15ch] text-[2.6rem] font-extrabold leading-[1.02] tracking-[-0.045em] sm:text-[3.6rem] lg:text-[4.1rem]">
+                                        Nachhilfe, die am FWG bleibt.
+                                    </h1>
+                                    <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:mt-6 sm:text-lg">
+                                        Von Schüler:innen für Schüler:innen: verifizierte Konten, faire Preise und Kontakt direkt in der App. Für alle Klassen am Friedrich-Wilhelm-Gymnasium.
                                     </p>
-                                )}
-                                <ul className="mt-7 flex flex-wrap gap-2" aria-label="Vertrauen auf einen Blick">
-                                    {[
-                                        { icon: BadgeCheck, label: 'SV-verifiziert', tone: 'bg-pastel-blue text-pastel-blue-foreground' },
-                                        { icon: ShieldCheck, label: 'Nur FWG Köln', tone: 'bg-pastel-mint text-pastel-mint-foreground' },
-                                        { icon: Lock, label: 'Server in Deutschland', tone: 'bg-pastel-rose text-pastel-rose-foreground' },
-                                        { icon: BadgeCheck, label: 'Nutzung kostenlos', tone: 'bg-pastel-yellow text-pastel-yellow-foreground' },
-                                    ].map((s) => (
-                                        <li key={s.label} className={`group inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-semibold ${s.tone}`}>
-                                            <s.icon size={15} aria-hidden className={ICON_REACT_HOVER_CLASS} /> {s.label}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        </Reveal>
-
-                        <Reveal delay={90}>
-                            <div className="relative mx-auto w-full max-w-[560px]" aria-label="Vorschau: App auf Laptop, Tablet und Handy">
-                                <div className="relative rounded-panel bg-[linear-gradient(140deg,var(--primary)_0%,var(--primary-soft)_100%)] p-5 shadow-card sm:p-8">
-                                    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-panel">
-                                        <span className="absolute -left-1/4 -top-1/3 h-[70%] w-[85%] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.62),transparent_68%)]" />
+                                    <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                                        <Link
+                                            to={registerZiel}
+                                            className={cn(buttonVariants({ size: 'lg' }), 'group w-full motion-safe:hover:-translate-y-0.5 sm:w-auto')}
+                                        >
+                                            {user ? 'Anzeigen ansehen' : 'Kostenlos registrieren'}
+                                            <ArrowRight aria-hidden className="motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" />
+                                        </Link>
+                                        <button
+                                            type="button"
+                                            onClick={() => zuAbschnitt('so-funktioniert-es')}
+                                            className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'w-full sm:w-auto')}
+                                        >
+                                            So funktioniert’s
+                                        </button>
                                     </div>
+                                    {!user && (
+                                        <p className="mt-3 text-[13px] font-medium leading-relaxed text-muted-foreground">
+                                            Konto anlegen, im SV-Raum verifizieren, loslegen.
+                                        </p>
+                                    )}
+                                    <ul className="mt-8 grid max-w-sm grid-cols-2 gap-x-4 gap-y-2.5" aria-label="Vertrauen auf einen Blick">
+                                        {TRUST.map((t) => (
+                                            <li key={t.label} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-muted-foreground">
+                                                <t.icon size={16} className="text-foreground" aria-hidden />
+                                                {t.label}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </Reveal>
 
-                                    <div className="relative h-[310px] sm:h-[430px]">
-                                        <DeviceFrame
-                                            kind="tablet"
-                                            src={tabletSettingsShot}
-                                            alt="Tablet-Vorschau der Einstellungen"
-                                            className="absolute -left-10 top-[22%] hidden w-[44%] sm:block"
-                                        />
+                            <Reveal delay={90}>
+                                <div className="relative mx-auto w-full max-w-[600px]">
+                                    <div className="relative rounded-panel bg-pastel-yellow p-4 pb-20 shadow-card sm:p-6 sm:pb-24">
                                         <DeviceFrame
                                             kind="laptop"
                                             src={feedShot}
-                                            alt="Laptop-Vorschau der Anzeigenübersicht"
+                                            alt="Anzeigenübersicht der Nachhilfebörse am Laptop"
                                             priority
-                                            className="absolute left-[10%] top-[4%] w-[82%]"
+                                            className="relative z-10 w-[94%] sm:w-[92%]"
                                         />
                                         <DeviceFrame
                                             kind="phone"
                                             src={phoneFeedShot}
-                                            alt="Handy-Vorschau der Anzeigenübersicht"
-                                            priority
-                                            className="absolute -right-2 bottom-[-4%] w-[27%]"
+                                            alt="Anzeigenübersicht der Nachhilfebörse am Handy"
+                                            className="absolute -bottom-4 right-3 z-20 w-[27%] max-w-[170px] sm:-bottom-6 sm:right-5"
                                         />
+                                        <p className="absolute bottom-4 left-4 text-xs font-semibold text-pastel-yellow-foreground/70 sm:left-6">
+                                            Echte Ansicht · Anzeigenübersicht
+                                        </p>
                                     </div>
+                                </div>
+                            </Reveal>
+                        </div>
+                    </div>
+                </section>
 
-                                    <div className="absolute -left-3 bottom-2 z-30 w-[176px] rounded-card border border-border/80 bg-card p-3.5 shadow-card sm:-left-6 sm:bottom-5 sm:w-[202px]">
-                                        <div className="flex items-center justify-between gap-2">
-                                            <SubjectChip subject="mathematik" />
-                                            <span className="rounded-full bg-pastel-yellow px-2 py-0.5 text-xs font-semibold text-pastel-yellow-foreground">Beispiel</span>
-                                        </div>
-                                        <p className="mt-2.5 text-sm font-bold leading-snug">Analysis-Crash vor der Klausur</p>
-                                        <p className="mt-1 text-xs text-muted-foreground">Lena K. · Q1 · SV-Raum</p>
-                                        <p className="mt-2.5 text-[13px] font-bold tabular-nums">12 € / 45 Min <span className="font-medium text-muted-foreground">· ≈ 16 €/h</span></p>
+                {/* VERIFIZIERUNG */}
+                <section id="so-funktioniert-es" className="scroll-mt-24 bg-background">
+                    <div className="mx-auto max-w-site px-4 pb-16 sm:px-6 sm:pb-24">
+                        <Reveal>
+                            <div className="rounded-panel border border-border bg-card p-6 shadow-soft sm:p-10">
+                                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                                    <div className="max-w-2xl">
+                                        <h2 className="text-[2rem] font-extrabold leading-[1.06] tracking-[-0.035em] sm:text-[2.75rem]">
+                                            In drei Schritten dabei.
+                                        </h2>
+                                        <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
+                                            Die Börse ist nur für das FWG. Deshalb prüft das SV-Team jedes Konto persönlich, bevor es losgeht.
+                                        </p>
                                     </div>
+                                    <Link
+                                        to={loginZiel}
+                                        className="group inline-flex min-h-11 shrink-0 items-center gap-1.5 text-sm font-semibold text-foreground transition-colors hover:text-muted-foreground"
+                                    >
+                                        {user ? 'Zur Börse' : 'Zur Anmeldung'}
+                                        <ArrowRight size={16} aria-hidden className="motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" />
+                                    </Link>
+                                </div>
+                                <div className="mt-10">
+                                    <VerifySteps tone="du" variant="timeline" />
+                                </div>
+                                <p className="mt-8 border-t border-border pt-5 text-[13px] leading-relaxed text-muted-foreground">
+                                    Unter 16 Jahren braucht die Anmeldung die Einwilligung eines Erziehungsberechtigten. Details im{' '}
+                                    <Link to="/eltern-leitfaden" className="font-semibold text-foreground underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground">
+                                        Eltern-Leitfaden
+                                    </Link>.
+                                </p>
+                            </div>
+                        </Reveal>
+                    </div>
+                </section>
 
-                                    <div className="absolute -right-2 top-[16%] z-30 w-[160px] rounded-card border border-border/80 bg-card p-3.5 shadow-card sm:-right-5 sm:w-[186px]">
-                                        <div className="flex items-center justify-between gap-2">
-                                            <SubjectChip subject="physik" />
-                                            <span className="rounded-full bg-pastel-mint px-2 py-0.5 text-xs font-semibold text-pastel-mint-foreground">Beispiel</span>
+                {/* APP-RUNDGANG */}
+                <section id="brett" className="scroll-mt-24 bg-card">
+                    <div className="mx-auto max-w-site px-4 py-16 sm:px-6 sm:py-24">
+                        <Reveal>
+                            <div className="max-w-2xl">
+                                <h2 className="text-[2rem] font-extrabold leading-[1.06] tracking-[-0.035em] sm:text-[2.75rem]">
+                                    Die Börse, wie sie wirklich aussieht.
+                                </h2>
+                                <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
+                                    Echte Screenshots aus der App – vom Anzeigen-Feed bis zu den Einstellungen.
+                                </p>
+                            </div>
+                        </Reveal>
+
+                        <div className="mt-12 space-y-16 sm:mt-16 sm:space-y-24">
+                            {[
+                                {
+                                    title: 'Alle Anzeigen an einem Ort',
+                                    text: 'Nach Fach, Klasse und Preis filtern, passende Angebote auf die Merkliste legen. Jede Anzeige kommt von einem verifizierten Konto.',
+                                    device: 'laptop' as const,
+                                    src: feedShot,
+                                    alt: 'Desktop-Ansicht „Aktuelle Anzeigen“ mit Filtern und Anzeigenkarten',
+                                    tone: 'bg-pastel-blue text-pastel-blue-foreground',
+                                    deviceClass: 'w-full max-w-[600px]',
+                                },
+                                {
+                                    title: 'Chat, ohne Nummerntausch',
+                                    text: 'Du schreibst zuerst in der App. Telefonnummer und Moodle-Name werden erst sichtbar, wenn du eine Anfrage annimmst.',
+                                    device: 'phone' as const,
+                                    src: phoneChatShot,
+                                    alt: 'Chat-Ansicht auf dem Handy mit Nachrichten und Eingabeleiste',
+                                    tone: 'bg-pastel-mint text-pastel-mint-foreground',
+                                    deviceClass: 'mx-auto w-full max-w-[270px]',
+                                },
+                                {
+                                    title: 'Profil und Einstellungen',
+                                    text: 'Fächer, Klasse, Beschreibung und Verfügbarkeit. Du entscheidest, welche Kontaktdaten andere sehen.',
+                                    device: 'tablet' as const,
+                                    src: tabletSettingsShot,
+                                    alt: 'Tablet-Ansicht der Einstellungen mit Erscheinungsbild, Benachrichtigungen und Datenschutz',
+                                    tone: 'bg-pastel-yellow text-pastel-yellow-foreground',
+                                    deviceClass: 'mx-auto w-full max-w-[360px]',
+                                },
+                            ].map((row, i) => (
+                                <Reveal key={row.title}>
+                                    <div className={cn('grid items-center gap-8 lg:grid-cols-2 lg:gap-16', i % 2 === 1 && 'lg:[&>*:first-child]:order-2')}>
+                                        <div className="min-w-0">
+                                            <h3 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{row.title}</h3>
+                                            <p className="mt-3 max-w-md text-base leading-relaxed text-muted-foreground">{row.text}</p>
+                                            <Link
+                                                to={registerZiel}
+                                                className="group mt-5 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-foreground transition-colors hover:text-muted-foreground"
+                                            >
+                                                {user ? 'In der App ansehen' : 'Kostenlos registrieren'}
+                                                <ArrowRight size={16} aria-hidden className="motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" />
+                                            </Link>
                                         </div>
-                                        <p className="mt-2.5 text-sm font-bold leading-snug">Mechanik ohne Panik</p>
-                                        <p className="mt-1 text-xs text-muted-foreground">Aylin D. · Q2 · Bibliothek</p>
-                                        <p className="mt-2.5 text-[13px] font-bold tabular-nums">12 € / 60 Min</p>
+                                        <div className={cn('rounded-panel p-5 shadow-soft sm:p-8', row.tone)}>
+                                            <DeviceFrame kind={row.device} src={row.src} alt={row.alt} className={row.deviceClass} />
+                                        </div>
                                     </div>
+                                </Reveal>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                {/* ZWEI WEGE */}
+                <section id="wege" className="scroll-mt-24 bg-background">
+                    <div className="mx-auto max-w-site px-4 py-16 sm:px-6 sm:py-24">
+                        <Reveal>
+                            <div className="max-w-2xl">
+                                <h2 className="text-[2rem] font-extrabold leading-[1.06] tracking-[-0.035em] sm:text-[2.75rem]">
+                                    Zwei Wege, ein Ziel.
+                                </h2>
+                                <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
+                                    Ob du Unterstützung suchst oder selbst helfen möchtest: Der Einstieg ist derselbe.
+                                </p>
+                            </div>
+                        </Reveal>
+
+                        <Reveal delay={60}>
+                            <div className="mt-10 overflow-hidden rounded-panel border border-border bg-card shadow-soft">
+                                <div className="grid divide-y divide-border md:grid-cols-2 md:divide-x md:divide-y-0">
+                                    {[
+                                        {
+                                            icon: Search,
+                                            title: 'Ich suche Nachhilfe',
+                                            text: 'Finde jemanden, der dein Fach wirklich kann – und der an deiner Schule ist.',
+                                            points: ['Filter nach Fach, Klasse und Preis', 'Kontakt erst nach deiner Zusage', 'Merkliste für später'],
+                                            cta: 'Anzeigen entdecken',
+                                            to: registerZiel,
+                                        },
+                                        {
+                                            icon: GraduationCap,
+                                            title: 'Ich gebe Nachhilfe',
+                                            text: 'Du kennst ein Fach gut? Bestimme deinen Preis und deine Zeiten selbst.',
+                                            points: ['Eigene Anzeige in wenigen Minuten', 'Preise und Termine selbst festlegen', 'Bewertungen nach dem ersten Kontakt'],
+                                            cta: 'Anzeige erstellen',
+                                            to: bietZiel,
+                                        },
+                                    ].map((w) => (
+                                        <div key={w.title} className="flex flex-col p-6 sm:p-8">
+                                            <span className="grid size-12 place-items-center rounded-full bg-muted text-foreground" aria-hidden>
+                                                <w.icon size={22} strokeWidth={2} />
+                                            </span>
+                                            <h3 className="mt-5 text-xl font-extrabold tracking-tight sm:text-2xl">{w.title}</h3>
+                                            <p className="mt-2 max-w-sm text-base leading-relaxed text-muted-foreground">{w.text}</p>
+                                            <ul className="mt-5 space-y-2.5">
+                                                {w.points.map((p) => (
+                                                    <li key={p} className="flex items-start gap-2 text-sm leading-relaxed text-muted-foreground">
+                                                        <Check size={16} className="mt-0.5 shrink-0 text-foreground" aria-hidden />
+                                                        {p}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            <Link
+                                                to={w.to}
+                                                className={cn(buttonVariants({ variant: 'outline' }), 'group mt-7 self-start')}
+                                            >
+                                                {w.cta}
+                                                <ArrowRight size={16} aria-hidden className="motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" />
+                                            </Link>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="flex flex-col gap-3 border-t border-border bg-background px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+                                    <p className="flex items-start gap-2 text-sm leading-relaxed text-muted-foreground sm:items-center">
+                                        <Users size={17} className="mt-0.5 shrink-0 text-foreground sm:mt-0" aria-hidden />
+                                        Sie begleiten Ihr Kind? Der Eltern-Leitfaden erklärt Konto, Einwilligung und Sicherheit.
+                                    </p>
+                                    <Link
+                                        to="/eltern-leitfaden"
+                                        className="group inline-flex min-h-11 shrink-0 items-center gap-1.5 text-sm font-semibold text-foreground transition-colors hover:text-muted-foreground"
+                                    >
+                                        Eltern-Leitfaden
+                                        <ArrowRight size={16} aria-hidden className="motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" />
+                                    </Link>
                                 </div>
                             </div>
                         </Reveal>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            {/* WEGE */}
-            <section id="wege" className="scroll-mt-28 bg-background">
-                <div className="mx-auto max-w-site px-4 py-14 sm:px-6 sm:py-24">
-                    <Reveal>
-                        <div className="max-w-3xl">
-                            <h2 className="text-[2rem] font-extrabold leading-[1.06] tracking-[-0.035em] sm:text-[2.75rem]">Drei Wege zur Nachhilfe.</h2>
-                            <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">Wähle den Weg, der zu dir passt. Jeder Weg beginnt mit einer Anzeige oder einer Anfrage.</p>
-                        </div>
-                    </Reveal>
-                    <div className="mt-8 grid gap-4 lg:grid-cols-3">
-                        {[
-                            { icon: Search, title: 'Ich suche Nachhilfe', text: 'Filtere nach Fach, Klasse und Preis. Kontakt über die App, sobald eine Anfrage angenommen ist.', points: ['Filter für Fach und Klasse', 'Kontakt nach Annahme', 'Verifizierte Konten'], cta: 'Anzeigen stöbern', to: suchZiel },
-                            { icon: GraduationCap, title: 'Ich biete Nachhilfe', text: 'Lege deinen Preis fest, gib deine Zeiten an und antworte auf Anfragen.', points: ['Eigene Preise und Bedingungen', 'Flexible Termine', 'Bewertungen nach Kontakt'], cta: 'Anzeige erstellen', to: bietZiel },
-                            { icon: Users, title: 'Für Eltern: Begleitung & Einwilligung', text: 'Betreuen Sie das Konto gemeinsam mit Ihrem Kind oder lassen Sie es selbstständig nutzen. In den Klassen 5 bis 7 empfehlen wir die gemeinsame Betreuung. So behalten Sie Anzeigen und Anfragen im Blick.', points: ['Ein Konto pro Kind', 'Gemeinsam Anzeigen und Anfragen ansehen', 'Kontakt zur SV bei Fragen'], cta: 'Eltern-Leitfaden', to: '/eltern-leitfaden' },
-                        ].map((w, i) => (
-                            <Reveal key={w.title} delay={i * 70} className="h-full">
-                                <m.article
-                                    whileHover={reduce ? undefined : 'hover'}
-                                    whileTap={reduce ? undefined : 'press'}
-                                    variants={CARD_VARIANTS}
-                                    transition={SPRING.settle}
-                                    className={cn('flex h-full flex-col rounded-card p-6 shadow-soft transition-[box-shadow] duration-150 hover:shadow-card sm:p-7', WAY_TONES[i].card)}
-                                >
-                                    <m.span
-                                        variants={ICON_VARIANTS}
-                                        transition={SPRING.press}
-                                        className="grid size-16 shrink-0 place-items-center rounded-full bg-white shadow-soft"
-                                    >
-                                        <w.icon size={28} className={WAY_TONES[i].icon} aria-hidden />
-                                    </m.span>
-                                    <div className="mt-5 flex min-w-0 flex-1 flex-col">
-                                        <h3 className="text-xl font-extrabold tracking-tight">{w.title}</h3>
-                                        <p className="mt-2 text-sm leading-relaxed">{w.text}</p>
-                                        <ul id={`wege-punkte-${i}`} className="mt-5 flex flex-wrap gap-2">
-                                            {w.points.map((p) => (
-                                                <li key={p} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${WAY_TONES[i].pill}`}>
-                                                    <BadgeCheck size={14} aria-hidden />{p}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                    <Link
-                                        to={w.to}
-                                        onClick={() => triggerHaptic('light')}
-                                        aria-describedby={`wege-punkte-${i}`}
-                                        aria-label={`${w.cta}: ${w.title}`}
-                                        className="group mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-foreground shadow-soft transition-[transform,scale,box-shadow] duration-150 ease-out hover:shadow-card motion-safe:active:scale-[0.97]"
-                                    >
-                                        {w.cta}
-                                        <ArrowRight
-                                            size={17}
-                                            aria-hidden
-                                            className={ICON_REACT_CLASS + ' motion-safe:group-hover:translate-x-0.5'}
-                                        />
-                                    </Link>
-                                </m.article>
-                            </Reveal>
-                        ))}
-                    </div>
-                </div>
-            </section>
+                {/* ELTERN */}
+                <section id="eltern" className="scroll-mt-24 bg-card">
+                    <div className="mx-auto max-w-site px-4 py-16 sm:px-6 sm:py-24">
+                        <div className="grid items-start gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+                            <Reveal>
+                                <div className="min-w-0">
+                                    <h2 className="text-[2rem] font-extrabold leading-[1.06] tracking-[-0.035em] sm:text-[2.75rem]">Für Eltern.</h2>
+                                    <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+                                        Ihr Kind nutzt sein eigenes Konto. In den Klassen 5 bis 7 empfehlen wir, gemeinsam mitzuschauen – wie eng, entscheiden Sie zusammen.
+                                    </p>
 
-            {/* Empfehlung + Fächer + Kennzahlen */}
-            <section aria-label="Empfehlung, Fächer und Kennzahlen" className="bg-card">
-                <div className="mx-auto max-w-site px-4 py-14 sm:px-6 sm:py-20">
-                    <Reveal>
-                        <div className="flex flex-col items-start gap-3 rounded-panel bg-pastel-blue p-4 text-pastel-blue-foreground sm:flex-row sm:items-center sm:gap-4 sm:p-5">
-                            <span className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-white/80 px-3.5 py-2 text-xs font-semibold">
-                                <Users size={15} aria-hidden className={ICON_REACT_HOVER_CLASS} /> Empfehlung
-                            </span>
-                            <p className="min-w-0 flex-1 text-sm leading-relaxed">
-                                <strong className="font-bold">Ein Konto pro Kind:</strong> In den Klassen 5 und 6 betreuen viele Eltern mit, ältere nutzen die Börse selbstständig.
-                            </p>
-                            <Link to="/eltern-leitfaden" className="group inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold transition-colors hover:bg-white/60">
-                                Eltern-Leitfaden
-                                <ArrowRight
-                                    size={16}
-                                    aria-hidden
-                                    className={ICON_REACT_CLASS + ' motion-safe:group-hover:translate-x-0.5'}
-                                />
-                            </Link>
-                        </div>
-                    </Reveal>
-
-                    <Reveal delay={70}>
-                        <div className="mt-8 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                            <div className="min-w-0">
-                                <p className="text-[13px] font-semibold text-muted-foreground">Fächer</p>
-                                <div className="mt-3 flex flex-wrap gap-2" aria-label="Fächerübersicht">
-                                    {POPULAR_SUBJECTS.map((s) => (
-                                        <SubjectChip key={s} subject={s} />
-                                    ))}
-                                </div>
-                                <details className="group mt-3">
-                                    <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-1.5 rounded-full border border-border/80 bg-background px-3.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground [&::-webkit-details-marker]:hidden">
-                                        Alle 25 Fächer anzeigen
-                                        <ChevronDown size={15} aria-hidden className="transition-transform duration-150 group-open:rotate-180" />
-                                    </summary>
-                                    <div className="mt-3 flex flex-wrap gap-2" aria-label="Weitere Fächer">
-                                        {MORE_SUBJECTS.map((s) => (
-                                            <SubjectChip key={s} subject={s} />
+                                    <dl className="mt-8 divide-y divide-border border-y border-border">
+                                        {[
+                                            { icon: BadgeCheck, t: 'Nur verifizierte Konten', d: 'Anzeigen erstellen und Kontakt aufnehmen ist erst nach der Prüfung im SV-Raum möglich.' },
+                                            { icon: Lock, t: 'Keine Zahlungen über die App', d: 'Die Börse vermittelt den Kontakt. Umfang und Vergütung klären die Familien direkt.' },
+                                            { icon: Shield, t: 'Kontaktdaten bleiben geschützt', d: 'Telefonnummer und Moodle-Name werden erst nach einer angenommenen Anfrage sichtbar.' },
+                                            { icon: Mail, t: 'Melden und nachfragen', d: 'Jede Anzeige und jedes Profil lässt sich melden. Das SV-Team ist unter info@nachhilfe-sv.de erreichbar.' },
+                                        ].map((p) => (
+                                            <div key={p.t} className="grid grid-cols-[19px_1fr] gap-x-4 py-4">
+                                                <p.icon size={19} className="mt-1 shrink-0 text-foreground" aria-hidden />
+                                                <dt className="text-base font-bold">{p.t}</dt>
+                                                <dd className="col-start-2 mt-1 text-pretty text-sm leading-relaxed text-muted-foreground">{p.d}</dd>
+                                            </div>
                                         ))}
+                                    </dl>
+
+                                    <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+                                        <Link to="/eltern-leitfaden" className={cn(buttonVariants(), 'group w-full sm:w-auto')}>
+                                            Eltern-Leitfaden lesen
+                                            <ArrowRight size={16} aria-hidden className="motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" />
+                                        </Link>
+                                        <a href="mailto:info@nachhilfe-sv.de?subject=Frage%20als%20Elternteil" className={cn(buttonVariants({ variant: 'outline' }), 'w-full sm:w-auto')}>
+                                            <Mail size={16} aria-hidden />
+                                            E-Mail an das SV-Team
+                                        </a>
                                     </div>
-                                </details>
-                            </div>
+                                </div>
+                            </Reveal>
 
-                            {stats.length > 0 ? (
-                                <dl
-                                    className={cn('grid shrink-0 gap-3', stats.length > 1 ? 'grid-cols-2' : 'grid-cols-1')}
-                                    aria-label="Aktuelle Kennzahlen der Nachhilfebörse"
-                                >
-                                    {stats.map((s) => (
-                                        <div key={s.label} className={`rounded-card px-5 py-4 ${s.tone}`}>
-                                            <dd className="text-2xl font-extrabold tabular-nums sm:text-3xl">
-                                                {s.value.toLocaleString('de-DE')}
-                                            </dd>
-                                            <dt className="mt-1 text-xs font-semibold">{s.label}</dt>
-                                        </div>
-                                    ))}
-                                </dl>
-                            ) : (
-                                <p className="shrink-0 rounded-card border border-border/80 bg-background px-5 py-4 text-[13px] font-medium leading-relaxed text-muted-foreground">
-                                    Die Zahlen werden gerade nicht geladen.
-                                </p>
-                            )}
+                            <Reveal delay={80}>
+                                <div className="rounded-panel border border-border bg-background p-6 shadow-soft sm:p-8">
+                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                        <h3 className="text-lg font-extrabold tracking-tight">Du entscheidest, wer was sieht.</h3>
+                                        <span className="rounded-full bg-pastel-yellow px-2.5 py-1 text-xs font-semibold text-pastel-yellow-foreground">Beispiel</span>
+                                    </div>
+                                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                                        So sehen die Sichtbarkeits-Einstellungen in der App aus.
+                                    </p>
+                                    <div className="mt-4 divide-y divide-border">
+                                        {[
+                                            { label: 'Telefonnummer', desc: 'Nur für angenommene Anfragen', on: showPhone, set: setShowPhone },
+                                            { label: 'Moodle-Name', desc: 'Nur für angenommene Anfragen', on: showMoodle, set: setShowMoodle },
+                                        ].map((r, index) => {
+                                            const descId = `privacy-row-${index}`;
+                                            return (
+                                                <div key={r.label} className="flex items-center justify-between gap-4 py-3.5">
+                                                    <div className="min-w-0">
+                                                        <p className="text-sm font-semibold">{r.label}</p>
+                                                        <p id={descId} className="text-[13px] text-muted-foreground">
+                                                            {r.on ? r.desc : 'Versteckt: niemand sieht das'}
+                                                        </p>
+                                                    </div>
+                                                    <Switch
+                                                        checked={r.on}
+                                                        onCheckedChange={() => r.set((v) => !v)}
+                                                        label={`${r.label} Sichtbarkeit`}
+                                                        aria-describedby={descId}
+                                                    />
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    <p className="mt-5 text-[13px] leading-relaxed text-muted-foreground">
+                                        <Lock size={15} className="mr-1.5 inline-block -translate-y-px" aria-hidden />
+                                        Die Vorschau speichert nichts. In der App stellst du die Sichtbarkeit in den Einstellungen ein. Mehr im{' '}
+                                        <Link to="/datenschutz" className="font-semibold text-foreground underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground">
+                                            Datenschutz
+                                        </Link>.
+                                    </p>
+                                </div>
+                            </Reveal>
                         </div>
-                    </Reveal>
-                </div>
-            </section>
+                    </div>
+                </section>
 
-            {/* APP-RUNDGANG */}
-            <section id="brett" className="scroll-mt-28 bg-card">
-                <div className="mx-auto max-w-site px-4 py-14 sm:px-6 sm:py-24">
-                    <Reveal>
-                        <div className="max-w-3xl">
-                            <h2 className="text-[2rem] font-extrabold leading-[1.06] tracking-[-0.035em] sm:text-[2.75rem]">So sieht die Nachhilfebörse aus.</h2>
-                            <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">Echte Screenshots aus der App: stöbern, anfragen, Profil zeigen. Am Handy, am iPad und am Desktop.</p>
-                        </div>
-                    </Reveal>
-
-                    <div className="mt-10 space-y-16 sm:mt-14 sm:space-y-24">
-                        {[
-                            {
-                                title: 'Entdecken & Filtern',
-                                text: 'Filtere nach Fach, Klasse und Preis. Die Übersicht zeigt dir auf einen Blick, wer zu deiner Klasse passt.',
-                                device: 'laptop' as const,
-                                src: feedShot,
-                                alt: 'Desktop-Übersicht „Aktuelle Anzeigen“ mit Suche und Filtern',
-                                tone: 'bg-pastel-blue',
-                                deviceClass: 'ml-auto w-full max-w-[560px]',
-                                label: 'Am Laptop',
-                                adminOnly: false,
-                            },
-                            {
-                                title: 'Chat',
-                                text: 'Kontakt über die App, sobald eine Anfrage angenommen ist. Telefonnummer und Moodle-Name sehen andere erst, wenn du eine Anfrage annimmst.',
-                                device: 'phone' as const,
-                                src: phoneChatShot,
-                                alt: 'Handy-Ansicht des Chats mit Nachrichtenblasen und Eingabeleiste',
-                                tone: 'bg-pastel-mint',
-                                deviceClass: 'mx-auto w-full max-w-[260px]',
-                                label: 'Am Handy',
-                                adminOnly: false,
-                            },
-                            {
-                                title: 'Profil und Einstellungen',
-                                text: 'Profilbild und ausführliche Beschreibung. Beschreibe deine Fächer und deine Erfahrung. Du entscheidest, welche Kontaktdaten sichtbar sind.',
-                                device: 'tablet' as const,
-                                src: tabletSettingsShot,
-                                alt: 'Tablet-Einstellungen mit Erscheinungsbild, Push und Datenschutz',
-                                tone: 'bg-pastel-yellow',
-                                deviceClass: 'mx-auto w-full max-w-[340px]',
-                                label: 'Am Tablet',
-                                adminOnly: false,
-                            },
-                            {
-                                title: 'SV-Panel',
-                                text: 'Verifizierte Konten durch persönliche Prüfung im SV-Raum, dazu Moderation und Meldefunktion. Das SV-Team behält Anzeigen und Meldungen im Blick.',
-                                device: 'laptop' as const,
-                                src: svPanelShot,
-                                alt: 'SV-Admin-Panel mit Nutzern, Anzeigen und Meldungen',
-                                tone: 'bg-pastel-violet',
-                                deviceClass: 'ml-auto w-full max-w-[560px]',
-                                label: 'Im SV-Raum',
-                                adminOnly: true,
-                                screenClassName: 'aspect-[1606/1104]',
-                            },
-                        ].filter((row) => !row.adminOnly || isAdmin).map((row, i) => (
-                            <Reveal key={row.title}>
-                                <div className={cn('grid items-center gap-8 lg:grid-cols-2 lg:gap-16', i % 2 === 1 && 'lg:[&>*:first-child]:order-2')}>
-                                    <div className="min-w-0">
-                                        <span className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-                                            {row.label}
-                                        </span>
-                                        <h3 className="mt-4 text-2xl font-extrabold tracking-tight sm:text-3xl">{row.title}</h3>
-                                        <p className="mt-3 max-w-md text-base leading-relaxed text-muted-foreground">{row.text}</p>
+                {/* COACHING */}
+                <section id="coaching" className="scroll-mt-24 bg-background">
+                    <div className="mx-auto max-w-site px-4 py-16 sm:px-6 sm:py-24">
+                        <Reveal>
+                            <div className="rounded-panel bg-primary p-6 text-primary-foreground shadow-card sm:p-10">
+                                <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
+                                    <div>
+                                        <h2 className="text-[2rem] font-extrabold leading-[1.06] tracking-[-0.035em] sm:text-[2.75rem]">
+                                            Die Coaching-AG am FWG.
+                                        </h2>
+                                        <p className="mt-4 max-w-xl text-base font-medium leading-relaxed text-primary-foreground/85 sm:text-lg">
+                                            Unter Leitung von <strong className="font-bold text-primary-foreground">Frau Balistreri</strong> begleiten geschulte Coaches ab Klasse 8 die Klassen 5 und 6 beim Ankommen und Lernen.
+                                        </p>
                                         <Link
-                                            to={appTourZiel(i)}
-                                            className="group mt-5 inline-flex min-h-11 items-center gap-1.5 rounded-full text-sm font-semibold text-foreground transition-colors hover:text-muted-foreground"
+                                            to="/coaching"
+                                            className="group mt-7 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-foreground px-6 text-sm font-semibold text-background shadow-soft transition-[box-shadow] duration-150 hover:shadow-card"
                                         >
-                                            {user ? 'In der App ansehen' : 'Kostenlos registrieren'}
-                                            <ArrowRight
-                                                size={16}
-                                                aria-hidden
-                                                className={ICON_REACT_CLASS + ' motion-safe:group-hover:translate-x-0.5'}
-                                            />
+                                            Coaching-AG kennenlernen
+                                            <ArrowRight size={16} aria-hidden className="motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" />
                                         </Link>
                                     </div>
-                                    <div className={cn('rounded-panel p-5 shadow-soft sm:p-8', row.tone)}>
-                                        <DeviceFrame kind={row.device} src={row.src} alt={row.alt} className={row.deviceClass} screenClassName={row.screenClassName} />
+
+                                    <dl className="divide-y divide-primary-foreground/15 border-y border-primary-foreground/15">
+                                        {[
+                                            { t: 'Pädagogisch begleitet', d: 'Coaches lernen Lernmethoden und Arbeitsorganisation.' },
+                                            { t: 'Offizielles Abzeichen', d: 'Das Coach-Abzeichen zeigt: geschult und vom SV-Team verifiziert.' },
+                                            { t: 'Fair und transparent', d: 'Richtwert 12 € pro 45 Minuten (16 €/h) – individuell anpassbar. Keine Provision.' },
+                                        ].map((f) => (
+                                            <div key={f.t} className="py-4">
+                                                <dt className="text-base font-bold">{f.t}</dt>
+                                                <dd className="mt-1 text-pretty text-sm leading-relaxed text-primary-foreground/80">{f.d}</dd>
+                                            </div>
+                                        ))}
+                                    </dl>
+                                </div>
+                            </div>
+                        </Reveal>
+                    </div>
+                </section>
+
+                {/* FAQ */}
+                <section id="faq" className="scroll-mt-24 bg-card">
+                    <div className="mx-auto max-w-site px-4 py-16 sm:px-6 sm:py-24">
+                        <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
+                            <Reveal>
+                                <div>
+                                    <h2 className="text-[2rem] font-extrabold leading-[1.06] tracking-[-0.035em] sm:text-[2.75rem]">
+                                        Häufige Fragen.
+                                    </h2>
+                                    <p className="mt-4 max-w-sm text-base leading-relaxed text-muted-foreground">
+                                        Was Eltern und Schüler:innen vor dem Start wissen möchten.
+                                    </p>
+                                    <a
+                                        href="mailto:info@nachhilfe-sv.de?subject=Frage%20zur%20Nachhilfeb%C3%B6rse"
+                                        className="mt-5 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-foreground underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground"
+                                    >
+                                        <Mail size={16} aria-hidden />
+                                        Frage nicht dabei? Schreib uns.
+                                    </a>
+                                </div>
+                            </Reveal>
+
+                            <Reveal delay={70}>
+                                <div className="divide-y divide-border border-y border-border">
+                                    {FAQ.map((item) => (
+                                        <details key={item.q} className="group py-1">
+                                            <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-4 text-base font-bold transition-colors hover:text-muted-foreground [&::-webkit-details-marker]:hidden">
+                                                {item.q}
+                                                <ChevronDown size={19} aria-hidden className="shrink-0 text-muted-foreground transition-transform duration-150 group-open:rotate-180" />
+                                            </summary>
+                                            <p className="max-w-[68ch] pb-5 pr-8 text-sm leading-relaxed text-muted-foreground">
+                                                {item.a}
+                                            </p>
+                                        </details>
+                                    ))}
+                                </div>
+                            </Reveal>
+                        </div>
+                    </div>
+                </section>
+
+                {/* ABSCHLUSS */}
+                <section className="bg-background">
+                    <div className="mx-auto max-w-site px-4 pb-16 sm:px-6 sm:pb-24">
+                        <Reveal>
+                            <div className="flex flex-col items-start gap-6 rounded-panel border border-border bg-card p-6 shadow-soft sm:flex-row sm:items-center sm:justify-between sm:p-10">
+                                <div className="max-w-2xl">
+                                    <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Bereit für die erste Nachhilfe?</h2>
+                                    <p className="mt-2 text-base leading-relaxed text-muted-foreground">
+                                        Konto anlegen, im SV-Raum verifizieren, passende Anzeige finden. Kostenlos und nur für das FWG.
+                                    </p>
+                                </div>
+                                <Link to={registerZiel} className={cn(buttonVariants({ size: 'lg' }), 'group w-full shrink-0 sm:w-auto')}>
+                                    {user ? 'Zur Börse' : 'Kostenlos registrieren'}
+                                    <ArrowRight size={18} aria-hidden className="motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" />
+                                </Link>
+                            </div>
+                        </Reveal>
+                    </div>
+                </section>
+
+                <SupportModal isOpen={isFeatureOpen} onClose={() => setIsFeatureOpen(false)} initialType="feature" initialView="form" />
+
+                {/* FOOTER */}
+                <footer className="rounded-t-panel bg-secondary text-muted-foreground">
+                    <div className="mx-auto max-w-site px-4 pb-[calc(2rem+env(safe-area-inset-bottom,0px))] pt-14 sm:px-6">
+                        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr]">
+                            <div>
+                                <div className="flex items-center gap-3">
+                                    <Logo size={34} className="shrink-0 text-primary" />
+                                    <div>
+                                        <p className="text-lg font-bold leading-none text-foreground">Nachhilfebörse</p>
+                                        <p className="mt-1 text-xs font-medium">FWG Köln · Schülervertretung</p>
                                     </div>
                                 </div>
-                            </Reveal>
-                        ))}
-                    </div>
-
-                    <Reveal>
-                        <div className="group mt-14 flex flex-col items-start justify-between gap-4 rounded-panel bg-primary p-5 text-primary-foreground shadow-card sm:mt-20 sm:flex-row sm:items-center sm:p-7">
-                            <div className="flex items-center gap-3">
-                                <span className="grid size-11 place-items-center rounded-full bg-white/45">
-                                    <ImageIcon size={21} aria-hidden className={ICON_REACT_HOVER_CLASS} />
-                                </span>
-                                <p className="text-lg font-extrabold">Börse ansehen</p>
+                                <address className="mt-5 text-sm not-italic leading-relaxed">
+                                    Schülervertretung Friedrich-Wilhelm-Gymnasium<br />
+                                    Severinstraße 241, 50676 Köln<br />
+                                    <a href="mailto:info@nachhilfe-sv.de" className="inline-flex min-h-11 items-center font-medium text-foreground transition-colors hover:text-muted-foreground">
+                                        info@nachhilfe-sv.de
+                                    </a>
+                                </address>
+                                <p className="mt-1 text-xs">Hosting in Deutschland · DSGVO-konform</p>
                             </div>
-                            <MotionLink
-                                to={registerZiel}
-                                whileHover={reduce ? undefined : { y: -2 }}
-                                whileTap={reduce ? undefined : { scale: 0.985 }}
-                                transition={SPRING.settle}
-                                className="group inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-7 text-sm font-semibold text-background shadow-soft transition-[box-shadow] duration-150 hover:shadow-card"
-                            >
-                                {user ? 'Börse ansehen' : 'Kostenlos registrieren'}{' '}
-                                <ArrowRight aria-hidden className={ICON_REACT_CLASS + ' motion-safe:group-hover:translate-x-0.5'} />
-                            </MotionLink>
-                        </div>
-                    </Reveal>
-                </div>
-            </section>
 
-            {/* PRIVATSPHÄRE + VERIFIKATION */}
-            <section id="sicher" className="scroll-mt-28 bg-card">
-                <div className="mx-auto grid max-w-site gap-4 px-4 py-14 sm:px-6 sm:py-24 lg:grid-cols-[1.15fr_0.85fr]">
-                    <Reveal className="h-full">
-                        <div className="group flex h-full flex-col justify-center rounded-card bg-background p-6 shadow-soft sm:p-8">
-                            <Shield size={24} className={ICON_REACT_HOVER_CLASS + ' text-pastel-blue-foreground'} aria-hidden />
-                            <h2 className="mt-4 text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">Du entscheidest, wer was sieht.</h2>
-                            <p className="mt-4 leading-relaxed text-muted-foreground">Du entscheidest, welche Kontaktdaten sichtbar sind. Telefonnummer und Moodle-Name sehen andere erst nach Annahme einer Anfrage. Die E-Mail-Adresse kannst du im Profil öffentlich schalten.</p>
-                            <div className="mt-6 rounded-card border border-border/80 bg-card p-4 shadow-soft sm:p-5">
-                                <div className="flex flex-wrap items-center justify-between gap-2">
-                                    <p className="text-[13px] font-semibold text-foreground">So sieht es in der App aus</p>
-                                    <span className="rounded-full bg-pastel-yellow px-2.5 py-1 text-xs font-semibold text-pastel-yellow-foreground">Beispiel</span>
-                                </div>
-                                <div className="mt-4 space-y-3">
+                            <nav aria-label="Die Börse">
+                                <p className="text-xs font-bold uppercase tracking-wider text-foreground">Die Börse</p>
+                                <ul className="mt-3 space-y-0.5 text-sm font-medium">
                                     {[
-                                        { label: 'Telefonnummer', desc: 'Nur für angenommene Anfragen', on: showPhone, set: setShowPhone },
-                                        { label: 'Moodle-Name', desc: 'Nur für angenommene Anfragen', on: showMoodle, set: setShowMoodle },
-                                    ].map((r, index) => {
-                                        const descId = `privacy-preview-row-${index}`;
-                                        return (
-                                            <div key={r.label} className="flex items-center justify-between gap-4 rounded-full bg-background px-4 py-3">
-                                                <div className="min-w-0">
-                                                    <p className="text-sm font-semibold">{r.label}</p>
-                                                    <p id={descId} className="text-[13px] text-muted-foreground">{r.on ? r.desc : 'Versteckt: niemand sieht das'}</p>
-                                                </div>
-                                                <Switch
-                                                    checked={r.on}
-                                                    onCheckedChange={() => r.set(v => !v)}
-                                                    label={`${r.label} Sichtbarkeit`}
-                                                    aria-describedby={`${descId} privacy-preview-hint`}
-                                                />
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                                <p id="privacy-preview-hint" className="mt-4 inline-flex items-start gap-2 text-[13px] font-medium leading-relaxed text-muted-foreground"><Lock size={16} className="mt-0.5 shrink-0" aria-hidden /> Diese Vorschau speichert nichts; in der App stellst du die Sichtbarkeit in den Einstellungen ein.</p>
-                            </div>
-                        </div>
-                    </Reveal>
-
-                    <Reveal delay={80} className="h-full">
-                        <div className="flex h-full flex-col justify-center rounded-card bg-pastel-mint p-6 text-pastel-mint-foreground shadow-soft sm:p-8">
-                            <h2 className="text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">So wird dein Konto verifiziert.</h2>
-                            <div className="mt-7">
-                                <VerifySteps tone="du" variant="timeline" />
-                            </div>
-                            <MotionLink
-                                to={loginZiel}
-                                whileHover={reduce ? undefined : { y: -2 }}
-                                whileTap={reduce ? undefined : { scale: 0.985 }}
-                                transition={SPRING.settle}
-                                className="group mt-8 inline-flex min-h-12 items-center justify-center gap-2 self-start rounded-full bg-white px-6 text-sm font-semibold text-foreground shadow-soft transition-[box-shadow] duration-150 hover:shadow-card"
-                            >
-                                {user ? 'Zur Börse' : 'Zur Anmeldung'}
-                                <ArrowRight aria-hidden className={ICON_REACT_CLASS + ' motion-safe:group-hover:translate-x-0.5'} />
-                            </MotionLink>
-                        </div>
-                    </Reveal>
-                </div>
-            </section>
-
-            {/* COACHING-AG */}
-            <section id="coaching" className="scroll-mt-28 bg-background">
-                <div className="mx-auto max-w-site px-4 py-14 sm:px-6 sm:py-24">
-                    <Reveal>
-                        <div className="rounded-panel bg-primary p-5 text-primary-foreground shadow-card sm:p-8">
-                            <span className="group inline-flex items-center gap-2 rounded-full bg-white/55 px-3.5 py-2 text-xs font-semibold">
-                                <Sparkles size={15} aria-hidden className={ICON_REACT_HOVER_CLASS} /> Coaching-AG am FWG
-                            </span>
-                            <h2 className="mt-4 text-[2rem] font-extrabold leading-[1.06] tracking-[-0.035em] sm:text-[2.75rem]">Die Coaching-AG</h2>
-                            <p className="mt-4 max-w-3xl text-base font-medium leading-relaxed text-primary-foreground/85 sm:text-lg">Ältere unterstützen Jüngere: Unter Leitung von <strong className="font-bold text-primary-foreground">Frau Balistreri</strong> begleiten geschulte Schülerinnen und Schüler <strong className="font-bold text-primary-foreground">ab Klasse 8</strong> gezielt Kinder der <strong className="font-bold text-primary-foreground">Klassen 5 und 6</strong> beim Start an unserer Schule.</p>
-
-                            <div className="mt-7 grid gap-4 md:grid-cols-3">
-                                {[
-                                    { icon: GraduationCap, t: 'Pädagogisch begleitet', d: 'Coaches lernen Lernmethoden und Arbeitsorganisation.' },
-                                    { icon: Shield, t: 'Offizielles Coach-Abzeichen', d: 'Coaches mit Abzeichen haben die Schulung besucht und sind verifiziert.' },
-                                    { icon: Users, t: 'Gemeinschaft & Fairness', d: 'Kontakt über die App. Richtwert: 12 € pro 45 Minuten (≈ 16 €/h), individuell anpassbar.' },
-                                ].map((c) => (
-                                    <m.div
-                                        key={c.t}
-                                        whileHover={reduce ? undefined : 'hover'}
-                                        variants={HOVER_CARD_VARIANTS}
-                                        transition={SPRING.settle}
-                                        className="rounded-card bg-card p-5 text-foreground shadow-soft"
-                                    >
-                                        <m.span
-                                            variants={HOVER_ICON_VARIANTS}
-                                            transition={SPRING.press}
-                                            className="grid size-11 place-items-center rounded-full bg-pastel-violet text-pastel-violet-foreground"
+                                        ['Start', '/welcome'],
+                                        ['Die App', '/welcome'],
+                                        ['Coaching-AG', '/coaching'],
+                                        ['Eltern-Leitfaden', '/eltern-leitfaden'],
+                                        ['Anmelden', '/login'],
+                                    ].map(([label, href]) => (
+                                        <li key={label}>
+                                            <Link
+                                                to={href}
+                                                state={label === 'Die App' ? { section: 'brett' } : undefined}
+                                                className="inline-flex min-h-11 items-center transition-colors hover:text-foreground"
+                                            >
+                                                {label}
+                                            </Link>
+                                        </li>
+                                    ))}
+                                    <li>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsFeatureOpen(true)}
+                                            className="inline-flex min-h-11 items-center transition-colors hover:text-foreground"
                                         >
-                                            <c.icon size={20} aria-hidden />
-                                        </m.span>
-                                        <h3 className="mt-3 text-base font-bold">{c.t}</h3>
-                                        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{c.d}</p>
-                                    </m.div>
-                                ))}
-                            </div>
+                                            Funktionswunsch
+                                        </button>
+                                    </li>
+                                </ul>
+                            </nav>
 
-                            <div className="mt-7 flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
-                                <div>
-                                    <p className="text-sm font-semibold">Schüler-Coach werden? Ab Klasse 8</p>
-                                    <p className="mt-1 max-w-xl text-sm leading-relaxed text-primary-foreground/80">Du möchtest Schülerinnen und Schüler der Klassen 5 und 6 unterstützen? Sprich Frau Balistreri oder die SV an. Alle Regeln findest du transparent auf der <Link to="/coaching" className="font-semibold text-primary-foreground underline underline-offset-4">Coaching-Seite</Link>.</p>
-                                </div>
-                                <MotionLink
-                                    to="/coaching"
-                                    whileHover={reduce ? undefined : { y: -2 }}
-                                    whileTap={reduce ? undefined : { scale: 0.985 }}
-                                    transition={SPRING.settle}
-                                    className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-white px-6 text-sm font-semibold text-foreground shadow-soft transition-[box-shadow] duration-150 hover:shadow-card"
-                                >
-                                    Jetzt mitmachen
-                                </MotionLink>
-                            </div>
+                            <nav aria-label="Rechtliches">
+                                <p className="text-xs font-bold uppercase tracking-wider text-foreground">Rechtliches</p>
+                                <ul className="mt-3 space-y-0.5 text-sm font-medium">
+                                    {[
+                                        ['Impressum', '/impressum'],
+                                        ['Datenschutz', '/datenschutz'],
+                                        ['Cookies', '/cookies'],
+                                        ['Nutzungsbedingungen', '/nutzungsbedingungen'],
+                                        ['Transparenz', '/transparenz'],
+                                    ].map(([label, href]) => (
+                                        <li key={label}>
+                                            <Link to={href} className="inline-flex min-h-11 items-center transition-colors hover:text-foreground">{label}</Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </nav>
                         </div>
-                    </Reveal>
-                </div>
-            </section>
 
-            {/* ELTERN */}
-            <section id="eltern" className="scroll-mt-28 bg-card text-foreground">
-                <div className="mx-auto max-w-site px-4 py-14 sm:px-6 sm:py-24">
-                    <Reveal>
-                        <div className="max-w-3xl">
-                            <span className="group inline-grid size-14 place-items-center rounded-full bg-pastel-orange text-pastel-orange-foreground">
-                                <Shield size={24} aria-hidden className={ICON_REACT_HOVER_CLASS} />
-                            </span>
-                            <h2 className="mt-5 text-[2rem] font-extrabold leading-[1.06] tracking-[-0.035em] sm:text-[2.75rem]">Informationen für Eltern</h2>
-                            <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">Ihr Kind nutzt die Nachhilfebörse über sein eigenes Konto. Wie selbstständig es läuft, entscheiden Sie gemeinsam: In den Klassen 5 bis 7 empfehlen wir die gemeinsame Betreuung. So behalten Sie Anzeigen und Anfragen im Blick. Unter 16 Jahren brauchen wir Ihre Einwilligung.</p>
-                        </div>
-                    </Reveal>
-
-                    <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                        {[
-                            { icon: Users, t: 'Gemeinsam betreuen', d: 'Ihr Kind nutzt sein Konto, Sie schauen mit und unterstützen. Wie eng Sie begleiten, entscheiden Sie gemeinsam.', tone: 'bg-pastel-blue text-pastel-blue-foreground' },
-                            { icon: BadgeCheck, t: 'Verifizierte Konten', d: 'Nur verifizierte Konten können Anzeigen erstellen, Kontakt aufnehmen oder Anzeigen ansehen. Im Profil ist sichtbar, ob jemand verifiziert ist.', tone: 'bg-pastel-mint text-pastel-mint-foreground' },
-                            { icon: Lock, t: 'Keine Zahlungen über die App', d: 'Die Börse vermittelt nur den Kontakt. Vergütung und Umfang klären Sie direkt mit der Familie der Anbieterin oder des Anbieters.', tone: 'bg-pastel-violet text-pastel-violet-foreground' },
-                            { icon: Shield, t: 'Melden & Fragen', d: 'Jede Anzeige und jedes Profil lässt sich melden. Das SV-Team sichtet Meldungen mindestens einmal pro Woche, oft auch häufiger.', tone: 'bg-pastel-rose text-pastel-rose-foreground' },
-                        ].map((f, i) => (
-                            <Reveal key={f.t} delay={i * 50} className="h-full">
-                                <m.article
-                                    whileHover={reduce ? undefined : 'hover'}
-                                    variants={HOVER_CARD_VARIANTS}
-                                    transition={SPRING.settle}
-                                    className={`h-full rounded-card p-6 shadow-soft ${f.tone}`}
-                                >
-                                    <m.span
-                                        variants={HOVER_ICON_VARIANTS}
-                                        transition={SPRING.press}
-                                        className="inline-grid size-12 place-items-center rounded-full bg-white/85"
-                                    >
-                                        <f.icon size={21} aria-hidden />
-                                    </m.span>
-                                    <h3 className="mt-4 text-lg font-extrabold">{f.t}</h3>
-                                    <p className="mt-2 text-sm leading-relaxed">{f.d}</p>
-                                </m.article>
-                            </Reveal>
-                        ))}
-                    </div>
-
-                    <Reveal delay={70}>
-                        <m.a
-                            href="mailto:info@nachhilfe-sv.de?subject=Frage%20als%20Elternteil"
-                            onClick={() => triggerHaptic('light')}
-                            whileHover={reduce ? undefined : 'hover'}
-                            whileTap={reduce ? undefined : 'press'}
-                            variants={{ hover: { y: -2 }, press: { scale: 0.995 } }}
-                            transition={SPRING.settle}
-                            className="group mt-6 flex flex-col gap-4 rounded-card border border-primary/35 bg-primary-soft p-5 text-foreground shadow-soft transition-[box-shadow] duration-200 hover:shadow-card sm:flex-row sm:items-center sm:justify-between"
-                        >
-                            <div className="flex items-center gap-4">
-                                <m.span
-                                    variants={ICON_VARIANTS}
-                                    transition={SPRING.press}
-                                    className="grid size-12 shrink-0 place-items-center rounded-full bg-card text-primary shadow-soft"
-                                >
-                                    <Mail size={21} aria-hidden />
-                                </m.span>
-                                <div>
-                                    <p className="text-base font-extrabold">Fragen als Elternteil?</p>
-                                    <p className="mt-1 max-w-xl text-sm leading-relaxed text-muted-foreground">
-                                        Schreib dem SV-Team direkt bei Fragen zu Registrierung, Einwilligung oder Sicherheit.
-                                    </p>
-                                </div>
-                            </div>
-                            <span className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-foreground px-5 text-sm font-semibold text-background transition-colors group-hover:bg-foreground/90">
-                                info@nachhilfe-sv.de
-                                <ArrowRight
-                                    size={16}
-                                    aria-hidden
-                                    className={ICON_REACT_CLASS + ' motion-safe:group-hover:translate-x-0.5'}
-                                />
-                            </span>
-                        </m.a>
-                    </Reveal>
-
-                    <Reveal delay={80}>
-                        <div className="mt-10 flex flex-col items-start justify-between gap-5 rounded-panel bg-[linear-gradient(135deg,var(--primary),var(--primary-soft))] p-6 text-primary-foreground shadow-card sm:flex-row sm:items-center sm:p-8">
-                            <div>
-                                <p className="text-xl font-extrabold sm:text-2xl">Der Eltern-Leitfaden</p>
-                                <p className="mt-1.5 text-sm font-medium text-primary-foreground/80">Ablauf, Einwilligung und Kontakt zur SV in einem Dokument.</p>
-                            </div>
-                            <MotionLink
-                                to={elternZiel}
-                                onClick={() => triggerHaptic('light')}
-                                whileHover={reduce ? undefined : { y: -2 }}
-                                whileTap={reduce ? undefined : { scale: 0.985 }}
-                                transition={SPRING.settle}
-                                className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-foreground px-7 text-sm font-semibold text-background shadow-soft transition-[box-shadow] duration-150 hover:shadow-card"
-                            >
-                                Eltern-Leitfaden lesen
-                                <ArrowRight aria-hidden className={ICON_REACT_CLASS + ' motion-safe:group-hover:translate-x-0.5'} />
-                            </MotionLink>
-                        </div>
-                    </Reveal>
-                </div>
-            </section>
-
-            {/* Funktionswunsch */}
-            <section id="funktionswunsch" className="scroll-mt-28 bg-secondary/60 text-foreground">
-                <div className="mx-auto max-w-site px-4 py-12 sm:px-6 sm:py-16">
-                    <Reveal>
-                        <div className="group flex flex-col gap-6 rounded-panel border border-border bg-card p-6 shadow-card sm:p-8 lg:flex-row lg:items-center lg:justify-between">
-                            <div className="flex items-start gap-4">
-                                <span className="grid size-12 shrink-0 place-items-center rounded-full bg-primary-soft text-primary-soft-foreground">
-                                    <Lightbulb size={22} aria-hidden className={ICON_REACT_HOVER_CLASS} />
-                                </span>
-                                <div>
-                                    <h2 className="text-xl font-extrabold tracking-tight sm:text-2xl">Etwas fehlt?</h2>
-                                    <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                                        Wünsch dir eine Funktion für die Nachhilfebörse. Dein Funktionswunsch landet direkt beim SV-Team – ohne Umwege.
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
-                                {user ? (
-                                    <Button type="button" onClick={() => setIsFeatureOpen(true)} className="min-h-11 rounded-full font-semibold">
-                                        <Lightbulb size={16} aria-hidden /> Funktionswunsch senden
-                                    </Button>
-                                ) : (
-                                    <Link to="/login?mode=register" className={cn(buttonVariants(), 'group min-h-11 rounded-full font-semibold')}>
-                                        Konto erstellen
-                                        <ArrowRight size={16} aria-hidden className={ICON_REACT_CLASS + ' motion-safe:group-hover:translate-x-0.5'} />
-                                    </Link>
-                                )}
-                                <a
-                                    href="mailto:info@nachhilfe-sv.de?subject=Funktionswunsch"
-                                    onClick={() => triggerHaptic('light')}
-                                    className={cn(buttonVariants({ variant: 'outline' }), 'group min-h-11 rounded-full font-semibold')}
-                                >
-                                    <Mail size={16} aria-hidden className={ICON_REACT_CLASS} /> Per E-Mail
-                                </a>
-                            </div>
-                        </div>
-                    </Reveal>
-                </div>
-            </section>
-
-            <SupportModal isOpen={isFeatureOpen} onClose={() => setIsFeatureOpen(false)} initialType="feature" initialView="form" />
-
-            {/* Footer */}
-            <footer className="rounded-t-panel bg-secondary text-muted-foreground">
-                <div className="mx-auto max-w-site px-4 pb-[calc(2rem+env(safe-area-inset-bottom,0px))] pt-14 sm:px-6">
-                    <div className="flex flex-col justify-between gap-8 md:flex-row md:items-center">
-                        <div className="flex items-center gap-3">
-                            <Logo size={34} className="shrink-0 text-primary" />
-                            <div>
-                                <p className="text-lg font-bold leading-none text-foreground">Nachhilfebörse</p>
-                                <p className="mt-1 text-xs font-medium">Nachhilfebörse der Schülervertretung am FWG.</p>
-                            </div>
-                        </div>
-                        <nav className="flex flex-wrap gap-x-5 text-sm font-medium" aria-label="Rechtliches und Infos">
-                            {[
-                                ['Impressum', '/impressum'], ['Datenschutz', '/datenschutz'], ['Cookies', '/cookies'],
-                                ['Coaching-AG', '/coaching'], ['Nutzungsbedingungen', '/nutzungsbedingungen'], ['Eltern-Leitfaden', '/eltern-leitfaden'],
-                                ['Transparenz', '/transparenz'],
-                            ].map(([label, path]) => (
-                                <Link key={path} to={path} className="inline-flex min-h-11 items-center transition-colors hover:text-foreground">{label}</Link>
-                            ))}
-                        </nav>
-                    </div>
-                    <div className="mt-8 flex flex-col justify-between gap-3 border-t border-border pt-6 text-xs sm:flex-row">
-                        <p>© Schülervertretung Friedrich-Wilhelm-Gymnasium Köln {new Date().getFullYear()}.</p>
-                        <div className="flex flex-col gap-1 sm:items-end">
-                            <a
-                                href="mailto:info@nachhilfe-sv.de"
-                                onClick={() => triggerHaptic('light')}
-                                className="group inline-flex min-h-11 items-center gap-1.5 font-medium transition-colors hover:text-foreground"
-                            >
-                                <Mail size={14} aria-hidden className={ICON_REACT_CLASS} /> info@nachhilfe-sv.de
-                            </a>
-                            <p className="tabular-nums">Hosting in Deutschland · DSGVO-konform</p>
+                        <div className="mt-10 flex flex-col justify-between gap-3 border-t border-border pt-6 text-xs sm:flex-row">
+                            <p>© Schülervertretung Friedrich-Wilhelm-Gymnasium Köln {new Date().getFullYear()}.</p>
+                            <p>Kein Zahlungsdienstleister · keine Provision.</p>
                         </div>
                     </div>
-                </div>
-            </footer>
+                </footer>
             </PageEnter>
         </main>
     );

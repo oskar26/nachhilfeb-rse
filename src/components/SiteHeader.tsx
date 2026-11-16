@@ -206,7 +206,7 @@ export default function SiteHeader() {
                             variants={LOGO_LINK_VARIANTS}
                             transition={SPRING.settle}
                             className="flex min-h-11 min-w-0 items-center gap-2.5 rounded-full px-1"
-                            aria-label="Nachhilfebörse Startseite"
+                            aria-label="Nachhilfebörse FWG – zur Startseite"
                         >
                             <m.span
                                 variants={LOGO_MARK_VARIANTS}
