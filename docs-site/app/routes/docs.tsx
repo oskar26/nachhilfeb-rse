@@ -21,6 +21,7 @@ import {
   DocsCollapsedControls,
   DocsMobileBackToTop,
   DocsTocBackToTop,
+  DocsTocSpy,
 } from '@/components/docs-controls';
 import { use, type ComponentProps } from 'react';
 
@@ -135,9 +136,18 @@ function Content({ path, markdown }: { path: string; markdown: string }) {
           >
             llms.txt für KI-Assistenten
           </a>
+          <span aria-hidden>·</span>
+          <a
+            href="/docs/llms-full.txt"
+            className="inline-flex min-h-11 items-center underline underline-offset-2 hover:text-fd-foreground"
+            title="Alle Dokumentationsseiten als eine Markdown-Datei"
+          >
+            Vollständige Markdown-Fassung
+          </a>
         </footer>
       </DocsBody>
       <DocsMobileBackToTop />
+      <DocsTocSpy />
     </DocsPage>
   );
 }

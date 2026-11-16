@@ -13,6 +13,7 @@ export default {
     }
 
     paths.add('/docs/llms.txt');
+    paths.add('/docs/llms-full.txt');
 
     return [...paths];
   },
