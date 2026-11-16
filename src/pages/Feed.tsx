@@ -1145,18 +1145,9 @@ export default function Feed() {
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-muted-foreground">
-                                            <span className="inline-flex items-center gap-1">
-                                                <GraduationCap size={13} aria-hidden />
-                                                Anbieter:in{ad.profiles?.grade_level ? ` · ${formatGradeLabel(ad.profiles.grade_level)}` : ''}
-                                            </span>
-                                            <span className="rounded-full bg-muted px-2 py-0.5 font-semibold text-foreground">{ad.type === 'search' ? 'Gesuch' : 'Bietet'}</span>
-                                            {gradeRange && (
-                                                <span className="rounded-full bg-muted px-2 py-0.5 font-semibold text-foreground">für {gradeRange}</span>
-                                            )}
-                                            {boosted && (
-                                                <span className="inline-flex items-center gap-1 rounded-full bg-white/70 px-2 py-0.5 font-semibold text-primary-soft-foreground"><Sparkles size={12} aria-hidden /> Hervorgehoben</span>
-                                            )}
+                                        <div className="mt-1.5 flex min-w-0 items-center gap-1 text-[13px] text-muted-foreground">
+                                            <GraduationCap size={13} aria-hidden className="shrink-0" />
+                                            <span className="truncate">Anbieter:in{ad.profiles?.grade_level ? ` · ${formatGradeLabel(ad.profiles.grade_level)}` : ''}</span>
                                         </div>
                                     </div>
                                     <div className={cn('flex shrink-0 flex-col items-end gap-1', boosted ? 'text-primary-soft-foreground' : undefined)}>
@@ -1171,6 +1162,16 @@ export default function Feed() {
                                             </div>
                                         )}
                                     </div>
+                                </div>
+
+                                <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[13px]">
+                                    <span className="whitespace-nowrap rounded-full bg-muted px-2.5 py-1 font-semibold text-foreground">{ad.type === 'search' ? 'Gesuch' : 'Bietet'}</span>
+                                    {gradeRange && (
+                                        <span className="whitespace-nowrap rounded-full bg-muted px-2.5 py-1 font-semibold text-foreground">für {gradeRange}</span>
+                                    )}
+                                    {boosted && (
+                                        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-white/70 px-2.5 py-1 font-semibold text-primary-soft-foreground"><Sparkles size={12} aria-hidden /> Hervorgehoben</span>
+                                    )}
                                 </div>
 
                                 <div className="mt-4 flex flex-wrap gap-2">
