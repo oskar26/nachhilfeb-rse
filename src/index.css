@@ -23,6 +23,14 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* Plus Jakarta Sans setzt das Wort-Leerzeichen mit ca. 0,15 em sehr eng.
+     Ohne Ausgleich kleben deutsche Wortgruppen optisch zusammen
+     ("Willkommen zurück" liest sich wie ein Wort). Der Ausgleich muss pro
+     Element in em greifen, damit er mit der Schriftgröße skaliert. */
+  :where(body, body *) {
+    word-spacing: 0.085em;
+  }
+
   :root { color-scheme: light; }
   .dark { color-scheme: dark; }
 

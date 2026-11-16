@@ -476,7 +476,7 @@ function AppShell() {
                     // than the top gap.
                     'fixed inset-x-2 bottom-[max(0.5rem,calc(0.5rem+env(safe-area-inset-bottom,0px)))] z-50',
                     'grid h-[4.75rem] grid-cols-5 items-stretch overflow-hidden rounded-full border border-border/60 p-1.5 max-[399px]:p-1 md:hidden',
-                    'bg-linear-to-b from-card/85 via-card/70 to-card/55 backdrop-blur-2xl backdrop-saturate-150',
+                    'bg-card/95 supports-[backdrop-filter]:bg-card/85 backdrop-blur-xl backdrop-saturate-150',
                     'shadow-[0_1px_0_0_rgb(255_255_255/0.7)_inset,0_-1px_0_0_rgb(24_24_27/0.04)_inset,0_18px_45px_-18px_rgb(16_24_40/0.45),0_4px_14px_-8px_rgb(16_24_40/0.18)]',
                     'dark:shadow-[0_1px_0_0_rgb(255_255_255/0.08)_inset,0_-1px_0_0_rgb(0_0_0/0.35)_inset,0_18px_45px_-18px_rgb(0_0_0/0.7),0_4px_14px_-8px_rgb(0_0_0/0.4)]',
                     // Top sheen and a faint bottom bounce keep the bar reading
