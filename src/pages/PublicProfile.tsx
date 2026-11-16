@@ -15,6 +15,8 @@ import { PriceTag } from '../components/ui/price-tag';
 import { sanitizeHtml } from '../lib/sanitize';
 import { triggerHaptic } from '../lib/haptics';
 import { cn } from '../lib/utils';
+import { avatarTone, initials } from '../lib/avatar';
+import { formatGradeLabel } from '../lib/matching';
 import { VerifiedPill } from '../components/ui/VerifiedPill';
 import ShareDialog from '../components/ShareDialog';
 import { useAuth } from '../context/AuthContext';
@@ -143,17 +145,17 @@ export default function PublicProfile() {
             <m.div variants={itemVariants} className="relative">
                 <Card className="relative overflow-hidden border-border bg-card p-0">
                     <div
-                        className="h-36 bg-[linear-gradient(135deg,var(--primary-soft),var(--pastel-blue))]"
+                        className="h-36 bg-[linear-gradient(135deg,var(--pastel-yellow),var(--primary-soft))]"
                         aria-hidden
                     />
                     <CardContent className="pt-0 px-6 sm:px-8 pb-8 relative">
                         <div className="flex flex-col items-center gap-6 xl:flex-row xl:items-end">
-                            <div className="-mt-16 size-28 shrink-0 overflow-hidden rounded-2xl border-4 border-card bg-card p-1 sm:size-32">
+                            <div className="-mt-16 size-28 shrink-0 overflow-hidden rounded-full border-4 border-card bg-card p-1 sm:size-32">
                                 {profile.avatar_url ? (
-                                    <img src={profile.avatar_url} alt="" className="w-full h-full object-cover rounded-2xl" />
+                                    <img src={profile.avatar_url} alt="" className="h-full w-full rounded-full object-cover" />
                                 ) : (
-                                    <div className="flex h-full w-full items-center justify-center rounded-2xl bg-muted text-4xl font-semibold text-foreground">
-                                        {profile.display_name?.charAt(0) || '?'}
+                                    <div className={cn('flex h-full w-full items-center justify-center rounded-full text-3xl font-bold', avatarTone(profile.display_name))}>
+                                        {initials(profile.display_name)}
                                     </div>
                                 )}
                             </div>
@@ -165,7 +167,7 @@ export default function PublicProfile() {
                                     )}
                                 </h1>
                                 <p className="text-muted-foreground font-semibold flex items-center justify-center xl:justify-start gap-2 mt-1">
-                                    <GraduationCap size={18} /> Klasse {profile.grade_level || '?'}
+                                    <GraduationCap size={18} /> {formatGradeLabel(profile.grade_level)}
                                 </p>
                                 {reviewCount > 0 && (
                                     <p className="mt-1.5 flex items-center justify-center xl:justify-start gap-1.5 text-sm font-semibold text-foreground/80">

@@ -5,7 +5,8 @@ import { LIST_ITEM, m, PAGE_ENTER, STAGGER } from '../lib/motion';
 import { Button, buttonVariants } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { User, Shield, Loader2, Mail, Phone, Settings as SettingsIcon, Pen, Sparkles, CalendarDays, Award, X, Eye, Plus, Trash2, Check } from 'lucide-react';
+import { Shield, Loader2, Mail, Phone, Settings as SettingsIcon, Pen, CalendarDays, Award, X, Eye, Plus, Trash2, Check } from 'lucide-react';
+import { avatarTone, initials } from '../lib/avatar';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { toast } from 'sonner';
@@ -316,7 +317,7 @@ export default function Profile() {
             {/* Header with Dynamic Banner & Avatar */}
             <m.div variants={itemVariants} className="relative overflow-hidden rounded-xl border border-border bg-card">
                 <div
-                    className="h-28 bg-[linear-gradient(135deg,var(--primary-soft),var(--pastel-blue))]"
+                    className="h-28 bg-[linear-gradient(135deg,var(--pastel-yellow),var(--primary-soft))]"
                     aria-hidden
                 />
                 {/* Avatar & User Info */}
@@ -341,28 +342,14 @@ export default function Profile() {
                                 {profile.avatar_url ? (
                                     <img src={profile.avatar_url} alt="" className="size-28 rounded-full border-4 border-card object-cover" />
                                 ) : (
-                                    <span className="grid size-28 place-items-center rounded-full border-4 border-card bg-muted text-muted-foreground">
-                                        <User size={48} />
+                                    <span className={cn('grid size-28 place-items-center rounded-full border-4 border-card text-2xl font-bold', avatarTone(`${profile.first_name} ${profile.last_name}`))}>
+                                        {initials(`${profile.first_name} ${profile.last_name}`)}
                                     </span>
                                 )}
                             </span>
                             <span className="pointer-events-none absolute -bottom-2.5 left-1/2 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-full border border-border bg-card px-2.5 py-1 text-[13px] font-semibold leading-none text-foreground shadow-sm">
                                 <Pen size={12} aria-hidden /> Avatar bearbeiten
                             </span>
-                        </Button>
-                    </div>
-
-                    <div className="mb-2">
-                        <Button variant="unstyled" size="unstyled"
-                            type="button"
-                            onClick={() => {
-                                triggerHaptic('light');
-                                setIsAvatarMakerOpen(true);
-                            }}
-                            className="flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground transition-colors hover:bg-muted"
-                        >
-                            <Sparkles size={13} />
-                            <span>Avatar gestalten</span>
                         </Button>
                     </div>
 
