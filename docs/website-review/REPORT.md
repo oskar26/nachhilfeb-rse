@@ -266,8 +266,10 @@ Datenschutz-Schalter haben `role="switch"` und `aria-checked`.
 
 ## 13. Evidenz
 
-- `before-v2/before-{375,768,1280,1920}.png` — Ausgangsstand
-- `after/after-{375,768,1280,1920}.png` — umgesetzter Stand (Produktions-Preview)
+- `before-v2/before-{375,768,1280,1920}.png` — Ausgangsstand (ganze Seite)
+- `after/after-{375,768,1280,1920}.png` — umgesetzter Stand (ganze Seite, Produktions-Preview)
+- `before-v2/before-1280-hero.png`, `after/after-1280-hero.png` — Ausschnitt
+  des ersten Viewports (1280 × 900) für den Vorher/Nachher-Vergleich
 - `app-reference/v2-*.png` — die echten App-Screens, aus denen die Bühnen und
   Bildausschnitte stammen
 - `detect-*.txt`/`.json`, `BRIEF.md`, `DESIGN.md`, `PREVIEW.md`

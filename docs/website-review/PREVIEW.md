@@ -41,6 +41,8 @@ Details und Messwerte: `REPORT.md`. Designsystem: `DESIGN.md`.
 
 - Vorher: `docs/website-review/before-v2/before-{375,768,1280,1920}.png`
 - Nachher: `docs/website-review/after/after-{375,768,1280,1920}.png`
+- Erster Viewport: `before-v2/before-1280-hero.png` und
+  `after/after-1280-hero.png`
 - App-Referenz: `docs/website-review/app-reference/v2-*.png`
 
 ## Entscheiden
