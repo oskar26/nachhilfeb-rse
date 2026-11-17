@@ -23,6 +23,15 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:5190/
 
 ## Was anders ist
 
+- **Revision 3 (Feedback vom 17.11.2026):** Der Hero behält die ruhige
+  Gerätebühne, verwendet aber wieder die alten Texte („Finde Nachhilfe. Direkt
+  am FWG.“). Die Kennzahlenkarte hat keinen Titel mehr: Sie zeigt live
+  „X aktive Nutzer“ und „Y aktive Anzeigen“ und darunter die drei beliebtesten
+  Fächer als kleine Pillen. Die Schritte verbindet eine Linie, die an der Mitte
+  des ersten Kreises beginnt und an der Mitte des dritten endet; die Kreise
+  reagieren auf Hover. Der App-Rundgang nutzt wieder die alten Überschriften
+  („Entdecken & Filtern“, „Chat“, „Profil und Einstellungen“). Eltern-Kacheln,
+  Trust-Icons und Piktogramme animieren beim Hover.
 - Ruhiger, produktgeführter Hero: ein echter Laptop-Feed frei auf dem
   Seitenhintergrund, ohne gelben Kasten und ohne überlappendes Telefon.
 - Direkt darunter Vertrauen: „Ein Konto pro Kind“ mit Eltern-Leitfaden und

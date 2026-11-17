@@ -4,6 +4,9 @@ Branch: `website-redesign` (Basis `ui-design-v2`, Commit `136850e`)
 Umsetzung: `6e58854` — „impeccable redesign: calm, product-first landing for the new UI“
 Polish: `42d9b68` — „impeccable polish: hero, nav order, timeline, parents, closing CTA“
 Revision 2: `794d4c0` — „impeccable polish: trust strip, bento sections, continuous step line“
+Revision 3: Feedback vom 17.11.2026 — alte Texte im Hero und im App-Rundgang,
+Kennzahlen ohne Titel („aktive Nutzer“ / „aktive Anzeigen“), drei Fach-Pillen,
+Schrittlinie von Kreis zu Kreis, Hover-Bewegung bei Icons und Eltern-Kacheln.
 Vorschau: `http://localhost:5190/#/welcome` (siehe `PREVIEW.md`)
 
 ## 1. Produkt in einem Satz
@@ -334,3 +337,32 @@ Datenschutz-Schalter haben `role="switch"` und `aria-checked`.
 - `app-reference/v2-*.png` — die echten App-Screens, aus denen die Bühnen und
   Bildausschnitte stammen
 - `detect-*.txt`/`.json`, `BRIEF.md`, `DESIGN.md`, `PREVIEW.md`
+
+## 14. Revision 3 — Feedback vom 17.11.2026
+
+Umgesetzt auf `website-redesign`:
+
+1. **Hero-Texte.** Wieder der alte Wortlaut: „Finde Nachhilfe. Direkt am FWG.“,
+   der alte Untertitel und „Konto erstellen → im SV-Raum verifizieren →
+   loslegen.“ Die Gerätebühne und der Aufbau bleiben unverändert.
+2. **In drei Schritten dabei.** Die Linie beginnt in der Mitte des ersten
+   Kreises und endet in der Mitte des dritten; mobil läuft sie durch alle drei
+   Kreise. Jeder Schritt reagiert auf Hover: der Kreis kippt leicht an, wird
+   größer und federt zurück (`prefers-reduced-motion` schaltet das ab).
+3. **Kennzahlen.** Kein Titel mehr. Live stehen dort „X aktive Nutzer“ und
+   „Y aktive Anzeigen“; darunter die drei beliebtesten Fächer als kleine
+   Pillen (`analytics.php?action=popular_subjects`, mit Standardliste
+   aufgefüllt). Ohne Live-Daten bleibt der ehrliche Fakten-Fallback.
+4. **App-Rundgang.** Wieder die alten Texte: „Entdecken & Filtern“, „Chat“,
+   „Profil und Einstellungen“ — Geräte und Pastellbühnen unverändert.
+5. **Bewegung.** Trust-Icons, Eltern-Kacheln, Funktionswunsch, Geräte und
+   Schritt-Kreise animieren beim Hover wie auf der alten Seite; respektiert
+   `motion-safe`.
+
+Belege: `revision3/r3-{375,768,1280,1920}.png` (ganze Seite),
+`r3-trust-live.png` (Live-Kennzahlen mit der echten API-Antwort simuliert),
+`r3-trust.png` (Fakten-Fallback), `r3-hero.png`, `r3-hero-375.png`,
+`r3-steps.png`, `r3-steps-hover.png`, `r3-steps-375.png`, `r3-app.png`,
+`r3-eltern.png`, `r3-eltern-hover.png`, `r3-coaching.png`, `r3-faq.png`.
+Detektor über beide geänderten Dateien: `[]`. TypeScript, ESLint und
+Produktions-Build laufen ohne Fehler.

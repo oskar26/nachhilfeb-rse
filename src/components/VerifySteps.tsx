@@ -69,21 +69,22 @@ export default function VerifySteps({ tone = 'du', variant = 'rows' }: VerifySte
     if (variant === 'timeline') {
         return (
             <ol className="relative grid gap-8 sm:grid-cols-3 sm:gap-6">
-                {/* Eine durchgehende Linie über die volle Breite — nicht drei Stummel. */}
+                {/* Eine Linie von der Mitte des ersten bis zur Mitte des letzten
+                    Kreises — der Weg beginnt und endet sichtbar an einem Schritt. */}
                 <m.span
                     aria-hidden
                     initial={reduceMotion ? false : { scaleX: 0 }}
                     whileInView={{ scaleX: 1 }}
                     viewport={{ once: true, margin: '-60px' }}
                     transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                    className="absolute left-0 right-0 top-6 hidden h-0.5 origin-left bg-pastel-mint-foreground/30 sm:block"
+                    className="absolute left-6 top-6 hidden h-0.5 w-[calc(66.667%+1rem)] origin-left bg-pastel-mint-foreground/30 sm:block"
                 />
                 {steps.map((s, i) => (
-                    <m.li key={s.title} {...stepAnim(i)} className="relative pl-16 sm:pl-0">
+                    <m.li key={s.title} {...stepAnim(i)} className="group relative pl-16 sm:pl-0">
                         {i < steps.length - 1 && (
                             <span aria-hidden className="absolute left-6 top-6 h-[calc(100%+2rem)] w-0.5 bg-pastel-mint-foreground/30 sm:hidden" />
                         )}
-                        <span className="relative z-10 grid size-12 place-items-center rounded-full bg-card text-pastel-mint-foreground ring-4 ring-pastel-mint" aria-hidden>
+                        <span className="relative z-10 grid size-12 place-items-center rounded-full bg-card text-pastel-mint-foreground ring-4 ring-pastel-mint motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out motion-safe:group-hover:-rotate-6 motion-safe:group-hover:scale-110" aria-hidden>
                             <s.icon size={21} strokeWidth={2} />
                         </span>
                         <p className="mt-4 text-base font-bold text-pastel-mint-foreground">{s.title}</p>

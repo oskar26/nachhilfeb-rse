@@ -20,6 +20,7 @@ import VerifySteps from '../components/VerifySteps';
 import { Logo } from '../components/ui/Logo';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
+import { SubjectChip, subjectLabelMap, type Subject } from '../components/SubjectChip';
 import { buttonVariants } from '../components/ui/button';
 import { DeviceFrame } from '../components/site/DeviceFrame';
 import { Reveal } from '../components/site/Reveal';
@@ -31,10 +32,19 @@ import feedShot from '../assets/screens/v2-laptop-feed.webp';
 
 const TRUST = [
     { icon: BadgeCheck, label: 'SV-verifiziert' },
-    { icon: Users, label: 'Nur für das FWG' },
-    { icon: Lock, label: 'Keine Zahlungen' },
+    { icon: Users, label: 'Nur FWG Köln' },
     { icon: ShieldCheck, label: 'Server in Deutschland' },
+    { icon: Lock, label: 'Nutzung kostenlos' },
 ];
+
+/* Gleiche Reihenfolge wie im Feed; wird durch echte Klicks ersetzt, sobald
+   genug Daten vorliegen. Es werden immer nur die ersten drei gezeigt. */
+const POPULAR_FALLBACK: Subject[] = ['mathematik', 'deutsch', 'englisch'];
+
+/* Ein Piktogramm reagiert auf die Gruppe seiner Karte: kippt an, wird größer
+   und federt über die Tailwind-Dauer zurück. Respektiert reduzierte Bewegung. */
+const ICON_REACT_CLASS =
+    'motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out motion-safe:group-hover:-rotate-6 motion-safe:group-hover:scale-110';
 
 const FAQ = [
     {
@@ -79,6 +89,7 @@ export default function Landing() {
     const location = useLocation();
     const [isFeatureOpen, setIsFeatureOpen] = useState(false);
     const [liveStats, setLiveStats] = useState<{ activeAds: number | null; users: number | null } | null>(null);
+    const [popularSubjects, setPopularSubjects] = useState<Subject[]>(POPULAR_FALLBACK);
 
     // Live-Kennzahlen sind optional: ohne verwertbare Antwort bleibt die Seite vollständig.
     useEffect(() => {
@@ -96,14 +107,31 @@ export default function Landing() {
         return () => { cancelled = true; };
     }, []);
 
+    // Drei beliebteste Fächer: echte Klickzahlen zuerst, danach die
+    // Standardliste auffüllen, damit die Reihe immer vollständig ist.
+    useEffect(() => {
+        let cancelled = false;
+        api.analytics.popularSubjects()
+            .then(({ data, error }) => {
+                if (cancelled || error || !data) return;
+                const ranked = (((data as { subjects?: unknown }).subjects ?? []) as string[])
+                    .filter((s): s is Subject => s in subjectLabelMap);
+                const list = [...new Set([...ranked, ...POPULAR_FALLBACK])].slice(0, 3);
+                if (list.length === 0) return;
+                setPopularSubjects(list);
+            })
+            .catch(() => { /* Fallback-Liste bleibt. */ });
+        return () => { cancelled = true; };
+    }, []);
+
     const registerZiel = user ? '/' : '/login?mode=register';
     const loginZiel = user ? '/' : '/login';
     const bietZiel = user ? '/create-ad' : '/login';
 
     const stats = liveStats
         ? [
-            ...(liveStats.activeAds !== null ? [{ value: liveStats.activeAds, label: 'Aktive Anzeigen', tone: 'bg-pastel-yellow text-pastel-yellow-foreground' }] : []),
-            ...(liveStats.users !== null ? [{ value: liveStats.users, label: 'Nutzer:innen', tone: 'bg-pastel-mint text-pastel-mint-foreground' }] : []),
+            ...(liveStats.users !== null ? [{ value: liveStats.users, label: 'aktive Nutzer', tone: 'bg-pastel-mint text-pastel-mint-foreground' }] : []),
+            ...(liveStats.activeAds !== null ? [{ value: liveStats.activeAds, label: 'aktive Anzeigen', tone: 'bg-pastel-yellow text-pastel-yellow-foreground' }] : []),
         ]
         : [];
 
@@ -131,12 +159,6 @@ export default function Landing() {
         return () => window.cancelAnimationFrame(frame);
     }, [location.key, location.pathname, location.state]);
 
-    const zuAbschnitt = (id: string) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
-    };
-
     return (
         <main className="min-h-dvh overflow-x-clip bg-background font-sans text-foreground">
             {/* Skip-Link als Scroll-Button: reines href="#inhalt" wäre unter HashRouter eine 404-Route. */}
@@ -163,10 +185,10 @@ export default function Landing() {
                             <Reveal>
                                 <div className="min-w-0">
                                     <h1 className="max-w-[15ch] text-[2.6rem] font-extrabold leading-[1.02] tracking-[-0.045em] sm:text-[3.6rem] lg:text-[4.1rem]">
-                                        Nachhilfe, die am FWG bleibt.
+                                        Finde Nachhilfe. Direkt am FWG.
                                     </h1>
                                     <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:mt-6 sm:text-lg">
-                                        Von Schüler:innen für Schüler:innen: verifizierte Konten, faire Preise und Kontakt direkt in der App. Für alle Klassen am Friedrich-Wilhelm-Gymnasium.
+                                        Nachhilfe in Mathematik, Englisch und weiteren Fächern, direkt unter Mitschülerinnen und Mitschülern. Jede Anzeige stammt von einem verifizierten Konto.
                                     </p>
                                     <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                                         <Link
@@ -176,23 +198,22 @@ export default function Landing() {
                                             {user ? 'Anzeigen ansehen' : 'Kostenlos registrieren'}
                                             <ArrowRight aria-hidden className="motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" />
                                         </Link>
-                                        <button
-                                            type="button"
-                                            onClick={() => zuAbschnitt('so-funktioniert-es')}
-                                            className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'w-full sm:w-auto')}
+                                        <Link
+                                            to="/eltern-leitfaden"
+                                            className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'w-full motion-safe:hover:-translate-y-0.5 sm:w-auto')}
                                         >
-                                            So funktioniert’s
-                                        </button>
+                                            Eltern-Leitfaden
+                                        </Link>
                                     </div>
                                     {!user && (
                                         <p className="mt-3 text-[13px] font-medium leading-relaxed text-muted-foreground">
-                                            Konto anlegen, im SV-Raum verifizieren, loslegen.
+                                            Konto erstellen → im SV-Raum verifizieren → loslegen.
                                         </p>
                                     )}
                                     <ul className="mt-8 grid max-w-sm grid-cols-2 gap-x-4 gap-y-2.5" aria-label="Vertrauen auf einen Blick">
                                         {TRUST.map((t) => (
-                                            <li key={t.label} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-muted-foreground">
-                                                <t.icon size={16} className="text-foreground" aria-hidden />
+                                            <li key={t.label} className="group inline-flex items-center gap-1.5 text-[13px] font-semibold text-muted-foreground">
+                                                <t.icon size={16} className={cn('text-foreground', ICON_REACT_CLASS)} aria-hidden />
                                                 {t.label}
                                             </li>
                                         ))}
@@ -202,13 +223,13 @@ export default function Landing() {
 
                             <Reveal delay={90}>
                                 <div className="mx-auto w-full max-w-[620px] px-2 sm:px-0">
-                                    <div className="relative">
+                                    <div className="group relative">
                                         <DeviceFrame
                                             kind="laptop"
                                             src={feedShot}
                                             alt="Anzeigenübersicht der Nachhilfebörse am Laptop"
                                             priority
-                                            className="relative z-10 w-full"
+                                            className="relative z-10 w-full motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-out motion-safe:group-hover:-translate-y-1"
                                         />
                                     </div>
                                     <p className="mt-4 flex items-center justify-center gap-2 text-xs font-medium text-muted-foreground sm:mt-6 sm:justify-start sm:pl-1">
@@ -244,34 +265,39 @@ export default function Landing() {
                                 </div>
 
                                 <div className="rounded-panel border border-border bg-card p-6 shadow-soft sm:p-8">
-                                    <h3 className="text-sm font-bold text-muted-foreground">Die Börse in Zahlen</h3>
                                     {stats.length > 0 ? (
                                         <>
-                                            <dl className="mt-4 grid grid-cols-2 gap-3">
+                                            <dl className="grid grid-cols-2 gap-3">
                                                 {stats.map((s) => (
-                                                    <div key={s.label} className={cn('rounded-card px-4 py-5', s.tone)}>
-                                                        <dt className="text-xs font-semibold leading-snug">{s.label}</dt>
-                                                        <dd className="mt-2 text-[2rem] font-extrabold leading-none tabular-nums">{s.value.toLocaleString('de-DE')}</dd>
+                                                    <div key={s.label} className={cn('flex flex-col-reverse rounded-card px-4 py-5', s.tone)}>
+                                                        <dt className="mt-2 text-xs font-semibold leading-snug">{s.label}</dt>
+                                                        <dd className="text-[2rem] font-extrabold leading-none tabular-nums">{s.value.toLocaleString('de-DE')}</dd>
                                                     </div>
                                                 ))}
                                             </dl>
-                                            <p className="mt-4 text-xs leading-relaxed text-muted-foreground">Live aus der Börse, ohne Namen und ohne Profile.</p>
+                                            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">Live aus der Börse, ohne Namen und ohne Profile.</p>
                                         </>
                                     ) : (
                                         <>
-                                            <dl className="mt-4 grid grid-cols-2 gap-3">
-                                                <div className="rounded-card bg-pastel-yellow px-4 py-5 text-pastel-yellow-foreground">
-                                                    <dt className="text-xs font-semibold leading-snug">Alle Klassen</dt>
-                                                    <dd className="mt-2 text-[2rem] font-extrabold leading-none">5–13</dd>
+                                            <dl className="grid grid-cols-2 gap-3">
+                                                <div className="flex flex-col-reverse rounded-card bg-pastel-mint px-4 py-5 text-pastel-mint-foreground">
+                                                    <dt className="mt-2 text-xs font-semibold leading-snug">Klassen</dt>
+                                                    <dd className="text-[2rem] font-extrabold leading-none">5–13</dd>
                                                 </div>
-                                                <div className="rounded-card bg-pastel-mint px-4 py-5 text-pastel-mint-foreground">
-                                                    <dt className="text-xs font-semibold leading-snug">Kosten</dt>
-                                                    <dd className="mt-2 text-[2rem] font-extrabold leading-none">0 €</dd>
+                                                <div className="flex flex-col-reverse rounded-card bg-pastel-yellow px-4 py-5 text-pastel-yellow-foreground">
+                                                    <dt className="mt-2 text-xs font-semibold leading-snug">Kosten</dt>
+                                                    <dd className="text-[2rem] font-extrabold leading-none">0 €</dd>
                                                 </div>
                                             </dl>
-                                            <p className="mt-4 text-xs leading-relaxed text-muted-foreground">Kostenlos für alle am FWG. Keine Zahlung über die App.</p>
+                                            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">Kostenlos für alle am FWG. Keine Zahlung über die App.</p>
                                         </>
                                     )}
+                                    <p className="mt-5 text-xs font-semibold text-muted-foreground">Beliebteste Fächer</p>
+                                    <ul className="mt-2.5 flex flex-wrap gap-2" aria-label="Beliebteste Fächer">
+                                        {popularSubjects.map((s) => (
+                                            <li key={s}><SubjectChip subject={s} /></li>
+                                        ))}
+                                    </ul>
                                 </div>
                             </div>
                         </Reveal>
@@ -331,8 +357,8 @@ export default function Landing() {
                         <div className="mt-12 space-y-16 sm:mt-16 sm:space-y-24">
                             {[
                                 {
-                                    title: 'Alle Anzeigen an einem Ort',
-                                    text: 'Nach Fach, Klasse und Preis filtern, passende Angebote auf die Merkliste legen. Jede Anzeige kommt von einem verifizierten Konto.',
+                                    title: 'Entdecken & Filtern',
+                                    text: 'Filtere nach Fach, Klasse und Preis. Die Übersicht zeigt dir auf einen Blick, wer zu deiner Klasse passt.',
                                     device: 'laptop' as const,
                                     src: feedShot,
                                     alt: 'Desktop-Ansicht „Aktuelle Anzeigen“ mit Filtern und Anzeigenkarten',
@@ -340,8 +366,8 @@ export default function Landing() {
                                     deviceClass: 'w-full max-w-[600px]',
                                 },
                                 {
-                                    title: 'Chat, ohne Nummerntausch',
-                                    text: 'Du schreibst zuerst in der App. Telefonnummer und Moodle-Name werden erst sichtbar, wenn du eine Anfrage annimmst.',
+                                    title: 'Chat',
+                                    text: 'Kontakt über die App, sobald eine Anfrage angenommen ist. Telefonnummer und Moodle-Name sehen andere erst, wenn du eine Anfrage annimmst.',
                                     device: 'phone' as const,
                                     src: phoneChatShot,
                                     alt: 'Chat-Ansicht auf dem Handy mit Nachrichten und Eingabeleiste',
@@ -350,7 +376,7 @@ export default function Landing() {
                                 },
                                 {
                                     title: 'Profil und Einstellungen',
-                                    text: 'Fächer, Klasse, Beschreibung und Verfügbarkeit. Du entscheidest, welche Kontaktdaten andere sehen.',
+                                    text: 'Profilbild und ausführliche Beschreibung. Beschreibe deine Fächer und deine Erfahrung. Du entscheidest, welche Kontaktdaten sichtbar sind.',
                                     device: 'tablet' as const,
                                     src: tabletSettingsShot,
                                     alt: 'Tablet-Ansicht der Einstellungen mit Erscheinungsbild, Benachrichtigungen und Datenschutz',
@@ -371,8 +397,13 @@ export default function Landing() {
                                                 <ArrowRight size={16} aria-hidden className="motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" />
                                             </Link>
                                         </div>
-                                        <div className={cn('rounded-panel p-5 shadow-soft sm:p-8', row.tone)}>
-                                            <DeviceFrame kind={row.device} src={row.src} alt={row.alt} className={row.deviceClass} />
+                                        <div className={cn('group rounded-panel p-5 shadow-soft sm:p-8', row.tone)}>
+                                            <DeviceFrame
+                                                kind={row.device}
+                                                src={row.src}
+                                                alt={row.alt}
+                                                className={cn(row.deviceClass, 'motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-out motion-safe:group-hover:-translate-y-1')}
+                                            />
                                         </div>
                                     </div>
                                 </Reveal>
@@ -480,9 +511,15 @@ export default function Landing() {
                                     { icon: Shield, t: 'Kontaktdaten bleiben geschützt', d: 'Telefonnummer und Moodle-Name werden erst nach einer angenommenen Anfrage sichtbar.', tone: 'bg-pastel-yellow text-pastel-yellow-foreground' },
                                     { icon: Mail, t: 'Melden und nachfragen', d: 'Jede Anzeige und jedes Profil lässt sich melden. Das SV-Team ist unter info@nachhilfe-sv.de erreichbar.', tone: 'bg-pastel-rose text-pastel-rose-foreground' },
                                 ].map((p) => (
-                                    <div key={p.t} className={cn('rounded-panel p-6', p.tone)}>
+                                    <div
+                                        key={p.t}
+                                        className={cn(
+                                            'group rounded-panel p-6 shadow-soft motion-safe:transition-transform motion-safe:duration-300 motion-safe:hover:-translate-y-1',
+                                            p.tone,
+                                        )}
+                                    >
                                         <dt className="flex items-center gap-2.5 text-lg font-extrabold tracking-tight">
-                                            <p.icon size={22} className="shrink-0" aria-hidden />
+                                            <p.icon size={22} className={cn('shrink-0', ICON_REACT_CLASS)} aria-hidden />
                                             {p.t}
                                         </dt>
                                         <dd className="mt-2 text-pretty text-sm leading-relaxed">{p.d}</dd>
@@ -497,8 +534,8 @@ export default function Landing() {
                                     Eltern-Leitfaden lesen
                                     <ArrowRight size={16} aria-hidden className="motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" />
                                 </Link>
-                                <a href="mailto:info@nachhilfe-sv.de?subject=Frage%20als%20Elternteil" className={cn(buttonVariants({ variant: 'outline' }), 'w-full sm:w-auto')}>
-                                    <Mail size={16} aria-hidden />
+                                <a href="mailto:info@nachhilfe-sv.de?subject=Frage%20als%20Elternteil" className={cn(buttonVariants({ variant: 'outline' }), 'group w-full sm:w-auto')}>
+                                    <Mail size={16} aria-hidden className={ICON_REACT_CLASS} />
                                     E-Mail an das SV-Team
                                 </a>
                             </div>
@@ -550,10 +587,10 @@ export default function Landing() {
                 <section id="funktionswunsch" className="scroll-mt-24 bg-background">
                     <div className="mx-auto max-w-site px-4 pb-16 sm:px-6 sm:pb-24">
                         <Reveal>
-                            <div className="flex flex-col gap-5 rounded-panel border border-border bg-card p-6 shadow-soft sm:flex-row sm:items-center sm:justify-between sm:p-8">
+                            <div className="group flex flex-col gap-5 rounded-panel border border-border bg-card p-6 shadow-soft motion-safe:transition-transform motion-safe:duration-300 motion-safe:hover:-translate-y-1 sm:flex-row sm:items-center sm:justify-between sm:p-8">
                                 <div className="flex items-start gap-4">
                                     <span className="grid size-12 shrink-0 place-items-center rounded-full bg-pastel-yellow text-pastel-yellow-foreground" aria-hidden>
-                                        <Lightbulb size={22} />
+                                        <Lightbulb size={22} className={ICON_REACT_CLASS} />
                                     </span>
                                     <div>
                                         <h2 className="text-xl font-extrabold tracking-tight sm:text-2xl">Etwas fehlt?</h2>
@@ -596,9 +633,9 @@ export default function Landing() {
                                     </p>
                                     <a
                                         href="mailto:info@nachhilfe-sv.de?subject=Frage%20zur%20Nachhilfeb%C3%B6rse"
-                                        className={cn(buttonVariants({ variant: 'outline' }), 'mt-6')}
+                                        className={cn(buttonVariants({ variant: 'outline' }), 'group mt-6')}
                                     >
-                                        <Mail size={16} aria-hidden />
+                                        <Mail size={16} aria-hidden className={ICON_REACT_CLASS} />
                                         Frage stellen
                                     </a>
                                     <p className="mt-2 text-[13px] text-muted-foreground">Deine Frage ist nicht dabei? Schreib dem SV-Team.</p>
