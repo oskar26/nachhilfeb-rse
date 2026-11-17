@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="340" viewBox="0 0 1200 340" role="img" aria-labelledby="title desc">
+  <title id="title">FWG Nachhilfebörse</title>
+  <desc id="desc">Nachhilfe suchen. Nachhilfe geben. Direkt am FWG. Version 0.9.0-rc.1, Pre-Release.</desc>
+  <defs>
+    <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.4" fill="#171717" opacity=".08"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="340" fill="#FACC15"/>
+  <rect width="1200" height="340" fill="url(#dots)"/>
+  <text x="72" y="78" fill="#171717" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="700" letter-spacing="2.6">SCHÜLERVERTRETUNG · FRIEDRICH-WILHELM-GYMNASIUM KÖLN</text>
+  <text x="72" y="166" fill="#171717" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="62" font-weight="900" letter-spacing="-2.2">FWG Nachhilfebörse</text>
+  <text x="72" y="214" fill="#171717" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="24" font-weight="600">Nachhilfe suchen. Nachhilfe geben. Direkt am FWG.</text>
+  <rect x="72" y="248" width="252" height="36" rx="18" fill="#171717"/>
+  <text x="90" y="272" fill="#FACC15" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15" font-weight="700">0.9.0-rc.1 · Pre-Release</text>
+  <rect x="880" y="54" width="260" height="232" rx="28" fill="#171717"/>
+  <text x="910" y="106" fill="#FACC15" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" font-weight="700" letter-spacing="2.2">FWG · SV</text>
+  <text x="910" y="168" fill="#FFFFFF" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="36" font-weight="800" letter-spacing="-1">Nachhilfe</text>
+  <text x="910" y="204" fill="#FACC15" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="21" font-weight="700">Mathe · Englisch</text>
+  <rect x="910" y="226" width="120" height="30" rx="15" fill="#FACC15"/>
+  <text x="926" y="246" fill="#171717" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" font-weight="700">verifiziert</text>
+  <text x="910" y="274" fill="#A1A1AA" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="12" font-weight="600">Friedrich-Wilhelm-Gymnasium</text>
+</svg>
