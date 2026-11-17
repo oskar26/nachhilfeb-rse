@@ -71,28 +71,41 @@ jobs:
             uploads/ads/*.WEBP
             uploads/ads/*.GIF
 
-      - name: 🧰 Install lftp for docs
-        run: sudo apt-get update && sudo apt-get install -y lftp
-
-      - name: 📚 Deploy docs via FTPS (optional)
-        continue-on-error: true
-        env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          FTP_DOCS_DIR: ${{ steps.ftp-path.outputs.docs }}
+      - name: 🗂️ Split docs for two uploads
         run: |
-          lftp -c "
-            set ftp:ssl-allow yes;
-            set ftp:ssl-force yes;
-            set ftp:ssl-protect-data no;
-            set ssl:verify-certificate no;
-            set ftp:passive-mode yes;
-            set ftp:prefer-epsv yes;
-            set net:timeout 30;
-            set net:max-retries 3;
-            set net:reconnect-interval-base 5;
-            open -u \"$FTP_USERNAME\",\"$FTP_PASSWORD\" \"ftps://$FTP_SERVER:21\";
-            mirror -R --delete --verbose --parallel=1 ./dist/docs/ \"$FTP_DOCS_DIR\";
-            bye
-          "
+          mkdir -p dist/docs-assets dist/docs-rest
+          cp -R dist/docs/assets dist/docs-assets/
+          cp -R dist/docs/fonts dist/docs-assets/
+          rsync -a --exclude assets --exclude fonts dist/docs/ dist/docs-rest/
+
+      - name: 📦 Deploy docs assets via FTPS (optional)
+        continue-on-error: true
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+          local-dir: ./dist/docs-assets/
+          server-dir: ${{ steps.ftp-path.outputs.docs }}
+          dangerous-clean-slate: false
+          security: loose
+          timeout: 300000
+          state-name: .ftp-deploy-sync-state-docs-assets.json
+
+      - name: 📚 Deploy docs pages via FTPS (optional)
+        continue-on-error: true
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+          local-dir: ./dist/docs-rest/
+          server-dir: ${{ steps.ftp-path.outputs.docs }}
+          dangerous-clean-slate: false
+          security: loose
+          timeout: 300000
+          state-name: .ftp-deploy-sync-state-docs-rest.json
