@@ -420,7 +420,7 @@ export default function Login() {
                         {...(reduceMotion ? {} : { initial: { opacity: 0, y: DISTANCE.enter }, animate: { opacity: 1, y: 0 }, transition: { ...PAGE_ENTER, delay: 0.2 } })}
                         className="mb-8 text-lg font-normal leading-relaxed text-muted-foreground"
                     >
-                        Finde Nachhilfe oder biete dein Wissen an. Für Schülerinnen und Schüler des Friedrich-Wilhelm-Gymnasiums. Eltern nutzen das Konto ihres Kindes mit.
+                        Finde Nachhilfe oder biete dein Wissen an. Für Schülerinnen und Schüler des Friedrich-Wilhelm-Gymnasiums. Eltern können das Konto ihres Kindes mitnutzen.
                     </m.p>
 
                     <m.div

@@ -42,7 +42,7 @@ export default function ParentGuide() {
     return (
         <StaticLayout
             title="Leitfaden für Eltern"
-            intro="Ein Konto pro Kind – gemeinsam betreut, selbstständig genutzt oder als Elternkonto geführt, wenn noch keine eigene E-Mail-Adresse da ist. Hier steht, wie das geht und was die Börse für Sicherheit tut."
+            intro="Ein Konto pro Kind. Je nach Alter wird es gemeinsam betreut, selbstständig genutzt oder mit der E-Mail-Adresse der Eltern geführt. Hier steht, wie das geht und was die Börse für Sicherheit tut."
         >
             <div className="mx-auto flex min-w-0 max-w-4xl flex-col gap-10 px-4 pb-16 sm:gap-12 sm:px-6">
 
@@ -99,7 +99,7 @@ export default function ParentGuide() {
                             ca. 12 € pro 45 Minuten
                         </p>
                         <p className="mt-2 max-w-prose text-sm leading-relaxed text-muted-foreground">
-                            Das entspricht ca. 16 € pro Stunde. Der Preis ist individuell anpassbar. Die Nachhilfe wird privat bezahlt – die Börse ist kein Zahlungsdienstleister und nimmt keine Provision.
+                            Das entspricht ca. 16 € pro Stunde. Der Preis ist individuell anpassbar. Die Nachhilfe wird privat bezahlt. Die Börse vermittelt den Kontakt und nimmt keine Provision.
                         </p>
                     </div>
                 </m.section>
@@ -119,7 +119,7 @@ export default function ParentGuide() {
                         </h2>
                     </div>
                     <p className="mt-5 max-w-prose text-base leading-7 text-muted-foreground">
-                        Die Börse läuft über das Konto Ihres Kindes – oder über Ihr Elternkonto, wenn Ihr Kind noch keine eigene E-Mail-Adresse hat. Wie viel Begleitung Ihr Kind braucht,
+                        Die Börse läuft über das Konto Ihres Kindes. Wenn Ihr Kind noch keine eigene E-Mail-Adresse hat, führen Sie das Konto mit Ihrer E-Mail-Adresse. Wie viel Begleitung Ihr Kind braucht,
                         entscheiden Sie gemeinsam:
                     </p>
                     <ul className="mt-5">
@@ -153,7 +153,7 @@ export default function ParentGuide() {
                             <BadgeCheck size={24} />
                         </span>
                         <h2 id="eltern-awareness" className="min-w-0 break-words text-2xl tracking-tight sm:text-3xl">
-                            Awareness &amp; Kontakt
+                            Meldungen &amp; Kontakt
                         </h2>
                     </div>
                     <ul className="mt-5">
@@ -167,10 +167,10 @@ export default function ParentGuide() {
                             <strong className="text-foreground">Konsequenz:</strong> Verwarnung oder sofortige Sperrung bei Verstößen.
                         </CheckRow>
                         <CheckRow>
-                            <strong className="text-foreground">Keine Zahlungen über die Börse:</strong> Die Nachhilfebörse ist kein Zahlungsdienstleister, wickelt keine Zahlungen ab und behält keine Provision ein. Vergütung und Umfang vereinbaren Sie direkt mit der Anbieter-Familie. Wir verdienen nichts an der Nachhilfe.
+                            <strong className="text-foreground">Zahlungen laufen direkt:</strong> Vergütung und Umfang vereinbaren Sie mit der Anbieter-Familie. Die Börse vermittelt den Kontakt und nimmt keine Provision.
                         </CheckRow>
                         <CheckRow>
-                            <strong className="text-foreground">Primär-Kontakt:</strong>{' '}
+                            <strong className="text-foreground">Kontakt:</strong>{' '}
                             <a href="mailto:info@nachhilfe-sv.de" className="break-anywhere font-semibold text-foreground hover:underline">info@nachhilfe-sv.de</a>
                             {'. Fragen und Hilfe rund um die Börse.'}
                         </CheckRow>

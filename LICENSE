@@ -1,0 +1,51 @@
+# FWG Nachhilfebörse – Quellcode-Lizenz (Source-Available)
+
+Copyright (c) 2025–2026 FWG Nachhilfebörse (oskar26). Alle Rechte vorbehalten.
+
+Dies ist **keine Open-Source-Lizenz im Sinne der OSI**. Der Quellcode ist öffentlich einsehbar, aber die Nutzung ist eingeschränkt. Mit dem Klonen, Herunterladen oder Ausführen des Codes erklärst du dich mit diesen Bedingungen einverstanden.
+
+## 1. Erlaubt
+
+- Den Quellcode ansehen, lesen und klonen.
+- Den Quellcode lokal und ausschließlich für **private, nicht-kommerzielle Tests und zur Bewertung** ausführen.
+- Einen Fork auf GitHub für diese privaten Tests anlegen, solange dieser Lizenztext und alle Urheberrechtshinweise erhalten bleiben.
+
+## 2. Nicht erlaubt ohne vorherige schriftliche Erlaubnis
+
+- Den Quellcode oder Teile davon **kommerziell** nutzen, betreiben, verkaufen oder in ein kommerzielles Produkt integrieren.
+- Die Anwendung produktiv betreiben, öffentlich bereitstellen oder als Dienst anbieten.
+- Den Quellcode an **anderen Schulen, Bildungseinrichtungen, Vereinen oder Organisationen** einsetzen.
+- Den Quellcode verändern, verbreiten, unterlizenzieren oder als eigenes Projekt veröffentlichen.
+- Forks produktiv einsetzen oder öffentlich zugänglich machen.
+
+## 3. Anfragen
+
+Andere Schulen, Institutionen und kommerzielle Interessenten müssen vorher schriftlich anfragen:
+
+**technik@nachhilfe-sv.de**
+
+Wir entscheiden individuell. Eine kostenlose, nicht-exklusive Freigabe für einen konkreten schulischen Einsatz ist möglich. Anfragen sollten beschreiben, wer die Anwendung nutzt, in welchem Umfang und für welchen Zeitraum.
+
+## 4. Warum diese Regel?
+
+Hinter der Börse stehen **mehrere tausend Stunden Arbeit**, viel Zeit, Geld und Schweiß. Der Code soll einsehbar sein, und private Tests sollen kostenlos bleiben. Wer die Börse darüber hinaus nutzt, soll fairerweise fragen. Das ist keine Bürokratie, sondern Respekt vor der Arbeit.
+
+## 5. Keine Gewährleistung
+
+Der Quellcode wird **„wie besehen“** bereitgestellt. Es gibt keine Garantie für Funktionsfähigkeit, Sicherheit, Verfügbarkeit oder Eignung für einen bestimmten Zweck. Die Nutzung erfolgt auf eigenes Risiko. Soweit gesetzlich zulässig, haftet das Projekt nicht für Schäden, die aus der Nutzung des Codes entstehen.
+
+## 6. Marke und Inhalte
+
+Diese Lizenz gewährt keine Rechte an Namen, Logo, Screenshots, Texten oder sonstigen Inhalten der FWG Nachhilfebörse. Diese bleiben bei den jeweiligen Rechteinhaber:innen. Eine Nutzung des Namens oder Logos für eigene Angebote ist ohne Freigabe nicht erlaubt.
+
+## 7. Beiträge
+
+Wer einen Pull Request oder eine andere Änderung einreicht, räumt dem Projekt ein dauerhaftes, nicht-exklusives, weltweites Recht ein, den Beitrag zu nutzen, zu ändern und zu verbreiten. Der Beitrag muss frei von Rechten Dritter sein.
+
+## 8. Schlussbestimmungen
+
+Sollte eine Bestimmung dieser Lizenz unwirksam sein, bleiben die übrigen Bestimmungen gültig. Es gilt deutsches Recht. Gerichtsstand ist, soweit gesetzlich zulässig, Köln.
+
+---
+
+**Kurz gesagt:** Code ansehen und privat testen: ja. Kommerziell nutzen oder an einer anderen Schule einsetzen: vorher fragen. Danke.

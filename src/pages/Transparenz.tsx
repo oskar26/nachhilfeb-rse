@@ -6,7 +6,7 @@ export default function Transparenz() {
     return (
         <StaticLayout
             title="Transparenz"
-            intro="Wie diese Plattform entstanden ist · Open Source · KI-gestützte Entwicklung · Stand: Oktober 2026."
+            intro="Wie diese Plattform entstanden ist · Quellcode einsehbar · KI-gestützte Entwicklung · Stand: November 2026."
         >
             <div className="mx-auto max-w-3xl space-y-6 px-4 pb-16 sm:px-6">
                 <section aria-labelledby="trans-kurz" className="space-y-3 rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
@@ -15,11 +15,11 @@ export default function Transparenz() {
                         <p>
                             Die FWG-Nachhilfebörse ist ein <strong>nicht-kommerzielles Schülerprojekt</strong> der SV.
                             Ein großer Teil des Codes und der Texte wurde <strong>mit Hilfe von KI erstellt</strong> –
-                            durch sogenanntes <strong>agentisches Coding</strong>. Das ist kein Geheimnis, sondern
-                            wird hier offengelegt, damit du weißt, womit du es zu tun hast.
+                            durch sogenanntes <strong>agentisches Coding</strong>. Wir legen es hier offen,
+                            damit du weißt, womit du es zu tun hast.
                         </p>
                         <p>
-                            Die Anwendung ist <strong>Open Source</strong> und liegt öffentlich auf GitHub:
+                            Der Quellcode liegt öffentlich auf GitHub und ist <strong>einsehbar</strong>:
                             {' '}
                             <a
                                 href="https://github.com/oskar26/nachhilfeb-rse"
@@ -31,9 +31,8 @@ export default function Transparenz() {
                             </a>
                         </p>
                         <p>
-                            Die Plattform ist kostenlos und nicht-kommerziell. Sie ist <strong>kein Zahlungsdienstleister</strong>,
-                            wickelt keine Zahlungen ab, nimmt keine Provision und verdient nichts an der Nachhilfe.
-                            Die Bezahlung der Nachhilfe erfolgt privat zwischen den Beteiligten.
+                            Die Plattform ist kostenlos und nicht-kommerziell. Die Bezahlung der Nachhilfe erfolgt privat
+                            zwischen den Beteiligten; die Börse vermittelt den Kontakt und nimmt keine Provision.
                         </p>
                     </div>
                 </section>
@@ -44,16 +43,16 @@ export default function Transparenz() {
                         <li className="flex gap-3">
                             <Clock className="mt-1 shrink-0 text-foreground" size={20} aria-hidden="true" />
                             <span>
-                                <strong className="text-foreground">Seit Ende 2025</strong>, also <strong className="text-foreground">über zehn Monate</strong>,
+                                <strong className="text-foreground">Seit dem 7. November 2025</strong>, also <strong className="text-foreground">seit über einem Jahr</strong>,
                                 entsteht die Plattform in dieser Form. Der Aufwand beläuft sich auf
-                                <strong className="text-foreground"> mehrere hundert Stunden</strong> Arbeit, oft in langen Entwicklungsläufen
+                                <strong className="text-foreground">mehrere tausend Stunden</strong> Arbeit, oft in langen Entwicklungsläufen
                                 über viele Tage und Wochen.
                             </span>
                         </li>
                         <li className="flex gap-3">
                             <Code2 className="mt-1 shrink-0 text-foreground" size={20} aria-hidden="true" />
                             <span>
-                                <strong className="text-foreground">KI-Programme:</strong> KI-Programme schreiben, ändern und testen den Code;
+                                <strong className="text-foreground">KI im Entwicklungsprozess:</strong> KI-Programme schreiben, ändern und testen den Code;
                                 ein Mensch setzt Ziele, liest mit, verwirft und entscheidet. Features, Layout und
                                 Texte entstehen so im Dialog zwischen Mensch und Maschine.
                             </span>
@@ -62,20 +61,19 @@ export default function Transparenz() {
                             <Users className="mt-1 shrink-0 text-foreground" size={20} aria-hidden="true" />
                             <span>
                                 <strong className="text-foreground">Verantwortung bleibt beim SV-Team:</strong> Über Sicherheit, Datenschutz,
-                                Moderation und die Frage, was live geht, entscheiden Menschen. KI schreibt mit,
-                                haftet aber nicht und kann Fehler machen.
+                                Moderation und die Frage, was live geht, entscheiden Menschen. KI kann Fehler machen;
+                                deshalb prüfen und entscheiden Menschen.
                             </span>
                         </li>
                     </ul>
                 </section>
 
                 <section aria-labelledby="trans-os" className="space-y-3 rounded-xl border border-border bg-card p-6 text-card-foreground sm:p-8">
-                    <h2 id="trans-os" className="text-lg font-semibold text-foreground">Open Source</h2>
+                    <h2 id="trans-os" className="text-lg font-semibold text-foreground">Quellcode &amp; Lizenz</h2>
                     <div className="space-y-2 text-base leading-7 text-muted-foreground">
                         <p>
-                            Der gesamte Quellcode ist öffentlich einsehbar. Jeder kann ihn lesen, Fehler melden
-                            oder Verbesserungen vorschlagen, unabhängig davon, ob man sich auf der Plattform
-                            anmeldet.
+                            Der Quellcode ist öffentlich einsehbar. Du kannst ihn lesen, Fehler melden und Verbesserungen
+                            vorschlagen, auch ohne Konto.
                         </p>
                         <div className="flex flex-wrap items-center gap-3 pt-1">
                             <a
@@ -95,6 +93,22 @@ export default function Transparenz() {
                                 Fehler melden
                             </a>
                         </div>
+                        <p>
+                            Private, nicht-kommerzielle Tests sind kostenlos. Wenn du die Börse kommerziell nutzen
+                            oder an einer anderen Schule einsetzen willst, frag bitte vorher. Die Bedingungen stehen
+                            in der <a
+                                href="https://github.com/oskar26/nachhilfeb-rse/blob/main/LICENSE"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="break-anywhere font-semibold text-foreground hover:underline"
+                            >
+                                LICENSE-Datei
+                            </a>.
+                        </p>
+                        <p>
+                            Hinter dem Projekt stehen mehrere tausend Stunden Arbeit, viel Zeit, Geld und Schweiß.
+                            Deshalb ist die Anfrage Fairness, keine Bürokratie.
+                        </p>
                     </div>
                 </section>
 
@@ -112,7 +126,7 @@ export default function Transparenz() {
                         <p className="flex gap-3">
                             <ShieldCheck className="mt-0.5 shrink-0 text-foreground" size={20} aria-hidden="true" />
                             <span>
-                                Trotzdem: Bei KI-gestützter Entwicklung kann Unschärfe bleiben. Findest du einen
+                                Trotzdem: Bei KI-gestützter Entwicklung können Fehler bleiben. Findest du einen
                                 Fehler oder etwas Undurchsichtiges, schreib an{' '}
                                 <a href="mailto:technik@nachhilfe-sv.de" className="break-anywhere font-semibold text-foreground hover:underline">technik@nachhilfe-sv.de</a>{' '}
                                 oder öffne ein Issue auf GitHub. Wir prüfen das.

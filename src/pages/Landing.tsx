@@ -253,7 +253,7 @@ export default function Landing() {
                                         Ein Konto – allein oder mit Eltern.
                                     </h2>
                                     <p className="mt-3 max-w-xl text-base leading-relaxed text-pastel-blue-foreground">
-                                        In den Klassen 5 und 6 nutzen viele die Börse gemeinsam mit ihren Eltern. Wer noch keine eigene E-Mail-Adresse hat, nimmt die der Eltern. Bei unter 16-Jährigen bestätigen Eltern die Einwilligung per E-Mail – ein Konto, eine verifizierte Person.
+                                        In den Klassen 5 und 6 nutzen viele die Börse gemeinsam mit ihren Eltern. Wer noch keine eigene E-Mail-Adresse hat, nimmt die der Eltern. Bei unter 16-Jährigen bestätigen Eltern die Einwilligung per E-Mail. Ein Konto, eine verifizierte Person.
                                     </p>
                                     <Link
                                         to="/eltern-leitfaden"
@@ -358,7 +358,7 @@ export default function Landing() {
                             {[
                                 {
                                     title: 'Entdecken & Filtern',
-                                    text: 'Filtere nach Fach, Klasse und Preis. Die Übersicht zeigt dir auf einen Blick, wer zu deiner Klasse passt.',
+                                    text: 'Filtere nach Fach, Klasse und Preis. Die Übersicht zeigt dir, welche Anzeigen zu deiner Klasse passen.',
                                     device: 'laptop' as const,
                                     src: feedShot,
                                     alt: 'Desktop-Ansicht „Aktuelle Anzeigen“ mit Filtern und Anzeigenkarten',
@@ -376,7 +376,7 @@ export default function Landing() {
                                 },
                                 {
                                     title: 'Profil und Einstellungen',
-                                    text: 'Profilbild und ausführliche Beschreibung. Beschreibe deine Fächer und deine Erfahrung. Du entscheidest, welche Kontaktdaten sichtbar sind.',
+                                    text: 'Profilbild und eine ausführliche Beschreibung. Trag deine Fächer und deine Erfahrung ein. Du entscheidest, welche Kontaktdaten sichtbar sind.',
                                     device: 'tablet' as const,
                                     src: tabletSettingsShot,
                                     alt: 'Tablet-Ansicht der Einstellungen mit Erscheinungsbild, Benachrichtigungen und Datenschutz',
@@ -423,7 +423,7 @@ export default function Landing() {
                             {[
                                 {
                                     title: 'Ich suche Nachhilfe',
-                                    text: 'Finde jemanden, der dein Fach wirklich kann – und der an deiner Schule ist.',
+                                    text: 'Finde jemanden, der dein Fach kann und an deiner Schule ist.',
                                     points: ['Filter nach Fach, Klasse und Preis', 'Kontakt erst nach deiner Zusage', 'Merkliste für später'],
                                     cta: 'Anzeigen entdecken',
                                     to: registerZiel,
@@ -491,7 +491,7 @@ export default function Landing() {
                             <div className="max-w-2xl">
                                 <h2 className="text-[2rem] font-extrabold leading-[1.06] tracking-[-0.035em] sm:text-[2.75rem]">Für Eltern.</h2>
                                 <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                                    Ihr Kind nutzt sein eigenes Konto. In den Klassen 5 bis 7 empfehlen wir, gemeinsam mitzuschauen – wie eng, entscheiden Sie zusammen.
+                                    Ihr Kind nutzt sein Konto. Wenn es noch keine eigene E-Mail-Adresse hat, führen Sie es mit Ihrer E-Mail-Adresse. In den Klassen 5 bis 7 empfehlen wir, gemeinsam mitzuschauen. Wie eng, entscheiden Sie zusammen.
                                 </p>
                             </div>
                         </Reveal>
@@ -562,7 +562,7 @@ export default function Landing() {
                                         {[
                                             { t: 'Pädagogisch begleitet', d: 'Coaches lernen Lernmethoden und Arbeitsorganisation.' },
                                             { t: 'Offizielles Abzeichen', d: 'Das Coach-Abzeichen zeigt: geschult und vom SV-Team verifiziert.' },
-                                            { t: 'Fair und transparent', d: 'Richtwert 12 € pro 45 Minuten (16 €/h) – individuell anpassbar. Keine Provision.' },
+                                            { t: 'Fair und transparent', d: 'Richtwert 12 € pro 45 Minuten (16 €/h), individuell anpassbar. Die Plattform vermittelt den Kontakt und nimmt keine Provision.' },
                                         ].map((f) => (
                                             <div key={f.t} className="py-4">
                                                 <dt className="text-base font-bold">{f.t}</dt>
@@ -588,7 +588,7 @@ export default function Landing() {
                                     <div>
                                         <h2 className="text-xl font-extrabold tracking-tight sm:text-2xl">Etwas fehlt?</h2>
                                         <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-muted-foreground">
-                                            Wünsch dir eine Funktion für die Nachhilfebörse. Dein Wunsch landet direkt beim SV-Team – ohne Umwege.
+                                            Wünsch dir eine Funktion für die Nachhilfebörse. Dein Wunsch landet direkt beim SV-Team.
                                         </p>
                                     </div>
                                 </div>
@@ -771,7 +771,7 @@ export default function Landing() {
 
                         <div className="mt-10 flex flex-col justify-between gap-3 border-t border-border pt-6 text-xs sm:flex-row">
                             <p>© Schülervertretung Friedrich-Wilhelm-Gymnasium Köln {new Date().getFullYear()}.</p>
-                            <p>Kein Zahlungsdienstleister · keine Provision.</p>
+                            <p>Kontaktvermittlung ohne Provision.</p>
                         </div>
                     </div>
                 </footer>

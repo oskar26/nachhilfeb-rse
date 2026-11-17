@@ -88,8 +88,8 @@ in der Oberfläche.
 | Quellcode | ~37.200 Zeilen (TypeScript/React + PHP) |
 | Dateien | 109 TypeScript/TSX · 27 API-Module |
 | Oberflächen-Bausteine | 51 Komponenten, 37 Seiten |
-| Datenbank | 18 Tabellen im Hauptschema, 12 Migrationen |
-| Entwicklung | seit Ende 2025, mit agentischem Coding, mehrere hundert Stunden |
+| Datenbank | 18 Tabellen im Hauptschema, 16 Migrationen |
+| Entwicklung | seit dem 7. November 2025, mit agentischem Coding, mehrere tausend Stunden |
 | Betriebskosten | ca. 90 €/Jahr (Domain + Hosting), aus SV-Mitteln |
 | Externe Dienste | keine (kein Analytics, kein CDN, kein US-Cloud) |
 
@@ -114,7 +114,7 @@ Ladekabel dabei. Reihenfolge einüben — nicht improvisieren.
 | 7 | Anfrage/Chat | Match, Status, ICS-Export | „Terminabsprache im System, nicht über private Nummern.“ |
 | 8 | SV-Panel | Meldungen, Nutzer, Audit-Log | „Alles protokolliert: wer, wann, warum.“ |
 | 9 | Gemeinsame Konto-Nutzung | Eltern und Kind gehen Anzeigen und Anfragen gemeinsam durch. Der Chat bleibt beim Kind. | „Ein Konto pro Kind, gemeinsam betreut.“ |
-| 10 | Datenschutz/Transparenz | Löschfristen, Open Source, KI-Hinweis | „Und wir sagen offen, wie das entstanden ist.“ |
+| 10 | Datenschutz/Transparenz | Löschfristen, Quellcode-Lizenz, KI-Hinweis | „Und wir sagen offen, wie das entstanden ist.“ |
 
 **Regeln für die Demo**
 - Nie durch Menüs irren: Wenn ein Schritt hängt, kommentarlos weiter — Fehler nicht erklären,
