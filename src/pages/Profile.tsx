@@ -323,7 +323,7 @@ export default function Profile() {
                 {/* Avatar & User Info */}
                 <div className="flex flex-col items-center text-center px-4 pb-6 -mt-16 sm:px-6">
                     <div className="relative mb-4">
-                        {/* Der gesamte Avatar ist die Bearbeiten-Fläche: gestrichelter
+                        {/* Der gesamte Avatar ist die Bearbeiten-Fläche: farbiger
                             Ring plus sichtbares Label statt eines einzelnen Stift-Symbols. */}
                         <Button
                             variant="unstyled"
@@ -338,7 +338,7 @@ export default function Profile() {
                             title="Avatar bearbeiten"
                             className="group/avatar relative block rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                         >
-                            <span className="block rounded-full border-2 border-dashed border-foreground/50 p-1.5 transition-colors group-hover/avatar:border-foreground">
+                            <span className="block rounded-full border-2 border-border p-1.5 transition-colors group-hover/avatar:border-primary">
                                 {profile.avatar_url ? (
                                     <img src={profile.avatar_url} alt="" className="size-28 rounded-full border-4 border-card object-cover" />
                                 ) : (
@@ -448,7 +448,7 @@ export default function Profile() {
                                 <Input
                                     placeholder="Max"
                                     value={profile.first_name}
-                                    disabled={!isEditing}
+                                    readOnly={!isEditing}
                                     onChange={e => setProfile({ ...profile, first_name: e.target.value })}
                                 />
                             </div>
@@ -457,7 +457,7 @@ export default function Profile() {
                                 <Input
                                     placeholder="Mustermann"
                                     value={profile.last_name}
-                                    disabled={!isEditing}
+                                    readOnly={!isEditing}
                                     onChange={e => setProfile({ ...profile, last_name: e.target.value })}
                                 />
                             </div>
@@ -473,7 +473,7 @@ export default function Profile() {
                                     onChange={(g, l) => setProfile({ ...profile, grade_level: g, class_letter: l })}
                                 />
                             ) : (
-                                <Input value={profile.grade_level ? `${profile.grade_level}${profile.class_letter}` : 'Nicht angegeben'} disabled />
+                                <Input value={profile.grade_level ? `${profile.grade_level}${profile.class_letter}` : 'Nicht angegeben'} readOnly />
                             )}
                         </div>
 
@@ -505,7 +505,7 @@ export default function Profile() {
                                     <Input
                                         value={profile.email}
                                         className="h-11 min-w-0 flex-1 basis-40 text-sm"
-                                        disabled
+                                        readOnly
                                     />
                                     {isEditing && (
                                         <div className="flex w-full items-center justify-end gap-1.5 sm:w-auto sm:shrink-0">
@@ -529,7 +529,7 @@ export default function Profile() {
                                         value={profile.phone_number}
                                         onChange={e => setProfile({ ...profile, phone_number: e.target.value })}
                                         className="h-11 min-w-0 flex-1 basis-40 text-sm"
-                                        disabled={!isEditing}
+                                        readOnly={!isEditing}
                                     />
                                     {isEditing && (
                                         <div className="flex w-full items-center justify-end gap-1.5 sm:w-auto sm:shrink-0">
@@ -545,27 +545,33 @@ export default function Profile() {
 
                                 {/* Weitere Kontaktmöglichkeiten (A4) */}
                                 {(profile.settings.custom_contacts || []).map((contact, idx) => {
-                                    const ContactIcon = getContactType(contact.type).icon;
+                                    const contactType = getContactType(contact.type);
+                                    const ContactIcon = contactType.icon;
                                     return (
                                         <div key={contact.id} className="flex flex-wrap items-center gap-2">
                                             <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
                                                 <ContactIcon size={16} className="text-muted-foreground" />
                                             </div>
-                                            <NativeSelect
-                                                value={contact.type}
-                                                disabled={!isEditing}
-                                                onChange={e => updateCustomContact(idx, { type: e.target.value })}
-                                                aria-label="Kontakt-Typ"
-                                                className="h-11 shrink-0 px-3 text-xs font-semibold disabled:opacity-60"
-                                            >
-                                                {CONTACT_TYPES.map(t => (
-                                                    <option key={t.value} value={t.value}>{t.label}</option>
-                                                ))}
-                                            </NativeSelect>
+                                            {isEditing ? (
+                                                <NativeSelect
+                                                    value={contact.type}
+                                                    onChange={e => updateCustomContact(idx, { type: e.target.value })}
+                                                    aria-label="Kontakt-Typ"
+                                                    className="h-11 shrink-0 px-3 text-xs font-semibold"
+                                                >
+                                                    {CONTACT_TYPES.map(t => (
+                                                        <option key={t.value} value={t.value}>{t.label}</option>
+                                                    ))}
+                                                </NativeSelect>
+                                            ) : (
+                                                <span className="inline-flex h-11 shrink-0 items-center rounded-field border border-input bg-card px-3 text-xs font-semibold text-foreground">
+                                                    {contactType.label}
+                                                </span>
+                                            )}
                                             <Input
                                                 placeholder="z.B. @name oder Einladungslink"
                                                 value={contact.value || ''}
-                                                disabled={!isEditing}
+                                                readOnly={!isEditing}
                                                 onChange={e => updateCustomContact(idx, { value: e.target.value })}
                                                 className="h-11 min-w-0 flex-1 basis-32 text-sm"
                                             />

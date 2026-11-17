@@ -33,7 +33,7 @@ export function unitLabel(unit?: string): string {
 export function formatAdPrice(details?: PriceDetails | null): string {
     if (!details) return 'Preis auf Anfrage';
     if (details.mode === 'free') return 'Kostenlos';
-    if (details.mode === 'vb') return 'VB';
+    if (details.mode === 'vb') return 'Verhandelbar';
     if (details.mode === 'fixed' && typeof details.value === 'number') {
         return `${details.value} € / ${unitLabel(details.unit)}`;
     }

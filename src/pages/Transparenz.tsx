@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Sparkles, Github, Clock, Users, Code2, ShieldCheck, ExternalLink } from 'lucide-react';
+import { Github, Clock, Users, Code2, ShieldCheck, ExternalLink } from 'lucide-react';
 import StaticLayout from '../components/StaticLayout';
 
 export default function Transparenz() {
@@ -14,7 +14,7 @@ export default function Transparenz() {
                     <div className="space-y-2 text-base leading-7 text-muted-foreground">
                         <p>
                             Die FWG-Nachhilfebörse ist ein <strong>nicht-kommerzielles Schülerprojekt</strong> der SV.
-                            Ein großer Teil des Codes und der Texte wurde <strong>mit Hilfe von KI erstellt</strong>.
+                            Ein großer Teil des Codes und der Texte wurde <strong>mit Hilfe von KI erstellt</strong> –
                             durch sogenanntes <strong>agentisches Coding</strong>. Das ist kein Geheimnis, sondern
                             wird hier offengelegt, damit du weißt, womit du es zu tun hast.
                         </p>
@@ -56,14 +56,6 @@ export default function Transparenz() {
                                 <strong className="text-foreground">KI-Programme:</strong> KI-Programme schreiben, ändern und testen den Code;
                                 ein Mensch setzt Ziele, liest mit, verwirft und entscheidet. Features, Layout und
                                 Texte entstehen so im Dialog zwischen Mensch und Maschine.
-                            </span>
-                        </li>
-                        <li className="flex gap-3">
-                            <Sparkles className="mt-1 shrink-0 text-foreground" size={20} aria-hidden="true" />
-                            <span>
-                                <strong className="text-foreground">Ein großer Teil des Codes und der Texte wurde mit KI erstellt:</strong> Ein wesentlicher Anteil von Code
-                                und Texten ist maschinell erzeugt oder maschinell überarbeitet. Wir geben das
-                                klar zu, statt so zu tun, als wäre alles von Hand getippt.
                             </span>
                         </li>
                         <li className="flex gap-3">

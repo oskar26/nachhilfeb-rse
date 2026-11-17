@@ -1098,8 +1098,11 @@ export default function Feed() {
                         const boosted = istGeboostet(ad);
                         const gradeRange = formatGradeRange(ad.grade_levels);
                         const subjectLabels = (ad.subjects || []).map(s => subjectLabelMap[s] ?? s);
+                        const cardTitle = ad.title?.trim() || subjectLabels.join(' · ') || 'Nachhilfe';
+                        const visibleSubjects = (ad.subjects || []).slice(0, 3);
+                        const hiddenSubjectCount = (ad.subjects || []).length - visibleSubjects.length;
                         const cardFacts = [
-                            subjectLabels.join(', '),
+                            cardTitle,
                             gradeRange,
                             formatPrice(ad),
                         ].filter(Boolean).join(', ');
@@ -1136,18 +1139,31 @@ export default function Feed() {
                                         {initials(ad.profiles?.display_name)}
                                     </span>
                                     <div className="min-w-0 flex-1">
-                                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                                            <h3 className="min-w-0 truncate text-base font-extrabold text-foreground">{ad.profiles?.display_name || 'Unbekannt'}</h3>
+                                        <h2 className="break-anywhere text-base font-extrabold leading-snug text-foreground">
+                                            {cardTitle}
+                                        </h2>
+                                        <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-[13px] text-muted-foreground">
+                                            <span className="truncate">von {ad.profiles?.display_name || 'Unbekannt'}</span>
+                                            <span aria-hidden>·</span>
+                                            <span>{ad.type === 'search' ? 'Gesuch' : 'Bietet'}</span>
+                                            {gradeRange && (
+                                                <>
+                                                    <span aria-hidden>·</span>
+                                                    <span>{gradeRange}</span>
+                                                </>
+                                            )}
                                             {ad.profiles?.is_coach && (
-                                                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-pastel-orange px-2.5 py-1 text-xs font-semibold text-pastel-orange-foreground" title="Mitglied der Coaching-AG">
+                                                <span className="inline-flex items-center gap-1 font-semibold text-foreground" title="Mitglied der Coaching-AG">
                                                     <Award size={12} aria-hidden />
                                                     Coach
                                                 </span>
                                             )}
-                                        </div>
-                                        <div className="mt-1.5 flex min-w-0 items-center gap-1 text-[13px] text-muted-foreground">
-                                            <GraduationCap size={13} aria-hidden className="shrink-0" />
-                                            <span className="truncate">Anbieter:in{ad.profiles?.grade_level ? ` · ${formatGradeLabel(ad.profiles.grade_level)}` : ''}</span>
+                                            {boosted && (
+                                                <span className="inline-flex items-center gap-1 font-semibold text-primary-soft-foreground">
+                                                    <Sparkles size={12} aria-hidden />
+                                                    Hervorgehoben
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                     <div className={cn('flex shrink-0 flex-col items-end gap-1', boosted ? 'text-primary-soft-foreground' : undefined)}>
@@ -1164,34 +1180,37 @@ export default function Feed() {
                                     </div>
                                 </div>
 
-                                <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[13px]">
-                                    <span className="whitespace-nowrap rounded-full bg-muted px-2.5 py-1 font-semibold text-foreground">{ad.type === 'search' ? 'Gesuch' : 'Bietet'}</span>
-                                    {gradeRange && (
-                                        <span className="whitespace-nowrap rounded-full bg-muted px-2.5 py-1 font-semibold text-foreground">für {gradeRange}</span>
-                                    )}
-                                    {boosted && (
-                                        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-white/70 px-2.5 py-1 font-semibold text-primary-soft-foreground"><Sparkles size={12} aria-hidden /> Hervorgehoben</span>
-                                    )}
-                                </div>
-
-                                <div className="mt-4 flex flex-wrap gap-2">
-                                    {ad.subjects.map(s => <SubjectChip key={s} subject={s} />)}
-                                </div>
-                                <p className="mt-3 line-clamp-2 text-[15px] leading-relaxed text-muted-foreground">
+                                <p className="mt-2 line-clamp-1 text-[15px] leading-relaxed text-muted-foreground">
                                     {ad.short_description}
                                 </p>
 
-                                <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-                                    <div className="flex min-w-0 flex-wrap gap-1.5 text-xs font-medium">
-                                        {ad.locations && ad.locations[0] && (
-                                            <span className="inline-flex items-center gap-1 rounded-full bg-pastel-blue px-3 py-1.5 text-pastel-blue-foreground"><MapPin size={12} aria-hidden /> {ad.locations[0]} {ad.locations.length > 1 ? `+${ad.locations.length - 1}` : ''}</span>
+                                <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                                    <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-2 text-xs font-medium text-muted-foreground">
+                                        {visibleSubjects.map(s => <SubjectChip key={s} subject={s} />)}
+                                        {hiddenSubjectCount > 0 && (
+                                            <span className="font-semibold text-muted-foreground">+{hiddenSubjectCount}</span>
                                         )}
-                                        <span className="inline-flex items-center gap-1 rounded-full bg-pastel-mint px-3 py-1.5 text-pastel-mint-foreground"><Clock size={12} aria-hidden /> {Array.isArray(ad.duration_minutes) && ad.duration_minutes.length > 0 ? ad.duration_minutes.map((d: number) => d === 0 ? 'Egal' : `${d} Min.`).join(' • ') : 'Flexibel'}</span>
+                                        {ad.locations && ad.locations[0] && (
+                                            <span className="inline-flex min-w-0 items-center gap-1">
+                                                <MapPin size={12} aria-hidden className="shrink-0" />
+                                                <span className="truncate">{ad.locations[0]} {ad.locations.length > 1 ? `+${ad.locations.length - 1}` : ''}</span>
+                                            </span>
+                                        )}
+                                        <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                                            <Clock size={12} aria-hidden className="shrink-0" />
+                                            {Array.isArray(ad.duration_minutes) && ad.duration_minutes.length > 0 ? ad.duration_minutes.map((d: number) => d === 0 ? 'Egal' : `${d} Min.`).join(' • ') : 'Flexibel'}
+                                        </span>
                                         {ad.session_format && ad.session_format !== 'any' && (
-                                            <span className="inline-flex items-center gap-1 rounded-full bg-pastel-violet px-3 py-1.5 text-pastel-violet-foreground"><Users size={12} aria-hidden /> {ad.session_format === 'single' ? 'Einzeln' : 'Kleingruppe'}</span>
+                                            <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                                                <Users size={12} aria-hidden className="shrink-0" />
+                                                {ad.session_format === 'single' ? 'Einzeln' : 'Kleingruppe'}
+                                            </span>
                                         )}
                                         {filterByTime && matchScore > 0 && (
-                                            <span className="inline-flex items-center gap-1 rounded-full bg-pastel-yellow px-3 py-1.5 font-semibold text-pastel-yellow-foreground"><CalendarDays size={12} aria-hidden /> {matchScore} Übereinstimmung{matchScore !== 1 ? 'en' : ''}</span>
+                                            <span className="inline-flex items-center gap-1 whitespace-nowrap font-semibold text-foreground">
+                                                <CalendarDays size={12} aria-hidden className="shrink-0" />
+                                                {matchScore} Übereinstimmung{matchScore !== 1 ? 'en' : ''}
+                                            </span>
                                         )}
                                     </div>
                                     <div className="ml-auto flex shrink-0 items-center gap-1">

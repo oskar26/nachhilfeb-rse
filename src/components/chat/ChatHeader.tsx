@@ -90,7 +90,7 @@ export default function ChatHeader({
                         )}
                     </div>
                     <div className="min-w-0">
-                        <p className="truncate text-[15px] font-bold leading-tight text-chat-text">{displayName}</p>
+                        <h1 className="truncate text-[15px] font-bold leading-tight text-chat-text">{displayName}</h1>
                         <p className="truncate text-[13px] leading-tight text-chat-meta" title={statusText}>
                             {statusText}
                         </p>

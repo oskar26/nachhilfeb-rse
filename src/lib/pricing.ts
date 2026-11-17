@@ -3,7 +3,7 @@
 // sind (siehe test/pricing.test.ts).
 //
 // Semantik bleibt deckungsgleich mit formatAdPrice() aus utils.ts:
-//   fixed -> "12 € / 45 Min" | vb -> "VB" | free -> "Kostenlos"
+//   fixed -> "12 € / 45 Min" | vb -> "Verhandelbar" | free -> "Kostenlos"
 
 import { unitLabel } from './utils';
 
@@ -110,7 +110,7 @@ function buildPriceParts(input: PriceInput): PriceParts {
         return { mode, primary: 'Kostenlos', unit: null, label: 'Kostenlos' };
     }
     if (mode === 'vb') {
-        return { mode, primary: 'VB', unit: null, label: 'VB' };
+        return { mode, primary: 'VB', unit: null, label: 'Verhandelbar' };
     }
 
     const value = normalizePriceValue(input.price);

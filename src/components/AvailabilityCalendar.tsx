@@ -65,7 +65,7 @@ export function AvailabilityCalendar({
     // Determine what is visible based on showAll
     const visibleDays = (showAll || isEditable || activeDays.length === 0) ? DAYS : activeDays;
     const visibleSlots = (showAll || isEditable || activeSlots.length === 0) ? SLOTS : activeSlots;
-    const cellHeight = isEditable ? "h-11 min-h-11" : compact ? "h-6" : "h-7";
+    const cellHeight = isEditable ? "h-11 min-h-11" : compact ? "h-8" : "h-9";
     const lastSlotIndex = visibleSlots.length - 1;
     const lastDayIndex = visibleDays.length - 1;
     const timeColumnWidth = 52;

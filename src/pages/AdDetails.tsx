@@ -373,7 +373,7 @@ export default function AdDetails() {
 
                         {/* Description */}
                         <div>
-                            <h3 className="mb-2 text-lg font-semibold text-foreground">Beschreibung</h3>
+                            <h2 className="mb-2 text-lg font-semibold text-foreground">Beschreibung</h2>
                             <div
                                 className="prose dark:prose-invert max-w-none"
                                 dangerouslySetInnerHTML={{ __html: sanitizeHtml(ad.long_description || ad.short_description || 'Keine Beschreibung') }}
@@ -534,7 +534,7 @@ export default function AdDetails() {
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <CalendarDays size={18} className="text-foreground" />
-                                <h3 className="font-semibold text-lg">Verfügbarkeit</h3>
+                                <h2 className="font-semibold text-lg">Verfügbarkeit</h2>
                             </div>
                             {user && (() => {
                                 const score = countMatches(myAvailability, theirAvailability);

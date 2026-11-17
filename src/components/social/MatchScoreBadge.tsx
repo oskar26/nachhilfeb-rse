@@ -12,8 +12,8 @@ function matchTier(score: number): MatchTier {
 
 const TIER_LABEL: Record<MatchTier, string> = {
     top: 'Sehr passend',
-    good: 'Passend',
-    ok: 'Passend',
+    good: 'Gute Passung',
+    ok: 'Teilweise passend',
 };
 
 /**
@@ -31,11 +31,10 @@ export function MatchScoreBadge({ score, className }: { score: number; className
                 className
             )}
             aria-label={`Übereinstimmung ${score} Prozent: ${TIER_LABEL[tier]}`}
+            title={`Übereinstimmung ${score} % – berechnet aus Fächern, Klasse und gemeinsamen Zeiten`}
         >
             <Zap size={13} className="shrink-0" fill="currentColor" aria-hidden />
-            <span className="tabular-nums">
-                {score} %<span className="hidden sm:inline"> passend</span>
-            </span>
+            <span>{TIER_LABEL[tier]}</span>
         </Badge>
     );
 }

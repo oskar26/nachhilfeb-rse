@@ -166,7 +166,7 @@ export default function Chats() {
                             <div className="grid size-12 place-items-center rounded-full bg-muted text-muted-foreground">
                                 <AlertTriangle size={22} aria-hidden />
                             </div>
-                            <p className="mt-3 text-sm font-semibold text-foreground">Chats konnten nicht geladen werden.</p>
+                            <p className="mt-3 text-sm font-semibold text-foreground">Chats nicht erreichbar</p>
                             <p className="mt-1 text-[13px] leading-relaxed text-chat-meta">{error}</p>
                             <Button
                                 variant="outline"

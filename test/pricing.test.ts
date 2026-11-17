@@ -185,12 +185,12 @@ describe('formatPriceParts', () => {
     );
   });
 
-  it('returns "VB" and "Kostenlos" without a unit', () => {
+  it('returns "VB" visual and "Verhandelbar" label without a unit', () => {
     expect(formatPriceParts({ price: 12, mode: 'vb' })).toEqual({
       mode: 'vb',
       primary: 'VB',
       unit: null,
-      label: 'VB',
+      label: 'Verhandelbar',
     });
     expect(formatPriceParts({ price: 12, mode: 'free' })).toEqual({
       mode: 'free',
