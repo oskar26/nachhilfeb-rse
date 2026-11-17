@@ -418,13 +418,16 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 'code' => 'parental_consent_missing'
             ]);
         }
-        if (!$parentEmail || strlen($parentEmailRaw) > 254) {
+        if ($parentEmailRaw !== '' && (!$parentEmail || strlen($parentEmailRaw) > 254)) {
             json_error('Bitte gib eine gültige E-Mail-Adresse eines Erziehungsberechtigten an.', 400, [
-                'code' => $parentEmailRaw === '' ? 'parent_email_missing' : 'parent_email_invalid'
+                'code' => 'parent_email_invalid'
             ]);
         }
-        // Die Elternadresse ist für unter 16-Jährige Pflicht. Ein Fallback auf
-        // die Konto-Adresse würde die Selbstbestätigung des Kindes erlauben.
+        // Ohne separate Elternadresse wird die Konto-Adresse verwendet. Das ist
+        // besonders für jüngere Kinder wichtig, die noch keine eigene E-Mail haben.
+        if (!$parentEmail) {
+            $parentEmail = $email;
+        }
     }
 
     $inviteCode = mb_substr($inviteCode, 0, 64);

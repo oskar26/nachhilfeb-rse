@@ -42,7 +42,7 @@ export default function ParentGuide() {
     return (
         <StaticLayout
             title="Leitfaden für Eltern"
-            intro="Ein Konto pro Kind, je nach Alter gemeinsam betreut oder selbstständig genutzt. Hier steht, wie das geht und was die Börse für Sicherheit tut."
+            intro="Ein Konto pro Kind – gemeinsam betreut, selbstständig genutzt oder als Elternkonto geführt, wenn noch keine eigene E-Mail-Adresse da ist. Hier steht, wie das geht und was die Börse für Sicherheit tut."
         >
             <div className="mx-auto flex min-w-0 max-w-4xl flex-col gap-10 px-4 pb-16 sm:gap-12 sm:px-6">
 
@@ -119,12 +119,12 @@ export default function ParentGuide() {
                         </h2>
                     </div>
                     <p className="mt-5 max-w-prose text-base leading-7 text-muted-foreground">
-                        Die Börse läuft über das Konto Ihres Kindes. Wie viel Begleitung Ihr Kind braucht,
+                        Die Börse läuft über das Konto Ihres Kindes – oder über Ihr Elternkonto, wenn Ihr Kind noch keine eigene E-Mail-Adresse hat. Wie viel Begleitung Ihr Kind braucht,
                         entscheiden Sie gemeinsam:
                     </p>
                     <ul className="mt-5">
                         <CheckRow>
-                            <strong className="text-foreground">Ein Konto pro Kind, das Sie mitbetreuen:</strong> Ihr Kind nutzt sein Konto, Sie schauen und unterstützen mit. Zum Beispiel beim Erstellen von Anzeigen oder beim Durchgehen von Anfragen.
+                            <strong className="text-foreground">Ein Konto pro Kind, das Sie mitbetreuen:</strong> Ihr Kind nutzt sein Konto, Sie schauen und unterstützen mit. Zum Beispiel beim Erstellen von Anzeigen oder beim Durchgehen von Anfragen. Oder Sie führen das Konto direkt mit Ihrer E-Mail-Adresse.
                         </CheckRow>
                         <CheckRow>
                             <strong className="text-foreground">Altersgerecht begleiten:</strong> In den Klassen 5 bis 7 empfehlen wir die gemeinsame Betreuung. Ältere Schülerinnen und Schüler nutzen die Börse meist selbstständig.

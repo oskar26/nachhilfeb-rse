@@ -188,11 +188,7 @@ export default function Login() {
                     setError("Bitte bestätige, dass du mit deinen Erziehungsberechtigten über die Nutzung gesprochen hast.");
                     return;
                 }
-                if (parentEmail.trim() === '') {
-                    setError("Bitte gib die E-Mail-Adresse eines Erziehungsberechtigten an.");
-                    return;
-                }
-                if (!isValidEmail(parentEmail)) {
+                if (parentEmail.trim() !== '' && !isValidEmail(parentEmail)) {
                     setError("Bitte gib eine gültige E-Mail-Adresse eines Erziehungsberechtigten an.");
                     return;
                 }
@@ -605,7 +601,7 @@ export default function Login() {
                                                     Da du unter 16 Jahre alt bist, brauchen wir die Zustimmung deiner Erziehungsberechtigten. Sprich die Anmeldung mit ihnen durch und zeig ihnen gern den <Link to="/eltern-leitfaden" className="font-medium text-foreground underline underline-offset-2" target="_blank">Eltern-Leitfaden</Link>.
                                                 </p>
                                                 <div className="space-y-1.5">
-                                                    <Label htmlFor="parent-email" className="text-sm font-medium text-foreground">E-Mail eines Erziehungsberechtigten *</Label>
+                                                    <Label htmlFor="parent-email" className="text-sm font-medium text-foreground">E-Mail eines Erziehungsberechtigten <span className="font-normal text-muted-foreground">(optional)</span></Label>
                                                     <Input
                                                         id="parent-email"
                                                         name="parent-email"
@@ -617,7 +613,7 @@ export default function Login() {
                                                         aria-describedby="parent-email-hint"
                                                     />
                                                     <p id="parent-email-hint" className="text-xs leading-relaxed text-muted-foreground">
-                                                        Wir schicken einen Bestätigungslink an diese Adresse. Erst nach der Bestätigung kann das Konto genutzt werden. Bitte nutze eine Adresse, die das Kind nicht selbst verwaltet.
+                                                        Wir schicken einen Bestätigungslink an diese Adresse. Ohne die Bestätigung kann das Konto nicht genutzt werden. Leer lassen, wenn die Konto-E-Mail-Adresse der Eltern genutzt wird.
                                                     </p>
                                                 </div>
                                                 <div className="flex items-start gap-2.5 pt-1">

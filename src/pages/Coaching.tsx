@@ -244,10 +244,10 @@ export function createDefaultCoachingDocument(legacy: Record<string, string> = F
             {
                 id: 'foerderung',
                 type: 'support',
-                title: 'Förderunterricht Sek. I · Rückblick 1. HJ 26/27',
+                title: 'Förderunterricht Sek. I (1. HJ · 26/27)',
                 paragraphs: [
                     'Förderunterricht wird in den Jahrgangsstufen 5-10 in den Fächern Deutsch, Mathematik, Englisch und Latein erteilt. Die Entscheidung über eine Anmeldung liegt bei den Eltern.',
-                    'Der Kick-off am Mittwoch, 16.09., und der Start am 21.09. sind abgeschlossen. Die Termine des ersten Halbjahres liegen hinter uns; neue Termine für das zweite Halbjahr werden rechtzeitig bekannt gegeben.',
+                    'Kick-off am Mittwoch, 16.09., in der 7. Stunde in H408. Ab dem 21.09. läuft der Förderunterricht in der 7. Stunde in den Räumen um H402.',
                     'Nach der Anmeldung ist die Teilnahme verbindlich. Darüber hinaus ist eine freiwillige Teilnahme jederzeit möglich.',
                 ],
                 registrationText: 'Anmeldung verbindlich über:',
@@ -1290,45 +1290,9 @@ export function CoachingView({
                     </div>
                     {(block.days.length > 0 || editing) ? (
                         <div className="mt-5">
-                            {editing && (
-                                <p className="mb-2 text-xs font-semibold text-muted-foreground md:hidden">Stundenplan · seitlich scrollbar</p>
-                            )}
-                            {!editing && block.days.length > 0 && (
-                                <div className="space-y-2 md:hidden">
-                                    {block.days.map((day, dayIndex) => {
-                                        const entries = block.rows
-                                            .map(row => ({
-                                                id: row.id,
-                                                time: row.time?.trim() || '',
-                                                text: row.cells[dayIndex]?.text?.trim() || '',
-                                            }))
-                                            .filter(entry => entry.text);
-                                        return (
-                                            <div key={day.id} className="rounded-lg bg-muted/40 p-3">
-                                                <p className="text-sm font-bold text-foreground">{day.label}</p>
-                                                {entries.length > 0 ? (
-                                                    <ul className="mt-1.5 space-y-1">
-                                                        {entries.map(entry => (
-                                                            <li key={entry.id} className="flex gap-2 text-sm leading-relaxed text-muted-foreground">
-                                                                {entry.time && <span className="shrink-0 font-semibold tabular-nums text-foreground">{entry.time}</span>}
-                                                                <span>{entry.text}</span>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                ) : (
-                                                    <p className="mt-1 text-sm text-muted-foreground">Kein Förderunterricht</p>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
                             {block.days.length > 0 ? (
                                 <div
-                                    className={cn(
-                                        'max-w-full overflow-x-auto rounded-xl border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary [&_[data-slot=table-container]]:overflow-visible',
-                                        !editing && 'hidden md:block'
-                                    )}
+                                    className="max-w-full overflow-x-auto rounded-xl border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                     tabIndex={0}
                                     role="region"
                                     aria-label="Stundenplan des Förderunterrichts"
@@ -1353,16 +1317,16 @@ export function CoachingView({
                                         }
                                     }}
                                 >
-                                    <Table className={cn('w-full table-fixed border-collapse text-center text-xs md:text-sm', hasTimes ? 'min-w-[520px]' : 'min-w-[440px]')}>
+                                    <Table className="w-full table-fixed border-collapse text-center text-[11px] sm:text-xs md:text-sm">
                                         <TableHeader>
                                             <TableRow>
                                                 {hasTimes ? (
-                                                    <TableHead scope="col" className="w-[4.75rem] border border-border p-2 whitespace-nowrap">
+                                                    <TableHead scope="col" className="w-12 border border-border p-1 whitespace-nowrap sm:w-[4.75rem] sm:p-2">
                                                         {editing ? <span className="block text-center">Zeit</span> : 'Zeit'}
                                                     </TableHead>
                                                 ) : null}
                                                 {block.days.map((day, dayIndex) => (
-                                                    <TableHead key={day.id} scope="col" className="min-w-0 break-words border border-border p-1 tabular-nums">
+                                                    <TableHead key={day.id} scope="col" className="min-w-0 whitespace-normal break-words border border-border p-1 tabular-nums">
                                                         {editing ? (
                                                             <input
                                                                 type="text"
@@ -1381,7 +1345,7 @@ export function CoachingView({
                                             {block.rows.map((row, rowIndex) => (
                                                 <TableRow key={row.id}>
                                                     {hasTimes ? (
-                                                        <TableCell className="border border-border p-0 whitespace-nowrap font-medium text-foreground">
+                                                        <TableCell className="border border-border p-0.5 whitespace-nowrap font-medium text-foreground sm:p-2">
                                                             {editing ? (
                                                                 <input
                                                                     type="text"
@@ -1398,7 +1362,7 @@ export function CoachingView({
                                                         const cell = row.cells[cellIndex];
                                                         const text = cell?.text ?? '';
                                                         return (
-                                                            <TableCell key={`${row.id}-${day.id}`} className={cn('min-w-0 break-words text-sm', scheduleCellClass(text), editing && 'p-0')}>
+                                                            <TableCell key={`${row.id}-${day.id}`} className={cn('min-w-0 whitespace-normal break-words p-1 text-[11px] leading-tight sm:p-2 sm:text-xs md:text-sm', scheduleCellClass(text), editing && 'p-0')}>
                                                                 {editing ? (
                                                                     <input
                                                                         type="text"

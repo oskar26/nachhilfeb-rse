@@ -250,10 +250,10 @@ export default function Landing() {
                                 <div className="rounded-panel bg-pastel-blue p-6 text-pastel-blue-foreground sm:p-8">
                                     <span className="inline-flex rounded-full bg-white/80 px-3 py-1 text-xs font-bold">Empfehlung</span>
                                     <h2 id="vertrauen-titel" className="mt-4 text-2xl font-extrabold leading-tight tracking-[-0.03em] sm:text-3xl">
-                                        Das Konto gehört dem Kind.
+                                        Ein Konto – allein oder mit Eltern.
                                     </h2>
                                     <p className="mt-3 max-w-xl text-base leading-relaxed text-pastel-blue-foreground">
-                                        In den Klassen 5 und 6 nutzen viele es gemeinsam mit ihren Eltern; bei unter 16-Jährigen bestätigen Eltern die Einwilligung per E-Mail. Ältere nutzen die Börse selbstständig – ein Konto, eine verifizierte Person.
+                                        In den Klassen 5 und 6 nutzen viele die Börse gemeinsam mit ihren Eltern. Wer noch keine eigene E-Mail-Adresse hat, nimmt die der Eltern. Bei unter 16-Jährigen bestätigen Eltern die Einwilligung per E-Mail – ein Konto, eine verifizierte Person.
                                     </p>
                                     <Link
                                         to="/eltern-leitfaden"
