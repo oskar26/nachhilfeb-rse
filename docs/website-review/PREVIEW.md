@@ -10,12 +10,15 @@ stören.
 cd /home/oskar/antigravity/nachhilfev2-website-redesign
 npm ci                     # nur beim ersten Mal
 npm run build
-npm run preview -- --port 5190 --strictPort
+node docs/website-review/preview-server.mjs 5190
 ```
 
 Danach: **http://localhost:5190/#/welcome**
 
-Der Server läuft bereits. Prüfen:
+Der kleine Server liefert den Produktions-Build aus und proxyt `/api` an
+nachhilfe-sv.de. Nur so zeigt die lokale Vorschau dieselben Live-Kennzahlen
+wie die echte Seite (die API sendet keinen CORS-Header). Der Server läuft
+bereits. Prüfen:
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}\n" http://localhost:5190/
@@ -26,7 +29,7 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:5190/
 - **Revision 3 (Feedback vom 17.11.2026):** Der Hero behält die ruhige
   Gerätebühne, verwendet aber wieder die alten Texte („Finde Nachhilfe. Direkt
   am FWG.“). Die Kennzahlenkarte hat keinen Titel mehr: Sie zeigt live
-  „X aktive Nutzer“ und „Y aktive Anzeigen“ und darunter die drei beliebtesten
+  „X registrierte Nutzer:innen“ und „Y aktive Anzeigen“ und darunter die drei beliebtesten
   Fächer als kleine Pillen. Die Schritte verbindet eine Linie, die an der Mitte
   des ersten Kreises beginnt und an der Mitte des dritten endet; die Kreise
   reagieren auf Hover. Der App-Rundgang nutzt wieder die alten Überschriften

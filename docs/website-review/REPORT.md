@@ -5,7 +5,7 @@ Umsetzung: `6e58854` — „impeccable redesign: calm, product-first landing for
 Polish: `42d9b68` — „impeccable polish: hero, nav order, timeline, parents, closing CTA“
 Revision 2: `794d4c0` — „impeccable polish: trust strip, bento sections, continuous step line“
 Revision 3: Feedback vom 17.11.2026 — alte Texte im Hero und im App-Rundgang,
-Kennzahlen ohne Titel („aktive Nutzer“ / „aktive Anzeigen“), drei Fach-Pillen,
+Kennzahlen ohne Titel („registrierte Nutzer:innen“ / „aktive Anzeigen“), drei Fach-Pillen,
 Schrittlinie von Kreis zu Kreis, Hover-Bewegung bei Icons und Eltern-Kacheln.
 Vorschau: `http://localhost:5190/#/welcome` (siehe `PREVIEW.md`)
 
@@ -199,7 +199,7 @@ Nach der zweiten Sichtprüfung des Auftraggebers gezielt umgebaut:
 - Vier Screenshots als WebP: 748 KB → 167 KB (−78 %).
 - Hero lädt eager mit `fetchPriority="high"`, alles andere lazy.
 - Geräte-Rahmen sind CSS, keine Bildrahmen; kein doppeltes Chrome.
-- Seite 7.585 px statt 7.661 px (Desktop), 11.331 px statt 12.060 px (Mobil) — mehr Inhalt, aber weiter kürzer als der Ausgangsstand.
+- Seite 7.601 px statt 7.661 px (Desktop), 11.335 px statt 12.060 px (Mobil) — mehr Inhalt, aber weiter kürzer als der Ausgangsstand.
 
 ### Barrierefreiheit
 
@@ -349,10 +349,16 @@ Umgesetzt auf `website-redesign`:
    Kreises und endet in der Mitte des dritten; mobil läuft sie durch alle drei
    Kreise. Jeder Schritt reagiert auf Hover: der Kreis kippt leicht an, wird
    größer und federt zurück (`prefers-reduced-motion` schaltet das ab).
-3. **Kennzahlen.** Kein Titel mehr. Live stehen dort „X aktive Nutzer“ und
-   „Y aktive Anzeigen“; darunter die drei beliebtesten Fächer als kleine
-   Pillen (`analytics.php?action=popular_subjects`, mit Standardliste
-   aufgefüllt). Ohne Live-Daten bleibt der ehrliche Fakten-Fallback.
+3. **Kennzahlen.** Kein Titel mehr. Live stehen dort „X registrierte
+   Nutzer:innen“ und „Y aktive Anzeigen“; darunter die drei beliebtesten
+   Fächer als kleine Pillen (`analytics.php?action=popular_subjects`, mit
+   Standardliste aufgefüllt). Bewusst aktive statt jemals erstellter Anzeigen:
+   Das zeigt das aktuelle Angebot, nicht längst abgelaufene Inserate.
+   `users` ist die Zahl der registrierten Konten, nicht der wöchentlich
+   aktiven — deshalb das präzisere Label. Für die lokale Vorschau liefert
+   `preview-server.mjs` den Build aus und proxyt `/api` an nachhilfe-sv.de,
+   weil die echte API keinen CORS-Header sendet und `vite preview` nicht
+   proxien kann. Ohne API bleibt der ehrliche Fakten-Fallback.
 4. **App-Rundgang.** Wieder die alten Texte: „Entdecken & Filtern“, „Chat“,
    „Profil und Einstellungen“ — Geräte und Pastellbühnen unverändert.
 5. **Bewegung.** Trust-Icons, Eltern-Kacheln, Funktionswunsch, Geräte und
@@ -360,6 +366,7 @@ Umgesetzt auf `website-redesign`:
    `motion-safe`.
 
 Belege: `revision3/r3-{375,768,1280,1920}.png` (ganze Seite),
+`r3b-trust.png` (Live-Kennzahlen 8/4 über den Vorschau-Proxy),
 `r3-trust-live.png` (Live-Kennzahlen mit der echten API-Antwort simuliert),
 `r3-trust.png` (Fakten-Fallback), `r3-hero.png`, `r3-hero-375.png`,
 `r3-steps.png`, `r3-steps-hover.png`, `r3-steps-375.png`, `r3-app.png`,

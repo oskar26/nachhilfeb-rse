@@ -130,7 +130,7 @@ export default function Landing() {
 
     const stats = liveStats
         ? [
-            ...(liveStats.users !== null ? [{ value: liveStats.users, label: 'aktive Nutzer', tone: 'bg-pastel-mint text-pastel-mint-foreground' }] : []),
+            ...(liveStats.users !== null ? [{ value: liveStats.users, label: 'registrierte Nutzer:innen', tone: 'bg-pastel-mint text-pastel-mint-foreground' }] : []),
             ...(liveStats.activeAds !== null ? [{ value: liveStats.activeAds, label: 'aktive Anzeigen', tone: 'bg-pastel-yellow text-pastel-yellow-foreground' }] : []),
         ]
         : [];
