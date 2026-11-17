@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<title>FWG Nachhilfebörse – README banner</title>
+<style>
+  @font-face {
+    font-family: "Plus Jakarta Sans";
+    src: url("/node_modules/@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2") format("woff2-variations");
+    font-weight: 200 800;
+    font-style: normal;
+    font-display: block;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { width: 1200px; height: 440px; margin: 0; overflow: hidden; }
+  body {
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+    background: #f5f6f8;
+    color: #18181b;
+  }
+
+  .banner {
+    position: relative;
+    width: 1200px;
+    height: 440px;
+    display: flex;
+    align-items: center;
+    gap: 36px;
+    padding: 54px 64px;
+    overflow: hidden;
+  }
+
+  .banner::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(#18181b 0.7px, transparent 0.7px);
+    background-size: 22px 22px;
+    opacity: 0.035;
+    pointer-events: none;
+  }
+
+  .left {
+    position: relative;
+    z-index: 3;
+    flex: 0 0 520px;
+    width: 520px;
+    min-width: 0;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 15px;
+    background: #facc15;
+    box-shadow: 0 10px 24px rgba(250, 204, 21, 0.38);
+  }
+
+  .logo img { display: block; width: 31px; height: 31px; }
+
+  .brand-name {
+    font-size: 14px;
+    line-height: 1.15;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .brand-sub {
+    margin-top: 2px;
+    font-size: 10.5px;
+    line-height: 1.2;
+    font-weight: 700;
+    color: #71717a;
+    letter-spacing: 0.02em;
+  }
+
+  h1 {
+    margin: 28px 0 0;
+    max-width: 10.5ch;
+    font-size: 57px;
+    line-height: 1.02;
+    font-weight: 800;
+    letter-spacing: -0.055em;
+  }
+
+  .lede {
+    margin: 18px 0 0;
+    max-width: 450px;
+    font-size: 15.5px;
+    line-height: 1.55;
+    font-weight: 500;
+    color: #52525b;
+  }
+
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 22px;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 13px;
+    border-radius: 999px;
+    background: #facc15;
+    color: #18181b;
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    box-shadow: 0 6px 16px rgba(250, 204, 21, 0.3);
+  }
+
+  .pill::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #18181b;
+  }
+
+  .live {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #52525b;
+  }
+
+  .live::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #10b981;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 18px;
+  }
+
+  .chip {
+    padding: 6px 10px;
+    border: 1px solid #e4e4e7;
+    border-radius: 999px;
+    background: #fff;
+    color: #3f3f46;
+    font-size: 10.5px;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(23, 23, 23, 0.035);
+  }
+
+  .stage {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    height: 100%;
+    min-width: 0;
+  }
+
+  .panel {
+    position: absolute;
+    inset: 10px -80px 10px 0;
+    border-radius: 36px 0 0 36px;
+    background: #eaf2ff;
+  }
+
+  .sun {
+    position: absolute;
+    width: 310px;
+    height: 310px;
+    right: 52px;
+    top: 4px;
+    border-radius: 50%;
+    background: #facc15;
+    opacity: 0.96;
+  }
+
+  .browser {
+    position: absolute;
+    left: -14px;
+    top: 46px;
+    width: 566px;
+    height: 350px;
+    overflow: hidden;
+    border: 1px solid #dbe3f0;
+    border-radius: 19px;
+    background: #fff;
+    box-shadow: 0 30px 65px rgba(23, 23, 23, 0.19);
+    transform: rotate(-2deg);
+  }
+
+  .browser-bar {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 29px;
+    padding: 0 11px;
+    border-bottom: 1px solid #e4e4e7;
+    background: #f7f7f8;
+  }
+
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #d4d4d8; }
+  .dot:nth-child(1) { background: #fca5a5; }
+  .dot:nth-child(2) { background: #fcd34d; }
+  .dot:nth-child(3) { background: #86efac; }
+
+  .browser img {
+    display: block;
+    width: 100%;
+    height: calc(100% - 29px);
+    object-fit: cover;
+    object-position: top;
+  }
+
+  .phone {
+    position: absolute;
+    left: 438px;
+    bottom: 12px;
+    width: 152px;
+    height: 312px;
+    padding: 6px;
+    border-radius: 27px;
+    background: #18181b;
+    box-shadow: 0 26px 55px rgba(23, 23, 23, 0.28);
+    transform: rotate(3.2deg);
+  }
+
+  .phone::before {
+    content: "";
+    position: absolute;
+    z-index: 2;
+    top: 12px;
+    left: 50%;
+    width: 42px;
+    height: 4px;
+    border-radius: 999px;
+    background: #3f3f46;
+    transform: translateX(-50%);
+  }
+
+  .phone img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 21px;
+    object-fit: cover;
+    object-position: top;
+  }
+
+  .match {
+    position: absolute;
+    right: 16px;
+    bottom: 63px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 14px;
+    border: 1px solid #e4e4e7;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 14px 34px rgba(23, 23, 23, 0.13);
+    transform: rotate(2deg);
+  }
+
+  .match strong {
+    font-size: 18px;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+  }
+
+  .match span {
+    font-size: 9.5px;
+    line-height: 1.05;
+    font-weight: 800;
+    color: #71717a;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+  }
+</style>
+</head>
+<body>
+  <div class="banner">
+    <div class="left">
+      <div class="brand">
+        <span class="logo"><img src="/logo.svg" alt="" /></span>
+        <div>
+          <div class="brand-name">FWG Nachhilfebörse</div>
+          <div class="brand-sub">Schülervertretung · Friedrich-Wilhelm-Gymnasium Köln</div>
+        </div>
+      </div>
+
+      <h1>Finde Nachhilfe. Direkt am FWG.</h1>
+
+      <p class="lede">
+        Nachhilfe in Mathematik, Englisch und weiteren Fächern, direkt unter
+        Mitschülerinnen und Mitschülern. Jede Anzeige stammt von einem
+        verifizierten Konto.
+      </p>
+
+      <div class="meta">
+        <span class="pill">0.9.0-rc.1 · Pre-Release</span>
+        <span class="live">Live auf nachhilfe-sv.de</span>
+      </div>
+
+      <div class="chips">
+        <span class="chip">Verifiziert</span>
+        <span class="chip">SV-moderiert</span>
+        <span class="chip">Kostenlos</span>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="panel"></div>
+      <div class="sun"></div>
+
+      <div class="browser">
+        <div class="browser-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        <img src="/screenshots-app-website/app/desktop-schuelerin/01-entdecken.png" alt="" />
+      </div>
+
+      <div class="phone">
+        <img src="/screenshots-app-website/app/mobil-schuelerin/04-social.png" alt="" />
+      </div>
+
+      <div class="match">
+        <strong>94 %</strong>
+        <span>Passung</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

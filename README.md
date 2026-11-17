@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/readme/banner.svg" alt="FWG Nachhilfebörse – Nachhilfe suchen. Nachhilfe geben. Direkt am FWG." width="100%" />
+<img src="docs/readme/banner.png" alt="FWG Nachhilfebörse – Finde Nachhilfe. Direkt am FWG." width="100%" />
 
 <h1>FWG Nachhilfebörse</h1>
 
