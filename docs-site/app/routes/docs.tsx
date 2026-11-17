@@ -114,9 +114,14 @@ function Content({ path, markdown }: { path: string; markdown: string }) {
       <meta name="description" content={page.description} />
       <div className="docs-page-title-row">
         <DocsTitle>{page.title}</DocsTitle>
-        <PageActions markdown={markdown} />
+        <div className="hidden md:block">
+          <PageActions markdown={markdown} />
+        </div>
       </div>
       <DocsDescription>{page.description}</DocsDescription>
+      <div className="mt-3 md:hidden">
+        <PageActions markdown={markdown} />
+      </div>
       <DocsBody>
         <Mdx components={{ ...useMDXComponents(), table: Table }} />
         <footer className="not-prose mt-12 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-fd-border pt-4 text-[13px] text-fd-muted-foreground">

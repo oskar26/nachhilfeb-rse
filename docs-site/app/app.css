@@ -107,9 +107,18 @@ body {
 
 @media (max-width: 767px) {
   .platform-cta {
+    background: var(--color-fd-card);
+    color: var(--color-fd-foreground);
+    border: 1px solid var(--color-fd-border);
     font-size: 0.8125rem;
+    font-weight: 600;
     min-height: 2.75rem;
     padding: 0.4rem 0.7rem;
+  }
+
+  .platform-cta:hover {
+    background: var(--color-fd-accent);
+    border-color: var(--color-fd-ring);
   }
 
   /* Keep the mobile docs header on the same 44px touch baseline as the app. */
