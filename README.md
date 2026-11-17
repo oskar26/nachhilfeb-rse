@@ -1,5 +1,9 @@
 # FWG Nachhilfebörse
 
+**Aktuelle Version: 0.9.0-rc.1 (Pre-Release)**
+
+Die Nachhilfebörse wird seit dem 7. November 2025 entwickelt.
+
 Die schulinterne Nachhilfebörse der Schülervertretung am Friedrich-Wilhelm-Gymnasium Köln. Schülerinnen und Schüler der Klassen 5 bis 13 können Nachhilfe suchen oder selbst Nachhilfe anbieten.
 
 - Website: [nachhilfe-sv.de](https://nachhilfe-sv.de)
@@ -23,13 +27,15 @@ Nur verifizierte Konten können Anzeigen erstellen, Kontakt aufnehmen oder Anzei
 - Übersicht und Filter: nach Fach, Klasse, Preis, Ort und Verfügbarkeit.
 - Merkliste: Anzeigen speichern und später wiederfinden.
 - Anfragen und Chat: Kontakt aufnehmen und Termine absprechen.
+- Social: Anfragen, Vorschläge und Merkliste in einer Übersicht.
+- Termine: Vorschläge im Chat bestätigen und als Kalenderdatei exportieren.
 - Profile: Beschreibung, Fächer, Verifizierungsstatus.
 - Bewertungen: erst nach einem Kontakt möglich.
 - Coaching-AG: geschulte Schülerinnen und Schüler ab Klasse 8 unterstützen die Klassen 5 und 6.
 
 ### Für Eltern
 
-Eltern nutzen das Konto ihres Kindes gemeinsam mit ihm. Ein eigenes Elternkonto gibt es nicht. In den Klassen 5 bis 7 empfehlen wir die gemeinsame Betreuung. Wie eng Eltern mitbetreuen, entscheiden sie mit ihrem Kind.
+Eltern können das Konto ihres Kindes gemeinsam nutzen. Wenn das Kind noch keine eigene E-Mail-Adresse hat, wird das Konto mit der E-Mail-Adresse der Eltern geführt – ein zusätzliches Konto ist nicht nötig. In den Klassen 5 bis 7 empfehlen wir die gemeinsame Betreuung. Wie eng Eltern mitbetreuen, entscheiden sie mit ihrem Kind.
 
 Der Eltern-Leitfaden erklärt Sicherheit, Verifizierung, Preise und Kontaktwege: [nachhilfe-sv.de/#/eltern-leitfaden](https://nachhilfe-sv.de/#/eltern-leitfaden).
 
@@ -60,7 +66,7 @@ Details: [Datenschutzerklärung](https://nachhilfe-sv.de/#/datenschutz), [Cookie
 
 ## Projekt
 
-Die Börse entsteht seit Ende 2025 mit KI-Unterstützung. Ein großer Teil des Codes und der Texte wurde mit KI erstellt. Ein Mensch setzt Ziele, prüft und entscheidet. Die Verantwortung für Inhalte, Sicherheit, Datenschutz und Features trägt das SV-Team.
+Die Börse entsteht seit dem 7. November 2025 mit KI-Unterstützung. Ein großer Teil des Codes und der Texte wurde mit KI erstellt. Ein Mensch setzt Ziele, prüft und entscheidet. Die Verantwortung für Inhalte, Sicherheit, Datenschutz und Features trägt das SV-Team.
 
 Der Quellcode ist öffentlich. Fehler und Lücken können trotzdem vorkommen. Rückmeldungen an [technik@nachhilfe-sv.de](mailto:technik@nachhilfe-sv.de) oder als [Issue auf GitHub](https://github.com/oskar26/nachhilfeb-rse/issues).
 
