@@ -71,64 +71,39 @@ jobs:
             uploads/ads/*.WEBP
             uploads/ads/*.GIF
 
-      - name: 🗂️ Split docs assets for uploads
+      - name: 🗂️ Stage docs pages
         run: |
-          mkdir -p dist/docs-assets-css/assets dist/docs-assets-css/fonts
-          mkdir -p dist/docs-assets-js-a/assets dist/docs-assets-js-b/assets
           mkdir -p dist/docs-rest
-          find dist/docs/assets -maxdepth 1 -type f \( -name '*.css' -o -name '*.woff2' \) -exec cp {} dist/docs-assets-css/assets/ \;
-          cp -R dist/docs/fonts/. dist/docs-assets-css/fonts/
-          find dist/docs/assets -maxdepth 1 -type f -name '*.js' | sort | awk 'NR%2==1' | xargs -r -I{} cp {} dist/docs-assets-js-a/assets/
-          find dist/docs/assets -maxdepth 1 -type f -name '*.js' | sort | awk 'NR%2==0' | xargs -r -I{} cp {} dist/docs-assets-js-b/assets/
           rsync -a --exclude assets --exclude fonts dist/docs/ dist/docs-rest/
 
-      - name: 🎨 Deploy docs CSS and fonts via FTPS (optional)
+      - name: 📦 Upload docs assets via curl FTPS (optional)
         continue-on-error: true
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          port: 21
-          local-dir: ./dist/docs-assets-css/
-          server-dir: ${{ steps.ftp-path.outputs.docs }}
-          dangerous-clean-slate: false
-          security: loose
-          timeout: 300000
-          state-name: .ftp-deploy-sync-state-docs-css.json
-
-      - name: 🧩 Deploy docs JavaScript A via FTPS (optional)
-        continue-on-error: true
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          port: 21
-          local-dir: ./dist/docs-assets-js-a/
-          server-dir: ${{ steps.ftp-path.outputs.docs }}
-          dangerous-clean-slate: false
-          security: loose
-          timeout: 300000
-          state-name: .ftp-deploy-sync-state-docs-js-a.json
-
-      - name: 🧩 Deploy docs JavaScript B via FTPS (optional)
-        continue-on-error: true
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          port: 21
-          local-dir: ./dist/docs-assets-js-b/
-          server-dir: ${{ steps.ftp-path.outputs.docs }}
-          dangerous-clean-slate: false
-          security: loose
-          timeout: 300000
-          state-name: .ftp-deploy-sync-state-docs-js-b.json
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_DOCS_DIR: ${{ steps.ftp-path.outputs.docs }}
+        run: |
+          set -uo pipefail
+          failed=0
+          upload() {
+            local file="$1"
+            local rel="${file#dist/docs/}"
+            if ! curl --ftp-ssl-control --ftp-pasv --insecure --silent --show-error \
+              --retry 3 --retry-delay 2 --connect-timeout 20 \
+              --user "$FTP_USERNAME:$FTP_PASSWORD" \
+              --upload-file "$file" "ftp://$FTP_SERVER${FTP_DOCS_DIR}${rel}"; then
+              echo "::warning::Upload fehlgeschlagen: $rel"
+              failed=$((failed + 1))
+            fi
+            sleep 1
+          }
+          for file in dist/docs/assets/*; do upload "$file"; done
+          for file in dist/docs/fonts/*; do upload "$file"; done
+          if [ "$failed" -gt 0 ]; then
+            echo "::error::$failed Docs-Assets konnten nicht hochgeladen werden."
+            exit 1
+          fi
 
       - name: 📚 Deploy docs pages via FTPS (optional)
         continue-on-error: true
