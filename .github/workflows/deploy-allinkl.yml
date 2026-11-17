@@ -85,7 +85,7 @@ jobs:
           lftp -c "
             set ftp:ssl-allow yes;
             set ftp:ssl-force yes;
-            set ftp:ssl-protect-data yes;
+            set ftp:ssl-protect-data no;
             set ssl:verify-certificate no;
             set ftp:passive-mode yes;
             set ftp:prefer-epsv yes;
