@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://nachhilfe-sv.de/sitemap.xml

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback, type MouseEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { BookOpen, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
 import { Logo } from './ui/Logo';
 import { m, prefersReducedMotion, SPRING } from '../lib/motion';
@@ -17,19 +17,17 @@ import {
 
 type NavItem = { label: string; to: string; section?: string };
 
+/* Reihenfolge folgt der Seite von oben nach unten. */
 const NAV_ITEMS: NavItem[] = [
     { label: 'Start', to: '/welcome' },
-    { label: 'Suchen & Anbieten', to: '/welcome', section: 'wege' },
+    { label: 'Ablauf', to: '/welcome', section: 'so-funktioniert-es' },
     { label: 'Die App', to: '/welcome', section: 'brett' },
-    { label: 'Coaching-AG', to: '/coaching' },
-    { label: 'Eltern', to: '/eltern-leitfaden' },
+    { label: 'Für Eltern', to: '/welcome', section: 'eltern' },
+    { label: 'Coaching', to: '/welcome', section: 'coaching' },
+    { label: 'FAQ', to: '/welcome', section: 'faq' },
 ];
 
-const MOBILE_NAV: NavItem[] = NAV_ITEMS.map((item) => {
-    if (item.to === '/coaching') return { ...item, label: 'Coaching' };
-    if (item.to === '/eltern-leitfaden') return { ...item, label: 'Eltern-Leitfaden' };
-    return item;
-});
+const MOBILE_NAV: NavItem[] = NAV_ITEMS;
 
 /* Die Wortmarke ist ein eigener Motion-Bereich: Beim Hover kippt das Logo
    kurz an, beim Tippen federt es zurück. Der Link selbst hebt sich nur um
@@ -87,7 +85,7 @@ export default function SiteHeader() {
 
     useEffect(() => {
         if (!onWelcomePage) return;
-        const ids = ['wege', 'brett', 'sicher', 'coaching', 'eltern'];
+        const ids = ['so-funktioniert-es', 'brett', 'wege', 'eltern', 'coaching', 'faq'];
         const sections = ids
             .map((id) => document.getElementById(id))
             .filter((el): el is HTMLElement => Boolean(el));
@@ -155,10 +153,6 @@ export default function SiteHeader() {
     const isActive = (item: NavItem): boolean => {
         if (item.section) return onWelcomePage && activeSection === item.section;
         if (item.to === '/welcome') return onWelcomePage && activeSection === null;
-        // Die Welcome-Abschnitte „coaching“/„eltern“ markieren die passenden
-        // Navigationspunkte, auch wenn diese auf die Unterseite verlinken.
-        if (onWelcomePage && activeSection === 'coaching' && item.to === '/coaching') return true;
-        if (onWelcomePage && activeSection === 'eltern' && item.to === '/eltern-leitfaden') return true;
         return location.pathname === item.to;
     };
 
@@ -206,7 +200,7 @@ export default function SiteHeader() {
                             variants={LOGO_LINK_VARIANTS}
                             transition={SPRING.settle}
                             className="flex min-h-11 min-w-0 items-center gap-2.5 rounded-full px-1"
-                            aria-label="Nachhilfebörse Startseite"
+                            aria-label="Nachhilfebörse FWG – zur Startseite"
                         >
                             <m.span
                                 variants={LOGO_MARK_VARIANTS}
@@ -264,17 +258,6 @@ export default function SiteHeader() {
                             })}
                         </nav>
                         <div className="ml-auto flex shrink-0 items-center gap-2 lg:ml-2">
-                            <a
-                                href="/docs"
-                                className={navLinkClass(false) + ' group max-lg:hidden gap-1.5'}
-                            >
-                                Dokumentation
-                                <BookOpen
-                                    size={15}
-                                    aria-hidden
-                                    className="icon-react motion-safe:group-hover:-rotate-6 motion-safe:group-hover:scale-110 motion-safe:group-active:scale-90"
-                                />
-                            </a>
                             {!user && (
                                 <Link
                                     to="/login"
@@ -343,17 +326,6 @@ export default function SiteHeader() {
                         </p>
                     </nav>
                     <div className="shrink-0 space-y-2 border-t border-border p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
-                        <a
-                            href="/docs"
-                            onClick={() => {
-                                triggerHaptic('light');
-                                closeMenu();
-                            }}
-                            className="tactile-press flex min-h-12 items-center justify-center gap-2 rounded-full border border-border bg-card px-4 text-base font-semibold text-foreground hover:bg-muted"
-                        >
-                            Dokumentation
-                            <BookOpen size={17} aria-hidden />
-                        </a>
                         {!user && (
                             <SheetClose
                                 nativeButton={false}

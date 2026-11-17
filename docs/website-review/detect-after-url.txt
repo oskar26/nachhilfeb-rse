@@ -1,0 +1,2 @@
+# npx impeccable detect "http://localhost:5190/#/welcome"
+# Exit 0 — keine Anti-Patterns. Rohdaten: detect-after-url.json
