@@ -12,6 +12,7 @@
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const BASE = 'http://127.0.0.1:5180';
 const OUT = path.resolve('screenshots-app-website');
@@ -74,7 +75,7 @@ function profile(p) {
     };
 }
 
-const ME = profile({
+export const ME = profile({
     id: 'u-lena',
     first_name: 'Lena',
     last_name: 'Krüger',
@@ -92,7 +93,7 @@ const ME = profile({
     email: 'lena.k@example.org',
 });
 
-const ADMIN = profile({
+export const ADMIN = profile({
     id: 'u-sara',
     first_name: 'Sara',
     last_name: 'T.',
@@ -624,7 +625,7 @@ function json(body, status = 200) {
     return { status, contentType: 'application/json', body: JSON.stringify(body) };
 }
 
-function handleApi(url, method) {
+export function handleApi(url, method) {
     const pathname = url.pathname;
     const q = url.searchParams;
     const action = q.get('action');
@@ -1139,6 +1140,7 @@ async function captureAdmin(browser) {
 
 // ── Main ─────────────────────────────────────────────────────────
 
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -1194,3 +1196,4 @@ Meldungen, News, Codes, Anzeigen, Analytics, Audit Log, Support).
 
 fs.writeFileSync(path.join(OUT, 'README.md'), readme, 'utf8');
 console.log(`\nFertig: ${OUT}`);
+}
