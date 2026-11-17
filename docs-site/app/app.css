@@ -641,6 +641,7 @@ html.dark body :is(a, button, [tabindex]):focus-visible {
    Tables and code keep the full column width; only running text narrows. */
 .prose :where(p, li, blockquote) {
   max-width: 45ch;
+  text-wrap: pretty;
 }
 
 .dark .prose {

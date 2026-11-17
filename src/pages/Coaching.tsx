@@ -1290,10 +1290,45 @@ export function CoachingView({
                     </div>
                     {(block.days.length > 0 || editing) ? (
                         <div className="mt-5">
-                            <p className="mb-2 text-xs font-semibold text-muted-foreground md:hidden">Stundenplan · seitlich scrollbar</p>
+                            {editing && (
+                                <p className="mb-2 text-xs font-semibold text-muted-foreground md:hidden">Stundenplan · seitlich scrollbar</p>
+                            )}
+                            {!editing && block.days.length > 0 && (
+                                <div className="space-y-2 md:hidden">
+                                    {block.days.map((day, dayIndex) => {
+                                        const entries = block.rows
+                                            .map(row => ({
+                                                id: row.id,
+                                                time: row.time?.trim() || '',
+                                                text: row.cells[dayIndex]?.text?.trim() || '',
+                                            }))
+                                            .filter(entry => entry.text);
+                                        return (
+                                            <div key={day.id} className="rounded-lg bg-muted/40 p-3">
+                                                <p className="text-sm font-bold text-foreground">{day.label}</p>
+                                                {entries.length > 0 ? (
+                                                    <ul className="mt-1.5 space-y-1">
+                                                        {entries.map(entry => (
+                                                            <li key={entry.id} className="flex gap-2 text-sm leading-relaxed text-muted-foreground">
+                                                                {entry.time && <span className="shrink-0 font-semibold tabular-nums text-foreground">{entry.time}</span>}
+                                                                <span>{entry.text}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                ) : (
+                                                    <p className="mt-1 text-sm text-muted-foreground">Kein Förderunterricht</p>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                             {block.days.length > 0 ? (
                                 <div
-                                    className="max-w-full overflow-x-auto rounded-xl border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary [&_[data-slot=table-container]]:overflow-visible"
+                                    className={cn(
+                                        'max-w-full overflow-x-auto rounded-xl border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary [&_[data-slot=table-container]]:overflow-visible',
+                                        !editing && 'hidden md:block'
+                                    )}
                                     tabIndex={0}
                                     role="region"
                                     aria-label="Stundenplan des Förderunterrichts"
