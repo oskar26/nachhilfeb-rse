@@ -65,6 +65,17 @@ function docsDevServer(): Plugin {
   };
 }
 
+/* Nur die öffentlichen Börsen-Kennzahlen: die echte API sendet keinen
+   CORS-Header, deshalb zeigt die lokale Vorschau sonst den Fakten-Fallback.
+   Auth- und Schreib-Endpunkte bleiben bewusst unangetastet. */
+const analyticsProxy = {
+  '/api/analytics.php': {
+    target: 'https://nachhilfe-sv.de',
+    changeOrigin: true,
+    secure: true,
+  },
+};
+
 export default defineConfig({
   base: './',
   resolve: {
@@ -72,6 +83,8 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: { proxy: analyticsProxy },
+  preview: { proxy: analyticsProxy },
   plugins: [
     docsDevServer(),
     react(),
