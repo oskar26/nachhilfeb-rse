@@ -58,7 +58,6 @@ jobs:
           dangerous-clean-slate: false
           security: loose
           timeout: 120000
-          max-connections: 1
           exclude: |
             docs/**
             uploads/ads/*.jpg
@@ -85,6 +84,5 @@ jobs:
           server-dir: ${{ steps.ftp-path.outputs.docs }}
           dangerous-clean-slate: false
           security: loose
-          timeout: 120000
-          max-connections: 1
+          timeout: 300000
           state-name: .ftp-deploy-sync-state-docs.json
