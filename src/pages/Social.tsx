@@ -191,7 +191,7 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
             <header className="min-w-0">
                 <div className="flex items-start justify-between gap-3">
                     <h1 className="text-[28px] font-extrabold leading-tight tracking-[-0.03em] text-foreground">
-                        {initialTab === 'requests' ? 'Anfragen' : 'Social'}
+                        {initialTab === 'requests' ? 'Anfragen' : initialTab === 'matches' ? 'Vorschläge' : initialTab === 'watchlist' ? 'Merkliste' : 'Social'}
                     </h1>
                     <Link
                         to="/chats"
@@ -203,7 +203,13 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                     </Link>
                 </div>
                 <p className="mt-2 max-w-[65ch] text-[15px] leading-relaxed text-muted-foreground">
-                    Anfragen, Vorschläge und gemerkte Anzeigen auf einer Seite. Das Wichtigste steht oben.
+                    {initialTab === 'requests'
+                        ? 'Deine Anfragen: offen, angenommen, abgeschlossen. Der Chat öffnet sich direkt aus der Karte.'
+                        : initialTab === 'matches'
+                            ? 'Anzeigen, die zu deinem Profil passen, mit Begründung und passendem Fach.'
+                            : initialTab === 'watchlist'
+                                ? 'Deine gemerkten Anzeigen. Öffne eine Anzeige, um Kontakt aufzunehmen.'
+                                : 'Anfragen, Vorschläge und gemerkte Anzeigen auf einer Seite. Das Wichtigste steht oben.'}
                 </p>
             </header>
 

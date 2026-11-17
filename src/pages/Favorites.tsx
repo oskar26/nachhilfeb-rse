@@ -4,13 +4,13 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, ExternalLink, Share2, GraduationCap, User, Trash2 } from 'lucide-react';
+import { ExternalLink, Share2, GraduationCap, User, Trash2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { PriceTag } from '../components/ui/price-tag';
 import { SubjectChip, type Subject } from '../components/SubjectChip';
 import { avatarTone, initials } from '../lib/avatar';
 import { gradeLabel, type FavoriteAd } from '../components/social/stream';
-import { StreamCardShell, StatusChip, TypeChip } from '../components/social/StreamChips';
+import { StreamCardShell } from '../components/social/StreamChips';
 
 export function FavoriteStreamCard({
     favorite,
@@ -41,19 +41,14 @@ export function FavoriteStreamCard({
                     {initials(ad.profiles?.display_name)}
                 </span>
                 <div className="min-w-0 flex-1">
-                    <h3 className="min-w-0 truncate text-base font-extrabold text-foreground">{ad.title || ad.short_description || 'Anzeige'}</h3>
+                    <h3 className="min-w-0 truncate text-base font-extrabold text-foreground">{ad.profiles?.display_name || 'Anzeige'}</h3>
                     <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                        <TypeChip label="Merkliste" dotClass="bg-muted-foreground" icon={Heart} />
-                        <StatusChip label="Gemerkt" dotClass="bg-muted-foreground" />
-                        <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-foreground">
+                        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-foreground">
                             {ad.type === 'offer' ? <GraduationCap size={12} aria-hidden /> : <User size={12} aria-hidden />}
                             {ad.type === 'offer' ? 'Bietet' : 'Suche'}
                         </span>
+                        <span className="whitespace-nowrap rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-foreground">{gradeLabel(ad.profiles?.grade_level)}</span>
                     </div>
-                    <p className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
-                        {ad.profiles?.display_name ? `${ad.profiles.display_name} · ` : ''}
-                        {gradeLabel(ad.profiles?.grade_level)}
-                    </p>
                 </div>
                 <Button
                     size="icon"

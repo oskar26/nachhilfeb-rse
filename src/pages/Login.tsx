@@ -468,7 +468,7 @@ export default function Login() {
                                 size="unstyled"
                                 type="button"
                                 aria-pressed={mode === 'login'}
-                                className={`inline-flex min-h-12 items-center justify-center px-4 text-sm font-medium transition-colors ${mode === 'login' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+                                className={`inline-flex min-h-12 items-center justify-center px-4 text-sm font-medium transition-colors ${mode === 'login' ? 'bg-card font-semibold text-foreground shadow-soft ring-1 ring-border' : 'text-muted-foreground hover:bg-card/60 hover:text-foreground'}`}
                                 onClick={() => { setMode('login'); setError(null); setParentalPending(false); }}
                             >
                                 Anmelden
@@ -478,7 +478,7 @@ export default function Login() {
                                 size="unstyled"
                                 type="button"
                                 aria-pressed={mode === 'register'}
-                                className={`inline-flex min-h-12 items-center justify-center border-l border-border px-4 text-sm font-medium transition-colors ${mode === 'register' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+                                className={`inline-flex min-h-12 items-center justify-center border-l border-border px-4 text-sm font-medium transition-colors ${mode === 'register' ? 'bg-card font-semibold text-foreground shadow-soft ring-1 ring-border' : 'text-muted-foreground hover:bg-card/60 hover:text-foreground'}`}
                                 onClick={() => { setMode('register'); setError(null); setParentalPending(false); }}
                             >
                                 Registrieren

@@ -71,16 +71,23 @@ export default function AccessGuard({ children }: { children: React.ReactNode })
         return (
             <div
                 role="alert"
-                className="mx-auto mt-8 flex max-w-xl flex-col items-center justify-center rounded-xl border border-border bg-card p-6 text-center sm:p-12"
+                className="mx-auto mt-8 flex max-w-xl flex-col items-center justify-center rounded-card border border-border bg-card p-6 text-center shadow-soft sm:p-12"
             >
-                <div className="mb-6 grid size-20 place-items-center rounded-lg bg-muted text-foreground">
-                    <Icon size={36} aria-hidden />
+                <div className="mb-6 grid size-16 place-items-center rounded-full bg-pastel-yellow text-pastel-yellow-foreground">
+                    <Icon size={30} aria-hidden />
                 </div>
-                <h2 className="mb-2 text-xl font-semibold text-foreground">{content.title}</h2>
-                <p className="mb-6 max-w-md text-sm text-muted-foreground">{content.text}</p>
+                <h1 className="mb-2 text-xl font-semibold text-foreground">{content.title}</h1>
+                <p className="mb-6 max-w-md text-sm leading-relaxed text-muted-foreground">{content.text}</p>
                 <Button onClick={() => navigate(content.target)} className="h-11 rounded-full px-5">
                     {content.cta}
                 </Button>
+                <button
+                    type="button"
+                    onClick={() => navigate('/eltern-leitfaden')}
+                    className="mt-3 min-h-11 rounded-full px-3 text-[13px] font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                >
+                    So läuft die Verifizierung
+                </button>
             </div>
         );
     }

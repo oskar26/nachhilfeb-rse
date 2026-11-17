@@ -1,0 +1,127 @@
+
+164 files scanned with regex matching only (.css, .ts, .tsx).
+Rules that need a parsed page (tiny-text, low-contrast and other element rules) did not run on them; findings are an undercount, not a clean bill of health.
+For the full check, scan the running dev server (npx impeccable detect http://localhost:PORT) or a static site's built .html.
+
+0 anti-patterns found.
+
+── Advisory (not counted as failures) ──
+
+/home/oskar/antigravity/nachhilfev2-app-ux-review/src/components/AvatarMakerModal.tsx (imported by Profile.tsx)
+  line 955: [design-system-font-size] text-[…] class: 80px is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+  line 955: [design-system-font-size] text-[…] class: 96px is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+
+/home/oskar/antigravity/nachhilfev2-app-ux-review/src/components/RichTextEditor.tsx (imported by CreateAd.tsx, Profile.tsx)
+  line 29: [design-system-color] Undocumented color #111827 is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+  line 30: [design-system-color] Undocumented color #6b7280 is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+  line 31: [design-system-color] Undocumented color #ef4444 is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+  line 32: [design-system-color] Undocumented color #d97706 is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+  line 33: [design-system-color] Undocumented color #10b981 is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+  line 34: [design-system-color] Undocumented color #2563eb is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+  line 35: [design-system-color] Undocumented color #7c3aed is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+  line 234: [design-system-font-size] text-[…] class: 10px is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+
+/home/oskar/antigravity/nachhilfev2-app-ux-review/src/components/chat/CalendarPanel.tsx (imported by Chat.tsx)
+  line 86: [design-system-font-size] text-[…] class: 14px is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+
+/home/oskar/antigravity/nachhilfev2-app-ux-review/src/components/chat/MessageBubble.tsx (imported by Chat.tsx)
+  line 161: [design-system-font-size] text-[…] class: 42px is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+
+/home/oskar/antigravity/nachhilfev2-app-ux-review/src/components/chat/chat-theme.module.css (imported by AppointmentCard.tsx, ChatComposer.tsx, ChatEmptyState.tsx, ChatHeader.tsx, MessageBubble.tsx, Chat.tsx)
+  line 7: [design-system-color] Undocumented color #faf7ee is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+  line 25: [design-system-color] Undocumented color rgb(255 253 247 / 0.94) is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+  line 34: [design-system-color] Undocumented color rgb(31 32 38 / 0.72) is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+  line 36: [design-system-color] Undocumented color rgb(0 0 0 / 0.32) is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+  line 40: [design-system-color] Undocumented color rgb(75 60 0 / 0.07) is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+  line 48: [design-system-color] Undocumented color rgb(0 0 0 / 0.22) is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+  line 59: [design-system-color] Undocumented color rgb(29 31 36 / 0.88) is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+  line 61: [design-system-color] Undocumented color rgb(0 0 0 / 0.2) is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+  line 67: [design-system-color] Undocumented color rgb(60 50 15 / 0.09) is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+  line 72: [design-system-color] Undocumented color rgb(0 0 0 / 0.36) is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+  line 83: [design-system-color] Undocumented color rgb(29 31 36 / 0.62) is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+  line 85: [design-system-color] Undocumented color rgb(0 0 0 / 0.24) is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+  line 91: [design-system-color] Undocumented color #fffdf4 is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+  line 92: [design-system-color] Undocumented color #efe4c0 is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+  line 93: [design-system-color] Undocumented color rgb(70 55 10 / 0.08) is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+
+/home/oskar/antigravity/nachhilfev2-app-ux-review/src/components/ui/price-tag.tsx (imported by AdDetails.tsx, CreateAd.tsx, Favorites.tsx, Feed.tsx, PublicProfile.tsx)
+  line 91: [design-system-font-size] text-[…] class: 16px is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+  line 93: [design-system-font-size] text-[…] class: 17px is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+  line 94: [design-system-font-size] text-[…] class: 24px is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+
+/home/oskar/antigravity/nachhilfev2-app-ux-review/src/index.css
+  line 182: [design-system-color] Undocumented color #000 is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+  line 186: [design-system-color] Undocumented color #000 is outside DESIGN.md colors
+    → A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.
+  line 204: [design-system-font-size] font-size: 1.625rem is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+  line 212: [design-system-font-size] font-size: 1.35rem is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+
+/home/oskar/antigravity/nachhilfev2-app-ux-review/src/pages/Chats.tsx (imported by App.tsx)
+  line 105: [design-system-font-size] text-[…] class: 22px is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+
+/home/oskar/antigravity/nachhilfev2-app-ux-review/src/pages/Landing.tsx (imported by App.tsx)
+  line 191: [design-system-font-size] text-[…] class: 2.6rem is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+  line 191: [design-system-font-size] text-[…] class: 3.4rem is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+  line 191: [design-system-font-size] text-[…] class: 3.5rem is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+  line 291: [design-system-font-size] text-[…] class: 2rem is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+  line 291: [design-system-font-size] text-[…] class: 2.75rem is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+  line 421: [design-system-font-size] text-[…] class: 2rem is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+  line 421: [design-system-font-size] text-[…] class: 2.75rem is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+  line 594: [design-system-font-size] text-[…] class: 2rem is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+  line 594: [design-system-font-size] text-[…] class: 2.75rem is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+  line 651: [design-system-font-size] text-[…] class: 2rem is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+  line 651: [design-system-font-size] text-[…] class: 2.75rem is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+
+/home/oskar/antigravity/nachhilfev2-app-ux-review/src/pages/coach/CoachPanel.tsx (imported by App.tsx)
+  line 584: [design-system-font-size] text-[…] class: 11px is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+  line 587: [design-system-font-size] text-[…] class: 11px is off the DESIGN.md type ramp
+    → A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.
+
+48 advisory notes. Suppress with --no-advisory.
+SRC_EXIT=0

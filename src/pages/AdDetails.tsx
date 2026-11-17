@@ -289,7 +289,7 @@ export default function AdDetails() {
                     durchgehenden Fläche – kein grauer Streifen dazwischen. */}
                 <Card className="border-border bg-card">
                     <CardHeader className="space-y-4 p-4 sm:p-6">
-                        <div className="flex items-start justify-between gap-3">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div className="min-w-0">
                                 <div className="mb-2 flex flex-wrap items-center gap-2">
                                     <h1 className={cn('break-anywhere text-xl font-semibold text-foreground sm:text-2xl', !ownTitle && 'capitalize')}>{heading}</h1>
@@ -305,7 +305,7 @@ export default function AdDetails() {
                                     </p>
                                 )}
                             </div>
-                            <div className="flex shrink-0 flex-col items-end gap-1">
+                            <div className="hidden shrink-0 flex-col items-end gap-1 sm:flex">
                                 <PriceTag
                                     layout="stacked"
                                     price={ad.price_details?.value}
@@ -316,6 +316,19 @@ export default function AdDetails() {
                                     <span className="text-[13px] tabular-nums text-muted-foreground">≈ {hourly}</span>
                                 )}
                             </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 sm:hidden">
+                            <PriceTag
+                                layout="inline"
+                                price={ad.price_details?.value}
+                                mode={ad.price_details?.mode}
+                                duration={ad.price_details?.unit}
+                                className="text-foreground"
+                            />
+                            {hourly && hourly !== price && (
+                                <span className="text-[13px] tabular-nums text-muted-foreground">≈ {hourly}</span>
+                            )}
                         </div>
 
                         {/* Meta Tags: Ort, Dauer, Format und Aufrufe gehören zur

@@ -1,0 +1,13 @@
+
+http://localhost:5173/#/welcome
+  [ai-color-palette] Purple/violet text (#6d28d9) on heading
+    → Purple/violet gradients and cyan-on-dark are the most recognizable tells of AI-generated UIs. A gradient in one of those hues is the tell on its own; flat neon ink on a dark ground is charged once a second tell hue joins it. Choose a distinctive, intentional palette.
+  [icon-tile-stack] 56x56px icon tile above h2 "Neue Sprechstunde der SV"
+    → A small rounded-square icon container above a heading is the universal AI feature-card template — every generator outputs this exact shape. Try a side-by-side icon and heading, or let the icon sit in flow without its own container.
+  [nested-cards] Card inside card
+    → Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.
+  [nested-cards] Card inside card (and 2 more)
+    → Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.
+
+4 anti-patterns found.
+URL_EXIT=2

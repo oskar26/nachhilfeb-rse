@@ -1,0 +1,470 @@
+[
+  {
+    "viewport": "375",
+    "route": "welcome",
+    "url": "http://localhost:5173/#/welcome",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nFinde Nachhilfe. Direkt am FWG.\n\nNachhilfe in Mathematik, Englisch und weiteren F"
+  },
+  {
+    "viewport": "375",
+    "route": "login",
+    "url": "http://localhost:5173/#/login",
+    "bodyText": "Nachhilfebörse\n\nFriedrich-Wilhelm-Gymnasium Köln\n\nVon der SV organisiert\nVerifizierte Konten\nNutzung kostenlos\nAnmelden\n"
+  },
+  {
+    "viewport": "375",
+    "route": "verify-email",
+    "url": "http://localhost:5173/#/verify-email",
+    "bodyText": "E-Mail bestätigen\n\nWir haben dir einen 6-stelligen Code per E-Mail geschickt. Gib ihn hier ein, um dein Konto freizuscha"
+  },
+  {
+    "viewport": "375",
+    "route": "update-password",
+    "url": "http://localhost:5173/#/login",
+    "bodyText": "Nachhilfebörse\n\nFriedrich-Wilhelm-Gymnasium Köln\n\nVon der SV organisiert\nVerifizierte Konten\nNutzung kostenlos\nAnmelden\n"
+  },
+  {
+    "viewport": "375",
+    "route": "impressum",
+    "url": "http://localhost:5173/#/impressum",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nImpressum\n\nStand: Oktober 2026 · Betreiber: SV FWG Köln · Anbieterkennzeichnung n"
+  },
+  {
+    "viewport": "375",
+    "route": "datenschutz",
+    "url": "http://localhost:5173/#/datenschutz",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nDatenschutzerklärung\n\nStand: Oktober 2026 · Betreiber: SV FWG Köln.\n\nTL;DR: kurz "
+  },
+  {
+    "viewport": "375",
+    "route": "cookies",
+    "url": "http://localhost:5173/#/cookies",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nCookies\n\nSpeicherhinweise · Stand: Oktober 2026 · Betreiber: SV FWG Köln.\n\nKurz g"
+  },
+  {
+    "viewport": "375",
+    "route": "eltern-leitfaden",
+    "url": "http://localhost:5173/#/eltern-leitfaden",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nLeitfaden für Eltern\n\nEin Konto pro Kind, je nach Alter gemeinsam betreut oder se"
+  },
+  {
+    "viewport": "375",
+    "route": "coaching",
+    "url": "http://localhost:5173/#/coaching",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nCoaching-AG am FWG\n\nÄltere unterstützen Jüngere: Geschulte Schülerinnen und Schül"
+  },
+  {
+    "viewport": "375",
+    "route": "nutzungsbedingungen",
+    "url": "http://localhost:5173/#/nutzungsbedingungen",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nNutzungsbedingungen\n\nStand: Oktober 2026 · Betreiber: SV FWG Köln.\n\nKurz gesagt\n\n"
+  },
+  {
+    "viewport": "375",
+    "route": "transparenz",
+    "url": "http://localhost:5173/#/transparenz",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nTransparenz\n\nWie diese Plattform entstanden ist · Open Source · KI-gestützte Entw"
+  },
+  {
+    "viewport": "375",
+    "route": "notfound",
+    "url": "http://localhost:5173/#/gibt-es-nicht",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\n\n404 · Seite nicht gefunden\n\nSeite nicht gefunden.\n\nVielleicht wurde die Anzeige "
+  },
+  {
+    "viewport": "375",
+    "route": "feed",
+    "url": "http://localhost:5173/#/",
+    "bodyText": "Zum Hauptinhalt springen\nNavigation einklappen\n2\nAktuelle Anzeigen\nFilter\nSuche speichern\nBeliebt:\nMathematik\nEnglisch\nD"
+  },
+  {
+    "viewport": "375",
+    "route": "create-ad",
+    "url": "http://localhost:5173/#/create-ad",
+    "bodyText": "Zum Hauptinhalt springen\nNavigation einklappen\n2\nAnzeige erstellen\nEntwurf verwerfen\n\nEntwurf wird automatisch auf diese"
+  },
+  {
+    "viewport": "375",
+    "route": "ad-details",
+    "url": "http://localhost:5173/#/ad/ad1",
+    "bodyText": "Zum Hauptinhalt springen\nNavigation einklappen\n2\nZurück\nMathe & Physik bis Q1 – ruhig erklärt, mit Übungsplänen\n\nBiete N"
+  },
+  {
+    "viewport": "375",
+    "route": "profile",
+    "url": "http://localhost:5173/#/profile",
+    "bodyText": "Zum Hauptinhalt springen\nNavigation einklappen\n2\nLM\nAvatar bearbeiten\nLena Mertens\n\nKlasse 10b\n\nVerifiziert\nEinstellunge"
+  },
+  {
+    "viewport": "375",
+    "route": "public-profile",
+    "url": "http://localhost:5173/#/profile/u2",
+    "bodyText": "Zum Hauptinhalt springen\nNavigation einklappen\n2\nZurück\nProfil teilen\nJK\nJonas K.\nVerifiziert\n\nStufe Q1\n\nSchüler-Coach ("
+  },
+  {
+    "viewport": "375",
+    "route": "social",
+    "url": "http://localhost:5173/#/social",
+    "bodyText": "Zum Hauptinhalt springen\nNavigation einklappen\n2\nSocial\nChats\n\nAnfragen, Vorschläge und gemerkte Anzeigen auf einer Seit"
+  },
+  {
+    "viewport": "375",
+    "route": "requests",
+    "url": "http://localhost:5173/#/requests",
+    "bodyText": "Zum Hauptinhalt springen\nNavigation einklappen\n2\nAnfragen\nChats\n\nDeine Anfragen: offen, angenommen, abgeschlossen. Der C"
+  },
+  {
+    "viewport": "375",
+    "route": "matches",
+    "url": "http://localhost:5173/#/matches",
+    "bodyText": "Zum Hauptinhalt springen\nNavigation einklappen\n2\nVorschläge\nChats\n\nAnzeigen, die zu deinem Profil passen, mit Begründung"
+  },
+  {
+    "viewport": "375",
+    "route": "favorites",
+    "url": "http://localhost:5173/#/favorites",
+    "bodyText": "Zum Hauptinhalt springen\nNavigation einklappen\n2\nMerkliste\nChats\n\nDeine gemerkten Anzeigen. Öffne eine Anzeige, um Konta"
+  },
+  {
+    "viewport": "375",
+    "route": "settings",
+    "url": "http://localhost:5173/#/settings",
+    "bodyText": "Zum Hauptinhalt springen\nNavigation einklappen\n2\nZurück\nEinstellungen\nErscheinungsbild\nWähle deinen bevorzugten Design-M"
+  },
+  {
+    "viewport": "375",
+    "route": "chats",
+    "url": "http://localhost:5173/#/chats",
+    "bodyText": "Zum Hauptinhalt springen\nChats\n\n1 Unterhaltung\n\nJK\nJonas K.\nGestern\nPerfekt. Dann schauen wir zuerst, welche Schritte di"
+  },
+  {
+    "viewport": "375",
+    "route": "chat",
+    "url": "http://localhost:5173/#/chat/req1",
+    "bodyText": "Zum Hauptinhalt springen\nJK\n\nJonas K.\n\nMathe & Physik bis Q1 – ruhig erklärt, mit Übungsplänen · Anfrage angenommen\n\nSam"
+  },
+  {
+    "viewport": "375",
+    "route": "coach-panel",
+    "url": "http://localhost:5173/#/coach-panel",
+    "bodyText": "Zum Hauptinhalt springen\nNavigation einklappen\n2\nZugriff verweigert\n\nDieser Bereich ist der Leitung der Schüler-Coaching"
+  },
+  {
+    "viewport": "375",
+    "route": "sv-panel",
+    "url": "http://localhost:5173/#/",
+    "bodyText": "Zum Hauptinhalt springen\nNavigation einklappen\n2\nAktuelle Anzeigen\nFilter\nSuche speichern\nBeliebt:\nMathematik\nEnglisch\nD"
+  },
+  {
+    "viewport": "768",
+    "route": "welcome",
+    "url": "http://localhost:5173/#/welcome",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nFinde Nachhilfe. Direkt am FWG.\n\nNachhilfe in Mathematik, Englisch und weiteren F"
+  },
+  {
+    "viewport": "768",
+    "route": "login",
+    "url": "http://localhost:5173/#/login",
+    "bodyText": "Nachhilfebörse\n\nFriedrich-Wilhelm-Gymnasium Köln\n\nVon der SV organisiert\nVerifizierte Konten\nNutzung kostenlos\nAnmelden\n"
+  },
+  {
+    "viewport": "768",
+    "route": "verify-email",
+    "url": "http://localhost:5173/#/verify-email",
+    "bodyText": "E-Mail bestätigen\n\nWir haben dir einen 6-stelligen Code per E-Mail geschickt. Gib ihn hier ein, um dein Konto freizuscha"
+  },
+  {
+    "viewport": "768",
+    "route": "update-password",
+    "url": "http://localhost:5173/#/login",
+    "bodyText": "Nachhilfebörse\n\nFriedrich-Wilhelm-Gymnasium Köln\n\nVon der SV organisiert\nVerifizierte Konten\nNutzung kostenlos\nAnmelden\n"
+  },
+  {
+    "viewport": "768",
+    "route": "impressum",
+    "url": "http://localhost:5173/#/impressum",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nImpressum\n\nStand: Oktober 2026 · Betreiber: SV FWG Köln · Anbieterkennzeichnung n"
+  },
+  {
+    "viewport": "768",
+    "route": "datenschutz",
+    "url": "http://localhost:5173/#/datenschutz",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nDatenschutzerklärung\n\nStand: Oktober 2026 · Betreiber: SV FWG Köln.\n\nTL;DR: kurz "
+  },
+  {
+    "viewport": "768",
+    "route": "cookies",
+    "url": "http://localhost:5173/#/cookies",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nCookies\n\nSpeicherhinweise · Stand: Oktober 2026 · Betreiber: SV FWG Köln.\n\nKurz g"
+  },
+  {
+    "viewport": "768",
+    "route": "eltern-leitfaden",
+    "url": "http://localhost:5173/#/eltern-leitfaden",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nLeitfaden für Eltern\n\nEin Konto pro Kind, je nach Alter gemeinsam betreut oder se"
+  },
+  {
+    "viewport": "768",
+    "route": "coaching",
+    "url": "http://localhost:5173/#/coaching",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nCoaching-AG am FWG\n\nÄltere unterstützen Jüngere: Geschulte Schülerinnen und Schül"
+  },
+  {
+    "viewport": "768",
+    "route": "nutzungsbedingungen",
+    "url": "http://localhost:5173/#/nutzungsbedingungen",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nNutzungsbedingungen\n\nStand: Oktober 2026 · Betreiber: SV FWG Köln.\n\nKurz gesagt\n\n"
+  },
+  {
+    "viewport": "768",
+    "route": "transparenz",
+    "url": "http://localhost:5173/#/transparenz",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nTransparenz\n\nWie diese Plattform entstanden ist · Open Source · KI-gestützte Entw"
+  },
+  {
+    "viewport": "768",
+    "route": "notfound",
+    "url": "http://localhost:5173/#/gibt-es-nicht",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\n\n404 · Seite nicht gefunden\n\nSeite nicht gefunden.\n\nVielleicht wurde die Anzeige "
+  },
+  {
+    "viewport": "768",
+    "route": "feed",
+    "url": "http://localhost:5173/#/",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "768",
+    "route": "create-ad",
+    "url": "http://localhost:5173/#/create-ad",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "768",
+    "route": "ad-details",
+    "url": "http://localhost:5173/#/ad/ad1",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "768",
+    "route": "profile",
+    "url": "http://localhost:5173/#/profile",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "768",
+    "route": "public-profile",
+    "url": "http://localhost:5173/#/profile/u2",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "768",
+    "route": "social",
+    "url": "http://localhost:5173/#/social",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "768",
+    "route": "requests",
+    "url": "http://localhost:5173/#/requests",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "768",
+    "route": "matches",
+    "url": "http://localhost:5173/#/matches",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "768",
+    "route": "favorites",
+    "url": "http://localhost:5173/#/favorites",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "768",
+    "route": "settings",
+    "url": "http://localhost:5173/#/settings",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "768",
+    "route": "chats",
+    "url": "http://localhost:5173/#/chats",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "768",
+    "route": "chat",
+    "url": "http://localhost:5173/#/chat/req1",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "768",
+    "route": "coach-panel",
+    "url": "http://localhost:5173/#/coach-panel",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "768",
+    "route": "sv-panel",
+    "url": "http://localhost:5173/#/",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "1280",
+    "route": "welcome",
+    "url": "http://localhost:5173/#/welcome",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nStart\nSuchen & Anbieten\nDie App\nCoaching-AG\nEltern\nDokumentation\nFinde Nachhilfe."
+  },
+  {
+    "viewport": "1280",
+    "route": "login",
+    "url": "http://localhost:5173/#/login",
+    "bodyText": "Nachhilfebörse\nNachhilfe am FWG.\n\nFinde Nachhilfe oder biete dein Wissen an. Für Schülerinnen und Schüler des Friedrich-"
+  },
+  {
+    "viewport": "1280",
+    "route": "verify-email",
+    "url": "http://localhost:5173/#/verify-email",
+    "bodyText": "E-Mail bestätigen\n\nWir haben dir einen 6-stelligen Code per E-Mail geschickt. Gib ihn hier ein, um dein Konto freizuscha"
+  },
+  {
+    "viewport": "1280",
+    "route": "update-password",
+    "url": "http://localhost:5173/#/login",
+    "bodyText": "Nachhilfebörse\nNachhilfe am FWG.\n\nFinde Nachhilfe oder biete dein Wissen an. Für Schülerinnen und Schüler des Friedrich-"
+  },
+  {
+    "viewport": "1280",
+    "route": "impressum",
+    "url": "http://localhost:5173/#/impressum",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nStart\nSuchen & Anbieten\nDie App\nCoaching-AG\nEltern\nDokumentation\nImpressum\n\nStand"
+  },
+  {
+    "viewport": "1280",
+    "route": "datenschutz",
+    "url": "http://localhost:5173/#/datenschutz",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nStart\nSuchen & Anbieten\nDie App\nCoaching-AG\nEltern\nDokumentation\nDatenschutzerklä"
+  },
+  {
+    "viewport": "1280",
+    "route": "cookies",
+    "url": "http://localhost:5173/#/cookies",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nStart\nSuchen & Anbieten\nDie App\nCoaching-AG\nEltern\nDokumentation\nCookies\n\nSpeiche"
+  },
+  {
+    "viewport": "1280",
+    "route": "eltern-leitfaden",
+    "url": "http://localhost:5173/#/eltern-leitfaden",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nStart\nSuchen & Anbieten\nDie App\nCoaching-AG\nEltern\nDokumentation\nLeitfaden für El"
+  },
+  {
+    "viewport": "1280",
+    "route": "coaching",
+    "url": "http://localhost:5173/#/coaching",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nStart\nSuchen & Anbieten\nDie App\nCoaching-AG\nEltern\nDokumentation\nCoaching-AG am F"
+  },
+  {
+    "viewport": "1280",
+    "route": "nutzungsbedingungen",
+    "url": "http://localhost:5173/#/nutzungsbedingungen",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nStart\nSuchen & Anbieten\nDie App\nCoaching-AG\nEltern\nDokumentation\nNutzungsbedingun"
+  },
+  {
+    "viewport": "1280",
+    "route": "transparenz",
+    "url": "http://localhost:5173/#/transparenz",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nStart\nSuchen & Anbieten\nDie App\nCoaching-AG\nEltern\nDokumentation\nTransparenz\n\nWie"
+  },
+  {
+    "viewport": "1280",
+    "route": "notfound",
+    "url": "http://localhost:5173/#/gibt-es-nicht",
+    "bodyText": "Zum Inhalt springen\nNachhilfebörse FWG\nStart\nSuchen & Anbieten\nDie App\nCoaching-AG\nEltern\nDokumentation\n\n404 · Seite nic"
+  },
+  {
+    "viewport": "1280",
+    "route": "feed",
+    "url": "http://localhost:5173/#/",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "1280",
+    "route": "create-ad",
+    "url": "http://localhost:5173/#/create-ad",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "1280",
+    "route": "ad-details",
+    "url": "http://localhost:5173/#/ad/ad1",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "1280",
+    "route": "profile",
+    "url": "http://localhost:5173/#/profile",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "1280",
+    "route": "public-profile",
+    "url": "http://localhost:5173/#/profile/u2",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "1280",
+    "route": "social",
+    "url": "http://localhost:5173/#/social",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "1280",
+    "route": "requests",
+    "url": "http://localhost:5173/#/requests",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "1280",
+    "route": "matches",
+    "url": "http://localhost:5173/#/matches",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "1280",
+    "route": "favorites",
+    "url": "http://localhost:5173/#/favorites",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "1280",
+    "route": "settings",
+    "url": "http://localhost:5173/#/settings",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "1280",
+    "route": "chats",
+    "url": "http://localhost:5173/#/chats",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "1280",
+    "route": "chat",
+    "url": "http://localhost:5173/#/chat/req1",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "1280",
+    "route": "coach-panel",
+    "url": "http://localhost:5173/#/coach-panel",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  },
+  {
+    "viewport": "1280",
+    "route": "sv-panel",
+    "url": "http://localhost:5173/#/",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkl"
+  }
+]

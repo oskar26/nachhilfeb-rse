@@ -1,6 +1,8 @@
 import { Label } from '@/components/ui/label';
+import { formatGradeLabel } from '../../lib/matching';
 import { Textarea } from '@/components/ui/textarea';
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
 import { Button } from '../../components/ui/button';
@@ -22,20 +24,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '../../components/ui/alert-dialog';
-import {
-    Award,
-    Search,
-    Copy,
-    Check,
-    RefreshCw,
-    Plus,
-    History,
-    Users,
-    Key,
-    Megaphone,
-    LayoutTemplate,
-    Trash2
-} from 'lucide-react';
+import { Award, Search, Copy, Check, RefreshCw, Plus, History, Users, Key, Megaphone, LayoutTemplate, Trash2, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
 import { triggerHaptic } from '../../lib/haptics';
@@ -139,6 +128,7 @@ function StudentAvatar({ student, className }: { student: any; className?: strin
 
 export default function CoachPanel() {
     const { isCoachAdmin } = useAuth();
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<'students' | 'codes' | 'info' | 'logs' | 'seite'>('students');
     const rootRef = useRef<HTMLDivElement>(null);
 
@@ -452,9 +442,16 @@ export default function CoachPanel() {
     if (!isCoachAdmin) {
         return (
             <Card className="mx-auto mt-8 max-w-xl p-8 text-center">
-                <p className="text-sm font-medium text-destructive">
-                    Zugriff verweigert. Dieser Bereich ist der Leitung der Schüler-Coaching AG vorbehalten.
+                <div className="mx-auto grid size-14 place-items-center rounded-full bg-pastel-orange text-pastel-orange-foreground">
+                    <ShieldAlert size={26} aria-hidden />
+                </div>
+                <h1 className="mt-4 text-xl font-bold tracking-tight text-foreground">Zugriff verweigert</h1>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    Dieser Bereich ist der Leitung der Schüler-Coaching-AG vorbehalten. Wenn du Coaches verwalten sollst, wende dich an Frau Balistreri oder das SV-Team.
                 </p>
+                <Button className="mt-5 min-h-11 rounded-full px-5 text-sm font-semibold" onClick={() => navigate('/')}>
+                    Zurück zur Übersicht
+                </Button>
             </Card>
         );
     }
@@ -477,7 +474,7 @@ export default function CoachPanel() {
 
                 <div className="flex shrink-0 items-center gap-2 sm:pl-0">
                     <span className="rounded-lg border border-border bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground">
-                        {students.filter(s => s.is_coach).length} aktive Coaches
+                        {students.filter(s => s.is_coach).length} {students.filter(s => s.is_coach).length === 1 ? 'aktiver Coach' : 'aktive Coaches'}
                     </span>
                 </div>
             </div>
@@ -519,7 +516,7 @@ export default function CoachPanel() {
                         <div className="relative w-full sm:w-80">
                             <Search size={20} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden />
                             <Input
-                                placeholder="Schüler suchen (Name, Klasse, Funktion)"
+                                placeholder="Schüler suchen"
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
                                 className="h-11 pl-11"
@@ -603,7 +600,7 @@ export default function CoachPanel() {
                                                             </div>
                                                         </TableCell>
                                                         <TableCell className="py-3 text-[13px] text-muted-foreground">
-                                                            {student.grade_level ? `Klasse ${student.grade_level}${student.class_letter || ''}` : '–'}
+                                                            {student.grade_level ? `${formatGradeLabel(student.grade_level)}${['EF', 'Q1', 'Q2'].includes(String(student.grade_level).toUpperCase()) ? '' : (student.class_letter || '')}` : '–'}
                                                         </TableCell>
                                                         <TableCell className="py-3">
                                                             <Badge variant={student.is_coach ? 'success' : 'outline'} className="font-medium">
@@ -648,7 +645,7 @@ export default function CoachPanel() {
                                                         {studentDisplayName(student)}
                                                     </div>
                                                     <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[13px] leading-tight text-muted-foreground">
-                                                        <span>{student.grade_level ? `Klasse ${student.grade_level}${student.class_letter || ''}` : 'Keine Klasse'}</span>
+                                                        <span>{student.grade_level ? `${formatGradeLabel(student.grade_level)}${['EF', 'Q1', 'Q2'].includes(String(student.grade_level).toUpperCase()) ? '' : (student.class_letter || '')}` : 'Keine Klasse'}</span>
                                                         <span aria-hidden>·</span>
                                                         <span>{studentFunction(student)}</span>
                                                     </p>

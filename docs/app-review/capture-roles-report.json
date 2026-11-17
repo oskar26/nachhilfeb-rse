@@ -1,0 +1,86 @@
+[
+  {
+    "account": "sv",
+    "viewport": "375",
+    "route": "sv-panel",
+    "url": "http://localhost:5173/#/sv-panel",
+    "bodyText": "Zum Hauptinhalt springen\nNavigation einklappen\nAdmin Panel\nÜbersicht\nÜbersicht\nMeldungen\n1\nÜbersicht\n\nZusammenfassung des aktuellen Systemstatus\n\n8\nNutzer\n7 verifiziert\n6\nAnzeigen\nAktive Angebote\n1\nOffene Meldungen\nHandlungsbedarf\n0\nGesperrt\nInaktive Accounts\nSchnellzugriff\nCodes & Verifikation\nNutzerverwaltung\nMeldungen prüfen\nAudit & Coaching\nSeitenaufrufe · letzte 7 Tage\nDetails\nDi\nMi\nDo\nFr\nSa\n"
+  },
+  {
+    "account": "sv",
+    "viewport": "768",
+    "route": "sv-panel",
+    "url": "http://localhost:5173/#/sv-panel",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkliste\nErstellen\nNeue Anzeige\nKonto\nProfil\nEinstellungen\nDokumentation\nWillkommen\nCoaching-AG\nCoaching Panel\nSV-Bereich\nSV Panel\nM(\n\nMara S. (SV)\n\nQ2\n\nAdmin Panel\nÜbersicht\nSV Einsicht aktiv\nÜbersicht\nMeldungen\n1\nChat\nMehr\nÜbersicht\n\nZusammenfassung des aktuellen Systemstatus\n\n8\nNu"
+  },
+  {
+    "account": "sv",
+    "viewport": "1280",
+    "route": "sv-panel",
+    "url": "http://localhost:5173/#/sv-panel",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkliste\nErstellen\nNeue Anzeige\nKonto\nProfil\nEinstellungen\nDokumentation\nWillkommen\nCoaching-AG\nCoaching Panel\nSV-Bereich\nSV Panel\nM(\n\nMara S. (SV)\n\nQ2\n\nAdmin Panel\nÜbersicht\nSV Einsicht aktiv\nÜbersicht\nSupport & Feedback\nNutzer\nAnzeigen\nNews / Infos\nMeldungen\n1\nMehr\nÜbersicht\n\nZusam"
+  },
+  {
+    "account": "coach",
+    "viewport": "375",
+    "route": "coach-panel",
+    "url": "http://localhost:5173/#/coach-panel",
+    "bodyText": "Zum Hauptinhalt springen\nNavigation einklappen\nCoaching & Förderunterricht\n\nBetreuung & Verwaltung durch Frau Balistreri • Coaching AG und Förderunterricht am FWG\n\n1 aktiver Coach\nSchülerliste\nCoaching-Codes\nStartseiten-Info\nMein Protokoll\nSeite\nAlle (1)\nCoaches (1)\nNoch keine Coaches\nJK\nJonas K.\n\nStufe Q1\n·\nCoach\n\n0 Anzeigen\n\nCoach entziehen\nEntdecken\nSocial\nOptionen\nProfil"
+  },
+  {
+    "account": "coach",
+    "viewport": "768",
+    "route": "coach-panel",
+    "url": "http://localhost:5173/#/coach-panel",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkliste\nErstellen\nNeue Anzeige\nKonto\nProfil\nEinstellungen\nDokumentation\nWillkommen\nCoaching-AG\nCoaching Panel\nFB\n\nFrau Balistreri\n\nProfil\n\nCoaching & Förderunterricht\n\nBetreuung & Verwaltung durch Frau Balistreri • Coaching AG und Förderunterricht am FWG\n\n1 aktiver Coach\nSchülerlist"
+  },
+  {
+    "account": "coach",
+    "viewport": "1280",
+    "route": "coach-panel",
+    "url": "http://localhost:5173/#/coach-panel",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkliste\nErstellen\nNeue Anzeige\nKonto\nProfil\nEinstellungen\nDokumentation\nWillkommen\nCoaching-AG\nCoaching Panel\nFB\n\nFrau Balistreri\n\nProfil\n\nCoaching & Förderunterricht\n\nBetreuung & Verwaltung durch Frau Balistreri • Coaching AG und Förderunterricht am FWG\n\n1 aktiver Coach\nSchülerlist"
+  },
+  {
+    "account": "unverified",
+    "viewport": "375",
+    "route": "gate-feed",
+    "url": "http://localhost:5173/#/",
+    "bodyText": "Zum Hauptinhalt springen\nNavigation einklappen\nVerifizierung erforderlich\n\nDu musst dich erst verifizieren, um Anzeigen zu durchsuchen, Anfragen zu senden oder zu chatten. Die Verifizierung erfolgt persönlich im SV-Raum.\n\nZum Profil\nSo läuft die Verifizierung\nEntdecken\nSocial\nOptionen\nProfil"
+  },
+  {
+    "account": "unverified",
+    "viewport": "375",
+    "route": "gate-profile",
+    "url": "http://localhost:5173/#/profile",
+    "bodyText": "Zum Hauptinhalt springen\nNavigation einklappen\nTB\nAvatar bearbeiten\nTim Brandt\n\nKlasse 7a\n\nNicht Verifiziert\nEinstellungen\n\nKonto noch nicht verifiziert\n\nDu musst dich im SV-Raum verifizieren lassen, um eigene Nachhilfeanzeigen zu veröffentlichen.\n\nSo geht's in 3 Schritten →\n\nProfil vervollständigen\n\n20%\n\nName & Klasse\nKurz-Bio\nZeiten eintragen\nVerifiziert\nErste Anzeige\nPersönliche Angaben\nBearbei"
+  },
+  {
+    "account": "unverified",
+    "viewport": "768",
+    "route": "gate-feed",
+    "url": "http://localhost:5173/#/",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkliste\nErstellen\nNeue Anzeige\nKonto\nProfil\nEinstellungen\nDokumentation\nWillkommen\nTB\n\nTim B.\n\n7\n\nVerifizierung erforderlich\n\nDu musst dich erst verifizieren, um Anzeigen zu durchsuchen, Anfragen zu senden oder zu chatten. Die Verifizierung erfolgt persönlich im SV-Raum.\n\nZum Profil"
+  },
+  {
+    "account": "unverified",
+    "viewport": "768",
+    "route": "gate-profile",
+    "url": "http://localhost:5173/#/profile",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkliste\nErstellen\nNeue Anzeige\nKonto\nProfil\nEinstellungen\nDokumentation\nWillkommen\nTB\n\nTim B.\n\n7\n\nTB\nAvatar bearbeiten\nTim Brandt\n\nKlasse 7a\n\nNicht Verifiziert\nEinstellungen\n\nKonto noch nicht verifiziert\n\nDu musst dich im SV-Raum verifizieren lassen, um eigene Nachhilfeanzeigen zu v"
+  },
+  {
+    "account": "unverified",
+    "viewport": "1280",
+    "route": "gate-feed",
+    "url": "http://localhost:5173/#/",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkliste\nErstellen\nNeue Anzeige\nKonto\nProfil\nEinstellungen\nDokumentation\nWillkommen\nTB\n\nTim B.\n\n7\n\nVerifizierung erforderlich\n\nDu musst dich erst verifizieren, um Anzeigen zu durchsuchen, Anfragen zu senden oder zu chatten. Die Verifizierung erfolgt persönlich im SV-Raum.\n\nZum Profil"
+  },
+  {
+    "account": "unverified",
+    "viewport": "1280",
+    "route": "gate-profile",
+    "url": "http://localhost:5173/#/profile",
+    "bodyText": "Zum Hauptinhalt springen\n\nNachhilfebörse\n\nFWG Köln\n\nNavigation einklappen\nMenü\nEntdecken\nAnfragen\nChats\nVorschläge\nMerkliste\nErstellen\nNeue Anzeige\nKonto\nProfil\nEinstellungen\nDokumentation\nWillkommen\nTB\n\nTim B.\n\n7\n\nTB\nAvatar bearbeiten\nTim Brandt\n\nKlasse 7a\n\nNicht Verifiziert\nEinstellungen\n\nKonto noch nicht verifiziert\n\nDu musst dich im SV-Raum verifizieren lassen, um eigene Nachhilfeanzeigen zu v"
+  }
+]
