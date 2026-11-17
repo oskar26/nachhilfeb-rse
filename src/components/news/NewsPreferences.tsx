@@ -8,11 +8,9 @@ import {
     LEGACY_DISMISSED_NEWS_KEY,
     hideNews,
     isNewsHidden,
-    isNewsPopupEnabled,
     isNewsRead,
     markNewsUnread,
     normalizeNewsList,
-    setNewsPopupEnabled,
     sortNews,
     unhideNews,
     type NewsItem,
@@ -43,7 +41,6 @@ export function NewsPreferences() {
     const viewer = user?.id ?? null;
     const readParam = searchParams.get('news') === 'read';
 
-    const [popupEnabled, setPopupEnabledState] = useState(() => isNewsPopupEnabled(viewer));
     const [cardEnabled, setCardEnabledState] = useState(() => isNewsCardEnabled(viewer));
     const [showRead, setShowRead] = useState(readParam);
     const [items, setItems] = useState<NewsItem[]>([]);
@@ -61,7 +58,6 @@ export function NewsPreferences() {
     }, []);
 
     useEffect(() => {
-        setPopupEnabledState(isNewsPopupEnabled(viewer));
         setCardEnabledState(isNewsCardEnabled(viewer));
     }, [viewer]);
 
@@ -114,17 +110,6 @@ export function NewsPreferences() {
             window.removeEventListener('storage', onStorage);
         };
     }, [bumpLocal]);
-
-    const handlePopupToggle = (checked: boolean) => {
-        if (!setNewsPopupEnabled(checked, viewer)) {
-            triggerHaptic('error');
-            toast.error('Einstellung konnte nicht gespeichert werden.');
-            return;
-        }
-        setPopupEnabledState(checked);
-        triggerHaptic(checked ? 'success' : 'selection');
-        toast.success(checked ? 'News-Popup aktiviert.' : 'News-Popup deaktiviert.');
-    };
 
     const handleCardToggle = (checked: boolean) => {
         if (!setNewsCardEnabled(checked, viewer)) {
@@ -186,24 +171,10 @@ export function NewsPreferences() {
                     <Newspaper size={18} className="text-muted-foreground" aria-hidden /> Neuigkeiten
                 </CardTitle>
                 <CardDescription className="text-xs">
-                    Steuere Popup und News-Karte und sieh dir gelesene oder ausgeblendete Mitteilungen an.
+                    Steuere die News-Karte und sieh dir gelesene oder ausgeblendete Mitteilungen an.
                 </CardDescription>
             </CardHeader>
             <CardContent padding="flush" className="divide-y divide-border">
-                <div className="flex items-center justify-between gap-4 p-4 sm:px-6">
-                    <div className="min-w-0">
-                        <h4 className="text-sm font-semibold text-foreground">News-Popup anzeigen</h4>
-                        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-                            Öffnet neue Mitteilungen einmalig als Fenster. Gelesene News bleiben in dieser Liste.
-                        </p>
-                    </div>
-                    <Switch
-                        checked={popupEnabled}
-                        onCheckedChange={handlePopupToggle}
-                        label="News-Popup beim Öffnen anzeigen"
-                    />
-                </div>
-
                 <div className="flex items-center justify-between gap-4 p-4 sm:px-6">
                     <div className="min-w-0">
                         <h4 className="text-sm font-semibold text-foreground">Neuigkeiten-Karte auf Entdecken anzeigen</h4>

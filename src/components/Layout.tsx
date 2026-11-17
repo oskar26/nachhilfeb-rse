@@ -115,15 +115,16 @@ function AppShell() {
 
     const mobileNavItems = [
         { to: '/', label: 'Entdecken', icon: Home },
-        { to: '/social', label: 'Social', icon: MessageSquare, activateOnChat: true },
+        { to: '/social', label: 'Social', icon: MessageSquare },
         { to: '/create-ad', label: 'Neue Anzeige', icon: Plus, isAction: true },
-        { to: '/settings', label: 'Optionen', icon: Settings },
+        { to: '/chats', label: 'Chats', icon: MessagesSquare },
         { to: '/profile', label: 'Profil', icon: User }
     ];
     const createAdActive = isPathActive('/create-ad');
-    const isMobileNavActive = (to: string, activateOnChat = false) => {
+    const isMobileNavActive = (to: string) => {
         if (to === '/') return pathname === '/';
-        if (activateOnChat) return isSocialRoute || isChatRoute;
+        if (to === '/social') return isSocialRoute;
+        if (to === '/chats') return isChatRoute;
         return isPathActive(to);
     };
 
@@ -516,7 +517,7 @@ function AppShell() {
                         );
                     }
 
-                    const active = isMobileNavActive(item.to, item.activateOnChat);
+                    const active = isMobileNavActive(item.to);
                     return (
                         <Link
                             key={item.to}

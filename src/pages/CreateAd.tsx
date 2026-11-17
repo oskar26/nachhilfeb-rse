@@ -5,6 +5,16 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '../components/ui/alert-dialog';
 import { SubjectChip, SUBJECT_CATEGORIES, subjectLabelMap, type Subject } from '../components/SubjectChip';
 import { GradeSelector } from '../components/GradeSelector';
 import { RichTextEditor } from '../components/RichTextEditor';
@@ -199,6 +209,7 @@ export default function CreateAd() {
     const [subjectQuery, setSubjectQuery] = useState('');
     const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
     const [draftRestored, setDraftRestored] = useState(false);
+    const [discardOpen, setDiscardOpen] = useState(false);
     const [uploadingImages, setUploadingImages] = useState<{ id: string; name: string }[]>([]);
     const [imageFeedback, setImageFeedback] = useState<ImageFeedback | null>(null);
     const [isDraggingImage, setIsDraggingImage] = useState(false);
@@ -779,7 +790,7 @@ export default function CreateAd() {
                     {!editingId && (
                         <Button variant="unstyled" size="unstyled"
                             type="button"
-                            onClick={discardDraft}
+                            onClick={() => setDiscardOpen(true)}
                             disabled={uploadingImages.length > 0}
                             title={uploadingImages.length > 0 ? 'Bilder werden hochgeladen – bitte warten.' : 'Entwurf verwerfen'}
                             className="mt-0.5 min-h-11 shrink-0 text-[13px] font-semibold text-muted-foreground underline underline-offset-4 hover:text-destructive"
@@ -1596,6 +1607,29 @@ export default function CreateAd() {
                     </div>
                 </CardFooter>
             </Card>
+
+            <AlertDialog open={discardOpen} onOpenChange={setDiscardOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Entwurf verwerfen?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Deine Angaben und Bildverweise in diesem Entwurf werden gelöscht. Das lässt sich nicht rückgängig machen.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Behalten</AlertDialogCancel>
+                        <AlertDialogAction
+                            variant="destructive"
+                            onClick={() => {
+                                discardDraft();
+                                setDiscardOpen(false);
+                            }}
+                        >
+                            Entwurf verwerfen
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

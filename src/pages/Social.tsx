@@ -1,9 +1,9 @@
 
 
 import { useMemo, type ReactNode } from 'react';
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useReducedMotion } from 'motion/react';
-import { EyeOff, Heart, Inbox, MessageCircle, RotateCcw, Sparkles } from 'lucide-react';
+import { EyeOff, Heart, Inbox, RotateCcw, Sparkles } from 'lucide-react';
 import { DURATION, DISTANCE, EASE_OUT, m, STAGGER } from '../lib/motion';
 import { Button } from '../components/ui/button';
 import { EmptyState } from '../components/social/EmptyState';
@@ -193,14 +193,6 @@ export default function Social({ initialTab }: { initialTab?: InitialTab }) {
                     <h1 className="text-[28px] font-extrabold leading-tight tracking-[-0.03em] text-foreground">
                         {initialTab === 'requests' ? 'Anfragen' : initialTab === 'matches' ? 'Vorschläge' : initialTab === 'watchlist' ? 'Merkliste' : 'Social'}
                     </h1>
-                    <Link
-                        to="/chats"
-                        onClick={() => triggerHaptic('selection')}
-                        className="inline-flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-border bg-card px-4 text-sm font-semibold text-foreground shadow-soft transition-colors hover:bg-muted hover:text-foreground md:hidden"
-                    >
-                        <MessageCircle size={18} aria-hidden />
-                        <span>Chats</span>
-                    </Link>
                 </div>
                 <p className="mt-2 max-w-[65ch] text-[15px] leading-relaxed text-muted-foreground">
                     {initialTab === 'requests'

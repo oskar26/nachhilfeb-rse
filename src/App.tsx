@@ -68,7 +68,6 @@ function ToastRouteCleanup() {
   return null;
 }
 
-import { NewsPopupModal } from './components/NewsPopupModal';
 import { PushPrompt } from './components/PushPrompt';
 import BannedScreen from './components/BannedScreen';
 
@@ -176,7 +175,6 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
           <CookieBanner />
-          <NewsPopupModal />
           <PushPrompt />
           <Toaster closeButton />
         </HashRouter>

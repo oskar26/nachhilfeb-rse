@@ -244,10 +244,10 @@ export function createDefaultCoachingDocument(legacy: Record<string, string> = F
             {
                 id: 'foerderung',
                 type: 'support',
-                title: 'Förderunterricht Sek. I (1. HJ · 26/27)',
+                title: 'Förderunterricht Sek. I · Rückblick 1. HJ 26/27',
                 paragraphs: [
                     'Förderunterricht wird in den Jahrgangsstufen 5-10 in den Fächern Deutsch, Mathematik, Englisch und Latein erteilt. Die Entscheidung über eine Anmeldung liegt bei den Eltern.',
-                    'Kick-off am Mittwoch, 16.09., in der 7. Stunde in H408. Ab dem 21.09. läuft der Förderunterricht in der 7. Stunde in den Räumen um H402.',
+                    'Der Kick-off am Mittwoch, 16.09., und der Start am 21.09. sind abgeschlossen. Die Termine des ersten Halbjahres liegen hinter uns; neue Termine für das zweite Halbjahr werden rechtzeitig bekannt gegeben.',
                     'Nach der Anmeldung ist die Teilnahme verbindlich. Darüber hinaus ist eine freiwillige Teilnahme jederzeit möglich.',
                 ],
                 registrationText: 'Anmeldung verbindlich über:',

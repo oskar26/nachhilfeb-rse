@@ -212,29 +212,24 @@ describe('cross-layer contract guards', () => {
     expect(table).not.toContain('`icon`');
   });
 
-  it('routes both readers through the shared normalizer and no legacy dismissal key', () => {
-    const popupSource = readRepoFile('src/components/NewsPopupModal.tsx');
+  it('routes the remaining news readers through the shared normalizer and no legacy dismissal key', () => {
     const widgetSource = readRepoFile('src/components/CollapsedNewsWidget.tsx');
-
-    expect(popupSource).toContain('normalizeNewsList');
-    expect(popupSource).toContain('showNewsPopup');
-    expect(popupSource).toContain('markNewsRead');
-    expect(popupSource).toContain('hideNews');
-    expect(popupSource).not.toContain('dismissed_news_ids');
+    const quickMenuSource = readRepoFile('src/components/MobileQuickMenu.tsx');
 
     expect(widgetSource).toContain('normalizeNewsList');
     expect(widgetSource).toContain('getVisibleNews');
     expect(widgetSource).not.toContain('dismissed_news_ids');
+
+    expect(quickMenuSource).toContain('normalizeNewsList');
+    expect(quickMenuSource).not.toContain('dismissed_news_ids');
   });
 
-  it('keeps the deep link, event module, card preference, and PHP plain-text cleanup wired', () => {
-    const popupSource = readRepoFile('src/components/NewsPopupModal.tsx');
+  it('keeps the news archive deep link, event module, card preference, and PHP plain-text cleanup wired', () => {
     const preferencesSource = readRepoFile('src/components/news/NewsPreferences.tsx');
     const phpSource = readRepoFile('api/news.php');
     const adminSource = readRepoFile('src/pages/admin/AdminNews.tsx');
 
-    expect(popupSource).toContain("navigate('/settings?news=read')");
-    expect(popupSource).not.toContain("from './news/NewsPreferences'");
+    expect(readRepoFile('src/App.tsx')).not.toContain('NewsPopupModal');
     expect(preferencesSource).toContain('useSearchParams');
     expect(preferencesSource).toContain('isNewsCardEnabled');
     expect(preferencesSource).not.toContain('export const NEWS_STATE_EVENT');

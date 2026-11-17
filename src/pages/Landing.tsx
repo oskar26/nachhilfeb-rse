@@ -250,10 +250,10 @@ export default function Landing() {
                                 <div className="rounded-panel bg-pastel-blue p-6 text-pastel-blue-foreground sm:p-8">
                                     <span className="inline-flex rounded-full bg-white/80 px-3 py-1 text-xs font-bold">Empfehlung</span>
                                     <h2 id="vertrauen-titel" className="mt-4 text-2xl font-extrabold leading-tight tracking-[-0.03em] sm:text-3xl">
-                                        Ein Konto pro Kind.
+                                        Das Konto gehört dem Kind.
                                     </h2>
                                     <p className="mt-3 max-w-xl text-base leading-relaxed text-pastel-blue-foreground">
-                                        In den Klassen 5 und 6 betreuen viele Eltern mit, ältere nutzen die Börse selbstständig. Ein Konto, eine verifizierte Person – so bleibt klar, wer schreibt.
+                                        In den Klassen 5 und 6 nutzen viele es gemeinsam mit ihren Eltern; bei unter 16-Jährigen bestätigen Eltern die Einwilligung per E-Mail. Ältere nutzen die Börse selbstständig – ein Konto, eine verifizierte Person.
                                     </p>
                                     <Link
                                         to="/eltern-leitfaden"
@@ -306,7 +306,7 @@ export default function Landing() {
 
                 {/* VERIFIZIERUNG */}
                 <section id="so-funktioniert-es" className="scroll-mt-24 bg-background">
-                    <div className="mx-auto max-w-site px-4 pb-16 sm:px-6 sm:pb-24">
+                    <div className="mx-auto max-w-site px-4 pb-12 sm:px-6 sm:pb-20">
                         <Reveal>
                             <div className="overflow-hidden rounded-panel bg-pastel-mint p-6 text-pastel-mint-foreground shadow-card sm:p-10">
                                 <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -342,7 +342,7 @@ export default function Landing() {
 
                 {/* APP-RUNDGANG */}
                 <section id="brett" className="scroll-mt-24 bg-background">
-                    <div className="mx-auto max-w-site px-4 py-16 sm:px-6 sm:py-24">
+                    <div className="mx-auto max-w-site px-4 py-12 sm:px-6 sm:py-20">
                         <Reveal>
                             <div className="max-w-2xl">
                                 <h2 className="text-[2rem] font-extrabold leading-[1.06] tracking-[-0.035em] sm:text-[2.75rem]">
@@ -354,7 +354,7 @@ export default function Landing() {
                             </div>
                         </Reveal>
 
-                        <div className="mt-12 space-y-16 sm:mt-16 sm:space-y-24">
+                        <div className="mt-10 space-y-12 sm:mt-12 sm:space-y-16">
                             {[
                                 {
                                     title: 'Entdecken & Filtern',
@@ -389,13 +389,6 @@ export default function Landing() {
                                         <div className="min-w-0">
                                             <h3 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{row.title}</h3>
                                             <p className="mt-3 max-w-md text-base leading-relaxed text-muted-foreground">{row.text}</p>
-                                            <Link
-                                                to={registerZiel}
-                                                className="group mt-5 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-foreground transition-colors hover:text-muted-foreground"
-                                            >
-                                                {user ? 'In der App ansehen' : 'Kostenlos registrieren'}
-                                                <ArrowRight size={16} aria-hidden className="motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5" />
-                                            </Link>
                                         </div>
                                         <div className={cn('group rounded-panel p-5 shadow-soft sm:p-8', row.tone)}>
                                             <DeviceFrame
@@ -414,7 +407,7 @@ export default function Landing() {
 
                 {/* ZWEI WEGE */}
                 <section id="wege" className="scroll-mt-24 bg-background">
-                    <div className="mx-auto max-w-site px-4 py-16 sm:px-6 sm:py-24">
+                    <div className="mx-auto max-w-site px-4 py-12 sm:px-6 sm:py-20">
                         <Reveal>
                             <div className="max-w-2xl">
                                 <h2 className="text-[2rem] font-extrabold leading-[1.06] tracking-[-0.035em] sm:text-[2.75rem]">
@@ -493,7 +486,7 @@ export default function Landing() {
 
                 {/* ELTERN */}
                 <section id="eltern" className="scroll-mt-24 bg-background">
-                    <div className="mx-auto max-w-site px-4 py-16 sm:px-6 sm:py-24">
+                    <div className="mx-auto max-w-site px-4 py-12 sm:px-6 sm:py-20">
                         <Reveal>
                             <div className="max-w-2xl">
                                 <h2 className="text-[2rem] font-extrabold leading-[1.06] tracking-[-0.035em] sm:text-[2.75rem]">Für Eltern.</h2>
@@ -545,7 +538,7 @@ export default function Landing() {
 
                 {/* COACHING */}
                 <section id="coaching" className="scroll-mt-24 bg-background">
-                    <div className="mx-auto max-w-site px-4 py-16 sm:px-6 sm:py-24">
+                    <div className="mx-auto max-w-site px-4 py-12 sm:px-6 sm:py-20">
                         <Reveal>
                             <div className="rounded-panel bg-primary p-6 text-primary-foreground shadow-card sm:p-10">
                                 <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
@@ -585,7 +578,7 @@ export default function Landing() {
 
                 {/* FUNKTIONSWUNSCH — kurz genannt, ohne eigene Werbefläche. */}
                 <section id="funktionswunsch" className="scroll-mt-24 bg-background">
-                    <div className="mx-auto max-w-site px-4 pb-16 sm:px-6 sm:pb-24">
+                    <div className="mx-auto max-w-site px-4 pb-12 sm:px-6 sm:pb-20">
                         <Reveal>
                             <div className="group flex flex-col gap-5 rounded-panel border border-border bg-card p-6 shadow-soft motion-safe:transition-transform motion-safe:duration-300 motion-safe:hover:-translate-y-1 sm:flex-row sm:items-center sm:justify-between sm:p-8">
                                 <div className="flex items-start gap-4">
@@ -606,7 +599,7 @@ export default function Landing() {
                                         </button>
                                     ) : (
                                         <Link to={registerZiel} className={buttonVariants({ variant: 'outline' })}>
-                                            Konto erstellen
+                                            Registrieren &amp; Wunsch senden
                                         </Link>
                                     )}
                                     <a href="mailto:info@nachhilfe-sv.de?subject=Funktionswunsch" className={cn(buttonVariants({ variant: 'ghost' }), 'text-muted-foreground hover:text-foreground')}>
@@ -620,7 +613,7 @@ export default function Landing() {
 
                 {/* FAQ */}
                 <section id="faq" className="scroll-mt-24 bg-background">
-                    <div className="mx-auto max-w-site px-4 pb-16 sm:px-6 sm:pb-24">
+                    <div className="mx-auto max-w-site px-4 pb-12 sm:px-6 sm:pb-20">
                         <div className="rounded-panel border border-border bg-card p-6 shadow-soft sm:p-10">
                         <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
                             <Reveal>
@@ -738,6 +731,14 @@ export default function Landing() {
                                             </Link>
                                         </li>
                                     ))}
+                                    <li>
+                                        <a
+                                            href="/docs"
+                                            className="inline-flex min-h-11 items-center transition-colors hover:text-foreground"
+                                        >
+                                            Dokumentation
+                                        </a>
+                                    </li>
                                     <li>
                                         <button
                                             type="button"
